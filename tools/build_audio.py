@@ -483,7 +483,6 @@ MUSIC = {
     "ending": ("Almost Bliss", 115, 4.0, "fin : lumineux et apaisé, l'île qui se souvient"),
     "garden": ("Study And Relax", 115, 3.0, "jardin (mode libre) : studieux, sans tension"),
     # deuxième piste par saison (alternance d'une île à l'autre) et modes
-    "spring_2": ("Cloud Dancer", 115, 3.0, "printemps (variante) : aérien, nuages qui passent"),
     "summer_2": ("Pleasant Porridge", 115, 3.0, "été (variante) : chaleur tranquille, guitare douce"),
     "autumn_2": ("Leaving Home", 115, 3.0, "automne (variante) : départ, feuilles qui tombent"),
     "winter_2": ("Night Vigil", 115, 3.0, "hiver (variante) : veille nocturne, froid et calme"),

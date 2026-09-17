@@ -201,3 +201,5 @@ html.compact .panel > .guide-body, html.compact .panel > .credits-scroll, html.c
 html.compact .panel > .acts, html.compact .panel > .res-grid, html.compact .panel > .pause-controls { flex: 1 1 auto; min-height: 0; overflow: auto; max-height: none; -webkit-overflow-scrolling: touch; }
 html.compact .panel-actions { padding-top: 4px; }
 html.compact .panel .panel-actions .btn { min-height: 40px; }
+
+html.compact .hud-logpanel { z-index: 6; }

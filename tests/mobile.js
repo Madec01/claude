@@ -105,7 +105,8 @@ async function touchDrag(cdp, pts) {
     // vœux dépliés
     await page.tap('.wish-toggle'); await page.waitForTimeout(300); await page.screenshot({ path: path.join(OUT, `mobile-${tag}-wishes.png`) }); await page.tap('.wish-toggle');
     // pause
-    await page.tap('.hud-pause'); await page.waitForTimeout(500); await page.screenshot({ path: path.join(OUT, `mobile-${tag}-pause.png`) });
+    await page.tap('.hud-log'); await page.waitForTimeout(400); await page.screenshot({ path: path.join(OUT, `mobile-${tag}-log.png`) }); check(await page.evaluate(() => document.querySelectorAll('.log-item').length > 0), `${name} : journal des événements ouvert avec des entrées`); await page.tap('.log-close'); await page.waitForTimeout(200);
+    await page.tap('[data-ref="pause"]'); await page.waitForTimeout(500); await page.screenshot({ path: path.join(OUT, `mobile-${tag}-pause.png`) });
     check(await page.$('.panel-pause'), `${name} : pause ouverte au toucher`);
     await page.tap('.panel-pause .btn-primary'); await page.waitForTimeout(300);
     // bilan

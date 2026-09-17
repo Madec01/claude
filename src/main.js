@@ -51,7 +51,8 @@ resize();
 
 const SEASON_MUSIC = { spring: 'spring', summer: 'summer', autumn: 'autumn', winter: 'winter' };
 let musicSet = 0;   // 0 : pistes de base, 1 : variantes (_2) quand elles existent
-const seasonMusic = (season) => { const alt = `${SEASON_MUSIC[season]}_2`; return musicSet === 1 && AudioSys.has(alt, 'music') ? alt : SEASON_MUSIC[season]; };
+// le printemps garde toujours « Morning » (préférence du commanditaire) ; les autres saisons alternent entre deux pistes
+const seasonMusic = (season) => { const alt = `${SEASON_MUSIC[season]}_2`; return season !== 'spring' && musicSet === 1 && AudioSys.has(alt, 'music') ? alt : SEASON_MUSIC[season]; };
 
 const Game = {
   credits: null, fpsEl: null,
@@ -437,6 +438,7 @@ class IslandScene {
     if (k === 'Digit3' || k === 'Numpad3') this.hud.onSwap(2);
     if (k === 'KeyX') { if (this.mech.has('breath')) { if (isl.discard()) AudioSys.play('tile_discard', { volume: 0.6 }); } }
     if (k === 'KeyB') this.setBud(!this.budMode);
+    if (k === 'KeyJ') this.hud.toggleLog();
     if (k === 'KeyZ') { if (this.mech.has('breath') && isl.undo()) AudioSys.play('tile_undo', { volume: 0.6 }); }
     if (k === 'KeyP') { if (isl.toPocket()) AudioSys.play('tile_pocket', { volume: 0.6 }); else if (isl.queue.pocket.length) { isl.fromPocket(0); AudioSys.play('tile_pocket', { volume: 0.6 }); } }
     if (this.budMode && this.budTarget && (k === 'KeyF' || k === 'KeyV')) { if (isl.bud(this.budTarget.q, this.budTarget.r, k === 'KeyF' ? 'forest' : 'orchard')) this.setBud(false); }

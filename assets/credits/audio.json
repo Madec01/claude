@@ -98,18 +98,6 @@
       ]
     },
     {
-      "title": "Cloud Dancer",
-      "author": "Kevin MacLeod",
-      "license": "CC BY 4.0",
-      "license_url": "http://creativecommons.org/licenses/by/4.0/",
-      "source_url": "https://incompetech.com/music/royalty-free/index.html?keywords=Cloud+Dancer",
-      "mirror": "https://github.com/noobsandnerdsgroup/audio",
-      "attribution": "\"Cloud Dancer\" Kevin MacLeod (incompetech.com) — Licensed under Creative Commons: By Attribution 4.0 License — http://creativecommons.org/licenses/by/4.0/",
-      "used_in": [
-        "music/spring_2.ogg"
-      ]
-    },
-    {
       "title": "Pleasant Porridge",
       "author": "Kevin MacLeod",
       "license": "CC BY 4.0",

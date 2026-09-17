@@ -46,6 +46,7 @@ Une île se termine quand elle est pleine ou quand aucune pose n'est possible. L
 | Bourgeonner une prairie | `B`, puis `F` (forêt) ou `V` (verger) |
 | Annuler la dernière pose | `Z` |
 | Mettre en poche / reprendre | `P` |
+| Journal des événements | `J` (ou le bouton ⓘ en haut) |
 | Pause | `Échap` |
 | Couper le son | `M` |
 

@@ -80,16 +80,6 @@
       "attribution": "\"Study And Relax\" Kevin MacLeod (incompetech.com) — Licensed under Creative Commons: By Attribution 4.0 License — http://creativecommons.org/licenses/by/4.0/",
       "note": "jardin (mode libre) : studieux, sans tension"
     },
-    "spring_2": {
-      "file": "music/spring_2.ogg",
-      "duration": 107.666,
-      "loop": true,
-      "source": "Cloud Dancer",
-      "author": "Kevin MacLeod",
-      "license": "CC BY 4.0",
-      "attribution": "\"Cloud Dancer\" Kevin MacLeod (incompetech.com) — Licensed under Creative Commons: By Attribution 4.0 License — http://creativecommons.org/licenses/by/4.0/",
-      "note": "printemps (variante) : aérien, nuages qui passent"
-    },
     "summer_2": {
       "file": "music/summer_2.ogg",
       "duration": 72.604,

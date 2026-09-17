@@ -24,6 +24,7 @@ export class Hud {
         <div class="hud-block hud-breaths ${m.has('breath') ? '' : 'hidden'}" title="Souffles"><span class="hud-label">Souffles</span><b data-ref="breaths">0</b></div>
         <div class="hud-block hud-left-tiles"><span class="hud-label">Tuiles</span><b data-ref="left">0</b></div>
         <button class="hud-pause" data-ref="pause" title="Pause (Échap)">${icon('icon_pause')}</button>
+        <button class="hud-pause hud-log" data-ref="logBtn" title="Journal des événements (J)">${icon('icon_info')}<b class="log-badge hidden" data-ref="logBadge"></b></button>
         <button class="hud-pause hud-fs" data-ref="fs" title="Plein écran">${icon('icon_fullscreen')}</button>
       </div>
       <div class="hud-queue" data-ref="queue">
@@ -39,6 +40,7 @@ export class Hud {
       </div>
       <div class="hud-wishes ${island.wishes.length ? '' : 'hidden'} ${compact ? 'collapsed' : ''}" data-ref="wishes"><button class="wish-toggle" data-ref="wishToggle" title="Afficher les vœux">Vœux <b data-ref="wishCount"></b></button><div class="queue-title">Vœux</div><div class="wish-list" data-ref="wishList"></div></div>
       <button class="hud-place hidden" data-ref="placeBtn"></button>
+      <div class="hud-logpanel hidden" data-ref="logPanel"><div class="log-head"><span>Journal de l’île</span><button class="log-close" data-ref="logClose" title="Fermer">✕</button></div><div class="log-list" data-ref="logList"></div></div>
       <div class="hud-fauna" data-ref="fauna"></div>
       <div class="hud-notify" data-ref="notify"></div>
       <div class="hud-bud-hint hidden" data-ref="budHint"><span data-ref="budText">Choisis une prairie à transformer</span><button data-ref="budForest" title="Touche F">Forêt</button><button data-ref="budOrchard" title="Touche V">Verger</button><button data-ref="budCancel" title="Échap">Annuler</button></div>
@@ -50,6 +52,9 @@ export class Hud {
     this.r.pwBud.addEventListener('click', (e) => { e.stopPropagation(); onBud(); });
     this.r.pwUndo.addEventListener('click', (e) => { e.stopPropagation(); onUndo(); });
     this.r.fs.addEventListener('click', (e) => { e.stopPropagation(); onFullscreen && onFullscreen(); });
+    this.log = []; this.unread = 0;
+    this.r.logBtn.addEventListener('click', (e) => { e.stopPropagation(); this.toggleLog(); });
+    this.r.logClose.addEventListener('click', (e) => { e.stopPropagation(); this.toggleLog(false); });
     this.r.placeBtn.addEventListener('click', (e) => { e.stopPropagation(); onPlace && onPlace(); });
     this.r.wishToggle.addEventListener('click', (e) => { e.stopPropagation(); this.r.wishes.classList.toggle('collapsed'); });
     this.r.budForest.addEventListener('click', (e) => { e.stopPropagation(); onBudChoice && onBudChoice('forest'); });
@@ -124,8 +129,27 @@ export class Hud {
   notify(text, kind = 'info') {
     const el = document.createElement('div'); el.className = `hud-note ${kind}`; el.textContent = text;
     this.r.notify.appendChild(el);
-    setTimeout(() => el.remove(), 3400);
+    const life = kind === 'season' || kind === 'gold' || kind === 'rare' || kind === 'wish' ? 6000 : 4200;
+    setTimeout(() => el.remove(), life);
     while (this.r.notify.children.length > 4) this.r.notify.firstChild.remove();
+    // journal consultable
+    const isl = this.isl; const s = STORY.seasons[isl.season] || { name: isl.season };
+    this.log.push({ text, kind, when: `${s.name} · pose ${isl.placements}` });
+    if (this.log.length > 200) this.log.shift();
+    if (this.r.logPanel.classList.contains('hidden')) { this.unread++; this.r.logBadge.textContent = this.unread > 99 ? '99+' : String(this.unread); this.r.logBadge.classList.remove('hidden'); }
+    else this.renderLog();
+  }
+
+  toggleLog(force) {
+    const open = force !== undefined ? force : this.r.logPanel.classList.contains('hidden');
+    this.r.logPanel.classList.toggle('hidden', !open);
+    this.r.logBtn.classList.toggle('active', open);
+    if (open) { this.unread = 0; this.r.logBadge.classList.add('hidden'); this.renderLog(); }
+  }
+
+  renderLog() {
+    const list = this.r.logList;
+    list.innerHTML = this.log.length ? this.log.slice().reverse().map((n) => `<div class="log-item ${n.kind}"><span class="log-when">${n.when}</span><span class="log-text">${n.text}</span></div>`).join('') : '<div class="log-empty">Rien encore. Les événements de l’île s’inscriront ici.</div>';
   }
 
   setBudMode(on, hasTarget = false) {
