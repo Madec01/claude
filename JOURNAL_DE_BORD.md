@@ -145,11 +145,11 @@ Les mécaniques sont introduites progressivement (une nouveauté par nuit maximu
 | Guidé / sûr | `#7bd389` |
 | Accent (Éclats) | `#f2b134` |
 
-### 3.2 Polices (Google Fonts, licence SIL OFL 1.1, auto-hébergées)
+### 3.2 Polices (Google Fonts, auto-hébergées en WOFF2)
 
 - **IM Fell English** (titres, 1893 oblige) ;
 - **Cormorant Garamond** (corps de texte, HUD) ;
-- **Homemade Apple** (écriture manuscrite des pages de journal).
+- **Homemade Apple** (écriture manuscrite des pages de journal) — attention : cette police est sous **Apache License 2.0** (dossier `apache/` de google/fonts), pas OFL.
 
 ### 3.3 Banques d'assets utilisées (toutes vérifiées)
 
@@ -167,7 +167,7 @@ Le proxy réseau de cette session bloque les sites des banques (kenney.nl, openg
 | Ambiances : vagues, vent, orage, pluie (enregistrements de terrain, boucles) | freesound.org (CC0) | SecureSubset, felix.blume, Sheyvan, richwise | CC0 1.0 | github.com/funcoder/omarchy-ambient (`sounds/`, CREDITS.md) |
 | SFX : éclaboussures, cloche, papier, bois qui craque, créature, tonnerre | opengameart.org (packs « 100 CC0 SFX », « 80 CC0 creature SFX », « 40 CC0 water/splash », etc.) | rubberduck et autres (voir `_README` de chaque pack) | CC0 1.0 | github.com/lavenderdotpet/CC0-Public-Domain-Sounds |
 | Samples d'instruments (corne de brume construite à partir de vrais samples de tuba / cor, si aucun enregistrement de corne n'est disponible) | FluidR3_GM (soundfont) | Frank Wen | CC BY 3.0 | github.com/gleitz/midi-js-soundfonts |
-| Polices | fonts.google.com | Igino Marini (IM Fell), Christian Thalmann (Cormorant), Font Diner (Homemade Apple) | SIL OFL 1.1 | fonts.googleapis.com (accessible) |
+| Polices | fonts.google.com | Igino Marini (IM Fell English), Christian Thalmann (Cormorant Garamond), Font Diner (Homemade Apple) | SIL OFL 1.1 (IM Fell, Cormorant) ; Apache 2.0 (Homemade Apple) | fonts.googleapis.com / fonts.gstatic.com (accessibles) |
 
 ### 3.4 Plan audio
 
@@ -281,6 +281,9 @@ Le proxy réseau de cette session bloque les sites des banques (kenney.nl, openg
 | 2026-09-17 | 12 nuits en 3 actes + Veille infinie | 20 niveaux courts ; 6 longues nuits | Une mécanique par nuit sans noyer le joueur ; campagne d'une heure ; rejouabilité par étoiles et mode infini |
 | 2026-09-17 | Faisceau qui suit le curseur (pas de « clic pour viser ») | Faisceau en rotation automatique + clic pour arrêter | Le geste continu est le plaisir principal ; tracer une route sous la lumière que l'on déplace crée une synergie naturelle |
 | 2026-09-17 | Mode test dans les options | Paramètre d'URL caché | Demande explicite ; utile à la QA et à la démonstration |
+| 2026-09-17 | Collision navire-navire = dégât (3 dégâts = naufrage), collision écueil/terre = naufrage immédiat | Tout en dégâts ; tout en naufrage immédiat | Règle lisible (« un écueil coule ») tout en donnant du sens à l'ancre et à la corne (éviter les abordages) ; les états de coque du Pirate Pack sont ainsi utilisés |
+| 2026-09-17 | Un navire coulé devient une épave-obstacle relevée | Disparition simple | Conséquence émergente : une erreur change la carte pour le reste de la nuit, ce qui récompense la prudence |
+| 2026-09-17 | Bot de QA (`tests/autoplay.js`) qui joue toute la campagne avec un pathfinding sur grille | Tests unitaires purs | Le jeu est temps réel et visuel : un parcours complet automatisé détecte les erreurs d'enchaînement et donne une référence d'équilibrage (« un joueur compétent doit gagner ») |
 
 ---
 
@@ -304,6 +307,10 @@ Le proxy réseau de cette session bloque les sites des banques (kenney.nl, openg
 | 2026-09-17 | 0 | Lead | Reformulation, plan d'équipe, validation du commanditaire (français exclusif, GitHub Pages géré par lui, menu d'accueil complet avec mode test) | — | — |
 | 2026-09-17 | 1 | Lead | Audit du réseau : sites des banques bloqués, `raw.githubusercontent.com`, `registry.npmjs.org`, `pypi.org`, `fonts.googleapis.com` accessibles. Clone partiel des miroirs Kenney (`ETdoFresh/kenney.nl`), Kevin MacLeod (`noobsandnerdsgroup/audio`), ambiances CC0 (`funcoder/omarchy-ambient`), SFX CC0 (`lavenderdotpet/CC0-Public-Domain-Sounds`). Installation de `numpy`, `Pillow`, `imageio-ffmpeg` (ffmpeg statique avec libvorbis) pour le pipeline. | Accès HTTP vérifié, licences lues | — |
 | 2026-09-17 | 1 | Lead | Rédaction de ce journal : vision, GDD, DA, architecture, décisions | — | Phase 2 |
+| 2026-09-17 | 3b | Narration | `src/data/story.js` : prologue (5 écrans), 12 nuits (titre, journal, briefing, tutoriels aux ids imposés, outros), 20 pages de Yann, fin (7 écrans), épilogue, Veille infinie, phrases de défaite | `node --check`, import ES, longueurs max, typographie | Relecture finale en phase 5 |
+| 2026-09-17 | 3a | DA & assets | `tools/build_images.py`, `tools/fetch_fonts.py` : 389 sprites découpés/optimisés (navires 6 couleurs × 4 états, chaloupes, 97 tuiles, 73 effets, 91 éléments UI, 31 faune), 7 WOFF2, `assets/img/manifest.json`, `assets/credits/images.json`, `assets/credits/fonts.json`, `css/fonts.css` | 389/389 images ouvertes par Pillow, 0 orphelin, licences CC0 lues pack par pack | — |
+| 2026-09-17 | 2 | Lead | Moteur et boucle centrale : `src/core/*` (boucle à pas fixe, entrées, chargeur, audio Web Audio, sauvegarde, scènes, particules, tremblement), `src/game/*` (nuit, navires, faisceau, écueils/marée, météo, corne, pages, Bête, tracé de routes, quai, effets, rendu multi-couches avec brouillard percé, HUD, tutoriel), `src/data/*` (équilibrage, 3 cartes, 12 nuits + infini, atelier), `src/ui/*` (menu, options, crédits, narration, résultats, atelier, pause), `src/main.js` (flux de campagne) | Playwright : chargement sans erreur JS, nuit 1 jouable (faisceau, tracé, quai, corne, pause), enchaînement nuit → résultats → outro → atelier vérifié sur les nuits 1-4 | Audio (agent en cours), UI (agent en cours), équilibrage |
+| 2026-09-17 | 2 | Lead | Rendu : brouillard en demi-résolution (coût ÷5), faisceau volumétrique dessiné au-dessus de la brume, teinte nuit plus sombre, rochers assombris ; correction `h()` (nombres) et robustesse de `SceneManager.go` (une scène qui plante ne bloque plus les transitions) | Profil Playwright : `drawFog` 55 ms → 11 ms (rendu logiciel) | — |
 
 ---
 
@@ -314,3 +321,6 @@ Le proxy réseau de cette session bloque les sites des banques (kenney.nl, openg
 | Sites des banques d'assets bloqués par le proxy réseau (403 CONNECT) | Utilisation des miroirs GitHub officiels ou communautaires des mêmes packs CC0/CC-BY, avec licence embarquée ; clone partiel (`--filter=blob:none --sparse`) pour ne télécharger que les packs utiles |
 | Pas de `ffmpeg` système | `pip install imageio-ffmpeg` fournit un binaire statique avec libvorbis/libopus/libmp3lame |
 | Aucune corne de brume enregistrée dans les banques accessibles | Plan : montage à partir de samples d'instruments réels (FluidR3_GM, CC BY 3.0) — cuivres graves superposés, réverbération. Revalidé en phase audio. |
+| Le Pirate Pack n'a pas de vraies versions Retina des navires (66×113 px) et aucun rasteriseur SVG n'est disponible | Navires affichés à leur taille native (cotre 66 px, trois-mâts 98 px, chaloupe 40 px) ; qualité suffisante à 1280×720. Le SVG source est conservé comme piste si un rasteriseur devient disponible. |
+| Les tuiles d'île Kenney sont carrées (grille) : impossible de dessiner des côtes organiques en posant des tuiles | Les terres sont des unions de cercles ; le rendu découpe (clip) la texture `sand_full`/`grass_full` dans ces formes et ajoute écume et liseré : style Kenney conservé, côtes libres |
+| Rendu logiciel (Playwright headless) très lent sur le brouillard (46 nappes plein écran + filtre CSS) | Brouillard rendu en demi-résolution, 30 nappes, nappes de la Bête pré-assombries hors ligne (plus de `ctx.filter`) |
