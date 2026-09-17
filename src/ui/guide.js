@@ -5,6 +5,7 @@ import { FAMILIES, RARE, RARE_AS, FAMILY_FROM, RARE_LATE, SEASONS, affinity } fr
 import { BALANCE } from '../data/balance.js';
 import { UPGRADES } from '../data/upgrades.js';
 import { STORY } from '../data/story.js';
+import { SEASON_RULES } from '../game/seasonrules.js';
 import { AudioSys } from '../core/audio.js';
 
 const B = BALANCE;
@@ -35,7 +36,8 @@ const TABS = {
   ) },
   seasons: { label: 'Saisons', build: () => h('div', {},
     h('p', { class: 'g-intro' }, 'La ligne de saison, en haut de l’écran, se remplit à chaque pose. Quand elle est pleine, la saison change et une règle avec elle. Chaque île traverse les quatre saisons, parfois plusieurs fois.'),
-    h('div', { class: 'g-grid' }, ...SEASONS.map((s) => { const st = STORY.seasons[s]; return h('div', { class: `g-card season-${s}` }, h('span', { class: 'g-sicon' }, icon(SEASON_ICON[s])), h('div', {}, h('h4', {}, st.name), h('p', { class: 'g-voice' }, st.line), h('p', {}, st.rule))); })),
+    h('div', { class: 'g-grid' }, ...SEASONS.map((s) => { const st = STORY.seasons[s]; return h('div', { class: `g-card season-${s}` }, h('span', { class: 'g-sicon' }, icon(SEASON_ICON[s])), h('div', {}, h('h4', {}, st.name), h('p', { class: 'g-voice' }, st.line), ...SEASON_RULES[s].map((k, i) => { const r = STORY.seasonRules[k]; return h('p', {}, h('b', {}, r.name + (i === 0 ? ' (de base)' : '') + ' : '), r.rule); }))); })),
+    h('p', { class: 'g-note' }, 'Dès l’île 4, la règle de chaque saison est tirée parmi ces trois variantes à chaque fois que la saison arrive (les îles 1 à 3 gardent les règles de base). La règle en cours est affichée dans la boîte de saison et rappelée dans le journal.'),
     h('h3', {}, icon('icon_cloud'), 'Météo'),
     h('p', { class: 'g-intro' }, 'Dès l’île 4, un événement peut être annoncé au début d’une saison ; il se déclenche à la mi-saison et dure jusqu’à la suivante.'),
     h('div', { class: 'g-grid' }, ...Object.keys(STORY.weather).map((k) => { const w = STORY.weather[k]; return h('div', { class: 'g-card' }, h('span', { class: 'g-sicon' }, icon(SEASON_ICON[(k === 'storm' ? 'spring' : k === 'heat' ? 'summer' : k === 'wind' ? 'autumn' : 'winter')])), h('div', {}, h('h4', {}, w.name), h('p', {}, w.rule), h('p', { class: 'g-voice' }, w.announce))); })),

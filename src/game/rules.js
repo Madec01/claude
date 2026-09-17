@@ -10,15 +10,18 @@ const P = BALANCE.points;
 function active(tile) { return !(tile.dry); }
 
 /** Points d'un bord entre la tuile posée et un voisin, selon la saison. */
-function edgePoints(tile, other, season) {
+function edgePoints(tile, other, season, rule = null) {
   if (!active(other) && !tile.rare) { if (Board.isFamily(other, 'meadow')) return { pts: 0, label: 'sèche' }; }
   const fa = Board.familiesOf(tile), fb = Board.familiesOf(other);
   let best = 0, bestKey = null;
   for (const x of fa) for (const y of fb) {
-    if (season === 'winter' && ((x === 'field' && y === 'hamlet') || (x === 'hamlet' && y === 'field')) && tile.family !== 'granary' && other.family !== 'granary') continue; // champs dormants (sauf grenier)
+    if (season === 'winter' && rule !== 'doux' && ((x === 'field' && y === 'hamlet') || (x === 'hamlet' && y === 'field')) && tile.family !== 'granary' && other.family !== 'granary') continue; // champs dormants (sauf grenier, sauf hiver doux)
     const v = affinity(x, y);
     if (Math.abs(v) > Math.abs(best)) { best = v; bestKey = pairKey(x, y); }
   }
+  // règles de saison : semailles (champ posé contre un hameau +2), nichées (prairie posée contre une forêt +1)
+  if (rule === 'semailles' && ((fa.includes('field') && fb.includes('hamlet')) || (fa.includes('hamlet') && fb.includes('field')))) best += 2;
+  if (rule === 'nichees' && fa.includes('meadow') && fb.includes('forest')) best += 1;
   // été : champ irrigué
   if (season === 'summer' && ((fa.includes('field') && fb.includes('water')) || (fa.includes('water') && fb.includes('field')))) best += P.summerIrrigation;
   // chapelle : tous les bords +1 en hiver
@@ -43,7 +46,7 @@ export function preview(board, q, r, tile, season, mods = {}) {
   DIRS.forEach(([dq, dr], d) => {
     const n = board.get(q + dq, r + dr);
     if (!n) return;
-    const e = edgePoints(tile, n, season);
+    const e = edgePoints(tile, n, season, mods.rule || null);
     if (e.pts !== 0) { edges.push({ d, q: q + dq, r: r + dr, pts: e.pts, label: e.label }); total += e.pts; }
   });
   // simulation de la pose pour rivières et fermetures
@@ -54,8 +57,10 @@ export function preview(board, q, r, tile, season, mods = {}) {
     if (board.isRiver(reg)) { river = { pts: P.river + (mods.river || 0) + (season === 'spring' ? P.springWater : 0), len: reg.size }; }
     else river = { pts: P.pond + (season === 'spring' ? P.springWater : 0), len: reg.size, pond: true };
     if (river.pts) { base.push({ pts: river.pts, label: river.pond ? 'mare' : 'rivière' }); total += river.pts; }
+    if (mods.rule === 'chaleurs') { base.push({ pts: 2, label: 'fraîcheur' }); total += 2; }
   }
   if (mods.wind && (Board.isFamily(placed, 'forest') || Board.isFamily(placed, 'orchard'))) { base.push({ pts: 1, label: 'vent' }); total += 1; }
+  if (mods.rule === 'feux' && Board.isFamily(placed, 'forest') && neighbors(q, r).some(([a, b]) => Board.isFamily(board.get(a, b), 'water'))) { base.push({ pts: 2, label: 'pare-feu' }); total += 2; }
   const closes = closedRegionsAround(board, q, r);
   for (const c of closes) total += c.bonus;
   board.remove(q, r);

@@ -349,9 +349,9 @@ class IslandScene {
       AudioSys.play(`season_${e.to}`, { volume: 0.8 }); AudioSys.play('season_sweep', { volume: 0.5 });
       this.seasonCount[e.to] = (this.seasonCount[e.to] || 0) + 1;
       if (!this.def.daily) AudioSys.playMusic(seasonMusic(e.to, this.seasonCount[e.to]), { fade: 3 });
-      const s = STORY.seasons[e.to];
-      this.hud.notify(`${s.name} — ${s.line}`, 'season');
-      setTimeout(() => this.hud.notify(`Règle : ${s.rule}`, 'info'), 600);
+      const s = STORY.seasons[e.to]; const rl = e.rule && STORY.seasonRules[e.rule] ? STORY.seasonRules[e.rule] : null;
+      this.hud.notify(`${s.name}${rl && isl.rulesVariable ? ` · ${rl.name}` : ''} — ${rl ? rl.line : s.line}`, 'season');
+      setTimeout(() => this.hud.notify(`Règle : ${rl ? rl.rule : s.rule}`, 'info'), 600);
       if (e.pts) setTimeout(() => this.hud.notify(`Saison : +${e.pts} points${e.faunaBonus ? `, +${e.faunaBonus} souffle${e.faunaBonus > 1 ? 's' : ''} (faune)` : ''}${e.links ? `, ${e.links} sentier${e.links > 1 ? 's' : ''}` : ''}`, 'good'), 900);
       let i = 0;
       for (const ev of e.events) { if (!ev.pts) continue; const w = toWorld(ev.q, ev.r); setTimeout(() => fx.floatText(w.x, w.y - 10, `+${ev.pts}`, '#e0a33a', 18, 1.2), 400 + 70 * i++); }
@@ -361,7 +361,7 @@ class IslandScene {
       const k = `${e.species}@${e.regionId}`;
       const w = toWorld(e.q, e.r);
       const s = STORY.fauna[e.species] || { name: e.species, arrive: '', leave: '' };
-      if (e.kind === 'arrive') { fx.fauna(k, 'arrive'); fx.faunaBurst(w.x, w.y - 20); AudioSys.play('fauna_arrive', { volume: 0.6 }); setTimeout(() => AudioSys.play(AudioSys.has(`fauna_${e.species}`) ? `fauna_${e.species}` : 'fauna_rabbit', { volume: 0.5 }), 250); this.hud.notify(`${s.name} : ${s.arrive}`, 'fauna'); }
+      if (e.kind === 'arrive') { fx.fauna(k, 'arrive'); fx.faunaBurst(w.x, w.y - 20); if (e.bonus) setTimeout(() => fx.floatText(w.x, w.y - 50, `+${e.bonus} nichée`, '#e0a33a', 20, 1.4), 300); AudioSys.play('fauna_arrive', { volume: 0.6 }); setTimeout(() => AudioSys.play(AudioSys.has(`fauna_${e.species}`) ? `fauna_${e.species}` : 'fauna_rabbit', { volume: 0.5 }), 250); this.hud.notify(`${s.name} : ${s.arrive}`, 'fauna'); }
       else { const an = { t: 0, kind: 'leave', info: e }; fx.faunaAnim.set(k, an); AudioSys.play('fauna_leave', { volume: 0.5 }); this.hud.notify(`${s.name} : ${s.leave}`, 'warn'); }
       this.tutorial.onEvent('fauna');
     } else if (e.type === 'wish') {

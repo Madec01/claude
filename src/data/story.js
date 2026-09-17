@@ -557,6 +557,21 @@ export const STORY = {
     ],
   },
 
+  seasonRules: {
+    crue: { name: 'Crue', line: 'L’eau court partout. Le marais fleurit là où elle passe.', rule: 'Les marais fleurissent (+2 chacun), la lande aussi (+1), et chaque tuile d’eau posée rapporte +1.' },
+    semailles: { name: 'Semailles', line: 'On sème vite, on sème près des maisons. Les vergers plantés maintenant se souviendront de l’automne.', rule: 'Chaque champ posé contre un hameau rapporte +2 de plus ; les vergers posés ce printemps donneront une récolte double à l’automne.' },
+    nichees: { name: 'Nichées', line: 'Sous chaque haie, quelque chose est né cette nuit.', rule: 'Chaque animal qui arrive ce printemps rapporte +3 aussitôt ; une prairie posée contre une forêt vaut +1.' },
+    secheresse: { name: 'Sécheresse', line: 'Le ciel ne bouge plus. Les prairies retiennent leur souffle.', rule: 'Une prairie sans eau, forêt, marais ni lande voisine sèche ; un champ qui touche l’eau rapporte +1.' },
+    chaleurs: { name: 'Grandes chaleurs', line: 'Tout le monde cherche l’ombre et le bord de l’eau.', rule: 'Rien ne sèche, et chaque tuile d’eau posée rapporte +2 de plus ; mais une prairie collée à un marais privé d’eau sèche quand même.' },
+    feux: { name: 'Feux de broussaille', line: 'L’herbe sèche craque. Les bêtes des bois s’en vont avant la fumée.', rule: 'Les prairies sèchent comme d’habitude ; une forêt qui touche deux prairies sèches perd ses animaux jusqu’à l’automne ; une forêt posée près de l’eau rapporte +2.' },
+    recolte: { name: 'Récolte', line: 'Les vergers plient. Les forêts rougissent. Tout se donne avant de se taire.', rule: 'Chaque paire verger-hameau rapporte +2.' },
+    foire: { name: 'Grande foire', line: 'On dresse les étals sur la place. Tout ce qui pousse autour se vend.', rule: 'Chaque bourg (hameau clos) rapporte +1 par champ, verger ou moulin voisin ; les vergers seuls ne rapportent rien cet automne.' },
+    chasse: { name: 'Chasse et cueillette', line: 'On rentre du bois avec les paniers pleins et les mains rouges de mûres.', rule: 'Chaque forêt qui touche un hameau rapporte +2 ; chaque animal des forêts rapportera +2 à la prochaine saison.' },
+    veillee: { name: 'Veillée', line: 'La rivière s’arrête pour écouter. On marche dessus.', rule: 'L’eau gèle : +3 par paire de hameaux reliés par la glace ; les champs dorment (plus de bonus champ-hameau).' },
+    froid: { name: 'Grand froid', line: 'On ne sort plus. On compte les bûches.', rule: 'L’eau gèle, pas de veillée ; un hameau sans forêt voisine perd 2 points, chaque forêt qui touche un hameau en rapporte 2 ; les champs dorment.' },
+    doux: { name: 'Hiver doux', line: 'Pas de glace cette année. Les canards n’en reviennent pas.', rule: 'L’eau ne gèle pas, pas de veillée ; les champs continuent de rapporter avec les hameaux et chaque marais qui touche l’eau rapporte +1.' },
+  },
+
   weather: {
     storm: { name: 'Orage', announce: 'Le ciel se charge. Les rivières attendent la pluie.', line: 'L’orage éclate. L’eau court partout et les rivières débordent de joie.', rule: 'Chaque tuile de rivière posée rapporte +2 de plus.' },
     heat: { name: 'Canicule', announce: 'L’air tremble déjà. Les prairies isolées vont souffrir.', line: 'La canicule s’installe. L’herbe jaunit loin de l’eau.', rule: 'Une prairie ne reste verte que si elle touche l’eau, un puits, une fontaine, un abreuvoir ou une lande.' },

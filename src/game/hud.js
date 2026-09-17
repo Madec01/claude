@@ -87,7 +87,9 @@ export class Hud {
   toggleSeasonPop(force) {
     const pop = this.r.seasonPop; const open = force !== undefined ? force : pop.classList.contains('hidden');
     if (open) {
-      const isl = this.isl; const s = STORY.seasons[isl.season] || { name: isl.season, line: '', rule: '' };
+      const isl = this.isl; const s0 = STORY.seasons[isl.season] || { name: isl.season, line: '', rule: '' };
+      const rl = isl.rule && STORY.seasonRules[isl.rule] ? STORY.seasonRules[isl.rule] : null;
+      const s = rl ? { name: isl.rulesVariable ? `${s0.name} · ${rl.name}` : s0.name, line: rl.line, rule: rl.rule } : s0;
       const w = isl.weather; const wt = w ? (STORY.weather[w.key] || {}) : null;
       pop.innerHTML = `<b>${s.name}</b><em>${s.line}</em><span>${s.rule}</span>${wt ? `<span class="pop-weather">${wt.name}${w.phase === 'active' ? ' (en cours)' : ` dans ${Math.max(0, w.at - isl.inSeason)} pose${w.at - isl.inSeason > 1 ? 's' : ''}`} : ${wt.rule}</span>` : ''}<i>Toucher pour fermer</i>`;
       clearTimeout(this._popT); this._popT = setTimeout(() => this.toggleSeasonPop(false), 9000);
@@ -207,7 +209,8 @@ export class Hud {
   update() {
     const isl = this.isl, r = this.r;
     const s = STORY.seasons[isl.season] || { name: isl.season, rule: '' };
-    this.set('seasonName', s.name); this.set('seasonRule', s.rule);
+    const rl = isl.rule && STORY.seasonRules[isl.rule] ? STORY.seasonRules[isl.rule] : null;
+    this.set('seasonName', rl && isl.rulesVariable ? `${s.name} · ${rl.name}` : s.name); this.set('seasonRule', rl ? rl.rule : s.rule);
     if (this.last.seasonKey !== isl.season) { this.last.seasonKey = isl.season; r.seasonIcon.innerHTML = icon(SEASON_ICON[isl.season] || 'icon_leaf'); r.seasonBox.className = `hud-block hud-season s-${isl.season}`; }
     // pips
     const pipHtml = isl.garden ? '' : Array.from({ length: isl.seasonLength }, (_, i) => `<i class="${i < isl.inSeason ? 'on' : ''}"></i>`).join('');

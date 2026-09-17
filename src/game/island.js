@@ -10,6 +10,7 @@ import { generateMask } from '../data/islands.js';
 import { BALANCE } from '../data/balance.js';
 import { computeLinks } from './paths.js';
 import { pickWeather } from './weather.js';
+import { pickRule, BASE_RULE } from './seasonrules.js';
 import { RNG } from '../core/math.js';
 import { key, neighbors } from './hex.js';
 
@@ -63,6 +64,9 @@ export class Island {
     this.weatherOn = !!def.weather || this.infinite || (typeof def.id === 'number' && def.id >= 4);
     this.weather = null;          // { key, phase: 'announced' | 'active', at }
     this.windSeason = false;      // grand vent actif pendant la saison écoulée → prime des moulins
+    this.huntSeason = false;      // chasse et cueillette : les animaux des forêts rapportent +2 à la saison suivante
+    this.rulesVariable = !!def.weather || this.infinite || (typeof def.id === 'number' && def.id >= 4);
+    this.rule = this.garden ? BASE_RULE[this.season] : pickRule(this.season, () => this.rng.next(), this.rulesVariable);
     this.freeChoice = 0;          // marché : nombre de poses où l'on choisit sa tuile
     this.scheduleWeather(0.5);
     this.updateFauna();
@@ -71,7 +75,7 @@ export class Island {
   /** Modificateurs de règles (améliorations + météo active). */
   get mods() {
     const w = this.weather && this.weather.phase === 'active' ? this.weather.key : null;
-    return { river: this.baseMods.river + (w === 'storm' ? BALANCE.points.stormRiver : 0), refuge: this.baseMods.refuge, wind: w === 'wind' };
+    return { river: this.baseMods.river + (w === 'storm' ? BALANCE.points.stormRiver : 0), refuge: this.baseMods.refuge, wind: w === 'wind', rule: this.rule };
   }
   weatherActive(key) { return !!this.weather && this.weather.phase === 'active' && (!key || this.weather.key === key); }
 
@@ -134,6 +138,7 @@ export class Island {
     }
     const res = apply(this.board, q, r, placedTile, this.season, this.mods);
     if (restoredTo) res.restoredTo = restoredTo;
+    if (this.rule === 'semailles' && Board.isFamily(placedTile, 'orchard')) { const pt = this.board.get(q, r); if (pt) pt.sown = true; }
     if (this.freeChoice > 0) this.freeChoice--;
     if (tile.rare && tile.family === 'market') { this.freeChoice += 3; }
     this.placements++; this.inSeason++;
@@ -161,9 +166,14 @@ export class Island {
     this.inSeason = 0;
     this.stats.closedThisSeason = 0;
     this.undoUsedThisSeason = false;
-    const ev = transition(this.board, this.season);
+    const prevRule = this.rule;
+    this.rule = this.garden ? BASE_RULE[this.season] : pickRule(this.season, () => this.rng.next(), this.rulesVariable);
+    const ev = transition(this.board, this.season, this.rule);
     this.board.touch();
     let pts = 0;
+    // chasse et cueillette : les animaux des forêts de la saison écoulée rapportent +2
+    if (this.huntSeason) { this.huntSeason = false; for (const a of this.fauna.values()) if (a.species === 'moose' || a.species === 'bear' || a.species === 'owl') { ev.push({ type: 'hunt', q: a.q, r: a.r, pts: 2 }); } }
+    if (this.rule === 'chasse') this.huntSeason = true;
     // sentiers : chaque liaison entre deux villages rapporte des points
     const links = computeLinks(this.board).links.length;
     this.stats.links = Math.max(this.stats.links, links);
@@ -184,7 +194,7 @@ export class Island {
     pts += faunaBonus * (BALANCE.points.faunaSeason + this.mods.refuge);
     this.breaths += faunaBonus * BALANCE.breaths.faunaSeason;
     this.score += pts;
-    this.emit({ type: 'season', from, to: this.season, events: ev, pts, faunaBonus, links });
+    this.emit({ type: 'season', from, to: this.season, events: ev, pts, faunaBonus, links, rule: this.rule, prevRule });
     this.updateFauna();
     this.checkWishes();
     this.scheduleWeather();
@@ -198,11 +208,12 @@ export class Island {
   }
 
   updateFauna() {
-    const expected = evalFauna(this.board, this.season);
+    const expected = evalFauna(this.board, this.season, this.rule);
     const { arrivals, departures, current } = reconcile(this.fauna, expected);
+    const first = this.fauna.size === 0 && this.placements === 0;
     this.fauna = current;
     this.stats.faunaMax = Math.max(this.stats.faunaMax, this.fauna.size);
-    for (const a of arrivals) this.emit({ type: 'fauna', kind: 'arrive', ...a });
+    for (const a of arrivals) { let bonus = 0; if (this.rule === 'nichees' && this.season === 'spring' && !first) { bonus = 3; this.score += 3; } this.emit({ type: 'fauna', kind: 'arrive', ...a, bonus }); }
     for (const d of departures) this.emit({ type: 'fauna', kind: 'leave', ...d });
   }
 
@@ -250,7 +261,7 @@ export class Island {
   undo() {
     if (!this.canUndo()) return false;
     const s = this.history.pop();
-    this.board.restore(s.board); this.queue.restore(s.queue); this.weather = s.weather ? { ...s.weather } : null; this.windSeason = !!s.windSeason; this.freeChoice = s.freeChoice || 0;
+    this.board.restore(s.board); this.queue.restore(s.queue); this.weather = s.weather ? { ...s.weather } : null; this.windSeason = !!s.windSeason; this.freeChoice = s.freeChoice || 0; this.rule = s.rule || this.rule; this.huntSeason = !!s.huntSeason;
     this.score = s.score; this.placements = s.placements; this.inSeason = s.inSeason; this.season = s.season; this.seasonsPassed = [...s.seasonsPassed];
     this.stats = { ...s.stats }; this.wishes = s.wishes.map((w) => ({ ...w }));
     this.breaths = s.breaths - this.undoCost;
@@ -264,7 +275,7 @@ export class Island {
   fromPocket(i = 0) { if (!this.queue.pocket.length) return false; this.queue.fromPocket(i); this.emit({ type: 'pocket', kind: 'out' }); return true; }
 
   pushHistory() {
-    this.history.push({ freeChoice: this.freeChoice, weather: this.weather ? { ...this.weather } : null, windSeason: this.windSeason, board: this.board.snapshot(), queue: this.queue.snapshot(), score: this.score, placements: this.placements, inSeason: this.inSeason, season: this.season, seasonsPassed: [...this.seasonsPassed], stats: { ...this.stats }, wishes: this.wishes.map((w) => ({ ...w })), breaths: this.breaths, fauna: new Map(this.fauna) });
+    this.history.push({ rule: this.rule, huntSeason: this.huntSeason, freeChoice: this.freeChoice, weather: this.weather ? { ...this.weather } : null, windSeason: this.windSeason, board: this.board.snapshot(), queue: this.queue.snapshot(), score: this.score, placements: this.placements, inSeason: this.inSeason, season: this.season, seasonsPassed: [...this.seasonsPassed], stats: { ...this.stats }, wishes: this.wishes.map((w) => ({ ...w })), breaths: this.breaths, fauna: new Map(this.fauna) });
     if (this.history.length > 3) this.history.shift();
   }
 

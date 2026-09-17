@@ -20,7 +20,7 @@ function anchor(reg) {
  * Calcule les animaux qui devraient être présents.
  * @returns {Map<string, {species, q, r, regionId}>} clé = `${species}@${regionId}`
  */
-export function evaluate(board, season) {
+export function evaluate(board, season, rule = null) {
   const out = new Map();
   const add = (species, reg, cell = null) => { const a = cell || anchor(reg); out.set(`${species}@${reg.id}`, { species, q: a.q, r: a.r, regionId: reg.id }); };
   for (const reg of board.regions('meadow')) {
@@ -28,6 +28,7 @@ export function evaluate(board, season) {
     if (alive >= F.rabbit) add('rabbit', reg);
   }
   for (const reg of board.regions('forest')) {
+    if (rule === 'feux' && board.regionNeighbors(reg).filter((n) => n.family === 'meadow' && n.dry).length >= 2) continue;   // feux de broussaille : la forêt se vide
     if (reg.size >= F.moose) add('moose', reg);
     if (reg.size >= F.bear && board.regionTouches(reg, 'rock')) add('bear', reg);
     if (reg.size >= F.owl && board.regionTouches(reg, 'hamlet')) {
