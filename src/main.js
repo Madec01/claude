@@ -351,6 +351,7 @@ class IslandScene {
       if (!this.def.daily) AudioSys.playMusic(seasonMusic(e.to, this.seasonCount[e.to]), { fade: 3 });
       const s = STORY.seasons[e.to];
       this.hud.notify(`${s.name} — ${s.line}`, 'season');
+      setTimeout(() => this.hud.notify(`Règle : ${s.rule}`, 'info'), 600);
       if (e.pts) setTimeout(() => this.hud.notify(`Saison : +${e.pts} points${e.faunaBonus ? `, +${e.faunaBonus} souffle${e.faunaBonus > 1 ? 's' : ''} (faune)` : ''}${e.links ? `, ${e.links} sentier${e.links > 1 ? 's' : ''}` : ''}`, 'good'), 900);
       let i = 0;
       for (const ev of e.events) { if (!ev.pts) continue; const w = toWorld(ev.q, ev.r); setTimeout(() => fx.floatText(w.x, w.y - 10, `+${ev.pts}`, '#e0a33a', 18, 1.2), 400 + 70 * i++); }

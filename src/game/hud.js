@@ -16,10 +16,11 @@ export class Hud {
     root.innerHTML = `
       <div class="hud-top">
         <div class="hud-block hud-title"><div class="hud-island">${title}</div><div class="hud-arch" data-ref="arch"></div></div>
-        <div class="hud-block hud-season" data-ref="seasonBox">
+        <div class="hud-block hud-season" data-ref="seasonBox" title="Règle de la saison">
           <span class="season-icon" data-ref="seasonIcon"></span>
           <div class="season-txt"><b data-ref="seasonName">—</b><span class="season-rule" data-ref="seasonRule"></span><span class="season-weather hidden" data-ref="weather"></span></div>
           <div class="season-pips" data-ref="pips" title="Poses avant la prochaine saison"></div>
+          <div class="season-pop hidden" data-ref="seasonPop"></div>
         </div>
         <div class="hud-block hud-score"><span class="hud-label">Points</span><b data-ref="score">0</b></div>
         <div class="hud-block hud-breaths ${m.has('breath') ? '' : 'hidden'}" title="Souffles"><span class="hud-label">Souffles</span><b data-ref="breaths">0</b></div>
@@ -50,6 +51,7 @@ export class Hud {
     this.r = {};
     root.querySelectorAll('[data-ref]').forEach((el) => { this.r[el.dataset.ref] = el; });
     this.r.pause.addEventListener('click', (e) => { e.stopPropagation(); onPause(); });
+    this.r.seasonBox.addEventListener('click', (e) => { e.stopPropagation(); this.toggleSeasonPop(); });
     this.r.pwDiscard.addEventListener('click', (e) => { e.stopPropagation(); onDiscard(); });
     this.r.pwBud.addEventListener('click', (e) => { e.stopPropagation(); onBud(); });
     this.r.pwUndo.addEventListener('click', (e) => { e.stopPropagation(); onUndo(); });
@@ -79,6 +81,18 @@ export class Hud {
     const name = (STORY.tiles[t.family] || {}).name || t.family;
     const src = k ? `assets/img/${Assets.manifest().images[k].file}` : '';
     return `<div class="qtile ${cls} ${t.rare ? 'rare' : ''}" style="--fam:${FAMILY_COLORS[t.family] || '#999'}" title="${name}${t.rare ? ' (rare)' : ''} — ${(STORY.tiles[t.family] || {}).blurb || ''}">${src ? `<img src="${src}" alt="${name}">` : ''}<span class="qname">${name}</span></div>`;
+  }
+
+  /** Règle de la saison (et météo) en surimpression : utile sur téléphone où la boîte de saison est réduite. */
+  toggleSeasonPop(force) {
+    const pop = this.r.seasonPop; const open = force !== undefined ? force : pop.classList.contains('hidden');
+    if (open) {
+      const isl = this.isl; const s = STORY.seasons[isl.season] || { name: isl.season, line: '', rule: '' };
+      const w = isl.weather; const wt = w ? (STORY.weather[w.key] || {}) : null;
+      pop.innerHTML = `<b>${s.name}</b><em>${s.line}</em><span>${s.rule}</span>${wt ? `<span class="pop-weather">${wt.name}${w.phase === 'active' ? ' (en cours)' : ` dans ${Math.max(0, w.at - isl.inSeason)} pose${w.at - isl.inSeason > 1 ? 's' : ''}`} : ${wt.rule}</span>` : ''}<i>Toucher pour fermer</i>`;
+      clearTimeout(this._popT); this._popT = setTimeout(() => this.toggleSeasonPop(false), 9000);
+    }
+    pop.classList.toggle('hidden', !open);
   }
 
   setTileHelp(on) { Save.options.tileHelp = on; Save.save(); this.last.helpId = null; this.renderTileHelp(); }
