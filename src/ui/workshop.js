@@ -1,5 +1,5 @@
 // L'Atelier des saisons : dépenser les graines en améliorations.
-import { h, button, icon } from './dom.js';
+import { h, button, icon, append } from './dom.js';
 import { UPGRADES, upgradeCost, upgradeMax } from '../data/upgrades.js';
 import { Save } from '../core/save.js';
 import { AudioSys } from '../core/audio.js';
@@ -28,7 +28,7 @@ export function buildWorkshop({ onContinue, intro }) {
     }
   };
   render();
-  root.append(
+  append(root, 
     h('h2', { class: 'panel-title' }, 'L’Atelier des saisons'),
     h('div', { class: 'ws-head-row' }, h('p', { class: 'ws-intro' }, intro || 'Les graines gagnées sur les îles font pousser de nouvelles habitudes de la Saison.'), seedsEl),
     grid,

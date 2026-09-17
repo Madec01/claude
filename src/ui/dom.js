@@ -17,6 +17,9 @@ export function h(tag, attrs = {}, ...children) {
   return el;
 }
 
+/** append natif mais qui ignore null/undefined/false. */
+export function append(el, ...children) { for (const c of children.flat()) { if (c === null || c === undefined || c === false) continue; el.appendChild(typeof c === 'string' || typeof c === 'number' ? document.createTextNode(String(c)) : c); } return el; }
+
 export const icon = (name, cls = '') => h('img', { class: `icon ${cls}`, src: `assets/img/ui/${name}.png`, alt: '' });
 
 /** Bouton stylé avec sons. */

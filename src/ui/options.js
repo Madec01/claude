@@ -1,5 +1,5 @@
 // Écran des options : volumes, confort, mode test, sauvegarde.
-import { h, button, icon } from './dom.js';
+import { h, button, icon, append } from './dom.js';
 import { AudioSys } from '../core/audio.js';
 import { Save } from '../core/save.js';
 
@@ -42,7 +42,7 @@ export function buildOptions({ onBack, game }) {
       saveGroup.appendChild(cf);
     }, { cls: 'btn-danger btn-small', iconName: 'icon_cross' }),
   );
-  root.append(
+  append(root, 
     h('h2', { class: 'panel-title' }, 'Options'),
     h('div', { class: 'opt-cols' },
       h('div', { class: 'opt-col' },

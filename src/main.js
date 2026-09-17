@@ -298,7 +298,7 @@ class IslandScene {
       const k = `${e.species}@${e.regionId}`;
       const w = toWorld(e.q, e.r);
       const s = STORY.fauna[e.species] || { name: e.species, arrive: '', leave: '' };
-      if (e.kind === 'arrive') { fx.fauna(k, 'arrive'); fx.faunaBurst(w.x, w.y - 20); AudioSys.play('fauna_arrive', { volume: 0.6 }); setTimeout(() => AudioSys.play(`fauna_${e.species}`, { volume: 0.5 }), 250); this.hud.notify(`${s.name} : ${s.arrive}`, 'fauna'); }
+      if (e.kind === 'arrive') { fx.fauna(k, 'arrive'); fx.faunaBurst(w.x, w.y - 20); AudioSys.play('fauna_arrive', { volume: 0.6 }); setTimeout(() => AudioSys.play(AudioSys.has(`fauna_${e.species}`) ? `fauna_${e.species}` : 'fauna_rabbit', { volume: 0.5 }), 250); this.hud.notify(`${s.name} : ${s.arrive}`, 'fauna'); }
       else { const an = { t: 0, kind: 'leave', info: e }; fx.faunaAnim.set(k, an); AudioSys.play('fauna_leave', { volume: 0.5 }); this.hud.notify(`${s.name} : ${s.leave}`, 'warn'); }
       this.tutorial.onEvent('fauna');
     } else if (e.type === 'wish') {

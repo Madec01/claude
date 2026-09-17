@@ -57,6 +57,7 @@ export const AudioSys = {
   setMuted(m) { this.muted = m; this.applyVolumes(); },
   toggleMute() { this.setMuted(!this.muted); return this.muted; },
 
+  has(key, group = 'sfx') { return !!this._entry(group, key); },
   _entry(group, key) { return this.manifest && this.manifest[group] && this.manifest[group][key]; },
 
   /** Décode un fichier (avec cache). */

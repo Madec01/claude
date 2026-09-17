@@ -1,5 +1,5 @@
 // Menu d'accueil : continuer, choisir une île, Île infinie, Jardin, options, crédits.
-import { h, button, icon, stagger } from './dom.js';
+import { h, button, icon, stagger, append } from './dom.js';
 import { Save } from '../core/save.js';
 import { ISLANDS } from '../data/islands.js';
 import { STORY } from '../data/story.js';
@@ -21,10 +21,10 @@ export function buildMenu({ game }) {
   const primaryLabel = c.completed ? 'Rejouer la campagne' : started ? 'Continuer' : 'Commencer';
   const primarySub = c.completed ? '' : `Île ${Math.min(c.unlockedIsland, 12)}`;
   const navButton = (label, fn, o) => { const b = button(label, fn, o); if (o.sub) b.appendChild(h('span', { class: 'btn-sub' }, o.sub)); return b; };
-  nav.append(
+  append(nav, 
     navButton(primaryLabel, () => game.startCampaign(), { cls: 'btn-primary btn-big', iconName: 'icon_play', sub: primarySub }),
     navButton('Choisir une île', () => showIslands(), { iconName: 'icon_menu', disabled: !started && !testMode, sub: started || testMode ? `${Math.min(c.unlockedIsland, 12)} / 12` : '' }),
-    navButton('Île infinie', () => game.startInfinite(), { iconName: 'icon_signal', disabled: !(Save.data.infinite.unlocked || c.unlockedIsland > 6 || testMode), title: 'Se déverrouille après l’île 6', sub: Save.data.infinite.best ? `${Save.data.infinite.best} pts` : '' }),
+    navButton('Île infinie', () => game.startInfinite(), { iconName: 'icon_wind', disabled: !(Save.data.infinite.unlocked || c.unlockedIsland > 6 || testMode), title: 'Se déverrouille après l’île 6', sub: Save.data.infinite.best ? `${Save.data.infinite.best} pts` : '' }),
     navButton('Jardin', () => game.startGarden(), { iconName: 'icon_leaf', disabled: !(started || testMode), title: 'Pose libre, sans score' }),
     navButton('Options', () => game.showOptions(), { iconName: 'icon_gear' }),
     navButton('Crédits', () => game.showCredits(), { iconName: 'icon_info' }),
@@ -38,7 +38,7 @@ export function buildMenu({ game }) {
     ),
     h('div', { class: 'foot-right' }, `${STORY.title} · ${VERSION}`),
   );
-  root.append(h('div', { class: 'menu-veil' }), title, nav, foot);
+  append(root, h('div', { class: 'menu-veil' }), title, nav, foot);
   setTimeout(() => stagger(nav, ':scope > *', 60), 60);
 
   function showIslands() {

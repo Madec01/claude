@@ -1,5 +1,5 @@
 // Bilan d'une île.
-import { h, button, icon, fmtInt, stagger } from './dom.js';
+import { h, button, icon, fmtInt, stagger, append } from './dom.js';
 import { STORY } from '../data/story.js';
 import { AudioSys } from '../core/audio.js';
 
@@ -12,7 +12,7 @@ export function buildResults({ result, def, onContinue, onRetry, onMenu, newReco
   const line = lines[Math.floor(Math.random() * lines.length)];
   const starsEl = h('div', { class: 'stars', 'aria-label': `${stars} étoile(s) sur 3` }, ...[0, 1, 2].map((i) => h('span', { class: `star ${i < stars ? 'on' : ''}`, title: `${thresholds[i]} points${i === 2 && result.wishesTotal ? ' et tous les vœux' : ''}` }, icon('icon_star'))));
   const row = (label, value, cls = '') => h('div', { class: `res-row ${cls}` }, h('span', {}, label), h('b', {}, String(value)));
-  root.append(
+  append(root, 
     h('div', { class: 'res-kicker' }, special ? (result.island === 'infinite' ? `Île infinie · ${result.seasons} saisons` : 'Jardin') : `Île ${result.island} · ${name}`),
     h('h2', { class: 'panel-title' }, special ? 'L’île se repose' : stars === 0 ? 'L’île attend encore' : 'L’île se souvient'),
     special ? null : starsEl,

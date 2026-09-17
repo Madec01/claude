@@ -1,5 +1,5 @@
 // Écrans narratifs : la voix de l'île (prologue, ouverture, souvenirs, fin), titres d'îles, souvenirs.
-import { h, button } from './dom.js';
+import { h, button, append } from './dom.js';
 import { STORY } from '../data/story.js';
 import { AudioSys } from '../core/audio.js';
 
@@ -14,7 +14,7 @@ export function buildStory(screens, { onDone, skippable = true }) {
   const progress = h('div', { class: 'story-progress', 'aria-hidden': 'true' });
   const actions = h('div', { class: 'story-actions' });
   if (skippable) actions.appendChild(button('Passer', () => finish(), { cls: 'btn-ghost btn-small', title: 'Passer (Échap)' }));
-  root.append(stage, hint, progress, actions);
+  append(root, stage, hint, progress, actions);
   const dots = screens.map(() => h('span', { class: 'dot' }));
   if (screens.length > 1) progress.append(...dots);
 
@@ -22,8 +22,8 @@ export function buildStory(screens, { onDone, skippable = true }) {
     const s = screens[i];
     dots.forEach((d, k) => d.classList.toggle('on', k <= i));
     const card = h('div', { class: `story-card kind-${s.kind}` });
-    if (s.kind === 'title') card.append(h('div', { class: 'story-kicker' }, s.kicker || ''), h('h1', { class: 'story-title' }, s.title || ''), s.sub ? h('div', { class: 'story-sub' }, s.sub) : null, s.text ? h('p', { class: 'story-text' }, s.text) : null);
-    else card.append(h('div', { class: 'story-kicker' }, s.kicker || 'L’île'), h('p', { class: 'story-text voice' }, s.text), h('div', { class: 'story-num' }, `${i + 1} / ${screens.length}`));
+    if (s.kind === 'title') append(card, h('div', { class: 'story-kicker' }, s.kicker || ''), h('h1', { class: 'story-title' }, s.title || ''), s.sub ? h('div', { class: 'story-sub' }, s.sub) : null, s.text ? h('p', { class: 'story-text' }, s.text) : null);
+    else append(card, h('div', { class: 'story-kicker' }, s.kicker || 'L’île'), h('p', { class: 'story-text voice' }, s.text), h('div', { class: 'story-num' }, `${i + 1} / ${screens.length}`));
     const old = stage.firstChild;
     if (old) { old.classList.add('out'); setTimeout(() => old.remove(), 350); }
     stage.appendChild(card);

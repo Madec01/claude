@@ -74,7 +74,8 @@
 .hud-bud-hint { position: absolute; left: 50%; bottom: 60px; transform: translateX(-50%); background: var(--ink); color: #fff; padding: 8px 18px; border-radius: 20px; font-size: 15px; font-weight: 600; }
 
 /* Tutoriel */
-.tuto-card { position: absolute; left: 50%; bottom: 60px; transform: translate(-50%, 20px); width: 620px; padding: 14px 20px; background: #fffdf8; color: var(--ink); border-radius: 14px; border: 1px solid rgba(43,42,38,0.12); box-shadow: 0 12px 40px rgba(30,50,70,0.2); opacity: 0; transition: opacity 0.4s ease, transform 0.4s ease; pointer-events: all; display: flex; align-items: center; gap: 16px; font-size: 17px; line-height: 1.35; font-weight: 500; }
+.tuto-card { position: absolute; left: 50%; bottom: 60px; transform: translate(-50%, 20px); width: 620px; padding: 14px 20px; background: #fffdf8; color: var(--ink); border-radius: 14px; border: 1px solid rgba(43,42,38,0.12); box-shadow: 0 12px 40px rgba(30,50,70,0.2); opacity: 0; transition: opacity 0.4s ease, transform 0.4s ease; pointer-events: none; display: flex; align-items: center; gap: 16px; font-size: 17px; line-height: 1.35; font-weight: 500; }
+.tuto-card button { pointer-events: all; }
 .tuto-card.on { opacity: 1; transform: translate(-50%, 0); }
 .tuto-card.done { opacity: 0; transform: translate(-50%, -10px); }
 .tuto-text { flex: 1; }

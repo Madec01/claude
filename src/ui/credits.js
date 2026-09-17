@@ -1,5 +1,5 @@
 // Écran des crédits : lit assets/credits/*.json pour n'afficher que des sources vérifiées.
-import { h, button, icon } from './dom.js';
+import { h, button, icon, append } from './dom.js';
 
 let cache = null;
 export async function loadCredits() {
@@ -26,7 +26,7 @@ export function buildCredits({ onBack, credits }) {
   const audio = asList(credits.audio);
   const music = audio.filter((a) => /macleod/i.test(a.author || '') || a.type === 'music');
   const other = audio.filter((a) => !music.includes(a));
-  root.append(
+  append(root, 
     h('h2', { class: 'panel-title' }, 'Crédits'),
     h('div', { class: 'credits-scroll', tabindex: '0' },
       h('section', { class: 'credits-team' },
