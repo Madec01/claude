@@ -22,6 +22,7 @@ import { buildOptions } from './ui/options.js';
 import { buildCredits, loadCredits } from './ui/credits.js';
 import { buildGuide } from './ui/guide.js';
 import { dailyDef, dailyKey, yesterdayKey } from './data/daily.js';
+import { Finale } from './game/finale.js';
 import { buildStory, islandIntroScreens, islandMemoryScreens, prologueScreens, endingScreens, infiniteScreens, gardenScreens, dailyScreens } from './ui/story.js';
 import { buildResults } from './ui/results.js';
 import { buildWorkshop } from './ui/workshop.js';
@@ -246,7 +247,7 @@ class IslandScene {
     this.armed = null;   // tactile : case « armée » (aperçu affiché) en attente d'une seconde touche
     this.particles = new ParticleSystem(1500); this.fx = new Effects(this.particles); this.shake = new Shake(); this.shake.enabled = Save.options.shake !== false;
     this.renderer = new IslandRenderer(isl, this.cam, this.fx, this.particles);
-    this.paused = false; this.budMode = false; this.endTimer = 0; this.finished = false;
+    this.paused = false; this.budMode = false; this.endTimer = 0; this.finished = false; this.finale = null;
     const name = STORY.islands[def.id] ? STORY.islands[def.id].name : def.infinite ? 'Île infinie' : def.daily ? def.name : 'Jardin';
     this.title = name;
     this.hud = new Hud(document.getElementById('hud'), isl, {
@@ -389,14 +390,26 @@ class IslandScene {
     } else if (e.type === 'grow') {
       this.cam.fit(this.isl.board.mask);
     } else if (e.type === 'end') {
-      this.finished = true; this.endTimer = 0;
       AudioSys.play('island_done', { volume: 0.8 });
+      this.startFinale();
     }
   }
+
+  /** Tournée finale (HUD masqué, caméra libre) puis bilan. */
+  startFinale() {
+    if (this.finale) return;
+    this.armed = null; this.hud.setPlaceButton(null); this.setBud(false);
+    document.getElementById('hud').classList.add('finale'); document.getElementById('tutorial').classList.add('finale');
+    this.finale = new Finale(this);
+  }
+  bounds() { const tl = this.cam.toWorldPoint(0, 0), br = this.cam.toWorldPoint(STAGE.W, STAGE.H); return { minX: tl.x, maxX: br.x, minY: tl.y, maxY: br.y }; }
+  playSfx(key, volume = 0.6) { if (AudioSys.has(key)) AudioSys.play(key, { volume }); }
+  onFinaleDone() { document.getElementById('hud').classList.remove('finale'); document.getElementById('tutorial').classList.remove('finale'); this.finished = true; this.endTimer = 10; }
 
   setBud(on) { if (on && !this.mech.has('breath')) return; this.budMode = on; this.renderer.budMode = on; this.hud.setBudMode(on, false); this.budTarget = null; if (on) { this.armed = null; this.hud.setPlaceButton(null); } }
 
   onMouseDown(b, x, y) {
+    if (this.finale && !this.finale.done) { if (b === 0) this.finale.skip(); return; }
     if (this.paused || !this.isl || this.isl.ended) return;
     if (b === 2 || b === 1) { this.drag = { x, y, moved: 0 }; return; }
     if (b !== 0) return;
@@ -413,6 +426,7 @@ class IslandScene {
   onResize() { if (this.cam && this.isl) this.cam.fit(this.isl.board.mask, uiMargins('island')); }
   /** Tactile : première touche = aperçu (case armée), seconde touche sur la même case = pose. */
   onTap(x, y) {
+    if (this.finale && !this.finale.done) { this.finale.skip(); return; }
     if (this.paused || !this.isl || this.isl.ended) return;
     const w = this.cam.toWorldPoint(x, y); const { q, r } = fromWorld(w.x, w.y);
     if (this.budMode) {
@@ -431,6 +445,7 @@ class IslandScene {
     if (this.isl.canPlace(q, r)) { this.isl.place(q, r); this.renderer.hover = null; }
   }
   onKey(k) {
+    if (this.finale && !this.finale.done) { if (k !== 'KeyM') this.finale.skip(); return; }
     if (k === 'Escape') { if (this.budMode) { this.setBud(false); return; } this.togglePause(); return; }
     if (k === 'KeyM') { const m = AudioSys.toggleMute(); Save.options.muted = m; Save.save(); return; }
     if (this.paused || !this.isl || this.isl.ended) return;
@@ -467,6 +482,7 @@ class IslandScene {
   update(dt) {
     const isl = this.isl; if (!isl) return;
     if (this.paused) { input.endFrame(); return; }
+    if (this.finale && !this.finale.done) { this.finale.update(dt); this.cam.update(dt); this.particles.update(dt); this.fx.update(dt); this.shake.update(dt); const b0 = this.bounds(); this.fx.ambient(dt, isl.season, b0, 1, this._sources); this.fx.life(dt, { objects: this.renderer.decor.objects, tiles: this._tiles || [], season: isl.season, weather: null, bounds: b0 }); input.endFrame(); return; }
     // déplacement de la vue
     if (this.drag && (input.mouse.right || input.mouse.left)) { const dx = input.mouse.x - this.drag.x, dy = input.mouse.y - this.drag.y; this.cam.pan(dx, dy); this.drag.x = input.mouse.x; this.drag.y = input.mouse.y; }
     else if (this.drag && !input.mouse.right) this.drag = null;
@@ -501,6 +517,7 @@ class IslandScene {
     ctx.save(); ctx.translate(this.shake.x, this.shake.y);
     this.renderer.render(ctx, alpha, dt);
     ctx.restore();
+    if (this.finale && !this.finale.done) this.finale.render(ctx);
   }
 }
 

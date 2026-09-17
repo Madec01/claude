@@ -110,8 +110,8 @@ async function touchDrag(cdp, pts) {
     check(await page.$('.panel-pause'), `${name} : pause ouverte au toucher`);
     await page.tap('.panel-pause .btn-primary'); await page.waitForTimeout(300);
     // bilan
-    await page.evaluate(() => window.CS.scenes.current.isl.finish('full')); await page.waitForTimeout(3200);
-    await page.waitForFunction(() => window.CS.scenes.currentName === 'results', null, { timeout: 15000 }).catch(() => errors.push(`${name} : pas de bilan`));
+    await page.evaluate(() => window.CS.scenes.current.isl.finish('full')); await page.waitForTimeout(1500);
+    await page.waitForFunction(() => window.CS.scenes.currentName === 'results', null, { timeout: 30000 }).catch(() => errors.push(`${name} : pas de bilan`));
     await page.waitForTimeout(800); await page.screenshot({ path: path.join(OUT, `mobile-${tag}-results.png`) });
     await page.evaluate(() => window.CS.scenes.go('workshop', { onContinue: () => window.CS.Game.showMenu() })); await page.waitForTimeout(900); await page.screenshot({ path: path.join(OUT, `mobile-${tag}-workshop.png`) });
     // rotation à chaud : la scène se recalcule

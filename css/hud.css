@@ -199,3 +199,5 @@ html.compact.landscape .tile-help { left: 132px; width: 260px; bottom: 36px; }
 .season-pop i { font-style: normal; font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; opacity: 0.5; margin-top: 2px; }
 html.compact .season-pop { width: min(340px, calc(100vw - 20px)); font-size: 12px; }
 html.compact .hud-season::after { content: 'ⓘ'; font-size: 11px; opacity: 0.5; position: absolute; right: 6px; top: 3px; }
+
+#hud.finale, #tutorial.finale { visibility: hidden; }

@@ -16,6 +16,16 @@
 | 7 | **Musiques supplémentaires** | Kevin MacLeod (CC BY 4.0, miroir disponible) : « Cloud Dancer », « Night Vigil », « Midnight Tale », « Pleasant Porridge », « Sincerely », « Piano Between », « Leaving Home », « Moonlight Beach », « Maccary Bay », « Ranz des Vaches ». Deux pistes par saison en alternance + une pour l'Île du jour + une pour la météo calme. | **fait** |
 | 8 | **Tuiles rares supplémentaires** | Auberge (+1 par sentier du village), Four à pain (+1 par champ), Abreuvoir (anti-sécheresse, cheval et vache), Porche (bourg clos ×3), Mine (+1 par roche, roche close ×2) ; la lanterne sert de décor aux bourgs clos. | **fait** |
 
+## Lot 3 (retours joueur)
+
+| # | Idée | Décision de design | Statut |
+|---|---|---|---|
+| 9 | **Règles de saison variables** | Trois règles par saison tirées dès l'île 4 (et sur l'Île infinie / l'Île du jour), annoncées dans le HUD, le journal et une bulle sur téléphone. | **fait** |
+| 10 | **Eau : étang / lac / rivière** | Classification par forme (une tuile = étang ; tas = lac ; ligne partant d'une roche ou d'une colline = rivière, +3 à l'embouchure ; tas contre la roche = lac de montagne). Rives qui reprennent le sol des voisines, ruban de rivière courbe, nappe continue. | **fait** |
+| 11 | **Tuiles qui évoluent** | Objets de décor filtrés par saison, règle et météo pour toutes les familles : fleurs et arbres en fleurs, nénuphars, tas de feuilles, paniers, cultures dorées, congères, bannières de foire, bois de grand froid, flaques d'orage, touffes sèches de canicule. | **fait** |
+| 12 | **Tournée finale** | À la fin d'une île : zoom arrière, régions illuminées de la plus petite à la plus grande avec libellé et faune, sentiers et rivières qui scintillent, compteur, balayage des quatre saisons, nom de l'île et étoiles ; un toucher passe au bilan. | **fait** |
+| 13 | **Recalibrage des étoiles** | Seuils mesurés avec un bot plus fort (≈ 55 / 80 / 100 % de son score ; la troisième étoile exige aussi tous les vœux), affichés dans le HUD. | en cours |
+
 ## À planifier plus tard
 
 | Idée | Note | Statut |

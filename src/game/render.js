@@ -54,7 +54,7 @@ export class IslandRenderer {
 
   render(ctx, alpha, dt) {
     this.time += dt;
-    if (this.transition) { this.transition.t += dt; if (this.transition.t > 1.9) this.transition = null; }
+    if (this.transition) { this.transition.t += dt * (this.transitionSpeed || 1); if (this.transition.t > 1.9) { this.transition = null; this.transitionSpeed = 1; } }
     const isl = this.isl, cam = this.cam;
     const season = isl.season;
     this.drawSea(ctx, season);
@@ -125,6 +125,7 @@ export class IslandRenderer {
       if (c.x < -100 || c.x > STAGE.W + 100 || c.y < -100 || c.y > STAGE.H + 100) continue;
       const pts = corners(c.x, c.y, SIZE * cam.zoom * 0.96);
       ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]); for (let i = 1; i < 6; i++) ctx.lineTo(pts[i][0], pts[i][1]); ctx.closePath();
+      if (this.finale) { ctx.fillStyle = 'rgba(244,239,230,0.14)'; ctx.fill(); continue; }
       ctx.fillStyle = legal.has(k) ? 'rgba(244,239,230,0.55)' : 'rgba(244,239,230,0.28)';
       ctx.fill();
       ctx.strokeStyle = legal.has(k) ? 'rgba(255,255,255,0.8)' : 'rgba(255,255,255,0.35)';
@@ -228,10 +229,15 @@ export class IslandRenderer {
     this.drawWater(ctx, dropping);
     this.drawPaths(ctx);
     // objets
+    const rule = this.isl.rule || null, wkey = this.weather || null;
     for (const o of this.decor.objects) {
       const c = cam.toScreen(o.x, o.y); if (!vis(c)) continue;
       const d = dropping.get(o.cell); const season = this.seasonFor(o.x);
       if (o.seasons && !o.seasons.includes(season)) continue;
+      if (o.notSeasons && o.notSeasons.includes(season)) continue;
+      if (o.weathers && !o.weathers.includes(wkey)) continue;
+      if (o.rules && !o.rules.includes(rule)) continue;
+      if (o.notRules && o.notRules.includes(rule)) continue;
       if (o.composed) { const cw = toWorld(o.tile.q, o.tile.r); const cc = cam.toScreen(cw.x, cw.y); const dd = d || { s: 1, dy: 0 }; this.drawTileAt(ctx, o.tile, cc.x, cc.y + dd.dy * z, dd.s, 1); continue; }
       const sk = spriteKey(o.tpl, season); const img = Assets.img(sk); if (!img) continue;
       const m = images[sk]; const div = o.wave ? 3 : 2;
@@ -278,7 +284,7 @@ export class IslandRenderer {
         ctx.globalAlpha = 1; ctx.strokeStyle = pal.edge; ctx.lineWidth = 62 * z; trace(sp); ctx.stroke();
         ctx.strokeStyle = pal.fill; ctx.lineWidth = 50 * z; trace(sp); ctx.stroke();
         if (mouth) { const m = S(mouth); ctx.fillStyle = pal.fill; ctx.beginPath(); ctx.ellipse(m.x, m.y, 40 * z, 26 * z, 0, 0, TAU); ctx.fill(); }
-        if (!frozen) { ctx.strokeStyle = pal.foam; ctx.lineWidth = 2 * z; ctx.setLineDash([10 * z, 26 * z]); ctx.lineDashOffset = -this.time * 40 * z; trace(sp); ctx.stroke(); ctx.setLineDash([]); }
+        if (!frozen) { ctx.strokeStyle = pal.foam; ctx.lineWidth = (this.finale ? 4 : 2) * z; ctx.setLineDash([10 * z, 26 * z]); ctx.lineDashOffset = -this.time * (this.finale ? 120 : 40) * z; trace(sp); ctx.stroke(); ctx.setLineDash([]); }
         else this.drawCracks(ctx, sp, z);
       } else if (body.kind === 'pond') {
         const c = S(c0); if (!vis(c)) continue;
@@ -339,6 +345,7 @@ export class IslandRenderer {
     ctx.globalAlpha = 0.5; ctx.strokeStyle = dark; for (const o of all) { ctx.lineWidth = (o.width + 4) * z; trace(o.sp); ctx.stroke(); }
     ctx.globalAlpha = 1; ctx.strokeStyle = col; for (const o of all) { ctx.lineWidth = o.width * z; trace(o.sp); ctx.stroke(); }
     ctx.globalAlpha = 0.4; ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.4 * z; ctx.setLineDash([4 * z, 9 * z]); for (const o of all) { trace(o.sp); ctx.stroke(); } ctx.setLineDash([]);
+    if (this.finale) { ctx.globalAlpha = 0.35 + 0.3 * Math.sin(this.time * 5); ctx.strokeStyle = '#ffd77a'; ctx.lineWidth = 4 * z; ctx.setLineDash([14 * z, 10 * z]); ctx.lineDashOffset = -this.time * 60 * z; for (const o of all) { trace(o.sp); ctx.stroke(); } ctx.setLineDash([]); }
     ctx.restore();
   }
 
@@ -346,7 +353,7 @@ export class IslandRenderer {
   drawWeather(ctx, dt) {
     const w = this.weather; const W = STAGE.W, H = STAGE.H;
     if (this.flash > 0) { ctx.save(); ctx.globalAlpha = Math.min(0.5, this.flash * 2.5); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, W, H); ctx.restore(); this.flash -= dt; }
-    if (!w) { this.rain.length = 0; return; }
+    if (!w || this.finale) { this.rain.length = 0; return; }
     if (w === 'storm') {
       while (this.rain.length < 160) this.rain.push({ x: Math.random() * (W + 200) - 100, y: Math.random() * H, l: 10 + Math.random() * 14, v: 700 + Math.random() * 400 });
       ctx.save(); ctx.strokeStyle = 'rgba(220,240,255,0.45)'; ctx.lineWidth = 1.2; ctx.beginPath();

@@ -73,18 +73,18 @@ function parseList(s) {
         return { x: p.x, y: p.y, placements: isl.placements, score: isl.score, season: isl.season, fps: window.CS.loop.fps };
       });
       if (st.gone) break;
-      if (st.ended) { await page.waitForTimeout(3000); break; }
+      if (st.ended) { await page.waitForTimeout(1500); break; }
       if (st.swapped) continue;
-      if (st.stuck) { await page.evaluate(() => window.CS.scenes.current.isl.finish('full')); await page.waitForTimeout(3000); break; }
+      if (st.stuck) { await page.evaluate(() => window.CS.scenes.current.isl.finish('full')); await page.waitForTimeout(1500); break; }
       if (st.x < 0 || st.x > 1280 || st.y < 0 || st.y > 720) { await page.evaluate(() => { const sc = window.CS.scenes.current; sc.cam.fit(sc.isl.board.mask, { immediate: true }); }); continue; }
       await page.mouse.move(st.x, st.y); await page.waitForTimeout(PAUSE / 2); await page.mouse.click(st.x, st.y); await page.waitForTimeout(PAUSE);
       ticks++;
       if (!shot && st.placements > 20) { shot = true; await page.screenshot({ path: path.join(OUT, `island-${id}.png`) }); }
-      if ((id === 'infinite' || id === 'garden') && st.placements >= 60) { await page.keyboard.press('F5'); await page.waitForTimeout(3000); break; }
+      if ((id === 'infinite' || id === 'garden') && st.placements >= 60) { await page.keyboard.press('F5'); await page.waitForTimeout(1500); break; }
       if (ticks > 400) { errors.push(`[timeout] île ${id}`); break; }
     }
     // Bilan
-    await page.waitForFunction(() => window.CS.scenes.currentName === 'results', null, { timeout: 15000 }).catch(() => errors.push(`[flow] pas de bilan pour l'île ${id}`));
+    await page.waitForFunction(() => window.CS.scenes.currentName === 'results', null, { timeout: 30000 }).catch(() => errors.push(`[flow] pas de bilan pour l'île ${id}`));
     await page.screenshot({ path: path.join(OUT, `results-${id}.png`) });
     const res = await page.evaluate(() => (document.querySelector('.panel-results') || {}).innerText || '');
     report.push({ id, seconds: ((Date.now() - t0) / 1000).toFixed(0), summary: res.replace(/\s+/g, ' ').slice(0, 170) });
