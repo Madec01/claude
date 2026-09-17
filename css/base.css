@@ -15,7 +15,7 @@ button { font-family: inherit; }
 .screen { position: absolute; inset: 0; display: none; }
 .screen.on { display: block; }
 #hud { pointer-events: none; z-index: 10; } #hud.on { display: block; }
-#tutorial { pointer-events: none; z-index: 12; } #tutorial.on { display: block; }
+#tutorial { pointer-events: none; z-index: 12; } #tutorial.paused { visibility: hidden; } #tutorial.on { display: block; }
 #ui { z-index: 20; }
 #fade { position: absolute; inset: 0; background: var(--paper); opacity: 0; pointer-events: none; transition: opacity 0.45s ease; z-index: 50; }
 #fade.on { opacity: 1; pointer-events: all; }
@@ -83,6 +83,7 @@ button { font-family: inherit; }
 
 /* Crédits */
 .credits-scroll { max-height: 470px; overflow: auto; padding-right: 10px; font-size: 16px; }
+.ending-credits .credits-scroll { max-height: 360px; }
 .credits-scroll ul { list-style: none; padding: 0; margin: 0; }
 .credits-scroll li { padding: 4px 0; border-bottom: 1px dotted var(--line); display: flex; justify-content: space-between; gap: 10px; }
 .credits-scroll .lic { opacity: 0.7; font-style: normal; white-space: nowrap; }

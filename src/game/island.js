@@ -34,6 +34,8 @@ export class Island {
     const visible = BALANCE.queue.visible[this.upgrades.sight || 0];
     this.queue = new TileQueue(seed * 3 + 11, def.weights, total, visible);
     this.queue.pocketSize = BALANCE.queue.pocket[this.upgrades.pocket || 0];
+    // ouverture guidée : les premières tuiles des îles d'apprentissage sont fixées (pas de marais ni de sable en première minute)
+    if (def.opening) def.opening.forEach((f, i) => { if (i < this.queue.list.length) this.queue.list[i] = this.queue.makeTile(f); });
     if ((this.upgrades.rare || 0) > 0) this.queue.inject(this.queue.makeRare(this.upgrades.rare === 1 ? 'well' : 'mill'), false);
     this.season = def.startSeason || 'spring';
     this.seasonLength = def.seasonLength + BALANCE.queue.seasonExtra[this.upgrades.patience || 0];

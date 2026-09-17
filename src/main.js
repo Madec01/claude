@@ -357,6 +357,7 @@ class IslandScene {
   togglePause(force) {
     if (!this.isl || this.isl.ended) return;
     this.paused = force !== undefined ? force : !this.paused;
+    document.getElementById('tutorial').classList.toggle('paused', this.paused);
     if (this.paused) {
       AudioSys.play('ui_open', { volume: 0.5 });
       const build = () => buildPause({ title: this.title, onResume: () => this.togglePause(false), onRestart: () => scenes.go('island', { def: this.def }, { fade: 0.5 }), onOptions: () => Game.showOptions(() => showUI(build(), 'pause-wrap')), onMenu: () => scenes.go('menu') });
