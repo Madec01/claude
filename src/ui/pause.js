@@ -17,6 +17,7 @@ export function buildPause({ onResume, onRestart, onOptions, onGuide, onFullscre
       h('div', {}, key('Z'), h('span', {}, 'souvenir : annuler la dernière pose')),
       h('div', {}, key('P'), h('span', {}, 'mettre la tuile en poche')),
       h('div', {}, key('J'), h('span', {}, 'journal des événements')),
+      h('div', {}, key('H'), h('span', {}, 'fiche de la tuile à poser')),
       h('div', {}, key('M'), h('span', {}, 'couper le son')),
       h('div', {}, key('Échap'), h('span', {}, 'pause')),
     ) : null,

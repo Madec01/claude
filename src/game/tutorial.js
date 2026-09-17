@@ -15,11 +15,27 @@ const RULES = {
   heath:    { when: (i) => i.placements >= 1, done: (i, ev) => ev.has('heath'), info: true, timeout: 35 },
 };
 
+/** Tutoriel guidé de l'île 1 : chaque étape impose la case à jouer (la file est fixée par `opening`). */
+const GUIDED = {
+  1: [
+    { id: 'g1', target: [1, 0], text: 'Bienvenue. Pose la prairie sur la case qui brille : une tuile doit toujours toucher une tuile déjà posée.', done: (i) => i.placements >= 1 },
+    { id: 'g2', target: [2, 0], text: 'Une forêt. Survole la case qui brille avant de cliquer : chaque bord affiche ses points. Forêt contre roche : +2, forêt contre prairie : +1.', done: (i) => i.placements >= 2 },
+    { id: 'g3', target: [-1, 0], text: 'Le champ aime le hameau (+2). Pose-le contre le village.', done: (i) => i.placements >= 3 },
+    { id: 'g4', target: [-1, 1], text: 'Un deuxième hameau. Deux hameaux côte à côte valent +2, et le champ voisin encore +2 : c’est le meilleur coup.', done: (i) => i.placements >= 4 },
+    { id: 'g5', target: [1, -1], text: 'L’eau posée contre la roche devient une rivière (+2). Les mauvaises paires (champ-roche, hameau-marais) feraient −1 : évite-les.', done: (i) => i.placements >= 5 },
+    { id: 'g6', target: [0, 1], text: 'Un champ ici. Regarde la ligne de saison en haut : à la sixième pose, la saison change.', done: (i) => i.placements >= 6 },
+    { id: 'g7', text: 'L’été ! Chaque saison apporte une règle, lisible en haut de l’écran : en été, une prairie sans eau, forêt ni marais voisin sèche. La nôtre touche l’eau et la forêt : elle tient.', info: true, when: (i) => i.seasonsPassed.length >= 1, timeout: 40 },
+    { id: 'g8', target: [1, 1], text: 'Le verger aime la prairie (+2). Pose-le ici : la prairie n’aura plus aucune case vide autour. Une région entourée se ferme et rapporte sa taille en points.', done: (i) => i.placements >= 7 },
+    { id: 'g9', text: 'Région close ! Plus la région est grande, plus la prime est belle (les hameaux comptent double). À toi de jouer : remplis l’île. Une étoile suffit pour débloquer la suivante, et le Guide (pause) rappelle toutes les paires.', info: true, timeout: 30 },
+  ],
+};
+
 export class Tutorial {
   constructor(root, island, islandId, enabled) {
     this.root = root; this.isl = island;
     const def = STORY.islands[islandId];
-    this.steps = enabled && def && def.tutorial ? [...def.tutorial] : [];
+    this.guided = enabled && GUIDED[islandId] ? GUIDED[islandId] : null;
+    this.steps = this.guided ? this.guided : (enabled && def && def.tutorial ? [...def.tutorial] : []);
     this.idx = 0; this.current = null; this.shownFor = 0; this.events = new Set(); this.dismissed = false;
     this.root.innerHTML = '';
     this.doneAll = this.steps.length === 0;
@@ -30,14 +46,14 @@ export class Tutorial {
     if (!this.current) {
       if (this.idx >= this.steps.length) { this.doneAll = true; return; }
       const step = this.steps[this.idx];
-      const rule = RULES[step.id] || { when: () => true, done: () => false, info: true, timeout: 12 };
-      if (rule.when(this.isl)) { this.current = { step, rule }; this.show(step, rule); this.shownFor = 0; this.events.clear(); }
+      const rule = step.done || step.when || step.info ? { when: step.when || (() => true), done: step.done || (() => false), info: !!step.info, timeout: step.timeout || 0 } : (RULES[step.id] || { when: () => true, done: () => false, info: true, timeout: 12 });
+      if (rule.when(this.isl)) { this.current = { step, rule }; this.show(step, rule); this.shownFor = 0; this.events.clear(); this.isl.restrict = step.target ? new Set([`${step.target[0]},${step.target[1]}`]) : null; }
       return;
     }
     this.shownFor += dt;
     const { rule } = this.current;
     const done = rule.done(this.isl, this.events) || (rule.timeout && this.shownFor > rule.timeout) || this.dismissed;
-    if (done && this.shownFor > 1) this.complete();
+    if (done && (this.shownFor > 1 || this.current.step.target)) this.complete();
   }
   show(step, rule) {
     this.dismissed = false;
@@ -49,7 +65,8 @@ export class Tutorial {
   complete() {
     const card = this.root.querySelector('.tuto-card');
     if (card) { card.classList.add('done'); setTimeout(() => { if (card.parentNode) card.remove(); }, 500); }
-    this.current = null; this.idx++;
+    this.current = null; this.idx++; this.isl.restrict = null;
+    if (this.idx >= this.steps.length) this.doneAll = true;
   }
-  destroy() { this.root.innerHTML = ''; }
+  destroy() { this.root.innerHTML = ''; this.isl.restrict = null; }
 }

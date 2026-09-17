@@ -26,6 +26,8 @@ export class Island {
     this.board = new Board(generateMask(seed, def.cells, { roughness: def.roughness, holes: def.holes }));
     this.garden = !!def.garden;
     this.infinite = !!def.infinite;
+    for (const [q, r] of def.ensure || []) this.board.mask.add(key(q, r));
+    this.restrict = null;   // tutoriel guidé : cases autorisées (Set de clés) ou null
     // tuiles de départ
     for (const s of def.start) {
       if (!this.board.has(s.q, s.r)) this.board.mask.add(key(s.q, s.r));
@@ -37,7 +39,8 @@ export class Island {
     this.queue = new TileQueue(seed * 3 + 11, def.weights, total, visible);
     this.queue.pocketSize = BALANCE.queue.pocket[this.upgrades.pocket || 0];
     // ouverture guidée : les premières tuiles des îles d'apprentissage sont fixées (pas de marais ni de sable en première minute)
-    if (def.opening) def.opening.forEach((f, i) => { if (i < this.queue.list.length) this.queue.list[i] = this.queue.makeTile(f); });
+    this.pendingOpening = [];
+    if (def.opening) { def.opening.forEach((f, i) => { if (i < this.queue.list.length) this.queue.list[i] = this.queue.makeTile(f); }); this.pendingOpening = def.opening.slice(this.queue.list.length); }
     if ((this.upgrades.rare || 0) > 0) this.queue.inject(this.queue.makeRare([null, 'well', 'mill', 'granary', 'fountain'][Math.min(4, this.upgrades.rare)]), false);
     this.baseMods = { river: BALANCE.upgrades.source[this.upgrades.source || 0] || 0, refuge: BALANCE.upgrades.refuge[this.upgrades.refuge || 0] || 0 };
     this.season = def.startSeason || 'spring';
@@ -112,15 +115,15 @@ export class Island {
     return preview(this.board, q, r, tile, this.season, this.mods);
   }
 
-  canPlace(q, r) { return !this.ended && !!this.current && this.board.canPlace(q, r); }
+  canPlace(q, r) { return !this.ended && !!this.current && this.board.canPlace(q, r) && (!this.restrict || this.restrict.has(key(q, r))); }
 
   /** Pose la tuile courante. */
   place(q, r, tileOverride = null) {
     if (this.ended) return null;
     const tile = tileOverride || this.current;
-    if (!tile || !this.board.canPlace(q, r)) return null;
+    if (!tile || !this.board.canPlace(q, r) || (this.restrict && !this.restrict.has(key(q, r)))) return null;
     this.pushHistory();
-    if (!tileOverride) this.queue.take();
+    if (!tileOverride) { this.queue.take(); if (this.pendingOpening.length && this.queue.list.length) this.queue.list[this.queue.list.length - 1] = this.queue.makeTile(this.pendingOpening.shift()); }
     // ruine à restaurer : elle prend la famille majoritaire autour d'elle
     let placedTile = tile, restoredTo = null;
     if (tile.rare && tile.family === 'restore') {

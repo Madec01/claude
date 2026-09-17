@@ -31,7 +31,7 @@ function parseList(s) {
   await page.waitForFunction(() => !document.getElementById('boot'), null, { timeout: 90000 });
   await page.evaluate(() => {
     const s = JSON.parse(localStorage.getItem('cent-saisons.save') || '{}');
-    s.options = Object.assign(s.options || {}, { testMode: true, skipTutorial: false, master: 0 });
+    s.options = Object.assign(s.options || {}, { testMode: true, skipTutorial: true, master: 0 });
     s.campaign = Object.assign(s.campaign || {}, { prologueSeen: true, unlockedIsland: 12 });
     localStorage.setItem('cent-saisons.save', JSON.stringify(s));
   });

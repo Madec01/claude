@@ -47,12 +47,13 @@ Une île se termine quand elle est pleine ou quand aucune pose n'est possible. L
 | Annuler la dernière pose | `Z` |
 | Mettre en poche / reprendre | `P` |
 | Journal des événements | `J` (ou le bouton ⓘ en haut) |
+| Fiche de la tuile à poser | `H` (ou l'option Fiche de la tuile) |
 | Pause | `Échap` |
 | Couper le son | `M` |
 
 ## Modes
 
-- **Campagne** : 12 îles dessinées à la main, de 30 à 120 cases, chacune avec ses vœux et son souvenir. Les mécaniques sont introduites progressivement avec un tutoriel intégré.
+- **Campagne** : 12 îles dessinées à la main, de 30 à 120 cases, chacune avec ses vœux et son souvenir. La première île est un tutoriel guidé pas à pas (case cible, file fixée), puis chaque mécanique nouvelle est présentée quand elle arrive.
 - **Île infinie** : l'île grandit à chaque pose, sans fin ; le score et le nombre de saisons sont enregistrés.
 - **Île du jour** : une île générée depuis la date, la même pour tout le monde, trois vœux tirés au sort, météo active ; meilleur score du jour et série de jours conservés.
 - **Jardin** : pose libre, choix de la tuile, sans saisons ni score : pour composer.

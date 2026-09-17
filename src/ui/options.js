@@ -57,6 +57,7 @@ export function buildOptions({ onBack, game }) {
         h('div', { class: 'opt-group' },
           h('h3', {}, icon('icon_contrast'), 'Confort'),
           toggle('Tremblement de l’écran', 'shake', () => {}, 'Secousse sur les grosses primes.'),
+          toggle('Fiche de la tuile à poser', 'tileHelp', () => {}, 'Nom, effet et paires de la tuile en cours, affichés en jeu (touche H).'),
           toggle('Afficher les images par seconde', 'showFps', (v) => game.setFpsVisible(v)),
           h('div', { class: 'opt-row opt-btnrow' }, h('span', { class: 'opt-label' }, 'Affichage', h('small', {}, 'Le jeu s’adapte à la fenêtre ; le plein écran masque le navigateur.')), button('Plein écran', () => game.toggleFullscreen(), { iconName: 'icon_fullscreen', cls: 'btn-small' })),
         ),

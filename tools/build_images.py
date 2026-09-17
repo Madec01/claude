@@ -340,12 +340,12 @@ TILES = {
                                            L(ROUND_S, 60, 110, "foliage", fruits=True), L("obj:hedge", 60, 126, "foliage", scale=0.45)],
                   note="Verger : 6 treeRound_small + haie (hedge ×0.45) ; fruits dessinés en été/automne."),
     # --- champs : parcelles en quinconce + foin + clôture
-    "field_1": T("field", "grass_05", [L("obj:farmland", 42, 84, "field"), L("obj:farmland", 80, 100, "field", mirror=True),
-                                       L("obj:fence", 100, 66), L("obj:hay", 26, 106), L("obj:hay", 92, 118)],
-                 note="Champ : 2 parcelles farmland (recolorées par saison) en quinconce + clôture + 2 bottes de foin."),
-    "field_2": T("field", "grass_05", [L("obj:farm", 76, 74), L("obj:farmland", 40, 96, "field", mirror=True), L("obj:farmland_empty", 82, 112, "field"),
-                                       L("obj:hay", 26, 70)],
-                 note="Champ : grange (farm) + parcelle labourée + parcelle vide + foin."),
+    "field_1": T("field", "dirt_06", [L("ht:bushGrass:1.9", x, y, "crop") for (x, y) in
+                                      [(34, 68), (52, 68), (70, 68), (88, 68), (26, 84), (44, 84), (62, 84), (80, 84), (98, 84), (34, 100), (52, 100), (70, 100), (88, 100), (44, 116), (62, 116), (80, 116)]]
+                 + [L("obj:hay", 96, 110)], base_kind="dirt", note="Champ : terre nue + rangs de culture (touffes recolorées par saison) + botte de foin."),
+    "field_2": T("field", "dirt_06", [L("ht:bushGrass:1.9", x, y, "crop") for (x, y) in
+                                      [(44, 66), (62, 66), (80, 66), (34, 82), (52, 82), (70, 82), (88, 82), (26, 98), (44, 98), (62, 98), (80, 98), (98, 98), (52, 114), (70, 114)]]
+                 + [L("obj:hay", 30, 116), L("obj:fence", 96, 118)], base_kind="dirt", base_mirror=True, note="Champ : terre nue en miroir + rangs de culture + foin + clôture."),
     # --- hameaux (bâtiments inchangés par la saison)
     "hamlet_1": T("hamlet", "grass_05", [L("obj:house", 62, 100), L("obj:house_small", 38, 80), L("obj:well", 98, 80), L("obj:fence", 92, 114)],
                   note="Grande maison (house) + maisonnette + puits + clôture."),

@@ -238,7 +238,10 @@ export class IslandRenderer {
     ctx.save(); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
     const trace = (sp) => { ctx.beginPath(); ctx.moveTo(sp[0].x, sp[0].y); if (sp.length === 2) ctx.lineTo(sp[1].x, sp[1].y); else { for (let i = 1; i < sp.length - 1; i++) { const mx = (sp[i].x + sp[i + 1].x) / 2, my = (sp[i].y + sp[i + 1].y) / 2; ctx.quadraticCurveTo(sp[i].x, sp[i].y, mx, my); } ctx.lineTo(sp[sp.length - 1].x, sp[sp.length - 1].y); } };
     const w = (k) => { const [q, r] = parse(k); return toWorld(q, r); };
-    const all = [...lanes.map(([a, c]) => ({ sp: [w(a), w(c)].map((p) => cam.toScreen(p.x, p.y)), width: 6 })), ...links.map((l) => ({ sp: l.cells.map(w).map((p) => cam.toScreen(p.x, p.y)), width: 9 }))]
+    // tracé organique : un point de contrôle décalé perpendiculairement au milieu de chaque segment (décalage déterministe par segment)
+    const jit = (a, c) => { const h = Math.sin(a.x * 12.9898 + a.y * 78.233 + c.x * 37.719 + c.y * 4.1) * 43758.5453; return (h - Math.floor(h)) - 0.5; };
+    const organic = (pts) => { const out = [pts[0]]; for (let i = 0; i < pts.length - 1; i++) { const a = pts[i], c = pts[i + 1]; const dx = c.x - a.x, dy = c.y - a.y, len = Math.hypot(dx, dy) || 1; const j = jit(a, c), j2 = jit(c, a); out.push({ x: a.x + dx * 0.35 + (-dy / len) * j * 26, y: a.y + dy * 0.35 + (dx / len) * j * 26 }); out.push({ x: a.x + dx * 0.7 + (-dy / len) * j2 * 18, y: a.y + dy * 0.7 + (dx / len) * j2 * 18 }); out.push(c); } return out; };
+    const all = [...lanes.map(([a, c]) => ({ sp: organic([w(a), w(c)]).map((p) => cam.toScreen(p.x, p.y)), width: 6 })), ...links.map((l) => ({ sp: organic(l.cells.map(w)).map((p) => cam.toScreen(p.x, p.y)), width: 9 }))]
       .filter((o) => !o.sp.every((p) => p.x < -200 || p.x > STAGE.W + 200 || p.y < -200 || p.y > STAGE.H + 200));
     // trois passes globales (bordure sombre, terre, pointillé clair) pour que les croisements restent propres
     ctx.globalAlpha = 0.5; ctx.strokeStyle = dark; for (const o of all) { ctx.lineWidth = (o.width + 4) * z; trace(o.sp); ctx.stroke(); }
@@ -276,6 +279,7 @@ export class IslandRenderer {
   }
 
   drawHover(ctx) {
+    if (this.isl.restrict) { const cam = this.cam; for (const k of this.isl.restrict) { const [q, r] = parse(k); const w = toWorld(q, r); const c = cam.toScreen(w.x, w.y); const pulse = 0.55 + 0.45 * Math.sin(this.time * 4); ctx.save(); ctx.globalAlpha = 0.35 * pulse; ctx.fillStyle = '#ffd77a'; const pts = corners(c.x, c.y, SIZE * cam.zoom * 0.95); ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]); for (let i = 1; i < 6; i++) ctx.lineTo(pts[i][0], pts[i][1]); ctx.closePath(); ctx.fill(); ctx.restore(); this.outline(ctx, c.x, c.y, '#e0a33a', 0.6 + 0.4 * pulse); } }
     const hv = this.hover; if (!hv) return;
     const cam = this.cam;
     const w = toWorld(hv.q, hv.r); const c = cam.toScreen(w.x, w.y);

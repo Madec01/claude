@@ -50,9 +50,8 @@ if (window.visualViewport) window.visualViewport.addEventListener('resize', resi
 resize();
 
 const SEASON_MUSIC = { spring: 'spring', summer: 'summer', autumn: 'autumn', winter: 'winter' };
-let musicSet = 0;   // 0 : pistes de base, 1 : variantes (_2) quand elles existent
 // le printemps garde toujours « Morning » (préférence du commanditaire) ; les autres saisons alternent entre deux pistes
-const seasonMusic = (season) => { const alt = `${SEASON_MUSIC[season]}_2`; return season !== 'spring' && musicSet === 1 && AudioSys.has(alt, 'music') ? alt : SEASON_MUSIC[season]; };
+const seasonMusic = (season, nth = 1) => { const alt = `${SEASON_MUSIC[season]}_2`; return nth >= 2 && nth % 2 === 0 && AudioSys.has(alt, 'music') ? alt : SEASON_MUSIC[season]; };
 
 const Game = {
   credits: null, fpsEl: null,
@@ -271,8 +270,8 @@ class IslandScene {
     document.getElementById('tutorial').classList.add('on');
     isl.on((e) => this.onEvent(e));
     // audio
-    musicSet = def.daily ? 0 : (typeof def.id === 'number' ? def.id % 2 : Math.round(Math.random()));
-    AudioSys.playMusic(def.garden ? 'garden' : def.daily && AudioSys.has('daily', 'music') ? 'daily' : seasonMusic(isl.season), { fade: 2 });
+    this.seasonCount = { [isl.season]: 1 };
+    AudioSys.playMusic(def.garden ? 'garden' : def.daily && AudioSys.has('daily', 'music') ? 'daily' : seasonMusic(isl.season, 1), { fade: 2 });
     this.updateAmbience(true);
     AudioSys.play('island_start', { volume: 0.6 });
     // entrées
@@ -348,7 +347,8 @@ class IslandScene {
     } else if (e.type === 'season') {
       this.renderer.startTransition(e.from, e.to);
       AudioSys.play(`season_${e.to}`, { volume: 0.8 }); AudioSys.play('season_sweep', { volume: 0.5 });
-      if (!this.def.daily) AudioSys.playMusic(seasonMusic(e.to), { fade: 3 });
+      this.seasonCount[e.to] = (this.seasonCount[e.to] || 0) + 1;
+      if (!this.def.daily) AudioSys.playMusic(seasonMusic(e.to, this.seasonCount[e.to]), { fade: 3 });
       const s = STORY.seasons[e.to];
       this.hud.notify(`${s.name} — ${s.line}`, 'season');
       if (e.pts) setTimeout(() => this.hud.notify(`Saison : +${e.pts} points${e.faunaBonus ? `, +${e.faunaBonus} souffle${e.faunaBonus > 1 ? 's' : ''} (faune)` : ''}${e.links ? `, ${e.links} sentier${e.links > 1 ? 's' : ''}` : ''}`, 'good'), 900);
@@ -367,7 +367,7 @@ class IslandScene {
       this.hud.flashWishes();
       const s = STORY.wishes[e.wish.def.id] || { title: '', done: '', failed: '' };
       if (e.kind === 'done') { AudioSys.play('wish_done', { volume: 0.8 }); setTimeout(() => AudioSys.play('rare_tile', { volume: 0.6 }), 600); this.hud.notify(`Vœu exaucé — ${s.done}`, 'gold'); this.hud.notify(`Une tuile rare rejoint la file : ${(STORY.tiles[e.rare] || {}).name || e.rare}`, 'rare'); }
-      else { AudioSys.play('wish_failed', { volume: 0.6 }); this.hud.notify(`${s.title} — ${s.failed}`, 'warn'); }
+      else { AudioSys.play('wish_failed', { volume: 0.6 }); this.hud.notify(`Vœu manqué (échéance dépassée) : ${s.title} — ${s.failed}`, 'warn'); }
     } else if (e.type === 'weather') {
       const wt = STORY.weather[e.key] || { name: e.key, announce: '', line: '', rule: '' };
       if (e.kind === 'announce') { this.hud.notify(`${wt.name} annoncé : ${wt.announce}`, 'wish'); AudioSys.play('weather', { volume: 0.5 }); }
@@ -406,7 +406,7 @@ class IslandScene {
       return;
     }
     if (this.isl.canPlace(q, r)) { this.isl.place(q, r); this.renderer.hover = null; }
-    else if (this.isl.board.has(q, r) && !this.isl.board.get(q, r)) { AudioSys.play('tile_invalid', { volume: 0.5 }); this.hud.notify('Une tuile doit toucher une tuile posée', 'warn'); }
+    else if (this.isl.board.has(q, r) && !this.isl.board.get(q, r)) { AudioSys.play('tile_invalid', { volume: 0.5 }); this.hud.notify(this.isl.restrict ? 'Pose la tuile sur la case qui brille' : 'Une tuile doit toucher une tuile posée', 'warn'); }
   }
   onMouseUp(b, x, y) { if (b === 2 || b === 1) this.drag = null; }
   onResize() { if (this.cam && this.isl) this.cam.fit(this.isl.board.mask, uiMargins('island')); }
@@ -420,7 +420,7 @@ class IslandScene {
       return;
     }
     if (!this.isl.board.has(q, r) || this.isl.board.get(q, r)) { this.armed = null; this.hud.setPlaceButton(null); return; }
-    if (!this.isl.canPlace(q, r)) { this.armed = null; this.hud.setPlaceButton(null); AudioSys.play('tile_invalid', { volume: 0.5 }); this.hud.notify('Une tuile doit toucher une tuile posée', 'warn'); return; }
+    if (!this.isl.canPlace(q, r)) { this.armed = null; this.hud.setPlaceButton(null); AudioSys.play('tile_invalid', { volume: 0.5 }); this.hud.notify(this.isl.restrict ? 'Pose la tuile sur la case qui brille' : 'Une tuile doit toucher une tuile posée', 'warn'); return; }
     if (this.armed && this.armed.q === q && this.armed.r === r) { this.placeArmed(); return; }
     this.armed = { q, r }; AudioSys.play('tile_hover', { volume: 0.3 });
   }
@@ -439,6 +439,7 @@ class IslandScene {
     if (k === 'KeyX') { if (this.mech.has('breath')) { if (isl.discard()) AudioSys.play('tile_discard', { volume: 0.6 }); } }
     if (k === 'KeyB') this.setBud(!this.budMode);
     if (k === 'KeyJ') this.hud.toggleLog();
+    if (k === 'KeyH') this.hud.setTileHelp(Save.options.tileHelp === false);
     if (k === 'KeyZ') { if (this.mech.has('breath') && isl.undo()) AudioSys.play('tile_undo', { volume: 0.6 }); }
     if (k === 'KeyP') { if (isl.toPocket()) AudioSys.play('tile_pocket', { volume: 0.6 }); else if (isl.queue.pocket.length) { isl.fromPocket(0); AudioSys.play('tile_pocket', { volume: 0.6 }); } }
     if (this.budMode && this.budTarget && (k === 'KeyF' || k === 'KeyV')) { if (isl.bud(this.budTarget.q, this.budTarget.r, k === 'KeyF' ? 'forest' : 'orchard')) this.setBud(false); }

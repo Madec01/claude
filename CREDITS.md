@@ -57,7 +57,7 @@ Toutes les œuvres ci-dessous appartiennent à leurs auteurs et sont utilisées 
 - **Hexagon Pack** — Kenney (kenney.nl) — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://kenney.nl/assets/hexagon-pack) — [miroir utilisé](https://github.com/ETdoFresh/kenney.nl)
   - Fichiers : 298
 - **Hexagon Tiles** — Kenney (kenney.nl) — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://kenney.nl/assets/hexagon-tiles) — [miroir utilisé](https://github.com/ETdoFresh/kenney.nl)
-  - Fichiers : 83
+  - Fichiers : 91
 - **Animal Pack Redux** — Kenney (kenney.nl) — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://kenney.nl/assets/animal-pack-redux) — [miroir utilisé](https://github.com/ETdoFresh/kenney.nl)
   - Fichiers : 12
 - **Particle Pack (1.1)** — Kenney (kenney.nl) — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://kenney.nl/assets/particle-pack) — [miroir utilisé](https://github.com/ETdoFresh/kenney.nl)

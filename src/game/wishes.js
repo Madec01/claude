@@ -69,10 +69,11 @@ export function expired(w, ctx) {
 export function updateWishes(wishes, ctx) {
   const ev = [];
   for (const w of wishes) {
+    if (w.status === 'failed') { w.progress = progressOf(w, ctx); continue; }   // on continue d'afficher la progression réelle
     if (w.status !== 'open') continue;
     w.progress = progressOf(w, ctx);
     if (w.progress >= w.target) { w.status = 'done'; ev.push({ type: 'done', wish: w }); continue; }
-    if (expired(w, ctx)) { w.status = 'failed'; ev.push({ type: 'failed', wish: w }); }
+    if (expired(w, ctx)) { w.status = 'failed'; w.failedAt = ctx.placements; ev.push({ type: 'failed', wish: w }); }
   }
   return ev;
 }

@@ -1,7 +1,8 @@
 // HUD d'une île (DOM) : saison, score, souffles, file de tuiles, poche, vœux, pouvoirs, notifications.
 import { STORY } from '../data/story.js';
 import { BALANCE } from '../data/balance.js';
-import { FAMILY_COLORS, FAMILIES } from '../data/tiles.js';
+import { FAMILY_COLORS, FAMILIES, affinity, RARE_AS } from '../data/tiles.js';
+import { Save } from '../core/save.js';
 import { deadlineLabel } from './wishes.js';
 import { Assets } from '../core/assets.js';
 
@@ -41,6 +42,7 @@ export class Hud {
       <div class="hud-wishes ${island.wishes.length ? '' : 'hidden'} ${compact ? 'collapsed' : ''}" data-ref="wishes"><button class="wish-toggle" data-ref="wishToggle" title="Afficher les vœux">Vœux <b data-ref="wishCount"></b></button><div class="queue-title">Vœux</div><div class="wish-list" data-ref="wishList"></div></div>
       <button class="hud-place hidden" data-ref="placeBtn"></button>
       <div class="hud-logpanel hidden" data-ref="logPanel"><div class="log-head"><span>Journal de l’île</span><button class="log-close" data-ref="logClose" title="Fermer">✕</button></div><div class="log-list" data-ref="logList"></div></div>
+      <div class="tile-help hidden" data-ref="tileHelp"><div class="th-head"><b data-ref="thName"></b><button class="th-close" data-ref="thClose" title="Masquer la fiche (H)">✕</button></div><p class="th-blurb" data-ref="thBlurb"></p><div class="th-pairs" data-ref="thPairs"></div></div>
       <div class="hud-fauna" data-ref="fauna"></div>
       <div class="hud-notify" data-ref="notify"></div>
       <div class="hud-bud-hint hidden" data-ref="budHint"><span data-ref="budText">Choisis une prairie à transformer</span><button data-ref="budForest" title="Touche F">Forêt</button><button data-ref="budOrchard" title="Touche V">Verger</button><button data-ref="budCancel" title="Échap">Annuler</button></div>
@@ -53,6 +55,7 @@ export class Hud {
     this.r.pwUndo.addEventListener('click', (e) => { e.stopPropagation(); onUndo(); });
     this.r.fs.addEventListener('click', (e) => { e.stopPropagation(); onFullscreen && onFullscreen(); });
     this.log = []; this.unread = 0;
+    this.r.thClose.addEventListener('click', (e) => { e.stopPropagation(); this.setTileHelp(false); });
     this.r.logBtn.addEventListener('click', (e) => { e.stopPropagation(); this.toggleLog(); });
     this.r.logClose.addEventListener('click', (e) => { e.stopPropagation(); this.toggleLog(false); });
     this.r.placeBtn.addEventListener('click', (e) => { e.stopPropagation(); onPlace && onPlace(); });
@@ -76,6 +79,24 @@ export class Hud {
     const name = (STORY.tiles[t.family] || {}).name || t.family;
     const src = k ? `assets/img/${Assets.manifest().images[k].file}` : '';
     return `<div class="qtile ${cls} ${t.rare ? 'rare' : ''}" style="--fam:${FAMILY_COLORS[t.family] || '#999'}" title="${name}${t.rare ? ' (rare)' : ''} — ${(STORY.tiles[t.family] || {}).blurb || ''}">${src ? `<img src="${src}" alt="${name}">` : ''}<span class="qname">${name}</span></div>`;
+  }
+
+  setTileHelp(on) { Save.options.tileHelp = on; Save.save(); this.last.helpId = null; this.renderTileHelp(); }
+
+  /** Fiche de la tuile à poser : nom, effet, bonnes et mauvaises paires. */
+  renderTileHelp() {
+    const t = this.isl.current; const on = Save.options.tileHelp !== false && !!t && !this.isl.ended;
+    const id = on ? `${t.family}:${t.id}` : null;
+    if (id === this.last.helpId) return; this.last.helpId = id;
+    this.r.tileHelp.classList.toggle('hidden', !on);
+    if (!on) return;
+    const st = STORY.tiles[t.family] || { name: t.family, blurb: '' };
+    this.r.thName.textContent = st.name + (t.rare ? ' (rare)' : ''); this.r.thBlurb.textContent = st.blurb || '';
+    const name = (f) => (STORY.tiles[f] || {}).name || f;
+    const good2 = [], good1 = [], bad = [];
+    for (const g of FAMILIES) { if (this.isl.def.weights && !(this.isl.def.weights[g] > 0) && !this.isl.garden) continue; const v = affinity(t.family, g); if (v >= 2) good2.push(g); else if (v === 1) good1.push(g); else if (v < 0) bad.push(g); }
+    const row = (lab, cls, list) => (list.length ? `<div><b>${lab}</b>${list.map((g) => `<span class="${cls}">${name(g)}</span>`).join('')}</div>` : '');
+    this.r.thPairs.innerHTML = row('+2', 'p2', good2) + row('+1', 'p1', good1) + row('−1', 'pm', bad) + (t.rare && RARE_AS[t.family] && RARE_AS[t.family].length ? `<div><b>=</b><span class="p0">compte comme ${RARE_AS[t.family].map(name).join(', ')}</span></div>` : '');
   }
 
   renderQueue() {
@@ -110,7 +131,7 @@ export class Hud {
     const html = this.isl.wishes.map((w) => {
       const s = STORY.wishes[w.def.id] || { giver: '', title: w.def.id, text: '' };
       const pct = Math.min(100, Math.round((w.progress / w.target) * 100));
-      return `<div class="wish ${w.status}"><div class="wish-head"><b>${s.title}</b><span class="wish-giver">${s.giver}</span></div><div class="wish-text">${s.text}</div><div class="wish-bar"><div style="width:${pct}%"></div></div><div class="wish-foot"><span>${w.progress} / ${w.target}</span><span class="wish-dl">${w.status === 'open' ? deadlineLabel(w, ctx, STORY) : w.status === 'done' ? 'exaucé' : 'passé'}</span></div></div>`;
+      return `<div class="wish ${w.status}"><div class="wish-head"><b>${s.title}</b><span class="wish-giver">${s.giver}</span></div><div class="wish-text">${s.text}</div><div class="wish-bar"><div style="width:${pct}%"></div></div><div class="wish-foot"><span>${w.progress} / ${w.target}</span><span class="wish-dl">${w.status === 'open' ? deadlineLabel(w, ctx, STORY) : w.status === 'done' ? 'exaucé' : `trop tard (pose ${w.failedAt || '?'})`}</span></div></div>`;
     }).join('');
     if (html !== this.last.wishes) { this.last.wishes = html; this.r.wishList.innerHTML = html; }
     const cnt = `${this.isl.wishes.filter((w) => w.status === 'done').length} / ${this.isl.wishes.length}`;
@@ -193,7 +214,7 @@ export class Hud {
     r.pwDiscard.disabled = !isl.canDiscard();
     r.pwBud.disabled = isl.breaths < BALANCE.breaths.bud;
     r.pwUndo.disabled = !isl.canUndo();
-    this.renderQueue(); this.renderWishes(); this.renderFauna();
+    this.renderQueue(); this.renderWishes(); this.renderFauna(); this.renderTileHelp();
   }
 
   destroy() { this.root.innerHTML = ''; }
