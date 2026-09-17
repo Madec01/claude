@@ -1,102 +1,114 @@
 {
   "music": {
-    "menu": {
-      "file": "music/menu.ogg",
+    "spring": {
+      "file": "music/spring.ogg",
+      "duration": 80.499,
+      "loop": true,
+      "source": "Morning",
+      "author": "Kevin MacLeod",
+      "license": "CC BY 4.0",
+      "attribution": "\"Morning\" Kevin MacLeod (incompetech.com) — Licensed under Creative Commons: By Attribution 4.0 License — http://creativecommons.org/licenses/by/4.0/",
+      "note": "printemps : piano et cordes légères, aube claire — thème de la saison"
+    },
+    "summer": {
+      "file": "music/summer.ogg",
+      "duration": 111.939,
+      "loop": true,
+      "source": "Kalimba Relaxation Music",
+      "author": "Kevin MacLeod",
+      "license": "CC BY 4.0",
+      "attribution": "\"Kalimba Relaxation Music\" Kevin MacLeod (incompetech.com) — Licensed under Creative Commons: By Attribution 4.0 License — http://creativecommons.org/licenses/by/4.0/",
+      "note": "été : kalimba chaude et lente, chaleur paisible"
+    },
+    "autumn": {
+      "file": "music/autumn.ogg",
       "duration": 104.276,
       "loop": true,
       "source": "Evening",
       "author": "Kevin MacLeod",
       "license": "CC BY 4.0",
       "attribution": "\"Evening\" Kevin MacLeod (incompetech.com) — Licensed under Creative Commons: By Attribution 4.0 License — http://creativecommons.org/licenses/by/4.0/",
-      "note": "calme, mystérieux, nocturne — thème du menu"
+      "note": "automne : calme, crépusculaire, mélancolie douce"
     },
-    "act1": {
-      "file": "music/act1.ogg",
-      "duration": 104.369,
+    "winter": {
+      "file": "music/winter.ogg",
+      "duration": 95.847,
       "loop": true,
-      "source": "Midnight Tale",
+      "source": "Gymnopedie No 1",
       "author": "Kevin MacLeod",
       "license": "CC BY 4.0",
-      "attribution": "\"Midnight Tale\" Kevin MacLeod (incompetech.com) — Licensed under Creative Commons: By Attribution 4.0 License — http://creativecommons.org/licenses/by/4.0/",
-      "note": "nuit calme et concentrée — acte I"
+      "attribution": "\"Gymnopedie No 1\" Kevin MacLeod (incompetech.com) — Licensed under Creative Commons: By Attribution 4.0 License — http://creativecommons.org/licenses/by/4.0/",
+      "note": "hiver : « Ethereal Relaxation » absent du miroir ; la Gymnopédie n° 1 (piano lent, dépouillé, froid et clair) est le plus hivernal des candidats"
     },
-    "act2": {
-      "file": "music/act2.ogg",
-      "duration": 107.875,
+    "menu": {
+      "file": "music/menu.ogg",
+      "duration": 61.714,
       "loop": true,
-      "source": "Night Vigil",
+      "source": "Dream Catcher",
       "author": "Kevin MacLeod",
       "license": "CC BY 4.0",
-      "attribution": "\"Night Vigil\" Kevin MacLeod (incompetech.com) — Licensed under Creative Commons: By Attribution 4.0 License — http://creativecommons.org/licenses/by/4.0/",
-      "note": "tension sourde, veille nocturne — acte II"
-    },
-    "act3": {
-      "file": "music/act3.ogg",
-      "duration": 113.146,
-      "loop": true,
-      "source": "Spellbound",
-      "author": "Kevin MacLeod",
-      "license": "CC BY 4.0",
-      "attribution": "\"Spellbound\" Kevin MacLeod (incompetech.com) — Licensed under Creative Commons: By Attribution 4.0 License — http://creativecommons.org/licenses/by/4.0/",
-      "note": "sombre, menace, envoûtement — acte III"
+      "attribution": "\"Dream Catcher\" Kevin MacLeod (incompetech.com) — Licensed under Creative Commons: By Attribution 4.0 License — http://creativecommons.org/licenses/by/4.0/",
+      "note": "menu : rêveur, suspendu, invite à l'île"
     },
     "results": {
       "file": "music/results.ogg",
-      "duration": 22.018,
+      "duration": 106.668,
       "loop": true,
-      "source": "Piano Between",
+      "source": "Beauty Flow",
       "author": "Kevin MacLeod",
       "license": "CC BY 4.0",
-      "attribution": "\"Piano Between\" Kevin MacLeod (incompetech.com) — Licensed under Creative Commons: By Attribution 4.0 License — http://creativecommons.org/licenses/by/4.0/",
-      "note": "doux piano, interlude — écran de résultats / atelier"
-    },
-    "defeat": {
-      "file": "music/defeat.ogg",
-      "duration": 86.636,
-      "loop": true,
-      "source": "Mourning Song",
-      "author": "Kevin MacLeod",
-      "license": "CC BY 4.0",
-      "attribution": "\"Mourning Song\" Kevin MacLeod (incompetech.com) — Licensed under Creative Commons: By Attribution 4.0 License — http://creativecommons.org/licenses/by/4.0/",
-      "note": "deuil sobre — défaite"
+      "attribution": "\"Beauty Flow\" Kevin MacLeod (incompetech.com) — Licensed under Creative Commons: By Attribution 4.0 License — http://creativecommons.org/licenses/by/4.0/",
+      "note": "bilan / atelier : coulée douce, contemplative"
     },
     "ending": {
       "file": "music/ending.ogg",
-      "duration": 135.993,
+      "duration": 85.327,
       "loop": true,
-      "source": "Stay the Course",
+      "source": "Almost Bliss",
       "author": "Kevin MacLeod",
       "license": "CC BY 4.0",
-      "attribution": "\"Stay the Course\" Kevin MacLeod (incompetech.com) — Licensed under Creative Commons: By Attribution 4.0 License — http://creativecommons.org/licenses/by/4.0/",
-      "note": "lumineux, résolu — fin / générique"
+      "attribution": "\"Almost Bliss\" Kevin MacLeod (incompetech.com) — Licensed under Creative Commons: By Attribution 4.0 License — http://creativecommons.org/licenses/by/4.0/",
+      "note": "fin : lumineux et apaisé, l'île qui se souvient"
     },
-    "finale": {
-      "file": "music/finale.ogg",
-      "duration": 74.878,
+    "garden": {
+      "file": "music/garden.ogg",
+      "duration": 106.668,
       "loop": true,
-      "source": "Virtutes Vocis",
+      "source": "Study And Relax",
       "author": "Kevin MacLeod",
       "license": "CC BY 4.0",
-      "attribution": "\"Virtutes Vocis\" Kevin MacLeod (incompetech.com) — Licensed under Creative Commons: By Attribution 4.0 License — http://creativecommons.org/licenses/by/4.0/",
-      "note": "ample, choral, dramatique — nuit 12"
+      "attribution": "\"Study And Relax\" Kevin MacLeod (incompetech.com) — Licensed under Creative Commons: By Attribution 4.0 License — http://creativecommons.org/licenses/by/4.0/",
+      "note": "jardin (mode libre) : studieux, sans tension"
     }
   },
   "ambience": {
-    "waves": {
-      "file": "ambience/waves.ogg",
-      "duration": 76.0,
+    "birds": {
+      "file": "ambience/birds.ogg",
+      "duration": 64.0,
       "loop": true,
-      "source": "Crashing Waves - Pacific Ocean",
-      "author": "SecureSubset",
+      "source": "Forest quiet atmosphere with some birds",
+      "author": "felix.blume",
       "license": "CC0 1.0",
       "packs": [
-        "fs_waves"
+        "fs_birds"
       ],
-      "note": "vagues, boucle permanente"
+      "note": "forêt et oiseaux : printemps / été, dosée selon la forêt de l'île"
+    },
+    "stream": {
+      "file": "ambience/stream.ogg",
+      "duration": 64.0,
+      "loop": true,
+      "source": "Relaxing River Sound",
+      "author": "IceVFX",
+      "license": "CC0 1.0",
+      "packs": [
+        "fs_stream"
+      ],
+      "note": "ruisseau : près des rivières"
     },
     "wind": {
       "file": "ambience/wind.ogg",
-      "duration": 71.0,
+      "duration": 64.0,
       "loop": true,
       "source": "Wind on bushes with muffled gust of wind, twig branch, close to desert ground",
       "author": "felix.blume",
@@ -104,11 +116,11 @@
       "packs": [
         "fs_wind"
       ],
-      "note": "vent, mixé selon la météo"
+      "note": "vent sur les buissons : automne / hiver"
     },
     "rain": {
       "file": "ambience/rain.ogg",
-      "duration": 71.0,
+      "duration": 64.0,
       "loop": true,
       "source": "Soft rain on a tile roof",
       "author": "richwise",
@@ -116,23 +128,670 @@
       "packs": [
         "fs_rain"
       ],
-      "note": "pluie sur un toit, mixée selon la météo"
+      "note": "pluie douce sur un toit : transition d'automne"
     },
-    "storm": {
-      "file": "ambience/storm.ogg",
-      "duration": 81.0,
+    "crickets": {
+      "file": "ambience/crickets.ogg",
+      "duration": 64.0,
       "loop": true,
-      "source": "Rain and Thunder Ambience Tübingen + Fake Thunder 2",
-      "author": "Sheyvan + Ben Burnes (Abstraction)",
+      "source": "Crickets (close recording)",
+      "author": "felix.blume",
       "license": "CC0 1.0",
       "packs": [
-        "fs_storm",
-        "bb_chairmat"
+        "fs_crickets"
       ],
-      "note": "pluie + tonnerre (roulements naturels + Fake Thunder 2)"
+      "note": "grillons : nuits d'été"
+    },
+    "sea": {
+      "file": "ambience/sea.ogg",
+      "duration": 64.0,
+      "loop": true,
+      "source": "Crashing Waves - Pacific Ocean",
+      "author": "SecureSubset",
+      "license": "CC0 1.0",
+      "packs": [
+        "fs_waves"
+      ],
+      "note": "vagues douces au loin (passe-bas 1,1 kHz : la mer autour de l'île)"
+    },
+    "winter": {
+      "file": "ambience/winter.ogg",
+      "duration": 64.0,
+      "loop": true,
+      "source": "Wind on bushes with muffled gust of wind, twig branch, close to desert ground",
+      "author": "felix.blume",
+      "license": "CC0 1.0",
+      "packs": [
+        "fs_wind"
+      ],
+      "note": "vent doux passe-bas : hiver, neige et ombres bleues"
     }
   },
   "sfx": {
+    "tile_hover": {
+      "file": "sfx/tile_hover.ogg",
+      "duration": 0.087,
+      "loop": false,
+      "source": "impactWood_light_002.ogg",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "packs": [
+        "kenney_impact"
+      ],
+      "note": "survol de tuile : bois feutré, très court (passe-bas 1,8 kHz)"
+    },
+    "tile_place_1": {
+      "file": "sfx/tile_place_1.ogg",
+      "duration": 0.314,
+      "loop": false,
+      "source": "impactWood_medium_000.ogg",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "packs": [
+        "kenney_impact"
+      ],
+      "note": "pose de tuile, « toc » bois (variante 1)"
+    },
+    "tile_place_2": {
+      "file": "sfx/tile_place_2.ogg",
+      "duration": 0.314,
+      "loop": false,
+      "source": "impactWood_medium_001.ogg",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "packs": [
+        "kenney_impact"
+      ],
+      "note": "pose de tuile, « toc » bois (variante 2)"
+    },
+    "tile_place_3": {
+      "file": "sfx/tile_place_3.ogg",
+      "duration": 0.359,
+      "loop": false,
+      "source": "impactWood_medium_002.ogg + wooden_03.ogg",
+      "author": "Kenney + rubberduck",
+      "license": "CC0 1.0",
+      "packs": [
+        "kenney_impact",
+        "rd_100sfx"
+      ],
+      "note": "pose de tuile, « toc » bois (variante 3)"
+    },
+    "tile_place_4": {
+      "file": "sfx/tile_place_4.ogg",
+      "duration": 0.379,
+      "loop": false,
+      "source": "impactWood_medium_003.ogg + wooden_02.ogg",
+      "author": "Kenney + rubberduck",
+      "license": "CC0 1.0",
+      "packs": [
+        "kenney_impact",
+        "rd_100sfx"
+      ],
+      "note": "pose de tuile, « toc » bois (variante 4)"
+    },
+    "tile_bounce": {
+      "file": "sfx/tile_bounce.ogg",
+      "duration": 0.315,
+      "loop": false,
+      "source": "impactWood_light_000.ogg + impactWood_light_003.ogg",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "packs": [
+        "kenney_impact"
+      ],
+      "note": "rebond léger : deux petits bois rapprochés, le second plus aigu et plus faible"
+    },
+    "tile_invalid": {
+      "file": "sfx/tile_invalid.ogg",
+      "duration": 0.307,
+      "loop": false,
+      "source": "impactWood_heavy_002.ogg + impactSoft_medium_001.ogg",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "packs": [
+        "kenney_impact"
+      ],
+      "note": "pose impossible : bois sourd (passe-bas 500 Hz) + impact mou"
+    },
+    "tile_swap": {
+      "file": "sfx/tile_swap.ogg",
+      "duration": 0.545,
+      "loop": false,
+      "source": "paper_02.ogg + impactWood_light_001.ogg",
+      "author": "rubberduck + Kenney",
+      "license": "CC0 1.0",
+      "packs": [
+        "rd_100sfx",
+        "kenney_impact"
+      ],
+      "note": "échange de tuile : papier puis petit bois"
+    },
+    "tile_discard": {
+      "file": "sfx/tile_discard.ogg",
+      "duration": 0.828,
+      "loop": false,
+      "source": "paper_04.ogg + Caress Paper.wav",
+      "author": "rubberduck + Ben Burnes (Abstraction)",
+      "license": "CC0 1.0",
+      "packs": [
+        "rd_100sfx",
+        "bb_papercutter"
+      ],
+      "note": "tuile défaussée : papier froissé"
+    },
+    "tile_undo": {
+      "file": "sfx/tile_undo.ogg",
+      "duration": 0.592,
+      "loop": false,
+      "source": "Twirl Smol 1.wav + Swish 2.wav",
+      "author": "Ben Burnes (Abstraction)",
+      "license": "CC0 1.0",
+      "packs": [
+        "bb_wooshes"
+      ],
+      "note": "annulation : wooshes inversés (rembobinage doux, passe-bas 5 kHz)"
+    },
+    "tile_pocket": {
+      "file": "sfx/tile_pocket.ogg",
+      "duration": 0.359,
+      "loop": false,
+      "source": "cloth2.ogg + Softcover Tap 2.wav",
+      "author": "Kenney + Ben Burnes (Abstraction)",
+      "license": "CC0 1.0",
+      "packs": [
+        "kenney_rpg",
+        "bb_paper"
+      ],
+      "note": "tuile mise en poche : tissu + tapotement"
+    },
+    "point_1": {
+      "file": "sfx/point_1.ogg",
+      "duration": 0.879,
+      "loop": false,
+      "source": "glockenspiel C5 + celesta C5",
+      "author": "Frank Wen",
+      "license": "CC BY 3.0",
+      "packs": [
+        "fluidr3"
+      ],
+      "note": "point 1 : C5 (gamme montante)"
+    },
+    "point_2": {
+      "file": "sfx/point_2.ogg",
+      "duration": 0.93,
+      "loop": false,
+      "source": "glockenspiel D5 + celesta D5",
+      "author": "Frank Wen",
+      "license": "CC BY 3.0",
+      "packs": [
+        "fluidr3"
+      ],
+      "note": "point 2 : D5 (gamme montante)"
+    },
+    "point_3": {
+      "file": "sfx/point_3.ogg",
+      "duration": 0.913,
+      "loop": false,
+      "source": "glockenspiel E5 + celesta E5",
+      "author": "Frank Wen",
+      "license": "CC BY 3.0",
+      "packs": [
+        "fluidr3"
+      ],
+      "note": "point 3 : E5 (gamme montante)"
+    },
+    "point_4": {
+      "file": "sfx/point_4.ogg",
+      "duration": 0.839,
+      "loop": false,
+      "source": "glockenspiel G5 + celesta G5",
+      "author": "Frank Wen",
+      "license": "CC BY 3.0",
+      "packs": [
+        "fluidr3"
+      ],
+      "note": "point 4 : G5 (gamme montante)"
+    },
+    "point_5": {
+      "file": "sfx/point_5.ogg",
+      "duration": 0.864,
+      "loop": false,
+      "source": "glockenspiel A5 + celesta A5",
+      "author": "Frank Wen",
+      "license": "CC BY 3.0",
+      "packs": [
+        "fluidr3"
+      ],
+      "note": "point 5 : A5 (gamme montante)"
+    },
+    "point_6": {
+      "file": "sfx/point_6.ogg",
+      "duration": 0.911,
+      "loop": false,
+      "source": "glockenspiel C6 + celesta C6",
+      "author": "Frank Wen",
+      "license": "CC BY 3.0",
+      "packs": [
+        "fluidr3"
+      ],
+      "note": "point 6 : C6 (gamme montante)"
+    },
+    "point_7": {
+      "file": "sfx/point_7.ogg",
+      "duration": 0.916,
+      "loop": false,
+      "source": "glockenspiel D6 + celesta D6",
+      "author": "Frank Wen",
+      "license": "CC BY 3.0",
+      "packs": [
+        "fluidr3"
+      ],
+      "note": "point 7 : D6 (gamme montante)"
+    },
+    "point_8": {
+      "file": "sfx/point_8.ogg",
+      "duration": 0.881,
+      "loop": false,
+      "source": "glockenspiel E6 + celesta E6",
+      "author": "Frank Wen",
+      "license": "CC BY 3.0",
+      "packs": [
+        "fluidr3"
+      ],
+      "note": "point 8 : E6 (gamme montante)"
+    },
+    "point_bad": {
+      "file": "sfx/point_bad.ogg",
+      "duration": 0.792,
+      "loop": false,
+      "source": "marimba C3 + marimba G2",
+      "author": "Frank Wen",
+      "license": "CC BY 3.0",
+      "packs": [
+        "fluidr3"
+      ],
+      "note": "point perdu : note grave douce de marimba"
+    },
+    "region_close": {
+      "file": "sfx/region_close.ogg",
+      "duration": 1.379,
+      "loop": false,
+      "source": "orchestral_harp C4/E4/G4 + glockenspiel C6",
+      "author": "Frank Wen",
+      "license": "CC BY 3.0",
+      "packs": [
+        "fluidr3"
+      ],
+      "note": "région fermée : accord chaleureux harpe + glockenspiel (1,5 s)"
+    },
+    "region_big": {
+      "file": "sfx/region_big.ogg",
+      "duration": 1.793,
+      "loop": false,
+      "source": "orchestral_harp C3/G3/E4/B4/D5 + tubular_bells C5 + glockenspiel E6",
+      "author": "Frank Wen",
+      "license": "CC BY 3.0",
+      "packs": [
+        "fluidr3"
+      ],
+      "note": "grande région : accord large (Cmaj9) + cloche tubulaire (2 s)"
+    },
+    "combo": {
+      "file": "sfx/combo.ogg",
+      "duration": 1.117,
+      "loop": false,
+      "source": "glockenspiel C5/E5/G5/C6/E6/G6",
+      "author": "Frank Wen",
+      "license": "CC BY 3.0",
+      "packs": [
+        "fluidr3"
+      ],
+      "note": "combo : arpège rapide de glockenspiel"
+    },
+    "season_spring": {
+      "file": "sfx/season_spring.ogg",
+      "duration": 2.183,
+      "loop": false,
+      "source": "flute D5/E5/G5 + orchestral_harp C4/E4/G4/C5 + glockenspiel G5",
+      "author": "Frank Wen",
+      "license": "CC BY 3.0",
+      "packs": [
+        "fluidr3"
+      ],
+      "note": "printemps : flûte montante (ré mi sol) sur harpe"
+    },
+    "season_summer": {
+      "file": "sfx/season_summer.ogg",
+      "duration": 2.157,
+      "loop": false,
+      "source": "kalimba C4/E4/G4/A4/C5/E5 + marimba C3/G3/C4 + vibraphone G4/C5/E5",
+      "author": "Frank Wen",
+      "license": "CC BY 3.0",
+      "packs": [
+        "fluidr3"
+      ],
+      "note": "été : kalimba en pentatonique sur marimba, halo de vibraphone"
+    },
+    "season_autumn": {
+      "file": "sfx/season_autumn.ogg",
+      "duration": 2.679,
+      "loop": false,
+      "source": "acoustic_guitar_nylon A2/E3/A3/C4/E4 + vibraphone E5/C5/A4",
+      "author": "Frank Wen",
+      "license": "CC BY 3.0",
+      "packs": [
+        "fluidr3"
+      ],
+      "note": "automne : guitare nylon (la mineur) et vibraphone descendant"
+    },
+    "season_winter": {
+      "file": "sfx/season_winter.ogg",
+      "duration": 2.248,
+      "loop": false,
+      "source": "music_box E5/B5/G5/E6 + celesta E4/G4/B4",
+      "author": "Frank Wen",
+      "license": "CC BY 3.0",
+      "packs": [
+        "fluidr3"
+      ],
+      "note": "hiver : boîte à musique (mi mineur) sur célesta, réverbération froide"
+    },
+    "season_sweep": {
+      "file": "sfx/season_sweep.ogg",
+      "duration": 2.145,
+      "loop": false,
+      "source": "wind.ogg",
+      "author": "felix.blume",
+      "license": "CC0 1.0",
+      "packs": [
+        "fs_wind"
+      ],
+      "note": "balayage de saison : rafale réelle de 2,2 s prise dans wind.ogg"
+    },
+    "fauna_arrive": {
+      "file": "sfx/fauna_arrive.ogg",
+      "duration": 0.814,
+      "loop": false,
+      "source": "plop_02.ogg + glockenspiel A5/E6",
+      "author": "rubberduck + Frank Wen",
+      "license": "CC0 1.0 + CC BY 3.0",
+      "packs": [
+        "rd_100sfx",
+        "fluidr3"
+      ],
+      "note": "animal qui apparaît : pop + petit carillon"
+    },
+    "fauna_leave": {
+      "file": "sfx/fauna_leave.ogg",
+      "duration": 0.553,
+      "loop": false,
+      "source": "plop_02.ogg + plop_01.ogg",
+      "author": "rubberduck",
+      "license": "CC0 1.0",
+      "packs": [
+        "rd_100sfx"
+      ],
+      "note": "animal qui part : trois pops descendants"
+    },
+    "fauna_rabbit": {
+      "file": "sfx/fauna_rabbit.ogg",
+      "duration": 0.402,
+      "loop": false,
+      "source": "cute_07.ogg",
+      "author": "rubberduck",
+      "license": "CC0 1.0",
+      "packs": [
+        "rd_creature"
+      ],
+      "note": "lapin : pas de cri crédible dans les packs, « cute_07 » pitché ×1,35 puis ×1,5 (deux couinements)"
+    },
+    "fauna_moose": {
+      "file": "sfx/fauna_moose.ogg",
+      "duration": 1.321,
+      "loop": false,
+      "source": "grunt_07.ogg",
+      "author": "rubberduck",
+      "license": "CC0 1.0",
+      "packs": [
+        "rd_creature2"
+      ],
+      "note": "élan : brame grave (« grunt_07 » pitché ×0,8, passe-bas 1,5 kHz, réverb d'extérieur)"
+    },
+    "fauna_frog": {
+      "file": "sfx/fauna_frog.ogg",
+      "duration": 1.495,
+      "loop": false,
+      "source": "burble_02.ogg + misc_10.ogg",
+      "author": "rubberduck",
+      "license": "CC0 1.0",
+      "packs": [
+        "rd_creature",
+        "rd_creature2"
+      ],
+      "note": "grenouille : « burble_02 » pitché ×0,6 (coassement) + corps grave « misc_10 »"
+    },
+    "fauna_duck": {
+      "file": "sfx/fauna_duck.ogg",
+      "duration": 0.891,
+      "loop": false,
+      "source": "barking_01.ogg",
+      "author": "rubberduck",
+      "license": "CC0 1.0",
+      "packs": [
+        "rd_creature"
+      ],
+      "note": "canard : « barking_01 » pitché ×1,25 répété (coin-coin)"
+    },
+    "fauna_bear": {
+      "file": "sfx/fauna_bear.ogg",
+      "duration": 1.143,
+      "loop": false,
+      "source": "grunt_03.ogg + grunt_06.ogg",
+      "author": "rubberduck",
+      "license": "CC0 1.0",
+      "packs": [
+        "rd_creature",
+        "rd_creature2"
+      ],
+      "note": "ours : grognements graves pitchés ×0,7 / ×0,85, passe-bas 1,8 kHz"
+    },
+    "fauna_owl": {
+      "file": "sfx/fauna_owl.ogg",
+      "duration": 1.515,
+      "loop": false,
+      "source": "ooh.ogg",
+      "author": "rubberduck",
+      "license": "CC0 1.0",
+      "packs": [
+        "rd_creature"
+      ],
+      "note": "hibou : « ooh » pitché ×0,65 en deux hululements, passe-bas 1,2 kHz, réverb lointaine"
+    },
+    "fauna_penguin": {
+      "file": "sfx/fauna_penguin.ogg",
+      "duration": 1.34,
+      "loop": false,
+      "source": "cute_04.ogg + cute_02.ogg",
+      "author": "rubberduck",
+      "license": "CC0 1.0",
+      "packs": [
+        "rd_creature"
+      ],
+      "note": "manchot : pas de cri crédible, « cute_04 » (trille) ×0,8 + « cute_02 » ×0,9"
+    },
+    "wish_new": {
+      "file": "sfx/wish_new.ogg",
+      "duration": 0.437,
+      "loop": false,
+      "source": "paper_01.ogg + tinkle_bell A5",
+      "author": "rubberduck + Frank Wen",
+      "license": "CC0 1.0 + CC BY 3.0",
+      "packs": [
+        "rd_100sfx",
+        "fluidr3"
+      ],
+      "note": "nouveau vœu : papier épinglé + clochette"
+    },
+    "wish_done": {
+      "file": "sfx/wish_done.ogg",
+      "duration": 1.392,
+      "loop": false,
+      "source": "glockenspiel C5/E5/G5/C6/E6 + orchestral_harp C5",
+      "author": "Frank Wen",
+      "license": "CC BY 3.0",
+      "packs": [
+        "fluidr3"
+      ],
+      "note": "vœu exaucé : carillon montant (1,5 s)"
+    },
+    "wish_failed": {
+      "file": "sfx/wish_failed.ogg",
+      "duration": 1.531,
+      "loop": false,
+      "source": "vibraphone G4/E4/C4",
+      "author": "Frank Wen",
+      "license": "CC BY 3.0",
+      "packs": [
+        "fluidr3"
+      ],
+      "note": "vœu manqué : trois notes descendantes douces de vibraphone"
+    },
+    "rare_tile": {
+      "file": "sfx/rare_tile.ogg",
+      "duration": 1.258,
+      "loop": false,
+      "source": "glockenspiel E6/D6/C6 + orchestral_harp E5/G5/C6",
+      "author": "Frank Wen",
+      "license": "CC BY 3.0",
+      "packs": [
+        "fluidr3"
+      ],
+      "note": "tuile rare : scintillement glockenspiel aigu + harpe"
+    },
+    "breath_gain": {
+      "file": "sfx/breath_gain.ogg",
+      "duration": 0.814,
+      "loop": false,
+      "source": "wind.ogg + glockenspiel E6",
+      "author": "felix.blume + Frank Wen",
+      "license": "CC0 1.0 + CC BY 3.0",
+      "packs": [
+        "fs_wind",
+        "fluidr3"
+      ],
+      "note": "souffle gagné : souffle de vent court + tintement"
+    },
+    "breath_spend": {
+      "file": "sfx/breath_spend.ogg",
+      "duration": 0.797,
+      "loop": false,
+      "source": "sfx100v2_air_02.ogg",
+      "author": "rubberduck",
+      "license": "CC0 1.0",
+      "packs": [
+        "rd_100sfx2"
+      ],
+      "note": "souffle dépensé : souffle d'air"
+    },
+    "bud": {
+      "file": "sfx/bud.ogg",
+      "duration": 0.614,
+      "loop": false,
+      "source": "plop_01.ogg + orchestral_harp G5/C6",
+      "author": "rubberduck + Frank Wen",
+      "license": "CC0 1.0 + CC BY 3.0",
+      "packs": [
+        "rd_100sfx",
+        "fluidr3"
+      ],
+      "note": "pousse : petit plop + harpe"
+    },
+    "star_1": {
+      "file": "sfx/star_1.ogg",
+      "duration": 1.013,
+      "loop": false,
+      "source": "glockenspiel C5 + celesta C5",
+      "author": "Frank Wen",
+      "license": "CC BY 3.0",
+      "packs": [
+        "fluidr3"
+      ],
+      "note": "étoile 1 (do)"
+    },
+    "star_2": {
+      "file": "sfx/star_2.ogg",
+      "duration": 1.026,
+      "loop": false,
+      "source": "glockenspiel E5 + celesta E5",
+      "author": "Frank Wen",
+      "license": "CC BY 3.0",
+      "packs": [
+        "fluidr3"
+      ],
+      "note": "étoile 2 (mi)"
+    },
+    "star_3": {
+      "file": "sfx/star_3.ogg",
+      "duration": 0.912,
+      "loop": false,
+      "source": "glockenspiel G5 + celesta G5",
+      "author": "Frank Wen",
+      "license": "CC BY 3.0",
+      "packs": [
+        "fluidr3"
+      ],
+      "note": "étoile 3 (sol)"
+    },
+    "island_done": {
+      "file": "sfx/island_done.ogg",
+      "duration": 2.987,
+      "loop": false,
+      "source": "string_ensemble_1 C3/E3/G3/C4 + orchestral_harp C4/E4/G4/C5 + tubular_bells C5 + glockenspiel C6",
+      "author": "Frank Wen",
+      "license": "CC BY 3.0",
+      "packs": [
+        "fluidr3"
+      ],
+      "note": "île achevée : accord final de cordes, harpe, cloche tubulaire et glockenspiel (3 s)"
+    },
+    "island_start": {
+      "file": "sfx/island_start.ogg",
+      "duration": 1.463,
+      "loop": false,
+      "source": "pad_2_warm C4 + orchestral_harp C5/G5",
+      "author": "Frank Wen",
+      "license": "CC BY 3.0",
+      "packs": [
+        "fluidr3"
+      ],
+      "note": "île ouverte : note douce (nappe chaude + harpe)"
+    },
+    "seed": {
+      "file": "sfx/seed.ogg",
+      "duration": 0.736,
+      "loop": false,
+      "source": "impactWood_light_003.ogg + glockenspiel C6",
+      "author": "Kenney + Frank Wen",
+      "license": "CC0 1.0 + CC BY 3.0",
+      "packs": [
+        "kenney_impact",
+        "fluidr3"
+      ],
+      "note": "graine reçue : bois + tintement"
+    },
+    "upgrade": {
+      "file": "sfx/upgrade.ogg",
+      "duration": 1.688,
+      "loop": false,
+      "source": "orchestral_harp C4/E4/G4/C5 + glockenspiel C6",
+      "author": "Frank Wen",
+      "license": "CC BY 3.0",
+      "packs": [
+        "fluidr3"
+      ],
+      "note": "amélioration : arpège de harpe"
+    },
     "ui_hover": {
       "file": "sfx/ui_hover.ogg",
       "duration": 0.107,
@@ -183,15 +842,15 @@
     },
     "ui_error": {
       "file": "sfx/ui_error.ogg",
-      "duration": 0.136,
+      "duration": 0.267,
       "loop": false,
-      "source": "error_008.ogg",
+      "source": "error_006.ogg",
       "author": "Kenney",
       "license": "CC0 1.0",
       "packs": [
         "kenney_interface"
       ],
-      "note": "erreur, brève"
+      "note": "erreur, brève et feutrée"
     },
     "ui_open": {
       "file": "sfx/ui_open.ogg",
@@ -203,7 +862,7 @@
       "packs": [
         "kenney_rpg"
       ],
-      "note": "ouverture (livre / carnet)"
+      "note": "ouverture (carnet)"
     },
     "ui_close": {
       "file": "sfx/ui_close.ogg",
@@ -215,7 +874,7 @@
       "packs": [
         "kenney_rpg"
       ],
-      "note": "fermeture (livre / carnet)"
+      "note": "fermeture (carnet)"
     },
     "page_flip_1": {
       "file": "sfx/page_flip_1.ogg",
@@ -239,534 +898,20 @@
       "packs": [
         "kenney_rpg"
       ],
-      "note": "page tournée"
+      "note": "page tournée (variante)"
     },
-    "lens_tick_1": {
-      "file": "sfx/lens_tick_1.ogg",
-      "duration": 0.425,
+    "chalk": {
+      "file": "sfx/chalk.ogg",
+      "duration": 0.493,
       "loop": false,
-      "source": "metalClick.ogg",
-      "author": "Kenney",
+      "source": "Mech Pencil Lines 1.wav + scratch_004.ogg",
+      "author": "Ben Burnes (Abstraction) + Kenney",
       "license": "CC0 1.0",
       "packs": [
-        "kenney_rpg"
-      ],
-      "note": "clic doux du mécanisme de lentille"
-    },
-    "lens_tick_2": {
-      "file": "sfx/lens_tick_2.ogg",
-      "duration": 0.247,
-      "loop": false,
-      "source": "Ratchet Muted 1.wav",
-      "author": "Ben Burnes (Abstraction)",
-      "license": "CC0 1.0",
-      "packs": [
-        "bb_mechanisms"
-      ],
-      "note": "clic doux du mécanisme de lentille (variante)"
-    },
-    "lens_start": {
-      "file": "sfx/lens_start.ogg",
-      "duration": 1.955,
-      "loop": false,
-      "source": "metalClick.ogg + Ratchet Muted 3.wav + Cable Coiler 2.wav",
-      "author": "Kenney + Ben Burnes (Abstraction)",
-      "license": "CC0 1.0",
-      "packs": [
-        "kenney_rpg",
-        "bb_mechanisms"
-      ],
-      "note": "mécanisme qui démarre (clic + cliquet + enrouleur)"
-    },
-    "oil_refill": {
-      "file": "sfx/oil_refill.ogg",
-      "duration": 2.306,
-      "loop": false,
-      "source": "Plop - Viscous 3.wav + bubble_02.ogg + bubble_01.ogg",
-      "author": "Ben Burnes (Abstraction) + rubberduck",
-      "license": "CC0 1.0",
-      "packs": [
-        "bb_plops",
-        "rd_water"
-      ],
-      "note": "huile versée dans le réservoir (liquide visqueux + bulles)"
-    },
-    "oil_out": {
-      "file": "sfx/oil_out.ogg",
-      "duration": 0.687,
-      "loop": false,
-      "source": "sfx100v2_air_03.ogg + sfx100v2_air_02.ogg",
-      "author": "rubberduck",
-      "license": "CC0 1.0",
-      "packs": [
-        "rd_100sfx2"
-      ],
-      "note": "flamme soufflée"
-    },
-    "oil_relight": {
-      "file": "sfx/oil_relight.ogg",
-      "duration": 0.875,
-      "loop": false,
-      "source": "spell_fire_06.ogg",
-      "author": "rubberduck",
-      "license": "CC0 1.0",
-      "packs": [
-        "rd_rpg"
-      ],
-      "note": "flamme rallumée"
-    },
-    "bell_dock_1": {
-      "file": "sfx/bell_dock_1.ogg",
-      "duration": 1.282,
-      "loop": false,
-      "source": "bell_01.ogg",
-      "author": "rubberduck",
-      "license": "CC0 1.0",
-      "packs": [
-        "rd_100sfx"
-      ],
-      "note": "cloche claire d'accostage"
-    },
-    "bell_dock_2": {
-      "file": "sfx/bell_dock_2.ogg",
-      "duration": 1.394,
-      "loop": false,
-      "source": "bell_03.ogg",
-      "author": "rubberduck",
-      "license": "CC0 1.0",
-      "packs": [
-        "rd_100sfx"
-      ],
-      "note": "cloche claire d'accostage (variante)"
-    },
-    "ship_creak_1": {
-      "file": "sfx/ship_creak_1.ogg",
-      "duration": 0.603,
-      "loop": false,
-      "source": "creak1.ogg",
-      "author": "Kenney",
-      "license": "CC0 1.0",
-      "packs": [
-        "kenney_rpg"
-      ],
-      "note": "bois qui craque"
-    },
-    "ship_creak_2": {
-      "file": "sfx/ship_creak_2.ogg",
-      "duration": 0.784,
-      "loop": false,
-      "source": "creak2.ogg",
-      "author": "Kenney",
-      "license": "CC0 1.0",
-      "packs": [
-        "kenney_rpg"
-      ],
-      "note": "bois qui craque"
-    },
-    "ship_creak_3": {
-      "file": "sfx/ship_creak_3.ogg",
-      "duration": 0.422,
-      "loop": false,
-      "source": "wood_squeak_01.ogg",
-      "author": "rubberduck",
-      "license": "CC0 1.0",
-      "packs": [
-        "rd_woodmetal"
-      ],
-      "note": "bois qui craque (grincement)"
-    },
-    "anchor_drop": {
-      "file": "sfx/anchor_drop.ogg",
-      "duration": 1.225,
-      "loop": false,
-      "source": "chain_03.ogg + splash_12.ogg",
-      "author": "rubberduck",
-      "license": "CC0 1.0",
-      "packs": [
-        "rd_rpg",
-        "rd_water"
-      ],
-      "note": "chaîne puis plouf"
-    },
-    "anchor_raise": {
-      "file": "sfx/anchor_raise.ogg",
-      "duration": 1.064,
-      "loop": false,
-      "source": "chain_01.ogg + chain_02.ogg",
-      "author": "rubberduck",
-      "license": "CC0 1.0",
-      "packs": [
-        "rd_rpg"
-      ],
-      "note": "chaîne remontée"
-    },
-    "wreck_wood": {
-      "file": "sfx/wreck_wood.ogg",
-      "duration": 1.481,
-      "loop": false,
-      "source": "impactWood_heavy_000.ogg + wood_breaking_01.ogg + wood_breaking_02.ogg + bfh1_breaking_01.ogg",
-      "author": "Kenney + rubberduck",
-      "license": "CC0 1.0",
-      "packs": [
-        "kenney_impact",
-        "rd_woodmetal",
-        "rd_bfh"
-      ],
-      "note": "coque qui se brise"
-    },
-    "wreck_splash": {
-      "file": "sfx/wreck_splash.ogg",
-      "duration": 1.697,
-      "loop": false,
-      "source": "splash_01.ogg + splash_07.ogg + splash_04.ogg",
-      "author": "rubberduck",
-      "license": "CC0 1.0",
-      "packs": [
-        "rd_water"
-      ],
-      "note": "grosse éclaboussure"
-    },
-    "splash_small_1": {
-      "file": "sfx/splash_small_1.ogg",
-      "duration": 0.232,
-      "loop": false,
-      "source": "splash_09.ogg",
-      "author": "rubberduck",
-      "license": "CC0 1.0",
-      "packs": [
-        "rd_water"
-      ],
-      "note": "petit plouf"
-    },
-    "splash_small_2": {
-      "file": "sfx/splash_small_2.ogg",
-      "duration": 0.278,
-      "loop": false,
-      "source": "splash_10.ogg",
-      "author": "rubberduck",
-      "license": "CC0 1.0",
-      "packs": [
-        "rd_water"
-      ],
-      "note": "petit plouf"
-    },
-    "splash_small_3": {
-      "file": "sfx/splash_small_3.ogg",
-      "duration": 0.419,
-      "loop": false,
-      "source": "splash_15.ogg",
-      "author": "rubberduck",
-      "license": "CC0 1.0",
-      "packs": [
-        "rd_water"
-      ],
-      "note": "petit plouf"
-    },
-    "route_draw": {
-      "file": "sfx/route_draw.ogg",
-      "duration": 0.373,
-      "loop": false,
-      "source": "Fine Felt Tip Lines.wav",
-      "author": "Ben Burnes (Abstraction)",
-      "license": "CC0 1.0",
-      "packs": [
-        "bb_paper"
-      ],
-      "note": "trait de plume sur la carte"
-    },
-    "route_set": {
-      "file": "sfx/route_set.ogg",
-      "duration": 0.397,
-      "loop": false,
-      "source": "Softcover Tap 1.wav",
-      "author": "Ben Burnes (Abstraction)",
-      "license": "CC0 1.0",
-      "packs": [
-        "bb_paper"
-      ],
-      "note": "confirmation feutrée (tapotement)"
-    },
-    "route_invalid": {
-      "file": "sfx/route_invalid.ogg",
-      "duration": 0.214,
-      "loop": false,
-      "source": "error_005.ogg",
-      "author": "Kenney",
-      "license": "CC0 1.0",
-      "packs": [
+        "bb_paper",
         "kenney_interface"
       ],
-      "note": "tracé invalide"
-    },
-    "horn": {
-      "file": "sfx/horn.ogg",
-      "duration": 2.43,
-      "loop": false,
-      "source": "tuba Bb1 + trombone Bb1 + french_horn F2 + contrabass Bb1",
-      "author": "Frank Wen",
-      "license": "CC BY 3.0",
-      "packs": [
-        "fluidr3"
-      ],
-      "note": "corne de brume du phare : tuba + trombone + cor + contrebasse (FluidR3), enveloppe, saturation, passe-bande 200–900 Hz, réverbération extérieure"
-    },
-    "horn_distant": {
-      "file": "sfx/horn_distant.ogg",
-      "duration": 1.477,
-      "loop": false,
-      "source": "tuba G1 + trombone G1 + french_horn D2 + contrabass G1",
-      "author": "Frank Wen",
-      "license": "CC BY 3.0",
-      "packs": [
-        "fluidr3"
-      ],
-      "note": "réponse lointaine d'un navire : plus grave, filtrée à 450 Hz, réverbération longue"
-    },
-    "beast_growl_1": {
-      "file": "sfx/beast_growl_1.ogg",
-      "duration": 1.843,
-      "loop": false,
-      "source": "monster_04.ogg + monster_07.ogg",
-      "author": "rubberduck",
-      "license": "CC0 1.0",
-      "packs": [
-        "rd_creature"
-      ],
-      "note": "souffle grave de la Bête (pitch -, réverb)"
-    },
-    "beast_growl_2": {
-      "file": "sfx/beast_growl_2.ogg",
-      "duration": 1.568,
-      "loop": false,
-      "source": "creature_roar_02.ogg + monster_06.ogg",
-      "author": "rubberduck",
-      "license": "CC0 1.0",
-      "packs": [
-        "rd_rpg",
-        "rd_creature"
-      ],
-      "note": "grondement de la Bête (variante)"
-    },
-    "beast_hurt": {
-      "file": "sfx/beast_hurt.ogg",
-      "duration": 0.937,
-      "loop": false,
-      "source": "creature_hurt_01.ogg",
-      "author": "rubberduck",
-      "license": "CC0 1.0",
-      "packs": [
-        "rd_rpg"
-      ],
-      "note": "la Bête touchée par le faisceau"
-    },
-    "beast_retreat": {
-      "file": "sfx/beast_retreat.ogg",
-      "duration": 2.104,
-      "loop": false,
-      "source": "Woom 4.wav + Swish 6.wav",
-      "author": "Ben Burnes (Abstraction)",
-      "license": "CC0 1.0",
-      "packs": [
-        "bb_chairmat",
-        "bb_wooshes"
-      ],
-      "note": "woosh grave de retraite"
-    },
-    "fog_whisper": {
-      "file": "sfx/fog_whisper.ogg",
-      "duration": 3.789,
-      "loop": false,
-      "source": "wind.ogg + breath.ogg",
-      "author": "felix.blume + rubberduck",
-      "license": "CC0 1.0",
-      "packs": [
-        "fs_wind",
-        "rd_creature"
-      ],
-      "note": "souffle long et discret de la brume"
-    },
-    "thunder_1": {
-      "file": "sfx/thunder_1.ogg",
-      "duration": 4.574,
-      "loop": false,
-      "source": "sfx100v2_thunder_01.ogg",
-      "author": "rubberduck",
-      "license": "CC0 1.0",
-      "packs": [
-        "rd_100sfx2"
-      ],
-      "note": "tonnerre proche"
-    },
-    "thunder_2": {
-      "file": "sfx/thunder_2.ogg",
-      "duration": 6.912,
-      "loop": false,
-      "source": "Fake Thunder 1.wav",
-      "author": "Ben Burnes (Abstraction)",
-      "license": "CC0 1.0",
-      "packs": [
-        "bb_chairmat"
-      ],
-      "note": "roulement de tonnerre"
-    },
-    "thunder_3": {
-      "file": "sfx/thunder_3.ogg",
-      "duration": 7.893,
-      "loop": false,
-      "source": "Fake Thunder 2.wav",
-      "author": "Ben Burnes (Abstraction)",
-      "license": "CC0 1.0",
-      "packs": [
-        "bb_chairmat"
-      ],
-      "note": "roulement de tonnerre lointain"
-    },
-    "gust": {
-      "file": "sfx/gust.ogg",
-      "duration": 3.352,
-      "loop": false,
-      "source": "wind.ogg + Whistle 1.wav",
-      "author": "felix.blume + Ben Burnes (Abstraction)",
-      "license": "CC0 1.0",
-      "packs": [
-        "fs_wind",
-        "bb_wooshes"
-      ],
-      "note": "rafale de vent"
-    },
-    "page_pickup": {
-      "file": "sfx/page_pickup.ogg",
-      "duration": 1.26,
-      "loop": false,
-      "source": "paper_01.ogg + glockenspiel A5 + glockenspiel E6",
-      "author": "rubberduck + Frank Wen",
-      "license": "CC0 1.0 + CC BY 3.0",
-      "packs": [
-        "rd_100sfx",
-        "fluidr3"
-      ],
-      "note": "page de journal ramassée (papier + carillon)"
-    },
-    "shard": {
-      "file": "sfx/shard.ogg",
-      "duration": 0.74,
-      "loop": false,
-      "source": "impactGlass_light_001.ogg + glockenspiel C6",
-      "author": "Kenney + Frank Wen",
-      "license": "CC0 1.0 + CC BY 3.0",
-      "packs": [
-        "kenney_impact",
-        "fluidr3"
-      ],
-      "note": "éclat cristallin"
-    },
-    "star_1": {
-      "file": "sfx/star_1.ogg",
-      "duration": 1.013,
-      "loop": false,
-      "source": "glockenspiel C5 + celesta C5",
-      "author": "Frank Wen",
-      "license": "CC BY 3.0",
-      "packs": [
-        "fluidr3"
-      ],
-      "note": "étoile 1 (do)"
-    },
-    "star_2": {
-      "file": "sfx/star_2.ogg",
-      "duration": 1.026,
-      "loop": false,
-      "source": "glockenspiel E5 + celesta E5",
-      "author": "Frank Wen",
-      "license": "CC BY 3.0",
-      "packs": [
-        "fluidr3"
-      ],
-      "note": "étoile 2 (mi)"
-    },
-    "star_3": {
-      "file": "sfx/star_3.ogg",
-      "duration": 0.912,
-      "loop": false,
-      "source": "glockenspiel G5 + celesta G5",
-      "author": "Frank Wen",
-      "license": "CC BY 3.0",
-      "packs": [
-        "fluidr3"
-      ],
-      "note": "étoile 3 (sol)"
-    },
-    "upgrade": {
-      "file": "sfx/upgrade.ogg",
-      "duration": 1.688,
-      "loop": false,
-      "source": "orchestral_harp C4/E4/G4/C5 + glockenspiel C6",
-      "author": "Frank Wen",
-      "license": "CC BY 3.0",
-      "packs": [
-        "fluidr3"
-      ],
-      "note": "amélioration achetée (arpège de harpe)"
-    },
-    "night_win": {
-      "file": "sfx/night_win.ogg",
-      "duration": 1.818,
-      "loop": false,
-      "source": "tubular_bells C4/G4 + glockenspiel C5/E5/G5/C6",
-      "author": "Frank Wen",
-      "license": "CC BY 3.0",
-      "packs": [
-        "fluidr3"
-      ],
-      "note": "nuit gagnée : cloche + carillon"
-    },
-    "night_lose": {
-      "file": "sfx/night_lose.ogg",
-      "duration": 3.814,
-      "loop": false,
-      "source": "contrabass C1 + cello C2 + tubular_bells C4 (une octave plus bas)",
-      "author": "Frank Wen",
-      "license": "CC BY 3.0",
-      "packs": [
-        "fluidr3"
-      ],
-      "note": "nuit perdue : glas grave et sobre"
-    },
-    "dawn": {
-      "file": "sfx/dawn.ogg",
-      "duration": 4.497,
-      "loop": false,
-      "source": "string_ensemble_1 C3/E3/G3/C4 + pad_2_warm C3 + choir_aahs C4",
-      "author": "Frank Wen",
-      "license": "CC BY 3.0",
-      "packs": [
-        "fluidr3"
-      ],
-      "note": "l'aube se lève : montée douce de cordes (samples réels)"
-    },
-    "warning": {
-      "file": "sfx/warning.ogg",
-      "duration": 0.052,
-      "loop": false,
-      "source": "tick_004.ogg",
-      "author": "Kenney",
-      "license": "CC0 1.0",
-      "packs": [
-        "kenney_interface"
-      ],
-      "note": "tic d'alerte discret"
-    },
-    "tick": {
-      "file": "sfx/tick.ogg",
-      "duration": 0.017,
-      "loop": false,
-      "source": "tick_002.ogg",
-      "author": "Kenney",
-      "license": "CC0 1.0",
-      "packs": [
-        "kenney_interface"
-      ],
-      "note": "tic (horloge / compteur)"
+      "note": "craie : trait de crayon sur papier + grattement"
     }
   }
 }

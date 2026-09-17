@@ -1,19 +1,20 @@
 #!/usr/bin/env python3
 """
-build_audio.py — pipeline audio reproductible de « Feux de Brume ».
+build_audio.py — pipeline audio reproductible de « Cent Saisons ».
 
 Produit, à partir de sources libres présentes sur disque (miroirs GitHub) :
   assets/audio/music/*.ogg     boucles musicales (Kevin MacLeod, CC BY 4.0), q5, -16 LUFS
-  assets/audio/ambience/*.ogg  boucles d'ambiance (Freesound CC0), q3, -20 LUFS
+  assets/audio/ambience/*.ogg  boucles d'ambiance (Freesound CC0), q3, -20 LUFS, 60–90 s
   assets/audio/sfx/*.ogg       effets (CC0 + samples FluidR3_GM CC BY 3.0), q4, pics -3 dBFS
   assets/audio/manifest.json   registre machine (fichier, durée, boucle, source, auteur, licence)
   assets/credits/audio.json    crédits dédupliqués (œuvre, auteur, licence, URLs, miroir)
 
 Dépendances : Python 3, numpy, imageio_ffmpeg (ffmpeg statique avec libvorbis).
-Aucun oscillateur ni bruit synthétique : la corne de brume, les carillons, l'aube,
-etc. sont des montages de samples d'instruments réels (FluidR3_GM) ou d'enregistrements.
+Aucun oscillateur ni bruit synthétique : carillons de points, jingles de saison, accords de
+bilan, etc. sont des montages de samples d'instruments réels (FluidR3_GM) ou d'enregistrements.
 
-Usage : python3 tools/build_audio.py [--only music|ambience|sfx] [--verify-only]
+Usage : python3 tools/build_audio.py [--only music|ambience|sfx] [--keys a,b] [--verify-only]
+Un build complet (sans --only ni --keys) supprime les .ogg obsolètes des trois dossiers.
 """
 from __future__ import annotations
 
@@ -40,45 +41,46 @@ SR = 44100
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "assets" / "audio"
 CREDITS_OUT = ROOT / "assets" / "credits" / "audio.json"
+GAME = "Cent Saisons"
 
 # ---------------------------------------------------------------------------
 # Sources (miroirs locaux). Surchargeables par variables d'environnement.
 # ---------------------------------------------------------------------------
-KM = Path(os.environ.get("FDB_KM", "/home/user/mirrors/km-audio"))
-AMB = Path(os.environ.get("FDB_AMBIENT", "/home/user/mirrors/omarchy-ambient/sounds"))
-CC0 = Path(os.environ.get("FDB_CC0", "/home/user/mirrors/cc0sounds"))
-KENNEY = Path(os.environ.get("FDB_KENNEY", "/home/user/etdofresh/kenney.nl"))
-FLUID = Path(os.environ.get("FDB_FLUID", "/home/user/mirrors/fluidr3"))
+KM = Path(os.environ.get("CS_KM", "/home/user/mirrors/km-audio"))
+AMB = Path(os.environ.get("CS_AMBIENT", "/home/user/mirrors/omarchy-ambient/sounds"))
+CC0 = Path(os.environ.get("CS_CC0", "/home/user/mirrors/cc0sounds"))
+KENNEY = Path(os.environ.get("CS_KENNEY", "/home/user/etdofresh/kenney.nl"))
+FLUID = Path(os.environ.get("CS_FLUID", "/home/user/mirrors/fluidr3"))
 FLUID_URL = "https://raw.githubusercontent.com/gleitz/midi-js-soundfonts/gh-pages/FluidR3_GM/"
 
 # Identifiants de « packs » (pour manifest + crédits)
 P_KM = "km"
-P_FS_WAVES, P_FS_WIND, P_FS_RAIN, P_FS_STORM = "fs_waves", "fs_wind", "fs_rain", "fs_storm"
-P_RD1, P_RD_WM, P_RD2, P_RD_CRE, P_RD_RPG, P_RD_WATER, P_RD_BFH = (
-    "rd_100sfx", "rd_woodmetal", "rd_100sfx2", "rd_creature", "rd_rpg", "rd_water", "rd_bfh")
-P_BB_WOOSH, P_BB_PAPER, P_BB_CHAIR, P_BB_MECH, P_BB_PLOP = (
-    "bb_wooshes", "bb_paper", "bb_chairmat", "bb_mechanisms", "bb_plops")
+P_FS_BIRDS, P_FS_STREAM, P_FS_WIND, P_FS_RAIN, P_FS_CRICKETS, P_FS_WAVES = (
+    "fs_birds", "fs_stream", "fs_wind", "fs_rain", "fs_crickets", "fs_waves")
+P_RD1, P_RD_WM, P_RD2, P_RD_CRE, P_RD_CRE2, P_RD_RPG, P_RD_WATER = (
+    "rd_100sfx", "rd_woodmetal", "rd_100sfx2", "rd_creature", "rd_creature2", "rd_rpg", "rd_water")
+P_BB_WOOSH, P_BB_PAPER, P_BB_CUTTER = "bb_wooshes", "bb_paper", "bb_papercutter"
 P_K_UI, P_K_IF, P_K_IMP, P_K_RPG = "kenney_ui", "kenney_interface", "kenney_impact", "kenney_rpg"
 P_FLUID = "fluidr3"
 
 PACKS = {
     P_KM: dict(dir=KM, author="Kevin MacLeod", license="CC BY 4.0"),
-    P_FS_WAVES: dict(dir=AMB, author="SecureSubset", license="CC0 1.0"),
+    P_FS_BIRDS: dict(dir=AMB, author="felix.blume", license="CC0 1.0"),
+    P_FS_STREAM: dict(dir=AMB, author="IceVFX", license="CC0 1.0"),
     P_FS_WIND: dict(dir=AMB, author="felix.blume", license="CC0 1.0"),
     P_FS_RAIN: dict(dir=AMB, author="richwise", license="CC0 1.0"),
-    P_FS_STORM: dict(dir=AMB, author="Sheyvan", license="CC0 1.0"),
+    P_FS_CRICKETS: dict(dir=AMB, author="felix.blume", license="CC0 1.0"),
+    P_FS_WAVES: dict(dir=AMB, author="SecureSubset", license="CC0 1.0"),
     P_RD1: dict(dir=CC0 / "100-CC0-SFX", author="rubberduck", license="CC0 1.0"),
     P_RD_WM: dict(dir=CC0 / "100-CC0-wood-metal-SFX", author="rubberduck", license="CC0 1.0"),
     P_RD2: dict(dir=CC0 / "100-cc0-sfx-2", author="rubberduck", license="CC0 1.0"),
     P_RD_CRE: dict(dir=CC0 / "80-CC0-creature-SFX", author="rubberduck", license="CC0 1.0"),
+    P_RD_CRE2: dict(dir=CC0 / "80-CC0-creature-sfx-2", author="rubberduck", license="CC0 1.0"),
     P_RD_RPG: dict(dir=CC0 / "80-CC0-RPG-SFX", author="rubberduck", license="CC0 1.0"),
     P_RD_WATER: dict(dir=CC0 / "40-cc0-water-splash-slime-sfx", author="rubberduck", license="CC0 1.0"),
-    P_RD_BFH: dict(dir=CC0 / "75-cc0-breaking-falling-hit-sfx", author="rubberduck", license="CC0 1.0"),
     P_BB_WOOSH: dict(dir=CC0 / "Micro Pack - Organic Wooshes", author="Ben Burnes (Abstraction)", license="CC0 1.0"),
     P_BB_PAPER: dict(dir=CC0 / "bb - Books, Paper, Writing (Jan 2021)", author="Ben Burnes (Abstraction)", license="CC0 1.0"),
-    P_BB_CHAIR: dict(dir=CC0 / "Micro Pack - Chairmat", author="Ben Burnes (Abstraction)", license="CC0 1.0"),
-    P_BB_MECH: dict(dir=CC0 / "bb - Smol Mechanisms (May 2021)", author="Ben Burnes (Abstraction)", license="CC0 1.0"),
-    P_BB_PLOP: dict(dir=CC0 / "bb - Bottle Plops (Apr 2021)", author="Ben Burnes (Abstraction)", license="CC0 1.0"),
+    P_BB_CUTTER: dict(dir=CC0 / "Micro Pack - Paper Cutter", author="Ben Burnes (Abstraction)", license="CC0 1.0"),
     P_K_UI: dict(dir=KENNEY / "kenney_uiaudio" / "Audio", author="Kenney", license="CC0 1.0"),
     P_K_IF: dict(dir=KENNEY / "kenney_interfacesounds" / "Audio", author="Kenney", license="CC0 1.0"),
     P_K_IMP: dict(dir=KENNEY / "kenney_impactsounds" / "Audio", author="Kenney", license="CC0 1.0"),
@@ -89,64 +91,54 @@ PACKS = {
 CC0_URL = "https://creativecommons.org/publicdomain/zero/1.0/"
 CCBY4_URL = "http://creativecommons.org/licenses/by/4.0/"
 CCBY3_URL = "https://creativecommons.org/licenses/by/3.0/"
+OMARCHY = "https://github.com/funcoder/omarchy-ambient"
+LAVENDER = "https://github.com/lavenderdotpet/CC0-Public-Domain-Sounds"
+KENNEY_MIRROR = "https://github.com/ETdoFresh/kenney.nl"
 
 # Œuvres (pour les crédits dédupliqués). Une entrée par pack / enregistrement.
 WORKS = {
-    P_FS_WAVES: dict(title="Crashing Waves - Pacific Ocean", author="SecureSubset", license="CC0 1.0",
-                     license_url=CC0_URL, source_url="https://freesound.org/s/817075/",
-                     mirror="https://github.com/funcoder/omarchy-ambient"),
+    P_FS_BIRDS: dict(title="Forest quiet atmosphere with some birds", author="felix.blume", license="CC0 1.0",
+                     license_url=CC0_URL, source_url="https://freesound.org/s/414098/", mirror=OMARCHY),
+    P_FS_STREAM: dict(title="Relaxing River Sound", author="IceVFX", license="CC0 1.0", license_url=CC0_URL,
+                      source_url="https://freesound.org/s/722875/", mirror=OMARCHY),
     P_FS_WIND: dict(title="Wind on bushes with muffled gust of wind, twig branch, close to desert ground",
                     author="felix.blume", license="CC0 1.0", license_url=CC0_URL,
-                    source_url="https://freesound.org/s/711106/", mirror="https://github.com/funcoder/omarchy-ambient"),
+                    source_url="https://freesound.org/s/711106/", mirror=OMARCHY),
     P_FS_RAIN: dict(title="Soft rain on a tile roof", author="richwise", license="CC0 1.0", license_url=CC0_URL,
-                    source_url="https://freesound.org/s/466241/", mirror="https://github.com/funcoder/omarchy-ambient"),
-    P_FS_STORM: dict(title="Rain and Thunder Ambience Tübingen", author="Sheyvan", license="CC0 1.0",
-                     license_url=CC0_URL, source_url="https://freesound.org/s/369547/",
-                     mirror="https://github.com/funcoder/omarchy-ambient"),
+                    source_url="https://freesound.org/s/466241/", mirror=OMARCHY),
+    P_FS_CRICKETS: dict(title="Crickets (close recording)", author="felix.blume", license="CC0 1.0",
+                        license_url=CC0_URL, source_url="https://freesound.org/s/476672/", mirror=OMARCHY),
+    P_FS_WAVES: dict(title="Crashing Waves - Pacific Ocean", author="SecureSubset", license="CC0 1.0",
+                     license_url=CC0_URL, source_url="https://freesound.org/s/817075/", mirror=OMARCHY),
     P_RD1: dict(title="100 CC0 SFX", author="rubberduck", license="CC0 1.0", license_url=CC0_URL,
-                source_url="https://opengameart.org/content/100-cc0-sfx",
-                mirror="https://github.com/lavenderdotpet/CC0-Public-Domain-Sounds"),
+                source_url="https://opengameart.org/content/100-cc0-sfx", mirror=LAVENDER),
     P_RD_WM: dict(title="100 CC0 wood / metal SFX", author="rubberduck", license="CC0 1.0", license_url=CC0_URL,
-                  source_url="https://opengameart.org/content/100-cc0-wood-metal-sfx",
-                  mirror="https://github.com/lavenderdotpet/CC0-Public-Domain-Sounds"),
+                  source_url="https://opengameart.org/content/100-cc0-wood-metal-sfx", mirror=LAVENDER),
     P_RD2: dict(title="100 CC0 SFX #2", author="rubberduck", license="CC0 1.0", license_url=CC0_URL,
-                source_url="https://opengameart.org/content/100-cc0-sfx-2",
-                mirror="https://github.com/lavenderdotpet/CC0-Public-Domain-Sounds"),
+                source_url="https://opengameart.org/content/100-cc0-sfx-2", mirror=LAVENDER),
     P_RD_CRE: dict(title="80 CC0 creature SFX", author="rubberduck", license="CC0 1.0", license_url=CC0_URL,
-                   source_url="https://opengameart.org/content/80-cc0-creature-sfx",
-                   mirror="https://github.com/lavenderdotpet/CC0-Public-Domain-Sounds"),
+                   source_url="https://opengameart.org/content/80-cc0-creature-sfx", mirror=LAVENDER),
+    P_RD_CRE2: dict(title="80 CC0 creature SFX #2", author="rubberduck", license="CC0 1.0", license_url=CC0_URL,
+                    source_url="https://opengameart.org/content/80-cc0-creature-sfx-2", mirror=LAVENDER),
     P_RD_RPG: dict(title="80 CC0 RPG SFX", author="rubberduck", license="CC0 1.0", license_url=CC0_URL,
-                   source_url="https://opengameart.org/content/80-cc0-rpg-sfx",
-                   mirror="https://github.com/lavenderdotpet/CC0-Public-Domain-Sounds"),
+                   source_url="https://opengameart.org/content/80-cc0-rpg-sfx", mirror=LAVENDER),
     P_RD_WATER: dict(title="40 CC0 water / splash / slime SFX", author="rubberduck", license="CC0 1.0",
                      license_url=CC0_URL, source_url="https://opengameart.org/content/40-cc0-water-splash-slime-sfx",
-                     mirror="https://github.com/lavenderdotpet/CC0-Public-Domain-Sounds"),
-    P_RD_BFH: dict(title="75 CC0 breaking / falling / hit SFX", author="rubberduck", license="CC0 1.0",
-                   license_url=CC0_URL, source_url="https://opengameart.org/content/75-cc0-breaking-falling-hit-sfx",
-                   mirror="https://github.com/lavenderdotpet/CC0-Public-Domain-Sounds"),
+                     mirror=LAVENDER),
     P_BB_WOOSH: dict(title="Micro Pack - Organic Wooshes", author="Ben Burnes (Abstraction)", license="CC0 1.0",
-                     license_url=CC0_URL, source_url="https://abstractionmusic.com/",
-                     mirror="https://github.com/lavenderdotpet/CC0-Public-Domain-Sounds"),
+                     license_url=CC0_URL, source_url="https://abstractionmusic.com/", mirror=LAVENDER),
     P_BB_PAPER: dict(title="Books, Paper, Writing (Jan 2021)", author="Ben Burnes (Abstraction)", license="CC0 1.0",
-                     license_url=CC0_URL, source_url="https://abstractionmusic.com/",
-                     mirror="https://github.com/lavenderdotpet/CC0-Public-Domain-Sounds"),
-    P_BB_CHAIR: dict(title="Micro Pack - Chairmat", author="Ben Burnes (Abstraction)", license="CC0 1.0",
-                     license_url=CC0_URL, source_url="https://abstractionmusic.com/",
-                     mirror="https://github.com/lavenderdotpet/CC0-Public-Domain-Sounds"),
-    P_BB_MECH: dict(title="Smol Mechanisms (May 2021)", author="Ben Burnes (Abstraction)", license="CC0 1.0",
-                    license_url=CC0_URL, source_url="https://abstractionmusic.com/",
-                    mirror="https://github.com/lavenderdotpet/CC0-Public-Domain-Sounds"),
-    P_BB_PLOP: dict(title="Bottle Plops (Apr 2021)", author="Ben Burnes (Abstraction)", license="CC0 1.0",
-                    license_url=CC0_URL, source_url="https://abstractionmusic.com/",
-                    mirror="https://github.com/lavenderdotpet/CC0-Public-Domain-Sounds"),
+                     license_url=CC0_URL, source_url="https://abstractionmusic.com/", mirror=LAVENDER),
+    P_BB_CUTTER: dict(title="Micro Pack - Paper Cutter", author="Ben Burnes (Abstraction)", license="CC0 1.0",
+                      license_url=CC0_URL, source_url="https://abstractionmusic.com/", mirror=LAVENDER),
     P_K_UI: dict(title="UI Audio", author="Kenney", license="CC0 1.0", license_url=CC0_URL,
-                 source_url="https://kenney.nl/assets/ui-audio", mirror="https://github.com/ETdoFresh/kenney.nl"),
+                 source_url="https://kenney.nl/assets/ui-audio", mirror=KENNEY_MIRROR),
     P_K_IF: dict(title="Interface Sounds", author="Kenney", license="CC0 1.0", license_url=CC0_URL,
-                 source_url="https://kenney.nl/assets/interface-sounds", mirror="https://github.com/ETdoFresh/kenney.nl"),
+                 source_url="https://kenney.nl/assets/interface-sounds", mirror=KENNEY_MIRROR),
     P_K_IMP: dict(title="Impact Sounds", author="Kenney", license="CC0 1.0", license_url=CC0_URL,
-                  source_url="https://kenney.nl/assets/impact-sounds", mirror="https://github.com/ETdoFresh/kenney.nl"),
+                  source_url="https://kenney.nl/assets/impact-sounds", mirror=KENNEY_MIRROR),
     P_K_RPG: dict(title="RPG Audio", author="Kenney", license="CC0 1.0", license_url=CC0_URL,
-                  source_url="https://kenney.nl/assets/rpg-audio", mirror="https://github.com/ETdoFresh/kenney.nl"),
+                  source_url="https://kenney.nl/assets/rpg-audio", mirror=KENNEY_MIRROR),
     P_FLUID: dict(title="FluidR3_GM SoundFont (samples d'instruments, rendus MP3 par note)", author="Frank Wen",
                   license="CC BY 3.0", license_url=CCBY3_URL,
                   source_url="https://member.keymusician.com/Member/FluidR3_GM/index.html",
@@ -255,6 +247,15 @@ def gain(a: np.ndarray, g_db: float) -> np.ndarray:
     return a * db(g_db)
 
 
+def cut(a: np.ndarray, seconds: float, fout: float = 0.05) -> np.ndarray:
+    """Tronque à `seconds` avec un fondu de sortie."""
+    return fade(a[:int(seconds * SR)], 0.0, fout)
+
+
+def reverse(a: np.ndarray) -> np.ndarray:
+    return np.ascontiguousarray(a[::-1])
+
+
 def resample_rate(a: np.ndarray, rate: float) -> np.ndarray:
     """Change la hauteur ET la durée (comme un magnétophone) : rate<1 = plus grave et plus long."""
     n = len(a)
@@ -304,10 +305,6 @@ def sustain(a: np.ndarray, seconds: float, loop_start: float = 0.8, loop_end: fl
         tail = out[-n:] * (1 - w) + body[:n] * w
         out = np.concatenate([out[:-n], tail, body[n:]])
     return out[:int(seconds * SR)]
-
-
-def soft_saturate(a: np.ndarray, drive: float) -> np.ndarray:
-    return (np.tanh(a * drive) / math.tanh(drive)).astype(np.float32)
 
 
 def stereo_spread(mono: np.ndarray, ms: float = 0.4, er: tuple = ((23, 0.18), (31, 0.15))) -> np.ndarray:
@@ -440,7 +437,11 @@ def measure_lufs(path: Path) -> float:
 def src(pack: str, name: str) -> Path:
     p = PACKS[pack]["dir"] / name
     if not p.exists():
-        raise FileNotFoundError(p)
+        if pack == P_KM:
+            # le miroir est un dépôt git : on extrait le titre à la demande
+            subprocess.run(["git", "-C", str(KM), "checkout", "HEAD", "--", name], capture_output=True)
+        if not p.exists():
+            raise FileNotFoundError(p)
     return p
 
 
@@ -467,14 +468,16 @@ def load_fluid(instrument: str, note: str, ch: int = 1) -> np.ndarray:
 # ---------------------------------------------------------------------------
 MUSIC = {
     # clé : (titre Kevin MacLeod, durée max de boucle, crossfade s, raison)
-    "menu": ("Evening", 150, 3.0, "calme, mystérieux, nocturne — thème du menu"),
-    "act1": ("Midnight Tale", 150, 3.0, "nuit calme et concentrée — acte I"),
-    "act2": ("Night Vigil", 150, 3.0, "tension sourde, veille nocturne — acte II"),
-    "act3": ("Spellbound", 150, 3.0, "sombre, menace, envoûtement — acte III"),
-    "results": ("Piano Between", 150, 2.0, "doux piano, interlude — écran de résultats / atelier"),
-    "defeat": ("Mourning Song", 150, 3.0, "deuil sobre — défaite"),
-    "ending": ("Stay the Course", 150, 4.0, "lumineux, résolu — fin / générique"),
-    "finale": ("Virtutes Vocis", 150, 4.0, "ample, choral, dramatique — nuit 12"),
+    "spring": ("Morning", 115, 3.0, "printemps : piano et cordes légères, aube claire — thème de la saison"),
+    "summer": ("Kalimba Relaxation Music", 115, 3.0, "été : kalimba chaude et lente, chaleur paisible"),
+    "autumn": ("Evening", 115, 3.0, "automne : calme, crépusculaire, mélancolie douce"),
+    "winter": ("Gymnopedie No 1", 115, 3.0,
+               "hiver : « Ethereal Relaxation » absent du miroir ; la Gymnopédie n° 1 (piano lent, dépouillé, "
+               "froid et clair) est le plus hivernal des candidats"),
+    "menu": ("Dream Catcher", 115, 3.0, "menu : rêveur, suspendu, invite à l'île"),
+    "results": ("Beauty Flow", 115, 3.0, "bilan / atelier : coulée douce, contemplative"),
+    "ending": ("Almost Bliss", 115, 4.0, "fin : lumineux et apaisé, l'île qui se souvient"),
+    "garden": ("Study And Relax", 115, 3.0, "jardin (mode libre) : studieux, sans tension"),
 }
 MUSIC_LUFS = -16.0
 MUSIC_MIN_LOOP = 60.0
@@ -493,8 +496,8 @@ def build_music(only: set[str] | None = None) -> dict:
             end = dur  # morceau court : on boucle sur toute sa durée
         else:
             end, _ = choose_loop_end(a, MUSIC_MIN_LOOP, max_s, xf)
-        cut = a[:int(end * SR)]
-        looped = crossfade_loop(cut, xf)
+        cut_a = a[:int(end * SR)]
+        looped = crossfade_loop(cut_a, xf)
         normed, info = loudnorm_loop(looped, MUSIC_LUFS)
         encode_ogg(normed, path, 5, title=title, artist="Kevin MacLeod (incompetech.com)")
         pr = probe(path)
@@ -511,62 +514,49 @@ def build_music(only: set[str] | None = None) -> dict:
 # AMBIANCES
 # ---------------------------------------------------------------------------
 AMBIENCE_LUFS = -20.0
+AMBIENCE_LEN = 68.0   # avant retrait du crossfade (4 s) : boucles de 64 s
+AMBIENCE_XF = 4.0
 
 
-def _pick_window(a: np.ndarray, length: float, prefer_low_energy: bool = False) -> np.ndarray:
-    """Fenêtre de `length` s prise à 10 s du début (les boucles source sont homogènes).
-    Pour l'orage : fenêtre la plus riche en graves (contient un coup de tonnerre net)."""
+def _pick_window(a: np.ndarray, length: float, start: float = 10.0) -> np.ndarray:
+    """Fenêtre de `length` s prise à `start` s du début (les boucles source sont homogènes)."""
     n = int(length * SR)
     if len(a) <= n:
         return a
-    if prefer_low_energy:
-        low = ff_filter(to_mono(a), "lowpass=f=120")[:, 0]
-        hop = SR
-        best, best_s = -1.0, 0
-        for s in range(0, len(a) - n, hop):
-            seg = low[s:s + n]
-            frames = seg[: (len(seg) // hop) * hop].reshape(-1, hop)
-            e = np.sqrt((frames ** 2).mean(axis=1))
-            score = float(e.max() - np.median(e))  # présence d'un coup de tonnerre net
-            if score > best:
-                best, best_s = score, s
-        return a[best_s:best_s + n]
-    return a[int(10 * SR):int(10 * SR) + n]
+    s = min(int(start * SR), len(a) - n)
+    return a[s:s + n]
 
 
 def build_ambience(only: set[str] | None = None) -> dict:
     manifest = {}
-    xf = 4.0
     specs = {
-        "waves": (P_FS_WAVES, "waves.ogg", 80.0, "vagues, boucle permanente"),
-        "wind": (P_FS_WIND, "wind.ogg", 75.0, "vent, mixé selon la météo"),
-        "rain": (P_FS_RAIN, "rain.ogg", 75.0, "pluie sur un toit, mixée selon la météo"),
-        "storm": (P_FS_STORM, "storm.ogg", 85.0, "pluie + tonnerre (roulements naturels + Fake Thunder 2)"),
+        # clé : (pack, fichier, chaîne de filtres ou None, note)
+        "birds": (P_FS_BIRDS, "birds.ogg", None, "forêt et oiseaux : printemps / été, dosée selon la forêt de l'île"),
+        "stream": (P_FS_STREAM, "stream.ogg", None, "ruisseau : près des rivières"),
+        "wind": (P_FS_WIND, "wind.ogg", None, "vent sur les buissons : automne / hiver"),
+        "rain": (P_FS_RAIN, "rain.ogg", None, "pluie douce sur un toit : transition d'automne"),
+        "crickets": (P_FS_CRICKETS, "crickets.ogg", None, "grillons : nuits d'été"),
+        "sea": (P_FS_WAVES, "waves.ogg", "highpass=f=60,lowpass=f=1100:p=2,lowpass=f=1800",
+                "vagues douces au loin (passe-bas 1,1 kHz : la mer autour de l'île)"),
+        "winter": (P_FS_WIND, "wind.ogg", "highpass=f=40,lowpass=f=650:p=2,lowpass=f=900",
+                   "vent doux passe-bas : hiver, neige et ombres bleues"),
     }
-    for key, (pack, name, length, why) in specs.items():
+    for key, (pack, name, chain, why) in specs.items():
         if only and key not in only:
             continue
         path = OUT / "ambience" / f"{key}.ogg"
         a = decode(src(pack, name), ch=2)
-        if key == "storm":
-            seg = _pick_window(a, length, prefer_low_energy=True)
-            # un roulement lointain supplémentaire, placé loin de la couture
-            th = decode(src(P_BB_CHAIR, "Fake Thunder 2.wav"), ch=2)
-            th = ff_filter(fade(trim_silence(th), 0.05, 2.0)[:int(10 * SR)], "lowpass=f=900")
-            seg = mix((seg, 0.0, 0.0), (th, length * 0.55, -14.0))[:len(seg)]
-            sources = [(P_FS_STORM, "Rain and Thunder Ambience Tübingen"), (P_BB_CHAIR, "Fake Thunder 2")]
-        else:
-            seg = _pick_window(a, length)
-            sources = [(pack, WORKS[pack]["title"])]
-        looped = crossfade_loop(seg, xf)
+        seg = _pick_window(a, AMBIENCE_LEN, start=10.0 if key != "winter" else 100.0)
+        if chain:
+            seg = ff_filter(seg, chain)
+        looped = crossfade_loop(seg, AMBIENCE_XF)
         normed, info = loudnorm_loop(looped, AMBIENCE_LUFS)
-        encode_ogg(normed, path, 3, title=f"Feux de Brume — ambiance {key}")
+        encode_ogg(normed, path, 3, title=f"{GAME} — ambiance {key}")
         pr = probe(path)
         manifest[key] = dict(file=f"ambience/{key}.ogg", duration=round(pr["duration"], 3), loop=True,
-                             source=" + ".join(t for _, t in sources),
-                             author=" + ".join(dict.fromkeys(PACKS[p]["author"] for p, _ in sources)),
-                             license="CC0 1.0", packs=[p for p, _ in sources], note=why)
-        print(f"  ambience/{key}.ogg  <- {name}  {pr['duration']:.1f}s xf={xf}s  "
+                             source=WORKS[pack]["title"], author=PACKS[pack]["author"],
+                             license="CC0 1.0", packs=[pack], note=why)
+        print(f"  ambience/{key}.ogg  <- {name}  {pr['duration']:.1f}s xf={AMBIENCE_XF}s  "
               f"in={info['input_i']:.1f} -> {info['output_i']:.1f} LUFS ({info['mode']})  {pr['size'] / 1e6:.2f} Mo")
     return manifest
 
@@ -574,42 +564,15 @@ def build_ambience(only: set[str] | None = None) -> dict:
 # ---------------------------------------------------------------------------
 # SFX
 # ---------------------------------------------------------------------------
-REVERB_OUT = "aecho=0.8:0.7:60|130|250|400:0.35|0.25|0.18|0.12"      # large extérieur
+REVERB_SOFT = "aecho=0.8:0.5:40|90:0.25|0.15"                            # petite pièce / carnet
+REVERB_OUT = "aecho=0.8:0.7:60|130|250|400:0.35|0.25|0.18|0.12"          # extérieur, île
 REVERB_FAR = "aecho=0.7:0.8:90|210|380|560|800:0.45|0.35|0.28|0.2|0.14"  # très lointain
 
 
-def foghorn(notes: dict, attack: float, hold: float, release: float, drive: float,
-            band: tuple[int, int], reverb: str, total: float, extra_lp: int | None = None) -> np.ndarray:
-    """Corne de brume à partir de VRAIS samples FluidR3_GM (tuba + trombone + cor + contrebasse).
-    1) mixage des samples (gains relatifs), 2) enveloppe attaque/tenue/relâchement,
-    3) saturation douce (timbre de diaphone), 4) passe-bande 200-900 Hz + bosse à 350 Hz,
-    5) élargissement stéréo + réverbération type grand extérieur, 6) coupe + fondu final."""
-    layers = []
-    for (instrument, note), g in notes.items():
-        s = load_fluid(instrument, note)
-        s = sustain(s, hold + release + 0.2)
-        layers.append((s, 0.0, g))
-    m = mix(*layers)
-    m = envelope(m, attack, hold, release)
-    m = peak_normalize(m, -6.0)
-    m = soft_saturate(m, drive)
-    lo, hi = band
-    chain = f"highpass=f={lo}:p=2,lowpass=f={hi}:p=2,equalizer=f=350:t=q:w=1.2:g=5"
-    if extra_lp:
-        chain += f",lowpass=f={extra_lp}"
-    m = ff_filter(m, chain)
-    st = stereo_spread(m)
-    st = ff_filter(st, reverb)
-    st = fade(st[:int(total * SR)], 0.0, 0.25)
-    return st
-
-
 def sfx_finish(a: np.ndarray, path: Path, peak: float = -3.0, trim: bool = True, fin: float = 0.003,
-               fout: float = 0.015, max_len: float | None = None) -> dict:
+               fout: float = 0.015) -> dict:
     if trim:
         a = trim_silence(a, thresh_db=-55)
-    if max_len:
-        a = fade(a[:int(max_len * SR)], 0.0, min(fout * 4, 0.3))
     a = fade(a, fin, fout)
     a = peak_normalize(a, peak)
     encode_ogg(a, path, 4)
@@ -624,174 +587,223 @@ def build_sfx(only: set[str] | None = None) -> dict:
         return load(pack, name, ch)
 
     def LF(inst, note, ch=1):
-        return load_fluid(inst, note, ch)
+        return trim_silence(load_fluid(inst, note, ch))
 
-    def note_hit(inst, note, length, g=0.0, body=None, body_g=-6.0):
-        a = trim_silence(LF(inst, note))
-        layers = [(a, 0.0, g)]
+    def hit(inst, note, length, g=0.0, body=None, body_g=-7.0, fout=0.3):
+        """Note percussive réelle (glockenspiel, marimba…) coupée à `length` s, avec un corps optionnel."""
+        layers = [(LF(inst, note), 0.0, g)]
         if body:
-            layers.append((trim_silence(LF(*body)), 0.0, body_g))
-        return fade(mix(*layers)[:int(length * SR)], 0.0, 0.3)
+            layers.append((LF(*body), 0.0, body_g))
+        return cut(mix(*layers), length, fout)
+
+    def held(inst, note, seconds, attack, hold, release):
+        """Note tenue réelle (flûte, pad, cordes) prolongée par rebouclage puis enveloppée."""
+        return envelope(sustain(load_fluid(inst, note), seconds + 0.3), attack, hold, release)
+
+    def arp(inst, notes, step, length, g=0.0, fout=0.4):
+        """Arpège : une note réelle toutes les `step` s."""
+        return cut(mix(*[(LF(inst, n), i * step, g) for i, n in enumerate(notes)]), length, fout)
 
     def wind_seg(start: float, length: float, ch=2):
         w = decode(src(P_FS_WIND, "wind.ogg"), ch=ch)
         return w[int(start * SR):int((start + length) * SR)]
 
+    def wind_gust(length: float, ch=2):
+        """Fenêtre la plus énergique du vent (une vraie rafale), dans les deux premières minutes."""
+        w = decode(src(P_FS_WIND, "wind.ogg"), ch=ch)[:int(120 * SR)]
+        n, hop = int(length * SR), SR // 2
+        e = [(float((w[s:s + n] ** 2).mean()), s) for s in range(0, len(w) - n, hop)]
+        s = max(e)[1]
+        return w[s:s + n]
+
+    def creature(pack, name, rate, lp, extra=None, reverb=REVERB_OUT):
+        """Cri d'animal à partir d'un sample de créature CC0 : pitch, passe-bas, stéréo, réverb d'extérieur."""
+        a = resample_rate(trim_silence(L(pack, name)), rate)
+        layers = [(a, 0.0, 0.0)]
+        for (p2, n2, r2, t2, g2) in (extra or []):
+            layers.append((resample_rate(trim_silence(L(p2, n2)), r2), t2, g2))
+        m = ff_filter(mix(*layers), f"highpass=f=80,lowpass=f={lp}")
+        return ff_filter(stereo_spread(m), reverb)
+
     # Chaque entrée : nom -> (fonction produisant le tableau, [(pack, fichier ou description)], note)
     R: dict[str, tuple] = {}
 
-    # ---- UI (Kenney) ------------------------------------------------------
-    R["ui_hover"] = (lambda: gain(L(P_K_UI, "rollover4.ogg"), 0), [(P_K_UI, "rollover4.ogg")], "survol, discret")
+    # ---- Tuiles ---------------------------------------------------------------
+    R["tile_hover"] = (lambda: cut(ff_filter(L(P_K_IMP, "impactWood_light_002.ogg"), "lowpass=f=1800"), 0.09, 0.03),
+                       [(P_K_IMP, "impactWood_light_002.ogg")], "survol de tuile : bois feutré, très court (passe-bas 1,8 kHz)")
+    for i, (kf, wf) in enumerate([("impactWood_medium_000.ogg", None), ("impactWood_medium_001.ogg", None),
+                                  ("impactWood_medium_002.ogg", "wooden_03.ogg"), ("impactWood_medium_003.ogg", "wooden_02.ogg")], 1):
+        def _place(kf=kf, wf=wf):
+            layers = [(L(P_K_IMP, kf), 0.0, 0.0)]
+            if wf:
+                layers.append((ff_filter(L(P_RD1, wf), "lowpass=f=5000"), 0.01, -9.0))
+            return cut(mix(*layers), 0.45, 0.1)
+        srcs = [(P_K_IMP, kf)] + ([(P_RD1, wf)] if wf else [])
+        R[f"tile_place_{i}"] = (_place, srcs, f"pose de tuile, « toc » bois (variante {i})")
+    R["tile_bounce"] = (lambda: cut(mix((resample_rate(L(P_K_IMP, "impactWood_light_000.ogg"), 1.15), 0.0, 0.0),
+                                        (resample_rate(L(P_K_IMP, "impactWood_light_003.ogg"), 1.3), 0.09, -5.0)), 0.3, 0.05),
+                        [(P_K_IMP, "impactWood_light_000.ogg"), (P_K_IMP, "impactWood_light_003.ogg")],
+                        "rebond léger : deux petits bois rapprochés, le second plus aigu et plus faible")
+    R["tile_invalid"] = (lambda: cut(mix((ff_filter(L(P_K_IMP, "impactWood_heavy_002.ogg"), "lowpass=f=500"), 0.0, 0.0),
+                                         (L(P_K_IMP, "impactSoft_medium_001.ogg"), 0.0, -3.0)), 0.35, 0.1),
+                         [(P_K_IMP, "impactWood_heavy_002.ogg"), (P_K_IMP, "impactSoft_medium_001.ogg")],
+                         "pose impossible : bois sourd (passe-bas 500 Hz) + impact mou")
+    R["tile_swap"] = (lambda: cut(mix((L(P_RD1, "paper_02.ogg"), 0.0, 0.0),
+                                      (L(P_K_IMP, "impactWood_light_001.ogg"), 0.26, -2.0)), 0.6, 0.08),
+                      [(P_RD1, "paper_02.ogg"), (P_K_IMP, "impactWood_light_001.ogg")], "échange de tuile : papier puis petit bois")
+    R["tile_discard"] = (lambda: cut(mix((L(P_RD1, "paper_04.ogg"), 0.0, 0.0),
+                                         (trim_silence(L(P_BB_CUTTER, "Caress Paper.wav")), 0.18, -5.0)), 0.9, 0.2),
+                         [(P_RD1, "paper_04.ogg"), (P_BB_CUTTER, "Caress Paper.wav")], "tuile défaussée : papier froissé")
+    R["tile_undo"] = (lambda: cut(ff_filter(mix((reverse(trim_silence(L(P_BB_WOOSH, "Twirl Smol 1.wav"))), 0.0, 0.0),
+                                                (reverse(trim_silence(L(P_BB_WOOSH, "Swish 2.wav"))), 0.3, -3.0)),
+                                            "lowpass=f=5000"), 0.6, 0.06),
+                      [(P_BB_WOOSH, "Twirl Smol 1.wav"), (P_BB_WOOSH, "Swish 2.wav")],
+                      "annulation : wooshes inversés (rembobinage doux, passe-bas 5 kHz)")
+    R["tile_pocket"] = (lambda: cut(mix((L(P_K_RPG, "cloth2.ogg"), 0.0, 0.0),
+                                        (trim_silence(L(P_BB_PAPER, "Softcover Tap 2.wav")), 0.14, -4.0)), 0.45, 0.08),
+                        [(P_K_RPG, "cloth2.ogg"), (P_BB_PAPER, "Softcover Tap 2.wav")], "tuile mise en poche : tissu + tapotement")
+
+    # ---- Points (samples réels : glockenspiel + corps de célesta) ---------------
+    SCALE = ["C5", "D5", "E5", "G5", "A5", "C6", "D6", "E6"]
+    for i, n in enumerate(SCALE, 1):
+        R[f"point_{i}"] = ((lambda n=n: hit("glockenspiel", n, 1.0, body=("celesta", n))),
+                           [(F, f"glockenspiel {n}"), (F, f"celesta {n}")], f"point {i} : {n} (gamme montante)")
+    R["point_bad"] = (lambda: ff_filter(hit("marimba", "C3", 0.9, body=("marimba", "G2"), body_g=-9.0), "lowpass=f=3000"),
+                      [(F, "marimba C3"), (F, "marimba G2")], "point perdu : note grave douce de marimba")
+    R["region_close"] = (lambda: ff_filter(stereo_spread(cut(mix((LF("orchestral_harp", "C4"), 0.0, 0.0),
+                                                                 (LF("orchestral_harp", "E4"), 0.06, 0.0),
+                                                                 (LF("orchestral_harp", "G4"), 0.12, 0.0),
+                                                                 (LF("glockenspiel", "C6"), 0.16, -7.0)), 1.5, 0.4)), REVERB_SOFT),
+                         [(F, "orchestral_harp C4/E4/G4"), (F, "glockenspiel C6")], "région fermée : accord chaleureux harpe + glockenspiel (1,5 s)")
+    R["region_big"] = (lambda: ff_filter(stereo_spread(cut(mix((LF("orchestral_harp", "C3"), 0.0, 0.0),
+                                                               (LF("orchestral_harp", "G3"), 0.06, 0.0),
+                                                               (LF("orchestral_harp", "E4"), 0.12, 0.0),
+                                                               (LF("orchestral_harp", "B4"), 0.18, -1.0),
+                                                               (LF("orchestral_harp", "D5"), 0.24, -1.0),
+                                                               (LF("tubular_bells", "C5"), 0.1, -6.0),
+                                                               (LF("glockenspiel", "E6"), 0.32, -9.0)), 2.0, 0.5)), REVERB_SOFT),
+                       [(F, "orchestral_harp C3/G3/E4/B4/D5"), (F, "tubular_bells C5"), (F, "glockenspiel E6")],
+                       "grande région : accord large (Cmaj9) + cloche tubulaire (2 s)")
+    R["combo"] = (lambda: arp("glockenspiel", ["C5", "E5", "G5", "C6", "E6", "G6"], 0.055, 1.2, fout=0.35),
+                  [(F, "glockenspiel C5/E5/G5/C6/E6/G6")], "combo : arpège rapide de glockenspiel")
+
+    # ---- Saisons (jingles de 2–3 s, samples réels) ------------------------------
+    R["season_spring"] = (lambda: ff_filter(stereo_spread(cut(mix(
+        (held("flute", "D5", 0.6, 0.05, 0.3, 0.25), 0.0, -2.0),
+        (held("flute", "E5", 0.6, 0.05, 0.3, 0.25), 0.3, -2.0),
+        (held("flute", "G5", 1.7, 0.05, 1.2, 0.5), 0.6, 0.0),
+        (LF("orchestral_harp", "C4"), 0.0, -4.0), (LF("orchestral_harp", "E4"), 0.05, -4.0),
+        (LF("orchestral_harp", "G4"), 0.1, -4.0), (LF("orchestral_harp", "C5"), 0.62, -5.0),
+        (LF("glockenspiel", "G5"), 0.62, -12.0)), 2.6, 0.5)), REVERB_SOFT),
+        [(F, "flute D5/E5/G5"), (F, "orchestral_harp C4/E4/G4/C5"), (F, "glockenspiel G5")],
+        "printemps : flûte montante (ré mi sol) sur harpe")
+    R["season_summer"] = (lambda: ff_filter(stereo_spread(cut(mix(
+        (LF("kalimba", "C4"), 0.0, 0.0), (LF("kalimba", "E4"), 0.17, 0.0), (LF("kalimba", "G4"), 0.34, 0.0),
+        (LF("kalimba", "A4"), 0.51, 0.0), (LF("kalimba", "C5"), 0.68, 0.0), (LF("kalimba", "E5"), 0.85, -1.0),
+        (LF("marimba", "C3"), 0.0, -4.0), (LF("marimba", "G3"), 0.68, -6.0), (LF("marimba", "C4"), 1.02, -6.0),
+        (LF("vibraphone", "G4"), 0.85, -9.0), (LF("vibraphone", "C5"), 1.02, -8.0), (LF("vibraphone", "E5"), 1.19, -9.0)), 2.5, 0.6)), REVERB_SOFT),
+        [(F, "kalimba C4/E4/G4/A4/C5/E5"), (F, "marimba C3/G3/C4"), (F, "vibraphone G4/C5/E5")],
+        "été : kalimba en pentatonique sur marimba, halo de vibraphone")
+    R["season_autumn"] = (lambda: ff_filter(stereo_spread(cut(mix(
+        (LF("acoustic_guitar_nylon", "A2"), 0.0, 0.0), (LF("acoustic_guitar_nylon", "E3"), 0.07, 0.0),
+        (LF("acoustic_guitar_nylon", "A3"), 0.14, 0.0), (LF("acoustic_guitar_nylon", "C4"), 0.21, 0.0),
+        (LF("acoustic_guitar_nylon", "E4"), 0.28, 0.0),
+        (LF("vibraphone", "E5"), 0.55, -7.0), (LF("vibraphone", "C5"), 1.0, -8.0), (LF("vibraphone", "A4"), 1.45, -8.0)), 2.8, 0.7)), REVERB_SOFT),
+        [(F, "acoustic_guitar_nylon A2/E3/A3/C4/E4"), (F, "vibraphone E5/C5/A4")], "automne : guitare nylon (la mineur) et vibraphone descendant")
+    R["season_winter"] = (lambda: ff_filter(stereo_spread(cut(mix(
+        (LF("music_box", "E5"), 0.0, 0.0), (LF("music_box", "B5"), 0.35, 0.0), (LF("music_box", "G5"), 0.7, 0.0),
+        (LF("music_box", "E6"), 1.05, -1.0), (LF("music_box", "B5"), 1.4, -2.0),
+        (LF("celesta", "E4"), 0.0, -9.0), (LF("celesta", "G4"), 0.02, -9.0), (LF("celesta", "B4"), 0.04, -9.0)), 3.0, 0.8)), REVERB_OUT),
+        [(F, "music_box E5/B5/G5/E6"), (F, "celesta E4/G4/B4")], "hiver : boîte à musique (mi mineur) sur célesta, réverbération froide")
+    R["season_sweep"] = (lambda: fade(ff_filter(wind_gust(2.2), "highpass=f=150"), 0.5, 0.9),
+                         [(P_FS_WIND, "wind.ogg")], "balayage de saison : rafale réelle de 2,2 s prise dans wind.ogg")
+
+    # ---- Faune -------------------------------------------------------------------
+    R["fauna_arrive"] = (lambda: cut(mix((L(P_RD1, "plop_02.ogg"), 0.0, 0.0), (LF("glockenspiel", "A5"), 0.08, -6.0),
+                                         (LF("glockenspiel", "E6"), 0.2, -8.0)), 0.9, 0.3),
+                         [(P_RD1, "plop_02.ogg"), (F, "glockenspiel A5/E6")], "animal qui apparaît : pop + petit carillon")
+    R["fauna_leave"] = (lambda: cut(mix((L(P_RD1, "plop_02.ogg"), 0.0, 0.0),
+                                        (resample_rate(L(P_RD1, "plop_01.ogg"), 0.75), 0.12, -2.0),
+                                        (resample_rate(L(P_RD1, "plop_02.ogg"), 0.6), 0.24, -3.0)), 0.55, 0.08),
+                        [(P_RD1, "plop_02.ogg"), (P_RD1, "plop_01.ogg")], "animal qui part : trois pops descendants")
+    R["fauna_rabbit"] = (lambda: creature(P_RD_CRE, "cute_07.ogg", 1.35, 8000, extra=[(P_RD_CRE, "cute_07.ogg", 1.5, 0.17, -3.0)], reverb=REVERB_SOFT),
+                         [(P_RD_CRE, "cute_07.ogg")], "lapin : pas de cri crédible dans les packs, « cute_07 » pitché ×1,35 puis ×1,5 (deux couinements)")
+    R["fauna_moose"] = (lambda: creature(P_RD_CRE2, "grunt_07.ogg", 0.8, 1500),
+                        [(P_RD_CRE2, "grunt_07.ogg")], "élan : brame grave (« grunt_07 » pitché ×0,8, passe-bas 1,5 kHz, réverb d'extérieur)")
+    R["fauna_frog"] = (lambda: creature(P_RD_CRE, "burble_02.ogg", 0.6, 2500, extra=[(P_RD_CRE2, "misc_10.ogg", 1.0, 0.0, -8.0)]),
+                       [(P_RD_CRE, "burble_02.ogg"), (P_RD_CRE2, "misc_10.ogg")], "grenouille : « burble_02 » pitché ×0,6 (coassement) + corps grave « misc_10 »")
+    R["fauna_duck"] = (lambda: creature(P_RD_CRE, "barking_01.ogg", 1.25, 5000, extra=[(P_RD_CRE, "barking_01.ogg", 1.2, 0.26, -1.0)]),
+                       [(P_RD_CRE, "barking_01.ogg")], "canard : « barking_01 » pitché ×1,25 répété (coin-coin)")
+    R["fauna_bear"] = (lambda: creature(P_RD_CRE, "grunt_03.ogg", 0.7, 1800, extra=[(P_RD_CRE2, "grunt_06.ogg", 0.85, 0.18, -4.0)]),
+                       [(P_RD_CRE, "grunt_03.ogg"), (P_RD_CRE2, "grunt_06.ogg")], "ours : grognements graves pitchés ×0,7 / ×0,85, passe-bas 1,8 kHz")
+    R["fauna_owl"] = (lambda: creature(P_RD_CRE, "ooh.ogg", 0.65, 1200, extra=[(P_RD_CRE, "ooh.ogg", 0.62, 0.32, -2.0)], reverb=REVERB_FAR),
+                      [(P_RD_CRE, "ooh.ogg")], "hibou : « ooh » pitché ×0,65 en deux hululements, passe-bas 1,2 kHz, réverb lointaine")
+    R["fauna_penguin"] = (lambda: creature(P_RD_CRE, "cute_04.ogg", 0.8, 6000, extra=[(P_RD_CRE, "cute_02.ogg", 0.9, 0.45, -3.0)]),
+                          [(P_RD_CRE, "cute_04.ogg"), (P_RD_CRE, "cute_02.ogg")], "manchot : pas de cri crédible, « cute_04 » (trille) ×0,8 + « cute_02 » ×0,9")
+
+    # ---- Vœux ---------------------------------------------------------------------
+    R["wish_new"] = (lambda: cut(mix((L(P_RD1, "paper_01.ogg"), 0.0, 0.0), (LF("tinkle_bell", "A5"), 0.25, -4.0)), 1.2, 0.3),
+                     [(P_RD1, "paper_01.ogg"), (F, "tinkle_bell A5")], "nouveau vœu : papier épinglé + clochette")
+    R["wish_done"] = (lambda: cut(mix((LF("orchestral_harp", "C5"), 0.0, -5.0), (LF("glockenspiel", "C5"), 0.0, 0.0),
+                                      (LF("glockenspiel", "E5"), 0.12, 0.0), (LF("glockenspiel", "G5"), 0.24, 0.0),
+                                      (LF("glockenspiel", "C6"), 0.36, 0.0), (LF("glockenspiel", "E6"), 0.48, -1.0)), 1.5, 0.4),
+                      [(F, "glockenspiel C5/E5/G5/C6/E6"), (F, "orchestral_harp C5")], "vœu exaucé : carillon montant (1,5 s)")
+    R["wish_failed"] = (lambda: ff_filter(cut(mix((LF("vibraphone", "G4"), 0.0, 0.0), (LF("vibraphone", "E4"), 0.35, -1.0),
+                                                  (LF("vibraphone", "C4"), 0.7, -2.0)), 1.6, 0.5), "lowpass=f=4000"),
+                        [(F, "vibraphone G4/E4/C4")], "vœu manqué : trois notes descendantes douces de vibraphone")
+    R["rare_tile"] = (lambda: stereo_spread(cut(mix((LF("glockenspiel", "E6"), 0.0, -2.0), (LF("glockenspiel", "D6"), 0.07, -3.0),
+                                                    (LF("glockenspiel", "C6"), 0.14, -3.0), (LF("glockenspiel", "E6"), 0.21, -2.0),
+                                                    (LF("glockenspiel", "D6"), 0.28, -4.0),
+                                                    (LF("orchestral_harp", "E5"), 0.05, -4.0), (LF("orchestral_harp", "G5"), 0.12, -4.0),
+                                                    (LF("orchestral_harp", "C6"), 0.19, -4.0)), 1.4, 0.4)),
+                      [(F, "glockenspiel E6/D6/C6"), (F, "orchestral_harp E5/G5/C6")], "tuile rare : scintillement glockenspiel aigu + harpe")
+
+    # ---- Souffles ----------------------------------------------------------------
+    R["breath_gain"] = (lambda: cut(mix((fade(ff_filter(wind_gust(0.7), "highpass=f=300,lowpass=f=6000"), 0.1, 0.3), 0.0, 0.0),
+                                        (LF("glockenspiel", "E6"), 0.15, -6.0)), 0.9, 0.3),
+                        [(P_FS_WIND, "wind.ogg"), (F, "glockenspiel E6")], "souffle gagné : souffle de vent court + tintement")
+    R["breath_spend"] = (lambda: cut(ff_filter(trim_silence(L(P_RD2, "sfx100v2_air_02.ogg")), "lowpass=f=5000"), 0.8, 0.25),
+                         [(P_RD2, "sfx100v2_air_02.ogg")], "souffle dépensé : souffle d'air")
+    R["bud"] = (lambda: cut(mix((resample_rate(L(P_RD1, "plop_01.ogg"), 0.9), 0.0, 0.0), (LF("orchestral_harp", "G5"), 0.05, -4.0),
+                                (LF("orchestral_harp", "C6"), 0.15, -8.0)), 0.9, 0.3),
+                [(P_RD1, "plop_01.ogg"), (F, "orchestral_harp G5/C6")], "pousse : petit plop + harpe")
+
+    # ---- Bilan -------------------------------------------------------------------
+    R["star_1"] = (lambda: hit("glockenspiel", "C5", 1.3, body=("celesta", "C5"), body_g=-6.0), [(F, "glockenspiel C5"), (F, "celesta C5")], "étoile 1 (do)")
+    R["star_2"] = (lambda: hit("glockenspiel", "E5", 1.3, body=("celesta", "E5"), body_g=-6.0), [(F, "glockenspiel E5"), (F, "celesta E5")], "étoile 2 (mi)")
+    R["star_3"] = (lambda: hit("glockenspiel", "G5", 1.3, body=("celesta", "G5"), body_g=-6.0), [(F, "glockenspiel G5"), (F, "celesta G5")], "étoile 3 (sol)")
+    R["island_done"] = (lambda: ff_filter(stereo_spread(cut(mix(
+        (held("string_ensemble_1", "C3", 3.0, 0.4, 2.0, 1.0), 0.0, 0.0), (held("string_ensemble_1", "E3", 3.0, 0.45, 2.0, 1.0), 0.05, -2.0),
+        (held("string_ensemble_1", "G3", 3.0, 0.5, 2.0, 1.0), 0.1, -2.0), (held("string_ensemble_1", "C4", 3.0, 0.55, 2.0, 1.0), 0.15, -3.0),
+        (LF("orchestral_harp", "C4"), 0.1, -2.0), (LF("orchestral_harp", "E4"), 0.17, -2.0),
+        (LF("orchestral_harp", "G4"), 0.24, -2.0), (LF("orchestral_harp", "C5"), 0.31, -2.0),
+        (LF("tubular_bells", "C5"), 0.2, -7.0), (LF("glockenspiel", "C6"), 0.5, -9.0)), 3.0, 0.8)), REVERB_OUT),
+        [(F, "string_ensemble_1 C3/E3/G3/C4"), (F, "orchestral_harp C4/E4/G4/C5"), (F, "tubular_bells C5"), (F, "glockenspiel C6")],
+        "île achevée : accord final de cordes, harpe, cloche tubulaire et glockenspiel (3 s)")
+    R["island_start"] = (lambda: ff_filter(stereo_spread(cut(mix((held("pad_2_warm", "C4", 1.8, 0.6, 1.0, 0.8), 0.0, 0.0),
+                                                                 (LF("orchestral_harp", "C5"), 0.45, -3.0),
+                                                                 (LF("orchestral_harp", "G5"), 0.6, -9.0)), 1.8, 0.5)), REVERB_SOFT),
+                         [(F, "pad_2_warm C4"), (F, "orchestral_harp C5/G5")], "île ouverte : note douce (nappe chaude + harpe)")
+    R["seed"] = (lambda: cut(mix((L(P_K_IMP, "impactWood_light_003.ogg"), 0.0, 0.0), (LF("glockenspiel", "C6"), 0.04, -9.0)), 0.9, 0.3),
+                 [(P_K_IMP, "impactWood_light_003.ogg"), (F, "glockenspiel C6")], "graine reçue : bois + tintement")
+    R["upgrade"] = (lambda: cut(mix((LF("orchestral_harp", "C4"), 0.0, 0.0), (LF("orchestral_harp", "E4"), 0.09, 0.0),
+                                    (LF("orchestral_harp", "G4"), 0.18, 0.0), (LF("orchestral_harp", "C5"), 0.27, 0.0),
+                                    (LF("glockenspiel", "C6"), 0.36, -7.0)), 1.8, 0.5),
+                    [(F, "orchestral_harp C4/E4/G4/C5"), (F, "glockenspiel C6")], "amélioration : arpège de harpe")
+
+    # ---- UI (Kenney, Ben Burnes) ----------------------------------------------
+    R["ui_hover"] = (lambda: L(P_K_UI, "rollover4.ogg"), [(P_K_UI, "rollover4.ogg")], "survol, discret")
     R["ui_click"] = (lambda: L(P_K_UI, "click1.ogg"), [(P_K_UI, "click1.ogg")], "clic")
     R["ui_back"] = (lambda: L(P_K_IF, "back_002.ogg"), [(P_K_IF, "back_002.ogg")], "retour")
     R["ui_confirm"] = (lambda: L(P_K_IF, "confirmation_001.ogg"), [(P_K_IF, "confirmation_001.ogg")], "validation")
-    R["ui_error"] = (lambda: L(P_K_IF, "error_008.ogg"), [(P_K_IF, "error_008.ogg")], "erreur, brève")
-    R["ui_open"] = (lambda: L(P_K_RPG, "bookOpen.ogg"), [(P_K_RPG, "bookOpen.ogg")], "ouverture (livre / carnet)")
-    R["ui_close"] = (lambda: L(P_K_RPG, "bookClose.ogg"), [(P_K_RPG, "bookClose.ogg")], "fermeture (livre / carnet)")
+    R["ui_error"] = (lambda: L(P_K_IF, "error_006.ogg"), [(P_K_IF, "error_006.ogg")], "erreur, brève et feutrée")
+    R["ui_open"] = (lambda: L(P_K_RPG, "bookOpen.ogg"), [(P_K_RPG, "bookOpen.ogg")], "ouverture (carnet)")
+    R["ui_close"] = (lambda: L(P_K_RPG, "bookClose.ogg"), [(P_K_RPG, "bookClose.ogg")], "fermeture (carnet)")
     R["page_flip_1"] = (lambda: L(P_K_RPG, "bookFlip2.ogg"), [(P_K_RPG, "bookFlip2.ogg")], "page tournée")
-    R["page_flip_2"] = (lambda: L(P_K_RPG, "bookFlip3.ogg"), [(P_K_RPG, "bookFlip3.ogg")], "page tournée")
-
-    # ---- Phare ---------------------------------------------------------------
-    R["lens_tick_1"] = (lambda: ff_filter(L(P_K_RPG, "metalClick.ogg"), "lowpass=f=6000"),
-                        [(P_K_RPG, "metalClick.ogg")], "clic doux du mécanisme de lentille")
-    R["lens_tick_2"] = (lambda: ff_filter(trim_silence(L(P_BB_MECH, "Ratchet Muted 1.wav"))[:int(0.25 * SR)], "lowpass=f=5000"),
-                        [(P_BB_MECH, "Ratchet Muted 1.wav")], "clic doux du mécanisme de lentille (variante)")
-    R["lens_start"] = (lambda: mix((L(P_K_RPG, "metalClick.ogg"), 0.0, -2.0),
-                                   (ff_filter(trim_silence(L(P_BB_MECH, "Ratchet Muted 3.wav")), "lowpass=f=5500"), 0.12, 0.0),
-                                   (trim_silence(L(P_BB_MECH, "Cable Coiler 2.wav")), 0.9, -6.0)),
-                       [(P_K_RPG, "metalClick.ogg"), (P_BB_MECH, "Ratchet Muted 3.wav"), (P_BB_MECH, "Cable Coiler 2.wav")],
-                       "mécanisme qui démarre (clic + cliquet + enrouleur)")
-    R["oil_refill"] = (lambda: fade(mix((ff_filter(trim_silence(L(P_BB_PLOP, "Plop - Viscous 3.wav")), "lowpass=f=4500"), 0.0, 0.0),
-                                        (L(P_RD_WATER, "bubble_02.ogg"), 0.4, -6.0),
-                                        (L(P_RD_WATER, "bubble_01.ogg"), 1.3, -8.0))[:int(2.4 * SR)], 0, 0.4),
-                       [(P_BB_PLOP, "Plop - Viscous 3.wav"), (P_RD_WATER, "bubble_02.ogg"), (P_RD_WATER, "bubble_01.ogg")],
-                       "huile versée dans le réservoir (liquide visqueux + bulles)")
-    R["oil_out"] = (lambda: fade(mix((L(P_RD2, "sfx100v2_air_03.ogg"), 0.0, 0.0),
-                                     (ff_filter(L(P_RD2, "sfx100v2_air_02.ogg"), "lowpass=f=3000"), 0.08, -6.0))[:int(0.7 * SR)], 0, 0.25),
-                    [(P_RD2, "sfx100v2_air_03.ogg"), (P_RD2, "sfx100v2_air_02.ogg")], "flamme soufflée")
-    R["oil_relight"] = (lambda: L(P_RD_RPG, "spell_fire_06.ogg"), [(P_RD_RPG, "spell_fire_06.ogg")], "flamme rallumée")
-
-    # ---- Navires -------------------------------------------------------------
-    R["bell_dock_1"] = (lambda: L(P_RD1, "bell_01.ogg"), [(P_RD1, "bell_01.ogg")], "cloche claire d'accostage")
-    R["bell_dock_2"] = (lambda: L(P_RD1, "bell_03.ogg"), [(P_RD1, "bell_03.ogg")], "cloche claire d'accostage (variante)")
-    R["ship_creak_1"] = (lambda: L(P_K_RPG, "creak1.ogg"), [(P_K_RPG, "creak1.ogg")], "bois qui craque")
-    R["ship_creak_2"] = (lambda: L(P_K_RPG, "creak2.ogg"), [(P_K_RPG, "creak2.ogg")], "bois qui craque")
-    R["ship_creak_3"] = (lambda: ff_filter(L(P_RD_WM, "wood_squeak_01.ogg"), "lowpass=f=5000"),
-                         [(P_RD_WM, "wood_squeak_01.ogg")], "bois qui craque (grincement)")
-    R["anchor_drop"] = (lambda: mix((L(P_RD_RPG, "chain_03.ogg"), 0.0, 0.0), (L(P_RD_WATER, "splash_12.ogg"), 0.55, -1.0)),
-                        [(P_RD_RPG, "chain_03.ogg"), (P_RD_WATER, "splash_12.ogg")], "chaîne puis plouf")
-    R["anchor_raise"] = (lambda: mix((L(P_RD_RPG, "chain_01.ogg"), 0.0, 0.0), (L(P_RD_RPG, "chain_02.ogg"), 0.32, -1.0),
-                                     (L(P_RD_RPG, "chain_01.ogg"), 0.62, -3.0)),
-                         [(P_RD_RPG, "chain_01.ogg"), (P_RD_RPG, "chain_02.ogg")], "chaîne remontée")
-    R["wreck_wood"] = (lambda: mix((L(P_K_IMP, "impactWood_heavy_000.ogg"), 0.0, 0.0),
-                                   (L(P_RD_WM, "wood_breaking_01.ogg"), 0.02, 0.0),
-                                   (L(P_RD_WM, "wood_breaking_02.ogg"), 0.18, -1.0),
-                                   (resample_rate(L(P_RD_BFH, "bfh1_breaking_01.ogg"), 0.85), 0.3, -2.0)),
-                       [(P_K_IMP, "impactWood_heavy_000.ogg"), (P_RD_WM, "wood_breaking_01.ogg"),
-                        (P_RD_WM, "wood_breaking_02.ogg"), (P_RD_BFH, "bfh1_breaking_01.ogg")], "coque qui se brise")
-    R["wreck_splash"] = (lambda: mix((resample_rate(L(P_RD_WATER, "splash_01.ogg", 2), 0.85), 0.0, 0.0),
-                                     (resample_rate(L(P_RD_WATER, "splash_07.ogg", 2), 0.8), 0.15, -2.0),
-                                     (L(P_RD_WATER, "splash_04.ogg", 2), 0.5, -5.0)),
-                         [(P_RD_WATER, "splash_01.ogg"), (P_RD_WATER, "splash_07.ogg"), (P_RD_WATER, "splash_04.ogg")],
-                         "grosse éclaboussure")
-    R["splash_small_1"] = (lambda: L(P_RD_WATER, "splash_09.ogg"), [(P_RD_WATER, "splash_09.ogg")], "petit plouf")
-    R["splash_small_2"] = (lambda: L(P_RD_WATER, "splash_10.ogg"), [(P_RD_WATER, "splash_10.ogg")], "petit plouf")
-    R["splash_small_3"] = (lambda: L(P_RD_WATER, "splash_15.ogg"), [(P_RD_WATER, "splash_15.ogg")], "petit plouf")
-    R["route_draw"] = (lambda: fade(trim_silence(L(P_BB_PAPER, "Fine Felt Tip Lines.wav"))[:int(0.35 * SR)], 0.005, 0.08),
-                       [(P_BB_PAPER, "Fine Felt Tip Lines.wav")], "trait de plume sur la carte")
-    R["route_set"] = (lambda: ff_filter(L(P_BB_PAPER, "Softcover Tap 1.wav"), "lowpass=f=3500"),
-                      [(P_BB_PAPER, "Softcover Tap 1.wav")], "confirmation feutrée (tapotement)")
-    R["route_invalid"] = (lambda: L(P_K_IF, "error_005.ogg"), [(P_K_IF, "error_005.ogg")], "tracé invalide")
-
-    # ---- Corne de brume (samples réels uniquement) ----------------------------
-    R["horn"] = (lambda: foghorn({("tuba", "Bb1"): 0.0, ("trombone", "Bb1"): -3.0, ("french_horn", "F2"): -6.0,
-                                  ("contrabass", "Bb1"): -9.0},
-                                 attack=0.16, hold=1.9, release=0.4, drive=2.6, band=(200, 900), reverb=REVERB_OUT,
-                                 total=2.45),
-                 [(F, "tuba Bb1"), (F, "trombone Bb1"), (F, "french_horn F2"), (F, "contrabass Bb1")],
-                 "corne de brume du phare : tuba + trombone + cor + contrebasse (FluidR3), enveloppe, saturation, "
-                 "passe-bande 200–900 Hz, réverbération extérieure")
-    R["horn_distant"] = (lambda: foghorn({("tuba", "G1"): 0.0, ("trombone", "G1"): -4.0, ("french_horn", "D2"): -7.0,
-                                          ("contrabass", "G1"): -8.0},
-                                         attack=0.25, hold=0.95, release=0.35, drive=1.8, band=(200, 900),
-                                         reverb=REVERB_FAR, total=1.5, extra_lp=450),
-                         [(F, "tuba G1"), (F, "trombone G1"), (F, "french_horn D2"), (F, "contrabass G1")],
-                         "réponse lointaine d'un navire : plus grave, filtrée à 450 Hz, réverbération longue")
-
-    # ---- Brume / Bête ----------------------------------------------------------
-    def growl(name, rate, extra=None):
-        a = resample_rate(L(P_RD_CRE, name), rate)
-        if extra:
-            a = mix((a, 0.0, 0.0), (resample_rate(L(P_RD_CRE, extra), rate * 0.9), 0.25, -4.0))
-        a = ff_filter(a, "highpass=f=50,lowpass=f=2200")
-        return ff_filter(stereo_spread(a), REVERB_OUT)
-
-    R["beast_growl_1"] = (lambda: growl("monster_04.ogg", 0.8, "monster_07.ogg"),
-                          [(P_RD_CRE, "monster_04.ogg"), (P_RD_CRE, "monster_07.ogg")], "souffle grave de la Bête (pitch -, réverb)")
-    R["beast_growl_2"] = (lambda: ff_filter(stereo_spread(ff_filter(
-                              mix((resample_rate(L(P_RD_RPG, "creature_roar_02.ogg"), 0.75), 0.0, 0.0),
-                                  (resample_rate(L(P_RD_CRE, "monster_06.ogg"), 0.7), 0.3, -5.0)), "lowpass=f=1600")), REVERB_OUT),
-                          [(P_RD_RPG, "creature_roar_02.ogg"), (P_RD_CRE, "monster_06.ogg")], "grondement de la Bête (variante)")
-    R["beast_hurt"] = (lambda: ff_filter(stereo_spread(ff_filter(resample_rate(L(P_RD_RPG, "creature_hurt_01.ogg"), 0.8), "lowpass=f=2500")), REVERB_OUT),
-                       [(P_RD_RPG, "creature_hurt_01.ogg")], "la Bête touchée par le faisceau")
-    R["beast_retreat"] = (lambda: ff_filter(mix((trim_silence(L(P_BB_CHAIR, "Woom 4.wav", 2)), 0.0, 0.0),
-                                                (resample_rate(trim_silence(L(P_BB_WOOSH, "Swish 6.wav", 2)), 0.55), 0.1, -2.0)),
-                                            "lowpass=f=1200"),
-                          [(P_BB_CHAIR, "Woom 4.wav"), (P_BB_WOOSH, "Swish 6.wav")], "woosh grave de retraite")
-    R["fog_whisper"] = (lambda: fade(mix((ff_filter(wind_seg(40, 4.0), "highpass=f=250,lowpass=f=1800"), 0.0, 0.0),
-                                         (resample_rate(trim_silence(L(P_RD_CRE, "breath.ogg")), 0.5), 1.2, -8.0)), 1.2, 1.5),
-                        [(P_FS_WIND, "wind.ogg"), (P_RD_CRE, "breath.ogg")], "souffle long et discret de la brume")
-
-    # ---- Météo ------------------------------------------------------------------
-    R["thunder_1"] = (lambda: L(P_RD2, "sfx100v2_thunder_01.ogg", 2), [(P_RD2, "sfx100v2_thunder_01.ogg")], "tonnerre proche")
-    R["thunder_2"] = (lambda: fade(trim_silence(L(P_BB_CHAIR, "Fake Thunder 1.wav", 2))[:int(7.0 * SR)], 0, 2.0),
-                      [(P_BB_CHAIR, "Fake Thunder 1.wav")], "roulement de tonnerre")
-    R["thunder_3"] = (lambda: fade(trim_silence(L(P_BB_CHAIR, "Fake Thunder 2.wav", 2))[:int(8.0 * SR)], 0, 2.5),
-                      [(P_BB_CHAIR, "Fake Thunder 2.wav")], "roulement de tonnerre lointain")
-    R["gust"] = (lambda: mix((fade(ff_filter(wind_seg(120, 3.5), "highpass=f=150"), 1.0, 1.6), 0.0, 0.0),
-                             (resample_rate(trim_silence(L(P_BB_WOOSH, "Whistle 1.wav", 2)), 0.5), 0.9, -3.0)),
-                 [(P_FS_WIND, "wind.ogg"), (P_BB_WOOSH, "Whistle 1.wav")], "rafale de vent")
-
-    # ---- Récompenses (samples réels) ---------------------------------------------
-    R["page_pickup"] = (lambda: mix((L(P_RD1, "paper_01.ogg"), 0.0, 0.0),
-                                    (trim_silence(LF("glockenspiel", "A5")), 0.12, -6.0),
-                                    (trim_silence(LF("glockenspiel", "E6")), 0.28, -9.0))[:int(1.4 * SR)],
-                        [(P_RD1, "paper_01.ogg"), (F, "glockenspiel A5"), (F, "glockenspiel E6")], "page de journal ramassée (papier + carillon)")
-    R["shard"] = (lambda: mix((L(P_K_IMP, "impactGlass_light_001.ogg"), 0.0, 0.0),
-                              (trim_silence(LF("glockenspiel", "C6")), 0.02, -10.0))[:int(1.0 * SR)],
-                  [(P_K_IMP, "impactGlass_light_001.ogg"), (F, "glockenspiel C6")], "éclat cristallin")
-    R["star_1"] = (lambda: note_hit("glockenspiel", "C5", 1.3, body=("celesta", "C5")), [(F, "glockenspiel C5"), (F, "celesta C5")], "étoile 1 (do)")
-    R["star_2"] = (lambda: note_hit("glockenspiel", "E5", 1.3, body=("celesta", "E5")), [(F, "glockenspiel E5"), (F, "celesta E5")], "étoile 2 (mi)")
-    R["star_3"] = (lambda: note_hit("glockenspiel", "G5", 1.3, body=("celesta", "G5")), [(F, "glockenspiel G5"), (F, "celesta G5")], "étoile 3 (sol)")
-    R["upgrade"] = (lambda: fade(mix((trim_silence(LF("orchestral_harp", "C4")), 0.0, 0.0),
-                                     (trim_silence(LF("orchestral_harp", "E4")), 0.09, 0.0),
-                                     (trim_silence(LF("orchestral_harp", "G4")), 0.18, 0.0),
-                                     (trim_silence(LF("orchestral_harp", "C5")), 0.27, 0.0),
-                                     (trim_silence(LF("glockenspiel", "C6")), 0.36, -7.0))[:int(1.8 * SR)], 0, 0.5),
-                    [(F, "orchestral_harp C4/E4/G4/C5"), (F, "glockenspiel C6")], "amélioration achetée (arpège de harpe)")
-    R["night_win"] = (lambda: fade(mix((trim_silence(LF("tubular_bells", "C4", 2)), 0.0, 0.0),
-                                       (trim_silence(LF("tubular_bells", "G4", 2)), 0.25, -3.0),
-                                       (trim_silence(LF("glockenspiel", "C5")), 0.5, -6.0),
-                                       (trim_silence(LF("glockenspiel", "E5")), 0.62, -6.0),
-                                       (trim_silence(LF("glockenspiel", "G5")), 0.74, -6.0),
-                                       (trim_silence(LF("glockenspiel", "C6")), 0.86, -5.0))[:int(2.8 * SR)], 0, 0.8),
-                      [(F, "tubular_bells C4/G4"), (F, "glockenspiel C5/E5/G5/C6")], "nuit gagnée : cloche + carillon")
-    R["night_lose"] = (lambda: fade(mix((envelope(sustain(LF("contrabass", "C1"), 3.0), 0.3, 1.6, 1.2), 0.0, 0.0),
-                                        (envelope(sustain(LF("cello", "C2"), 3.0), 0.3, 1.6, 1.2), 0.0, -3.0),
-                                        (resample_rate(trim_silence(LF("tubular_bells", "C4", 2)), 0.5), 0.1, -4.0)), 0, 0.6),
-                       [(F, "contrabass C1"), (F, "cello C2"), (F, "tubular_bells C4 (une octave plus bas)")],
-                       "nuit perdue : glas grave et sobre")
-    R["dawn"] = (lambda: ff_filter(stereo_spread(mix((envelope(sustain(LF("string_ensemble_1", "C3"), 4.5), 1.5, 3.0, 1.4), 0.0, 0.0),
-                                                     (envelope(sustain(LF("string_ensemble_1", "E3"), 4.5), 1.6, 3.0, 1.4), 0.1, -2.0),
-                                                     (envelope(sustain(LF("string_ensemble_1", "G3"), 4.5), 1.7, 3.0, 1.4), 0.2, -2.0),
-                                                     (envelope(sustain(LF("string_ensemble_1", "C4"), 4.5), 1.9, 3.0, 1.4), 0.3, -3.0),
-                                                     (envelope(sustain(LF("pad_2_warm", "C3"), 4.5), 1.5, 3.0, 1.4), 0.0, -4.0),
-                                                     (envelope(sustain(LF("choir_aahs", "C4"), 4.5), 2.0, 3.0, 1.4), 0.6, -8.0))),
-                                   "aecho=0.8:0.6:40|90:0.3|0.2"),
-                 [(F, "string_ensemble_1 C3/E3/G3/C4"), (F, "pad_2_warm C3"), (F, "choir_aahs C4")],
-                 "l'aube se lève : montée douce de cordes (samples réels)")
-    R["warning"] = (lambda: L(P_K_IF, "tick_004.ogg"), [(P_K_IF, "tick_004.ogg")], "tic d'alerte discret")
-    R["tick"] = (lambda: L(P_K_IF, "tick_002.ogg"), [(P_K_IF, "tick_002.ogg")], "tic (horloge / compteur)")
+    R["page_flip_2"] = (lambda: L(P_K_RPG, "bookFlip3.ogg"), [(P_K_RPG, "bookFlip3.ogg")], "page tournée (variante)")
+    R["chalk"] = (lambda: cut(ff_filter(mix((trim_silence(L(P_BB_PAPER, "Mech Pencil Lines 1.wav")), 0.0, 0.0),
+                                            (L(P_K_IF, "scratch_004.ogg"), 0.05, -8.0)), "lowpass=f=6500"), 0.5, 0.1),
+                  [(P_BB_PAPER, "Mech Pencil Lines 1.wav"), (P_K_IF, "scratch_004.ogg")], "craie : trait de crayon sur papier + grattement")
 
     for key, (fn, sources, note) in R.items():
         if only and key not in only:
@@ -844,7 +856,7 @@ def write_credits(manifest: dict) -> None:
     for w in works:
         w.pop("_pack", None)
     doc = dict(
-        note="Crédits audio de « Feux de Brume ». Les fichiers ont été recompressés (OGG Vorbis), coupés en boucles, "
+        note=f"Crédits audio de « {GAME} ». Les fichiers ont été recompressés (OGG Vorbis), coupés en boucles, "
              "normalisés et parfois superposés ; aucune source n'est utilisée hors de sa licence.",
         works=works,
         licenses={"CC BY 4.0": CCBY4_URL, "CC BY 3.0": CCBY3_URL, "CC0 1.0": CC0_URL},
@@ -853,16 +865,34 @@ def write_credits(manifest: dict) -> None:
     CREDITS_OUT.write_text(json.dumps(doc, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 
+def prune(manifest: dict, sections: set[str]) -> None:
+    """Supprime les .ogg des dossiers reconstruits qui ne figurent plus dans le manifeste."""
+    for section in sections:
+        keep = {Path(m["file"]).name for m in manifest.get(section, {}).values()}
+        for p in (OUT / section).glob("*.ogg"):
+            if p.name not in keep:
+                p.unlink()
+                print(f"  supprimé (obsolète) : {section}/{p.name}")
+
+
+TOTAL_LIMIT = 30_000_000
+
+
 def verify() -> bool:
     ok = True
     total = 0
     limits = {"music": 4_000_000, "ambience": 2_000_000, "sfx": 2_000_000}
     print("\nVérification :")
+    manifest_path = OUT / "manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8")) if manifest_path.exists() else {}
     for section in ("music", "ambience", "sfx"):
+        listed = {Path(m["file"]).name for m in manifest.get(section, {}).values()}
         for path in sorted((OUT / section).glob("*.ogg")):
             pr = probe(path)
             total += pr["size"]
             problems = []
+            if path.name not in listed:
+                problems.append("absent du manifeste")
             if pr["codec"] != "vorbis":
                 problems.append(f"codec {pr['codec']}")
             if pr["samples"] == 0 or pr["size"] < 1000:
@@ -878,6 +908,8 @@ def verify() -> bool:
                 line += f"  pic {pk:5.1f} dBFS"
                 if abs(pk + 3.0) > 1.0:  # tolérance : l'encodage Vorbis déplace légèrement les crêtes
                     problems.append("pic hors -3 dBFS")
+                if pr["duration"] > 4.0:
+                    problems.append("SFX trop long")
             if section in ("music", "ambience"):
                 a = decode(path, ch=pr["channels"])
                 seam = loop_seam_error(a)
@@ -889,7 +921,7 @@ def verify() -> bool:
                     problems.append("couture de boucle suspecte")
                 if abs(lufs - target) > 1.0:
                     problems.append(f"loudness {lufs:.1f} != {target}")
-                if section == "music" and not (20 <= pr["duration"] <= 181):
+                if section == "music" and not (MUSIC_MIN_LOOP - 1 <= pr["duration"] <= 181):
                     problems.append("durée hors plage")
                 if section == "ambience" and not (60 <= pr["duration"] <= 90):
                     problems.append("durée hors plage")
@@ -897,9 +929,14 @@ def verify() -> bool:
                 ok = False
                 line += "  !! " + ", ".join(problems)
             print(line)
-    print(f"  Total assets/audio : {total / 1e6:.2f} Mo (limite 35 Mo)")
-    if total > 35_000_000:
+        for name in sorted(listed - {p.name for p in (OUT / section).glob("*.ogg")}):
+            ok = False
+            print(f"  {section}/{name}  !! listé dans le manifeste mais absent du disque")
+    print(f"  Total assets/audio : {total / 1e6:.2f} Mo (limite {TOTAL_LIMIT / 1e6:.0f} Mo)")
+    if total > TOTAL_LIMIT:
         ok = False
+        print("  !! poids total dépassé")
+    print("  OK" if ok else "  ÉCHEC")
     return ok
 
 
@@ -914,18 +951,24 @@ def main() -> int:
     manifest = json.loads(manifest_path.read_text(encoding="utf-8")) if manifest_path.exists() else {}
     if not args.verify_only:
         sections = set(args.only or ["music", "ambience", "sfx"])
+        full = keys is None
         for d in ("music", "ambience", "sfx"):
             (OUT / d).mkdir(parents=True, exist_ok=True)
         if "music" in sections:
             print("Musiques :")
-            manifest.setdefault("music", {}).update(build_music(keys))
+            built = build_music(keys)
+            manifest["music"] = built if full else {**manifest.get("music", {}), **built}
         if "ambience" in sections:
             print("Ambiances :")
-            manifest.setdefault("ambience", {}).update(build_ambience(keys))
+            built = build_ambience(keys)
+            manifest["ambience"] = built if full else {**manifest.get("ambience", {}), **built}
         if "sfx" in sections:
             print("SFX :")
-            manifest.setdefault("sfx", {}).update(build_sfx(keys))
+            built = build_sfx(keys)
+            manifest["sfx"] = built if full else {**manifest.get("sfx", {}), **built}
         manifest = {k: manifest[k] for k in ("music", "ambience", "sfx") if k in manifest}
+        if full:
+            prune(manifest, sections)
         write_manifest(manifest)
         write_credits(manifest)
         print(f"\n{manifest_path} et {CREDITS_OUT} écrits.")

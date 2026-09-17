@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Polices « Feux de Brume » — téléchargement des WOFF2 (sous-ensembles latin et
+Polices « Cent Saisons » — téléchargement des WOFF2 (sous-ensembles latin et
 latin-ext) depuis Google Fonts, écriture de css/fonts.css (chemins relatifs,
 font-display: swap), de assets/fonts/LICENSES.md et de assets/credits/fonts.json.
+
+Polices : Lora (titres, fragments de mémoire ; 400, 500, 600 et italique 400)
+et Quicksand (UI, HUD, boutons ; 400, 500, 600, 700). Toutes deux sont servies
+par Google Fonts en police variable : un seul fichier couvre la plage de graisses.
 
 Google Fonts ne renvoie du WOFF2 qu'avec un User-Agent de navigateur moderne.
 Relançable : les fichiers sont réécrits depuis les sources.
@@ -19,29 +23,23 @@ from pathlib import Path
 UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
       "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36")
 CSS_URL = ("https://fonts.googleapis.com/css2?"
-           "family=IM+Fell+English:ital@0;1"
-           "&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500"
-           "&family=Homemade+Apple&display=swap")
+           "family=Lora:ital,wght@0,400;0,500;0,600;1,400"
+           "&family=Quicksand:wght@400;500;600;700&display=swap")
 SUBSETS = ("latin", "latin-ext")
 GF = "https://raw.githubusercontent.com/google/fonts/main/"
+OFL_URL = "https://openfontlicense.org/open-font-license-official-text/"
 
 FAMILIES = {
-    "IM Fell English": dict(
-        slug="imfellenglish", author="Igino Marini (iginomarini.com)", license="SIL Open Font License 1.1",
-        licenseUrl="https://openfontlicense.org/open-font-license-official-text/",
-        licenseFile=GF + "ofl/imfellenglish/OFL.txt", url="https://fonts.google.com/specimen/IM+Fell+English",
-        role="titres"),
-    "Cormorant Garamond": dict(
-        slug="cormorantgaramond", author="Christian Thalmann (Catharsis Fonts)", license="SIL Open Font License 1.1",
-        licenseUrl="https://openfontlicense.org/open-font-license-official-text/",
-        licenseFile=GF + "ofl/cormorantgaramond/OFL.txt", url="https://fonts.google.com/specimen/Cormorant+Garamond",
-        role="corps de texte, HUD"),
-    "Homemade Apple": dict(
-        slug="homemadeapple", author="Font Diner (fontdiner.com)", license="Apache License 2.0",
-        licenseUrl="https://www.apache.org/licenses/LICENSE-2.0",
-        licenseFile=GF + "apache/homemadeapple/LICENSE.txt", url="https://fonts.google.com/specimen/Homemade+Apple",
-        role="écriture manuscrite des pages de journal"),
+    "Lora": dict(
+        slug="lora", author="Cyreal (Olga Karpushina, Alexei Vanyashin)", license="SIL Open Font License 1.1",
+        licenseUrl=OFL_URL, licenseFile=GF + "ofl/lora/OFL.txt", url="https://fonts.google.com/specimen/Lora",
+        role="titres, fragments de mémoire (italique : écriture des habitants)"),
+    "Quicksand": dict(
+        slug="quicksand", author="Andrew Paglinawan", license="SIL Open Font License 1.1",
+        licenseUrl=OFL_URL, licenseFile=GF + "ofl/quicksand/OFL.txt", url="https://fonts.google.com/specimen/Quicksand",
+        role="interface, HUD, boutons"),
 }
+ORDER = {"Lora": 0, "Quicksand": 1}
 
 
 def fetch(url, dest=None):
@@ -57,6 +55,7 @@ def parse_css(css):
     blocks = []
     for m in re.finditer(r"/\*\s*([\w-]+)\s*\*/\s*@font-face\s*\{(.*?)\}", css, re.S):
         subset, body = m.group(1), m.group(2)
+
         def prop(name):
             mm = re.search(name + r"\s*:\s*([^;]+);", body)
             return mm.group(1).strip() if mm else None
@@ -79,9 +78,11 @@ def main():
     if "woff2" not in css:
         raise RuntimeError("Google Fonts n'a pas renvoyé de WOFF2 (User-Agent ?)")
     blocks = [b for b in parse_css(css) if b["subset"] in SUBSETS]
+    if not blocks:
+        raise RuntimeError("Aucun bloc latin / latin-ext dans la réponse de Google Fonts")
 
-    # Regroupement par (famille, style, subset, url) : Cormorant Garamond est servi en police
-    # variable (un seul fichier pour 400-700), Google répète alors la même URL par graisse.
+    # Regroupement par (famille, style, subset, url) : en police variable, Google répète
+    # la même URL pour chaque graisse demandée → un fichier, une plage « 400 700 ».
     groups = {}
     for b in blocks:
         k = (b["family"], b["style"], b["subset"], b["url"])
@@ -90,6 +91,8 @@ def main():
 
     faces, files_by_family = [], {f: [] for f in FAMILIES}
     for (family, style, subset, url), g in groups.items():
+        if family not in FAMILIES:
+            raise RuntimeError(f"Famille inattendue : {family}")
         ws = sorted(set(g["weights"]))
         weight = f"{ws[0]} {ws[-1]}" if len(ws) > 1 else str(ws[0])
         slug = FAMILIES[family]["slug"]
@@ -101,17 +104,16 @@ def main():
                           unicode_range=g["unicode_range"], variable=len(ws) > 1, source=url))
         files_by_family[family].append(f"assets/fonts/{name}")
 
-    # Nettoyage des WOFF2 orphelins
+    # Nettoyage des WOFF2 orphelins (anciennes polices)
     keep = {f["file"] for f in faces}
     for p in fonts_dir.glob("*.woff2"):
         if p.name not in keep:
             p.unlink()
 
     # css/fonts.css
-    order = {"IM Fell English": 0, "Cormorant Garamond": 1, "Homemade Apple": 2}
-    faces.sort(key=lambda f: (order[f["family"]], f["style"], f["weight"], f["subset"]))
+    faces.sort(key=lambda f: (ORDER[f["family"]], f["style"], f["weight"], f["subset"]))
     out = ["/* Polices auto-hébergées — généré par tools/fetch_fonts.py (ne pas éditer à la main). */",
-           "/* IM Fell English & Cormorant Garamond : SIL OFL 1.1 ; Homemade Apple : Apache 2.0 — voir assets/fonts/LICENSES.md */", ""]
+           "/* Lora & Quicksand : SIL OFL 1.1 — voir assets/fonts/LICENSES.md */", ""]
     for f in faces:
         out += ["@font-face {",
                 f"  font-family: '{f['family']}';",
@@ -122,9 +124,9 @@ def main():
                 f"  unicode-range: {f['unicode_range']};",
                 "}", ""]
     out += [":root {",
-            "  --font-title: 'IM Fell English', 'Times New Roman', Georgia, serif;",
-            "  --font-body: 'Cormorant Garamond', Garamond, Georgia, serif;",
-            "  --font-hand: 'Homemade Apple', 'Segoe Script', cursive;",
+            "  --font-title: 'Lora', Georgia, 'Times New Roman', serif;",
+            "  --font-body: 'Quicksand', 'Segoe UI', 'Trebuchet MS', sans-serif;",
+            "  --font-hand: 'Lora', Georgia, serif; /* à utiliser avec font-style: italic */",
             "}", ""]
     (repo / "css" / "fonts.css").write_text("\n".join(out), encoding="utf-8")
 
@@ -138,6 +140,8 @@ def main():
     md.append("")
     for fam, meta in FAMILIES.items():
         txt = fetch(meta["licenseFile"])
+        if "SIL OPEN FONT LICENSE" not in txt.upper():
+            raise RuntimeError(f"Texte OFL introuvable pour {fam} ({meta['licenseFile']})")
         md += [f"## {fam}", "", f"- Auteur : {meta['author']}", f"- Licence : {meta['license']} ({meta['licenseUrl']})",
                f"- Source : {meta['url']}", f"- Fichiers : " + ", ".join(sorted(Path(p).name for p in files_by_family[fam])),
                f"- Texte de licence d'origine : {meta['licenseFile']}", "", "```text", txt.rstrip(), "```", ""]
@@ -154,7 +158,7 @@ def main():
     (cred / "fonts.json").write_text(json.dumps(credits, ensure_ascii=False, indent=1), encoding="utf-8")
 
     for f in faces:
-        print(f"{f['family']:20s} {f['style']:7s} {f['weight']:8s} {f['subset']:9s} {f['file']} "
+        print(f"{f['family']:12s} {f['style']:7s} {f['weight']:8s} {f['subset']:9s} {f['file']} "
               f"({(fonts_dir / f['file']).stat().st_size // 1024} Ko)")
     print("css :", repo / "css" / "fonts.css")
 

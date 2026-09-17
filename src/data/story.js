@@ -1,459 +1,510 @@
-// Feux de Brume — textes narratifs (français exclusivement).
-// Consommé par src/ui/story.js, src/game/tutorial.js, src/ui/ending.js.
-// Chaque « écran » tient en 1 à 3 phrases. Aucun markdown : le texte est affiché tel quel.
+// Cent Saisons — textes narratifs (français exclusivement).
+// La voix de l’île parle au « nous » et s’adresse à la Saison (le joueur) au « tu ».
+// Chaque « écran » tient en 1 à 3 phrases. Aucun markdown : le texte est affiché tel quel.
 
 export const STORY = {
-  title: 'Feux de Brume',
-  subtitle: 'Chroniques du phare de Sant-Aël',
-
-  characters: {
-    elise: { name: 'Élise Kervran', role: 'Gardienne du phare' },
-    yann: { name: 'Yann Kervran', role: 'Ancien gardien, disparu' },
-    legoff: { name: 'Madame Le Goff', role: 'Capitaine de port' },
-    mael: { name: 'Maël', role: 'Pêcheur, navette de l’île' },
-  },
+  title: 'Cent Saisons',
+  subtitle: 'L’île qui se souvient',
 
   prologue: [
-    'Automne 1893. La chaloupe de Maël m’a déposée sur le rocher de Sant-Aël à la marée du soir. Il n’a pas voulu rester.',
-    'Mon père, Yann Kervran, a tenu ce feu vingt-deux ans. Il y a trois mois, il est sorti dans la Brume avec le canot. Il n’est pas revenu.',
-    'Depuis, la Brume monte chaque nuit avec la marée. Elle est trop blanche. Elle ne suit pas le vent. Les navires qui y entrent perdent le nord.',
-    'Le port a besoin d’un feu. Personne d’autre n’a voulu monter. Je connais la lanterne : j’y ai grandi.',
-    'La mèche est taillée, l’huile est chaude, la lentille sent le cuivre et le sel. Dehors, la mer est noire et la passe des Loups attend. Ce soir, je fais la relève.',
+    'Douze îles dorment sous le même ciel. Sable, roche, silence. Nous étions vertes, nous étions pleines, et nous ne savons plus depuis quand nous nous taisons.',
+    'Toi, tu es la Saison. Pas une des quatre : celle qui passe de l’une à l’autre. Tu n’as ni corps ni nom. Tu as des tuiles.',
+    'Poser une tuile, c’est nous rendre un morceau. Une prairie, une forêt, un hameau. Chaque bord qui touche un autre bord est une chose que nous nous rappelons.',
+    'Nous ne te demanderons pas d’aller vite. Nous te demanderons de regarder où tu poses.',
+    'Commence par la plus petite d’entre nous. Elle a gardé des lapins dans un coin de sa mémoire.',
   ],
 
-  nights: {
+  archipelagos: {
+    1: { name: 'Archipel du Nord', sub: 'Réveil' },
+    2: { name: 'Archipel du Milieu', sub: 'Mémoire' },
+    3: { name: 'Archipel du Large', sub: 'Cent saisons' },
+  },
+
+  islands: {
     1: {
-      title: 'La Relève',
-      act: 1,
-      journal: [
-        'Première nuit. Le mécanisme de la lentille grince, il lui faut de l’huile et à moi du courage. L’odeur de la lampe me rassure : elle sent l’enfance.',
-        'J’ai relu les consignes de mon père, clouées près de l’escalier. Garder le feu. Relever les écueils. Ne jamais tracer une route à l’aveugle.',
-        'Madame Le Goff a fait passer un mot par Maël. Deux navires attendus. Elle ne me croit pas capable. Nous verrons.',
+      name: 'L’Anse aux Lapins',
+      intro: [
+        'Nous sommes la plus petite. Trente cases, une anse, et quelque part sous le sable, une trace de lapin.',
+        'Nous nous rappelons l’herbe. Commence par là.',
       ],
-      briefing: {
-        speaker: 'legoff',
-        lines: [
-          'Mademoiselle Kervran. Deux cotres rentrent ce soir par la passe des Loups. Je veux les voir à quai avant l’aube.',
-          'Votre père connaissait chaque roche. Vous, non. Éclairez avant de guider.',
-        ],
-      },
+      memory: [
+        'Ça y est, ça revient. Il y avait des lapins dans l’herbe haute, et une petite fille qui les comptait le soir. Elle n’arrivait jamais au même nombre.',
+        'Le premier verger tenait sur trois arbres. Le premier hameau, sur deux toits. On appelait ça un village, avec une pointe d’orgueil.',
+        'Merci. Nous savons de nouveau ce que c’est, une prairie.',
+      ],
       tutorial: [
-        { id: 'beam', text: 'Déplace la souris : la lentille suit ton geste. Ce que le faisceau touche apparaît. Un écueil relevé reste sur la carte jusqu’à l’aube.' },
-        { id: 'route', text: 'Clique sur un navire et glisse jusqu’au quai pour tracer sa route. Il la suivra. Un clic simple sur le navire efface la route.' },
-        { id: 'dock', text: 'Un navire à quai est un navire sauvé. Atteins le quota avant l’aube, et ne laisse pas la mer en prendre trois.' },
+        { id: 'place', text: 'Pose la tuile sur une case vide qui touche une tuile déjà posée. Survole une case : les points de chaque bord s’affichent avant de cliquer.' },
+        { id: 'affinity', text: 'Même famille : +1. Bonnes paires : +2 (un champ près d’un hameau, un verger près d’une prairie). Mauvaises paires : −1.' },
+        { id: 'close', text: 'Entoure complètement une région : plus aucune case vide autour. La prime vaut sa taille en tuiles.' },
       ],
-      outroWin: {
-        speaker: 'legoff',
-        lines: [
-          'Deux à quai. Je n’en attendais pas tant.',
-          'Dormez. Demain, la marée sera plus forte et les navires plus nombreux.',
-        ],
-      },
-      outroLose: {
-        speaker: 'legoff',
-        lines: [
-          'Les navires ne se guident pas dans le noir, mademoiselle. Éclairez d’abord.',
-          'La passe sera encore là demain. Vous aussi, j’espère.',
-        ],
-      },
     },
-
     2: {
-      title: 'Les Sardiniers',
-      act: 1,
-      journal: [
-        'Dormi trois heures. Les mains sentent encore l’huile. J’ai sorti la corne de la remise : un réservoir d’air, une pompe, une bouche de cuivre verte de sel.',
-        'Maël dit que les chaloupes des sardiniers rentrent ce soir. Elles vont vite et n’écoutent que le bruit. Mon père les arrêtait d’un coup de corne.',
+      name: 'Le Gué des Roches',
+      intro: [
+        'Ici, l’eau descendait de la roche et cherchait la mer. Elle ne la cherche plus : elle attend qu’on lui redonne un chemin.',
+        'Il y a une différence entre une rivière et une mare. Nous l’avons oubliée. Pas toi.',
       ],
-      briefing: {
-        speaker: 'mael',
-        lines: [
-          'Bonsoir Élise ! Les sardiniers rentrent, pressés comme toujours. Ils filent, ceux-là, et ils ne regardent pas devant.',
-          'Si tu en vois un foncer sur une roche, donne de la corne. Ils s’arrêtent net. C’est la seule chose qu’ils respectent.',
-        ],
-      },
+      memory: [
+        'Le gué. Des pierres plates posées de la roche à l’anse, et une rivière qui les mouillait au printemps.',
+        'Les enfants passaient en sautant, les vieux en râlant, les bêtes en buvant. La rivière savait où aller : elle allait à la mer.',
+        'Nous entendons de nouveau l’eau. C’est le premier son qui revient.',
+      ],
       tutorial: [
-        { id: 'horn', text: 'Espace : la corne. Tous les navires proches stoppent trois secondes, puis repartent. Elle met huit secondes à se recharger.' },
+        { id: 'river', text: 'Une chaîne d’eau qui touche la mer ou une roche est une rivière : +2 par tuile. Une eau isolée n’est qu’une mare.' },
       ],
-      outroWin: {
-        speaker: 'mael',
-        lines: [
-          'Je l’ai entendue depuis le port, ta corne ! Le vieux Guivarc’h a dit que c’était la voix de ton père. Je n’ai rien répondu.',
-        ],
-      },
-      outroLose: {
-        speaker: 'mael',
-        lines: [
-          'Les chaloupes, c’est de la poudre. Une corne un peu tôt vaut mieux qu’une corne trop tard. Tu retrouveras le rythme.',
-        ],
-      },
     },
-
     3: {
-      title: 'Le Goulet',
-      act: 1,
-      journal: [
-        'Hier, deux cotres se sont présentés ensemble au goulet. J’ai eu de la chance. La chance n’est pas un métier : il faut savoir faire attendre un navire.',
-        'Les cartes de mon père sont trouées de notes. Au goulet, il a écrit : « Un seul à la fois. Ancre. » Trois mots, soulignés deux fois.',
-        'La Brume est montée plus tôt ce soir. Elle était là avant le plein de la marée, immobile, comme si elle attendait que j’allume.',
+      name: 'La Pointe des Quatre Vents',
+      intro: [
+        'Quatre vents, disait-on, un par saison. Puis un seul vent, longtemps. Nous ne savons plus le nom des trois autres.',
+        'Tu vas nous les rendre. Ne t’étonne pas si tout change de couleur.',
       ],
-      briefing: {
-        speaker: 'legoff',
-        lines: [
-          'Trois navires dans le goulet ce soir, en même temps. Le goulet n’en passe qu’un. Faites-les attendre.',
-          'Et n’essayez pas de deviner les roches. Ce qu’on ne voit pas, on ne le trace pas.',
-        ],
-      },
+      memory: [
+        'Le premier pont de glace. Un hiver, la rivière a gelé d’un hameau à l’autre et les gens se sont rendu visite sans barque.',
+        'Ils ont porté des lanternes sur la glace. De la pointe, on voyait une ligne de petites lumières qui traversait la nuit.',
+        'Au printemps, la glace est partie. Personne n’a été triste : on savait qu’elle reviendrait.',
+      ],
       tutorial: [
-        { id: 'anchor', text: 'Clic droit sur un navire : il mouille l’ancre et attend sur place. Clic droit encore : il lève l’ancre et repart.' },
-        { id: 'hazard', text: 'Un écueil hors de la lumière n’existe pas sur ta carte. Ne trace jamais une route dans le noir : éclaire d’abord, trace ensuite.' },
+        { id: 'season', text: 'Toutes les douze poses, la saison change et une règle avec elle. Regarde la ligne de saison en haut de l’écran.' },
       ],
-      outroWin: {
-        speaker: 'legoff',
-        lines: [
-          'Trois navires, un goulet, aucun bois cassé. Votre père faisait cela sans y penser. Vous y pensez encore. C’est bien.',
-        ],
-      },
-      outroLose: {
-        speaker: 'legoff',
-        lines: [
-          'Un navire qui attend n’est pas un navire perdu. Ne les faites pas passer tous à la fois.',
-        ],
-      },
     },
-
     4: {
-      title: 'Ce que l’eau ramène',
-      act: 1,
-      journal: [
-        'Ce matin, sur la grève, un morceau de papier collé à une algue. L’écriture de mon père, délavée. Illisible. Je l’ai mis à sécher près du feu.',
-        'S’il y en a une, il y en a d’autres. Elles dérivent dans la passe. Il faudra les lire à la lumière avant que la mer ne les reprenne.',
-        'Maël a monté des Éclats de l’ancienne lentille, celle qui s’est brisée en 1852. Le verrier du port peut en tirer quelque chose à l’atelier.',
+      name: 'Les Trois Prés',
+      intro: [
+        'Trois prés, trois haies, et sous chaque haie quelque chose qui respirait. Nous ne sommes pas sûres de quoi.',
+        'Fais-leur de la place. Ils sauront revenir.',
       ],
-      briefing: {
-        speaker: 'mael',
-        lines: [
-          'Élise, j’ai vu des papiers flotter près de la Grande Dent, hier. Tu crois que… enfin, je te dis ce que j’ai vu.',
-          'Quatre bateaux ce soir. Et garde un œil sur l’eau, pas seulement sur les coques.',
-        ],
-      },
+      memory: [
+        'Les lapins, d’abord. Puis les canards sur la mare, puis un élan qu’on ne voyait qu’au petit matin, entre les troncs.',
+        'Une vieille femme laissait des pommes au bord du bois. Elle disait que ce n’était pas pour les bêtes. Personne ne la croyait.',
+        'Nous avons compris ceci : les bêtes ne viennent pas parce qu’on les appelle. Elles viennent parce qu’il y a de la place.',
+      ],
       tutorial: [
-        { id: 'page', text: 'Une page dérive. Garde le faisceau dessus une seconde et demie pour la lire. Chaque page rapporte des Éclats pour l’atelier.' },
+        { id: 'fauna', text: 'Les animaux viennent quand leur habitat existe et partent s’il se brise. À chaque saison, chaque animal présent donne des souffles.' },
       ],
-      outroWin: {
-        speaker: 'legoff',
-        lines: [
-          'Le port a compté. Quatre à quai, mademoiselle Kervran. Les capitaines ont demandé qui tenait le feu. J’ai dit : la fille de Yann.',
-          'Ils ont hoché la tête. C’est un début.',
-        ],
-      },
-      outroLose: {
-        speaker: 'mael',
-        lines: [
-          'Le papier attendra, les bateaux non. Prends les pages quand la passe est calme, pas quand tout arrive à la fois.',
-        ],
-      },
     },
-
     5: {
-      title: 'La Marée',
-      act: 2,
-      journal: [
-        'La première page a séché. Mon père écrivait : « La Brume monte avec la marée. » Je regarde la jauge du quai comme il la regardait.',
-        'À marée basse, la passe montre ses dents : les roches émergent, noires, et rien ne passe. À marée haute, elles disparaissent. Les chaloupes passent, les gros navires s’y ouvrent.',
-        'La mer rend et reprend. Je commence à comprendre ce qu’il voulait dire.',
+      name: 'La Baie des Promesses',
+      intro: [
+        'Ici, les habitants sont restés. Silhouettes dans les hameaux, ils regardent la baie et formulent des vœux à voix basse.',
+        'Ils ont du caractère. Ils ne diront pas merci deux fois.',
       ],
-      briefing: {
-        speaker: 'legoff',
-        lines: [
-          'Grande marée ce soir, fort coefficient. Les roches de la passe vont sortir et rentrer avant l’aube.',
-          'Une chaloupe passe sur une roche noyée. Un cotre y laisse sa quille. Regardez la jauge avant de tracer.',
-        ],
-      },
+      memory: [
+        'Voilà ce dont nous nous souvenons : un été. Le plus beau. Les vergers pliaient, la mer était tiède, personne ne voulait qu’il finisse.',
+        'Alors quelqu’un a dit : gardons-le. Et nous avons trouvé ça bien. Nous avons cessé d’appeler l’automne.',
+        'Le premier hiver qui n’est pas venu, nous ne l’avons pas remarqué. Le deuxième non plus.',
+      ],
       tutorial: [
-        { id: 'tide', text: 'La marée monte et descend. Marée basse : les écueils émergent et bloquent. Marée haute : noyés, les chaloupes passent, les gros navires s’y brisent.' },
+        { id: 'wish', text: 'Les habitants formulent des vœux avec une échéance. Exaucer un vœu injecte une tuile rare dans ta file.' },
       ],
-      outroWin: {
-        speaker: 'legoff',
-        lines: [
-          'Vous avez lu la marée. Votre père disait qu’elle était le seul horloger honnête de la côte.',
-        ],
-      },
-      outroLose: {
-        speaker: 'legoff',
-        lines: [
-          'La roche qu’on ne voit plus n’a pas bougé. Elle attend sous l’eau. Regardez la jauge.',
-        ],
-      },
     },
-
     6: {
-      title: 'Vent d’ouest',
-      act: 2,
-      journal: [
-        'Le baromètre est tombé toute la journée. Le vent d’ouest siffle dans les vitres de la lanterne. La pluie va raccourcir mon feu.',
-        'Deuxième page. « Elle ne suit pas le vent. » J’ai vérifié depuis la galerie : le vent d’ouest pousse tout vers la Grande Dent. La Brume, non.',
+      name: 'La Mare aux Canards',
+      intro: [
+        'Il y avait une mare. Il y avait des canards. Il y avait, entre les deux, le premier souffle que nous ayons donné à quelqu’un.',
+        'Les souffles sont à toi maintenant. Dépense-les comme on dépense un bon vent.',
       ],
-      briefing: {
-        speaker: 'mael',
-        lines: [
-          'Tempête ce soir, Élise. Des cotres n’ont pas pu attendre au large, ils rentrent quand même. Le vent va les jeter sur les roches.',
-          'Il n’y a que ta corne qui les tienne. Regarde la flèche du vent, et ne compte pas trop sur ta lumière : la pluie la mange.',
-        ],
-      },
+      memory: [
+        'Pendant le long été, la mare a baissé. Un doigt par mois. Les canards ont attendu, puis ils sont partis vers le nord en triangle.',
+        'Les gens ont creusé. Ils ont porté des seaux. La mare ne voulait pas d’eau portée : elle voulait la crue, et la crue vient au printemps.',
+        'Nous n’avions pas de printemps. Nous avions le plein été, toujours.',
+      ],
       tutorial: [
-        { id: 'storm', text: 'Les rafales poussent les navires hors de leur route. La pluie raccourcit le faisceau. La flèche du HUD indique d’où souffle le vent.' },
+        { id: 'breath', text: 'Les souffles : échanger la tuile avec la suivante, la défausser, faire bourgeonner une prairie, ou annuler la dernière pose.' },
       ],
-      outroWin: {
-        speaker: 'mael',
-        lines: [
-          'Je ne sais pas comment tu as fait. La pluie tombait de travers et je voyais ta lumière trouer tout ça. Les gars du port ont bu à ta santé.',
-        ],
-      },
-      outroLose: {
-        speaker: 'mael',
-        lines: [
-          'Contre le vent, il faut tracer large et corner tôt. Tu as tenu longtemps. La prochaine fois, tu tiens jusqu’à l’aube.',
-        ],
-      },
     },
-
     7: {
-      title: 'La Sirène',
-      act: 2,
-      journal: [
-        'La marée basse d’hier a découvert une carcasse au fond de la passe. Des membrures noires, un nom effacé. Maël a détourné les yeux.',
-        'Ce soir passe un trois-mâts chargé. Il tire six pieds d’eau : les roches noyées le tueront là où les chaloupes glissent. Je n’ai jamais guidé si gros.',
-        'Madame Le Goff monte au phare ce soir. Elle n’était jamais venue.',
+      name: 'Trois Moulins',
+      intro: [
+        'Trois moulins, un puits, une chapelle, une tour. Nous avions de belles choses. Elles sont tombées en poussière fine.',
+        'Les habitants s’en souviennent mieux que nous. Exauce-les et ils te rendront ces tuiles-là.',
       ],
-      briefing: {
-        speaker: 'legoff',
-        lines: [
-          'L’épave que vous avez vue, c’est La Sirène. Quarante-huit hommes, en novembre 1852. Le feu de Sant-Aël s’est éteint cette nuit-là.',
-          'Le gardien s’appelait Kervran. Votre grand-père.',
-          'Je vous le dis parce qu’un trois-mâts passe ce soir, et que vous devez savoir ce que la Brume regarde.',
-        ],
-      },
-      tutorial: [],
-      outroWin: {
-        speaker: 'legoff',
-        lines: [
-          'Le trois-mâts est à quai. Son capitaine dit que le feu ne l’a pas lâché une seconde.',
-          'Je ne vous ai pas parlé de votre grand-père pour vous accabler. Vous aviez le droit de savoir.',
-        ],
-      },
-      outroLose: {
-        speaker: 'legoff',
-        lines: [
-          'Un trois-mâts ne tourne pas. Tracez sa route longtemps d’avance, et faites attendre les petits.',
-        ],
-      },
+      memory: [
+        'Sans vent d’automne, les moulins tournaient à peine. Le meunier moulait à la main, la nuit, pour que personne ne le voie.',
+        'Le puits a tenu. C’est lui qui a gardé les prairies vertes le plus longtemps. Quand il a rendu du sable, les gens ont commencé à charger les barques.',
+        'La chapelle est restée ouverte. Pas pour prier : pour se serrer. Il n’y avait plus d’hiver, mais il y avait du froid dans les gens.',
+      ],
+      tutorial: [
+        { id: 'rare', text: 'Tuiles rares : le moulin vaut champ et hameau, la chapelle réchauffe l’hiver, la tour clôt malgré un trou, le puits garde l’eau, le campement attire.' },
+      ],
     },
-
     8: {
-      title: 'Contre le vent',
-      act: 2,
-      journal: [
-        'Pas dormi. Grand-père Kervran. Personne ne m’en avait jamais parlé, et je comprends maintenant pourquoi mon père se taisait.',
-        'Ce soir, la Brume est arrivée contre le vent. Elle remontait la passe comme on monte un escalier. Les pages disent vrai : elle cherche quelque chose.',
-        'Marée, vent, trois-mâts, chaloupes. Tout ce que j’ai appris arrive en même temps. Je le ferai proprement.',
+      name: 'Le Pont de Glace',
+      intro: [
+        'Deux hameaux, une rivière entre eux, et un souvenir de glace. C’est la dernière chose que nous ayons perdue.',
+        'Nous avons peur de l’hiver, maintenant. Rends-le-nous quand même.',
       ],
-      briefing: {
-        speaker: 'legoff',
-        lines: [
-          'Tout le cabotage de la semaine rentre ce soir, avant la tempête d’équinoxe. Six navires. Je ne vous dis pas comment.',
-          'Les capitaines vous font confiance. C’est plus lourd que le contraire.',
-        ],
-      },
+      memory: [
+        'Le dernier hiver. Il est venu tard, un peu par hasard, comme quelqu’un qui a oublié qu’il était invité.',
+        'La rivière a gelé. Les deux hameaux ont traversé avec des lanternes, comme avant. Ils ont dansé sur la glace toute la nuit. Ils savaient, nous pensons.',
+        'Puis l’été est revenu et n’est plus reparti. Les lanternes se sont éteintes une à une. Nous nous sommes endormies au bruit des barques qui s’en allaient.',
+        'Voilà. C’est cela qui nous a figées : pas une catastrophe. Une saison qui a trop plu.',
+      ],
       tutorial: [],
-      outroWin: {
-        speaker: 'mael',
-        lines: [
-          'Six ! Le port n’a jamais vu ça en une nuit. Madame Le Goff a souri, je te jure, j’ai des témoins.',
-          'Mais Élise… la Brume, en repartant, elle est passée contre mon bateau. Elle était froide. Elle avait comme une forme.',
-        ],
-      },
-      outroLose: {
-        speaker: 'legoff',
-        lines: [
-          'Vous savez tout ce qu’il faut savoir. Il reste à le faire dans l’ordre. Reprenez.',
-        ],
-      },
     },
-
     9: {
-      title: 'La Bête',
-      act: 3,
-      journal: [
-        'Elle a une forme. Je l’ai vue depuis la galerie, au montant : une masse plus dense dans la Brume, qui glissait vers le cotre de Maël.',
-        'Elle a reculé quand je l’ai éclairée. Pas fui : reculé, comme une bête devant une torche. La corne l’a déchirée. Elle s’est refermée après.',
-        'Je ne sais pas comment la nommer. Une bête, peut-être. Une bête qui cherche une porte.',
+      name: 'La Falaise de l’Ours',
+      intro: [
+        'Grande île, falaise noire, forêt à flanc de roche. Nous sommes larges, et les saisons ici seront courtes.',
+        'Il dormait dans la roche. Nous ne l’avons plus entendu ronfler depuis très longtemps.',
       ],
-      briefing: {
-        speaker: 'mael',
-        lines: [
-          'Élise, il y a une chose dans la Brume. Elle est venue sur moi, hier. Le froid, la lampe qui pâlit, plus de nord. Sans ta lumière, je n’étais plus là.',
-          'Tiens-la loin des bateaux. Et si elle en attrape un, cherche-le : il est encore quelque part dans le blanc.',
-        ],
-      },
-      tutorial: [
-        { id: 'beast', text: 'La Bête traque le navire le plus proche. Le faisceau la ralentit, la corne la repousse. Un navire touché est perdu : retrouve-le et retrace sa route.' },
+      memory: [
+        'Le premier automne après le long été, nous ne l’avons pas reconnu. Les forêts ont rougi et les gens ont cru qu’elles brûlaient.',
+        'Puis l’ours est sorti de la falaise, gras et lent, et il a mangé des baies au bord du bois. Alors les gens ont compris : c’était l’automne. Rien de grave.',
+        'Nous réapprenons dans cet ordre : ce qui tombe, ce qui dort, ce qui revient.',
       ],
-      outroWin: {
-        speaker: 'elise',
-        lines: [
-          'Elle recule devant le feu. Pas parce qu’il la brûle. Parce qu’elle le reconnaît.',
-          'Je ne sais pas encore ce que je dois lui donner. Mais elle n’a pris aucun navire ce soir.',
-        ],
-      },
-      outroLose: {
-        speaker: 'elise',
-        lines: [
-          'Un navire perdu n’est pas coulé. Il est dans le blanc, il attend qu’on le retrouve. Je l’ai laissé trop longtemps.',
-        ],
-      },
+      tutorial: [],
     },
-
     10: {
-      title: 'La Mèche basse',
-      act: 3,
-      journal: [
-        'Maël n’a pas pu venir hier : les barils sont restés à Port-Aël. La cuve sonne creux. À la jauge, trois nuits, si je ne baisse pas la mèche.',
-        'Le feu réduit éclaire moitié moins. Mon père le pratiquait par les nuits creuses. On entend la flamme baisser, un souffle court, et la mer redevient immense.',
-        'Les navires à quai déchargent des barils. Chaque navire sauvé me rend un peu de lumière. C’est la seule justice de ce métier.',
+      name: 'La Plaine des Crues',
+      intro: [
+        'Une plaine basse, des marais, des champs qui aimaient la boue. Ici, l’eau montait chaque printemps et personne ne s’en plaignait.',
+        'Le long été l’a séchée jusqu’à la fissure. Recommence par le marais.',
       ],
-      briefing: {
-        speaker: 'legoff',
-        lines: [
-          'Le port n’a plus d’huile à vous envoyer avant la fin de la semaine. Les navires vous en livreront à quai. Économisez.',
-          'Un feu réduit vaut mieux qu’un feu mort. Un feu mort, c’est 1852.',
-        ],
-      },
-      tutorial: [
-        { id: 'oil', text: 'Le faisceau brûle l’huile. Touche F : feu réduit, demi-portée, moitié moins d’huile. Les navires à quai livrent des barils. À sec, le feu meurt cinq secondes.' },
+      memory: [
+        'La crue. Un matin de printemps, l’eau venait jusqu’au seuil des maisons, et les enfants allaient à l’école en barque. C’était la fête.',
+        'L’été, la même eau se retirait et laissait les champs gras. On semait dans ses traces.',
+        'Nous avons réappris ceci : ce qui déborde au printemps nourrit en été. Il faut les deux, ou rien.',
       ],
-      outroWin: {
-        speaker: 'mael',
-        lines: [
-          'Je t’ai vue baisser la lampe et la relever, baisser et relever. Du port, on aurait dit que le phare respirait.',
-        ],
-      },
-      outroLose: {
-        speaker: 'legoff',
-        lines: [
-          'Une lampe à sec ne se rallume pas en claquant des doigts. Baissez-la quand la passe est vide, pas quand elle est pleine.',
-        ],
-      },
+      tutorial: [],
     },
-
     11: {
-      title: 'Le Dernier Baril',
-      act: 3,
-      journal: [
-        'Pages treize et quatorze. L’huile avait été vendue au village, l’hiver de 1852, pour manger. Le feu s’est éteint devant La Sirène. Grand-père en est mort de honte.',
-        'Il faut leur répondre, écrivait mon père. Je crois savoir où il est allé. Au fond de la passe, sous la vase, il y a une cloche.',
-        'Tempête annoncée. La Bête est là. La cuve est au quart. Maël monte le dernier baril du port. Je tiendrai. Pas pour le port : pour eux.',
+      name: 'Les Vergers de Neige',
+      intro: [
+        'Nous étions l’île des vergers. Et l’île de la neige. Les deux, à tour de rôle. Nous avions oublié qu’on pouvait être deux choses.',
+        'Il paraît que des oiseaux qui ne volent pas venaient sur la glace. Nous ne l’avons jamais tout à fait cru.',
       ],
-      briefing: {
-        speaker: 'mael',
-        lines: [
-          'C’est le dernier baril, Élise. Après ça, plus rien avant le caboteur de dimanche. Madame Le Goff a dit de te dire de descendre si ça tourne mal.',
-          'Moi, je ne te dis rien. Je te regarde depuis le quai, comme d’habitude. Tiens bon.',
-        ],
-      },
+      memory: [
+        'La première neige après le long été est tombée à midi. Les gens sont sortis sans manteau. Ils l’ont regardée fondre dans leurs mains.',
+        'Puis la rivière a gelé, et les manchots sont arrivés, dressés, sérieux, en file. Ils ont traversé l’île comme s’ils l’avaient toujours fait.',
+        'Les vergers avaient déjà donné. Il y avait du cidre dans les caves et de la glace sur la rivière. Nous savions de nouveau tenir les deux.',
+      ],
       tutorial: [],
-      outroWin: {
-        speaker: 'elise',
-        lines: [
-          'Le baril est vide. La Bête a reculé jusqu’au fond de la passe et n’est pas revenue. Il reste une nuit d’huile, peut-être moins.',
-          'J’ai entendu une cloche sous le vent. Pas celle du quai.',
-        ],
-      },
-      outroLose: {
-        speaker: 'mael',
-        lines: [
-          'Tu n’as pas à tout tenir d’un coup. Corne pour la Bête, feu réduit quand la passe est vide, routes larges contre le vent. Encore une fois.',
-        ],
-      },
     },
-
     12: {
-      title: 'Le Feu du fond',
-      act: 3,
-      journal: [
-        'Dernière huile. La Brume couvre toute la passe.',
-        'Au fond, une lanterne bat. Trois coups longs, un court. Le signal de mon père.',
+      name: 'L’Île qui se souvient',
+      intro: [
+        'Nous sommes la dernière. Nous nous souvenons de tout, maintenant, sauf d’une chose : comment on change sans qu’on nous le dise.',
+        'Pose. Nous regarderons comment tu fais.',
+        'Peut-être qu’à la fin, nous saurons.',
       ],
-      briefing: {
-        speaker: 'legoff',
-        lines: [
-          'Un navire sort de la Brume avec la lanterne de Yann. Aucun capitaine du port ne l’attend. Ramenez-le.',
-          'Je serai sur le quai.',
-        ],
-      },
+      memory: [
+        'Ce dont nous nous souvenons, c’est de toi. Une tuile, puis une autre. Une prairie qui sèche et qu’on ne laisse pas seule. Une rivière qu’on mène à la mer.',
+        'Tu ne nous as rien expliqué. Tu as posé, nous avons regardé, et à force de regarder nous avons vu ce qui revient toujours : rien ne reste.',
+        'C’est le souvenir le plus ancien que nous ayons. Il était sous tous les autres. Il fallait seulement les soulever un à un.',
+      ],
       tutorial: [],
-      outroWin: {
-        speaker: 'elise',
-        lines: [
-          'La lanterne s’est éteinte quand la coque a touché le quai. La mienne aussi. Il n’en fallait pas plus.',
-        ],
-      },
-      outroLose: {
-        speaker: 'elise',
-        lines: [
-          'Il est encore là, au fond de la passe. Il attend le feu. Je rallume.',
-        ],
-      },
     },
   },
 
-  pages: [
-    { id: 'p01', night: 4, title: 'Page arrachée', text: 'Trois mois que je note les heures. La Brume ne monte pas avec la nuit : elle monte avec la marée. Une heure après le flot, jamais avant. Je l’attends comme on attend un bateau.' },
-    { id: 'p02', night: 4, title: 'Feuillet taché d’huile', text: 'Coup de vent d’ouest tout le jour. La Brume est venue de l’est, contre lui, épaisse comme une laine. Elle ne suit pas le vent. Rien de ce qui vit sur l’eau ne fait cela.' },
-    { id: 'p03', night: 5, title: 'Page pliée en quatre', text: 'Ce soir j’ai tourné la lentille lentement, une seule fois. Là où passait le faisceau, la Brume s’écartait puis revenait, comme une main qu’on retire et qu’on repose.' },
-    { id: 'p04', night: 5, title: 'Coin de carte', text: 'Elle ne fuit pas la lumière. Elle la suit. Quand j’éteins, elle vient sur le rocher ; quand j’allume, elle recule et attend. Elle cherche un feu. Pas le mien.' },
-    { id: 'p05', night: 6, title: 'Page rongée par le sel', text: 'Relu le registre de 1852. Nuit du 14 novembre : « Feu éteint de minuit à l’aube. » Rien d’autre. Le gardien n’a jamais dit pourquoi. Je sais qui il était.' },
-    { id: 'p06', night: 6, title: 'Feuillet aux lignes serrées', text: 'Deux versions au village. Il dormait, dit l’une. L’huile manquait, dit l’autre. Personne ne veut dire laquelle est vraie. Les deux vieillissent mal.' },
-    { id: 'p07', night: 7, title: 'Page brûlée au bord', text: 'Marée d’équinoxe. La Sirène est sortie de la vase, noire, ouverte comme une côte. Quarante-huit hommes. Ils avaient un feu pour les ramener. Ils ne l’ont pas eu.' },
-    { id: 'p08', night: 7, title: 'Page à l’encre diluée', text: 'J’ai compris ce que je regarde depuis trois mois. La Brume n’est pas un temps. C’est une mémoire. La mer se souvient à notre place.' },
-    { id: 'p09', night: 8, title: 'Feuillet trouvé dans une bouteille', text: 'Ils cherchent le feu. Chaque nuit, ils remontent la passe à la même heure, dans le noir de 1852, et ils regardent Sant-Aël. Sant-Aël brille. Ce n’est pas le bon feu.' },
-    { id: 'p10', night: 8, title: 'Page à moitié effacée', text: 'La lumière ne suffit pas. Il faut leur répondre. Quand La Sirène a touché, sa cloche a sonné jusqu’à ce que l’eau la couvre. Personne n’a répondu.' },
-    { id: 'p11', night: 9, title: 'Page griffonnée', text: 'Elle a une forme, maintenant. Elle glisse vers les coques comme un chien vers une porte. Je l’appelle la Bête, faute de mieux. Elle n’est pas mauvaise. Elle est perdue.' },
-    { id: 'p12', night: 9, title: 'Feuillet à la mine de plomb', text: 'La corne la déchire, la lumière la tient. Mais chaque nuit elle revient plus dense. Ils sont quarante-huit à vouloir rentrer. On ne repousse pas cela avec du cuivre.' },
-    { id: 'p13', night: 10, title: 'Page cousue au fil de pêche', text: 'Trouvé la lettre de mon père dans la doublure du registre. Il ne dormait pas. L’huile avait été vendue au village, l’hiver d’avant, pour manger. La cuve était sèche.' },
-    { id: 'p14', night: 10, title: 'Page à l’écriture tremblée', text: 'Il est mort deux hivers plus tard, sans reparler. Ma mère disait : de la poitrine. C’était la honte. Il est mort de honte devant un feu qu’il n’avait pas pu nourrir.' },
-    { id: 'p15', night: 11, title: 'Feuillet lesté d’un galet', text: 'J’irai sonner la cloche de La Sirène. Elle est encore dans l’épave, sous la vase ; à marée basse, on la touche. Je frapperai jusqu’à ce qu’ils entendent.' },
-    { id: 'p16', night: 11, title: 'Page à l’encre fraîche', text: 'Élise, si tu lis ceci, tu tiens le feu. Ne le laisse pas mourir, quoi qu’on te dise. Et n’aie pas peur de la Bête. Elle cherche le chemin du port. Comme tout le monde.' },
-    { id: 'p17', night: 12, title: 'Page écrite dans le blanc', text: 'Je suis sur un navire qui n’avance plus. Il n’y a pas de vent ici, pas d’heure. Les hommes ne parlent pas. Ils regardent tous du même côté : vers ton feu.' },
-    { id: 'p18', night: 12, title: 'Dernière page', text: 'Ma fille, ils me suivent parce que j’ai sonné. Il leur faut maintenant la lumière qui ramène. Garde le faisceau sur nous. Nous rentrons ensemble, ou nous restons.' },
-    { id: 'p19', night: 0, title: 'Note de métier', text: 'Le feu ne sauve personne. Il montre où est la roche et laisse aux hommes le soin de la contourner. C’est déjà beaucoup.' },
-    { id: 'p20', night: 0, title: 'Note de veille', text: 'Une nuit de garde est un long balayage. La lentille tourne, l’huile baisse, la mer parle. Quand l’aube vient, on ne l’a pas méritée. On l’a attendue.' },
-  ],
+  wishes: {
+    w5_1: {
+      giver: 'Le bûcheron de la baie',
+      title: 'Un bois pour se perdre',
+      text: 'Une forêt de six tuiles. Pas cinq : six. On ne se perd pas dans cinq arbres.',
+      done: 'Le bûcheron est entré dans le bois et n’en est ressorti qu’au soir. Il avait l’air content.',
+      failed: 'Le bûcheron a rangé sa hache. Il dit que ce sera pour une autre saison.',
+    },
+    w5_2: {
+      giver: 'La vieille passeuse',
+      title: 'Une rivière jusqu’à la mer',
+      text: 'Que l’eau descende jusqu’à la mer. Ma barque en a assez de la boue.',
+      done: 'La passeuse a poussé sa barque. Elle est arrivée à la mer sans ramer une seule fois.',
+      failed: 'La passeuse a retourné sa barque sur la berge. Elle attendra.',
+    },
+    w5_3: {
+      giver: 'Les enfants du hameau de la baie',
+      title: 'Un lapin, un vrai',
+      text: 'On veut un lapin. Un vrai, qui bouge. Il paraît qu’il faut de l’herbe.',
+      done: 'Les enfants ont vu le lapin. Ils l’ont appelé Bouton et lui ont interdit de partir.',
+      failed: 'Les enfants ont fait le tour de l’île. Pas de lapin. Ils ont décidé qu’il se cachait.',
+    },
+    w6_1: {
+      giver: 'Le fermier du haut',
+      title: 'Trois champs, trois toits',
+      text: 'Trois champs, chacun collé à un hameau. On ne fait pas pousser du blé pour le vent.',
+      done: 'Le fermier a compté trois fois. Trois champs, trois toits. Il a hoché la tête, ce qui chez lui est un discours.',
+      failed: 'Le fermier a remis ses sacs de graines à l’abri. Il n’a rien dit.',
+    },
+    w6_2: {
+      giver: 'La bergère',
+      title: 'Un pré bien fermé',
+      text: 'Un pré d’au moins quatre tuiles, clos de partout. Mes bêtes savent trouver le trou.',
+      done: 'La bergère a fait le tour du pré. Pas de trou. Elle s’est assise pour la première fois depuis longtemps.',
+      failed: 'Les bêtes ont trouvé le trou. La bergère l’avait prédit.',
+    },
+    w6_3: {
+      giver: 'Le vieux pêcheur de la mare',
+      title: 'Le retour des canards',
+      text: 'Un canard. Rien qu’un. Il faut assez d’eau pour qu’il se pose sans se cogner.',
+      done: 'Le canard s’est posé, a fait le tour de la mare et a jugé que tout était en ordre.',
+      failed: 'Le pêcheur a regardé le ciel jusqu’au soir. Rien n’est descendu.',
+    },
+    w7_1: {
+      giver: 'Le meunier',
+      title: 'Des pommes avant l’automne',
+      text: 'Trois vergers qui touchent un hameau avant l’automne. Après, c’est trop tard pour le cidre.',
+      done: 'Le meunier a pressé les pommes. L’odeur a tenu deux saisons.',
+      failed: 'L’automne est venu avant les vergers. Le meunier a bu de l’eau.',
+    },
+    w7_2: {
+      giver: 'La fille du puits',
+      title: 'Un lac pour se regarder',
+      text: 'Cinq tuiles d’eau ensemble. Je veux voir le ciel par terre.',
+      done: 'La fille du puits s’est penchée sur le lac. Elle a trouvé que le ciel lui allait bien.',
+      failed: 'La fille du puits regarde toujours dans son seau. C’est plus petit.',
+    },
+    w7_3: {
+      giver: 'Le sonneur de la chapelle',
+      title: 'Une voix dans le marais',
+      text: 'Une grenouille. Le soir, sans elle, la cloche sonne dans le vide.',
+      done: 'La grenouille a répondu à la cloche. Le sonneur dit qu’elle chante faux, mais il sourit.',
+      failed: 'La cloche a sonné seule. Le sonneur a raccourci la sonnerie.',
+    },
+    w8_1: {
+      giver: 'Le garde-forestier',
+      title: 'Le pas de l’élan',
+      text: 'Un élan. Il lui faut cinq tuiles de forêt, et qu’on ne lui parle pas.',
+      done: 'L’élan est passé entre les troncs. Le garde ne lui a pas parlé. Ils se sont compris.',
+      failed: 'Le garde a trouvé des traces. Vieilles. Il les a recouvertes de feuilles.',
+    },
+    w8_2: {
+      giver: 'Les deux hameaux',
+      title: 'Se rendre visite',
+      text: 'Que la rivière gèle entre nos deux hameaux. On a des choses à se dire depuis cent saisons.',
+      done: 'Les deux hameaux se sont retrouvés au milieu de la glace. Ils ont parlé jusqu’au dégel.',
+      failed: 'L’hiver est passé sans pont. Les deux hameaux se sont fait signe de loin.',
+    },
+    w8_3: {
+      giver: 'La passeuse du pont',
+      title: 'Un lieu qui tient',
+      text: 'Une région close de six tuiles. N’importe laquelle. Je veux quelque chose de fini, pour une fois.',
+      done: 'La passeuse a marché le long du bord. Six tuiles, tout autour. Ça, dit-elle, c’est fini.',
+      failed: 'La passeuse a haussé les épaules. Rien n’est jamais fini, dit-elle, mais elle aurait préféré.',
+    },
+    w9_1: {
+      giver: 'Le vieux chasseur qui ne chasse plus',
+      title: 'Faire sortir l’ours',
+      text: 'Un ours. Trois forêts contre la roche, et il sortira. Ne t’approche pas, c’est mon affaire.',
+      done: 'L’ours est sorti. Le chasseur a posé son bâton et s’est assis à bonne distance. Ils ont regardé la mer.',
+      failed: 'La roche est restée fermée. Le chasseur dit que l’ours a ses raisons.',
+    },
+    w9_2: {
+      giver: 'La passeuse et sa fille',
+      title: 'Une longue rivière',
+      text: 'Une rivière de huit tuiles jusqu’à la mer. Ma fille veut apprendre à ramer sur une vraie distance.',
+      done: 'La fille a ramé huit tuiles sans se retourner. Sa mère, derrière, faisait semblant de ne pas compter.',
+      failed: 'La rivière s’arrête trop tôt. La fille rame en rond dans la mare, en attendant.',
+    },
+    w9_3: {
+      giver: 'Le conseil des trois bourgs',
+      title: 'Trois bourgs bien clos',
+      text: 'Trois hameaux clos, chacun de son côté. On s’entend mieux avec un mur entre nous.',
+      done: 'Trois bourgs, trois enceintes. Le conseil s’est réuni sur la place du milieu pour fêter la distance.',
+      failed: 'Le conseil n’a pas pu se réunir : les bourgs n’étaient pas finis. Chacun a accusé les deux autres.',
+    },
+    w10_1: {
+      giver: 'L’institutrice',
+      title: 'Le hibou du soir',
+      text: 'Un hibou au-dessus du hameau : il lui faut une forêt à toucher les toits. Les enfants ne dorment pas sans lui.',
+      done: 'Le hibou s’est posé sur le toit de l’école. Les enfants dorment. L’institutrice aussi, enfin.',
+      failed: 'Pas de hibou. L’institutrice a fait une lanterne en forme de hibou. Ça marche à moitié.',
+    },
+    w10_2: {
+      giver: 'Les semeurs de la plaine',
+      title: 'Cinq champs irrigués',
+      text: 'En été, cinq champs qui touchent l’eau. Sinon on sème de la poussière.',
+      done: 'Cinq champs irrigués. Les semeurs ont marché dedans pieds nus, ce qu’ils ne font qu’en cas de grande joie.',
+      failed: 'L’été est passé, les champs ont eu soif. Les semeurs gardent le grain pour l’an prochain.',
+    },
+    w10_3: {
+      giver: 'La tresseuse de joncs',
+      title: 'Le marais en fleurs',
+      text: 'Au printemps, quatre marais fleuris. J’ai besoin de joncs et les joncs ont besoin de boue.',
+      done: 'Quatre marais en fleurs. La tresseuse en a fait un panier et y a mis son premier sourire de l’année.',
+      failed: 'Le printemps est passé, les marais sont restés gris. La tresseuse tresse de la paille, en soupirant.',
+    },
+    w11_1: {
+      giver: 'Les enfants du hameau du nord',
+      title: 'Les oiseaux qui marchent',
+      text: 'On veut voir les manchots. Il faut de l’hiver et une longue rivière gelée. On attendra.',
+      done: 'Les manchots sont passés en file devant les enfants. Les enfants ont marché derrière eux, en file aussi.',
+      failed: 'L’hiver est passé sans manchots. Les enfants ont fait des manchots de neige. Ils ne marchent pas.',
+    },
+    w11_2: {
+      giver: 'La cidrière',
+      title: 'Quatre vergers récoltés',
+      text: 'À l’automne, quatre vergers qui touchent un hameau. On ne récolte pas ce qui pousse loin des gens.',
+      done: 'Quatre vergers récoltés. La cidrière a rempli les fûts et interdit d’y toucher avant la neige.',
+      failed: 'L’automne est passé sans assez de pommes. La cidrière a fait du jus. Ce n’est pas pareil.',
+    },
+    w11_3: {
+      giver: 'Le charbonnier',
+      title: 'Une grande forêt close',
+      text: 'Une forêt de dix tuiles, fermée de partout. Je veux du bois pour cent hivers.',
+      done: 'La forêt est close, dix tuiles. Le charbonnier a compté les arbres, puis les hivers. Ça suffira.',
+      failed: 'La forêt s’est arrêtée trop tôt. Le charbonnier coupera moins, et plus bas.',
+    },
+    w12_1: {
+      giver: 'Toute l’île',
+      title: 'Cinq voix à la fois',
+      text: 'Cinq espèces sur l’île en même temps. Nous voulons entendre le bruit que ça fait.',
+      done: 'Cinq espèces, un seul bruit. Nous ne l’avions pas entendu depuis cent saisons. Il est plus fort que dans notre souvenir.',
+      failed: 'Il a manqué une voix. Le bruit était beau quand même, mais nous connaissons la différence.',
+    },
+    w12_2: {
+      giver: 'Les passeuses',
+      title: 'Deux rivières, deux barques',
+      text: 'Deux rivières jusqu’à la mer. Une pour partir, une pour revenir. Ma fille prend l’autre.',
+      done: 'Deux rivières. Les deux barques se sont croisées au large et se sont fait signe.',
+      failed: 'Une seule rivière. Les deux barques y sont allées à tour de rôle, ce qui n’est pas la même chose.',
+    },
+    w12_3: {
+      giver: 'Les enfants de partout',
+      title: 'Trois en une saison',
+      text: 'Trois régions closes avant que la saison change. On veut voir l’île finir des choses vite, pour une fois.',
+      done: 'Trois régions bouclées dans la même saison. Les enfants ont crié trois fois. L’île a trouvé cela suffisant.',
+      failed: 'La saison a changé avant la troisième. Les enfants ont dit : la prochaine. Ils disent toujours ça.',
+    },
+  },
 
-  ending: [
-    'La coque a touché le quai à l’instant où la mèche a rendu son dernier souffle. Sur le pont, personne n’a crié. Ils ont regardé le phare s’éteindre, et ils ont souri.',
-    'La Brume s’est retirée par le fond de la passe, doucement, comme une marée qui descend. Elle n’a rien emporté.',
-    'Mon père est descendu le premier. Amaigri, trempé, une cloche verte de vase à la main. Il a dit mon nom. Il ne l’avait jamais dit comme ça.',
-    'Derrière lui, quarante-huit hommes en vareuse d’un autre temps ont posé le pied sur les pierres de Port-Aël. Ils n’ont rien dit. Puis ils n’étaient plus là.',
-    'Madame Le Goff a inscrit La Sirène au registre des arrivées. « Retard : quarante et un ans. » Elle a signé sans trembler.',
-    'Maël a fait trois voyages pour monter l’huile. Le feu est reparti avant le jour.',
-    'L’aube est venue. Grise, ordinaire, sans mémoire. J’ai baissé la mèche et je suis restée à la galerie, à regarder la passe des Loups redevenir de l’eau.',
-  ],
+  seasons: {
+    spring: {
+      name: 'Printemps',
+      line: 'Quelque chose remue sous la boue. Nous appelons cela le printemps.',
+      rule: 'Les marais fleurissent (+2 chacun) et chaque tuile d’eau posée rapporte +1 : c’est la crue.',
+    },
+    summer: {
+      name: 'Été',
+      line: 'Le ciel ne bouge plus. Les prairies retiennent leur souffle.',
+      rule: 'Une prairie sans eau, forêt ni marais voisin sèche ; un champ qui touche l’eau rapporte +1.',
+    },
+    autumn: {
+      name: 'Automne',
+      line: 'Les vergers plient. Les forêts rougissent. Tout se donne avant de se taire.',
+      rule: 'Récolte : chaque paire verger-hameau rapporte +2.',
+    },
+    winter: {
+      name: 'Hiver',
+      line: 'La rivière s’arrête pour écouter. On marche dessus.',
+      rule: 'L’eau gèle : +3 par paire de hameaux reliés par la glace ; les champs dorment (plus de bonus champ-hameau).',
+    },
+  },
 
-  epilogue: 'La Brume reviendra, comme la marée. Il y aura un feu.',
+  fauna: {
+    rabbit: {
+      name: 'Lapin',
+      arrive: 'Un lapin. Puis deux. Ils n’ont jamais été loin.',
+      leave: 'Les lapins se sont enfoncés sous la haie.',
+      habitat: 'Une prairie d’au moins trois tuiles.',
+    },
+    moose: {
+      name: 'Élan',
+      arrive: 'L’élan traverse la forêt sans un bruit. Il a toujours fait ainsi.',
+      leave: 'L’élan est parti chercher un bois plus large.',
+      habitat: 'Une forêt d’au moins cinq tuiles.',
+    },
+    frog: {
+      name: 'Grenouille',
+      arrive: 'Une grenouille. Le marais a retrouvé sa voix.',
+      leave: 'Le marais s’est tu : la grenouille aussi.',
+      habitat: 'Un marais qui touche l’eau.',
+    },
+    duck: {
+      name: 'Canard',
+      arrive: 'Les canards se posent en freinant des pattes. Ils n’ont pas oublié le lac.',
+      leave: 'Les canards ont repris leur vol en triangle.',
+      habitat: 'Une étendue d’eau d’au moins trois tuiles.',
+    },
+    bear: {
+      name: 'Ours',
+      arrive: 'L’ours sort de la roche comme s’il y avait dormi cent ans.',
+      leave: 'L’ours est retourné dans sa roche.',
+      habitat: 'Une forêt d’au moins trois tuiles qui touche une roche.',
+    },
+    owl: {
+      name: 'Hibou',
+      arrive: 'Le hibou s’installe au-dessus des toits. Il compte les lumières.',
+      leave: 'Le hibou a quitté le toit du hameau.',
+      habitat: 'Une forêt qui touche un hameau.',
+    },
+    penguin: {
+      name: 'Manchot',
+      arrive: 'Des manchots ! Ils marchent sur la rivière gelée comme sur une place de village.',
+      leave: 'La glace a fondu : les manchots sont repartis avec elle.',
+      habitat: 'En hiver seulement : une chaîne d’eau gelée d’au moins quatre tuiles.',
+    },
+  },
 
-  infinite: {
-    intro: [
-      'La Brume est revenue. Pas la mémoire de 1852 : une autre, plus ancienne, sans nom. La mer a beaucoup à se souvenir.',
-      'Cette veille n’a pas d’aube. Tiens le feu tant que tu peux. Le port comptera.',
+  tiles: {
+    meadow: { name: 'Prairie', blurb: 'Aime le verger, la forêt et l’eau ; sèche en été si elle reste seule.' },
+    forest: { name: 'Forêt', blurb: 'Aime la roche et la prairie, déteste le sable ; les grandes forêts attirent l’élan.' },
+    field: { name: 'Champ', blurb: 'Aime le hameau et, en été, l’eau qui l’irrigue ; n’aime ni la roche ni le sable.' },
+    hamlet: { name: 'Hameau', blurb: 'Aime le champ, le verger et un peu l’eau ; clos, il devient un bourg et sa prime double.' },
+    orchard: { name: 'Verger', blurb: 'Aime la prairie et le hameau ; à l’automne, chaque hameau voisin devient une récolte.' },
+    water: { name: 'Eau', blurb: 'Aime le marais et le sable ; reliée à la mer ou à une roche, elle devient rivière et gèle en hiver.' },
+    marsh: { name: 'Marais', blurb: 'Aime l’eau, fleurit au printemps et attire la grenouille ; le hameau ne veut pas de lui.' },
+    rock: { name: 'Roche', blurb: 'Aime la forêt et fait naître les rivières ; le champ s’y casse la charrue.' },
+    sand: { name: 'Sable', blurb: 'Aime l’eau ; la forêt et le champ n’y poussent pas.' },
+    mill: { name: 'Moulin', blurb: 'Compte comme champ et comme hameau à la fois : il s’entend avec les deux.' },
+    chapel: { name: 'Chapelle', blurb: 'En hiver, chaque bord voisin rapporte +1 : on s’y serre.' },
+    watchtower: { name: 'Tour de guet', blurb: 'Clôt une région même s’il lui reste une case vide.' },
+    well: { name: 'Puits', blurb: 'Protège les prairies voisines de la sécheresse d’été.' },
+    camp: { name: 'Campement', blurb: 'Attire un animal, quel que soit l’habitat autour.' },
+    ruins: { name: 'Ruines', blurb: 'Ce qui reste d’avant. Ne rapporte rien, ne gêne personne : on bâtit autour.' },
+  },
+
+  breaths: {
+    swap: 'Échanger (1 souffle) : la tuile obligatoire prend la place de l’une des deux suivantes.',
+    discard: 'Défausser (2 souffles) : la tuile obligatoire s’en va et ne revient pas.',
+    bud: 'Bourgeon (3 souffles) : une prairie déjà posée devient forêt ou verger.',
+    undo: 'Souvenir (4 souffles, une fois par saison) : la dernière tuile posée revient dans ta main.',
+    pocket: 'Poche : mets la tuile de côté et reprends-la quand la bonne case apparaît.',
+  },
+
+  results: {
+    0: [
+      'Nous avons bougé. C’est peu, mais nous n’avions rien fait depuis longtemps.',
+      'Tu as posé. Reviens : nous te montrerons où.',
+    ],
+    1: [
+      'Une étoile. Une île se contente de peu, mais elle se souvient de tout.',
+      'Quelque chose tient. Le reste attendra une autre saison.',
+    ],
+    2: [
+      'Deux étoiles. Les animaux en parlent déjà entre eux.',
+      'C’est presque nous. Il manque un vœu, ou une rivière, ou un rien.',
+    ],
+    3: [
+      'Trois étoiles. Nous nous reconnaissons.',
+      'Tout est là. Tu peux regarder l’île un moment : elle ne bougera pas sans toi.',
     ],
   },
 
-  lose: {
-    generic: [
-      'La mer a pris trois navires. Le feu brûle encore ; la passe attend.',
-      'La mer a pris ce qu’elle voulait cette nuit. Elle reviendra. Toi aussi.',
-      'La mer a pris trop de bois. Baisse la mèche, respire, rallume.',
+  closed: ['Bouclé !', 'Une région entière !', 'Tout autour !', 'Voilà qui tient.'],
+
+  ending: [
+    'La dernière tuile est posée. Nous attendons que tu nous dises quelle saison vient. Tu ne dis rien.',
+    'Alors la rivière gèle toute seule. Les hameaux se regardent par-dessus la glace. Personne ne t’a rien demandé.',
+    'Puis la glace craque au matin, les marais fleurissent, et les canards reviennent en freinant des pattes. Nous avons fait cela sans toi.',
+    'Nous avons compris. Ce n’est pas la saison que tu nous rendais. C’est le passage.',
+    'Douze îles. Cent saisons. Nous les avons toutes comptées et nous ne compterons plus.',
+    'Le meunier a remis son aile. La passeuse a retourné sa barque. Les enfants du hameau du nord ont un nouveau vœu, mais ils ne te le diront pas : ils le feront.',
+    'Tu peux partir, Saison. Il y a d’autres îles, sous d’autres ciels, qui ne savent plus ce qu’est l’automne.',
+  ],
+
+  epilogue: 'Nous n’avons plus besoin d’être rappelées. Nous nous souvenons.',
+
+  infinite: {
+    intro: [
+      'Une île sans fin. Elle grandit à chaque saison et la file de tuiles ne se vide jamais.',
+      'Ici nous ne te demandons rien : nous regardons jusqu’où tu iras avant qu’il ne reste plus une case.',
+    ],
+  },
+
+  garden: {
+    intro: [
+      'Le Jardin. Pas de file, pas de points, pas de vœux : tu choisis chaque tuile et tu fais une île belle.',
     ],
   },
 };

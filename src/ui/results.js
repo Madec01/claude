@@ -1,51 +1,43 @@
-// Écran de résultats d'une nuit : rapport de la capitainerie sur parchemin.
+// Bilan d'une île.
 import { h, button, icon, fmtInt, stagger } from './dom.js';
-import { rule, corner, stamp } from './ornaments.js';
 import { STORY } from '../data/story.js';
 import { AudioSys } from '../core/audio.js';
 
-/** append() du DOM insère le texte « null » pour un enfant nul : on filtre. */
-const append = (el, ...kids) => el.append(...kids.filter(Boolean));
-
-export function buildResults({ result, def, onContinue, onRetry, onMenu, newRecord }) {
-  const { win, stats, stars } = result;
-  const infinite = result.night === 'infinite';
-  const root = h('div', { class: `panel parchment panel-results ${win ? 'win' : 'lose'}` });
-  const loseLine = STORY.lose.generic[Math.floor(Math.random() * STORY.lose.generic.length)];
-  const title = infinite ? 'La veille s’achève' : win ? 'L’aube se lève' : 'La mer a pris';
-  const starsEl = h('div', { class: 'stars', 'aria-label': `${stars} étoile${stars > 1 ? 's' : ''} sur 3` }, ...[0, 1, 2].map((i) => h('span', { class: `star ${i < stars ? 'on' : ''}` }, icon('icon_star'))));
+export function buildResults({ result, def, onContinue, onRetry, onMenu, newRecord, seedsGained }) {
+  const { stars, score, thresholds } = result;
+  const special = result.island === 'infinite' || result.island === 'garden';
+  const name = STORY.islands[result.island] ? STORY.islands[result.island].name : result.island === 'infinite' ? 'Île infinie' : 'Jardin';
+  const root = h('div', { class: `panel panel-results stars-${stars}` });
+  const lines = STORY.results[stars] || [''];
+  const line = lines[Math.floor(Math.random() * lines.length)];
+  const starsEl = h('div', { class: 'stars', 'aria-label': `${stars} étoile(s) sur 3` }, ...[0, 1, 2].map((i) => h('span', { class: `star ${i < stars ? 'on' : ''}`, title: `${thresholds[i]} points${i === 2 && result.wishesTotal ? ' et tous les vœux' : ''}` }, icon('icon_star'))));
   const row = (label, value, cls = '') => h('div', { class: `res-row ${cls}` }, h('span', {}, label), h('b', {}, String(value)));
-  const reasonText = !win ? (result.reason === 'yann' ? 'Le navire de Yann a sombré.' : result.reason === 'wrecks' ? 'Trop de navires perdus.' : `Quota non atteint (${stats.docked}/${def.quota}).`) : '';
-  const stampEl = infinite ? stamp(`Vague ${result.wave}`, 'blue') : win ? stamp('Nuit tenue', 'green') : stamp('Perte', 'red');
-  append(root, 
-    corner('tl'), corner('tr'), corner('bl'), corner('br'),
-    stampEl,
-    h('div', { class: 'res-head' }, 'Capitainerie de Port-Aël'),
-    h('div', { class: 'res-kicker' }, infinite ? `Veille infinie · vague ${result.wave}` : `Rapport de la nuit ${result.night}${STORY.nights[result.night] ? ' · ' + STORY.nights[result.night].title : ''}`),
-    h('h2', { class: 'panel-title' }, title),
-    rule(),
-    win || infinite ? starsEl : h('p', { class: 'res-lose-line' }, loseLine),
-    reasonText ? h('p', { class: 'res-reason' }, reasonText) : null,
+  root.append(
+    h('div', { class: 'res-kicker' }, special ? (result.island === 'infinite' ? `Île infinie · ${result.seasons} saisons` : 'Jardin') : `Île ${result.island} · ${name}`),
+    h('h2', { class: 'panel-title' }, special ? 'L’île se repose' : stars === 0 ? 'L’île attend encore' : 'L’île se souvient'),
+    special ? null : starsEl,
+    h('p', { class: 'res-line' }, line),
     h('div', { class: 'res-grid' },
-      row('Navires à quai', infinite ? stats.docked : `${stats.docked} / ${def.quota}`, 'good'),
-      row('Naufrages', stats.wrecked, stats.wrecked ? 'bad' : ''),
-      row('Écueils relevés', stats.revealed),
-      row('Pages lues', stats.pages, stats.pages ? 'gold' : ''),
-      row('Coups de corne', stats.hornBlows),
-      row('Éclats gagnés', `+${stats.shards}`, 'gold'),
-      row('Score', fmtInt(stats.score), 'score'),
+      row('Points', fmtInt(score), 'score'),
+      special ? null : row('Seuils', thresholds.join(' · ')),
+      row('Tuiles posées', `${result.filled} / ${result.cells}`),
+      row('Régions closes', result.stats.closed, result.stats.closed ? 'good' : ''),
+      row('Plus grande région', result.stats.biggestRegion),
+      row('Animaux (au plus)', result.stats.faunaMax, result.stats.faunaMax ? 'good' : ''),
+      result.wishesTotal ? row('Vœux exaucés', `${result.wishesDone} / ${result.wishesTotal}`, result.wishesDone === result.wishesTotal ? 'gold' : '') : null,
+      row('Saisons traversées', result.seasons),
+      seedsGained ? row('Graines gagnées', `+${seedsGained}`, 'gold') : null,
     ),
     newRecord ? h('div', { class: 'res-record' }, 'Nouveau record !') : null,
-    h('div', { class: 'res-sign' }, win || infinite ? 'Vu et consigné — M. Le Goff' : 'Consigné à regret — M. Le Goff'),
     h('div', { class: 'panel-actions' },
-      win || infinite ? button(infinite ? 'Rejouer' : 'Continuer', onContinue, { cls: 'btn-primary', iconName: 'icon_arrow_right' }) : button('Rejouer la nuit', onRetry, { cls: 'btn-primary', iconName: 'icon_return' }),
-      win && !infinite ? button('Rejouer', onRetry, { iconName: 'icon_return' }) : null,
+      button(special ? 'Rejouer' : 'Continuer', onContinue, { cls: 'btn-primary', iconName: 'icon_arrow_right' }),
+      special ? null : button('Rejouer l’île', onRetry, { iconName: 'icon_return' }),
       button('Menu', onMenu, { cls: 'btn-ghost', iconName: 'icon_home' }),
     ),
   );
   const reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   setTimeout(() => {
-    stagger(root, '.res-row', reduced ? 0 : 90);
+    stagger(root, '.res-row', reduced ? 0 : 80);
     starsEl.querySelectorAll('.star.on').forEach((s, i) => setTimeout(() => { s.classList.add('pop'); AudioSys.play(`star_${i + 1}`, { volume: 0.7 }); }, reduced ? 0 : 500 + i * 380));
   }, 200);
   return root;

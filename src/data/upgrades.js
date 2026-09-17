@@ -1,15 +1,11 @@
-// Le Bar des Sports : jeux de boules et entraînements achetés en jetons.
+// L'Atelier des saisons : améliorations achetées en graines.
 export const UPGRADES = [
-  { id: 'steady', name: 'Régularité', icon: 'icon_target', desc: 'La zone verte de la jauge s’élargit.', levels: ['Normale', 'Large', 'Très large', 'Généreuse'], costs: [6, 10, 16] },
-  { id: 'calm', name: 'Sang-froid', icon: 'icon_clock', desc: 'L’aiguille de la jauge ralentit.', levels: ['Vive', 'Posée', 'Lente', 'Tranquille'], costs: [6, 10, 16] },
-  { id: 'eye', name: 'Œil du tireur', icon: 'icon_signal', desc: 'La trajectoire prévisualisée du tir s’allonge.', levels: ['Courte', 'Moyenne', 'Longue', 'Complète'], costs: [5, 8, 12] },
-  { id: 'reading', name: 'Lecture du terrain', icon: 'icon_info', desc: 'Pentes et sols difficiles sont mieux affichés.', levels: ['À l’œil', 'Pentes', 'Pentes + sols', 'Tout'], costs: [4, 7, 10] },
-];
-
-export const BOULE_SETS = [
-  { id: 'fanny', name: 'Les boules de Fanny', desc: 'Équilibrées. Celles de la boîte à biscuits.', cost: 0 },
-  { id: 'tender', name: 'Les tendres', desc: 'Acier doux : rebondissent peu, roulent moins loin. Pour pointer.', cost: 12 },
-  { id: 'hard', name: 'Les dures', desc: 'Acier dur : rebond franc, choc violent. Pour tirer et faire des carreaux.', cost: 14 },
+  { id: 'sight', name: 'Regard', icon: 'icon_info', desc: 'Voir plus loin dans la file de tuiles.', levels: ['3 tuiles', '4 tuiles', '5 tuiles'], costs: [4, 8] },
+  { id: 'pocket', name: 'Poche', icon: 'icon_bag', desc: 'Garder une tuile de côté pour plus tard.', levels: ['Aucune', '1 tuile', '2 tuiles'], costs: [5, 10] },
+  { id: 'breath', name: 'Souffle de départ', icon: 'icon_wind', desc: 'Commencer chaque île avec des souffles.', levels: ['0', '+2', '+4', '+6'], costs: [3, 6, 9] },
+  { id: 'patience', name: 'Patience des saisons', icon: 'icon_sun', desc: 'Chaque saison dure plus longtemps.', levels: ['12 poses', '13 poses', '14 poses'], costs: [5, 9] },
+  { id: 'rare', name: 'Semence rare', icon: 'icon_star', desc: 'Une tuile rare offerte au début de chaque île.', levels: ['Aucune', 'Puits', 'Moulin'], costs: [6, 10] },
+  { id: 'memory', name: 'Seconde chance', icon: 'icon_return', desc: 'Le souvenir (annuler) coûte moins de souffles.', levels: ['4 souffles', '3 souffles', '2 souffles'], costs: [4, 8] },
 ];
 
 export const upgradeCost = (u, level) => (level < u.costs.length ? u.costs[level] : null);
