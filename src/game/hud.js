@@ -80,7 +80,8 @@ export class Hud {
     const k = Assets.has(seasonKey) ? seasonKey : (alt.find((x) => x.endsWith(`_${this.isl.season}`)) || alt[0]);
     const name = (STORY.tiles[t.family] || {}).name || t.family;
     const src = k ? `assets/img/${Assets.manifest().images[k].file}` : '';
-    return `<div class="qtile ${cls} ${t.rare ? 'rare' : ''}" style="--fam:${FAMILY_COLORS[t.family] || '#999'}" title="${name}${t.rare ? ' (rare)' : ''} — ${(STORY.tiles[t.family] || {}).blurb || ''}">${src ? `<img src="${src}" alt="${name}">` : ''}<span class="qname">${name}</span></div>`;
+    const help = cls === 'current' ? '<button class="q-help" data-ref="qHelp" title="Fiche de la tuile (H)">?</button>' : '';
+    return `<div class="qtile ${cls} ${t.rare ? 'rare' : ''}" style="--fam:${FAMILY_COLORS[t.family] || '#999'}" title="${name}${t.rare ? ' (rare)' : ''} — ${(STORY.tiles[t.family] || {}).blurb || ''}">${src ? `<img src="${src}" alt="${name}">` : ''}<span class="qname">${name}</span>${help}</div>`;
   }
 
   /** Règle de la saison (et météo) en surimpression : utile sur téléphone où la boîte de saison est réduite. */
@@ -97,12 +98,14 @@ export class Hud {
     pop.classList.toggle('hidden', !open);
   }
 
-  setTileHelp(on) { Save.options.tileHelp = on; Save.save(); this.last.helpId = null; this.renderTileHelp(); }
+  /** Affiche ou masque la fiche. Masquer ne vaut que pour l'île en cours (le bouton ? ou la touche H la rouvrent) ; l'option des réglages reste le maître. */
+  setTileHelp(on) { this.helpHidden = !on; if (on && Save.options.tileHelp === false) { Save.options.tileHelp = true; Save.save(); } this.last.helpId = null; this.renderTileHelp(); }
 
   /** Fiche de la tuile à poser : nom, effet, bonnes et mauvaises paires. */
   renderTileHelp() {
-    const t = this.isl.current; const on = Save.options.tileHelp !== false && !!t && !this.isl.ended;
-    const id = on ? `${t.family}:${t.id}` : null;
+    const t = this.isl.current; const on = Save.options.tileHelp !== false && !this.helpHidden && !!t && !this.isl.ended;
+    const qh = this.r.queueList.querySelector('.q-help'); if (qh) qh.classList.toggle('on', on);
+    const id = on ? `${t.family}:${t.id}` : 'off';
     if (id === this.last.helpId) return; this.last.helpId = id;
     this.r.tileHelp.classList.toggle('hidden', !on);
     if (!on) return;
@@ -121,6 +124,7 @@ export class Hud {
     if (html !== this.last.queue) {
       this.last.queue = html;
       this.r.queueList.innerHTML = html || '<div class="qempty">Plus de tuiles</div>';
+      const qh = this.r.queueList.querySelector('.q-help'); if (qh) qh.addEventListener('click', (e) => { e.stopPropagation(); this.setTileHelp(this.helpHidden || Save.options.tileHelp === false); });
       this.r.queueList.querySelectorAll('.qtile').forEach((el, i) => {
         if (i === 0) { if (this.isl.canPocket()) { el.classList.add('pocketable'); el.addEventListener('click', (e) => { e.stopPropagation(); this.onPocket(); }); el.title += ' — clic : mettre en poche (P)'; } }
         else if (this.mech.has('breath')) { el.classList.add('swappable'); el.addEventListener('click', (e) => { e.stopPropagation(); this.onSwap(i); }); el.title += ` — clic : échanger (${BALANCE.breaths.swap} souffle)`; }

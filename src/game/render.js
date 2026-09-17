@@ -196,11 +196,15 @@ export class IslandRenderer {
       const k = key(t.q, t.r); if (dropping.has(k)) continue;
       const w = toWorld(t.q, t.r); const c = cam.toScreen(w.x, w.y); if (!vis(c)) continue;
       const base = this.decor.groundFor(t); const pts = corners(c.x, c.y, SIZE * z * 1.02);
+      // limites ondulées entre deux rives : chaque rayon centre → sommet est une ligne brisée décalée (déterministe par case et sommet,
+      // partagée par les deux secteurs voisins), au lieu d'une couture droite
+      const ray = (i) => { const [px, py] = pts[i]; const dx = px - c.x, dy = py - c.y, len = Math.hypot(dx, dy) || 1; const nx = -dy / len, ny = dx / len; const out = []; for (let j = 1; j <= 3; j++) { const f = j / 4; const h = Math.sin(t.q * 12.9898 + t.r * 78.233 + i * 37.719 + j * 4.1) * 43758.5453; const o = ((h - Math.floor(h)) - 0.5) * 16 * z * (1 - Math.abs(f - 0.5)); out.push([c.x + dx * f + nx * o, c.y + dy * f + ny * o]); } return out; };
       for (let d = 0; d < 6; d++) {
         const n = b.get(t.q + DIRS[d][0], t.r + DIRS[d][1]); if (!n || n.family === 'water') continue;
         let g = this.decor.groundFor(n); if (g === 'hill') g = 'grass'; if (g === base) continue;
         const img = Assets.img(groundKey(g, this.seasonFor(w.x))); if (!img) continue;
-        ctx.save(); ctx.beginPath(); ctx.moveTo(c.x, c.y); ctx.lineTo(pts[d][0], pts[d][1]); ctx.lineTo(pts[(d + 1) % 6][0], pts[(d + 1) % 6][1]); ctx.closePath(); ctx.clip();
+        const r1 = ray(d), r2 = ray((d + 1) % 6);
+        ctx.save(); ctx.beginPath(); ctx.moveTo(c.x, c.y); for (const [x, y] of r1) ctx.lineTo(x, y); ctx.lineTo(pts[d][0], pts[d][1]); ctx.lineTo(pts[(d + 1) % 6][0], pts[(d + 1) % 6][1]); for (let j = r2.length - 1; j >= 0; j--) ctx.lineTo(r2[j][0], r2[j][1]); ctx.closePath(); ctx.clip();
         ctx.drawImage(img, c.x - TILE_W * z / 2, c.y - TILE_H * z / 2, TILE_W * z, TILE_H * z); ctx.restore();
       }
     }
@@ -317,18 +321,23 @@ export class IslandRenderer {
         ctx.fillStyle = pal.fill; this.blob(ctx, c.x, c.y, rr * 0.9, c0); ctx.fill();
         if (!frozen) { ctx.strokeStyle = pal.foam; ctx.lineWidth = 1.5 * z; ctx.beginPath(); ctx.ellipse(c.x - rr * 0.2, c.y - rr * 0.25, rr * 0.35, rr * 0.16, -0.4, 0, TAU); ctx.stroke(); }
       } else {
-        // lac : union d'hexagones légèrement réduits, tracée d'un seul chemin (pas de couture), contour de rive arrondi
-        const hexes = body.cells.map((cell) => { const w = toWorld(cell.q, cell.r); return corners(w.x, w.y, SIZE * 0.93).map(([x, y]) => S({ x, y })); });
-        if (!hexes.some((h) => h.some((p) => vis(p)))) continue;
-        const path = () => { ctx.beginPath(); for (const h of hexes) { ctx.moveTo(h[0].x, h[0].y); for (let i = 1; i < 6; i++) ctx.lineTo(h[i].x, h[i].y); ctx.closePath(); } };
-        ctx.fillStyle = pal.edge; ctx.strokeStyle = pal.edge; ctx.lineWidth = 16 * z; path(); ctx.stroke(); path(); ctx.fill();
-        ctx.fillStyle = pal.fill; ctx.strokeStyle = pal.fill; ctx.lineWidth = 6 * z; path(); ctx.stroke(); path(); ctx.fill();
-        // écume sur les arêtes extérieures
+        // lac : union de mares arrondies (une par case, forme irrégulière) reliées par des ponts arrondis entre cases voisines ;
+        // tout est de la même couleur, donc aucune couture : le lac devient une nappe organique aux rives lobées
+        const cs = body.cells.map((cell) => { const w = toWorld(cell.q, cell.r); return { w, s: S(w), cell }; });
+        if (!cs.some((c) => vis(c.s))) continue;
+        const bridges = []; for (const a of cs) for (let d = 0; d < 3; d++) { const nk = key(a.cell.q + DIRS[d][0], a.cell.r + DIRS[d][1]); if (!body.keys.has(nk)) continue; const o = cs.find((c) => key(c.cell.q, c.cell.r) === nk); if (o) bridges.push([a, o]); }
+        const nappe = (color, grow) => {
+          ctx.fillStyle = color; ctx.strokeStyle = color;
+          for (const c of cs) { this.blob(ctx, c.s.x, c.s.y, (SIZE * 0.86 + grow) * z, c.w); ctx.fill(); }
+          ctx.lineWidth = (SIZE * 1.05 + grow * 2) * z; ctx.beginPath(); for (const [a, o] of bridges) { ctx.moveTo(a.s.x, a.s.y); ctx.lineTo(o.s.x, o.s.y); } ctx.stroke();
+        };
+        nappe(pal.edge, 7); nappe(pal.fill, 0);
         if (!frozen) {
-          ctx.strokeStyle = pal.foam; ctx.lineWidth = 1.6 * z; ctx.beginPath();
-          for (const cell of body.cells) { const w = toWorld(cell.q, cell.r); const pts = corners(w.x, w.y, SIZE * 0.84); for (let d = 0; d < 6; d++) { const nk = key(cell.q + DIRS[d][0], cell.r + DIRS[d][1]); if (body.keys.has(nk)) continue; const a = S({ x: pts[d][0], y: pts[d][1] }), c2 = S({ x: pts[(d + 1) % 6][0], y: pts[(d + 1) % 6][1] }); ctx.moveTo(a.x, a.y); ctx.lineTo(c2.x, c2.y); } }
+          // reflets : une ride par case, placée de façon déterministe
+          ctx.strokeStyle = pal.foam; ctx.lineWidth = 1.5 * z; ctx.beginPath();
+          for (const c of cs) { const j = jit(c.w, { x: 1, y: 1 }); const rr = SIZE * 0.86 * z; ctx.moveTo(c.s.x - rr * 0.3 + j * rr * 0.4, c.s.y - rr * 0.2 + j * rr * 0.3); ctx.bezierCurveTo(c.s.x - rr * 0.1, c.s.y - rr * 0.35 + j * rr * 0.3, c.s.x + rr * 0.1, c.s.y - rr * 0.05 + j * rr * 0.3, c.s.x + rr * 0.3, c.s.y - rr * 0.2 + j * rr * 0.3); }
           ctx.stroke();
-        } else this.drawCracks(ctx, hexes.map((h) => ({ x: (h[0].x + h[3].x) / 2, y: (h[0].y + h[3].y) / 2 })), z);
+        } else this.drawCracks(ctx, cs.map((c) => c.s), z);
       }
     }
     ctx.restore();

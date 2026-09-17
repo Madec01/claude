@@ -455,7 +455,7 @@ class IslandScene {
     if (k === 'KeyX') { if (this.mech.has('breath')) { if (isl.discard()) AudioSys.play('tile_discard', { volume: 0.6 }); } }
     if (k === 'KeyB') this.setBud(!this.budMode);
     if (k === 'KeyJ') this.hud.toggleLog();
-    if (k === 'KeyH') this.hud.setTileHelp(Save.options.tileHelp === false);
+    if (k === 'KeyH') this.hud.setTileHelp(this.hud.helpHidden || Save.options.tileHelp === false);
     if (k === 'KeyZ') { if (this.mech.has('breath') && isl.undo()) AudioSys.play('tile_undo', { volume: 0.6 }); }
     if (k === 'KeyP') { if (isl.toPocket()) AudioSys.play('tile_pocket', { volume: 0.6 }); else if (isl.queue.pocket.length) { isl.fromPocket(0); AudioSys.play('tile_pocket', { volume: 0.6 }); } }
     if (this.budMode && this.budTarget && (k === 'KeyF' || k === 'KeyV')) { if (isl.bud(this.budTarget.q, this.budTarget.r, k === 'KeyF' ? 'forest' : 'orchard')) this.setBud(false); }
