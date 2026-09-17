@@ -1,0 +1,45 @@
+[
+ {
+  "pack": "IM Fell English",
+  "type": "font",
+  "author": "Igino Marini (iginomarini.com)",
+  "license": "SIL Open Font License 1.1",
+  "licenseUrl": "https://openfontlicense.org/open-font-license-official-text/",
+  "licenseFile": "https://raw.githubusercontent.com/google/fonts/main/ofl/imfellenglish/OFL.txt",
+  "url": "https://fonts.google.com/specimen/IM+Fell+English",
+  "mirror": "https://fonts.gstatic.com",
+  "files": [
+   "assets/fonts/imfellenglish-italic-400-latin.woff2",
+   "assets/fonts/imfellenglish-normal-400-latin.woff2"
+  ]
+ },
+ {
+  "pack": "Cormorant Garamond",
+  "type": "font",
+  "author": "Christian Thalmann (Catharsis Fonts)",
+  "license": "SIL Open Font License 1.1",
+  "licenseUrl": "https://openfontlicense.org/open-font-license-official-text/",
+  "licenseFile": "https://raw.githubusercontent.com/google/fonts/main/ofl/cormorantgaramond/OFL.txt",
+  "url": "https://fonts.google.com/specimen/Cormorant+Garamond",
+  "mirror": "https://fonts.gstatic.com",
+  "files": [
+   "assets/fonts/cormorantgaramond-italic-400-500-latin-ext.woff2",
+   "assets/fonts/cormorantgaramond-italic-400-500-latin.woff2",
+   "assets/fonts/cormorantgaramond-normal-400-700-latin-ext.woff2",
+   "assets/fonts/cormorantgaramond-normal-400-700-latin.woff2"
+  ]
+ },
+ {
+  "pack": "Homemade Apple",
+  "type": "font",
+  "author": "Font Diner (fontdiner.com)",
+  "license": "Apache License 2.0",
+  "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
+  "licenseFile": "https://raw.githubusercontent.com/google/fonts/main/apache/homemadeapple/LICENSE.txt",
+  "url": "https://fonts.google.com/specimen/Homemade+Apple",
+  "mirror": "https://fonts.gstatic.com",
+  "files": [
+   "assets/fonts/homemadeapple-normal-400-latin.woff2"
+  ]
+ }
+]

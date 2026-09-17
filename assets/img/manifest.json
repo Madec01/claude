@@ -1,0 +1,5366 @@
+{
+ "generated": "2026-09-17T12:04:13+00:00",
+ "generator": "tools/build_images.py",
+ "conventions": {
+  "orientation": "Navires : proue vers le haut (orientation native Kenney, aucune rotation appliquée).",
+  "tiles": "Tuiles de grille 128×128 non découpées (trim=null) ; objets isolés découpés, offset d'origine dans « trim ».",
+  "suffixes": "edge_n = rive au nord (eau au nord) ; corner_nw = coin extérieur arrondi NW ; inner_se = coin rentrant SE ; sand_grass_inner_nw = herbe sur bords N+W ; wall_v = mur N-S ; tower_wall_ns = tour reliée N et S ; wall_end_n = mur terminé au nord.",
+  "missing": {
+   "anchor_icon": "aucune ancre dans les packs",
+   "icon_clock": "aucune horloge dans Game Icons",
+   "shark/octopus/jellyfish": "absents du Fish Pack",
+   "tourbillons/ondulations (tuiles)": "absents du Pirate Pack ; utiliser fx/twirl_* et fx/circle_*",
+   "dock (ponton bois)": "absent du Pirate Pack ; dock_1/dock_2 sont les portes de bois dans un mur, dock_icon vient du Cartography Pack",
+   "tower_round_small": "aucune tour plus petite ; réduction 50 % de tower_round",
+   "retina navires": "dans ce pack les dossiers Retina Ships/Ship parts/Effects ont la même résolution que Default size (66×113)"
+  }
+ },
+ "images": {
+  "ship_white_0": {
+   "file": "ships/ship_white_0.png",
+   "w": 66,
+   "h": 113,
+   "bytes": 4396,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ships/ship (1).png",
+   "note": "Voile/emblème white, état 0 = intact. Proue vers le haut (orientation native Kenney).",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 66,
+    "srcH": 113
+   }
+  },
+  "ship_black_0": {
+   "file": "ships/ship_black_0.png",
+   "w": 66,
+   "h": 113,
+   "bytes": 5618,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ships/ship (2).png",
+   "note": "Voile/emblème black, état 0 = intact. Proue vers le haut (orientation native Kenney).",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 66,
+    "srcH": 113
+   }
+  },
+  "ship_red_0": {
+   "file": "ships/ship_red_0.png",
+   "w": 66,
+   "h": 113,
+   "bytes": 5087,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ships/ship (3).png",
+   "note": "Voile/emblème red, état 0 = intact. Proue vers le haut (orientation native Kenney).",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 66,
+    "srcH": 113
+   }
+  },
+  "ship_green_0": {
+   "file": "ships/ship_green_0.png",
+   "w": 66,
+   "h": 113,
+   "bytes": 5391,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ships/ship (4).png",
+   "note": "Voile/emblème green, état 0 = intact. Proue vers le haut (orientation native Kenney).",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 66,
+    "srcH": 113
+   }
+  },
+  "ship_blue_0": {
+   "file": "ships/ship_blue_0.png",
+   "w": 66,
+   "h": 113,
+   "bytes": 5184,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ships/ship (5).png",
+   "note": "Voile/emblème blue, état 0 = intact. Proue vers le haut (orientation native Kenney).",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 66,
+    "srcH": 113
+   }
+  },
+  "ship_yellow_0": {
+   "file": "ships/ship_yellow_0.png",
+   "w": 66,
+   "h": 113,
+   "bytes": 5162,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ships/ship (6).png",
+   "note": "Voile/emblème yellow, état 0 = intact. Proue vers le haut (orientation native Kenney).",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 66,
+    "srcH": 113
+   }
+  },
+  "ship_white_1": {
+   "file": "ships/ship_white_1.png",
+   "w": 66,
+   "h": 113,
+   "bytes": 5178,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ships/ship (7).png",
+   "note": "Voile/emblème white, état 1 = légèrement abîmé. Proue vers le haut (orientation native Kenney).",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 66,
+    "srcH": 113
+   }
+  },
+  "ship_black_1": {
+   "file": "ships/ship_black_1.png",
+   "w": 66,
+   "h": 113,
+   "bytes": 6237,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ships/ship (8).png",
+   "note": "Voile/emblème black, état 1 = légèrement abîmé. Proue vers le haut (orientation native Kenney).",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 66,
+    "srcH": 113
+   }
+  },
+  "ship_red_1": {
+   "file": "ships/ship_red_1.png",
+   "w": 66,
+   "h": 113,
+   "bytes": 5841,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ships/ship (9).png",
+   "note": "Voile/emblème red, état 1 = légèrement abîmé. Proue vers le haut (orientation native Kenney).",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 66,
+    "srcH": 113
+   }
+  },
+  "ship_green_1": {
+   "file": "ships/ship_green_1.png",
+   "w": 66,
+   "h": 113,
+   "bytes": 6124,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ships/ship (10).png",
+   "note": "Voile/emblème green, état 1 = légèrement abîmé. Proue vers le haut (orientation native Kenney).",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 66,
+    "srcH": 113
+   }
+  },
+  "ship_blue_1": {
+   "file": "ships/ship_blue_1.png",
+   "w": 66,
+   "h": 113,
+   "bytes": 5991,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ships/ship (11).png",
+   "note": "Voile/emblème blue, état 1 = légèrement abîmé. Proue vers le haut (orientation native Kenney).",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 66,
+    "srcH": 113
+   }
+  },
+  "ship_yellow_1": {
+   "file": "ships/ship_yellow_1.png",
+   "w": 66,
+   "h": 113,
+   "bytes": 5938,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ships/ship (12).png",
+   "note": "Voile/emblème yellow, état 1 = légèrement abîmé. Proue vers le haut (orientation native Kenney).",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 66,
+    "srcH": 113
+   }
+  },
+  "ship_white_2": {
+   "file": "ships/ship_white_2.png",
+   "w": 66,
+   "h": 113,
+   "bytes": 5610,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ships/ship (13).png",
+   "note": "Voile/emblème white, état 2 = très abîmé. Proue vers le haut (orientation native Kenney).",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 66,
+    "srcH": 113
+   }
+  },
+  "ship_black_2": {
+   "file": "ships/ship_black_2.png",
+   "w": 66,
+   "h": 113,
+   "bytes": 6632,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ships/ship (14).png",
+   "note": "Voile/emblème black, état 2 = très abîmé. Proue vers le haut (orientation native Kenney).",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 66,
+    "srcH": 113
+   }
+  },
+  "ship_red_2": {
+   "file": "ships/ship_red_2.png",
+   "w": 66,
+   "h": 113,
+   "bytes": 6293,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ships/ship (15).png",
+   "note": "Voile/emblème red, état 2 = très abîmé. Proue vers le haut (orientation native Kenney).",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 66,
+    "srcH": 113
+   }
+  },
+  "ship_green_2": {
+   "file": "ships/ship_green_2.png",
+   "w": 66,
+   "h": 113,
+   "bytes": 6546,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ships/ship (16).png",
+   "note": "Voile/emblème green, état 2 = très abîmé. Proue vers le haut (orientation native Kenney).",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 66,
+    "srcH": 113
+   }
+  },
+  "ship_blue_2": {
+   "file": "ships/ship_blue_2.png",
+   "w": 66,
+   "h": 113,
+   "bytes": 6350,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ships/ship (17).png",
+   "note": "Voile/emblème blue, état 2 = très abîmé. Proue vers le haut (orientation native Kenney).",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 66,
+    "srcH": 113
+   }
+  },
+  "ship_yellow_2": {
+   "file": "ships/ship_yellow_2.png",
+   "w": 66,
+   "h": 113,
+   "bytes": 6335,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ships/ship (18).png",
+   "note": "Voile/emblème yellow, état 2 = très abîmé. Proue vers le haut (orientation native Kenney).",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 66,
+    "srcH": 113
+   }
+  },
+  "ship_white_3": {
+   "file": "ships/ship_white_3.png",
+   "w": 66,
+   "h": 113,
+   "bytes": 4529,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ships/ship (19).png",
+   "note": "Voile/emblème white, état 3 = détruit / coulé (gris). Proue vers le haut (orientation native Kenney).",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 66,
+    "srcH": 113
+   }
+  },
+  "ship_black_3": {
+   "file": "ships/ship_black_3.png",
+   "w": 66,
+   "h": 113,
+   "bytes": 5658,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ships/ship (20).png",
+   "note": "Voile/emblème black, état 3 = détruit / coulé (gris). Proue vers le haut (orientation native Kenney).",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 66,
+    "srcH": 113
+   }
+  },
+  "ship_red_3": {
+   "file": "ships/ship_red_3.png",
+   "w": 66,
+   "h": 113,
+   "bytes": 5101,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ships/ship (21).png",
+   "note": "Voile/emblème red, état 3 = détruit / coulé (gris). Proue vers le haut (orientation native Kenney).",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 66,
+    "srcH": 113
+   }
+  },
+  "ship_green_3": {
+   "file": "ships/ship_green_3.png",
+   "w": 66,
+   "h": 113,
+   "bytes": 5282,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ships/ship (22).png",
+   "note": "Voile/emblème green, état 3 = détruit / coulé (gris). Proue vers le haut (orientation native Kenney).",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 66,
+    "srcH": 113
+   }
+  },
+  "ship_blue_3": {
+   "file": "ships/ship_blue_3.png",
+   "w": 66,
+   "h": 113,
+   "bytes": 5160,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ships/ship (23).png",
+   "note": "Voile/emblème blue, état 3 = détruit / coulé (gris). Proue vers le haut (orientation native Kenney).",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 66,
+    "srcH": 113
+   }
+  },
+  "ship_yellow_3": {
+   "file": "ships/ship_yellow_3.png",
+   "w": 66,
+   "h": 113,
+   "bytes": 5159,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ships/ship (24).png",
+   "note": "Voile/emblème yellow, état 3 = détruit / coulé (gris). Proue vers le haut (orientation native Kenney).",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 66,
+    "srcH": 113
+   }
+  },
+  "dinghy_large_0": {
+   "file": "ships/dinghy_large_0.png",
+   "w": 20,
+   "h": 38,
+   "bytes": 871,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ships/dinghyLarge1.png",
+   "note": "Grande chaloupe, état 0. Proue vers le haut.",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 20,
+    "srcH": 38
+   }
+  },
+  "dinghy_small_0": {
+   "file": "ships/dinghy_small_0.png",
+   "w": 16,
+   "h": 26,
+   "bytes": 664,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ships/dinghySmall1.png",
+   "note": "Petite chaloupe, état 0. Proue vers le haut.",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 16,
+    "srcH": 26
+   }
+  },
+  "dinghy_large_1": {
+   "file": "ships/dinghy_large_1.png",
+   "w": 20,
+   "h": 38,
+   "bytes": 1050,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ships/dinghyLarge2.png",
+   "note": "Grande chaloupe, état 1. Proue vers le haut.",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 20,
+    "srcH": 38
+   }
+  },
+  "dinghy_small_1": {
+   "file": "ships/dinghy_small_1.png",
+   "w": 16,
+   "h": 26,
+   "bytes": 756,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ships/dinghySmall2.png",
+   "note": "Petite chaloupe, état 1. Proue vers le haut.",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 16,
+    "srcH": 26
+   }
+  },
+  "dinghy_large_2": {
+   "file": "ships/dinghy_large_2.png",
+   "w": 20,
+   "h": 38,
+   "bytes": 1130,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ships/dinghyLarge3.png",
+   "note": "Grande chaloupe, état 2. Proue vers le haut.",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 20,
+    "srcH": 38
+   }
+  },
+  "dinghy_small_2": {
+   "file": "ships/dinghy_small_2.png",
+   "w": 16,
+   "h": 26,
+   "bytes": 832,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ships/dinghySmall3.png",
+   "note": "Petite chaloupe, état 2. Proue vers le haut.",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 16,
+    "srcH": 26
+   }
+  },
+  "hull_large_0": {
+   "file": "ships/hull_large_0.png",
+   "w": 50,
+   "h": 108,
+   "bytes": 2861,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ship parts/hullLarge (1).png",
+   "note": "Coque grande, état 0 (intact).",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 50,
+    "srcH": 108
+   }
+  },
+  "hull_small_0": {
+   "file": "ships/hull_small_0.png",
+   "w": 40,
+   "h": 108,
+   "bytes": 2541,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ship parts/hullSmall (1).png",
+   "note": "Coque petite, état 0 (intact).",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 40,
+    "srcH": 108
+   }
+  },
+  "hull_large_1": {
+   "file": "ships/hull_large_1.png",
+   "w": 50,
+   "h": 108,
+   "bytes": 3237,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ship parts/hullLarge (2).png",
+   "note": "Coque grande, état 1 (légèrement abîmé).",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 50,
+    "srcH": 108
+   }
+  },
+  "hull_small_1": {
+   "file": "ships/hull_small_1.png",
+   "w": 40,
+   "h": 108,
+   "bytes": 2758,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ship parts/hullSmall (2).png",
+   "note": "Coque petite, état 1 (légèrement abîmé).",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 40,
+    "srcH": 108
+   }
+  },
+  "hull_large_2": {
+   "file": "ships/hull_large_2.png",
+   "w": 50,
+   "h": 108,
+   "bytes": 3392,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ship parts/hullLarge (3).png",
+   "note": "Coque grande, état 2 (très abîmé).",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 50,
+    "srcH": 108
+   }
+  },
+  "hull_small_2": {
+   "file": "ships/hull_small_2.png",
+   "w": 40,
+   "h": 108,
+   "bytes": 2980,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ship parts/hullSmall (3).png",
+   "note": "Coque petite, état 2 (très abîmé).",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 40,
+    "srcH": 108
+   }
+  },
+  "hull_large_3": {
+   "file": "ships/hull_large_3.png",
+   "w": 50,
+   "h": 108,
+   "bytes": 2782,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ship parts/hullLarge (4).png",
+   "note": "Coque grande, état 3 (détruit / coulé (gris)).",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 50,
+    "srcH": 108
+   }
+  },
+  "hull_small_3": {
+   "file": "ships/hull_small_3.png",
+   "w": 40,
+   "h": 108,
+   "bytes": 2484,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ship parts/hullSmall (4).png",
+   "note": "Coque petite, état 3 (détruit / coulé (gris)).",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 40,
+    "srcH": 108
+   }
+  },
+  "sail_large_1": {
+   "file": "ships/sail_large_1.png",
+   "w": 66,
+   "h": 47,
+   "bytes": 2840,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ship parts/sailLarge (1).png",
+   "note": "grande voile jaune, croix d'os",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 66,
+    "srcH": 47
+   }
+  },
+  "sail_large_2": {
+   "file": "ships/sail_large_2.png",
+   "w": 66,
+   "h": 47,
+   "bytes": 2081,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ship parts/sailLarge (2).png",
+   "note": "grande voile blanche, unie",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 66,
+    "srcH": 47
+   }
+  },
+  "sail_large_3": {
+   "file": "ships/sail_large_3.png",
+   "w": 66,
+   "h": 47,
+   "bytes": 2528,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ship parts/sailLarge (3).png",
+   "note": "grande voile noire, crâne",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 66,
+    "srcH": 47
+   }
+  },
+  "sail_large_4": {
+   "file": "ships/sail_large_4.png",
+   "w": 66,
+   "h": 47,
+   "bytes": 2411,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ship parts/sailLarge (4).png",
+   "note": "grande voile rouge, croix",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 66,
+    "srcH": 47
+   }
+  },
+  "sail_large_5": {
+   "file": "ships/sail_large_5.png",
+   "w": 66,
+   "h": 47,
+   "bytes": 2654,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ship parts/sailLarge (5).png",
+   "note": "grande voile verte, sabres",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 66,
+    "srcH": 47
+   }
+  },
+  "sail_large_6": {
+   "file": "ships/sail_large_6.png",
+   "w": 66,
+   "h": 47,
+   "bytes": 2463,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ship parts/sailLarge (6).png",
+   "note": "grande voile bleue, casque",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 66,
+    "srcH": 47
+   }
+  },
+  "sail_large_7": {
+   "file": "ships/sail_large_7.png",
+   "w": 66,
+   "h": 47,
+   "bytes": 2448,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ship parts/sailLarge (7).png",
+   "note": "grande voile jaune (variante)",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 66,
+    "srcH": 47
+   }
+  },
+  "sail_large_8": {
+   "file": "ships/sail_large_8.png",
+   "w": 66,
+   "h": 46,
+   "bytes": 1460,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ship parts/sailLarge (8).png",
+   "note": "grande voile noire unie",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 66,
+    "srcH": 46
+   }
+  },
+  "sail_large_9": {
+   "file": "ships/sail_large_9.png",
+   "w": 66,
+   "h": 46,
+   "bytes": 2044,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ship parts/sailLarge (9).png",
+   "note": "voile noire, crâne (déchirée)",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 66,
+    "srcH": 46
+   }
+  },
+  "sail_large_10": {
+   "file": "ships/sail_large_10.png",
+   "w": 66,
+   "h": 46,
+   "bytes": 1823,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ship parts/sailLarge (10).png",
+   "note": "voile noire, croix (déchirée)",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 66,
+    "srcH": 46
+   }
+  },
+  "sail_large_11": {
+   "file": "ships/sail_large_11.png",
+   "w": 66,
+   "h": 46,
+   "bytes": 2125,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ship parts/sailLarge (11).png",
+   "note": "voile noire, sabres (déchirée)",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 66,
+    "srcH": 46
+   }
+  },
+  "sail_large_12": {
+   "file": "ships/sail_large_12.png",
+   "w": 66,
+   "h": 46,
+   "bytes": 1944,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ship parts/sailLarge (12).png",
+   "note": "voile noire, casque (déchirée)",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 66,
+    "srcH": 46
+   }
+  },
+  "sail_large_13": {
+   "file": "ships/sail_large_13.png",
+   "w": 66,
+   "h": 46,
+   "bytes": 1833,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ship parts/sailLarge (13).png",
+   "note": "voile noire, os croisés (déchirée)",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 66,
+    "srcH": 46
+   }
+  },
+  "sail_large_14": {
+   "file": "ships/sail_large_14.png",
+   "w": 66,
+   "h": 47,
+   "bytes": 2077,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ship parts/sailLarge (14).png",
+   "note": "voile blanche déchirée",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 66,
+    "srcH": 47
+   }
+  },
+  "sail_large_15": {
+   "file": "ships/sail_large_15.png",
+   "w": 66,
+   "h": 47,
+   "bytes": 2644,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ship parts/sailLarge (15).png",
+   "note": "voile noire crâne déchirée 2",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 66,
+    "srcH": 47
+   }
+  },
+  "sail_large_16": {
+   "file": "ships/sail_large_16.png",
+   "w": 66,
+   "h": 47,
+   "bytes": 2405,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ship parts/sailLarge (16).png",
+   "note": "voile rouge déchirée",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 66,
+    "srcH": 47
+   }
+  },
+  "sail_large_17": {
+   "file": "ships/sail_large_17.png",
+   "w": 66,
+   "h": 47,
+   "bytes": 2571,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ship parts/sailLarge (17).png",
+   "note": "voile verte déchirée",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 66,
+    "srcH": 47
+   }
+  },
+  "sail_large_18": {
+   "file": "ships/sail_large_18.png",
+   "w": 66,
+   "h": 47,
+   "bytes": 2476,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ship parts/sailLarge (18).png",
+   "note": "voile bleue déchirée",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 66,
+    "srcH": 47
+   }
+  },
+  "sail_large_19": {
+   "file": "ships/sail_large_19.png",
+   "w": 66,
+   "h": 47,
+   "bytes": 2486,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ship parts/sailLarge (19).png",
+   "note": "voile bleue repliée",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 66,
+    "srcH": 47
+   }
+  },
+  "sail_large_20": {
+   "file": "ships/sail_large_20.png",
+   "w": 66,
+   "h": 47,
+   "bytes": 2466,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ship parts/sailLarge (20).png",
+   "note": "voile jaune repliée",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 66,
+    "srcH": 47
+   }
+  },
+  "sail_large_21": {
+   "file": "ships/sail_large_21.png",
+   "w": 66,
+   "h": 47,
+   "bytes": 2779,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ship parts/sailLarge (21).png",
+   "note": "voile noire repliée",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 66,
+    "srcH": 47
+   }
+  },
+  "sail_large_22": {
+   "file": "ships/sail_large_22.png",
+   "w": 66,
+   "h": 47,
+   "bytes": 2744,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ship parts/sailLarge (22).png",
+   "note": "voile rouge repliée",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 66,
+    "srcH": 47
+   }
+  },
+  "sail_large_23": {
+   "file": "ships/sail_large_23.png",
+   "w": 66,
+   "h": 47,
+   "bytes": 3012,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ship parts/sailLarge (23).png",
+   "note": "voile verte repliée",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 66,
+    "srcH": 47
+   }
+  },
+  "sail_large_24": {
+   "file": "ships/sail_large_24.png",
+   "w": 66,
+   "h": 47,
+   "bytes": 2857,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ship parts/sailLarge (24).png",
+   "note": "voile bleue repliée 2",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 66,
+    "srcH": 47
+   }
+  },
+  "sail_small_1": {
+   "file": "ships/sail_small_1.png",
+   "w": 42,
+   "h": 9,
+   "bytes": 598,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ship parts/sailSmall (1).png",
+   "note": "petite voile (1-7 déployées, 8-13 repliées)",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 42,
+    "srcH": 9
+   }
+  },
+  "sail_small_2": {
+   "file": "ships/sail_small_2.png",
+   "w": 42,
+   "h": 9,
+   "bytes": 580,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ship parts/sailSmall (2).png",
+   "note": "petite voile (1-7 déployées, 8-13 repliées)",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 42,
+    "srcH": 9
+   }
+  },
+  "sail_small_3": {
+   "file": "ships/sail_small_3.png",
+   "w": 42,
+   "h": 9,
+   "bytes": 565,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ship parts/sailSmall (3).png",
+   "note": "petite voile (1-7 déployées, 8-13 repliées)",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 42,
+    "srcH": 9
+   }
+  },
+  "sail_small_4": {
+   "file": "ships/sail_small_4.png",
+   "w": 42,
+   "h": 8,
+   "bytes": 469,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ship parts/sailSmall (4).png",
+   "note": "petite voile (1-7 déployées, 8-13 repliées)",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 42,
+    "srcH": 8
+   }
+  },
+  "sail_small_5": {
+   "file": "ships/sail_small_5.png",
+   "w": 42,
+   "h": 8,
+   "bytes": 450,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ship parts/sailSmall (5).png",
+   "note": "petite voile (1-7 déployées, 8-13 repliées)",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 42,
+    "srcH": 8
+   }
+  },
+  "sail_small_6": {
+   "file": "ships/sail_small_6.png",
+   "w": 42,
+   "h": 8,
+   "bytes": 459,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ship parts/sailSmall (6).png",
+   "note": "petite voile (1-7 déployées, 8-13 repliées)",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 42,
+    "srcH": 8
+   }
+  },
+  "sail_small_7": {
+   "file": "ships/sail_small_7.png",
+   "w": 42,
+   "h": 8,
+   "bytes": 460,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ship parts/sailSmall (7).png",
+   "note": "petite voile (1-7 déployées, 8-13 repliées)",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 42,
+    "srcH": 8
+   }
+  },
+  "sail_small_8": {
+   "file": "ships/sail_small_8.png",
+   "w": 42,
+   "h": 9,
+   "bytes": 541,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ship parts/sailSmall (8).png",
+   "note": "petite voile (1-7 déployées, 8-13 repliées)",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 42,
+    "srcH": 9
+   }
+  },
+  "sail_small_9": {
+   "file": "ships/sail_small_9.png",
+   "w": 42,
+   "h": 9,
+   "bytes": 535,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ship parts/sailSmall (9).png",
+   "note": "petite voile (1-7 déployées, 8-13 repliées)",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 42,
+    "srcH": 9
+   }
+  },
+  "sail_small_10": {
+   "file": "ships/sail_small_10.png",
+   "w": 42,
+   "h": 9,
+   "bytes": 552,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ship parts/sailSmall (10).png",
+   "note": "petite voile (1-7 déployées, 8-13 repliées)",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 42,
+    "srcH": 9
+   }
+  },
+  "sail_small_11": {
+   "file": "ships/sail_small_11.png",
+   "w": 42,
+   "h": 9,
+   "bytes": 532,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ship parts/sailSmall (11).png",
+   "note": "petite voile (1-7 déployées, 8-13 repliées)",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 42,
+    "srcH": 9
+   }
+  },
+  "sail_small_12": {
+   "file": "ships/sail_small_12.png",
+   "w": 42,
+   "h": 9,
+   "bytes": 599,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ship parts/sailSmall (12).png",
+   "note": "petite voile (1-7 déployées, 8-13 repliées)",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 42,
+    "srcH": 9
+   }
+  },
+  "sail_small_13": {
+   "file": "ships/sail_small_13.png",
+   "w": 42,
+   "h": 9,
+   "bytes": 600,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ship parts/sailSmall (13).png",
+   "note": "petite voile (1-7 déployées, 8-13 repliées)",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 42,
+    "srcH": 9
+   }
+  },
+  "flag_1": {
+   "file": "ships/flag_1.png",
+   "w": 6,
+   "h": 22,
+   "bytes": 193,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ship parts/flag (1).png",
+   "note": "Fanion blanc",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 6,
+    "srcH": 22
+   }
+  },
+  "crew_1": {
+   "file": "ships/crew_1.png",
+   "w": 22,
+   "h": 20,
+   "bytes": 885,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ship parts/crew (1).png",
+   "note": "Membre d'équipage vu de dessus",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 22,
+    "srcH": 20
+   }
+  },
+  "flag_2": {
+   "file": "ships/flag_2.png",
+   "w": 6,
+   "h": 22,
+   "bytes": 194,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ship parts/flag (2).png",
+   "note": "Fanion gris/noir",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 6,
+    "srcH": 22
+   }
+  },
+  "crew_2": {
+   "file": "ships/crew_2.png",
+   "w": 22,
+   "h": 20,
+   "bytes": 878,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ship parts/crew (2).png",
+   "note": "Membre d'équipage vu de dessus",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 22,
+    "srcH": 20
+   }
+  },
+  "flag_3": {
+   "file": "ships/flag_3.png",
+   "w": 6,
+   "h": 22,
+   "bytes": 197,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ship parts/flag (3).png",
+   "note": "Fanion rouge",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 6,
+    "srcH": 22
+   }
+  },
+  "crew_3": {
+   "file": "ships/crew_3.png",
+   "w": 22,
+   "h": 20,
+   "bytes": 996,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ship parts/crew (3).png",
+   "note": "Membre d'équipage vu de dessus",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 22,
+    "srcH": 20
+   }
+  },
+  "flag_4": {
+   "file": "ships/flag_4.png",
+   "w": 6,
+   "h": 22,
+   "bytes": 195,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ship parts/flag (4).png",
+   "note": "Fanion vert",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 6,
+    "srcH": 22
+   }
+  },
+  "crew_4": {
+   "file": "ships/crew_4.png",
+   "w": 22,
+   "h": 22,
+   "bytes": 1047,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ship parts/crew (4).png",
+   "note": "Membre d'équipage vu de dessus",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 22,
+    "srcH": 22
+   }
+  },
+  "flag_5": {
+   "file": "ships/flag_5.png",
+   "w": 6,
+   "h": 22,
+   "bytes": 196,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ship parts/flag (5).png",
+   "note": "Fanion bleu",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 6,
+    "srcH": 22
+   }
+  },
+  "crew_5": {
+   "file": "ships/crew_5.png",
+   "w": 22,
+   "h": 22,
+   "bytes": 1006,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ship parts/crew (5).png",
+   "note": "Membre d'équipage vu de dessus",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 22,
+    "srcH": 22
+   }
+  },
+  "flag_6": {
+   "file": "ships/flag_6.png",
+   "w": 6,
+   "h": 22,
+   "bytes": 192,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ship parts/flag (6).png",
+   "note": "Fanion jaune",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 6,
+    "srcH": 22
+   }
+  },
+  "crew_6": {
+   "file": "ships/crew_6.png",
+   "w": 22,
+   "h": 22,
+   "bytes": 976,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ship parts/crew (6).png",
+   "note": "Membre d'équipage vu de dessus",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 22,
+    "srcH": 22
+   }
+  },
+  "nest": {
+   "file": "ships/nest.png",
+   "w": 20,
+   "h": 18,
+   "bytes": 714,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ship parts/nest.png",
+   "note": "Nid de pie (vue de dessus)",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 20,
+    "srcH": 18
+   }
+  },
+  "pole": {
+   "file": "ships/pole.png",
+   "w": 12,
+   "h": 11,
+   "bytes": 414,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ship parts/pole.png",
+   "note": "Mât vu de dessus",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 12,
+    "srcH": 11
+   }
+  },
+  "cannon": {
+   "file": "ships/cannon.png",
+   "w": 29,
+   "h": 16,
+   "bytes": 562,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ship parts/cannon.png",
+   "note": "Canon",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 29,
+    "srcH": 16
+   }
+  },
+  "cannon_loose": {
+   "file": "ships/cannon_loose.png",
+   "w": 20,
+   "h": 12,
+   "bytes": 408,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ship parts/cannonLoose.png",
+   "note": "Canon détaché (débris)",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 20,
+    "srcH": 12
+   }
+  },
+  "cannon_mobile": {
+   "file": "ships/cannon_mobile.png",
+   "w": 29,
+   "h": 20,
+   "bytes": 595,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ship parts/cannonMobile.png",
+   "note": "Canon sur affût",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 29,
+    "srcH": 20
+   }
+  },
+  "cannonball": {
+   "file": "ships/cannonball.png",
+   "w": 10,
+   "h": 10,
+   "bytes": 300,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ship parts/cannonBall.png",
+   "note": "Boulet",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 10,
+    "srcH": 10
+   }
+  },
+  "wood_1": {
+   "file": "ships/wood_1.png",
+   "w": 15,
+   "h": 7,
+   "bytes": 162,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ship parts/wood (1).png",
+   "note": "Planche de bois (éclats / débris flottants)",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 15,
+    "srcH": 7
+   }
+  },
+  "wood_2": {
+   "file": "ships/wood_2.png",
+   "w": 26,
+   "h": 10,
+   "bytes": 167,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ship parts/wood (2).png",
+   "note": "Planche de bois (éclats / débris flottants)",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 26,
+    "srcH": 10
+   }
+  },
+  "wood_3": {
+   "file": "ships/wood_3.png",
+   "w": 15,
+   "h": 10,
+   "bytes": 164,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ship parts/wood (3).png",
+   "note": "Planche de bois (éclats / débris flottants)",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 15,
+    "srcH": 10
+   }
+  },
+  "wood_4": {
+   "file": "ships/wood_4.png",
+   "w": 26,
+   "h": 7,
+   "bytes": 163,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Ship parts/wood (4).png",
+   "note": "Planche de bois (éclats / débris flottants)",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 26,
+    "srcH": 7
+   }
+  },
+  "water": {
+   "file": "tiles/water.png",
+   "w": 128,
+   "h": 128,
+   "bytes": 1416,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_73.png",
+   "note": "Tuile d'eau unie (bleu clair, deux ondulations). À teinter en bleu nuit par le rendu.",
+   "trim": null
+  },
+  "sand_corner_nw": {
+   "file": "tiles/sand_corner_nw.png",
+   "w": 128,
+   "h": 128,
+   "bytes": 2033,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_01.png",
+   "note": "Sable, coin extérieur arrondi nord-ouest",
+   "trim": null
+  },
+  "sand_edge_n": {
+   "file": "tiles/sand_edge_n.png",
+   "w": 128,
+   "h": 128,
+   "bytes": 947,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_02.png",
+   "note": "Sable, rive au nord",
+   "trim": null
+  },
+  "sand_corner_ne": {
+   "file": "tiles/sand_corner_ne.png",
+   "w": 128,
+   "h": 128,
+   "bytes": 2142,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_03.png",
+   "note": "Sable, coin extérieur arrondi nord-est",
+   "trim": null
+  },
+  "sand_edge_w": {
+   "file": "tiles/sand_edge_w.png",
+   "w": 128,
+   "h": 128,
+   "bytes": 962,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_17.png",
+   "note": "Sable, rive à l'ouest",
+   "trim": null
+  },
+  "sand_full": {
+   "file": "tiles/sand_full.png",
+   "w": 128,
+   "h": 128,
+   "bytes": 300,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_18.png",
+   "note": "Sable uni",
+   "trim": null
+  },
+  "sand_edge_e": {
+   "file": "tiles/sand_edge_e.png",
+   "w": 128,
+   "h": 128,
+   "bytes": 1062,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_19.png",
+   "note": "Sable, rive à l'est",
+   "trim": null
+  },
+  "sand_corner_sw": {
+   "file": "tiles/sand_corner_sw.png",
+   "w": 128,
+   "h": 128,
+   "bytes": 2101,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_33.png",
+   "note": "Sable, coin extérieur arrondi sud-ouest",
+   "trim": null
+  },
+  "sand_edge_s": {
+   "file": "tiles/sand_edge_s.png",
+   "w": 128,
+   "h": 128,
+   "bytes": 961,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_34.png",
+   "note": "Sable, rive au sud",
+   "trim": null
+  },
+  "sand_corner_se": {
+   "file": "tiles/sand_corner_se.png",
+   "w": 128,
+   "h": 128,
+   "bytes": 1948,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_35.png",
+   "note": "Sable, coin extérieur arrondi sud-est",
+   "trim": null
+  },
+  "sand_inner_se": {
+   "file": "tiles/sand_inner_se.png",
+   "w": 128,
+   "h": 128,
+   "bytes": 650,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_04.png",
+   "note": "Sable, ombrage intérieur (coin rentrant) au sud-est",
+   "trim": null
+  },
+  "sand_inner_sw": {
+   "file": "tiles/sand_inner_sw.png",
+   "w": 128,
+   "h": 128,
+   "bytes": 775,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_05.png",
+   "note": "Sable, ombrage intérieur au sud-ouest",
+   "trim": null
+  },
+  "sand_inner_ne": {
+   "file": "tiles/sand_inner_ne.png",
+   "w": 128,
+   "h": 128,
+   "bytes": 736,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_20.png",
+   "note": "Sable, ombrage intérieur au nord-est",
+   "trim": null
+  },
+  "sand_inner_nw": {
+   "file": "tiles/sand_inner_nw.png",
+   "w": 128,
+   "h": 128,
+   "bytes": 665,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_21.png",
+   "note": "Sable, ombrage intérieur au nord-ouest",
+   "trim": null
+  },
+  "sand_traces_1": {
+   "file": "tiles/sand_traces_1.png",
+   "w": 128,
+   "h": 128,
+   "bytes": 1851,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_68.png",
+   "note": "Sable avec traces / gravillons (variante 1)",
+   "trim": null
+  },
+  "sand_traces_2": {
+   "file": "tiles/sand_traces_2.png",
+   "w": 128,
+   "h": 128,
+   "bytes": 1055,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_69.png",
+   "note": "Sable avec traces / gravillons (variante 2)",
+   "trim": null
+  },
+  "sand_corner_nw_grass": {
+   "file": "tiles/sand_corner_nw_grass.png",
+   "w": 128,
+   "h": 128,
+   "bytes": 2224,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_06.png",
+   "note": "Sable coin NW, herbe dans le coin sud-est",
+   "trim": null
+  },
+  "sand_edge_n_grass_s": {
+   "file": "tiles/sand_edge_n_grass_s.png",
+   "w": 128,
+   "h": 128,
+   "bytes": 1156,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_07.png",
+   "note": "Sable rive nord, bande d'herbe au sud",
+   "trim": null
+  },
+  "sand_edge_n_grass_s_2": {
+   "file": "tiles/sand_edge_n_grass_s_2.png",
+   "w": 128,
+   "h": 128,
+   "bytes": 1602,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_08.png",
+   "note": "Sable rive nord, herbe au sud (bord irrégulier)",
+   "trim": null
+  },
+  "sand_corner_ne_grass": {
+   "file": "tiles/sand_corner_ne_grass.png",
+   "w": 128,
+   "h": 128,
+   "bytes": 2364,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_09.png",
+   "note": "Sable coin NE, herbe dans le coin sud-ouest",
+   "trim": null
+  },
+  "sand_edge_w_grass_e": {
+   "file": "tiles/sand_edge_w_grass_e.png",
+   "w": 128,
+   "h": 128,
+   "bytes": 1184,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_22.png",
+   "note": "Sable rive ouest, herbe à l'est",
+   "trim": null
+  },
+  "sand_edge_e_grass_w": {
+   "file": "tiles/sand_edge_e_grass_w.png",
+   "w": 128,
+   "h": 128,
+   "bytes": 1270,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_25.png",
+   "note": "Sable rive est, herbe à l'ouest",
+   "trim": null
+  },
+  "sand_edge_w_grass_e_2": {
+   "file": "tiles/sand_edge_w_grass_e_2.png",
+   "w": 128,
+   "h": 128,
+   "bytes": 1641,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_38.png",
+   "note": "Sable rive ouest, herbe à l'est (bord irrégulier)",
+   "trim": null
+  },
+  "sand_edge_e_grass_w_2": {
+   "file": "tiles/sand_edge_e_grass_w_2.png",
+   "w": 128,
+   "h": 128,
+   "bytes": 1720,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_41.png",
+   "note": "Sable rive est, herbe à l'ouest (bord irrégulier)",
+   "trim": null
+  },
+  "sand_grass_inner_nw": {
+   "file": "tiles/sand_grass_inner_nw.png",
+   "w": 128,
+   "h": 128,
+   "bytes": 1202,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_36.png",
+   "note": "Herbe sur les bords nord + ouest, sable au sud-est",
+   "trim": null
+  },
+  "sand_grass_inner_ne": {
+   "file": "tiles/sand_grass_inner_ne.png",
+   "w": 128,
+   "h": 128,
+   "bytes": 1286,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_37.png",
+   "note": "Herbe sur les bords nord + est, sable au sud-ouest",
+   "trim": null
+  },
+  "sand_grass_inner_sw": {
+   "file": "tiles/sand_grass_inner_sw.png",
+   "w": 128,
+   "h": 128,
+   "bytes": 1300,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_52.png",
+   "note": "Herbe sur les bords sud + ouest, sable au nord-est",
+   "trim": null
+  },
+  "sand_grass_inner_se": {
+   "file": "tiles/sand_grass_inner_se.png",
+   "w": 128,
+   "h": 128,
+   "bytes": 1219,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_53.png",
+   "note": "Herbe sur les bords sud + est, sable au nord-ouest",
+   "trim": null
+  },
+  "sand_corner_sw_grass": {
+   "file": "tiles/sand_corner_sw_grass.png",
+   "w": 128,
+   "h": 128,
+   "bytes": 2330,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_54.png",
+   "note": "Sable coin SW, herbe dans le coin nord-est",
+   "trim": null
+  },
+  "sand_edge_s_grass_n": {
+   "file": "tiles/sand_edge_s_grass_n.png",
+   "w": 128,
+   "h": 128,
+   "bytes": 1167,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_55.png",
+   "note": "Sable rive sud, bande d'herbe au nord",
+   "trim": null
+  },
+  "sand_edge_s_grass_n_2": {
+   "file": "tiles/sand_edge_s_grass_n_2.png",
+   "w": 128,
+   "h": 128,
+   "bytes": 1619,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_56.png",
+   "note": "Sable rive sud, herbe au nord (bord irrégulier)",
+   "trim": null
+  },
+  "sand_corner_se_grass": {
+   "file": "tiles/sand_corner_se_grass.png",
+   "w": 128,
+   "h": 128,
+   "bytes": 2121,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_57.png",
+   "note": "Sable coin SE, herbe dans le coin nord-ouest",
+   "trim": null
+  },
+  "grass_full": {
+   "file": "tiles/grass_full.png",
+   "w": 128,
+   "h": 128,
+   "bytes": 299,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_23.png",
+   "note": "Herbe unie",
+   "trim": null
+  },
+  "grass_speckled_1": {
+   "file": "tiles/grass_speckled_1.png",
+   "w": 128,
+   "h": 128,
+   "bytes": 2135,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_24.png",
+   "note": "Herbe avec cailloux clairs",
+   "trim": null
+  },
+  "grass_speckled_2": {
+   "file": "tiles/grass_speckled_2.png",
+   "w": 128,
+   "h": 128,
+   "bytes": 1840,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_39.png",
+   "note": "Herbe mouchetée (variante 2)",
+   "trim": null
+  },
+  "grass_speckled_3": {
+   "file": "tiles/grass_speckled_3.png",
+   "w": 128,
+   "h": 128,
+   "bytes": 1126,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_40.png",
+   "note": "Herbe mouchetée (variante 3)",
+   "trim": null
+  },
+  "stone_corner_nw": {
+   "file": "tiles/stone_corner_nw.png",
+   "w": 128,
+   "h": 128,
+   "bytes": 1103,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_10.png",
+   "note": "Sol de pierre gris, coin extérieur nord-ouest",
+   "trim": null
+  },
+  "stone_edge_n": {
+   "file": "tiles/stone_edge_n.png",
+   "w": 128,
+   "h": 128,
+   "bytes": 624,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_11.png",
+   "note": "Sol de pierre, bord nord",
+   "trim": null
+  },
+  "stone_corner_ne": {
+   "file": "tiles/stone_corner_ne.png",
+   "w": 128,
+   "h": 128,
+   "bytes": 1197,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_12.png",
+   "note": "Sol de pierre, coin extérieur nord-est",
+   "trim": null
+  },
+  "stone_edge_w": {
+   "file": "tiles/stone_edge_w.png",
+   "w": 128,
+   "h": 128,
+   "bytes": 626,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_26.png",
+   "note": "Sol de pierre, bord ouest",
+   "trim": null
+  },
+  "stone_full": {
+   "file": "tiles/stone_full.png",
+   "w": 128,
+   "h": 128,
+   "bytes": 297,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_27.png",
+   "note": "Sol de pierre uni",
+   "trim": null
+  },
+  "stone_edge_e": {
+   "file": "tiles/stone_edge_e.png",
+   "w": 128,
+   "h": 128,
+   "bytes": 609,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_28.png",
+   "note": "Sol de pierre, bord est",
+   "trim": null
+  },
+  "stone_corner_sw": {
+   "file": "tiles/stone_corner_sw.png",
+   "w": 128,
+   "h": 128,
+   "bytes": 1174,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_42.png",
+   "note": "Sol de pierre, coin extérieur sud-ouest",
+   "trim": null
+  },
+  "stone_edge_s": {
+   "file": "tiles/stone_edge_s.png",
+   "w": 128,
+   "h": 128,
+   "bytes": 591,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_43.png",
+   "note": "Sol de pierre, bord sud",
+   "trim": null
+  },
+  "stone_corner_se": {
+   "file": "tiles/stone_corner_se.png",
+   "w": 128,
+   "h": 128,
+   "bytes": 1115,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_44.png",
+   "note": "Sol de pierre, coin extérieur sud-est",
+   "trim": null
+  },
+  "stone_inner_se": {
+   "file": "tiles/stone_inner_se.png",
+   "w": 128,
+   "h": 128,
+   "bytes": 562,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_58.png",
+   "note": "Sol de pierre, coin rentrant sud-est",
+   "trim": null
+  },
+  "stone_inner_sw": {
+   "file": "tiles/stone_inner_sw.png",
+   "w": 128,
+   "h": 128,
+   "bytes": 631,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_59.png",
+   "note": "Sol de pierre, coin rentrant sud-ouest",
+   "trim": null
+  },
+  "stone_inner_ne": {
+   "file": "tiles/stone_inner_ne.png",
+   "w": 128,
+   "h": 128,
+   "bytes": 612,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_74.png",
+   "note": "Sol de pierre, coin rentrant nord-est",
+   "trim": null
+  },
+  "stone_inner_nw": {
+   "file": "tiles/stone_inner_nw.png",
+   "w": 128,
+   "h": 128,
+   "bytes": 574,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_75.png",
+   "note": "Sol de pierre, coin rentrant nord-ouest",
+   "trim": null
+  },
+  "rock_1": {
+   "file": "tiles/rock_1.png",
+   "w": 68,
+   "h": 68,
+   "bytes": 1848,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_49.png",
+   "note": "Rocher gris (petit) — dans l'eau",
+   "trim": {
+    "x": 32,
+    "y": 30,
+    "srcW": 128,
+    "srcH": 128
+   }
+  },
+  "rock_2": {
+   "file": "tiles/rock_2.png",
+   "w": 108,
+   "h": 92,
+   "bytes": 3142,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_50.png",
+   "note": "Rocher gris (grand, allongé) — dans l'eau",
+   "trim": {
+    "x": 10,
+    "y": 18,
+    "srcW": 128,
+    "srcH": 128
+   }
+  },
+  "rock_3": {
+   "file": "tiles/rock_3.png",
+   "w": 80,
+   "h": 80,
+   "bytes": 2517,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_51.png",
+   "note": "Rocher gris (moyen) — dans l'eau",
+   "trim": {
+    "x": 24,
+    "y": 24,
+    "srcW": 128,
+    "srcH": 128
+   }
+  },
+  "rock_4": {
+   "file": "tiles/rock_4.png",
+   "w": 68,
+   "h": 68,
+   "bytes": 2473,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_65.png",
+   "note": "Rocher avec algues (petit)",
+   "trim": {
+    "x": 32,
+    "y": 30,
+    "srcW": 128,
+    "srcH": 128
+   }
+  },
+  "rock_5": {
+   "file": "tiles/rock_5.png",
+   "w": 108,
+   "h": 92,
+   "bytes": 3997,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_66.png",
+   "note": "Rocher avec algues (grand)",
+   "trim": {
+    "x": 10,
+    "y": 18,
+    "srcW": 128,
+    "srcH": 128
+   }
+  },
+  "rock_6": {
+   "file": "tiles/rock_6.png",
+   "w": 80,
+   "h": 80,
+   "bytes": 2979,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_67.png",
+   "note": "Rocher avec algues (moyen)",
+   "trim": {
+    "x": 24,
+    "y": 24,
+    "srcW": 128,
+    "srcH": 128
+   }
+  },
+  "rock_7": {
+   "file": "tiles/rock_7.png",
+   "w": 128,
+   "h": 128,
+   "bytes": 5113,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_85.png",
+   "note": "Rocher + plantes sur fond de sable (tuile pleine)",
+   "trim": null
+  },
+  "rock_8": {
+   "file": "tiles/rock_8.png",
+   "w": 128,
+   "h": 128,
+   "bytes": 5275,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_86.png",
+   "note": "Rocher + plantes sur sable avec herbe au nord (tuile pleine)",
+   "trim": null
+  },
+  "wreck_1": {
+   "file": "tiles/wreck_1.png",
+   "w": 128,
+   "h": 128,
+   "bytes": 4771,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_81.png",
+   "note": "Épave de chaloupe échouée sur le sable",
+   "trim": null
+  },
+  "wreck_2": {
+   "file": "tiles/wreck_2.png",
+   "w": 128,
+   "h": 128,
+   "bytes": 4938,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_82.png",
+   "note": "Épave échouée sur sable, herbe au nord",
+   "trim": null
+  },
+  "debris_1": {
+   "file": "tiles/debris_1.png",
+   "w": 128,
+   "h": 128,
+   "bytes": 3326,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_83.png",
+   "note": "Tonneau + planche sur le sable",
+   "trim": null
+  },
+  "debris_2": {
+   "file": "tiles/debris_2.png",
+   "w": 128,
+   "h": 128,
+   "bytes": 3508,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_84.png",
+   "note": "Tonneau + planche sur sable, herbe au nord",
+   "trim": null
+  },
+  "plant_1": {
+   "file": "tiles/plant_1.png",
+   "w": 88,
+   "h": 76,
+   "bytes": 2977,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_70.png",
+   "note": "Plante à trois feuilles",
+   "trim": {
+    "x": 20,
+    "y": 26,
+    "srcW": 128,
+    "srcH": 128
+   }
+  },
+  "plant_2": {
+   "file": "tiles/plant_2.png",
+   "w": 120,
+   "h": 120,
+   "bytes": 4363,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_71.png",
+   "note": "Grande plante en étoile (palmier vu de dessus)",
+   "trim": {
+    "x": 6,
+    "y": 4,
+    "srcW": 128,
+    "srcH": 128
+   }
+  },
+  "plant_3": {
+   "file": "tiles/plant_3.png",
+   "w": 68,
+   "h": 68,
+   "bytes": 3478,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_72.png",
+   "note": "Plante étoilée moyenne",
+   "trim": {
+    "x": 34,
+    "y": 30,
+    "srcW": 128,
+    "srcH": 128
+   }
+  },
+  "plant_4": {
+   "file": "tiles/plant_4.png",
+   "w": 32,
+   "h": 24,
+   "bytes": 943,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_87.png",
+   "note": "Petite pousse isolée",
+   "trim": {
+    "x": 48,
+    "y": 52,
+    "srcW": 128,
+    "srcH": 128
+   }
+  },
+  "plant_5": {
+   "file": "tiles/plant_5.png",
+   "w": 86,
+   "h": 81,
+   "bytes": 2879,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_88.png",
+   "note": "Trois petites pousses",
+   "trim": {
+    "x": 16,
+    "y": 30,
+    "srcW": 128,
+    "srcH": 128
+   }
+  },
+  "tower_round": {
+   "file": "tiles/tower_round.png",
+   "w": 104,
+   "h": 104,
+   "bytes": 5670,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_13.png",
+   "note": "Tour ronde en pierre vue de dessus (base du phare)",
+   "trim": {
+    "x": 12,
+    "y": 12,
+    "srcW": 128,
+    "srcH": 128
+   }
+  },
+  "tower_round_hatch": {
+   "file": "tiles/tower_round_hatch.png",
+   "w": 104,
+   "h": 104,
+   "bytes": 5800,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_14.png",
+   "note": "Tour ronde avec trappe carrée au centre",
+   "trim": {
+    "x": 12,
+    "y": 12,
+    "srcW": 128,
+    "srcH": 128
+   }
+  },
+  "tower_wall_ns": {
+   "file": "tiles/tower_wall_ns.png",
+   "w": 128,
+   "h": 128,
+   "bytes": 5878,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_29.png",
+   "note": "Tour ronde reliée à un mur nord + sud",
+   "trim": null
+  },
+  "tower_wall_ew": {
+   "file": "tiles/tower_wall_ew.png",
+   "w": 128,
+   "h": 128,
+   "bytes": 5628,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_30.png",
+   "note": "Tour ronde reliée à un mur est + ouest",
+   "trim": null
+  },
+  "tower_wall_s": {
+   "file": "tiles/tower_wall_s.png",
+   "w": 128,
+   "h": 128,
+   "bytes": 5734,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_45.png",
+   "note": "Tour ronde reliée à un mur au sud",
+   "trim": null
+  },
+  "tower_wall_e": {
+   "file": "tiles/tower_wall_e.png",
+   "w": 128,
+   "h": 128,
+   "bytes": 5611,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_46.png",
+   "note": "Tour ronde reliée à un mur à l'est",
+   "trim": null
+  },
+  "tower_wall_n": {
+   "file": "tiles/tower_wall_n.png",
+   "w": 128,
+   "h": 128,
+   "bytes": 5822,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_61.png",
+   "note": "Tour ronde reliée à un mur au nord",
+   "trim": null
+  },
+  "tower_wall_w": {
+   "file": "tiles/tower_wall_w.png",
+   "w": 128,
+   "h": 128,
+   "bytes": 5846,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_62.png",
+   "note": "Tour ronde reliée à un mur à l'ouest",
+   "trim": null
+  },
+  "tower_wall_se": {
+   "file": "tiles/tower_wall_se.png",
+   "w": 128,
+   "h": 128,
+   "bytes": 5858,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_77.png",
+   "note": "Tour ronde reliée à un mur au sud + est",
+   "trim": null
+  },
+  "tower_wall_sw": {
+   "file": "tiles/tower_wall_sw.png",
+   "w": 128,
+   "h": 128,
+   "bytes": 5898,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_78.png",
+   "note": "Tour ronde reliée à un mur au sud + ouest",
+   "trim": null
+  },
+  "tower_wall_ne": {
+   "file": "tiles/tower_wall_ne.png",
+   "w": 128,
+   "h": 128,
+   "bytes": 5767,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_93.png",
+   "note": "Tour ronde reliée à un mur au nord + est",
+   "trim": null
+  },
+  "tower_wall_nw": {
+   "file": "tiles/tower_wall_nw.png",
+   "w": 128,
+   "h": 128,
+   "bytes": 5910,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_94.png",
+   "note": "Tour ronde reliée à un mur au nord + ouest",
+   "trim": null
+  },
+  "wall_v": {
+   "file": "tiles/wall_v.png",
+   "w": 128,
+   "h": 128,
+   "bytes": 422,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_15.png",
+   "note": "Mur de pierre nord-sud",
+   "trim": null
+  },
+  "wall_h": {
+   "file": "tiles/wall_h.png",
+   "w": 128,
+   "h": 128,
+   "bytes": 405,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_16.png",
+   "note": "Mur de pierre est-ouest",
+   "trim": null
+  },
+  "wall_end_n": {
+   "file": "tiles/wall_end_n.png",
+   "w": 128,
+   "h": 128,
+   "bytes": 2137,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_63.png",
+   "note": "Mur venant du sud, bout arrondi au nord",
+   "trim": null
+  },
+  "wall_end_w": {
+   "file": "tiles/wall_end_w.png",
+   "w": 128,
+   "h": 128,
+   "bytes": 2058,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_64.png",
+   "note": "Mur venant de l'est, bout arrondi à l'ouest",
+   "trim": null
+  },
+  "wall_end_s": {
+   "file": "tiles/wall_end_s.png",
+   "w": 128,
+   "h": 128,
+   "bytes": 2137,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_79.png",
+   "note": "Mur venant du nord, bout arrondi au sud",
+   "trim": null
+  },
+  "wall_end_e": {
+   "file": "tiles/wall_end_e.png",
+   "w": 128,
+   "h": 128,
+   "bytes": 2138,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_80.png",
+   "note": "Mur venant de l'ouest, bout arrondi à l'est",
+   "trim": null
+  },
+  "wall_v_broken_1": {
+   "file": "tiles/wall_v_broken_1.png",
+   "w": 128,
+   "h": 128,
+   "bytes": 2264,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_89.png",
+   "note": "Mur nord-sud éboulé (variante 1)",
+   "trim": null
+  },
+  "wall_h_broken_1": {
+   "file": "tiles/wall_h_broken_1.png",
+   "w": 128,
+   "h": 128,
+   "bytes": 2270,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_90.png",
+   "note": "Mur est-ouest éboulé (variante 1)",
+   "trim": null
+  },
+  "wall_v_broken_2": {
+   "file": "tiles/wall_v_broken_2.png",
+   "w": 128,
+   "h": 128,
+   "bytes": 1660,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_91.png",
+   "note": "Mur nord-sud éboulé (variante 2)",
+   "trim": null
+  },
+  "wall_h_broken_2": {
+   "file": "tiles/wall_h_broken_2.png",
+   "w": 128,
+   "h": 128,
+   "bytes": 1591,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_92.png",
+   "note": "Mur est-ouest éboulé (variante 2)",
+   "trim": null
+  },
+  "wall_v_bastion": {
+   "file": "tiles/wall_v_bastion.png",
+   "w": 128,
+   "h": 128,
+   "bytes": 2447,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_95.png",
+   "note": "Mur nord-sud avec bastion rond au centre",
+   "trim": null
+  },
+  "wall_h_bastion": {
+   "file": "tiles/wall_h_bastion.png",
+   "w": 128,
+   "h": 128,
+   "bytes": 2496,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_96.png",
+   "note": "Mur est-ouest avec bastion rond au centre",
+   "trim": null
+  },
+  "wall_v_cart_1": {
+   "file": "tiles/wall_v_cart_1.png",
+   "w": 128,
+   "h": 128,
+   "bytes": 1485,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_31.png",
+   "note": "Mur nord-sud avec chariot / affût (orienté nord)",
+   "trim": null
+  },
+  "wall_v_cart_2": {
+   "file": "tiles/wall_v_cart_2.png",
+   "w": 128,
+   "h": 128,
+   "bytes": 1449,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_32.png",
+   "note": "Mur nord-sud avec chariot / affût (orienté sud)",
+   "trim": null
+  },
+  "wall_h_cart_1": {
+   "file": "tiles/wall_h_cart_1.png",
+   "w": 128,
+   "h": 128,
+   "bytes": 1377,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_47.png",
+   "note": "Mur est-ouest avec chariot / affût (orienté ouest)",
+   "trim": null
+  },
+  "wall_h_cart_2": {
+   "file": "tiles/wall_h_cart_2.png",
+   "w": 128,
+   "h": 128,
+   "bytes": 1399,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_48.png",
+   "note": "Mur est-ouest avec chariot / affût (orienté est)",
+   "trim": null
+  },
+  "dock_1": {
+   "file": "tiles/dock_1.png",
+   "w": 128,
+   "h": 128,
+   "bytes": 793,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_60.png",
+   "note": "Porte de bois dans un mur nord-sud — sert de ponton/quai (pas de vrai ponton dans le pack)",
+   "trim": null
+  },
+  "dock_2": {
+   "file": "tiles/dock_2.png",
+   "w": 128,
+   "h": 128,
+   "bytes": 769,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_76.png",
+   "note": "Porte de bois dans un mur est-ouest — sert de ponton/quai (pas de vrai ponton dans le pack)",
+   "trim": null
+  },
+  "tower_round_small": {
+   "file": "tiles/tower_round_small.png",
+   "w": 52,
+   "h": 52,
+   "bytes": 4495,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Tiles/tile_13.png",
+   "note": "Réduction à 50 % (Lanczos) de tower_round — aucune tour plus petite dans le pack",
+   "trim": {
+    "x": 12,
+    "y": 12,
+    "srcW": 128,
+    "srcH": 128
+   },
+   "scale": 0.5
+  },
+  "explosion_1": {
+   "file": "fx/explosion_1.png",
+   "w": 74,
+   "h": 75,
+   "bytes": 3253,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Effects/explosion1.png",
+   "note": "Explosion, image 1/3",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 74,
+    "srcH": 75
+   }
+  },
+  "explosion_2": {
+   "file": "fx/explosion_2.png",
+   "w": 60,
+   "h": 59,
+   "bytes": 2402,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Effects/explosion2.png",
+   "note": "Explosion, image 2/3",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 60,
+    "srcH": 59
+   }
+  },
+  "explosion_3": {
+   "file": "fx/explosion_3.png",
+   "w": 42,
+   "h": 41,
+   "bytes": 1274,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Effects/explosion3.png",
+   "note": "Explosion, image 3/3",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 42,
+    "srcH": 41
+   }
+  },
+  "fire_1": {
+   "file": "fx/fire_1.png",
+   "w": 18,
+   "h": 39,
+   "bytes": 574,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Effects/fire1.png",
+   "note": "Feu, image 1/2",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 18,
+    "srcH": 39
+   }
+  },
+  "fire_2": {
+   "file": "fx/fire_2.png",
+   "w": 11,
+   "h": 27,
+   "bytes": 396,
+   "source": "kenney_piratepack",
+   "original": "PNG/Retina/Effects/fire2.png",
+   "note": "Feu, image 2/2",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 11,
+    "srcH": 27
+   }
+  },
+  "smoke_01": {
+   "file": "fx/smoke_01.png",
+   "w": 457,
+   "h": 453,
+   "bytes": 99964,
+   "source": "particlePack_1.1",
+   "original": "PNG (Transparent)/smoke_01.png",
+   "note": "Fumée blanche (512 px source), à teinter",
+   "trim": {
+    "x": 27,
+    "y": 31,
+    "srcW": 512,
+    "srcH": 512
+   }
+  },
+  "smoke_02": {
+   "file": "fx/smoke_02.png",
+   "w": 454,
+   "h": 450,
+   "bytes": 99040,
+   "source": "particlePack_1.1",
+   "original": "PNG (Transparent)/smoke_02.png",
+   "note": "Fumée blanche (512 px source), à teinter",
+   "trim": {
+    "x": 28,
+    "y": 29,
+    "srcW": 512,
+    "srcH": 512
+   }
+  },
+  "smoke_03": {
+   "file": "fx/smoke_03.png",
+   "w": 287,
+   "h": 269,
+   "bytes": 38353,
+   "source": "particlePack_1.1",
+   "original": "PNG (Transparent)/smoke_03.png",
+   "note": "Fumée blanche (512 px source), à teinter",
+   "trim": {
+    "x": 113,
+    "y": 123,
+    "srcW": 512,
+    "srcH": 512
+   }
+  },
+  "smoke_04": {
+   "file": "fx/smoke_04.png",
+   "w": 459,
+   "h": 466,
+   "bytes": 99193,
+   "source": "particlePack_1.1",
+   "original": "PNG (Transparent)/smoke_04.png",
+   "note": "Fumée blanche (512 px source), à teinter",
+   "trim": {
+    "x": 24,
+    "y": 24,
+    "srcW": 512,
+    "srcH": 512
+   }
+  },
+  "smoke_05": {
+   "file": "fx/smoke_05.png",
+   "w": 409,
+   "h": 420,
+   "bytes": 84371,
+   "source": "particlePack_1.1",
+   "original": "PNG (Transparent)/smoke_05.png",
+   "note": "Fumée blanche (512 px source), à teinter",
+   "trim": {
+    "x": 55,
+    "y": 49,
+    "srcW": 512,
+    "srcH": 512
+   }
+  },
+  "smoke_06": {
+   "file": "fx/smoke_06.png",
+   "w": 359,
+   "h": 378,
+   "bytes": 61195,
+   "source": "particlePack_1.1",
+   "original": "PNG (Transparent)/smoke_06.png",
+   "note": "Fumée blanche (512 px source), à teinter",
+   "trim": {
+    "x": 61,
+    "y": 61,
+    "srcW": 512,
+    "srcH": 512
+   }
+  },
+  "smoke_07": {
+   "file": "fx/smoke_07.png",
+   "w": 431,
+   "h": 369,
+   "bytes": 79123,
+   "source": "particlePack_1.1",
+   "original": "PNG (Transparent)/smoke_07.png",
+   "note": "Fumée blanche (512 px source), à teinter",
+   "trim": {
+    "x": 25,
+    "y": 52,
+    "srcW": 512,
+    "srcH": 512
+   }
+  },
+  "smoke_08": {
+   "file": "fx/smoke_08.png",
+   "w": 421,
+   "h": 433,
+   "bytes": 93491,
+   "source": "particlePack_1.1",
+   "original": "PNG (Transparent)/smoke_08.png",
+   "note": "Fumée blanche (512 px source), à teinter",
+   "trim": {
+    "x": 35,
+    "y": 0,
+    "srcW": 512,
+    "srcH": 512
+   }
+  },
+  "smoke_09": {
+   "file": "fx/smoke_09.png",
+   "w": 389,
+   "h": 443,
+   "bytes": 90028,
+   "source": "particlePack_1.1",
+   "original": "PNG (Transparent)/smoke_09.png",
+   "note": "Fumée blanche (512 px source), à teinter",
+   "trim": {
+    "x": 65,
+    "y": 0,
+    "srcW": 512,
+    "srcH": 512
+   }
+  },
+  "smoke_10": {
+   "file": "fx/smoke_10.png",
+   "w": 400,
+   "h": 403,
+   "bytes": 92151,
+   "source": "particlePack_1.1",
+   "original": "PNG (Transparent)/smoke_10.png",
+   "note": "Fumée blanche (512 px source), à teinter",
+   "trim": {
+    "x": 57,
+    "y": 43,
+    "srcW": 512,
+    "srcH": 512
+   }
+  },
+  "light_01": {
+   "file": "fx/light_01.png",
+   "w": 496,
+   "h": 499,
+   "bytes": 93260,
+   "source": "particlePack_1.1",
+   "original": "PNG (Transparent)/light_01.png",
+   "note": "Halo lumineux doux (faisceau / lanterne)",
+   "trim": {
+    "x": 6,
+    "y": 6,
+    "srcW": 512,
+    "srcH": 512
+   }
+  },
+  "light_02": {
+   "file": "fx/light_02.png",
+   "w": 496,
+   "h": 502,
+   "bytes": 93254,
+   "source": "particlePack_1.1",
+   "original": "PNG (Transparent)/light_02.png",
+   "note": "Halo lumineux doux (faisceau / lanterne)",
+   "trim": {
+    "x": 7,
+    "y": 5,
+    "srcW": 512,
+    "srcH": 512
+   }
+  },
+  "light_03": {
+   "file": "fx/light_03.png",
+   "w": 498,
+   "h": 500,
+   "bytes": 100560,
+   "source": "particlePack_1.1",
+   "original": "PNG (Transparent)/light_03.png",
+   "note": "Halo lumineux doux (faisceau / lanterne)",
+   "trim": {
+    "x": 7,
+    "y": 6,
+    "srcW": 512,
+    "srcH": 512
+   }
+  },
+  "flare_01": {
+   "file": "fx/flare_01.png",
+   "w": 434,
+   "h": 439,
+   "bytes": 41867,
+   "source": "particlePack_1.1",
+   "original": "PNG (Transparent)/flare_01.png",
+   "note": "Éclat horizontal de lentille",
+   "trim": {
+    "x": 73,
+    "y": 0,
+    "srcW": 512,
+    "srcH": 512
+   }
+  },
+  "circle_01": {
+   "file": "fx/circle_01.png",
+   "w": 444,
+   "h": 478,
+   "bytes": 69232,
+   "source": "particlePack_1.1",
+   "original": "PNG (Transparent)/circle_01.png",
+   "note": "Anneau / disque (ondes de la cloche, halo)",
+   "trim": {
+    "x": 34,
+    "y": 0,
+    "srcW": 512,
+    "srcH": 512
+   }
+  },
+  "circle_02": {
+   "file": "fx/circle_02.png",
+   "w": 385,
+   "h": 449,
+   "bytes": 42920,
+   "source": "particlePack_1.1",
+   "original": "PNG (Transparent)/circle_02.png",
+   "note": "Anneau / disque (ondes de la cloche, halo)",
+   "trim": {
+    "x": 64,
+    "y": 0,
+    "srcW": 512,
+    "srcH": 512
+   }
+  },
+  "circle_03": {
+   "file": "fx/circle_03.png",
+   "w": 485,
+   "h": 499,
+   "bytes": 73587,
+   "source": "particlePack_1.1",
+   "original": "PNG (Transparent)/circle_03.png",
+   "note": "Anneau / disque (ondes de la cloche, halo)",
+   "trim": {
+    "x": 14,
+    "y": 0,
+    "srcW": 512,
+    "srcH": 512
+   }
+  },
+  "circle_04": {
+   "file": "fx/circle_04.png",
+   "w": 465,
+   "h": 489,
+   "bytes": 59303,
+   "source": "particlePack_1.1",
+   "original": "PNG (Transparent)/circle_04.png",
+   "note": "Anneau / disque (ondes de la cloche, halo)",
+   "trim": {
+    "x": 24,
+    "y": 0,
+    "srcW": 512,
+    "srcH": 512
+   }
+  },
+  "circle_05": {
+   "file": "fx/circle_05.png",
+   "w": 464,
+   "h": 493,
+   "bytes": 64281,
+   "source": "particlePack_1.1",
+   "original": "PNG (Transparent)/circle_05.png",
+   "note": "Anneau / disque (ondes de la cloche, halo)",
+   "trim": {
+    "x": 24,
+    "y": 0,
+    "srcW": 512,
+    "srcH": 512
+   }
+  },
+  "twirl_01": {
+   "file": "fx/twirl_01.png",
+   "w": 463,
+   "h": 500,
+   "bytes": 50831,
+   "source": "particlePack_1.1",
+   "original": "PNG (Transparent)/twirl_01.png",
+   "note": "Tourbillon (remous, courant)",
+   "trim": {
+    "x": 44,
+    "y": 2,
+    "srcW": 512,
+    "srcH": 512
+   }
+  },
+  "twirl_02": {
+   "file": "fx/twirl_02.png",
+   "w": 503,
+   "h": 509,
+   "bytes": 76933,
+   "source": "particlePack_1.1",
+   "original": "PNG (Transparent)/twirl_02.png",
+   "note": "Tourbillon (remous, courant)",
+   "trim": {
+    "x": 9,
+    "y": 1,
+    "srcW": 512,
+    "srcH": 512
+   }
+  },
+  "twirl_03": {
+   "file": "fx/twirl_03.png",
+   "w": 504,
+   "h": 509,
+   "bytes": 81780,
+   "source": "particlePack_1.1",
+   "original": "PNG (Transparent)/twirl_03.png",
+   "note": "Tourbillon (remous, courant)",
+   "trim": {
+    "x": 8,
+    "y": 1,
+    "srcW": 512,
+    "srcH": 512
+   }
+  },
+  "spark_01": {
+   "file": "fx/spark_01.png",
+   "w": 498,
+   "h": 484,
+   "bytes": 95996,
+   "source": "particlePack_1.1",
+   "original": "PNG (Transparent)/spark_01.png",
+   "note": "Étincelle / éclair",
+   "trim": {
+    "x": 9,
+    "y": 0,
+    "srcW": 512,
+    "srcH": 512
+   }
+  },
+  "spark_02": {
+   "file": "fx/spark_02.png",
+   "w": 490,
+   "h": 512,
+   "bytes": 102966,
+   "source": "particlePack_1.1",
+   "original": "PNG (Transparent)/spark_02.png",
+   "note": "Étincelle / éclair",
+   "trim": {
+    "x": 18,
+    "y": 0,
+    "srcW": 512,
+    "srcH": 512
+   }
+  },
+  "spark_03": {
+   "file": "fx/spark_03.png",
+   "w": 469,
+   "h": 460,
+   "bytes": 79159,
+   "source": "particlePack_1.1",
+   "original": "PNG (Transparent)/spark_03.png",
+   "note": "Étincelle / éclair",
+   "trim": {
+    "x": 31,
+    "y": 47,
+    "srcW": 512,
+    "srcH": 512
+   }
+  },
+  "spark_04": {
+   "file": "fx/spark_04.png",
+   "w": 490,
+   "h": 465,
+   "bytes": 84230,
+   "source": "particlePack_1.1",
+   "original": "PNG (Transparent)/spark_04.png",
+   "note": "Étincelle / éclair",
+   "trim": {
+    "x": 15,
+    "y": 33,
+    "srcW": 512,
+    "srcH": 512
+   }
+  },
+  "spark_05": {
+   "file": "fx/spark_05.png",
+   "w": 328,
+   "h": 512,
+   "bytes": 62504,
+   "source": "particlePack_1.1",
+   "original": "PNG (Transparent)/spark_05.png",
+   "note": "Étincelle / éclair",
+   "trim": {
+    "x": 75,
+    "y": 0,
+    "srcW": 512,
+    "srcH": 512
+   }
+  },
+  "spark_06": {
+   "file": "fx/spark_06.png",
+   "w": 302,
+   "h": 512,
+   "bytes": 44934,
+   "source": "particlePack_1.1",
+   "original": "PNG (Transparent)/spark_06.png",
+   "note": "Étincelle / éclair",
+   "trim": {
+    "x": 75,
+    "y": 0,
+    "srcW": 512,
+    "srcH": 512
+   }
+  },
+  "spark_07": {
+   "file": "fx/spark_07.png",
+   "w": 512,
+   "h": 355,
+   "bytes": 40907,
+   "source": "particlePack_1.1",
+   "original": "PNG (Transparent)/spark_07.png",
+   "note": "Étincelle / éclair",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 512,
+    "srcH": 512
+   }
+  },
+  "star_01": {
+   "file": "fx/star_01.png",
+   "w": 497,
+   "h": 512,
+   "bytes": 42375,
+   "source": "particlePack_1.1",
+   "original": "PNG (Transparent)/star_01.png",
+   "note": "Étoile / scintillement",
+   "trim": {
+    "x": 8,
+    "y": 0,
+    "srcW": 512,
+    "srcH": 512
+   }
+  },
+  "star_02": {
+   "file": "fx/star_02.png",
+   "w": 497,
+   "h": 512,
+   "bytes": 50198,
+   "source": "particlePack_1.1",
+   "original": "PNG (Transparent)/star_02.png",
+   "note": "Étoile / scintillement",
+   "trim": {
+    "x": 8,
+    "y": 0,
+    "srcW": 512,
+    "srcH": 512
+   }
+  },
+  "star_03": {
+   "file": "fx/star_03.png",
+   "w": 512,
+   "h": 512,
+   "bytes": 57337,
+   "source": "particlePack_1.1",
+   "original": "PNG (Transparent)/star_03.png",
+   "note": "Étoile / scintillement",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 512,
+    "srcH": 512
+   }
+  },
+  "star_04": {
+   "file": "fx/star_04.png",
+   "w": 385,
+   "h": 449,
+   "bytes": 29913,
+   "source": "particlePack_1.1",
+   "original": "PNG (Transparent)/star_04.png",
+   "note": "Étoile / scintillement",
+   "trim": {
+    "x": 64,
+    "y": 0,
+    "srcW": 512,
+    "srcH": 512
+   }
+  },
+  "star_05": {
+   "file": "fx/star_05.png",
+   "w": 433,
+   "h": 479,
+   "bytes": 61432,
+   "source": "particlePack_1.1",
+   "original": "PNG (Transparent)/star_05.png",
+   "note": "Étoile / scintillement",
+   "trim": {
+    "x": 40,
+    "y": 0,
+    "srcW": 512,
+    "srcH": 512
+   }
+  },
+  "star_06": {
+   "file": "fx/star_06.png",
+   "w": 504,
+   "h": 512,
+   "bytes": 35536,
+   "source": "particlePack_1.1",
+   "original": "PNG (Transparent)/star_06.png",
+   "note": "Étoile / scintillement",
+   "trim": {
+    "x": 4,
+    "y": 0,
+    "srcW": 512,
+    "srcH": 512
+   }
+  },
+  "star_07": {
+   "file": "fx/star_07.png",
+   "w": 474,
+   "h": 470,
+   "bytes": 32136,
+   "source": "particlePack_1.1",
+   "original": "PNG (Transparent)/star_07.png",
+   "note": "Étoile / scintillement",
+   "trim": {
+    "x": 19,
+    "y": 21,
+    "srcW": 512,
+    "srcH": 512
+   }
+  },
+  "star_08": {
+   "file": "fx/star_08.png",
+   "w": 362,
+   "h": 437,
+   "bytes": 25517,
+   "source": "particlePack_1.1",
+   "original": "PNG (Transparent)/star_08.png",
+   "note": "Étoile / scintillement",
+   "trim": {
+    "x": 75,
+    "y": 0,
+    "srcW": 512,
+    "srcH": 512
+   }
+  },
+  "star_09": {
+   "file": "fx/star_09.png",
+   "w": 434,
+   "h": 504,
+   "bytes": 49931,
+   "source": "particlePack_1.1",
+   "original": "PNG (Transparent)/star_09.png",
+   "note": "Étoile / scintillement",
+   "trim": {
+    "x": 39,
+    "y": 3,
+    "srcW": 512,
+    "srcH": 512
+   }
+  },
+  "magic_01": {
+   "file": "fx/magic_01.png",
+   "w": 441,
+   "h": 479,
+   "bytes": 81022,
+   "source": "particlePack_1.1",
+   "original": "PNG (Transparent)/magic_01.png",
+   "note": "Symbole lumineux (la Bête, pages)",
+   "trim": {
+    "x": 37,
+    "y": 0,
+    "srcW": 512,
+    "srcH": 512
+   }
+  },
+  "magic_02": {
+   "file": "fx/magic_02.png",
+   "w": 439,
+   "h": 479,
+   "bytes": 86603,
+   "source": "particlePack_1.1",
+   "original": "PNG (Transparent)/magic_02.png",
+   "note": "Symbole lumineux (la Bête, pages)",
+   "trim": {
+    "x": 39,
+    "y": 0,
+    "srcW": 512,
+    "srcH": 512
+   }
+  },
+  "magic_03": {
+   "file": "fx/magic_03.png",
+   "w": 492,
+   "h": 504,
+   "bytes": 58009,
+   "source": "particlePack_1.1",
+   "original": "PNG (Transparent)/magic_03.png",
+   "note": "Symbole lumineux (la Bête, pages)",
+   "trim": {
+    "x": 10,
+    "y": 0,
+    "srcW": 512,
+    "srcH": 512
+   }
+  },
+  "magic_04": {
+   "file": "fx/magic_04.png",
+   "w": 468,
+   "h": 486,
+   "bytes": 49334,
+   "source": "particlePack_1.1",
+   "original": "PNG (Transparent)/magic_04.png",
+   "note": "Symbole lumineux (la Bête, pages)",
+   "trim": {
+    "x": 22,
+    "y": 13,
+    "srcW": 512,
+    "srcH": 512
+   }
+  },
+  "magic_05": {
+   "file": "fx/magic_05.png",
+   "w": 480,
+   "h": 500,
+   "bytes": 74668,
+   "source": "particlePack_1.1",
+   "original": "PNG (Transparent)/magic_05.png",
+   "note": "Symbole lumineux (la Bête, pages)",
+   "trim": {
+    "x": 16,
+    "y": 0,
+    "srcW": 512,
+    "srcH": 512
+   }
+  },
+  "scorch_01": {
+   "file": "fx/scorch_01.png",
+   "w": 432,
+   "h": 464,
+   "bytes": 61007,
+   "source": "particlePack_1.1",
+   "original": "PNG (Transparent)/scorch_01.png",
+   "note": "Brûlure / tache",
+   "trim": {
+    "x": 40,
+    "y": 0,
+    "srcW": 512,
+    "srcH": 512
+   }
+  },
+  "scorch_02": {
+   "file": "fx/scorch_02.png",
+   "w": 485,
+   "h": 494,
+   "bytes": 76751,
+   "source": "particlePack_1.1",
+   "original": "PNG (Transparent)/scorch_02.png",
+   "note": "Brûlure / tache",
+   "trim": {
+    "x": 19,
+    "y": 0,
+    "srcW": 512,
+    "srcH": 512
+   }
+  },
+  "scorch_03": {
+   "file": "fx/scorch_03.png",
+   "w": 472,
+   "h": 493,
+   "bytes": 94388,
+   "source": "particlePack_1.1",
+   "original": "PNG (Transparent)/scorch_03.png",
+   "note": "Brûlure / tache",
+   "trim": {
+    "x": 24,
+    "y": 0,
+    "srcW": 512,
+    "srcH": 512
+   }
+  },
+  "trace_01": {
+   "file": "fx/trace_01.png",
+   "w": 198,
+   "h": 504,
+   "bytes": 35281,
+   "source": "particlePack_1.1",
+   "original": "PNG (Transparent)/trace_01.png",
+   "note": "Traînée verticale (pluie, sillage)",
+   "trim": {
+    "x": 157,
+    "y": 2,
+    "srcW": 512,
+    "srcH": 512
+   }
+  },
+  "trace_04": {
+   "file": "fx/trace_04.png",
+   "w": 202,
+   "h": 512,
+   "bytes": 43061,
+   "source": "particlePack_1.1",
+   "original": "PNG (Transparent)/trace_04.png",
+   "note": "Traînée verticale (pluie, sillage)",
+   "trim": {
+    "x": 154,
+    "y": 0,
+    "srcW": 512,
+    "srcH": 512
+   }
+  },
+  "trace_07": {
+   "file": "fx/trace_07.png",
+   "w": 140,
+   "h": 512,
+   "bytes": 29499,
+   "source": "particlePack_1.1",
+   "original": "PNG (Transparent)/trace_07.png",
+   "note": "Traînée verticale (pluie, sillage)",
+   "trim": {
+    "x": 186,
+    "y": 0,
+    "srcW": 512,
+    "srcH": 512
+   }
+  },
+  "whitepuff_00": {
+   "file": "fx/whitepuff_00.png",
+   "w": 381,
+   "h": 346,
+   "bytes": 118829,
+   "source": "smokeparticleassets",
+   "original": "PNG/White puff/whitePuff00.png",
+   "note": "Bouffée blanche douce (écume, vapeur)",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 381,
+    "srcH": 346
+   }
+  },
+  "whitepuff_03": {
+   "file": "fx/whitepuff_03.png",
+   "w": 353,
+   "h": 383,
+   "bytes": 119698,
+   "source": "smokeparticleassets",
+   "original": "PNG/White puff/whitePuff03.png",
+   "note": "Bouffée blanche douce (écume, vapeur)",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 353,
+    "srcH": 383
+   }
+  },
+  "whitepuff_06": {
+   "file": "fx/whitepuff_06.png",
+   "w": 400,
+   "h": 383,
+   "bytes": 115301,
+   "source": "smokeparticleassets",
+   "original": "PNG/White puff/whitePuff06.png",
+   "note": "Bouffée blanche douce (écume, vapeur)",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 400,
+    "srcH": 383
+   }
+  },
+  "whitepuff_09": {
+   "file": "fx/whitepuff_09.png",
+   "w": 368,
+   "h": 405,
+   "bytes": 115443,
+   "source": "smokeparticleassets",
+   "original": "PNG/White puff/whitePuff09.png",
+   "note": "Bouffée blanche douce (écume, vapeur)",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 368,
+    "srcH": 405
+   }
+  },
+  "whitepuff_12": {
+   "file": "fx/whitepuff_12.png",
+   "w": 348,
+   "h": 385,
+   "bytes": 114973,
+   "source": "smokeparticleassets",
+   "original": "PNG/White puff/whitePuff12.png",
+   "note": "Bouffée blanche douce (écume, vapeur)",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 348,
+    "srcH": 385
+   }
+  },
+  "whitepuff_15": {
+   "file": "fx/whitepuff_15.png",
+   "w": 394,
+   "h": 377,
+   "bytes": 121160,
+   "source": "smokeparticleassets",
+   "original": "PNG/White puff/whitePuff15.png",
+   "note": "Bouffée blanche douce (écume, vapeur)",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 394,
+    "srcH": 377
+   }
+  },
+  "whitepuff_18": {
+   "file": "fx/whitepuff_18.png",
+   "w": 360,
+   "h": 364,
+   "bytes": 117929,
+   "source": "smokeparticleassets",
+   "original": "PNG/White puff/whitePuff18.png",
+   "note": "Bouffée blanche douce (écume, vapeur)",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 360,
+    "srcH": 364
+   }
+  },
+  "whitepuff_21": {
+   "file": "fx/whitepuff_21.png",
+   "w": 371,
+   "h": 376,
+   "bytes": 112454,
+   "source": "smokeparticleassets",
+   "original": "PNG/White puff/whitePuff21.png",
+   "note": "Bouffée blanche douce (écume, vapeur)",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 371,
+    "srcH": 376
+   }
+  },
+  "whitepuff_24": {
+   "file": "fx/whitepuff_24.png",
+   "w": 370,
+   "h": 362,
+   "bytes": 107479,
+   "source": "smokeparticleassets",
+   "original": "PNG/White puff/whitePuff24.png",
+   "note": "Bouffée blanche douce (écume, vapeur)",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 370,
+    "srcH": 362
+   }
+  },
+  "flash_00": {
+   "file": "fx/flash_00.png",
+   "w": 550,
+   "h": 496,
+   "bytes": 219859,
+   "source": "smokeparticleassets",
+   "original": "PNG/Flash/flash00.png",
+   "note": "Flash lumineux (aube, coup de foudre)",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 550,
+    "srcH": 496
+   }
+  },
+  "flash_02": {
+   "file": "fx/flash_02.png",
+   "w": 563,
+   "h": 524,
+   "bytes": 231185,
+   "source": "smokeparticleassets",
+   "original": "PNG/Flash/flash02.png",
+   "note": "Flash lumineux (aube, coup de foudre)",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 563,
+    "srcH": 524
+   }
+  },
+  "flash_04": {
+   "file": "fx/flash_04.png",
+   "w": 483,
+   "h": 502,
+   "bytes": 198485,
+   "source": "smokeparticleassets",
+   "original": "PNG/Flash/flash04.png",
+   "note": "Flash lumineux (aube, coup de foudre)",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 483,
+    "srcH": 502
+   }
+  },
+  "flash_06": {
+   "file": "fx/flash_06.png",
+   "w": 473,
+   "h": 557,
+   "bytes": 216541,
+   "source": "smokeparticleassets",
+   "original": "PNG/Flash/flash06.png",
+   "note": "Flash lumineux (aube, coup de foudre)",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 473,
+    "srcH": 557
+   }
+  },
+  "parchment_basic": {
+   "file": "ui/parchment_basic.png",
+   "w": 1024,
+   "h": 1024,
+   "bytes": 614340,
+   "source": "cartographypack",
+   "original": "Textures/parchmentBasic.png",
+   "note": "Texture parchemin 1024², fond de carte / UI",
+   "trim": null
+  },
+  "parchment_ancient": {
+   "file": "ui/parchment_ancient.png",
+   "w": 1024,
+   "h": 1024,
+   "bytes": 725324,
+   "source": "cartographypack",
+   "original": "Textures/parchmentAncient.png",
+   "note": "Texture parchemin ancien 1024²",
+   "trim": null
+  },
+  "parchment_crinkled": {
+   "file": "ui/parchment_crinkled.png",
+   "w": 1024,
+   "h": 1024,
+   "bytes": 812682,
+   "source": "cartographypack",
+   "original": "Textures/parchmentCrinkled.png",
+   "note": "Texture parchemin froissé 1024²",
+   "trim": null
+  },
+  "parchment_folded": {
+   "file": "ui/parchment_folded.png",
+   "w": 1024,
+   "h": 1024,
+   "bytes": 757841,
+   "source": "cartographypack",
+   "original": "Textures/parchmentFolded.png",
+   "note": "Texture parchemin plié 1024²",
+   "trim": null
+  },
+  "parchment_folded_crinkled": {
+   "file": "ui/parchment_folded_crinkled.png",
+   "w": 1024,
+   "h": 1024,
+   "bytes": 586383,
+   "source": "cartographypack",
+   "original": "Textures/parchmentFoldedCrinkled.png",
+   "note": "Texture parchemin plié et froissé 1024²",
+   "trim": null
+  },
+  "compass": {
+   "file": "ui/compass.png",
+   "w": 116,
+   "h": 116,
+   "bytes": 2114,
+   "source": "cartographypack",
+   "original": "PNG/Retina/compass.png",
+   "note": "Rose des vents (encre #2a2a2a sur transparent)",
+   "trim": {
+    "x": 6,
+    "y": 6,
+    "srcW": 128,
+    "srcH": 128
+   }
+  },
+  "lighthouse": {
+   "file": "ui/lighthouse.png",
+   "w": 53,
+   "h": 116,
+   "bytes": 1098,
+   "source": "cartographypack",
+   "original": "PNG/Retina/lighthouse.png",
+   "note": "Phare (icône de carte)",
+   "trim": {
+    "x": 38,
+    "y": 6,
+    "srcW": 128,
+    "srcH": 128
+   }
+  },
+  "ship_icon": {
+   "file": "ui/ship_icon.png",
+   "w": 120,
+   "h": 117,
+   "bytes": 2059,
+   "source": "cartographypack",
+   "original": "PNG/Retina/ship.png",
+   "note": "Navire (icône de carte)",
+   "trim": {
+    "x": 3,
+    "y": 6,
+    "srcW": 128,
+    "srcH": 128
+   }
+  },
+  "skull": {
+   "file": "ui/skull.png",
+   "w": 117,
+   "h": 109,
+   "bytes": 1397,
+   "source": "cartographypack",
+   "original": "PNG/Retina/skull.png",
+   "note": "Crâne (naufrage, danger)",
+   "trim": {
+    "x": 6,
+    "y": 13,
+    "srcW": 128,
+    "srcH": 128
+   }
+  },
+  "banner": {
+   "file": "ui/banner.png",
+   "w": 61,
+   "h": 109,
+   "bytes": 1120,
+   "source": "cartographypack",
+   "original": "PNG/Retina/banner.png",
+   "note": "Bannière verticale",
+   "trim": {
+    "x": 29,
+    "y": 13,
+    "srcW": 128,
+    "srcH": 128
+   }
+  },
+  "element_circle": {
+   "file": "ui/element_circle.png",
+   "w": 118,
+   "h": 116,
+   "bytes": 1745,
+   "source": "cartographypack",
+   "original": "PNG/Retina/elementCircle.png",
+   "note": "Cartouche rond",
+   "trim": {
+    "x": 5,
+    "y": 6,
+    "srcW": 128,
+    "srcH": 128
+   }
+  },
+  "element_shield": {
+   "file": "ui/element_shield.png",
+   "w": 102,
+   "h": 116,
+   "bytes": 1661,
+   "source": "cartographypack",
+   "original": "PNG/Retina/elementShield.png",
+   "note": "Cartouche écu",
+   "trim": {
+    "x": 13,
+    "y": 6,
+    "srcW": 128,
+    "srcH": 128
+   }
+  },
+  "element_square": {
+   "file": "ui/element_square.png",
+   "w": 119,
+   "h": 118,
+   "bytes": 1346,
+   "source": "cartographypack",
+   "original": "PNG/Retina/elementSquare.png",
+   "note": "Cartouche carré",
+   "trim": {
+    "x": 4,
+    "y": 5,
+    "srcW": 128,
+    "srcH": 128
+   }
+  },
+  "element_diamond": {
+   "file": "ui/element_diamond.png",
+   "w": 116,
+   "h": 116,
+   "bytes": 1683,
+   "source": "cartographypack",
+   "original": "PNG/Retina/elementDiamond.png",
+   "note": "Cartouche losange",
+   "trim": {
+    "x": 6,
+    "y": 6,
+    "srcW": 128,
+    "srcH": 128
+   }
+  },
+  "element_cross": {
+   "file": "ui/element_cross.png",
+   "w": 101,
+   "h": 100,
+   "bytes": 1734,
+   "source": "cartographypack",
+   "original": "PNG/Retina/elementCross.png",
+   "note": "Cartouche en croix",
+   "trim": {
+    "x": 13,
+    "y": 14,
+    "srcW": 128,
+    "srcH": 128
+   }
+  },
+  "arrow_head": {
+   "file": "ui/arrow_head.png",
+   "w": 117,
+   "h": 122,
+   "bytes": 1786,
+   "source": "cartographypack",
+   "original": "PNG/Retina/arrowHead.png",
+   "note": "Flèche (tête)",
+   "trim": {
+    "x": 5,
+    "y": 6,
+    "srcW": 128,
+    "srcH": 128
+   }
+  },
+  "arrow_straight": {
+   "file": "ui/arrow_straight.png",
+   "w": 55,
+   "h": 128,
+   "bytes": 1004,
+   "source": "cartographypack",
+   "original": "PNG/Retina/arrowStraight.png",
+   "note": "Flèche droite",
+   "trim": {
+    "x": 37,
+    "y": 0,
+    "srcW": 128,
+    "srcH": 128
+   }
+  },
+  "arrow_corner": {
+   "file": "ui/arrow_corner.png",
+   "w": 90,
+   "h": 91,
+   "bytes": 1249,
+   "source": "cartographypack",
+   "original": "PNG/Retina/arrowCorner.png",
+   "note": "Flèche coudée",
+   "trim": {
+    "x": 38,
+    "y": 0,
+    "srcW": 128,
+    "srcH": 128
+   }
+  },
+  "arrow_small": {
+   "file": "ui/arrow_small.png",
+   "w": 69,
+   "h": 80,
+   "bytes": 1030,
+   "source": "cartographypack",
+   "original": "PNG/Retina/arrowSmall.png",
+   "note": "Petite flèche",
+   "trim": {
+    "x": 29,
+    "y": 26,
+    "srcW": 128,
+    "srcH": 128
+   }
+  },
+  "dock_icon": {
+   "file": "ui/dock_icon.png",
+   "w": 117,
+   "h": 102,
+   "bytes": 1762,
+   "source": "cartographypack",
+   "original": "PNG/Retina/dock.png",
+   "note": "Quai / ponton (icône de carte)",
+   "trim": {
+    "x": 6,
+    "y": 21,
+    "srcW": 128,
+    "srcH": 128
+   }
+  },
+  "rocks_icon": {
+   "file": "ui/rocks_icon.png",
+   "w": 117,
+   "h": 77,
+   "bytes": 1104,
+   "source": "cartographypack",
+   "original": "PNG/Retina/rocks.png",
+   "note": "Rochers (icône de carte)",
+   "trim": {
+    "x": 5,
+    "y": 45,
+    "srcW": 128,
+    "srcH": 128
+   }
+  },
+  "rocks_icon_2": {
+   "file": "ui/rocks_icon_2.png",
+   "w": 117,
+   "h": 108,
+   "bytes": 1488,
+   "source": "cartographypack",
+   "original": "PNG/Retina/rocksA.png",
+   "note": "Rochers, variante A",
+   "trim": {
+    "x": 5,
+    "y": 14,
+    "srcW": 128,
+    "srcH": 128
+   }
+  },
+  "rocks_icon_3": {
+   "file": "ui/rocks_icon_3.png",
+   "w": 116,
+   "h": 85,
+   "bytes": 1186,
+   "source": "cartographypack",
+   "original": "PNG/Retina/rocksB.png",
+   "note": "Rochers, variante B",
+   "trim": {
+    "x": 6,
+    "y": 37,
+    "srcW": 128,
+    "srcH": 128
+   }
+  },
+  "waves_icon": {
+   "file": "ui/waves_icon.png",
+   "w": 114,
+   "h": 115,
+   "bytes": 878,
+   "source": "cartographypack",
+   "original": "PNG/Retina/textureWater.png",
+   "note": "Motif de vagues (textureWater)",
+   "trim": {
+    "x": 7,
+    "y": 7,
+    "srcW": 128,
+    "srcH": 128
+   }
+  },
+  "tower_icon": {
+   "file": "ui/tower_icon.png",
+   "w": 69,
+   "h": 92,
+   "bytes": 937,
+   "source": "cartographypack",
+   "original": "PNG/Retina/tower.png",
+   "note": "Tour (icône de carte)",
+   "trim": {
+    "x": 30,
+    "y": 30,
+    "srcW": 128,
+    "srcH": 128
+   }
+  },
+  "watchtower_icon": {
+   "file": "ui/watchtower_icon.png",
+   "w": 84,
+   "h": 116,
+   "bytes": 1688,
+   "source": "cartographypack",
+   "original": "PNG/Retina/watchtower.png",
+   "note": "Tour de guet sur pilotis",
+   "trim": {
+    "x": 22,
+    "y": 6,
+    "srcW": 128,
+    "srcH": 128
+   }
+  },
+  "flag_icon": {
+   "file": "ui/flag_icon.png",
+   "w": 70,
+   "h": 108,
+   "bytes": 978,
+   "source": "cartographypack",
+   "original": "PNG/Retina/flag.png",
+   "note": "Drapeau (icône de carte)",
+   "trim": {
+    "x": 52,
+    "y": 14,
+    "srcW": 128,
+    "srcH": 128
+   }
+  },
+  "chest": {
+   "file": "ui/chest.png",
+   "w": 86,
+   "h": 55,
+   "bytes": 985,
+   "source": "cartographypack",
+   "original": "PNG/Retina/chest.png",
+   "note": "Coffre",
+   "trim": {
+    "x": 21,
+    "y": 69,
+    "srcW": 128,
+    "srcH": 128
+   }
+  },
+  "campfire_icon": {
+   "file": "ui/campfire_icon.png",
+   "w": 69,
+   "h": 84,
+   "bytes": 1104,
+   "source": "cartographypack",
+   "original": "PNG/Retina/campfire.png",
+   "note": "Feu de camp",
+   "trim": {
+    "x": 29,
+    "y": 38,
+    "srcW": 128,
+    "srcH": 128
+   }
+  },
+  "path_straight": {
+   "file": "ui/path_straight.png",
+   "w": 67,
+   "h": 128,
+   "bytes": 1542,
+   "source": "cartographypack",
+   "original": "PNG/Retina/pathStraight.png",
+   "note": "Tracé de route droit (encre)",
+   "trim": {
+    "x": 30,
+    "y": 0,
+    "srcW": 128,
+    "srcH": 128
+   }
+  },
+  "path_corner": {
+   "file": "ui/path_corner.png",
+   "w": 98,
+   "h": 98,
+   "bytes": 1414,
+   "source": "cartographypack",
+   "original": "PNG/Retina/pathCorner.png",
+   "note": "Tracé de route coudé",
+   "trim": {
+    "x": 30,
+    "y": 0,
+    "srcW": 128,
+    "srcH": 128
+   }
+  },
+  "path_end": {
+   "file": "ui/path_end.png",
+   "w": 101,
+   "h": 115,
+   "bytes": 1802,
+   "source": "cartographypack",
+   "original": "PNG/Retina/pathEnd.png",
+   "note": "Tracé de route terminé (boucle)",
+   "trim": {
+    "x": 13,
+    "y": 0,
+    "srcW": 128,
+    "srcH": 128
+   }
+  },
+  "path_split": {
+   "file": "ui/path_split.png",
+   "w": 99,
+   "h": 128,
+   "bytes": 1742,
+   "source": "cartographypack",
+   "original": "PNG/Retina/pathSplit.png",
+   "note": "Tracé de route bifurquant",
+   "trim": {
+    "x": 29,
+    "y": 0,
+    "srcW": 128,
+    "srcH": 128
+   }
+  },
+  "lake_icon": {
+   "file": "ui/lake_icon.png",
+   "w": 208,
+   "h": 97,
+   "bytes": 2093,
+   "source": "cartographypack",
+   "original": "PNG/Retina/lake.png",
+   "note": "Étendue d'eau (icône)",
+   "trim": {
+    "x": 25,
+    "y": 16,
+    "srcW": 256,
+    "srcH": 128
+   }
+  },
+  "bush_icon": {
+   "file": "ui/bush_icon.png",
+   "w": 52,
+   "h": 60,
+   "bytes": 629,
+   "source": "cartographypack",
+   "original": "PNG/Retina/bush.png",
+   "note": "Buisson",
+   "trim": {
+    "x": 38,
+    "y": 62,
+    "srcW": 128,
+    "srcH": 128
+   }
+  },
+  "icon_gear": {
+   "file": "ui/icon_gear.png",
+   "w": 64,
+   "h": 64,
+   "bytes": 1180,
+   "source": "gameicons",
+   "original": "PNG/White/2x/gear.png",
+   "note": "Engrenage (options) — blanc, 100 px",
+   "trim": {
+    "x": 20,
+    "y": 20,
+    "srcW": 100,
+    "srcH": 100
+   }
+  },
+  "icon_audio_on": {
+   "file": "ui/icon_audio_on.png",
+   "w": 64,
+   "h": 65,
+   "bytes": 721,
+   "source": "gameicons",
+   "original": "PNG/White/2x/audioOn.png",
+   "note": "Son activé — blanc, 100 px",
+   "trim": {
+    "x": 18,
+    "y": 20,
+    "srcW": 100,
+    "srcH": 100
+   }
+  },
+  "icon_audio_off": {
+   "file": "ui/icon_audio_off.png",
+   "w": 40,
+   "h": 65,
+   "bytes": 391,
+   "source": "gameicons",
+   "original": "PNG/White/2x/audioOff.png",
+   "note": "Son coupé — blanc, 100 px",
+   "trim": {
+    "x": 18,
+    "y": 20,
+    "srcW": 100,
+    "srcH": 100
+   }
+  },
+  "icon_music_on": {
+   "file": "ui/icon_music_on.png",
+   "w": 55,
+   "h": 62,
+   "bytes": 596,
+   "source": "gameicons",
+   "original": "PNG/White/2x/musicOn.png",
+   "note": "Musique activée — blanc, 100 px",
+   "trim": {
+    "x": 22,
+    "y": 22,
+    "srcW": 100,
+    "srcH": 100
+   }
+  },
+  "icon_music_off": {
+   "file": "ui/icon_music_off.png",
+   "w": 60,
+   "h": 62,
+   "bytes": 728,
+   "source": "gameicons",
+   "original": "PNG/White/2x/musicOff.png",
+   "note": "Musique coupée — blanc, 100 px",
+   "trim": {
+    "x": 22,
+    "y": 22,
+    "srcW": 100,
+    "srcH": 100
+   }
+  },
+  "icon_pause": {
+   "file": "ui/icon_pause.png",
+   "w": 56,
+   "h": 65,
+   "bytes": 281,
+   "source": "gameicons",
+   "original": "PNG/White/2x/pause.png",
+   "note": "Pause — blanc, 100 px",
+   "trim": {
+    "x": 22,
+    "y": 16,
+    "srcW": 100,
+    "srcH": 100
+   }
+  },
+  "icon_play": {
+   "file": "ui/icon_play.png",
+   "w": 40,
+   "h": 64,
+   "bytes": 393,
+   "source": "gameicons",
+   "original": "PNG/White/2x/right.png",
+   "note": "Lecture — le pack n'a pas de « play » : triangle « right » — blanc, 100 px",
+   "trim": {
+    "x": 30,
+    "y": 18,
+    "srcW": 100,
+    "srcH": 100
+   }
+  },
+  "icon_return": {
+   "file": "ui/icon_return.png",
+   "w": 62,
+   "h": 56,
+   "bytes": 853,
+   "source": "gameicons",
+   "original": "PNG/White/2x/return.png",
+   "note": "Retour (flèche courbe) — blanc, 100 px",
+   "trim": {
+    "x": 22,
+    "y": 26,
+    "srcW": 100,
+    "srcH": 100
+   }
+  },
+  "icon_home": {
+   "file": "ui/icon_home.png",
+   "w": 64,
+   "h": 64,
+   "bytes": 353,
+   "source": "gameicons",
+   "original": "PNG/White/2x/home.png",
+   "note": "Accueil — blanc, 100 px",
+   "trim": {
+    "x": 20,
+    "y": 18,
+    "srcW": 100,
+    "srcH": 100
+   }
+  },
+  "icon_star": {
+   "file": "ui/icon_star.png",
+   "w": 64,
+   "h": 60,
+   "bytes": 708,
+   "source": "gameicons",
+   "original": "PNG/White/2x/star.png",
+   "note": "Étoile (Éclats) — blanc, 100 px",
+   "trim": {
+    "x": 18,
+    "y": 20,
+    "srcW": 100,
+    "srcH": 100
+   }
+  },
+  "icon_question": {
+   "file": "ui/icon_question.png",
+   "w": 40,
+   "h": 64,
+   "bytes": 650,
+   "source": "gameicons",
+   "original": "PNG/White/2x/question.png",
+   "note": "Aide — blanc, 100 px",
+   "trim": {
+    "x": 30,
+    "y": 22,
+    "srcW": 100,
+    "srcH": 100
+   }
+  },
+  "icon_info": {
+   "file": "ui/icon_info.png",
+   "w": 36,
+   "h": 68,
+   "bytes": 461,
+   "source": "gameicons",
+   "original": "PNG/White/2x/information.png",
+   "note": "Information — blanc, 100 px",
+   "trim": {
+    "x": 34,
+    "y": 18,
+    "srcW": 100,
+    "srcH": 100
+   }
+  },
+  "icon_cross": {
+   "file": "ui/icon_cross.png",
+   "w": 64,
+   "h": 64,
+   "bytes": 567,
+   "source": "gameicons",
+   "original": "PNG/White/2x/cross.png",
+   "note": "Croix (fermer) — blanc, 100 px",
+   "trim": {
+    "x": 18,
+    "y": 20,
+    "srcW": 100,
+    "srcH": 100
+   }
+  },
+  "icon_check": {
+   "file": "ui/icon_check.png",
+   "w": 64,
+   "h": 57,
+   "bytes": 789,
+   "source": "gameicons",
+   "original": "PNG/White/2x/checkmark.png",
+   "note": "Coche — blanc, 100 px",
+   "trim": {
+    "x": 18,
+    "y": 23,
+    "srcW": 100,
+    "srcH": 100
+   }
+  },
+  "icon_arrow_left": {
+   "file": "ui/icon_arrow_left.png",
+   "w": 68,
+   "h": 56,
+   "bytes": 427,
+   "source": "gameicons",
+   "original": "PNG/White/2x/arrowLeft.png",
+   "note": "Flèche gauche — blanc, 100 px",
+   "trim": {
+    "x": 16,
+    "y": 22,
+    "srcW": 100,
+    "srcH": 100
+   }
+  },
+  "icon_arrow_right": {
+   "file": "ui/icon_arrow_right.png",
+   "w": 68,
+   "h": 56,
+   "bytes": 404,
+   "source": "gameicons",
+   "original": "PNG/White/2x/arrowRight.png",
+   "note": "Flèche droite — blanc, 100 px",
+   "trim": {
+    "x": 16,
+    "y": 22,
+    "srcW": 100,
+    "srcH": 100
+   }
+  },
+  "icon_arrow_up": {
+   "file": "ui/icon_arrow_up.png",
+   "w": 56,
+   "h": 68,
+   "bytes": 344,
+   "source": "gameicons",
+   "original": "PNG/White/2x/arrowUp.png",
+   "note": "Flèche haut — blanc, 100 px",
+   "trim": {
+    "x": 22,
+    "y": 16,
+    "srcW": 100,
+    "srcH": 100
+   }
+  },
+  "icon_arrow_down": {
+   "file": "ui/icon_arrow_down.png",
+   "w": 56,
+   "h": 68,
+   "bytes": 436,
+   "source": "gameicons",
+   "original": "PNG/White/2x/arrowDown.png",
+   "note": "Flèche bas — blanc, 100 px",
+   "trim": {
+    "x": 22,
+    "y": 16,
+    "srcW": 100,
+    "srcH": 100
+   }
+  },
+  "icon_trophy": {
+   "file": "ui/icon_trophy.png",
+   "w": 64,
+   "h": 56,
+   "bytes": 361,
+   "source": "gameicons",
+   "original": "PNG/White/2x/trophy.png",
+   "note": "Trophée — blanc, 100 px",
+   "trim": {
+    "x": 18,
+    "y": 28,
+    "srcW": 100,
+    "srcH": 100
+   }
+  },
+  "icon_medal": {
+   "file": "ui/icon_medal.png",
+   "w": 48,
+   "h": 68,
+   "bytes": 688,
+   "source": "gameicons",
+   "original": "PNG/White/2x/medal1.png",
+   "note": "Médaille — blanc, 100 px",
+   "trim": {
+    "x": 28,
+    "y": 20,
+    "srcW": 100,
+    "srcH": 100
+   }
+  },
+  "icon_leaderboard": {
+   "file": "ui/icon_leaderboard.png",
+   "w": 72,
+   "h": 48,
+   "bytes": 192,
+   "source": "gameicons",
+   "original": "PNG/White/2x/leaderboardsSimple.png",
+   "note": "Classement — blanc, 100 px",
+   "trim": {
+    "x": 12,
+    "y": 36,
+    "srcW": 100,
+    "srcH": 100
+   }
+  },
+  "icon_locked": {
+   "file": "ui/icon_locked.png",
+   "w": 64,
+   "h": 64,
+   "bytes": 350,
+   "source": "gameicons",
+   "original": "PNG/White/2x/locked.png",
+   "note": "Cadenas fermé — blanc, 100 px",
+   "trim": {
+    "x": 20,
+    "y": 20,
+    "srcW": 100,
+    "srcH": 100
+   }
+  },
+  "icon_unlocked": {
+   "file": "ui/icon_unlocked.png",
+   "w": 64,
+   "h": 76,
+   "bytes": 367,
+   "source": "gameicons",
+   "original": "PNG/White/2x/unlocked.png",
+   "note": "Cadenas ouvert — blanc, 100 px",
+   "trim": {
+    "x": 20,
+    "y": 14,
+    "srcW": 100,
+    "srcH": 100
+   }
+  },
+  "icon_fullscreen": {
+   "file": "ui/icon_fullscreen.png",
+   "w": 64,
+   "h": 65,
+   "bytes": 477,
+   "source": "gameicons",
+   "original": "PNG/White/2x/larger.png",
+   "note": "Plein écran (agrandir) — blanc, 100 px",
+   "trim": {
+    "x": 20,
+    "y": 20,
+    "srcW": 100,
+    "srcH": 100
+   }
+  },
+  "icon_fullscreen_exit": {
+   "file": "ui/icon_fullscreen_exit.png",
+   "w": 64,
+   "h": 65,
+   "bytes": 503,
+   "source": "gameicons",
+   "original": "PNG/White/2x/smaller.png",
+   "note": "Quitter le plein écran — blanc, 100 px",
+   "trim": {
+    "x": 20,
+    "y": 20,
+    "srcW": 100,
+    "srcH": 100
+   }
+  },
+  "icon_exit": {
+   "file": "ui/icon_exit.png",
+   "w": 50,
+   "h": 66,
+   "bytes": 430,
+   "source": "gameicons",
+   "original": "PNG/White/2x/exit.png",
+   "note": "Quitter — blanc, 100 px",
+   "trim": {
+    "x": 26,
+    "y": 20,
+    "srcW": 100,
+    "srcH": 100
+   }
+  },
+  "icon_wrench": {
+   "file": "ui/icon_wrench.png",
+   "w": 64,
+   "h": 64,
+   "bytes": 833,
+   "source": "gameicons",
+   "original": "PNG/White/2x/wrench.png",
+   "note": "Clé (atelier) — blanc, 100 px",
+   "trim": {
+    "x": 20,
+    "y": 20,
+    "srcW": 100,
+    "srcH": 100
+   }
+  },
+  "icon_flag": {
+   "file": "ui/icon_flag.png",
+   "w": 67,
+   "h": 69,
+   "bytes": 619,
+   "source": "gameicons-expansion",
+   "original": "PNG/White/2x/flag.png",
+   "note": "Drapeau (depuis l'expansion) — blanc, 100 px",
+   "trim": {
+    "x": 19,
+    "y": 16,
+    "srcW": 100,
+    "srcH": 100
+   }
+  },
+  "icon_target": {
+   "file": "ui/icon_target.png",
+   "w": 64,
+   "h": 65,
+   "bytes": 1074,
+   "source": "gameicons",
+   "original": "PNG/White/2x/target.png",
+   "note": "Cible — blanc, 100 px",
+   "trim": {
+    "x": 20,
+    "y": 19,
+    "srcW": 100,
+    "srcH": 100
+   }
+  },
+  "icon_signal": {
+   "file": "ui/icon_signal.png",
+   "w": 64,
+   "h": 64,
+   "bytes": 322,
+   "source": "gameicons",
+   "original": "PNG/White/2x/signal3.png",
+   "note": "Signal (3 barres) — corne de brume — blanc, 100 px",
+   "trim": {
+    "x": 18,
+    "y": 20,
+    "srcW": 100,
+    "srcH": 100
+   }
+  },
+  "icon_signal_low": {
+   "file": "ui/icon_signal_low.png",
+   "w": 16,
+   "h": 32,
+   "bytes": 159,
+   "source": "gameicons",
+   "original": "PNG/White/2x/siganl1.png",
+   "note": "Signal (1 barre) — nom Kenney mal orthographié « siganl1 » — blanc, 100 px",
+   "trim": {
+    "x": 18,
+    "y": 52,
+    "srcW": 100,
+    "srcH": 100
+   }
+  },
+  "icon_warning": {
+   "file": "ui/icon_warning.png",
+   "w": 66,
+   "h": 62,
+   "bytes": 781,
+   "source": "gameicons",
+   "original": "PNG/White/2x/warning.png",
+   "note": "Avertissement — blanc, 100 px",
+   "trim": {
+    "x": 18,
+    "y": 22,
+    "srcW": 100,
+    "srcH": 100
+   }
+  },
+  "icon_exclamation": {
+   "file": "ui/icon_exclamation.png",
+   "w": 16,
+   "h": 60,
+   "bytes": 291,
+   "source": "gameicons",
+   "original": "PNG/White/2x/exclamation.png",
+   "note": "Point d'exclamation — blanc, 100 px",
+   "trim": {
+    "x": 42,
+    "y": 24,
+    "srcW": 100,
+    "srcH": 100
+   }
+  },
+  "icon_next": {
+   "file": "ui/icon_next.png",
+   "w": 56,
+   "h": 64,
+   "bytes": 455,
+   "source": "gameicons",
+   "original": "PNG/White/2x/next.png",
+   "note": "Suivant — blanc, 100 px",
+   "trim": {
+    "x": 22,
+    "y": 20,
+    "srcW": 100,
+    "srcH": 100
+   }
+  },
+  "icon_previous": {
+   "file": "ui/icon_previous.png",
+   "w": 56,
+   "h": 64,
+   "bytes": 451,
+   "source": "gameicons",
+   "original": "PNG/White/2x/previous.png",
+   "note": "Précédent — blanc, 100 px",
+   "trim": {
+    "x": 22,
+    "y": 20,
+    "srcW": 100,
+    "srcH": 100
+   }
+  },
+  "icon_plus": {
+   "file": "ui/icon_plus.png",
+   "w": 64,
+   "h": 64,
+   "bytes": 319,
+   "source": "gameicons",
+   "original": "PNG/White/2x/plus.png",
+   "note": "Plus — blanc, 100 px",
+   "trim": {
+    "x": 20,
+    "y": 20,
+    "srcW": 100,
+    "srcH": 100
+   }
+  },
+  "icon_minus": {
+   "file": "ui/icon_minus.png",
+   "w": 64,
+   "h": 16,
+   "bytes": 169,
+   "source": "gameicons",
+   "original": "PNG/White/2x/minus.png",
+   "note": "Moins — blanc, 100 px",
+   "trim": {
+    "x": 20,
+    "y": 44,
+    "srcW": 100,
+    "srcH": 100
+   }
+  },
+  "icon_save": {
+   "file": "ui/icon_save.png",
+   "w": 64,
+   "h": 64,
+   "bytes": 272,
+   "source": "gameicons",
+   "original": "PNG/White/2x/save.png",
+   "note": "Sauvegarde — blanc, 100 px",
+   "trim": {
+    "x": 18,
+    "y": 20,
+    "srcW": 100,
+    "srcH": 100
+   }
+  },
+  "icon_power": {
+   "file": "ui/icon_power.png",
+   "w": 68,
+   "h": 68,
+   "bytes": 1024,
+   "source": "gameicons",
+   "original": "PNG/White/2x/power.png",
+   "note": "Marche / arrêt — blanc, 100 px",
+   "trim": {
+    "x": 18,
+    "y": 20,
+    "srcW": 100,
+    "srcH": 100
+   }
+  },
+  "icon_stop": {
+   "file": "ui/icon_stop.png",
+   "w": 60,
+   "h": 60,
+   "bytes": 218,
+   "source": "gameicons",
+   "original": "PNG/White/2x/stop.png",
+   "note": "Stop — blanc, 100 px",
+   "trim": {
+    "x": 20,
+    "y": 22,
+    "srcW": 100,
+    "srcH": 100
+   }
+  },
+  "icon_contrast": {
+   "file": "ui/icon_contrast.png",
+   "w": 64,
+   "h": 65,
+   "bytes": 929,
+   "source": "gameicons",
+   "original": "PNG/White/2x/contrast.png",
+   "note": "Contraste (mode nuit) — blanc, 100 px",
+   "trim": {
+    "x": 16,
+    "y": 19,
+    "srcW": 100,
+    "srcH": 100
+   }
+  },
+  "icon_menu": {
+   "file": "ui/icon_menu.png",
+   "w": 72,
+   "h": 64,
+   "bytes": 300,
+   "source": "gameicons",
+   "original": "PNG/White/2x/barsHorizontal.png",
+   "note": "Menu (trois barres) — blanc, 100 px",
+   "trim": {
+    "x": 18,
+    "y": 16,
+    "srcW": 100,
+    "srcH": 100
+   }
+  },
+  "icon_key": {
+   "file": "ui/icon_key.png",
+   "w": 68,
+   "h": 60,
+   "bytes": 868,
+   "source": "gameicons-expansion",
+   "original": "PNG/White/2x/key.png",
+   "note": "Clé (pages / secrets) — blanc, 100 px",
+   "trim": {
+    "x": 18,
+    "y": 24,
+    "srcW": 100,
+    "srcH": 100
+   }
+  },
+  "icon_diamond": {
+   "file": "ui/icon_diamond.png",
+   "w": 66,
+   "h": 54,
+   "bytes": 679,
+   "source": "gameicons-expansion",
+   "original": "PNG/White/2x/diamond.png",
+   "note": "Diamant — blanc, 100 px",
+   "trim": {
+    "x": 20,
+    "y": 26,
+    "srcW": 100,
+    "srcH": 100
+   }
+  },
+  "icon_cloud": {
+   "file": "ui/icon_cloud.png",
+   "w": 82,
+   "h": 52,
+   "bytes": 686,
+   "source": "gameicons-expansion",
+   "original": "PNG/White/2x/cloud.png",
+   "note": "Nuage (brume, météo) — blanc, 100 px",
+   "trim": {
+    "x": 12,
+    "y": 28,
+    "srcW": 100,
+    "srcH": 100
+   }
+  },
+  "panel_grey": {
+   "file": "ui/panel_grey.png",
+   "w": 100,
+   "h": 100,
+   "bytes": 653,
+   "source": "uipack_fixed",
+   "original": "PNG/grey_panel.png",
+   "note": "Panneau 9-slice gris (bords 10 px)",
+   "trim": null
+  },
+  "button_grey_normal": {
+   "file": "ui/button_grey_normal.png",
+   "w": 190,
+   "h": 45,
+   "bytes": 491,
+   "source": "uipack_fixed",
+   "original": "PNG/grey_button02.png",
+   "note": "Bouton gris, état normal (avec ombre basse)",
+   "trim": null
+  },
+  "button_grey_pressed": {
+   "file": "ui/button_grey_pressed.png",
+   "w": 190,
+   "h": 49,
+   "bytes": 568,
+   "source": "uipack_fixed",
+   "original": "PNG/grey_button03.png",
+   "note": "Bouton gris, état pressé (plat)",
+   "trim": null
+  },
+  "slider_track": {
+   "file": "ui/slider_track.png",
+   "w": 190,
+   "h": 4,
+   "bytes": 97,
+   "source": "uipack_fixed",
+   "original": "PNG/grey_sliderHorizontal.png",
+   "note": "Piste de curseur horizontale 190×4",
+   "trim": null
+  },
+  "slider_handle": {
+   "file": "ui/slider_handle.png",
+   "w": 36,
+   "h": 36,
+   "bytes": 1253,
+   "source": "uipack_fixed",
+   "original": "PNG/grey_circle.png",
+   "note": "Poignée ronde de curseur",
+   "trim": null
+  },
+  "slider_end": {
+   "file": "ui/slider_end.png",
+   "w": 8,
+   "h": 10,
+   "bytes": 233,
+   "source": "uipack_fixed",
+   "original": "PNG/grey_sliderEnd.png",
+   "note": "Bout de piste de curseur",
+   "trim": null
+  },
+  "checkbox_on": {
+   "file": "ui/checkbox_on.png",
+   "w": 38,
+   "h": 36,
+   "bytes": 1053,
+   "source": "uipack_fixed",
+   "original": "PNG/grey_boxCheckmark.png",
+   "note": "Case cochée",
+   "trim": null
+  },
+  "checkbox_off": {
+   "file": "ui/checkbox_off.png",
+   "w": 38,
+   "h": 36,
+   "bytes": 694,
+   "source": "uipack_fixed",
+   "original": "PNG/grey_box.png",
+   "note": "Case vide",
+   "trim": null
+  },
+  "box_tick": {
+   "file": "ui/box_tick.png",
+   "w": 36,
+   "h": 36,
+   "bytes": 1472,
+   "source": "uipack_fixed",
+   "original": "PNG/grey_boxTick.png",
+   "note": "Case avec coche fine",
+   "trim": null
+  },
+  "crosshair_1": {
+   "file": "ui/crosshair_1.png",
+   "w": 96,
+   "h": 96,
+   "bytes": 955,
+   "source": "crosshairpack_kenney",
+   "original": "PNG/White Retina.zip!crosshair117.png",
+   "note": "Réticule fin : cercle simple (blanc, Retina 128 px)",
+   "trim": {
+    "x": 16,
+    "y": 16,
+    "srcW": 128,
+    "srcH": 128
+   }
+  },
+  "crosshair_2": {
+   "file": "ui/crosshair_2.png",
+   "w": 120,
+   "h": 120,
+   "bytes": 1218,
+   "source": "crosshairpack_kenney",
+   "original": "PNG/White Retina.zip!crosshair118.png",
+   "note": "Réticule fin : cercle + point central (blanc, Retina 128 px)",
+   "trim": {
+    "x": 4,
+    "y": 4,
+    "srcW": 128,
+    "srcH": 128
+   }
+  },
+  "fish_1": {
+   "file": "fauna/fish_1.png",
+   "w": 108,
+   "h": 76,
+   "bytes": 1428,
+   "source": "kenney_fishpack",
+   "original": "PNG/Retina/fishTile_072.png",
+   "note": "Poisson vert — pose A, regarde vers la gauche",
+   "trim": {
+    "x": 10,
+    "y": 28,
+    "srcW": 128,
+    "srcH": 128
+   }
+  },
+  "fish_1_b": {
+   "file": "fauna/fish_1_b.png",
+   "w": 116,
+   "h": 84,
+   "bytes": 1847,
+   "source": "kenney_fishpack",
+   "original": "PNG/Retina/fishTile_073.png",
+   "note": "Poisson vert — pose B (animation 2 images)",
+   "trim": {
+    "x": 6,
+    "y": 24,
+    "srcW": 128,
+    "srcH": 128
+   }
+  },
+  "fish_2": {
+   "file": "fauna/fish_2.png",
+   "w": 78,
+   "h": 46,
+   "bytes": 924,
+   "source": "kenney_fishpack",
+   "original": "PNG/Retina/fishTile_074.png",
+   "note": "Petit poisson violet — pose A, regarde vers la gauche",
+   "trim": {
+    "x": 25,
+    "y": 41,
+    "srcW": 128,
+    "srcH": 128
+   }
+  },
+  "fish_2_b": {
+   "file": "fauna/fish_2_b.png",
+   "w": 86,
+   "h": 54,
+   "bytes": 1223,
+   "source": "kenney_fishpack",
+   "original": "PNG/Retina/fishTile_075.png",
+   "note": "Petit poisson violet — pose B (animation 2 images)",
+   "trim": {
+    "x": 21,
+    "y": 37,
+    "srcW": 128,
+    "srcH": 128
+   }
+  },
+  "fish_3": {
+   "file": "fauna/fish_3.png",
+   "w": 114,
+   "h": 64,
+   "bytes": 1227,
+   "source": "kenney_fishpack",
+   "original": "PNG/Retina/fishTile_076.png",
+   "note": "Poisson bleu — pose A, regarde vers la gauche",
+   "trim": {
+    "x": 7,
+    "y": 32,
+    "srcW": 128,
+    "srcH": 128
+   }
+  },
+  "fish_3_b": {
+   "file": "fauna/fish_3_b.png",
+   "w": 122,
+   "h": 72,
+   "bytes": 1662,
+   "source": "kenney_fishpack",
+   "original": "PNG/Retina/fishTile_077.png",
+   "note": "Poisson bleu — pose B (animation 2 images)",
+   "trim": {
+    "x": 3,
+    "y": 28,
+    "srcW": 128,
+    "srcH": 128
+   }
+  },
+  "fish_4": {
+   "file": "fauna/fish_4.png",
+   "w": 112,
+   "h": 88,
+   "bytes": 1473,
+   "source": "kenney_fishpack",
+   "original": "PNG/Retina/fishTile_078.png",
+   "note": "Poisson rouge — pose A, regarde vers la gauche",
+   "trim": {
+    "x": 8,
+    "y": 20,
+    "srcW": 128,
+    "srcH": 128
+   }
+  },
+  "fish_4_b": {
+   "file": "fauna/fish_4_b.png",
+   "w": 120,
+   "h": 96,
+   "bytes": 2011,
+   "source": "kenney_fishpack",
+   "original": "PNG/Retina/fishTile_079.png",
+   "note": "Poisson rouge — pose B (animation 2 images)",
+   "trim": {
+    "x": 4,
+    "y": 16,
+    "srcW": 128,
+    "srcH": 128
+   }
+  },
+  "fish_5": {
+   "file": "fauna/fish_5.png",
+   "w": 108,
+   "h": 58,
+   "bytes": 1303,
+   "source": "kenney_fishpack",
+   "original": "PNG/Retina/fishTile_080.png",
+   "note": "Poisson orange — pose A, regarde vers la gauche",
+   "trim": {
+    "x": 10,
+    "y": 35,
+    "srcW": 128,
+    "srcH": 128
+   }
+  },
+  "fish_5_b": {
+   "file": "fauna/fish_5_b.png",
+   "w": 116,
+   "h": 66,
+   "bytes": 1712,
+   "source": "kenney_fishpack",
+   "original": "PNG/Retina/fishTile_081.png",
+   "note": "Poisson orange — pose B (animation 2 images)",
+   "trim": {
+    "x": 6,
+    "y": 31,
+    "srcW": 128,
+    "srcH": 128
+   }
+  },
+  "fish_6": {
+   "file": "fauna/fish_6.png",
+   "w": 106,
+   "h": 103,
+   "bytes": 1772,
+   "source": "kenney_fishpack",
+   "original": "PNG/Retina/fishTile_100.png",
+   "note": "Poisson-globe brun — pose A, regarde vers la gauche",
+   "trim": {
+    "x": 11,
+    "y": 13,
+    "srcW": 128,
+    "srcH": 128
+   }
+  },
+  "fish_6_b": {
+   "file": "fauna/fish_6_b.png",
+   "w": 114,
+   "h": 120,
+   "bytes": 2409,
+   "source": "kenney_fishpack",
+   "original": "PNG/Retina/fishTile_101.png",
+   "note": "Poisson-globe brun — pose B (animation 2 images)",
+   "trim": {
+    "x": 7,
+    "y": 0,
+    "srcW": 128,
+    "srcH": 128
+   }
+  },
+  "fish_7": {
+   "file": "fauna/fish_7.png",
+   "w": 109,
+   "h": 41,
+   "bytes": 897,
+   "source": "kenney_fishpack",
+   "original": "PNG/Retina/fishTile_102.png",
+   "note": "Anguille grise courte — pose A, regarde vers la gauche",
+   "trim": {
+    "x": 10,
+    "y": 42,
+    "srcW": 128,
+    "srcH": 128
+   }
+  },
+  "fish_7_b": {
+   "file": "fauna/fish_7_b.png",
+   "w": 118,
+   "h": 87,
+   "bytes": 1283,
+   "source": "kenney_fishpack",
+   "original": "PNG/Retina/fishTile_103.png",
+   "note": "Anguille grise courte — pose B (animation 2 images)",
+   "trim": {
+    "x": 5,
+    "y": 0,
+    "srcW": 128,
+    "srcH": 128
+   }
+  },
+  "fish_8": {
+   "file": "fauna/fish_8.png",
+   "w": 212,
+   "h": 83,
+   "bytes": 2012,
+   "source": "kenney_fishpack",
+   "original": "PNG/Retina/fishTile_104.png + PNG/Retina/fishTile_105.png",
+   "note": "Anguille grise longue (2 tuiles assemblées 104+105) — pose A",
+   "trim": {
+    "x": 31,
+    "y": 0,
+    "srcW": 256,
+    "srcH": 128
+   }
+  },
+  "fish_8_b": {
+   "file": "fauna/fish_8_b.png",
+   "w": 203,
+   "h": 49,
+   "bytes": 2797,
+   "source": "kenney_fishpack",
+   "original": "PNG/Retina/fishTile_106.png + PNG/Retina/fishTile_107.png",
+   "note": "Anguille grise longue (2 tuiles assemblées 106+107) — pose B",
+   "trim": {
+    "x": 26,
+    "y": 38,
+    "srcW": 256,
+    "srcH": 128
+   }
+  },
+  "bubble_1": {
+   "file": "fauna/bubble_1.png",
+   "w": 48,
+   "h": 48,
+   "bytes": 521,
+   "source": "kenney_fishpack",
+   "original": "PNG/Retina/fishTile_123.png",
+   "note": "Bulle (anneau)",
+   "trim": {
+    "x": 40,
+    "y": 40,
+    "srcW": 128,
+    "srcH": 128
+   }
+  },
+  "bubble_2": {
+   "file": "fauna/bubble_2.png",
+   "w": 24,
+   "h": 24,
+   "bytes": 308,
+   "source": "kenney_fishpack",
+   "original": "PNG/Retina/fishTile_124.png",
+   "note": "Bulle (pleine)",
+   "trim": {
+    "x": 52,
+    "y": 52,
+    "srcW": 128,
+    "srcH": 128
+   }
+  },
+  "bubble_3": {
+   "file": "fauna/bubble_3.png",
+   "w": 24,
+   "h": 24,
+   "bytes": 362,
+   "source": "kenney_fishpack",
+   "original": "PNG/Retina/fishTile_125.png",
+   "note": "Petite bulle (anneau)",
+   "trim": {
+    "x": 52,
+    "y": 52,
+    "srcW": 128,
+    "srcH": 128
+   }
+  },
+  "bones_1": {
+   "file": "fauna/bones_1.png",
+   "w": 98,
+   "h": 69,
+   "bytes": 1174,
+   "source": "kenney_fishpack",
+   "original": "PNG/Retina/fishTile_090.png",
+   "note": "Arête de poisson (décor lugubre)",
+   "trim": {
+    "x": 20,
+    "y": 28,
+    "srcW": 128,
+    "srcH": 128
+   }
+  },
+  "bones_2": {
+   "file": "fauna/bones_2.png",
+   "w": 101,
+   "h": 54,
+   "bytes": 964,
+   "source": "kenney_fishpack",
+   "original": "PNG/Retina/fishTile_094.png",
+   "note": "Arête de poisson (décor lugubre)",
+   "trim": {
+    "x": 20,
+    "y": 32,
+    "srcW": 128,
+    "srcH": 128
+   }
+  },
+  "bones_3": {
+   "file": "fauna/bones_3.png",
+   "w": 102,
+   "h": 80,
+   "bytes": 1178,
+   "source": "kenney_fishpack",
+   "original": "PNG/Retina/fishTile_096.png",
+   "note": "Arête de poisson (décor lugubre)",
+   "trim": {
+    "x": 18,
+    "y": 20,
+    "srcW": 128,
+    "srcH": 128
+   }
+  },
+  "seaweed_1": {
+   "file": "fauna/seaweed_1.png",
+   "w": 89,
+   "h": 114,
+   "bytes": 1834,
+   "source": "kenney_fishpack",
+   "original": "PNG/Retina/fishTile_010.png",
+   "note": "Algue (violette 1-2, verte 3-4, bleue 5-6)",
+   "trim": {
+    "x": 19,
+    "y": 14,
+    "srcW": 128,
+    "srcH": 128
+   }
+  },
+  "seaweed_2": {
+   "file": "fauna/seaweed_2.png",
+   "w": 97,
+   "h": 118,
+   "bytes": 2500,
+   "source": "kenney_fishpack",
+   "original": "PNG/Retina/fishTile_014.png",
+   "note": "Algue (violette 1-2, verte 3-4, bleue 5-6)",
+   "trim": {
+    "x": 15,
+    "y": 10,
+    "srcW": 128,
+    "srcH": 128
+   }
+  },
+  "seaweed_3": {
+   "file": "fauna/seaweed_3.png",
+   "w": 89,
+   "h": 114,
+   "bytes": 1834,
+   "source": "kenney_fishpack",
+   "original": "PNG/Retina/fishTile_028.png",
+   "note": "Algue (violette 1-2, verte 3-4, bleue 5-6)",
+   "trim": {
+    "x": 19,
+    "y": 14,
+    "srcW": 128,
+    "srcH": 128
+   }
+  },
+  "seaweed_4": {
+   "file": "fauna/seaweed_4.png",
+   "w": 97,
+   "h": 118,
+   "bytes": 2491,
+   "source": "kenney_fishpack",
+   "original": "PNG/Retina/fishTile_032.png",
+   "note": "Algue (violette 1-2, verte 3-4, bleue 5-6)",
+   "trim": {
+    "x": 15,
+    "y": 10,
+    "srcW": 128,
+    "srcH": 128
+   }
+  },
+  "seaweed_5": {
+   "file": "fauna/seaweed_5.png",
+   "w": 89,
+   "h": 114,
+   "bytes": 1174,
+   "source": "kenney_fishpack",
+   "original": "PNG/Retina/fishTile_064.png",
+   "note": "Algue (violette 1-2, verte 3-4, bleue 5-6)",
+   "trim": {
+    "x": 19,
+    "y": 14,
+    "srcW": 128,
+    "srcH": 128
+   }
+  },
+  "seaweed_6": {
+   "file": "fauna/seaweed_6.png",
+   "w": 70,
+   "h": 84,
+   "bytes": 712,
+   "source": "kenney_fishpack",
+   "original": "PNG/Retina/fishTile_066.png",
+   "note": "Algue (violette 1-2, verte 3-4, bleue 5-6)",
+   "trim": {
+    "x": 30,
+    "y": 44,
+    "srcW": 128,
+    "srcH": 128
+   }
+  },
+  "starfish_1": {
+   "file": "fauna/starfish_1.png",
+   "w": 58,
+   "h": 58,
+   "bytes": 712,
+   "source": "kenney_fishpack",
+   "original": "PNG/Retina/fishTile_046.png",
+   "note": "Étoile de mer (petite)",
+   "trim": {
+    "x": 35,
+    "y": 70,
+    "srcW": 128,
+    "srcH": 128
+   }
+  },
+  "starfish_2": {
+   "file": "fauna/starfish_2.png",
+   "w": 90,
+   "h": 75,
+   "bytes": 1219,
+   "source": "kenney_fishpack",
+   "original": "PNG/Retina/fishTile_051.png",
+   "note": "Étoile de mer (grande)",
+   "trim": {
+    "x": 19,
+    "y": 53,
+    "srcW": 128,
+    "srcH": 128
+   }
+  },
+  "shell": {
+   "file": "fauna/shell.png",
+   "w": 128,
+   "h": 128,
+   "bytes": 1479,
+   "source": "kenney_fishpack",
+   "original": "PNG/Retina/fishTile_018.png",
+   "note": "Coquillage rose sur fond de sable (tuile pleine)",
+   "trim": null
+  },
+  "fog_1": {
+   "file": "fx/fog_1.png",
+   "w": 381,
+   "h": 409,
+   "bytes": 123464,
+   "source": "smokeparticleassets",
+   "original": "PNG/White puff/whitePuff23.png",
+   "note": "Nappe de brume : whitePuff le plus diffus (sélection automatique par alpha moyen), à agrandir ×3-4 et teinter #c9d3dc",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 381,
+    "srcH": 409
+   }
+  },
+  "fog_2": {
+   "file": "fx/fog_2.png",
+   "w": 400,
+   "h": 383,
+   "bytes": 115301,
+   "source": "smokeparticleassets",
+   "original": "PNG/White puff/whitePuff06.png",
+   "note": "Nappe de brume : whitePuff le plus diffus (sélection automatique par alpha moyen), à agrandir ×3-4 et teinter #c9d3dc",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 400,
+    "srcH": 383
+   }
+  },
+  "fog_3": {
+   "file": "fx/fog_3.png",
+   "w": 368,
+   "h": 405,
+   "bytes": 115443,
+   "source": "smokeparticleassets",
+   "original": "PNG/White puff/whitePuff09.png",
+   "note": "Nappe de brume : whitePuff le plus diffus (sélection automatique par alpha moyen), à agrandir ×3-4 et teinter #c9d3dc",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 368,
+    "srcH": 405
+   }
+  },
+  "fog_4": {
+   "file": "fx/fog_4.png",
+   "w": 419,
+   "h": 384,
+   "bytes": 126026,
+   "source": "smokeparticleassets",
+   "original": "PNG/White puff/whitePuff08.png",
+   "note": "Nappe de brume : whitePuff le plus diffus (sélection automatique par alpha moyen), à agrandir ×3-4 et teinter #c9d3dc",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 419,
+    "srcH": 384
+   }
+  },
+  "fog_5": {
+   "file": "fx/fog_5.png",
+   "w": 377,
+   "h": 411,
+   "bytes": 126482,
+   "source": "smokeparticleassets",
+   "original": "PNG/White puff/whitePuff19.png",
+   "note": "Nappe de brume : whitePuff le plus diffus (sélection automatique par alpha moyen), à agrandir ×3-4 et teinter #c9d3dc",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 377,
+    "srcH": 411
+   }
+  },
+  "fog_6": {
+   "file": "fx/fog_6.png",
+   "w": 371,
+   "h": 376,
+   "bytes": 112454,
+   "source": "smokeparticleassets",
+   "original": "PNG/White puff/whitePuff21.png",
+   "note": "Nappe de brume : whitePuff le plus diffus (sélection automatique par alpha moyen), à agrandir ×3-4 et teinter #c9d3dc",
+   "trim": {
+    "x": 0,
+    "y": 0,
+    "srcW": 371,
+    "srcH": 376
+   }
+  }
+ }
+}
