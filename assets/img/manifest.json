@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-17T14:05:12+00:00",
+ "generated": "2026-09-17T14:46:56+00:00",
  "generator": "tools/build_images.py",
  "conventions": {
   "hex": {
@@ -1609,6 +1609,378 @@
    "tile": "ruins",
    "method": "svg2x"
   },
+  "hill_1_spring": {
+   "file": "tiles/hill_1_spring.png",
+   "w": 240,
+   "h": 280,
+   "bytes": 17773,
+   "source": [
+    "hexagon-pack",
+    "hexagontiles"
+   ],
+   "original": "PNG/Objects/treePine_small.png + PNG/Objects/treeRound_small.png + PNG/Tiles/Terrain/Grass/grass_17.png + hexagontiles/Tiles/bushGrass.png",
+   "note": "Colline : tuile surélevée grass_17 (plateau et talus) recolorée par saison + feuillu, pin nain et touffe. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
+   "season": "spring",
+   "family": "hill",
+   "tile": "hill_1",
+   "method": "svg2x"
+  },
+  "hill_1_summer": {
+   "file": "tiles/hill_1_summer.png",
+   "w": 240,
+   "h": 280,
+   "bytes": 17336,
+   "source": [
+    "hexagon-pack",
+    "hexagontiles"
+   ],
+   "original": "PNG/Objects/treePine_small.png + PNG/Objects/treeRound_small.png + PNG/Tiles/Terrain/Grass/grass_17.png + hexagontiles/Tiles/bushGrass.png",
+   "note": "Colline : tuile surélevée grass_17 (plateau et talus) recolorée par saison + feuillu, pin nain et touffe. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
+   "season": "summer",
+   "family": "hill",
+   "tile": "hill_1",
+   "method": "svg2x"
+  },
+  "hill_1_autumn": {
+   "file": "tiles/hill_1_autumn.png",
+   "w": 240,
+   "h": 280,
+   "bytes": 17668,
+   "source": [
+    "hexagon-pack",
+    "hexagontiles"
+   ],
+   "original": "PNG/Objects/treePine_small.png + PNG/Objects/treeRound_small.png + PNG/Tiles/Terrain/Grass/grass_17.png + hexagontiles/Tiles/bushGrass.png",
+   "note": "Colline : tuile surélevée grass_17 (plateau et talus) recolorée par saison + feuillu, pin nain et touffe. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
+   "season": "autumn",
+   "family": "hill",
+   "tile": "hill_1",
+   "method": "svg2x"
+  },
+  "hill_1_winter": {
+   "file": "tiles/hill_1_winter.png",
+   "w": 240,
+   "h": 280,
+   "bytes": 17497,
+   "source": [
+    "hexagon-pack",
+    "hexagontiles"
+   ],
+   "original": "PNG/Objects/treePine_small.png + PNG/Objects/treeRound_small.png + PNG/Tiles/Terrain/Grass/grass_17.png + hexagontiles/Tiles/bushGrass.png",
+   "note": "Colline : tuile surélevée grass_17 (plateau et talus) recolorée par saison + feuillu, pin nain et touffe. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
+   "season": "winter",
+   "family": "hill",
+   "tile": "hill_1",
+   "method": "svg2x"
+  },
+  "hill_2_spring": {
+   "file": "tiles/hill_2_spring.png",
+   "w": 240,
+   "h": 280,
+   "bytes": 19533,
+   "source": [
+    "hexagon-pack",
+    "hexagontiles"
+   ],
+   "original": "PNG/Objects/rockGrey_small3.png + PNG/Objects/treePine_small.png + PNG/Objects/treeRound_small.png + PNG/Tiles/Terrain/Grass/grass_17.png + hexagontiles/Tiles/bushGrass.png",
+   "note": "Colline en miroir + pin nain, feuillu, petit rocher et touffe. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
+   "season": "spring",
+   "family": "hill",
+   "tile": "hill_2",
+   "method": "svg2x"
+  },
+  "hill_2_summer": {
+   "file": "tiles/hill_2_summer.png",
+   "w": 240,
+   "h": 280,
+   "bytes": 19043,
+   "source": [
+    "hexagon-pack",
+    "hexagontiles"
+   ],
+   "original": "PNG/Objects/rockGrey_small3.png + PNG/Objects/treePine_small.png + PNG/Objects/treeRound_small.png + PNG/Tiles/Terrain/Grass/grass_17.png + hexagontiles/Tiles/bushGrass.png",
+   "note": "Colline en miroir + pin nain, feuillu, petit rocher et touffe. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
+   "season": "summer",
+   "family": "hill",
+   "tile": "hill_2",
+   "method": "svg2x"
+  },
+  "hill_2_autumn": {
+   "file": "tiles/hill_2_autumn.png",
+   "w": 240,
+   "h": 280,
+   "bytes": 19482,
+   "source": [
+    "hexagon-pack",
+    "hexagontiles"
+   ],
+   "original": "PNG/Objects/rockGrey_small3.png + PNG/Objects/treePine_small.png + PNG/Objects/treeRound_small.png + PNG/Tiles/Terrain/Grass/grass_17.png + hexagontiles/Tiles/bushGrass.png",
+   "note": "Colline en miroir + pin nain, feuillu, petit rocher et touffe. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
+   "season": "autumn",
+   "family": "hill",
+   "tile": "hill_2",
+   "method": "svg2x"
+  },
+  "hill_2_winter": {
+   "file": "tiles/hill_2_winter.png",
+   "w": 240,
+   "h": 280,
+   "bytes": 19118,
+   "source": [
+    "hexagon-pack",
+    "hexagontiles"
+   ],
+   "original": "PNG/Objects/rockGrey_small3.png + PNG/Objects/treePine_small.png + PNG/Objects/treeRound_small.png + PNG/Tiles/Terrain/Grass/grass_17.png + hexagontiles/Tiles/bushGrass.png",
+   "note": "Colline en miroir + pin nain, feuillu, petit rocher et touffe. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
+   "season": "winter",
+   "family": "hill",
+   "tile": "hill_2",
+   "method": "svg2x"
+  },
+  "heath_1_spring": {
+   "file": "tiles/heath_1_spring.png",
+   "w": 240,
+   "h": 280,
+   "bytes": 18317,
+   "source": [
+    "hexagon-pack",
+    "hexagontiles"
+   ],
+   "original": "PNG/Objects/rockGrey_small3.png + PNG/Tiles/Terrain/Grass/grass_05.png + hexagontiles/Tiles/bushGrass.png",
+   "note": "Lande : sol ocre (grass_05 recolorée) + quatre touffes de bruyère + petit rocher. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
+   "season": "spring",
+   "family": "heath",
+   "tile": "heath_1",
+   "method": "svg2x"
+  },
+  "heath_1_summer": {
+   "file": "tiles/heath_1_summer.png",
+   "w": 240,
+   "h": 280,
+   "bytes": 18203,
+   "source": [
+    "hexagon-pack",
+    "hexagontiles"
+   ],
+   "original": "PNG/Objects/rockGrey_small3.png + PNG/Tiles/Terrain/Grass/grass_05.png + hexagontiles/Tiles/bushGrass.png",
+   "note": "Lande : sol ocre (grass_05 recolorée) + quatre touffes de bruyère + petit rocher. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
+   "season": "summer",
+   "family": "heath",
+   "tile": "heath_1",
+   "method": "svg2x"
+  },
+  "heath_1_autumn": {
+   "file": "tiles/heath_1_autumn.png",
+   "w": 240,
+   "h": 280,
+   "bytes": 18225,
+   "source": [
+    "hexagon-pack",
+    "hexagontiles"
+   ],
+   "original": "PNG/Objects/rockGrey_small3.png + PNG/Tiles/Terrain/Grass/grass_05.png + hexagontiles/Tiles/bushGrass.png",
+   "note": "Lande : sol ocre (grass_05 recolorée) + quatre touffes de bruyère + petit rocher. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
+   "season": "autumn",
+   "family": "heath",
+   "tile": "heath_1",
+   "method": "svg2x"
+  },
+  "heath_1_winter": {
+   "file": "tiles/heath_1_winter.png",
+   "w": 240,
+   "h": 280,
+   "bytes": 17719,
+   "source": [
+    "hexagon-pack",
+    "hexagontiles"
+   ],
+   "original": "PNG/Objects/rockGrey_small3.png + PNG/Tiles/Terrain/Grass/grass_05.png + hexagontiles/Tiles/bushGrass.png",
+   "note": "Lande : sol ocre (grass_05 recolorée) + quatre touffes de bruyère + petit rocher. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
+   "season": "winter",
+   "family": "heath",
+   "tile": "heath_1",
+   "method": "svg2x"
+  },
+  "heath_2_spring": {
+   "file": "tiles/heath_2_spring.png",
+   "w": 240,
+   "h": 280,
+   "bytes": 19197,
+   "source": [
+    "hexagon-pack",
+    "hexagontiles"
+   ],
+   "original": "PNG/Objects/rockGrey_small4.png + PNG/Objects/treePine_small.png + PNG/Tiles/Terrain/Grass/grass_05.png + hexagontiles/Tiles/bushGrass.png",
+   "note": "Lande en miroir : trois touffes de bruyère + pin nain + rocher. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
+   "season": "spring",
+   "family": "heath",
+   "tile": "heath_2",
+   "method": "svg2x"
+  },
+  "heath_2_summer": {
+   "file": "tiles/heath_2_summer.png",
+   "w": 240,
+   "h": 280,
+   "bytes": 19240,
+   "source": [
+    "hexagon-pack",
+    "hexagontiles"
+   ],
+   "original": "PNG/Objects/rockGrey_small4.png + PNG/Objects/treePine_small.png + PNG/Tiles/Terrain/Grass/grass_05.png + hexagontiles/Tiles/bushGrass.png",
+   "note": "Lande en miroir : trois touffes de bruyère + pin nain + rocher. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
+   "season": "summer",
+   "family": "heath",
+   "tile": "heath_2",
+   "method": "svg2x"
+  },
+  "heath_2_autumn": {
+   "file": "tiles/heath_2_autumn.png",
+   "w": 240,
+   "h": 280,
+   "bytes": 18919,
+   "source": [
+    "hexagon-pack",
+    "hexagontiles"
+   ],
+   "original": "PNG/Objects/rockGrey_small4.png + PNG/Objects/treePine_small.png + PNG/Tiles/Terrain/Grass/grass_05.png + hexagontiles/Tiles/bushGrass.png",
+   "note": "Lande en miroir : trois touffes de bruyère + pin nain + rocher. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
+   "season": "autumn",
+   "family": "heath",
+   "tile": "heath_2",
+   "method": "svg2x"
+  },
+  "heath_2_winter": {
+   "file": "tiles/heath_2_winter.png",
+   "w": 240,
+   "h": 280,
+   "bytes": 18403,
+   "source": [
+    "hexagon-pack",
+    "hexagontiles"
+   ],
+   "original": "PNG/Objects/rockGrey_small4.png + PNG/Objects/treePine_small.png + PNG/Tiles/Terrain/Grass/grass_05.png + hexagontiles/Tiles/bushGrass.png",
+   "note": "Lande en miroir : trois touffes de bruyère + pin nain + rocher. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
+   "season": "winter",
+   "family": "heath",
+   "tile": "heath_2",
+   "method": "svg2x"
+  },
+  "granary_spring": {
+   "file": "tiles/granary_spring.png",
+   "w": 240,
+   "h": 280,
+   "bytes": 23312,
+   "source": "hexagon-pack",
+   "original": "PNG/Objects/fence.png + PNG/Objects/hay.png + PNG/Objects/silo1.png + PNG/Tiles/Terrain/Grass/grass_05.png",
+   "note": "Grenier (silo1) + foin + clôture. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
+   "season": "spring",
+   "family": "rare",
+   "tile": "granary",
+   "method": "svg2x"
+  },
+  "granary_summer": {
+   "file": "tiles/granary_summer.png",
+   "w": 240,
+   "h": 280,
+   "bytes": 23535,
+   "source": "hexagon-pack",
+   "original": "PNG/Objects/fence.png + PNG/Objects/hay.png + PNG/Objects/silo1.png + PNG/Tiles/Terrain/Grass/grass_05.png",
+   "note": "Grenier (silo1) + foin + clôture. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
+   "season": "summer",
+   "family": "rare",
+   "tile": "granary",
+   "method": "svg2x"
+  },
+  "granary_autumn": {
+   "file": "tiles/granary_autumn.png",
+   "w": 240,
+   "h": 280,
+   "bytes": 23311,
+   "source": "hexagon-pack",
+   "original": "PNG/Objects/fence.png + PNG/Objects/hay.png + PNG/Objects/silo1.png + PNG/Tiles/Terrain/Grass/grass_05.png",
+   "note": "Grenier (silo1) + foin + clôture. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
+   "season": "autumn",
+   "family": "rare",
+   "tile": "granary",
+   "method": "svg2x"
+  },
+  "granary_winter": {
+   "file": "tiles/granary_winter.png",
+   "w": 240,
+   "h": 280,
+   "bytes": 24070,
+   "source": "hexagon-pack",
+   "original": "PNG/Objects/fence.png + PNG/Objects/hay.png + PNG/Objects/silo1.png + PNG/Tiles/Terrain/Grass/grass_05.png",
+   "note": "Grenier (silo1) + foin + clôture. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
+   "season": "winter",
+   "family": "rare",
+   "tile": "granary",
+   "method": "svg2x"
+  },
+  "fountain_spring": {
+   "file": "tiles/fountain_spring.png",
+   "w": 240,
+   "h": 280,
+   "bytes": 26550,
+   "source": [
+    "hexagon-pack",
+    "hexagontiles"
+   ],
+   "original": "PNG/Objects/fence.png + PNG/Objects/fountain.png + PNG/Tiles/Terrain/Grass/grass_05.png + hexagontiles/Tiles/flowerRed.png + hexagontiles/Tiles/flowerWhite.png + hexagontiles/Tiles/flowerYellow.png",
+   "note": "Fontaine + clôtures + fleurs au printemps et en été. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
+   "season": "spring",
+   "family": "rare",
+   "tile": "fountain",
+   "method": "svg2x"
+  },
+  "fountain_summer": {
+   "file": "tiles/fountain_summer.png",
+   "w": 240,
+   "h": 280,
+   "bytes": 24404,
+   "source": [
+    "hexagon-pack",
+    "hexagontiles"
+   ],
+   "original": "PNG/Objects/fence.png + PNG/Objects/fountain.png + PNG/Tiles/Terrain/Grass/grass_05.png + hexagontiles/Tiles/flowerRed.png + hexagontiles/Tiles/flowerWhite.png + hexagontiles/Tiles/flowerYellow.png",
+   "note": "Fontaine + clôtures + fleurs au printemps et en été. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
+   "season": "summer",
+   "family": "rare",
+   "tile": "fountain",
+   "method": "svg2x"
+  },
+  "fountain_autumn": {
+   "file": "tiles/fountain_autumn.png",
+   "w": 240,
+   "h": 280,
+   "bytes": 20255,
+   "source": [
+    "hexagon-pack",
+    "hexagontiles"
+   ],
+   "original": "PNG/Objects/fence.png + PNG/Objects/fountain.png + PNG/Tiles/Terrain/Grass/grass_05.png + hexagontiles/Tiles/flowerRed.png + hexagontiles/Tiles/flowerWhite.png + hexagontiles/Tiles/flowerYellow.png",
+   "note": "Fontaine + clôtures + fleurs au printemps et en été. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
+   "season": "autumn",
+   "family": "rare",
+   "tile": "fountain",
+   "method": "svg2x"
+  },
+  "fountain_winter": {
+   "file": "tiles/fountain_winter.png",
+   "w": 240,
+   "h": 280,
+   "bytes": 20013,
+   "source": [
+    "hexagon-pack",
+    "hexagontiles"
+   ],
+   "original": "PNG/Objects/fence.png + PNG/Objects/fountain.png + PNG/Tiles/Terrain/Grass/grass_05.png + hexagontiles/Tiles/flowerRed.png + hexagontiles/Tiles/flowerWhite.png + hexagontiles/Tiles/flowerYellow.png",
+   "note": "Fontaine + clôtures + fleurs au printemps et en été. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
+   "season": "winter",
+   "family": "rare",
+   "tile": "fountain",
+   "method": "svg2x"
+  },
   "dry_meadow_spring": {
    "file": "tiles/dry_meadow_spring.png",
    "w": 240,
@@ -1816,7 +2188,7 @@
    "bytes": 7839,
    "source": "kenney_animalpackredux",
    "original": "PNG/Round/horse.png",
-   "note": "Cheval (bonus) — tête ronde, taille native (dossier Round)."
+   "note": "Cheval — tête ronde, taille native (dossier Round)."
   },
   "fauna_goat": {
    "file": "fauna/fauna_goat.png",
@@ -1825,7 +2197,25 @@
    "bytes": 10131,
    "source": "kenney_animalpackredux",
    "original": "PNG/Round/goat.png",
-   "note": "Chèvre (bonus) — tête ronde, taille native (dossier Round)."
+   "note": "Chèvre — tête ronde, taille native (dossier Round)."
+  },
+  "fauna_chicken": {
+   "file": "fauna/fauna_chicken.png",
+   "w": 128,
+   "h": 145,
+   "bytes": 5996,
+   "source": "kenney_animalpackredux",
+   "original": "PNG/Round/chicken.png",
+   "note": "Poule — tête ronde, taille native (dossier Round)."
+  },
+  "fauna_cow": {
+   "file": "fauna/fauna_cow.png",
+   "w": 145,
+   "h": 128,
+   "bytes": 6835,
+   "source": "kenney_animalpackredux",
+   "original": "PNG/Round/cow.png",
+   "note": "Vache — tête ronde, taille native (dossier Round)."
   },
   "smoke_01": {
    "file": "fx/smoke_01.png",

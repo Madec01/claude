@@ -2,6 +2,7 @@
 import { h, button, icon, fmtInt, stagger, append } from './dom.js';
 import { STORY } from '../data/story.js';
 import { AudioSys } from '../core/audio.js';
+import { Save } from '../core/save.js';
 
 export function buildResults({ result, def, onContinue, onRetry, onMenu, newRecord, seedsGained }) {
   const { stars, score, thresholds } = result;
@@ -28,6 +29,7 @@ export function buildResults({ result, def, onContinue, onRetry, onMenu, newReco
       row('Saisons traversées', result.seasons),
       seedsGained ? row('Graines gagnées', `+${seedsGained}`, 'gold') : null,
     ),
+    special ? null : h('p', { class: 'res-note' }, Save.options.testMode ? 'Mode test : les graines et les étoiles ne sont pas enregistrées.' : seedsGained ? 'Graines : 1 par nouvelle étoile, 1 par vœu exaucé et 2 pour l’île, la première fois. Elles se dépensent dans l’Atelier des saisons.' : 'Pas de nouvelle graine : elles viennent des nouvelles étoiles, des vœux exaucés et de la première fois qu’une île est terminée.'),
     newRecord ? h('div', { class: 'res-record' }, 'Nouveau record !') : null,
     h('div', { class: 'panel-actions' },
       button(special ? 'Rejouer' : 'Continuer', onContinue, { cls: 'btn-primary', iconName: 'icon_arrow_right' }),

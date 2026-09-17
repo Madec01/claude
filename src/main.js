@@ -20,6 +20,7 @@ import { BALANCE } from './data/balance.js';
 import { buildMenu } from './ui/menu.js';
 import { buildOptions } from './ui/options.js';
 import { buildCredits, loadCredits } from './ui/credits.js';
+import { buildGuide } from './ui/guide.js';
 import { buildStory, islandIntroScreens, islandMemoryScreens, prologueScreens, endingScreens, infiniteScreens, gardenScreens } from './ui/story.js';
 import { buildResults } from './ui/results.js';
 import { buildWorkshop } from './ui/workshop.js';
@@ -68,6 +69,7 @@ const Game = {
   showPanel(node) { showUI(node, 'panel-wrap'); },
   showMenu() { scenes.go('menu', {}, { fade: 0.25 }); },
   showOptions(onBack) { this.showPanel(buildOptions({ onBack: onBack || (() => this.showMenu()), game: this })); },
+  showGuide(onBack) { this.showPanel(buildGuide({ onBack: onBack || (() => this.showMenu()) })); },
   showCredits(onBack) { this.showPanel(buildCredits({ onBack: onBack || (() => this.showMenu()), credits: this.credits })); },
   toggleFullscreen() { const el = document.documentElement; if (!document.fullscreenElement) (el.requestFullscreen || el.webkitRequestFullscreen).call(el).catch(() => {}); else document.exitFullscreen(); },
   setFpsVisible(v) { if (!this.fpsEl) { this.fpsEl = h('div', { class: 'fps' }); document.getElementById('app').appendChild(this.fpsEl); } this.fpsEl.style.display = v ? 'block' : 'none'; },
@@ -109,7 +111,7 @@ const Game = {
       if (result.score > (c.best[def.id] || 0)) { newRecord = !!c.best[def.id]; c.best[def.id] = result.score; }
       // graines : étoiles nouvelles + vœux + île terminée la première fois
       const firstTime = !c.memoriesRead.includes(def.id);
-      seedsGained = Math.max(0, result.stars - prevStars) * BALANCE.seeds.star + (firstTime ? result.wishesDone * BALANCE.seeds.wish + BALANCE.seeds.island : 0);
+      seedsGained = Math.max(0, result.stars - prevStars) * BALANCE.seeds.star + (firstTime ? result.wishesDone * BALANCE.seeds.wish + BALANCE.seeds.island : 0) + (BALANCE.upgrades.almanac[c.upgrades.almanac || 0] || 0);
       c.seeds += seedsGained; c.seedsTotal += seedsGained;
       if (result.stars >= 1 && def.id >= c.unlockedIsland && def.id < 12) c.unlockedIsland = def.id + 1;
       if (def.id === 12 && result.stars >= 1) { c.completed = true; Save.data.infinite.unlocked = true; }
@@ -274,6 +276,7 @@ class IslandScene {
       for (const bs of e.result.base) { setTimeout(() => fx.floatText(w.x, w.y + 30, `+${bs.pts} ${bs.label}`, '#5aa7d6', 18, 1.2), 90 * i++); if (bs.label === 'rivière') this.tutorial.onEvent('river'); }
       if (e.result.total !== 0) setTimeout(() => fx.floatText(w.x, w.y - 40, `${e.result.total > 0 ? '+' : ''}${e.result.total}`, e.result.total > 0 ? '#2b2a26' : '#d95f4b', 26, 1.4), 90 * i + 60);
       if (e.tile.rare) this.tutorial.onEvent('rare');
+      if (e.tile.family === 'hill' || e.tile.family === 'heath') this.tutorial.onEvent(e.tile.family);
       this.updateAmbience();
     } else if (e.type === 'close') {
       const cx = e.cells.reduce((s, c) => s + toWorld(c.q, c.r).x, 0) / e.cells.length, cy = e.cells.reduce((s, c) => s + toWorld(c.q, c.r).y, 0) / e.cells.length;
@@ -281,6 +284,7 @@ class IslandScene {
         fx.ring(e.cells, '#e0a33a'); fx.closeBurst(cx, cy, e.size);
         fx.floatText(cx, cy - 20, `${STORY.closed[Math.floor(Math.random() * STORY.closed.length)]} +${e.bonus}`, '#e0a33a', 24, 1.8);
         AudioSys.play(e.size >= 6 ? 'region_big' : 'region_close', { volume: 0.8 });
+        if (e.breath && this.mech.has('breath')) setTimeout(() => fx.floatText(cx, cy + 18, `+${e.breath} souffle`, '#3a9c8a', 18, 1.5), 350);
         if (e.size >= 6) this.shake.trigger(0.25);
       }, 350);
     } else if (e.type === 'season') {
@@ -360,7 +364,7 @@ class IslandScene {
     document.getElementById('tutorial').classList.toggle('paused', this.paused);
     if (this.paused) {
       AudioSys.play('ui_open', { volume: 0.5 });
-      const build = () => buildPause({ title: this.title, onResume: () => this.togglePause(false), onRestart: () => scenes.go('island', { def: this.def }, { fade: 0.5 }), onOptions: () => Game.showOptions(() => showUI(build(), 'pause-wrap')), onMenu: () => scenes.go('menu') });
+      const build = () => buildPause({ title: this.title, onResume: () => this.togglePause(false), onRestart: () => scenes.go('island', { def: this.def }, { fade: 0.5 }), onOptions: () => Game.showOptions(() => showUI(build(), 'pause-wrap')), onGuide: () => Game.showGuide(() => showUI(build(), 'pause-wrap')), onMenu: () => scenes.go('menu') });
       showUI(build(), 'pause-wrap');
     } else { hideUI(); AudioSys.play('ui_close', { volume: 0.5 }); }
   }

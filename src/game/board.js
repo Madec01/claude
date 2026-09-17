@@ -102,7 +102,7 @@ export class Board {
   }
 
   /** Une chaîne d'eau est une rivière si elle touche la mer ou une roche. */
-  isRiver(reg) { return reg.family === 'water' && (this.regionTouchesSea(reg) || this.regionTouches(reg, 'rock')); }
+  isRiver(reg) { return reg.family === 'water' && (this.regionTouchesSea(reg) || this.regionTouches(reg, 'rock') || this.regionTouches(reg, 'hill')); }
 
   /** Étend le masque (Île infinie) : n nouvelles cases en bordure. */
   grow(n, rng) {

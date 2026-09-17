@@ -4,7 +4,7 @@ import { Board } from './board.js';
 import { neighbors } from './hex.js';
 
 const F = BALANCE.fauna;
-export const SPECIES = ['rabbit', 'moose', 'frog', 'duck', 'bear', 'owl', 'penguin', 'goat'];
+export const SPECIES = ['rabbit', 'moose', 'frog', 'duck', 'bear', 'owl', 'penguin', 'goat', 'chicken', 'horse', 'cow'];
 
 /** Case « centrale » d'une région (la plus proche du barycentre) pour poser l'animal. */
 function anchor(reg) {
@@ -42,6 +42,21 @@ export function evaluate(board, season) {
   }
   for (const reg of board.regions('marsh')) {
     if (board.regionTouches(reg, 'water')) add('frog', reg);
+  }
+  // poules : un hameau bordé d'au moins deux champs
+  for (const reg of board.regions('hamlet')) {
+    const fields = board.regionNeighbors(reg).filter((n) => Board.isFamily(n, 'field'));
+    if (fields.length >= F.chicken) {
+      const c = reg.cells.find((t) => neighbors(t.q, t.r).some(([a, b]) => { const n = board.get(a, b); return n && Board.isFamily(n, 'field'); }));
+      add('chicken', reg, c);
+    }
+  }
+  // chevaux : des collines qui touchent une prairie
+  for (const reg of board.regions('hill')) if (reg.size >= F.horse && board.regionTouches(reg, 'meadow')) add('horse', reg);
+  // vaches : une prairie en lisière de lande
+  for (const reg of board.regions('meadow')) {
+    const alive = reg.cells.filter((c) => !c.dry).length;
+    if (alive >= F.cow && board.regionTouches(reg, 'heath')) add('cow', reg, reg.cells.find((t) => !t.dry && neighbors(t.q, t.r).some(([a, b]) => { const n = board.get(a, b); return n && Board.isFamily(n, 'heath'); })) || undefined);
   }
   for (const t of board.tiles.values()) if (t.family === 'camp') out.set(`goat@camp:${t.q},${t.r}`, { species: 'goat', q: t.q, r: t.r, regionId: `camp:${t.q},${t.r}` });
   return out;

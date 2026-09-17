@@ -125,6 +125,7 @@
 .ws-card { padding: 12px 14px; border: 1px solid rgba(43,42,38,0.12); border-radius: 12px; background: #fff; display: flex; flex-direction: column; gap: 6px; transition: border-color 0.2s, box-shadow 0.2s; }
 .ws-card.can { border-color: var(--breath); box-shadow: 0 0 0 2px rgba(47,158,143,0.15); }
 .ws-card.maxed { opacity: 0.7; }
+.ws-card.locked { opacity: 0.6; }
 .ws-card.shake { animation: shake 0.4s; }
 @keyframes shake { 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
 .ws-head { display: flex; align-items: center; gap: 8px; }

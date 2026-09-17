@@ -36,7 +36,8 @@ export class Island {
     this.queue.pocketSize = BALANCE.queue.pocket[this.upgrades.pocket || 0];
     // ouverture guidée : les premières tuiles des îles d'apprentissage sont fixées (pas de marais ni de sable en première minute)
     if (def.opening) def.opening.forEach((f, i) => { if (i < this.queue.list.length) this.queue.list[i] = this.queue.makeTile(f); });
-    if ((this.upgrades.rare || 0) > 0) this.queue.inject(this.queue.makeRare(this.upgrades.rare === 1 ? 'well' : 'mill'), false);
+    if ((this.upgrades.rare || 0) > 0) this.queue.inject(this.queue.makeRare([null, 'well', 'mill', 'granary', 'fountain'][Math.min(4, this.upgrades.rare)]), false);
+    this.mods = { river: BALANCE.upgrades.source[this.upgrades.source || 0] || 0, refuge: BALANCE.upgrades.refuge[this.upgrades.refuge || 0] || 0 };
     this.season = def.startSeason || 'spring';
     this.seasonLength = def.seasonLength + BALANCE.queue.seasonExtra[this.upgrades.patience || 0];
     this.inSeason = 0;
@@ -66,7 +67,7 @@ export class Island {
   /** Prévisualisation d'une pose de la tuile courante. */
   preview(q, r, tile = this.current) {
     if (!tile || !this.board.canPlace(q, r)) return null;
-    return preview(this.board, q, r, tile, this.season);
+    return preview(this.board, q, r, tile, this.season, this.mods);
   }
 
   canPlace(q, r) { return !this.ended && !!this.current && this.board.canPlace(q, r); }
@@ -78,13 +79,13 @@ export class Island {
     if (!tile || !this.board.canPlace(q, r)) return null;
     this.pushHistory();
     if (!tileOverride) this.queue.take();
-    const res = apply(this.board, q, r, tile, this.season);
+    const res = apply(this.board, q, r, tile, this.season, this.mods);
     this.placements++; this.inSeason++;
     this.score += res.total;
-    for (const c of res.closes) { this.stats.closed++; this.stats.closedThisSeason++; this.stats.biggestRegion = Math.max(this.stats.biggestRegion, c.size); }
+    for (const c of res.closes) { this.stats.closed++; this.stats.closedThisSeason++; this.breaths += BALANCE.breaths.close; this.stats.biggestRegion = Math.max(this.stats.biggestRegion, c.size); }
     if (this.season === 'summer' && Board.isFamily(tile, 'field') && this.board.landNeighbors(q, r).some(([a, b]) => { const n = this.board.get(a, b); return n && Board.isFamily(n, 'water'); })) this.stats.irrigatedSummer++;
     this.emit({ type: 'place', q, r, tile, result: res });
-    for (const c of res.closes) this.emit({ type: 'close', ...c });
+    for (const c of res.closes) this.emit({ type: 'close', ...c, breath: BALANCE.breaths.close });
     this.updateFauna();
     this.checkWishes();
     if (!this.garden && this.inSeason >= this.seasonLength) this.advanceSeason();
@@ -108,7 +109,7 @@ export class Island {
     for (const e of ev) { if (e.pts) pts += e.pts; if (e.type === 'harvest') this.stats.harvest++; if (e.type === 'bloom') this.stats.bloom++; }
     // faune : chaque animal présent donne des souffles et des points
     const faunaBonus = this.fauna.size;
-    pts += faunaBonus * BALANCE.points.faunaSeason;
+    pts += faunaBonus * (BALANCE.points.faunaSeason + this.mods.refuge);
     this.breaths += faunaBonus * BALANCE.breaths.faunaSeason;
     this.score += pts;
     this.emit({ type: 'season', from, to: this.season, events: ev, pts, faunaBonus });
@@ -146,7 +147,7 @@ export class Island {
     }
   }
 
-  pickRare() { const pool = ['mill', 'chapel', 'watchtower', 'well', 'camp']; return pool[Math.floor(this.rng.next() * pool.length)]; }
+  pickRare() { const late = this.infinite || this.garden || (typeof this.def.id === 'number' && this.def.id >= 7); const pool = ['mill', 'chapel', 'watchtower', 'well', 'camp', ...(late ? ['granary', 'fountain'] : [])]; return pool[Math.floor(this.rng.next() * pool.length)]; }
 
   // ---- Souffles ----
   get undoCost() { return BALANCE.breaths.undo[this.upgrades.memory || 0]; }

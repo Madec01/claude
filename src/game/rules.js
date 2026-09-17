@@ -15,7 +15,7 @@ function edgePoints(tile, other, season) {
   const fa = Board.familiesOf(tile), fb = Board.familiesOf(other);
   let best = 0, bestKey = null;
   for (const x of fa) for (const y of fb) {
-    if (season === 'winter' && ((x === 'field' && y === 'hamlet') || (x === 'hamlet' && y === 'field'))) continue; // champs dormants
+    if (season === 'winter' && ((x === 'field' && y === 'hamlet') || (x === 'hamlet' && y === 'field')) && tile.family !== 'granary' && other.family !== 'granary') continue; // champs dormants (sauf grenier)
     const v = affinity(x, y);
     if (Math.abs(v) > Math.abs(best)) { best = v; bestKey = pairKey(x, y); }
   }
@@ -23,6 +23,9 @@ function edgePoints(tile, other, season) {
   if (season === 'summer' && ((fa.includes('field') && fb.includes('water')) || (fa.includes('water') && fb.includes('field')))) best += P.summerIrrigation;
   // chapelle : tous les bords +1 en hiver
   if (season === 'winter' && (tile.family === 'chapel' || other.family === 'chapel')) best += 1;
+  // grenier : +1 par bord avec un champ ; fontaine : +1 par bord avec un hameau
+  if ((tile.family === 'granary' && fb.includes('field')) || (other.family === 'granary' && fa.includes('field'))) best += 1;
+  if ((tile.family === 'fountain' && fb.includes('hamlet')) || (other.family === 'fountain' && fa.includes('hamlet'))) best += 1;
   return { pts: best, label: bestKey ? (PAIR_LABELS[bestKey] || '') : '' };
 }
 
@@ -30,7 +33,7 @@ function edgePoints(tile, other, season) {
  * Prévisualise une pose sans modifier le plateau.
  * @returns {{ total, edges:[{d,q,r,pts,label}], closes:[{family,size,bonus,keys}], river, base:[{pts,label}] }}
  */
-export function preview(board, q, r, tile, season) {
+export function preview(board, q, r, tile, season, mods = {}) {
   const edges = [];
   let total = 0;
   const base = [];
@@ -45,7 +48,7 @@ export function preview(board, q, r, tile, season) {
   let river = null;
   if (Board.isFamily(placed, 'water')) {
     const reg = board.region(q, r, 'water');
-    if (board.isRiver(reg)) { river = { pts: P.river + (season === 'spring' ? P.springWater : 0), len: reg.size }; }
+    if (board.isRiver(reg)) { river = { pts: P.river + (mods.river || 0) + (season === 'spring' ? P.springWater : 0), len: reg.size }; }
     else river = { pts: P.pond + (season === 'spring' ? P.springWater : 0), len: reg.size, pond: true };
     if (river.pts) { base.push({ pts: river.pts, label: river.pond ? 'mare' : 'rivière' }); total += river.pts; }
   }
@@ -81,8 +84,8 @@ function openCells(board, reg) {
 }
 
 /** Applique une pose. Retourne le détail (identique à preview) et marque les régions closes. */
-export function apply(board, q, r, tile, season) {
-  const res = preview(board, q, r, tile, season);
+export function apply(board, q, r, tile, season, mods = {}) {
+  const res = preview(board, q, r, tile, season, mods);
   board.place(q, r, tile);
   for (const c of res.closes) board.closedRegions.add(c.id);
   return res;

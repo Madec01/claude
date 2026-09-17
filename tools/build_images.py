@@ -86,6 +86,8 @@ COLORS = {
     "ice": "#dbe9f4", "ice_edge": "#c5d8ea",
     "fruit": {"summer": ("#e8553d", "#d9463a"), "autumn": ("#f0a03a", "#e8553d")},
     "stone_winter": "#e3eaf0", "dirt_winter": "#e6ebf0",
+    "heath_ground": {"spring": "#a9b26a", "summer": "#b0a45a", "autumn": "#b58c55", "winter": SNOW},
+    "heather": {"spring": "#b98ccc", "summer": "#a67bb8", "autumn": "#8f6a9e", "winter": "#d9d0e2"},
 }
 
 
@@ -392,6 +394,23 @@ TILES = {
               note="Campement : tente + feu (fire, Lanczos) + bûche + pin."),
     "ruins": T("rare", "stone_07", [L("obj:towerRuin", 48, 80, "rock"), L("obj:ruinsCorner", 82, 106, "rock"), L("obj:ruins_brick1", 26, 104, "rock")],
                base_kind="stone", note="Ruines (towerRuin + ruinsCorner + brique) sur pierre."),
+    # --- collines (dès l'île 7) : hillGrass des Hexagon Tiles, recolorée comme l'herbe
+    "hill_1": T("hill", "grass_17", [L(ROUND_S, 40, 72, "foliage"), L(PINE_S, 84, 66, "foliage"), L("ht:bushGrass:2.2", 62, 92, "reed")],
+                note="Colline : tuile surélevée grass_17 (plateau et talus) recolorée par saison + feuillu, pin nain et touffe."),
+    "hill_2": T("hill", "grass_17", [L(PINE_S, 34, 76, "foliage"), L("obj:rockGrey_small3", 88, 74, "rock"), L(ROUND_S, 66, 88, "foliage"), L("ht:bushGrass:2.2", 96, 96, "reed")],
+                base_mirror=True, note="Colline en miroir + pin nain, feuillu, petit rocher et touffe."),
+    # --- landes (dès l'île 9) : sol ocre + bruyère (bushGrass recolorées en violet)
+    "heath_1": T("heath", "grass_05", [L("ht:bushGrass:2.5", 36, 82, "heather"), L("ht:bushGrass:2.5", 78, 70, "heather"), L("ht:bushGrass:2.5", 60, 108, "heather"),
+                                       L("ht:bushGrass:2.3", 94, 104, "heather"), L("obj:rockGrey_small3", 28, 106, "rock")],
+                 base_kind="heath", note="Lande : sol ocre (grass_05 recolorée) + quatre touffes de bruyère + petit rocher."),
+    "heath_2": T("heath", "grass_05", [L("ht:bushGrass:2.5", 44, 72, "heather"), L("ht:bushGrass:2.5", 88, 84, "heather"), L("ht:bushGrass:2.5", 52, 110, "heather"),
+                                       L(PINE_S, 96, 116, "foliage"), L("obj:rockGrey_small4", 24, 96, "rock")],
+                 base_kind="heath", base_mirror=True, note="Lande en miroir : trois touffes de bruyère + pin nain + rocher."),
+    # --- rares tardives
+    "granary": T("rare", "grass_05", [L("obj:silo1", 60, 96), L("obj:hay", 26, 104), L("obj:hay", 94, 108), L("obj:fence", 92, 70)],
+                 note="Grenier (silo1) + foin + clôture."),
+    "fountain": T("rare", "grass_05", [L("obj:fountain", 60, 94), L("obj:fence", 26, 100), L("obj:fence", 94, 100)] + FLOWERS_SPRING + FLOWERS_SUMMER,
+                  note="Fontaine + clôtures + fleurs au printemps et en été."),
     "dry_meadow": T("rare", "grass_05", [L("ht:bushGrass:2.6", 36, 96, "dry"), L("ht:bushGrass:2.6", 88, 66, "dry")], base_kind="dry",
                     note="Prairie sèche d'été (herbe paille #cdbb6a), identique aux 4 saisons."),
 }
@@ -440,6 +459,8 @@ class Composer:
             im = snowify(im) if season == "winter" else recolor(im, COLORS["grass"][season])
         elif kind == "dry":
             im = recolor(im, COLORS["dry"])
+        elif kind == "heath":
+            im = snowify(im) if season == "winter" else recolor(im, COLORS["heath_ground"][season])
         elif kind == "stone" and season == "winter":
             im = blend_toward(im, COLORS["stone_winter"], 0.45)
         elif kind == "dirt" and season == "winter":
@@ -476,6 +497,10 @@ class Composer:
             im = snowify(im, mask="brownfield") if season == "winter" else recolor(im, COLORS["field"][season], mask="brownfield")
         elif kind == "reed":
             im = recolor(im, COLORS["reed"][season], mask="all", shade=1.0)
+        elif kind == "heather":
+            im = recolor(im, COLORS["heather"][season], mask="all", shade=1.0)
+        elif kind == "hill":
+            im = snowify(im) if season == "winter" else recolor(im, COLORS["grass"][season])
         elif kind == "dry":
             im = recolor(im, COLORS["dry"], mask="all")
         elif kind == "rock" and season == "winter":
@@ -678,7 +703,7 @@ class Builder:
     # --- B. faune
     def build_fauna(self):
         animals = {"rabbit": "lapin", "moose": "élan", "frog": "grenouille", "duck": "canard", "bear": "ours", "owl": "hibou",
-                   "penguin": "manchot", "chick": "poussin (bonus)", "horse": "cheval (bonus)", "goat": "chèvre (bonus)"}
+                   "penguin": "manchot", "chick": "poussin (bonus)", "horse": "cheval", "goat": "chèvre", "chicken": "poule", "cow": "vache"}
         for name, fr in animals.items():
             im = Image.open(self.src.path(AN, f"PNG/Round/{name}.png")).convert("RGBA")
             bb = im.split()[3].getbbox()

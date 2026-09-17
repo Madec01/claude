@@ -36,6 +36,7 @@ export const STORY = {
         { id: 'place', text: 'Pose la tuile sur une case vide qui touche une tuile déjà posée. Survole une case : les points de chaque bord s’affichent avant de cliquer.' },
         { id: 'affinity', text: 'Même famille : +1. Bonnes paires : +2 (un champ près d’un hameau, un verger près d’une prairie). Mauvaises paires : −1.' },
         { id: 'close', text: 'Entoure complètement une région : plus aucune case vide autour. La prime vaut sa taille en tuiles.' },
+        { id: 'season', text: 'Quand les pastilles de la ligne de saison sont toutes remplies, la saison change et une règle avec elle. Chaque île traverse les quatre saisons.' },
       ],
     },
     2: {
@@ -57,7 +58,7 @@ export const STORY = {
       name: 'La Pointe des Quatre Vents',
       intro: [
         'Quatre vents, disait-on, un par saison. Puis un seul vent, longtemps. Nous ne savons plus le nom des trois autres.',
-        'Tu vas nous les rendre. Ne t’étonne pas si tout change de couleur.',
+        'Chaque région que tu fermes nous rend un peu de souffle. Il est à toi : dépense-le comme on dépense un bon vent.',
       ],
       memory: [
         'Le premier pont de glace. Un hiver, la rivière a gelé d’un hameau à l’autre et les gens se sont rendu visite sans barque.',
@@ -65,7 +66,7 @@ export const STORY = {
         'Au printemps, la glace est partie. Personne n’a été triste : on savait qu’elle reviendrait.',
       ],
       tutorial: [
-        { id: 'season', text: 'Toutes les douze poses, la saison change et une règle avec elle. Regarde la ligne de saison en haut de l’écran.' },
+        { id: 'breath', text: 'Chaque région fermée te donne un souffle. Dépense-les : échanger la tuile avec la suivante (1), la défausser (2), faire bourgeonner une prairie (3), annuler la dernière pose (4).' },
       ],
     },
     4: {
@@ -101,8 +102,8 @@ export const STORY = {
     6: {
       name: 'La Mare aux Canards',
       intro: [
-        'Il y avait une mare. Il y avait des canards. Il y avait, entre les deux, le premier souffle que nous ayons donné à quelqu’un.',
-        'Les souffles sont à toi maintenant. Dépense-les comme on dépense un bon vent.',
+        'Il y avait une mare. Il y avait des canards. Il y avait, entre les deux, des gens qui savaient demander.',
+        'Exauce-les : ce qu’ils rendent ne s’achète pas. Un moulin, un puits, une chapelle, ça se mérite.',
       ],
       memory: [
         'Pendant le long été, la mare a baissé. Un doigt par mois. Les canards ont attendu, puis ils sont partis vers le nord en triangle.',
@@ -110,7 +111,7 @@ export const STORY = {
         'Nous n’avions pas de printemps. Nous avions le plein été, toujours.',
       ],
       tutorial: [
-        { id: 'breath', text: 'Les souffles : échanger la tuile avec la suivante, la défausser, faire bourgeonner une prairie, ou annuler la dernière pose.' },
+        { id: 'rare', text: 'Tuiles rares : le moulin vaut champ et hameau, la chapelle réchauffe l’hiver, la tour clôt malgré un trou, le puits garde l’eau, le campement attire.' },
       ],
     },
     7: {
@@ -125,7 +126,7 @@ export const STORY = {
         'La chapelle est restée ouverte. Pas pour prier : pour se serrer. Il n’y avait plus d’hiver, mais il y avait du froid dans les gens.',
       ],
       tutorial: [
-        { id: 'rare', text: 'Tuiles rares : le moulin vaut champ et hameau, la chapelle réchauffe l’hiver, la tour clôt malgré un trou, le puits garde l’eau, le campement attire.' },
+        { id: 'hill', text: 'Les collines : +2 contre la roche, +1 avec forêt, prairie, verger et hameau. Comme la roche, elles font naître les rivières, et les chevaux y montent depuis les prés.' },
       ],
     },
     8: {
@@ -153,7 +154,9 @@ export const STORY = {
         'Puis l’ours est sorti de la falaise, gras et lent, et il a mangé des baies au bord du bois. Alors les gens ont compris : c’était l’automne. Rien de grave.',
         'Nous réapprenons dans cet ordre : ce qui tombe, ce qui dort, ce qui revient.',
       ],
-      tutorial: [],
+      tutorial: [
+        { id: 'heath', text: 'La lande : sol pauvre (−1 avec le champ et le verger) mais elle fleurit au printemps, ne sèche jamais et protège les prairies voisines de l’été. Les vaches paissent en lisière.' },
+      ],
     },
     10: {
       name: 'La Plaine des Crues',
@@ -304,11 +307,11 @@ export const STORY = {
       failed: 'Le conseil n’a pas pu se réunir : les bourgs n’étaient pas finis. Chacun a accusé les deux autres.',
     },
     w10_1: {
-      giver: 'L’institutrice',
-      title: 'Le hibou du soir',
-      text: 'Un hibou au-dessus du hameau : il lui faut une forêt à toucher les toits. Les enfants ne dorment pas sans lui.',
-      done: 'Le hibou s’est posé sur le toit de l’école. Les enfants dorment. L’institutrice aussi, enfin.',
-      failed: 'Pas de hibou. L’institutrice a fait une lanterne en forme de hibou. Ça marche à moitié.',
+      giver: 'La fermière de la plaine',
+      title: 'Des poules dans la cour',
+      text: 'Un hameau bordé de deux champs, et les poules reviendront picorer. Elles n’aiment pas la boue.',
+      done: 'Les poules sont revenues d’un coup, comme si elles avaient attendu derrière la haie.',
+      failed: 'La fermière a rangé le grain. Les poules attendront une autre saison.',
     },
     w10_2: {
       giver: 'Les semeurs de la plaine',
@@ -372,12 +375,12 @@ export const STORY = {
     spring: {
       name: 'Printemps',
       line: 'Quelque chose remue sous la boue. Nous appelons cela le printemps.',
-      rule: 'Les marais fleurissent (+2 chacun) et chaque tuile d’eau posée rapporte +1 : c’est la crue.',
+      rule: 'Les marais fleurissent (+2 chacun), la lande aussi (+1), et chaque tuile d’eau posée rapporte +1 : c’est la crue.',
     },
     summer: {
       name: 'Été',
       line: 'Le ciel ne bouge plus. Les prairies retiennent leur souffle.',
-      rule: 'Une prairie sans eau, forêt ni marais voisin sèche ; un champ qui touche l’eau rapporte +1.',
+      rule: 'Une prairie sans eau, forêt, marais ni lande voisine sèche ; un champ qui touche l’eau rapporte +1.',
     },
     autumn: {
       name: 'Automne',
@@ -428,6 +431,24 @@ export const STORY = {
       leave: 'Le hibou a quitté le toit du hameau.',
       habitat: 'Une forêt qui touche un hameau.',
     },
+    chicken: {
+      name: 'Poule',
+      arrive: 'Des poules dans la cour. Elles picorent comme si rien ne s’était jamais arrêté.',
+      leave: 'Les poules sont rentrées. Il n’y avait plus de grain.',
+      habitat: 'Un hameau bordé d’au moins deux champs.',
+    },
+    horse: {
+      name: 'Cheval',
+      arrive: 'Un cheval monte la colline au pas. D’en haut, il regarde toute l’île.',
+      leave: 'Le cheval est redescendu. La colline est vide.',
+      habitat: 'Des collines (au moins deux) qui touchent une prairie.',
+    },
+    cow: {
+      name: 'Vache',
+      arrive: 'Une vache broute en lisière de lande. Elle prend son temps, comme nous.',
+      leave: 'La vache a quitté la lisière.',
+      habitat: 'Une prairie d’au moins deux tuiles qui touche une lande.',
+    },
     penguin: {
       name: 'Manchot',
       arrive: 'Des manchots ! Ils marchent sur la rivière gelée comme sur une place de village.',
@@ -452,6 +473,10 @@ export const STORY = {
     well: { name: 'Puits', blurb: 'Protège les prairies voisines de la sécheresse d’été.' },
     camp: { name: 'Campement', blurb: 'Attire un animal, quel que soit l’habitat autour.' },
     ruins: { name: 'Ruines', blurb: 'Ce qui reste d’avant. Ne rapporte rien, ne gêne personne : on bâtit autour.' },
+    hill: { name: 'Colline', blurb: 'Aime la roche (+2), la forêt, la prairie, le verger et le hameau ; fait naître les rivières comme la roche ; les chevaux y montent depuis les prés.' },
+    heath: { name: 'Lande', blurb: 'Sol pauvre (le champ et le verger n’y poussent pas) mais fleurit au printemps, ne sèche jamais et protège les prairies voisines de l’été ; les vaches paissent en lisière.' },
+    granary: { name: 'Grenier', blurb: 'Compte comme champ, +1 par bord avec un champ, et ne dort pas en hiver.' },
+    fountain: { name: 'Fontaine', blurb: 'Compte comme hameau, +1 par bord avec un hameau, et protège les prairies voisines de la sécheresse.' },
   },
 
   breaths: {

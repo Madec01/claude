@@ -1,6 +1,7 @@
 // L'Atelier des saisons : dépenser les graines en améliorations.
 import { h, button, icon, append } from './dom.js';
-import { UPGRADES, upgradeCost, upgradeMax } from '../data/upgrades.js';
+import { UPGRADES, upgradeCost, upgradeMax, upgradeUnlockIsland } from '../data/upgrades.js';
+import { ISLANDS, mechanicsUpTo } from '../data/islands.js';
 import { Save } from '../core/save.js';
 import { AudioSys } from '../core/audio.js';
 
@@ -9,11 +10,18 @@ export function buildWorkshop({ onContinue, intro }) {
   const root = h('div', { class: 'panel panel-workshop' });
   const seedsEl = h('div', { class: 'seeds', title: 'Graines' }, icon('icon_leaf'), h('b', {}, String(c.seeds)), h('span', {}, 'graines'));
   const grid = h('div', { class: 'ws-grid' });
+  const mech = mechanicsUpTo(Math.max(1, c.unlockedIsland || 1));
   const render = () => {
     grid.innerHTML = '';
     seedsEl.querySelector('b').textContent = String(c.seeds);
     for (const u of UPGRADES) {
-      const lvl = c.upgrades[u.id] || 0, max = upgradeMax(u), cost = upgradeCost(u, lvl), can = cost !== null && c.seeds >= cost;
+      const lvl = c.upgrades[u.id] || 0, max = upgradeMax(u), cost = upgradeCost(u, lvl);
+      const lockedAt = u.requires && !mech.has(u.requires) ? upgradeUnlockIsland(u, ISLANDS) : null;
+      if (lockedAt) {
+        grid.appendChild(h('div', { class: 'ws-card locked' }, h('div', { class: 'ws-head' }, h('span', { class: 'ws-icon' }, icon('icon_locked')), h('h4', {}, u.name)), h('p', { class: 'ws-desc' }, u.desc), h('div', { class: 'ws-level' }, h('span', { class: 'ws-cur' }, `Se débloque à l’île ${lockedAt}`))));
+        continue;
+      }
+      const can = cost !== null && c.seeds >= cost;
       const pips = h('div', { class: 'ws-pips', title: `Niveau ${lvl} / ${max}` }, ...Array.from({ length: max }, (_, i) => h('span', { class: `pip ${i < lvl ? 'on' : ''}` })));
       const card = h('div', { class: `ws-card ${cost === null ? 'maxed' : can ? 'can' : ''}` },
         h('div', { class: 'ws-head' }, h('span', { class: 'ws-icon' }, icon(u.icon)), h('h4', {}, u.name)),
@@ -30,7 +38,7 @@ export function buildWorkshop({ onContinue, intro }) {
   render();
   append(root, 
     h('h2', { class: 'panel-title' }, 'L’Atelier des saisons'),
-    h('div', { class: 'ws-head-row' }, h('p', { class: 'ws-intro' }, intro || 'Les graines gagnées sur les îles font pousser de nouvelles habitudes de la Saison.'), seedsEl),
+    h('div', { class: 'ws-head-row' }, h('p', { class: 'ws-intro' }, intro || 'Les graines viennent des étoiles (1 par nouvelle étoile), des vœux exaucés (1 chacun) et de chaque île terminée pour la première fois (2). Elles se dépensent ici, entre deux îles.'), seedsEl),
     grid,
     h('div', { class: 'panel-actions' }, button('Continuer', onContinue, { cls: 'btn-primary', iconName: 'icon_arrow_right' })),
   );

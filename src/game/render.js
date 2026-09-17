@@ -177,16 +177,27 @@ export class IslandRenderer {
     this.outline(ctx, c.x, c.y, pv.total >= 0 ? '#2f9e8f' : '#d95f4b', 0.9);
     // points par bord
     ctx.save();
-    ctx.font = `700 ${Math.round(15 * clamp(z, 0.8, 1.3))}px Quicksand, sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.font = `700 ${Math.round(14 * clamp(z, 0.8, 1.3))}px Quicksand, sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     for (const e of pv.edges) {
       const m = edgeMid(w.x, w.y, e.d); const s = cam.toScreen(m.x, m.y);
       this.pill(ctx, s.x, s.y, (e.pts > 0 ? '+' : '') + e.pts, e.pts > 0 ? (e.pts >= 2 ? '#e0a33a' : '#2f9e8f') : '#d95f4b');
     }
     for (let i = 0; i < pv.base.length; i++) { const bs = pv.base[i]; this.pill(ctx, c.x, c.y + (30 + i * 22) * z, `+${bs.pts} ${bs.label}`, '#5aa7d6'); }
-    for (const cl of pv.closes) this.pill(ctx, c.x, c.y - (60) * z, `région close +${cl.bonus}`, '#e0a33a');
-    // total
-    ctx.font = `700 ${Math.round(22 * clamp(z, 0.8, 1.3))}px Quicksand, sans-serif`;
-    this.pill(ctx, c.x, c.y - 88 * z, `${pv.total >= 0 ? '+' : ''}${pv.total}`, pv.total > 0 ? '#2b2a26' : '#d95f4b', '#fff');
+    for (const cl of pv.closes) this.pill(ctx, c.x, c.y - (64) * z, `région close +${cl.bonus}`, '#e0a33a');
+    // total : badge nettement plus grand et plus contrasté que les pastilles de bord, avec son libellé
+    const tz = clamp(z, 0.8, 1.3);
+    const txt = `${pv.total >= 0 ? '+' : ''}${pv.total}`;
+    ctx.font = `800 ${Math.round(30 * tz)}px Quicksand, sans-serif`;
+    const bw = ctx.measureText(txt).width + 40 * tz, bh = 44 * tz, bx = c.x, by = c.y - 102 * z;
+    const bg = pv.total > 0 ? '#2b2a26' : pv.total < 0 ? '#d95f4b' : '#6b6a66', accent = pv.total > 0 ? '#e0a33a' : '#ffffff';
+    ctx.save(); ctx.shadowColor = 'rgba(20,30,40,0.35)'; ctx.shadowBlur = 14; ctx.shadowOffsetY = 4;
+    ctx.fillStyle = bg; ctx.beginPath(); ctx.roundRect(bx - bw / 2, by - bh / 2, bw, bh, bh / 2); ctx.fill(); ctx.restore();
+    ctx.strokeStyle = accent; ctx.lineWidth = 2.5 * tz; ctx.beginPath(); ctx.roundRect(bx - bw / 2, by - bh / 2, bw, bh, bh / 2); ctx.stroke();
+    ctx.fillStyle = '#fff'; ctx.fillText(txt, bx, by + 1);
+    ctx.font = `700 ${Math.round(11 * tz)}px Quicksand, sans-serif`; ctx.fillStyle = '#2b2a26';
+    const lab = 'TOTAL', lw = ctx.measureText(lab).width + 14 * tz;
+    ctx.fillStyle = accent; ctx.beginPath(); ctx.roundRect(bx - lw / 2, by - bh / 2 - 15 * tz, lw, 16 * tz, 8 * tz); ctx.fill();
+    ctx.fillStyle = pv.total > 0 ? '#2b2a26' : '#d95f4b'; ctx.fillText(lab, bx, by - bh / 2 - 7 * tz);
     ctx.restore();
   }
 

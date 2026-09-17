@@ -3,7 +3,7 @@ import { h, button } from './dom.js';
 
 const key = (k) => h('span', { class: 'key' }, k);
 
-export function buildPause({ onResume, onRestart, onOptions, onMenu, title, controls = true }) {
+export function buildPause({ onResume, onRestart, onOptions, onGuide, onMenu, title, controls = true }) {
   const root = h('div', { class: 'panel panel-pause' },
     h('div', { class: 'res-kicker' }, title || ''),
     h('h2', { class: 'panel-title' }, 'Pause'),
@@ -22,7 +22,7 @@ export function buildPause({ onResume, onRestart, onOptions, onMenu, title, cont
     h('div', { class: 'panel-actions column' },
       button('Reprendre', onResume, { cls: 'btn-primary', iconName: 'icon_play' }),
       button('Recommencer l’île', onRestart, { iconName: 'icon_return' }),
-      button('Options', onOptions, { iconName: 'icon_gear' }),
+      h('div', { class: 'pause-row' }, button('Guide', onGuide, { iconName: 'icon_question' }), button('Options', onOptions, { iconName: 'icon_gear' })),
       button('Quitter vers le menu', onMenu, { cls: 'btn-ghost', iconName: 'icon_home' }),
     ),
   );

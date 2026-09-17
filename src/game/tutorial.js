@@ -4,13 +4,15 @@ import { STORY } from '../data/story.js';
 const RULES = {
   place:    { when: () => true, done: (i) => i.placements >= 1, info: false },
   affinity: { when: (i) => i.placements >= 1, done: (i) => i.score >= 4, info: false, timeout: 60 },
-  close:    { when: (i) => i.placements >= 3, done: (i) => i.stats.closed >= 1, info: false, timeout: 90 },
+  close:    { when: (i) => i.placements >= 3, done: (i) => i.stats.closed >= 1, info: false, timeout: 45 },
   river:    { when: (i) => i.placements >= 1, done: (i, ev) => ev.has('river'), info: false, timeout: 60 },
   season:   { when: (i) => i.placements >= 2, done: (i, ev) => ev.has('season'), info: true, timeout: 40 },
   fauna:    { when: (i) => i.placements >= 2, done: (i, ev) => ev.has('fauna'), info: true, timeout: 45 },
   wish:     { when: () => true, done: () => false, info: true, timeout: 25 },
   breath:   { when: (i) => i.breaths >= 1 || i.placements >= 6, done: (i, ev) => ev.has('breath'), info: true, timeout: 40 },
   rare:     { when: (i) => i.placements >= 2, done: (i, ev) => ev.has('rare'), info: true, timeout: 30 },
+  hill:     { when: (i) => i.placements >= 1, done: (i, ev) => ev.has('hill'), info: true, timeout: 35 },
+  heath:    { when: (i) => i.placements >= 1, done: (i, ev) => ev.has('heath'), info: true, timeout: 35 },
 };
 
 export class Tutorial {

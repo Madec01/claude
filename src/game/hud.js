@@ -1,7 +1,7 @@
 // HUD d'une île (DOM) : saison, score, souffles, file de tuiles, poche, vœux, pouvoirs, notifications.
 import { STORY } from '../data/story.js';
 import { BALANCE } from '../data/balance.js';
-import { FAMILY_COLORS } from '../data/tiles.js';
+import { FAMILY_COLORS, FAMILIES } from '../data/tiles.js';
 import { deadlineLabel } from './wishes.js';
 import { Assets } from '../core/assets.js';
 
@@ -85,7 +85,7 @@ export class Hud {
   }
 
   buildGardenPick() {
-    const fams = ['meadow', 'forest', 'field', 'hamlet', 'orchard', 'water', 'marsh', 'rock', 'sand'];
+    const fams = FAMILIES;
     this.r.gardenPick.innerHTML = '<div class="queue-title">Choisir</div>' + fams.map((f) => `<button class="gpick" data-fam="${f}" style="--fam:${FAMILY_COLORS[f]}">${(STORY.tiles[f] || {}).name || f}</button>`).join('');
     this.r.gardenPick.querySelectorAll('.gpick').forEach((b) => b.addEventListener('click', (e) => { e.stopPropagation(); this.onGardenPick(b.dataset.fam); }));
   }

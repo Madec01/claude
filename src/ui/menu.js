@@ -26,6 +26,7 @@ export function buildMenu({ game }) {
     navButton('Choisir une île', () => showIslands(), { iconName: 'icon_menu', disabled: !started && !testMode, sub: started || testMode ? `${Math.min(c.unlockedIsland, 12)} / 12` : '' }),
     navButton('Île infinie', () => game.startInfinite(), { iconName: 'icon_wind', disabled: !(Save.data.infinite.unlocked || c.unlockedIsland > 6 || testMode), title: 'Se déverrouille après l’île 6', sub: Save.data.infinite.best ? `${Save.data.infinite.best} pts` : '' }),
     navButton('Jardin', () => game.startGarden(), { iconName: 'icon_leaf', disabled: !(started || testMode), title: 'Pose libre, sans score' }),
+    navButton('Guide', () => game.showGuide(), { iconName: 'icon_question', title: 'Tuiles, saisons, faune, souffles, graines' }),
     navButton('Options', () => game.showOptions(), { iconName: 'icon_gear' }),
     navButton('Crédits', () => game.showCredits(), { iconName: 'icon_info' }),
     navButton('Plein écran', () => game.toggleFullscreen(), { cls: 'btn-ghost', iconName: 'icon_fullscreen' }),

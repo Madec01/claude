@@ -20,13 +20,14 @@ export function transition(board, season) {
       if (t.frozen) { t.frozen = false; ev.push({ type: 'thaw', q: t.q, r: t.r }); }
       if (t.dry) { t.dry = false; ev.push({ type: 'green', q: t.q, r: t.r }); }
       if (Board.isFamily(t, 'marsh')) { t.bloom = true; ev.push({ type: 'bloom', q: t.q, r: t.r, pts: P.springMarsh }); }
+      else if (Board.isFamily(t, 'heath')) { t.bloom = true; ev.push({ type: 'heather', q: t.q, r: t.r, pts: P.springHeath }); }
     }
   } else if (season === 'summer') {
     for (const t of tiles) {
       if (t.bloom) t.bloom = false;
       if (t.family === 'meadow' && !t.rare) {
         const ns = neighbors(t.q, t.r).map(([a, b]) => board.get(a, b)).filter(Boolean);
-        const wet = ns.some((n) => Board.isFamily(n, 'water') || Board.isFamily(n, 'forest') || Board.isFamily(n, 'marsh') || n.family === 'well');
+        const wet = ns.some((n) => Board.isFamily(n, 'water') || Board.isFamily(n, 'forest') || Board.isFamily(n, 'marsh') || Board.isFamily(n, 'heath') || n.family === 'well' || n.family === 'fountain');
         if (!wet) { t.dry = true; ev.push({ type: 'dry', q: t.q, r: t.r }); }
       }
     }
