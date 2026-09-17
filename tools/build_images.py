@@ -313,36 +313,44 @@ FLOWERS_SUMMER = [L("ht:flowerYellow:2.8", 34, 92, "flower", ("summer",)), L("ht
 
 TILES = {
     # --- prairies : grass_05 est la seule tuile d'herbe unie du pack (01-04 sont incrustées d'autres terrains)
-    "meadow_1": T("meadow", "grass_05", note="Herbe unie (grass_05)."),
+    "meadow_1": T("meadow", "grass_05", [L("ht:bushGrass:2.4", 84, 100, "reed"), L("ht:bushGrass:2.2", 36, 66, "reed", mirror=True)], note="Herbe unie (grass_05) + deux touffes."),
     "meadow_2": T("meadow", "grass_05", FLOWERS_SPRING + FLOWERS_SUMMER, base_mirror=True,
                   note="Herbe unie en miroir + fleurs (Hexagon Tiles ×2.8) au printemps et en été."),
     "meadow_3": T("meadow", "grass_05", [L("obj:rockGrey_small3", 84, 96, "rock"), L("ht:bushGrass:2.6", 32, 74, "reed")],
                   base_rot=180, note="Herbe unie tournée de 180° + petit rocher + touffe (Hexagon Tiles ×2.6)."),
-    # --- forêts : trois densités
-    "forest_1": T("forest", "grass_05", [L(PINE, 42, 66, "foliage"), L(PINE_S, 80, 94, "foliage")], note="Forêt clairsemée : 2 pins."),
-    "forest_2": T("forest", "grass_05", [L(PINE, 36, 68, "foliage"), L(ROUND, 74, 60, "foliage"), L(PINE_S, 92, 98, "foliage"),
-                                         L(ROUND_S, 50, 106, "foliage")], note="Forêt moyenne : 2 pins + 2 feuillus."),
+    # --- forêts : trois densités (5, 7 et 9 arbres)
+    "forest_1": T("forest", "grass_05", [L(PINE, 44, 72, "foliage"), L(ROUND_S, 78, 66, "foliage"), L(PINE_S, 30, 104, "foliage"),
+                                         L(PINE_S, 62, 98, "foliage"), L(ROUND_S, 92, 104, "foliage")], note="Forêt clairsemée : 5 arbres (2 pins, 2 pins nains, 1 feuillu)."),
+    "forest_2": T("forest", "grass_05", [L(PINE, 36, 68, "foliage"), L(ROUND, 70, 58, "foliage"), L(PINE_S, 96, 88, "foliage"),
+                                         L(ROUND_S, 50, 100, "foliage"), L(PINE, 82, 108, "foliage"), L(PINE_S, 26, 96, "foliage"),
+                                         L(ROUND_S, 64, 118, "foliage")], note="Forêt moyenne : 7 arbres."),
     "forest_3": T("forest", "grass_05", [L(PINE, 30, 74, "foliage"), L(ROUND, 58, 54, "foliage"), L(PINE, 88, 72, "foliage"),
                                          L(ROUND_S, 44, 102, "foliage"), L(PINE_S, 76, 106, "foliage"), L(PINE_S, 62, 86, "foliage"),
-                                         L(ROUND_S, 100, 96, "foliage")], note="Forêt dense : 7 arbres."),
-    # --- vergers : 3 feuillus en triangle + clôture / haie, fruits en été et en automne
-    "orchard_1": T("orchard", "grass_05", [L(ROUND_S, 42, 66, "foliage", fruits=True), L(ROUND_S, 78, 66, "foliage", fruits=True),
-                                           L(ROUND_S, 60, 92, "foliage", fruits=True), L("obj:fence", 34, 106), L("obj:fence", 88, 104)],
-                  note="Verger : 3 treeRound_small en triangle + 2 clôtures ; fruits dessinés en été/automne."),
-    "orchard_2": T("orchard", "grass_05", [L(ROUND_S, 40, 76, "foliage", fruits=True), L(ROUND_S, 82, 76, "foliage", fruits=True),
-                                           L(ROUND_S, 60, 54, "foliage", fruits=True), L("obj:hedge", 60, 122, "foliage", scale=0.45)],
-                  note="Verger : 3 treeRound_small + haie (hedge ×0.45) ; fruits dessinés en été/automne."),
-    # --- champs
-    "field_1": T("field", "grass_05", [L("obj:farmland", 60, 96, "field"), L("obj:fence", 96, 70), L("obj:hay", 28, 66)],
-                 note="Champ (farmland recoloré par saison) + clôture + botte de foin."),
-    "field_2": T("field", "grass_05", [L("obj:farm", 72, 78), L("obj:farmland", 42, 106, "field", mirror=True)],
-                 note="Champ (farmland en miroir) + grange (farm)."),
+                                         L(ROUND_S, 100, 96, "foliage"), L(PINE_S, 24, 100, "foliage"), L(ROUND_S, 60, 122, "foliage")], note="Forêt dense : 9 arbres."),
+    # --- vergers : deux rangs de feuillus + clôture / haie, fruits en été et en automne
+    "orchard_1": T("orchard", "grass_05", [L(ROUND_S, 34, 66, "foliage", fruits=True), L(ROUND_S, 60, 60, "foliage", fruits=True), L(ROUND_S, 86, 66, "foliage", fruits=True),
+                                           L(ROUND_S, 46, 92, "foliage", fruits=True), L(ROUND_S, 74, 92, "foliage", fruits=True),
+                                           L("obj:fence", 34, 112), L("obj:fence", 86, 112)],
+                  note="Verger : 5 treeRound_small en deux rangs + 2 clôtures ; fruits dessinés en été/automne."),
+    "orchard_2": T("orchard", "grass_05", [L(ROUND_S, 38, 62, "foliage", fruits=True), L(ROUND_S, 82, 62, "foliage", fruits=True),
+                                           L(ROUND_S, 30, 90, "foliage", fruits=True), L(ROUND_S, 60, 84, "foliage", fruits=True), L(ROUND_S, 90, 90, "foliage", fruits=True),
+                                           L(ROUND_S, 60, 110, "foliage", fruits=True), L("obj:hedge", 60, 126, "foliage", scale=0.45)],
+                  note="Verger : 6 treeRound_small + haie (hedge ×0.45) ; fruits dessinés en été/automne."),
+    # --- champs : parcelles en quinconce + foin + clôture
+    "field_1": T("field", "grass_05", [L("obj:farmland", 42, 84, "field"), L("obj:farmland", 80, 100, "field", mirror=True),
+                                       L("obj:fence", 100, 66), L("obj:hay", 26, 106), L("obj:hay", 92, 118)],
+                 note="Champ : 2 parcelles farmland (recolorées par saison) en quinconce + clôture + 2 bottes de foin."),
+    "field_2": T("field", "grass_05", [L("obj:farm", 76, 74), L("obj:farmland", 40, 96, "field", mirror=True), L("obj:farmland_empty", 82, 112, "field"),
+                                       L("obj:hay", 26, 70)],
+                 note="Champ : grange (farm) + parcelle labourée + parcelle vide + foin."),
     # --- hameaux (bâtiments inchangés par la saison)
-    "hamlet_1": T("hamlet", "grass_05", [L("obj:house", 60, 104), L("obj:well", 24, 62)], note="Grande maison (house) + puits."),
-    "hamlet_2": T("hamlet", "grass_05", [L("obj:house_small", 44, 84), L("obj:tinyBuilding", 88, 70), L("obj:hay", 84, 100),
-                                         L("obj:fence", 30, 106)], note="Maisonnette (house_small) + remise + foin + clôture."),
-    "hamlet_3": T("hamlet", "grass_05", [L("obj:villa", 66, 96), L("obj:tinyBuilding", 26, 80), L("obj:fence", 100, 106)],
-                  note="Villa + remise + clôture."),
+    "hamlet_1": T("hamlet", "grass_05", [L("obj:house", 62, 100), L("obj:house_small", 38, 80), L("obj:well", 98, 80), L("obj:fence", 92, 114)],
+                  note="Grande maison (house) + maisonnette + puits + clôture."),
+    "hamlet_2": T("hamlet", "grass_05", [L("obj:house_small", 40, 82), L("obj:tinyBuilding", 104, 72), L("obj:farm", 72, 108),
+                                         L("obj:hay", 28, 108), L("obj:fence", 104, 116)], note="Maisonnette + remise + ferme + foin + clôture."),
+    "hamlet_3": T("hamlet", "grass_05", [L("obj:villa", 64, 94), L("obj:tinyBuilding", 26, 80), L("obj:house_small", 96, 108, scale=0.85),
+                                         L("obj:logPile", 34, 108), L("obj:fence", 100, 68)],
+                  note="Villa + remise + maisonnette + tas de bûches + clôture."),
     # --- eau (base hexagonale pleine, vagues Hexagon Tiles ×3.7) — identique aux 4 saisons
     "water_1": T("water", "water", [L("ht:waveWater:3.7", 40, 60, "wave"), L("ht:waveWater:3.7", 78, 90, "wave"),
                                     L("ht:waveWater:3.7", 50, 116, "wave")], base_kind="water",
@@ -360,7 +368,8 @@ TILES = {
                                       L("ht:flowerYellow:2.8", 58, 56, "flower", ("spring",)), L("ht:flowerWhite:2.8", 86, 112, "flower", ("spring",))],
                  base_kind="dirt", base_mirror=True, note="Terre en miroir + 2 flaques + 3 roseaux ; fleurs au printemps."),
     # --- roches : pierre + rochers gris (neige sur les sommets en hiver)
-    "rock_1": T("rock", "stone_07", [L("obj:rockGrey_large", 60, 108, "rock")], base_kind="stone", note="Grand rocher."),
+    "rock_1": T("rock", "stone_07", [L("obj:rockGrey_large", 60, 108, "rock"), L("obj:rockGrey_small1", 26, 92, "rock"), L("obj:rockGrey_small4", 96, 80, "rock"),
+                                     L("obj:rockGrey_small2", 92, 116, "rock")], base_kind="stone", note="Grand rocher + trois petits."),
     "rock_2": T("rock", "stone_07", [L("obj:rockGrey_medium1", 42, 82, "rock"), L("obj:rockGrey_medium3", 82, 102, "rock"),
                                      L("obj:rockGrey_small3", 32, 108, "rock")], base_kind="stone", note="Deux rochers moyens + un petit."),
     "rock_3": T("rock", "stone_07", [L("obj:rockGrey_small1", 36, 70, "rock"), L("obj:rockGrey_small2", 78, 62, "rock"),
@@ -397,6 +406,7 @@ class Composer:
         self.hex_alpha = base.split()[3]
         self.hex_mask = np.asarray(self.hex_alpha) > 8
         self.inside = np.asarray(self.hex_alpha.filter(ImageFilter.MaxFilter(3))) > 8
+        self.errors = []
         self.water_base = self.make_water_base(COLORS["water"], COLORS["water_edge"])
         self.ice_base = self.make_water_base(COLORS["ice"], COLORS["ice_edge"])
 
@@ -416,10 +426,16 @@ class Composer:
             im = self.water_base.copy()
         else:
             im = self.src.hp(spec["base"]).copy()
-        if spec["base_mirror"]:
-            im = im.transpose(Image.FLIP_LEFT_RIGHT)
-        if spec["base_rot"]:
-            im = im.rotate(spec["base_rot"], expand=False)
+        if spec["base_mirror"] or spec["base_rot"]:
+            # miroir / rotation : on recompose sur la base d'origine pour garder exactement le même alpha de bord
+            t = im
+            if spec["base_mirror"]:
+                t = t.transpose(Image.FLIP_LEFT_RIGHT)
+            if spec["base_rot"]:
+                t = t.rotate(spec["base_rot"], expand=False)
+            im.alpha_composite(t)
+        # même hexagone pour toutes les tuiles : l'alpha de bord est aligné sur celui de grass_05 (référence)
+        im.putalpha(ImageChops.lighter(im.split()[3], self.hex_alpha))
         if kind == "grass":
             im = snowify(im) if season == "winter" else recolor(im, COLORS["grass"][season])
         elif kind == "dry":
@@ -481,15 +497,18 @@ class Composer:
         return im
 
     def draw_puddle(self, canvas, layer, season):
+        """Flaque (ellipse eau + liseré) dessinée sur un calque puis composée (l'alpha de la base est préservé)."""
         cx, cy = layer["x"] * SCALE, layer["y"] * SCALE
         rx, ry = layer["rx"] * SCALE, layer["ry"] * SCALE
         fill, edge = (COLORS["ice"], COLORS["ice_edge"]) if season == "winter" else (COLORS["water"], COLORS["water_edge"])
-        d = ImageDraw.Draw(canvas)
+        lay = Image.new("RGBA", canvas.size, (0, 0, 0, 0))
+        d = ImageDraw.Draw(lay)
         d.ellipse((cx - rx, cy - ry, cx + rx, cy + ry), fill=hex2rgb(edge) + (255,))
         d.ellipse((cx - rx + 2, cy - ry + 1, cx + rx - 2, cy + ry - 3), fill=hex2rgb(fill) + (255,))
         if season == "winter":  # fines fissures
             d.line((cx - rx * 0.6, cy - ry * 0.2, cx - rx * 0.1, cy + ry * 0.1, cx + rx * 0.5, cy - ry * 0.4), fill=(255, 255, 255, 200), width=2)
             d.line((cx - rx * 0.1, cy + ry * 0.1, cx + rx * 0.2, cy + ry * 0.55), fill=(255, 255, 255, 170), width=2)
+        canvas.alpha_composite(lay)
 
     def compose(self, key, spec, season):
         canvas = self.base_for(spec, season)
@@ -509,8 +528,8 @@ class Composer:
             outside = (np.asarray(probe) > 60) & ~self.inside
             if outside.any():
                 ys, xs = np.nonzero(outside)
-                raise RuntimeError(f"{key}/{season}: le calque {layer['sprite']} ({layer['x']},{layer['y']}) dépasse de l'hexagone "
-                                   f"({int(outside.sum())} px, ex. x={int(xs[0])} y={int(ys[0])})")
+                self.errors.append(f"{key}/{season}: le calque {layer['sprite']} ({layer['x']},{layer['y']}) dépasse de l'hexagone "
+                                   f"({int(outside.sum())} px, x={int(xs.min())}..{int(xs.max())} y={int(ys.min())}..{int(ys.max())})")
             canvas.alpha_composite(im, (x, y))
         return canvas
 
@@ -525,10 +544,12 @@ class Composer:
         shadow = Image.new("RGBA", (TILE_W, TILE_H), (0, 0, 0, 0))
         shadow.putalpha(shadow_a)
         frozen = self.ice_base.copy()
-        d = ImageDraw.Draw(frozen)
+        cracks = Image.new("RGBA", (TILE_W, TILE_H), (0, 0, 0, 0))
+        d = ImageDraw.Draw(cracks)
         for pts in [((52, 96), (96, 128), (118, 176), (150, 196)), ((150, 196), (188, 172)), ((96, 128), (74, 160)),
                     ((166, 78), (186, 112), (172, 140)), ((60, 220), (98, 236), (130, 232))]:
             d.line(pts, fill=(255, 255, 255, 190), width=2)
+        frozen.alpha_composite(cracks)
         return mask, outline, shadow, frozen
 
 
@@ -640,6 +661,8 @@ class Builder:
                 e = self.emit(f"{key}_{season}", "tiles", im, packs if len(packs) > 1 else packs[0], " + ".join(originals), note,
                               season=season, family=spec["family"], tile=key, method="+".join(methods) or "composed")
                 self.tiles_by_season[season].append(self.img_root / e["file"])
+        if comp.errors:
+            raise RuntimeError("Calques hors de l'hexagone :\n  " + "\n  ".join(sorted(set(comp.errors))))
         mask, outline, shadow, frozen = comp.hex_helpers()
         self.emit("water_frozen", "tiles", frozen, HP, "grass_05 (alpha)", "Eau gelée (hiver) : hexagone #dbe9f4, liseré #c5d8ea, fissures blanches.", family="water")
         self.emit("hex_mask", "tiles", mask, HP, "grass_05 (alpha)", "Hexagone plein blanc, mêmes sommets que les tuiles (surbrillances, à teinter).")
