@@ -54,7 +54,7 @@ const TABS = {
     h('p', { class: 'g-intro' }, `Les souffles sont une réserve de pouvoirs. On en gagne ${B.breaths.close} par région fermée, ${B.breaths.wish} par vœu exaucé et ${B.breaths.faunaSeason} par animal présent à chaque changement de saison.`),
     h('ul', { class: 'g-list' }, ...['swap', 'discard', 'bud', 'undo', 'pocket'].map((k) => h('li', {}, STORY.breaths[k]))),
     h('h3', {}, icon('icon_star'), 'Les vœux et les étoiles'),
-    h('p', { class: 'g-intro' }, `Dès l’île 5, les habitants formulent des vœux à échéance (un nombre de poses ou une saison). Un vœu exaucé rapporte ${B.points.wish} points, ${B.breaths.wish} souffles et une tuile rare.`),
+    h('p', { class: 'g-intro' }, `Dès l’île 2, les habitants formulent des vœux à échéance (un nombre de poses ou une saison). Un vœu exaucé rapporte ${B.points.wish} points, ${B.breaths.wish} souffles et une tuile rare.`),
     h('p', { class: 'g-intro' }, `Les étoiles dépendent du score par rapport à la taille de l’île (${B.stars.perCell.map((x) => `×${String(x).replace('.', ',')}`).join(', ')} points par case). La troisième exige aussi tous les vœux. Une étoile suffit pour débloquer l’île suivante.`),
   ) },
   seeds: { label: 'Graines et Atelier', build: () => h('div', {},

@@ -52,6 +52,7 @@ export const STORY = {
       ],
       tutorial: [
         { id: 'river', text: 'Une chaîne d’eau qui touche la mer ou une roche est une rivière : +2 par tuile. Une eau isolée n’est qu’une mare.' },
+        { id: 'wish', text: 'Les habitants formulent des vœux (à droite), avec une échéance en poses ou en saisons. Un vœu exaucé rapporte des points, des souffles et une tuile rare.' },
       ],
     },
     3: {
@@ -95,9 +96,7 @@ export const STORY = {
         'Alors quelqu’un a dit : gardons-le. Et nous avons trouvé ça bien. Nous avons cessé d’appeler l’automne.',
         'Le premier hiver qui n’est pas venu, nous ne l’avons pas remarqué. Le deuxième non plus.',
       ],
-      tutorial: [
-        { id: 'wish', text: 'Les habitants formulent des vœux avec une échéance. Exaucer un vœu injecte une tuile rare dans ta file.' },
-      ],
+      tutorial: []
     },
     6: {
       name: 'La Mare aux Canards',
@@ -201,6 +200,41 @@ export const STORY = {
   },
 
   wishes: {
+    w2_1: {
+      giver: 'Le passeur du gué',
+      title: 'Un vrai courant',
+      text: 'Trois tuiles d’eau qui se touchent et rejoignent la mer ou la roche. Une flaque ne porte pas une barque.',
+      done: 'Le passeur a mis sa barque à l’eau. Elle a flotté. Il n’en revenait pas.',
+      failed: 'Le passeur a remisé sa barque. Il dit que la rivière viendra bien un jour.',
+    },
+    w3_1: {
+      giver: 'La meunière',
+      title: 'Du blé sous les toits',
+      text: 'Deux champs collés à un hameau. On ne moud pas ce qui pousse loin des gens.',
+      done: 'La meunière a rouvert ses volets. On entend la meule depuis la pointe.',
+      failed: 'La meunière a laissé la meule au repos. Le blé attendra.',
+    },
+    w3_2: {
+      giver: 'Les enfants de la pointe',
+      title: 'Un pré à nous',
+      text: 'Un pré d’au moins trois tuiles, entouré de partout. Pour jouer sans qu’on nous appelle.',
+      done: 'Les enfants ont couru dans le pré jusqu’à la nuit. Personne ne les a appelés.',
+      failed: 'Les enfants ont joué sur le sable. Ce n’était pas pareil.',
+    },
+    w4_1: {
+      giver: 'La vieille femme aux pommes',
+      title: 'Le premier lapin',
+      text: 'Un lapin. Il lui faut une prairie de trois tuiles, pas une de moins.',
+      done: 'Un lapin est venu manger dans sa main. Elle a fait comme si c’était normal.',
+      failed: 'La vieille femme a rangé ses pommes. Les lapins sont encore sous la haie.',
+    },
+    w4_2: {
+      giver: 'Le garde des haies',
+      title: 'Un bois qui tient',
+      text: 'Une forêt de quatre tuiles. Sous quatre arbres, on peut déjà se croire perdu.',
+      done: 'Le garde a fait le tour du bois. Il a mis du temps : c’est bon signe.',
+      failed: 'Le garde a compté les arbres sur ses doigts. Il en manquait.',
+    },
     w5_1: {
       giver: 'Le bûcheron de la baie',
       title: 'Un bois pour se perdre',
