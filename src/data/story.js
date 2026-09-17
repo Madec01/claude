@@ -582,6 +582,17 @@ export const STORY = {
 
   closed: ['Bouclé !', 'Une région entière !', 'Tout autour !', 'Voilà qui tient.'],
 
+  // commentaire de chaque coup (feedback.js) : comparé au meilleur emplacement possible pour la même tuile
+  verdicts: {
+    master: ['Coup de maître !', 'Magistral !', 'L’île applaudit !', 'Rien à redire !'],
+    perfect: ['Parfait !', 'Pile là !', 'Exactement !', 'La bonne case !'],
+    good: ['Bien joué', 'Bien vu', 'Joli', 'Ça tient'],
+    ok: ['Correct', 'Pas mal', 'Ça passe', 'Prudent'],
+    meh: ['Il y avait mieux', 'Dommage…', 'Une autre case valait plus', 'Trop vite ?'],
+    streak: { 3: 'Trois d’affilée !', 5: 'En feu ! ×5', 8: 'Série de huit !', default: 'Série de {n} !' },
+    milestone: '{n} points !',
+  },
+
   ending: [
     'La dernière tuile est posée. Nous attendons que tu nous dises quelle saison vient. Tu ne dis rien.',
     'Alors la rivière gèle toute seule. Les hameaux se regardent par-dessus la glace. Personne ne t’a rien demandé.',

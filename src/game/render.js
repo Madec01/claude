@@ -190,7 +190,11 @@ export class IslandRenderer {
       if (img) ctx.drawImage(img, c.x - TILE_W * zz / 2, cy - TILE_H * zz / 2, TILE_W * zz, TILE_H * zz);
       else this.drawTileAt(ctx, t, c.x, cy, d.s, 1);
     }
-    // (rives : composées dans waterGround, en cache par signature)
+    // lagunes (trous du masque entourés de terre) : sol de rive puis mare, dessinées comme un étang
+    for (const h of this.decor.holes || []) {
+      const w = toWorld(h.q, h.r); const c = cam.toScreen(w.x, w.y); if (!vis(c)) continue;
+      const img = this.waterGround(h, this.seasonFor(w.x)); if (img) ctx.drawImage(img, c.x - TILE_W * z / 2, c.y - TILE_H * z / 2, TILE_W * z, TILE_H * z);
+    }
     // raccords : un ruban de la couleur du sol sur chaque arête partagée par deux sols identiques (efface la couture)
     ctx.save();
     const half = SIZE * 0.46, e = 7;
@@ -247,7 +251,7 @@ export class IslandRenderer {
   drawWater(ctx, dropping) {
     const cam = this.cam, z = cam.zoom, b = this.isl.board;
     const bodies = this.decor.water && this.decor.water.bodies ? this.decor.water.bodies : [];
-    if (!bodies.length) return;
+    if (!bodies.length && !(this.decor.holes && this.decor.holes.length)) return;
     const vis = (c, m = 200) => !(c.x < -m || c.x > STAGE.W + m || c.y < -m || c.y > STAGE.H + m);
     const S = (p) => cam.toScreen(p.x, p.y);
     const jit = (a, c) => { const h = Math.sin(a.x * 12.9898 + a.y * 78.233 + c.x * 37.719 + c.y * 4.1) * 43758.5453; return (h - Math.floor(h)) - 0.5; };
@@ -276,6 +280,15 @@ export class IslandRenderer {
       ctx.lineWidth = wAt(sp.length - 1) * mul; ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(sp[sp.length - 1].x, sp[sp.length - 1].y); ctx.stroke();
     };
     ctx.save(); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    for (const h of this.decor.holes || []) {
+      // lagune : une mare comme un étang, gelée en hiver
+      const c0 = toWorld(h.q, h.r); const c = S(c0); if (!vis(c)) continue;
+      const frozen = this.isl.season === 'winter'; const pal = frozen ? ICE : (WATER[this.seasonFor(c0.x)] || WATER.spring);
+      const rr = SIZE * 0.7 * z; ctx.fillStyle = pal.edge; this.blob(ctx, c.x, c.y + 2 * z, rr, c0); ctx.fill();
+      ctx.fillStyle = pal.fill; this.blob(ctx, c.x, c.y, rr * 0.9, c0); ctx.fill();
+      if (!frozen) { ctx.strokeStyle = pal.foam; ctx.lineWidth = 1.5 * z; ctx.beginPath(); ctx.ellipse(c.x - rr * 0.2, c.y - rr * 0.25, rr * 0.35, rr * 0.16, -0.4, 0, TAU); ctx.stroke(); }
+      else this.drawCracks(ctx, [c], z);
+    }
     for (const body of bodies) {
       if (body.cells.some((c) => dropping.has(key(c.q, c.r)))) continue;
       const frozen = body.cells.every((c) => c.frozen);

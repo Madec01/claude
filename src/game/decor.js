@@ -37,12 +37,12 @@ export class Decor {
   /** Sol de rive de chaque tuile d'eau : le sol majoritaire de ses voisines de terre (herbe par défaut). */
   computeBanks(board) {
     const bank = new Map();
-    for (const t of board.tiles.values()) {
-      if (!Board.isFamily(t, 'water')) continue;
-      const counts = {};
-      for (const [a, b] of neighbors(t.q, t.r)) { const n = board.get(a, b); if (!n || Board.isFamily(n, 'water')) continue; let g = groundOf(n); if (g === 'ice' || g === 'water') continue; if (g === 'hill') g = 'grass'; if (g === 'dry') g = 'grass'; counts[g] = (counts[g] || 0) + 1; }
-      bank.set(key(t.q, t.r), Object.keys(counts).sort((x, y) => counts[y] - counts[x])[0] || 'grass');
-    }
+    const bankOf = (q, r, fallback) => { const counts = {}; for (const [a, b] of neighbors(q, r)) { const n = board.get(a, b); if (!n || Board.isFamily(n, 'water')) continue; let g = groundOf(n); if (g === 'ice' || g === 'water') continue; if (g === 'hill') g = 'grass'; if (g === 'dry') g = 'grass'; counts[g] = (counts[g] || 0) + 1; } return Object.keys(counts).sort((x, y) => counts[y] - counts[x])[0] || fallback; };
+    for (const t of board.tiles.values()) { if (!Board.isFamily(t, 'water')) continue; bank.set(key(t.q, t.r), bankOf(t.q, t.r, 'grass')); }
+    // lagunes : trous du masque entourés de six cases de l'île ; elles prennent une rive dès qu'une voisine est posée
+    this.holes = [];
+    const seen = new Set();
+    for (const k of board.mask) { const [q, r] = k.split(',').map(Number); for (const [a, b] of neighbors(q, r)) { const hk = key(a, b); if (board.mask.has(hk) || seen.has(hk)) continue; seen.add(hk); if (neighbors(a, b).every(([x, y]) => board.mask.has(key(x, y)))) { const g = bankOf(a, b, null); if (g) { bank.set(hk, g); this.holes.push({ q: a, r: b, family: 'water', variant: 1, hole: true }); } } } }
     return bank;
   }
 

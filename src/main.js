@@ -23,6 +23,7 @@ import { buildCredits, loadCredits } from './ui/credits.js';
 import { buildGuide } from './ui/guide.js';
 import { dailyDef, dailyKey, yesterdayKey } from './data/daily.js';
 import { Finale } from './game/finale.js';
+import { GRADES, streakMilestone } from './game/feedback.js';
 import { buildStory, islandIntroScreens, islandMemoryScreens, prologueScreens, endingScreens, infiniteScreens, gardenScreens, dailyScreens } from './ui/story.js';
 import { buildResults } from './ui/results.js';
 import { buildWorkshop } from './ui/workshop.js';
@@ -330,6 +331,17 @@ class IslandScene {
       for (const ed of e.result.edges) { const nw = toWorld(ed.q, ed.r); const mx = (w.x + nw.x) / 2, my = (w.y + nw.y) / 2; setTimeout(() => { fx.floatText(mx, my, `${ed.pts > 0 ? '+' : ''}${ed.pts}`, ed.pts > 0 ? '#2f9e8f' : '#d95f4b', 18, 1.1); if (ed.pts > 0) AudioSys.play(`point_${Math.min(8, i + 1)}`, { volume: 0.45 }); else AudioSys.play('point_bad', { volume: 0.4 }); }, 90 * i); i++; }
       for (const bs of e.result.base) { setTimeout(() => fx.floatText(w.x, w.y + 30, `+${bs.pts} ${bs.label}`, '#5aa7d6', 18, 1.2), 90 * i++); if (bs.label === 'rivière') this.tutorial.onEvent('river'); }
       if (e.result.total !== 0) setTimeout(() => fx.floatText(w.x, w.y - 40, `${e.result.total > 0 ? '+' : ''}${e.result.total}`, e.result.total > 0 ? '#2b2a26' : '#d95f4b', 26, 1.4), 90 * i + 60);
+      // commentaire du coup, série et paliers de score
+      if (e.grade && GRADES[e.grade]) {
+        const g = GRADES[e.grade]; const texts = STORY.verdicts[e.grade]; const txt = texts[Math.floor(Math.random() * texts.length)];
+        setTimeout(() => {
+          fx.floatText(w.x, w.y - 78, e.grade === 'meh' && e.best > e.result.total ? `${txt} (+${e.best})` : txt, g.color, g.size, e.grade === 'master' ? 2 : 1.6);
+          if (g.burst) fx.closeBurst(w.x, w.y - 20, g.burst);
+          if (e.grade === 'master') { AudioSys.play('star_1', { volume: 0.6 }); this.shake.trigger(0.12); } else if (e.grade === 'perfect') AudioSys.play('point_8', { volume: 0.5 });
+          if (g.streak && streakMilestone(e.streak)) { const st = STORY.verdicts.streak; setTimeout(() => { fx.floatText(w.x, w.y - 110, (st[e.streak] || st.default).replace('{n}', e.streak), '#e0a33a', 24, 2); AudioSys.play('region_close', { volume: 0.5 }); fx.closeBurst(w.x, w.y - 60, 5); }, 250); }
+        }, 90 * i + 380);
+      }
+      if (e.milestone) setTimeout(() => { this.hud.notify(STORY.verdicts.milestone.replace('{n}', e.milestone), 'gold'); AudioSys.play('star_2', { volume: 0.5 }); }, 90 * i + 700);
       if (isl.season === 'winter') { const pts = []; for (const o of this.renderer.decor.objects) if (o.tpl && o.tpl.startsWith('obj_tree') && Math.hypot(o.x - w.x, o.y - w.y) < 150 && Math.hypot(o.x - w.x, o.y - w.y) > 50) pts.push({ x: o.x, y: o.y }); if (pts.length) fx.snowShake(pts.slice(0, 10)); }
       if (e.restoredFrom) this.hud.notify(`La ruine restaurée devient : ${(STORY.tiles[e.tile.family] || {}).name || e.tile.family}`, 'rare');
       if (e.market) this.hud.notify(`Marché : choisis ta tuile pour les ${e.market} prochaines poses`, 'gold');

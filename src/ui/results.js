@@ -24,6 +24,8 @@ export function buildResults({ result, def, onContinue, onRetry, onMenu, newReco
       row('Tuiles posées', `${result.filled} / ${result.cells}`),
       row('Régions closes', result.stats.closed, result.stats.closed ? 'good' : ''),
       row('Plus grande région', result.stats.biggestRegion),
+      result.stats.perfect ? row('Coups parfaits', result.stats.perfect, 'good') : null,
+      result.stats.bestStreak >= 3 ? row('Meilleure série', `${result.stats.bestStreak} bons coups`, 'gold') : null,
       row('Animaux (au plus)', result.stats.faunaMax, result.stats.faunaMax ? 'good' : ''),
       result.wishesTotal ? row('Vœux exaucés', `${result.wishesDone} / ${result.wishesTotal}`, result.wishesDone === result.wishesTotal ? 'gold' : '') : null,
       row('Saisons traversées', result.seasons),
