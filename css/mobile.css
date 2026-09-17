@@ -1,7 +1,8 @@
 /* Disposition compacte (téléphones et petites tablettes) : classes posées sur <html> par src/core/stage.js :
    .compact (scène = fenêtre, échelle 1), .portrait / .landscape, .touch (périphérique tactile). */
 html, body { overscroll-behavior: none; -webkit-tap-highlight-color: transparent; }
-#stage { touch-action: none; }
+#game { touch-action: none; }
+#ui, #hud .hud-wishes .wish-list, #hud .hud-queue { touch-action: pan-x pan-y; -webkit-overflow-scrolling: touch; }
 html.touch #hud, html.touch #ui, html.touch #tutorial { -webkit-user-select: none; user-select: none; }
 html.compact #app { background: #dfe8ec; }
 html.compact #stage { border-radius: 0; box-shadow: none; }
@@ -192,3 +193,11 @@ html.compact .season-pips i { flex: 1 1 0; width: auto; height: 3px; border-radi
 html.compact.portrait .hud-fs { display: none !important; }
 html.compact.portrait .hud-notify { top: 80px; }
 html.compact.landscape .hud-notify { right: 230px; }
+
+/* panneaux compacts : les actions (Retour, Continuer…) restent visibles, seule la zone centrale défile */
+html.compact .panel { display: flex; flex-direction: column; overflow: hidden; }
+html.compact .panel > * { flex: 0 0 auto; }
+html.compact .panel > .guide-body, html.compact .panel > .credits-scroll, html.compact .panel > .opt-cols, html.compact .panel > .ws-grid,
+html.compact .panel > .acts, html.compact .panel > .res-grid, html.compact .panel > .pause-controls { flex: 1 1 auto; min-height: 0; overflow: auto; max-height: none; -webkit-overflow-scrolling: touch; }
+html.compact .panel-actions { padding-top: 4px; }
+html.compact .panel .panel-actions .btn { min-height: 40px; }

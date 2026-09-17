@@ -54,6 +54,19 @@ async function touchDrag(cdp, pts) {
     await page.screenshot({ path: path.join(OUT, `mobile-${tag}-menu.png`) });
     // guide + options
     await page.evaluate(() => window.CS.Game.showGuide()); await page.waitForTimeout(600); await page.screenshot({ path: path.join(OUT, `mobile-${tag}-guide.png`) });
+    {
+      const cdpG = await context.newCDPSession(page);
+      const back = await page.evaluate(() => { const b = document.querySelector('.panel-guide .panel-actions .btn'); const r = b.getBoundingClientRect(); return { top: r.top, bottom: r.bottom, h: innerHeight }; });
+      check(back.bottom <= back.h && back.top >= 0, `${name} : bouton Retour du guide visible sans défiler (${Math.round(back.bottom)} ≤ ${back.h})`);
+      const body = await page.evaluate(() => { const r = document.querySelector('.guide-body').getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2, h: r.height }; });
+      await touchDrag(cdpG, [[{ x: body.x, y: body.y + body.h * 0.3 }], [{ x: body.x, y: body.y }], [{ x: body.x, y: body.y - body.h * 0.3 }], [{ x: body.x, y: body.y - body.h * 0.4 }]]);
+      await page.waitForTimeout(900);   // laisser finir l'inertie du défilement avant de toucher un bouton
+      const st = await page.evaluate(() => document.querySelector('.guide-body').scrollTop);
+      check(st > 20, `${name} : le guide défile au doigt (scrollTop=${Math.round(st)})`);
+      await page.tap('.panel-guide .panel-actions .btn'); await page.waitForTimeout(600);
+      check(await page.evaluate(() => !document.querySelector('.panel-guide') && !!document.querySelector('.menu')), `${name} : Retour du guide ramène au menu`);
+      await cdpG.detach();
+    }
     await page.evaluate(() => window.CS.Game.showOptions()); await page.waitForTimeout(500); await page.screenshot({ path: path.join(OUT, `mobile-${tag}-options.png`) });
     // île 3 : pose tactile
     await startIsland(page, 3);
