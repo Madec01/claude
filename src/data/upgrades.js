@@ -1,11 +1,15 @@
-// Atelier du phare : six améliorations à trois niveaux.
+// Le Bar des Sports : jeux de boules et entraînements achetés en jetons.
 export const UPGRADES = [
-  { id: 'lens', name: 'Lentille large', icon: 'icon_target', desc: 'Élargit l’angle du faisceau.', levels: ['28°', '34°', '40°', '46°'], costs: [4, 6, 9] },
-  { id: 'mechanism', name: 'Mécanisme huilé', icon: 'icon_gear', desc: 'La lentille tourne plus vite vers le curseur.', levels: ['×1', '×1,25', '×1,5', '×1,75'], costs: [3, 5, 8] },
-  { id: 'hornRange', name: 'Corne longue', icon: 'icon_signal', desc: 'Augmente le rayon de la corne de brume.', levels: ['250 m', '300 m', '350 m', '400 m'], costs: [3, 5, 8] },
-  { id: 'hornSpeed', name: 'Corne rapide', icon: 'icon_clock', desc: 'Réduit le temps de recharge de la corne.', levels: ['8 s', '7 s', '6 s', '5 s'], costs: [4, 6, 9] },
-  { id: 'oil', name: 'Réserve d’huile', icon: 'icon_wrench', desc: 'Augmente la capacité de la cuve (utile dès la nuit 10).', levels: ['100', '125', '150', '175'], costs: [3, 4, 6] },
-  { id: 'lantern', name: 'Lanterne de secours', icon: 'icon_star', desc: 'Un naufrage de plus toléré par nuit.', levels: ['3 naufrages', '4 naufrages', '5 naufrages'], costs: [8, 12] },
+  { id: 'steady', name: 'Régularité', icon: 'icon_target', desc: 'La zone verte de la jauge s’élargit.', levels: ['Normale', 'Large', 'Très large', 'Généreuse'], costs: [6, 10, 16] },
+  { id: 'calm', name: 'Sang-froid', icon: 'icon_clock', desc: 'L’aiguille de la jauge ralentit.', levels: ['Vive', 'Posée', 'Lente', 'Tranquille'], costs: [6, 10, 16] },
+  { id: 'eye', name: 'Œil du tireur', icon: 'icon_signal', desc: 'La trajectoire prévisualisée du tir s’allonge.', levels: ['Courte', 'Moyenne', 'Longue', 'Complète'], costs: [5, 8, 12] },
+  { id: 'reading', name: 'Lecture du terrain', icon: 'icon_info', desc: 'Pentes et sols difficiles sont mieux affichés.', levels: ['À l’œil', 'Pentes', 'Pentes + sols', 'Tout'], costs: [4, 7, 10] },
+];
+
+export const BOULE_SETS = [
+  { id: 'fanny', name: 'Les boules de Fanny', desc: 'Équilibrées. Celles de la boîte à biscuits.', cost: 0 },
+  { id: 'tender', name: 'Les tendres', desc: 'Acier doux : rebondissent peu, roulent moins loin. Pour pointer.', cost: 12 },
+  { id: 'hard', name: 'Les dures', desc: 'Acier dur : rebond franc, choc violent. Pour tirer et faire des carreaux.', cost: 14 },
 ];
 
 export const upgradeCost = (u, level) => (level < u.costs.length ? u.costs[level] : null);

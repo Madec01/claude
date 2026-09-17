@@ -1,83 +1,62 @@
-// Constantes d'équilibrage. Toutes les valeurs « de sensation » du jeu sont ici.
+// Constantes d'équilibrage de « Tu tires ou tu pointes ? ». Unités physiques en mètres / secondes.
 import { DEG } from '../core/math.js';
 
 export const BALANCE = {
-  world: { w: 1280, h: 720, margin: 60 },
-
-  beam: {
-    halfAngle: [14 * DEG, 17 * DEG, 20 * DEG, 23 * DEG],   // par niveau de « Lentille large »
-    rotRate: [2.4, 3.0, 3.6, 4.2],                          // rad/s par niveau de « Mécanisme huilé »
-    range: 560,
-    rangeRain: 0.68,            // multiplicateur de portée sous la pluie
-    rangeLow: 0.55,             // feu réduit
-    smoothing: 14,              // réactivité de l'inertie (plus grand = plus vif)
-    revealHold: 0.12,           // secondes de lumière pour relever un écueil
-    guidedGrace: 1.4,           // secondes pendant lesquelles un navire reste « guidé » après avoir quitté la lumière
-    clearRadius: 96,            // rayon toujours dégagé autour du phare
+  world: { w: 1280, h: 720 },
+  field: {
+    length: 15,        // m
+    width: 4,          // m
+    pxPerM: 80,        // 1 m = 80 px
+    originX: 40,       // px : bord gauche du terrain
+    originY: 270,      // px : bord haut du terrain
+    circleX: 1.2,      // m : centre du rond de lancer (depuis le bord de départ)
+    circleZ: 2.0,
+    circleR: 0.25,
+    jackMin: 6, jackMax: 10,   // distance du cochonnet depuis le rond
   },
-
-  oil: {
-    capacity: [100, 125, 150, 175],   // par niveau de « Réserve d'huile »
-    burnFull: 1.55,   // unités / s
-    burnLow: 0.7,
-    barrel: 28,        // livré par navire à quai
-    relight: 5,        // secondes d'extinction quand la réserve est à sec
-    start: 0.75,       // fraction de départ
+  physics: {
+    dt: 1 / 120,
+    g: 9.81,
+    bouleR: 0.0375, bouleM: 0.7,
+    jackR: 0.015, jackM: 0.012,
+    steelE: 0.82,          // restitution boule/boule
+    jackE: 0.55,           // restitution boule/cochonnet
+    stopSpeed: 0.05,
+    maxSimTime: 9,
+    minBounceVy: 0.45,     // sous ce rebond vertical, la boule roule
+    spinCurve: 0.9,        // accélération latérale par unité d'effet à 1 m/s
+    spinDecay: 1.4,
   },
-
-  horn: {
-    radius: [250, 300, 350, 400],       // « Corne longue »
-    cooldown: [8, 7, 6, 5],             // « Corne rapide »
-    freeze: 3.0,
-    beastPush: 260,
+  // Sols : friction de roulement μ, restitution verticale, perte horizontale à l'impact
+  surfaces: {
+    gravel: { mu: 0.30, e: 0.28, loss: 0.30, name: 'gravier' },
+    packed: { mu: 0.24, e: 0.32, loss: 0.26, name: 'terre battue' },
+    sand:   { mu: 0.60, e: 0.10, loss: 0.55, name: 'sable' },
+    tarmac: { mu: 0.17, e: 0.48, loss: 0.16, name: 'goudron' },
+    grass:  { mu: 0.42, e: 0.18, loss: 0.40, name: 'herbe' },
+    dirt:   { mu: 0.27, e: 0.25, loss: 0.30, name: 'terre' },
   },
-
-  ships: {
-    dinghy: { name: 'Sardinier', sprite: 'dinghy', length: 40, speed: 72, turn: 3.2, radius: 12, draft: 0, hull: 2 },
-    cutter: { name: 'Cotre', sprite: 'ship', length: 66, speed: 46, turn: 2.0, radius: 20, draft: 1, hull: 3 },
-    tall:   { name: 'Trois-mâts', sprite: 'ship', length: 98, speed: 33, turn: 1.25, radius: 29, draft: 2, hull: 3 },
-    yann:   { name: 'La Sirène', sprite: 'ship', length: 104, speed: 30, turn: 1.15, radius: 30, draft: 2, hull: 4 },
-    driftSpeed: 0.34,        // fraction de la vitesse quand le navire dérive sans route
-    unguidedSpeed: 0.72,     // fraction de la vitesse quand il suit sa route hors lumière
-    unguidedWobble: 0.9,     // amplitude (rad/s) de l'errance hors lumière
-    lostSpeed: 0.0,
-    waypointReach: 10,
-    collisionDamageSpeed: 0.5,
-    dockRadius: 64,
-    sinkTime: 2.6,
+  // Jeux de boules (facteurs appliqués à la restitution et à la friction)
+  bouleSets: {
+    fanny:  { name: 'Les boules de Fanny', eMul: 1.0, muMul: 1.0, hitMul: 1.0, sprite: 'boule_silver_a' },
+    tender: { name: 'Les tendres', eMul: 0.8, muMul: 1.12, hitMul: 0.9, sprite: 'boule_silver_b' },
+    hard:   { name: 'Les dures', eMul: 1.18, muMul: 0.92, hitMul: 1.15, sprite: 'boule_silver_c' },
   },
-
-  tide: {
-    period: 1.0,        // nombre de cycles marée par nuit (1 = une montée + une descente)
-    emergeLevel: 0.35,  // en dessous : écueils « émergés » visibles
-    submergeLevel: 0.65,// au-dessus : écueils submersibles invisibles (mortels selon tirant d'eau)
+  // Types de lancer : angle d'élévation, fraction de vitesse conservée, hauteur de lâcher, zone verte de base
+  throws: {
+    point:   { name: 'Pointer',      key: '1', angle: 9 * DEG,  release: 0.35, zone: 0.34, distErr: 0.12, sideErr: 1.6 * DEG, desc: 'Lancer bas qui roule longtemps. Sensible au sol.' },
+    halflob: { name: 'Demi-portée',  key: '2', angle: 32 * DEG, release: 0.9,  zone: 0.30, distErr: 0.13, sideErr: 1.8 * DEG, desc: 'Tombe à mi-chemin puis roule. Passe les bosses proches.' },
+    shoot:   { name: 'Tirer',        key: '3', angle: 11 * DEG, release: 1.0,  zone: 0.18, distErr: 0.10, sideErr: 1.3 * DEG, speed: 9.5, desc: 'Lancer tendu sur une boule adverse pour la chasser.' },
+    lob:     { name: 'Plombée',      key: '4', angle: 62 * DEG, release: 1.1,  zone: 0.26, distErr: 0.15, sideErr: 2.2 * DEG, desc: 'Très haut, tombe presque à la verticale, ne roule pas.' },
   },
-
-  storm: {
-    gustEvery: [6, 12],   // secondes entre rafales
-    gustDuration: [1.6, 3.2],
-    gustForce: 38,        // px/s ajoutés à la vitesse des navires
-    windDrift: 12,        // dérive constante
+  gauge: {
+    speed: [2.6, 2.2, 1.85, 1.55],      // rad/s de l'aiguille par niveau de Sang-froid
+    zoneMul: [1, 1.2, 1.4, 1.65],       // largeur de zone par niveau de Régularité
+    distanceShrink: 0.55,               // à 10 m la zone est réduite de ce facteur (linéaire)
+    insideErr: 0.22,                    // fraction de l'erreur quand on relâche dans la zone
   },
-
-  beast: {
-    speed: 34,
-    speedLit: 12,
-    radius: 58,
-    huntRange: 420,
-    catchRadius: 44,
-    retreat: 2.4,          // secondes de recul après la corne
-    dissipatePerSec: 0.35, // sous la lumière
-    regenPerSec: 0.12,
-    lostFogTime: 1.0,
-  },
-
-  pages: { readTime: 1.5, shards: 3, drift: 9 },
-
-  score: { docked: 100, dinghyBonus: 20, tallBonus: 60, noWreck: 250, page: 40, timeBonusPerSec: 2 },
-  shards: { page: 3, star: 2, perfect: 3 },
-
-  results: { star2Extra: 2 },
-
-  infinite: { rampEvery: 60, maxSpawnRate: 3.2 },
+  ai: { thinkTime: [0.9, 1.6], candidates: 22, samples: 3 },
+  match: { measureThreshold: 0.03, jackOutRetries: 3, pauseAfterThrow: 0.9, pauseAfterCount: 2.2 },
+  score: { point: 1, carreau: 3, win: 5, star: 2, matchLoseConsolation: 2 },
+  camera: { zoomMax: 1.9, lerp: 3.2 },
 };
