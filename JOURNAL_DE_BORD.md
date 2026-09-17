@@ -1,9 +1,9 @@
-# JOURNAL DE BORD — « TU TIRES OU TU POINTES ? »
+# JOURNAL DE BORD — « CENT SAISONS »
 
 > Document de référence du projet. Il permet à n'importe qui (humain ou IA) de reprendre le projet à froid.
 > Règle : aucune modification significative du jeu sans une ligne dans le **Journal des modifications** (section 7).
 
-> **Note de pivot (2026-09-17).** Le projet a d'abord été conçu comme « Feux de Brume », un jeu de gardienne de phare guidant des navires dans la brume. Le commanditaire a signalé que ce concept reproduisait l'un de ses tout premiers jeux. Le projet a été **entièrement réorienté** vers un jeu de pétanque narratif, « Tu tires ou tu pointes ? ». Le moteur générique (boucle, entrées, chargeur, audio, sauvegarde, scènes, particules, écrans DOM, pipelines d'assets, bot de QA) est conservé ; la logique de jeu, l'histoire, la direction artistique et l'audio sont refaits. L'historique complet reste en section 7 et l'ancien concept est archivé en section 6.
+> **Historique des pivots.** Le projet a connu deux concepts abandonnés : « Feux de Brume » (gardienne de phare, jugé trop proche d'un jeu antérieur du commanditaire) puis « Tu tires ou tu pointes ? » (pétanque narrative, ébauche interrompue quand le commanditaire a demandé dix propositions). Le concept retenu par le commanditaire est **Cent Saisons**. Le moteur générique (boucle, entrées, chargeur, audio, sauvegarde, scènes, particules, écrans DOM, pipelines d'assets, bot de QA) est conservé ; tout le reste est refait. Les anciens concepts sont archivés en section 6 et dans l'historique git.
 
 ---
 
@@ -11,12 +11,12 @@
 
 | | |
 |---|---|
-| **Titre** | Tu tires ou tu pointes ? |
-| **Sous-titre** | Un été à Saint-Aubin-des-Cigales |
-| **Genre** | Sport / physique / narratif : pétanque en tête-à-tête, vue de dessus, tour par tour avec exécution en temps réel |
+| **Titre** | Cent Saisons |
+| **Sous-titre** | L'île qui se souvient |
+| **Genre** | Puzzle de placement de tuiles hexagonales, contemplatif et stratégique, en vue isométrique ; solo ; intemporel |
 | **Plateforme** | Navigateur desktop (Chrome / Firefox / Edge à jour), serveur statique ou GitHub Pages |
 | **Langue** | Français exclusivement (UI, textes, histoire). Code et identifiants en anglais. |
-| **Durée d'une partie** | Une partie de 4 à 10 minutes ; campagne de 12 parties (≈ 75–90 min) ; partie rapide et entraînement illimités |
+| **Durée d'une partie** | Une île : 6 à 20 minutes ; campagne de 12 îles (≈ 2 h) ; Île infinie et Jardin sans limite |
 | **Stack** | HTML5 + CSS3 + JavaScript ES2022 (modules natifs), Canvas 2D, Web Audio API. Aucune dépendance, aucun build. |
 | **Dépôt** | `Madec01/claude`, branche `claude/modest-faraday-o5034z` |
 | **Point d'entrée** | `index.html` à la racine (chemins relatifs, compatible GitHub Pages) |
@@ -25,17 +25,18 @@
 
 ## 1. Vision du jeu
 
-**Pitch (3 lignes).** Été 1962. Camille revient à Saint-Aubin-des-Cigales pour vider la maison de sa grand-mère Fanny, championne de pétanque que le village a oubliée. Dans une boîte à biscuits, trois boules d'acier et un cochonnet rouge. Le concours de la Saint-Éloi commence samedi : douze parties pour reprendre la place de Fanny, apprivoiser chaque terrain du village, et comprendre pourquoi personne ne veut parler de la finale de 1948.
+**Pitch (3 lignes).** Une île s'est éteinte : sable, roche, silence. Tu es la Saison, l'esprit qui la remet en marche. Tuile après tuile, tu redessines forêts, rivières, prairies et hameaux ; la vie revient, les animaux reviennent, et l'île se souvient à voix haute de ce qui l'a endormie.
 
-**Public visé.** Joueuses et joueurs desktop de 10 ans et plus, amateurs de jeux de sport « faciles à prendre, durs à maîtriser » (*Golf Story*, *Wii Sports*, *Bocce*), de comédie de village et de parties courtes. Aucune connaissance de la pétanque requise : le jeu l'enseigne.
+**Public visé.** Joueuses et joueurs desktop de 10 ans et plus, amateurs de puzzles calmes et profonds (*Dorfromantik*, *Carcassonne*, *Islanders*), de parties courtes et de « encore une tuile ». Aucun réflexe demandé.
 
-**Sensation recherchée.** La chaleur d'une place de village à cinq heures de l'après-midi : cigales, gravier qui crisse, le « clac » d'un carreau qui fait lever la terrasse du bar. Chaque lancer est un petit suspense (la boule roule… roule… s'arrête à deux doigts du bouchon), chaque mène une décision (« tu tires ou tu pointes ? »), chaque partie une conversation avec un personnage du village.
+**Sensation recherchée.** La satisfaction d'une tuile qui tombe pile au bon endroit (petit rebond, « toc » de bois, points qui fleurissent sur chaque bord), le plaisir de voir une île nue devenir un paysage vivant, et la surprise d'un changement de saison qui recolore tout et change les règles : la rivière gèle, les prairies sèchent, les vergers donnent. Une île terminée doit ressembler à une carte qu'on a envie de garder.
 
 **Pourquoi ce jeu est amusant (thèse de design).**
-1. **Un geste principal satisfaisant** : viser à la souris, choisir son lancer, relâcher au bon moment. Le résultat est immédiat, lisible et physiquement crédible : la boule rebondit sur le gravier, ralentit sur le sable, dévie sur une racine.
-2. **Une décision permanente** : pointer (se rapprocher du cochonnet) ou tirer (chasser la boule adverse). Le tir est risqué et spectaculaire ; le point est sûr mais laisse l'adversaire jouer. La question du titre est le cœur du jeu.
-3. **Des mécaniques qui s'emboîtent** : le type de lancer × le terrain × la position des boules × la personnalité de l'adversaire. Un terrain de sable rend le tir indispensable ; un goudron rapide rend la plombée précieuse.
-4. **Une comédie humaine** : chaque adversaire est un personnage avec une manière de jouer (le pointeur méticuleux, le tireur fou, le tricheur qui « mesure ») et une histoire qui avance à chaque partie.
+1. **Un geste simple, une décision riche** : une tuile, une case. Le jeu affiche à l'avance les points de chaque bord : le joueur comprend toujours *pourquoi* il gagne ou perd des points.
+2. **Des régions qui se ferment** : encercler complètement une forêt ou un lac déclenche une prime et une animation. C'est l'objectif à court terme qui structure chaque partie.
+3. **Des saisons qui changent la valeur des tuiles** : la même prairie vaut de l'or au printemps et sèche en été si elle est isolée. On planifie deux saisons à l'avance.
+4. **La faune comme récompense visible** : les animaux ne sont pas un compteur, ils apparaissent sur l'île quand on a bien construit, et ils partent quand on la fragmente.
+5. **Des vœux** qui donnent des objectifs concrets et racontent l'île.
 
 ---
 
@@ -43,106 +44,101 @@
 
 ### 2.1 Univers et contexte
 
-- **Lieu** : Saint-Aubin-des-Cigales, village imaginaire de Provence entre vignes, pins et garrigue. Une place avec des platanes, un bar-tabac (« Le Bar des Sports »), une fontaine, une église, une plage à quatre kilomètres, une clairière de pins, le parking du garage des jumeaux.
-- **Époque** : été 1962. Solex, 2CV, transistor, jeu de boules en acier, tradition de « la Fanny » (celle ou celui qui perd 13 à 0 embrasse le tableau).
-- **Le concours de la Saint-Éloi** : tournoi de tête-à-tête ouvert à tout le village. Douze rencontres pour Camille : des défis de qualification, un tableau à élimination directe et une finale de nuit sous les lampions.
+- **L'archipel des Cent Saisons** : douze îles éteintes, chacune un souvenir. Aucune époque : pas de date, pas de technologie ; des hameaux de pierre et de bois, des moulins, des vergers, des barques.
+- **La Saison** : le joueur. Un esprit sans corps, qui pose des tuiles comme on pose des souvenirs. La narration est celle de l'île, à la première personne du pluriel (« nous »).
+- **Ce qui a endormi les îles** : elles ont oublié leurs saisons. Quand tout est resté pareil trop longtemps (toujours l'été, toujours la moisson), les rivières se sont tues, les animaux sont partis, les hameaux se sont vidés. Le jeu ne moralise pas : il montre que la vie tient au changement.
 
 ### 2.2 Personnages
 
-| Personnage | Rôle | Manière de jouer |
-|---|---|---|
-| **Camille Roux** (31 ans) | Protagoniste, citadine revenue au village, petite-fille de Fanny | Le joueur |
-| **Fanny Roux** (†) | Grand-mère de Camille, championne de 1948, surnommée « la Fanny » par ironie après sa défaite | Présente par ses boules, ses carnets et les souvenirs des autres |
-| **Marius Ventre** (78 ans) | Vieux champion, mentor bourru, ami de Fanny ; a gardé un secret sur 1948 | Pointeur d'une régularité effrayante (adversaire 1 : partie-tutoriel) |
-| **Josiane Peyrol** | Boulangère, bavarde, cœur d'or | Joue vite, pointe court, rit de tout (adversaire 2) |
-| **Lucien Barbier** | Facteur, connaît tous les secrets, un peu tricheur (« déplace le bouchon du pied ») | Pointeur roublard qui aime les terrains à bosses (adversaire 3) |
-| **Kevin Aubanel** (16 ans) | Ado du village, tireur fou, transistor sur l'épaule | Tire sur tout, souvent à côté, parfois carreau (adversaire 4) |
-| **Père Anselme** | Curé, joueur du dimanche, philosophe | Plombée parfaite, patience infinie (adversaire 5) |
-| **Toni et Nino Ferrer** | Jumeaux du garage, jouent en alternance (« un tête-à-tête à deux têtes ») | Toni pointe, Nino tire : deux styles dans une même partie (adversaires 6 et 7) |
-| **Dr Hélène Faure** | Médecin, maniaque de la mesure, toujours un mètre-ruban | Précise, exige la mesure au moindre doute (adversaire 8) |
-| **Mme Roubaud** | Patronne du Bar des Sports, veuve, arbitre officieuse | Dure, joue serré, ne rate jamais un tir de rafle (adversaire 9) |
-| **Gaby Ponsard** | Fille de Gérard, brillante, tiraillée entre son père et la vérité | Style complet, adversaire loyale (adversaire 10) |
-| **Gérard Ponsard** | Champion en titre depuis vingt ans, fils d'Aimé Ponsard qui battit Fanny en 1948 | Tireur redoutable, joue l'intimidation (demi-finale 11, finale 12) |
+| Voix | Rôle |
+|---|---|
+| **L'île** (« nous ») | Narratrice : fragments de mémoire à la fin de chaque île, courts et concrets (une fête d'hiver, un verger, un pont emporté) |
+| **La Saison** (le joueur) | Jamais représentée, jamais nommée autrement ; les vœux lui sont adressés à la deuxième personne |
+| **Les habitants** | Jamais vus de près : silhouettes des hameaux, auteurs des vœux (« le meunier », « les enfants du hameau du nord », « la vieille passeuse ») |
+| **La faune** | Lapin, élan, grenouille, canard, ours, hibou, manchot d'hiver : ils apparaissent quand un habitat existe, ils partent quand il se brise |
 
-### 2.3 Histoire en trois actes (12 parties)
+### 2.3 Structure narrative (12 îles, 3 archipels)
 
-- **Acte I — La boîte à biscuits (parties 1 à 4).** Camille retrouve les boules de Fanny. Marius lui apprend à pointer (partie 1, tutoriel), Josiane lui apprend qu'on peut jouer en riant (2), Lucien lui apprend la demi-portée et la méfiance (3), Kevin lui apprend le tir (4). Le village découvre « la petite de la Fanny ».
-- **Acte II — Le tableau (parties 5 à 8).** Élimination directe. Le Père Anselme enseigne la plombée (5). Les jumeaux (6, 7) révèlent que le village a longtemps ri de Fanny. Le Dr Faure (8) sort son mètre : la mesure devient une mécanique, et une obsession. Les carnets de Fanny, retrouvés au grenier, racontent 1948 par fragments.
-- **Acte III — La finale de 1948 (parties 9 à 12).** Mme Roubaud (9) avoue avoir vu Aimé Ponsard déplacer le cochonnet lors de la finale de 1948, et Marius se taire. Gaby (10) hésite entre son père et la vérité. Gérard (11, demi-finale) joue l'intimidation. Finale de nuit (12) : Gérard, sous les lampions, à 13 points. Victoire : Marius parle enfin, la place est rebaptisée « Boulodrome Fanny-Roux », Camille décide de revenir chaque été.
-- **Épilogue.** « À Saint-Aubin, on ne perd jamais vraiment : on remet ça samedi. » Déverrouillage de tous les adversaires en partie rapide.
+- **Archipel du Nord — Réveil (îles 1 à 4).** Apprentissage : poser, fermer une région, l'eau qui rejoint la mer, les saisons. L'île raconte des choses simples : le premier verger, le premier pont de glace.
+- **Archipel du Milieu — Mémoire (îles 5 à 8).** La faune, les vœux, les souffles, les tuiles rares. Les fragments révèlent la longue saison unique qui a tout figé.
+- **Archipel du Large — Cent saisons (îles 9 à 12).** Grandes îles, saisons courtes, vœux liés entre eux. La dernière île, une fois vivante, apprend à changer de saison seule : la Saison peut partir. Épilogue : « Nous n'avons plus besoin d'être rappelées. Nous nous souvenons. »
+- **Après la fin** : Île infinie (score, saisons qui s'enchaînent) et Jardin (pose libre).
 
-Les textes (dialogues d'avant et d'après-partie, commentaires en cours de partie, carnets de Fanny, fin) sont dans `src/data/story.js`, rédigés par le sous-agent narration.
+Les textes (fragments, vœux, tutoriel, fin) sont dans `src/data/story.js`, rédigés par le sous-agent narration.
 
-### 2.4 Règles de pétanque implémentées
+### 2.4 La grille et les tuiles
 
-- **Tête-à-tête** : deux joueurs, **3 boules** chacun. Une partie se joue en **7 points** (parties 1 à 4), **11 points** (5 à 8) ou **13 points** (9 à 12, partie rapide).
-- **Mène** : le joueur qui a gagné la mène précédente (au début, tirage au sort) trace le rond et lance le cochonnet entre 6 et 10 m, puis joue sa première boule. Ensuite, c'est toujours **le joueur qui n'a pas le point** qui joue. Quand un joueur n'a plus de boules, l'autre joue les siennes.
-- **Comptage** : le joueur dont la boule est la plus proche du cochonnet marque autant de points qu'il a de boules plus proches que la meilleure boule adverse.
-- **Mesure** : si deux boules sont à moins de 3 cm d'écart, une séquence de mesure au mètre-ruban est jouée (animation) ; l'égalité parfaite annule la mène.
-- **Cochonnet sorti** du terrain : mène annulée (si un seul joueur avait encore des boules, il marque autant de points que de boules restantes — règle officielle simplifiée).
-- **Boule sortie** du terrain : boule morte.
-- **La Fanny** : perdre 13 à 0 (ou 7/11 à 0) déclenche la scène du tableau, rituel comique du village.
+- **Grille hexagonale à sommet en haut** (tuiles Kenney Hexagon Pack, 120×140 px natifs, rasterisées en 2×), coordonnées axiales `(q, r)` ; voisins horizontaux à 120 px, lignes espacées de 105 px avec décalage d'une demi-tuile.
+- **Une île** = un masque de cases (les autres cases sont la mer), quelques tuiles de départ (rochers, ruines, un premier hameau), une **file** de tuiles à poser (3 visibles, la première est obligatoire) et un nombre de tuiles total.
+- **Règle de pose** : sur une case vide du masque, adjacente à au moins une tuile posée. Les tuiles n'ont pas d'orientation (pas de rotation) : la décision porte uniquement sur *où*.
+- **Familles de tuiles** : prairie, forêt, champ, hameau, verger, eau, marais, roche, sable ; tuiles rares (récompenses de vœux) : moulin, chapelle, tour de guet, puits, campement.
 
-### 2.5 Mécaniques de jeu
+### 2.5 Mécaniques
 
-Introduites progressivement par les personnages (une par partie en acte I).
+Introduites progressivement (une nouveauté par île en archipel du Nord).
 
-1. **Viser et doser** — *partie 1*. La souris place la **donnée** (le point où la boule doit toucher le sol). Cliquer-maintenir lance la **jauge de précision** : une aiguille oscille, relâcher dans la zone verte donne un lancer exact ; hors zone, la boule est courte, longue ou déviée proportionnellement à l'erreur. La zone verte rétrécit avec la distance et le type de lancer, s'élargit avec les améliorations.
-2. **Pointer (roulette)** — *partie 1*. Lancer bas, la boule roule longtemps : très sensible au terrain (bosses, pente, sable).
-3. **Demi-portée** — *partie 3*. La boule tombe à mi-distance puis roule : compromis, contourne les bosses proches du rond.
-4. **Tirer** — *partie 4*. Lancer tendu et rapide vers une boule adverse. La zone verte est étroite. Réussite : la boule adverse est chassée ; **carreau** si la boule tirée prend exactement sa place (bonus de jetons et ovation).
-5. **Plombée** — *partie 5*. Lancer très haut qui tombe presque à la verticale et ne roule pas : idéale sur sable et pour passer au-dessus des boules.
-6. **Le terrain** — *toute la campagne*. Chaque terrain a une **friction** (goudron rapide, gravier, terre, sable lent), des **pentes** (la boule dévie), des **obstacles** (racines, cailloux, pommes de pin) qui font sauter la boule, et des **bords** (boules mortes). Le terrain est visible : lire le sol fait partie du jeu.
-7. **La mesure** — *partie 8*. Sur un point serré, le jeu propose de mesurer (touche `M` ou bouton) : animation du mètre, verdict. Le Dr Faure et Lucien en abusent.
-8. **L'effet** — *partie 7*. Molette ou touches `Q`/`D` avant le lancer : effet latéral qui fait dévier la boule en fin de course (permet de contourner une boule).
-9. **La lecture de l'adversaire** — *toute la campagne*. Chaque adversaire a un profil (précision au point, au tir, agressivité, lancer favori) et réagit (émoticônes, répliques). L'IA choisit ses lancers en simulant réellement la physique : elle joue « juste », avec ses défauts de caractère.
+1. **Affinités** — *île 1*. Chaque bord partagé rapporte des points : même famille +1 (hameau-hameau +2), bonnes paires +2 (champ↔hameau, verger↔prairie, verger↔hameau, marais↔eau, forêt↔roche, sable↔eau), paires douces +1 (prairie↔forêt, hameau↔eau « le port »), mauvaises paires −1 (hameau↔marais, champ↔roche, champ↔sable, forêt↔sable). Les points s'affichent bord par bord avant la pose.
+2. **Régions closes** — *île 1*. Un groupe connexe de même famille entièrement entouré (aucune case vide adjacente dans le masque) rapporte une prime égale à sa taille (×2 pour les hameaux « bourgs »). Animation de fermeture.
+3. **Rivières** — *île 2*. Une tuile d'eau reliée par une chaîne d'eau à la mer (bord du masque) ou à une roche (source) est une **rivière** : +2 à la pose et prime de longueur à la fermeture ; sinon c'est une **mare** (+1, +2 avec un marais).
+4. **Saisons** — *île 3*. Toutes les N poses (12 par défaut, moins sur les grandes îles), la saison avance : printemps → été → automne → hiver. Chaque saison recolore l'île et change une règle :
+   - *Printemps* : les marais fleurissent (+2 chacun à la transition), poser de l'eau rapporte +1 de plus (la crue).
+   - *Été* : une prairie sans eau, forêt ni marais adjacent **sèche** (elle ne rapporte plus d'affinités jusqu'à l'automne) ; un champ adjacent à l'eau rapporte +1 (irrigation).
+   - *Automne* : **récolte** : chaque paire verger↔hameau rapporte +2 ; les forêts roussissent.
+   - *Hiver* : l'eau **gèle** : les chaînes d'eau gelée relient les hameaux (« la veillée » : +3 par paire de hameaux reliés) ; les champs sont dormants (plus de bonus champ↔hameau) ; neige.
+5. **Faune** — *île 4*. Les animaux apparaissent quand leur habitat existe et partent quand il se brise : lapin (prairie ≥ 3), élan (forêt ≥ 5), grenouille (marais adjacent à l'eau), canard (eau ≥ 3), ours (forêt adjacente à roche, ≥ 3), hibou (forêt adjacente à hameau), manchot (hiver seulement, eau gelée ≥ 4). À chaque changement de saison, chaque animal présent donne +1 souffle et +3 points.
+6. **Vœux** — *île 5*. Trois vœux par île, formulés par les habitants, avec une échéance (en poses ou « avant l'hiver ») : taille de région, nombre de paires, rivière jusqu'à la mer, animal présent, région close de taille N… Réussir un vœu injecte une **tuile rare** dans la file et débloque un fragment de mémoire.
+7. **Souffles** — *île 6*. Monnaie de l'île, gagnée par la faune et les vœux, dépensée pendant la partie : **échanger** la tuile obligatoire avec l'une des deux suivantes (1 souffle), **défausser** la tuile (2), **bourgeon** : transformer une prairie posée en forêt ou en verger (3), **souvenir** : annuler la dernière pose (4, une fois par saison).
+8. **Tuiles rares** — *île 7*. Le moulin (compte comme champ et hameau), la chapelle (tous les bords voisins +1 en hiver), la tour de guet (clôt une région même avec une case vide), le puits (protège les prairies adjacentes de la sécheresse), le campement (attire un animal quel que soit l'habitat).
 
 ### 2.6 Boucle de jeu
 
-**Boucle de 20 secondes** : je regarde la mène (où est le bouchon, qui a le point) → je choisis « tirer ou pointer » → je vise, je dose, je relâche → la boule roule, rebondit, clac → le point change de camp, réplique de l'adversaire.
+**Boucle de 20 secondes** : la tuile suivante est affichée → je survole l'île, les points par bord et les régions qui se fermeraient s'affichent → je clique → la tuile tombe, rebondit, les points fleurissent, une région se ferme peut-être, un animal apparaît peut-être.
 
-**Boucle d'une mène (≈ 1 min)** : 6 boules, comptage, points, réactions, changement de côté.
+**Boucle d'une saison (≈ 3 min)** : douze poses, puis la transition : l'île change de couleur, les règles de la saison s'appliquent avec leurs animations (fleurs, sécheresse, récolte, gel), la faune donne ses souffles.
 
-**Boucle d'une partie (4 à 10 min)** : dialogue d'avant-partie → mènes → score final → dialogue d'après-partie → **Bar des Sports** (jetons, améliorations, carnets de Fanny) → partie suivante.
+**Boucle d'une île (6 à 20 min)** : fragment d'ouverture → poses et saisons → vœux réussis ou perdus → fin de la file (ou plus de coup possible) → bilan (points, étoiles, vœux, faune) → fragment de mémoire → **Atelier des saisons** (graines → améliorations) → île suivante.
 
-**Boucle de campagne** : 12 parties, 3 actes, une mécanique par partie en acte I, montée en difficulté par la précision des adversaires et la difficulté des terrains, finale à 13.
+**Boucle de campagne** : 12 îles, difficulté croissante (masques plus fragmentés, saisons plus courtes, vœux liés), fin, puis modes infinis.
 
 ### 2.7 Conditions de victoire et de défaite
 
-- **Partie gagnée** : atteindre le score cible (7 / 11 / 13). **Perdue** : l'adversaire l'atteint. Une partie perdue en campagne se rejoue immédiatement (l'histoire ne change pas, sauf répliques de consolation).
-- **Étoiles** par partie : 1 = gagnée, 2 = gagnée avec au moins un carreau ou 3 points d'écart, 3 = gagnée sans concéder plus de 3 points (ou « Fanny » infligée).
-- **Campagne terminée** : finale gagnée → fin, générique, tout déverrouillé en partie rapide.
+- **Île terminée** quand la file est vide ou qu'aucune pose n'est possible. Il n'y a pas de « défaite » : le score donne 0 à 3 étoiles (seuils par île) ; la 3e étoile exige les trois vœux. Une île peut être rejouée pour ses étoiles.
+- **Campagne terminée** : île 12 avec au moins 1 étoile → fin, générique, Île infinie et Jardin déverrouillés.
+- **Île infinie** : la file ne s'épuise jamais, l'île grandit (le masque s'étend à chaque saison) ; fin quand aucune pose n'est possible ; meilleur score sauvegardé.
 
 ### 2.8 Économie et progression
 
-- **Jetons du bar** : gagnés par point marqué (+1), par carreau (+3), par partie gagnée (+5), par étoile (+2).
-- **Bar des Sports** (entre les parties) :
-  - *Boules* (3 jeux) : « Les boules de Fanny » (équilibrées), « Les tendres » (acier doux : rebond faible, roule moins loin — pointeur), « Les dures » (acier dur : rebond fort, idéales au tir, carreaux plus faciles). Chaque jeu modifie restitution et friction de la boule.
-  - *Régularité* (3 niveaux) : zone verte plus large.
-  - *Sang-froid* (3 niveaux) : l'aiguille de la jauge est plus lente.
-  - *Œil du tireur* (3 niveaux) : aide à la visée au tir (trajectoire prévisualisée plus longue).
-  - *Lecture du terrain* (3 niveaux) : les pentes et obstacles sont mieux affichés (flèches, halos).
-- Les techniques (demi-portée, tir, plombée, effet) sont déverrouillées par l'histoire, pas achetées.
+- **Souffles** (dans l'île) : voir 2.5.
+- **Graines** (méta-progression) : +1 par étoile, +1 par vœu réussi, +2 par île terminée. Dépensées à **l'Atelier des saisons** :
+  - *Regard* : file visible 3 → 4 → 5 tuiles.
+  - *Poche* : garder une tuile de côté (1 puis 2 emplacements).
+  - *Souffle de départ* : +2 / +4 / +6 souffles au début de chaque île.
+  - *Patience des saisons* : +1 / +2 poses par saison.
+  - *Semence rare* : une tuile rare au choix injectée au début de chaque île.
+  - *Seconde chance* : le souvenir (annuler) coûte 3 au lieu de 4, puis 2.
 
 ### 2.9 Modes de jeu
 
-- **Campagne** (12 parties, sauvegarde automatique, rejouer une partie gagnée pour ses étoiles).
-- **Partie rapide** : adversaire et terrain au choix parmi les déverrouillés, score cible 7/11/13.
-- **Entraînement** : le boulodrome vide, toutes les techniques, affichage des distances, réinitialisation à volonté.
-- **Mode test** (options) : déverrouille tout, panneau de débogage (`F1`), jauge toujours parfaite (`F2`), vitesse ×2 (`F3`), IA sans erreur (`F4`), terminer la partie (`F5`). Les scores du mode test ne sont pas enregistrés.
+- **Campagne** (12 îles, sauvegarde automatique, sélection des îles jouées).
+- **Île infinie** (déverrouillée après l'île 6 ou par le mode test).
+- **Jardin** (pose libre, toutes les tuiles, sans score, sans file : on choisit la tuile ; pour faire de belles îles).
+- **Mode test** (options) : déverrouille tout, panneau de débogage (`F1`), file infinie (`F2`), saison suivante (`F3`), souffles illimités (`F4`), terminer l'île (`F5`). Les scores du mode test ne sont pas enregistrés.
 
 ### 2.10 Contrôles
 
 | Action | Entrée |
 |---|---|
-| Placer la donnée (point de chute visé) | Déplacer la souris |
-| Changer de lancer (point, demi-portée, tir, plombée) | Molette ou touches `1` `2` `3` `4` ou boutons du HUD |
-| Effet latéral | `Q` / `D` (ou `A` / `E`) |
-| Lancer | Cliquer-maintenir puis relâcher dans la zone verte |
-| Demander la mesure | `M` ou bouton (quand proposé) |
-| Accélérer le roulement | `Espace` maintenu |
-| Pause | `Échap` ou `P` |
-| Couper le son | `Ctrl+M` |
+| Choisir la case | Survoler ; les points par bord s'affichent |
+| Poser la tuile | Clic gauche |
+| Déplacer la vue | Clic droit ou molette enfoncée et glisser ; flèches |
+| Zoom | Molette |
+| Échanger la tuile avec la 2e / 3e de la file (1 souffle) | `2` / `3` ou clic sur la tuile |
+| Défausser (2 souffles) | `X` ou bouton |
+| Bourgeon (3 souffles) | `B` puis clic sur une prairie |
+| Souvenir : annuler (4 souffles) | `Z` ou bouton |
+| Mettre en poche / reprendre | `P` ou clic sur la poche |
+| Pause | `Échap` |
+| Couper le son | `M` |
 
 ---
 
@@ -150,54 +146,48 @@ Introduites progressivement par les personnages (une par partie en acte I).
 
 ### 3.1 Style visuel
 
-- **Vue de dessus, 2D vectorielle Kenney** (Sports Pack : personnages vus de dessus, boules, sols gravier/sable/goudron/herbe), en plein soleil : ombres courtes et chaudes, ocres, verts de platane, bleu de volets.
-- **Composition** : le terrain (15 m × 4 m) traverse l'écran de gauche à droite ; au-dessus, la terrasse du bar, les platanes, les spectateurs ; au-dessous, la fontaine, les bancs, la route. Chaque terrain a son décor (place, plage, clairière, parking, nuit sous les lampions).
-- **Feedback** : poussière à l'impact, étincelles au « clac » d'un tir, tremblement d'écran sur un carreau, ralenti sur le contact d'un tir, zoom caméra sur le groupe de boules en fin de lancer, émoticônes (Kenney Emotes) au-dessus des personnages, réactions de la terrasse, ruban de mesure animé.
+- **Tuiles hexagonales isométriques Kenney** (Hexagon Pack : prairies, forêts, roches, champs, hameaux, objets ; Hexagon Tiles pour l'eau, les ponts, les buissons), rasterisées en 2× depuis les SVG et **déclinées par saison par recoloration contrôlée** (printemps vert tendre + fleurs, été vert chaud, automne ocre et roux, hiver neige et ombres bleues). Mer animée autour de l'île (vagues discrètes), ombres portées douces.
+- **Composition** : l'île centrée, la file de tuiles à gauche dans un carnet, les vœux à droite sur des feuilles épinglées, la saison et le score en haut ; tout l'écran respire (fond papier clair légèrement texturé, pas de sombre).
+- **Feedback** : chute et rebond de la tuile, chiffres qui poussent sur chaque bord (vert, or, rouge), onde de fermeture de région, apparition de la faune (bond + halo), transition de saison en balayage diagonal avec particules (pétales, poussière, feuilles, neige), tremblement léger sur les grosses primes.
 - **Palette** :
 
 | Usage | Couleur |
 |---|---|
-| Ocre / gravier | `#d9b57a` → `#c49a5c` |
-| Sable | `#eedcae` |
-| Goudron | `#5b5f66` |
-| Platanes | `#6f9a4a` / ombre `#3f6b34` |
-| Ciel d'été / volets | `#7cc4e8` / `#2f6fa3` |
-| Lampions (finale) | `#ffb347`, `#ff6b57` |
-| UI : ardoise de bar | `#2e3a2e`, craie `#f4efe4` |
-| Accent (jetons, carreau) | `#f2b134` |
+| Papier (fond, UI) | `#f4efe6`, encre `#2b2a26` |
+| Mer | `#7fb8d8` → `#5a9bc4` |
+| Printemps / été / automne / hiver | `#6dbf67` / `#4a9e4f` / `#d98a3a` / `#e8eef4` |
+| Accent (points, souffles) | `#2f9e8f` (souffle), `#e0a33a` (or), `#d95f4b` (perte) |
+| Vœux | `#8a6fb5` |
 
-### 3.2 Polices (Google Fonts, auto-hébergées en WOFF2)
+### 3.2 Polices (Google Fonts, auto-hébergées en WOFF2, SIL OFL 1.1)
 
-- **Fredoka** (titres et boutons : rondeur Kenney, affiche de fête votive) ;
-- **Nunito** (corps de texte, HUD) ;
-- **Amatic SC** (ardoise du bar, écriture à la craie, carnets de Fanny).
-
-Toutes trois sous licence SIL OFL 1.1.
+- **Lora** (titres et fragments de mémoire : serif douce, intemporelle) ;
+- **Quicksand** (UI, HUD, boutons : rondeur assortie aux tuiles Kenney).
 
 ### 3.3 Banques d'assets utilisées (toutes vérifiées)
 
-Le proxy réseau de cette session bloque les sites des banques (kenney.nl, opengameart.org, freesound.org, incompetech.com, pixabay.com). Les assets sont récupérés depuis des **miroirs GitHub** de ces mêmes banques, licites pour des contenus CC0 / CC-BY, dont la licence est embarquée.
+Le proxy réseau bloque les sites des banques ; les assets sont récupérés depuis des **miroirs GitHub** des mêmes packs, licence embarquée.
 
-| Asset | Source | Auteur | Licence | Miroir utilisé |
+| Asset | Source | Auteur | Licence | Miroir |
 |---|---|---|---|---|
-| Sports Pack (personnages vus de dessus, boules, sols) | kenney.nl | Kenney | CC0 1.0 | github.com/ETdoFresh/kenney.nl (`kenney_sportspack`) |
-| Emotes Pack (émoticônes des personnages) | kenney.nl | Kenney | CC0 1.0 | idem (`kenney_emotespack`) |
-| Foliage Sprites, Hexagon Pack, Roguelike packs, Top-down Shooter (décor : arbres, bancs, tables, voitures, fontaine, tuiles) | kenney.nl | Kenney | CC0 1.0 | idem |
-| Particle Pack (poussière, étincelles, halos) | kenney.nl | Kenney | CC0 1.0 | idem (`particlePack_1.1`) |
-| UI Pack, Game Icons | kenney.nl | Kenney | CC0 1.0 | idem (`uipack_fixed`, `gameicons`, `gameicons-expansion`) |
+| Hexagon Pack (tuiles terrain 5 types × 19 variantes, objets : arbres, rochers, maisons, ferme, moulin, chapelle, puits, tour, ruines…) | kenney.nl | Kenney | CC0 1.0 | github.com/ETdoFresh/kenney.nl (`hexagon-pack`) |
+| Hexagon Tiles (eau, vagues, ponts, buissons, fleurs, collines, arbres par saison) | kenney.nl | Kenney | CC0 1.0 | idem (`hexagontiles`) |
+| Animal Pack Redux (faune : lapin, élan, grenouille, canard, ours, hibou, manchot) | kenney.nl | Kenney | CC0 1.0 | idem (`kenney_animalpackredux`) |
+| Particle Pack (pétales, feuilles, neige, halos, étincelles) | kenney.nl | Kenney | CC0 1.0 | idem (`particlePack_1.1`) |
+| UI Pack, Game Icons | kenney.nl | Kenney | CC0 1.0 | idem |
 | UI Audio, Interface Sounds, Impact Sounds, RPG Audio | kenney.nl | Kenney | CC0 1.0 | idem |
-| Musiques (Erik Satie interprété par Kevin MacLeod « Gymnopédie n° 1/2/3 », « Night in Venice », « Bossa Antigua », « Casa Bossa Nova », « Modern Jazz Samba », « Sneaky Adventure », etc. — liste finale en 3.4) | incompetech.com | Kevin MacLeod | CC BY 4.0 | github.com/noobsandnerdsgroup/audio |
-| Ambiances : cigales/grillons, oiseaux, vent, pluie (enregistrements de terrain, boucles) | freesound.org (CC0) | felix.blume, SecureSubset, richwise, Sheyvan | CC0 1.0 | github.com/funcoder/omarchy-ambient |
-| SFX : impacts métal (boules), gravier, bois, papier, cloche, foule légère | opengameart.org (packs « 100 CC0 SFX », « 100 CC0 wood/metal SFX », etc.) | rubberduck et autres | CC0 1.0 | github.com/lavenderdotpet/CC0-Public-Domain-Sounds |
-| Samples d'instruments réels (jingles de fin de mène et de carreau, s'il faut composer) | FluidR3_GM | Frank Wen | CC BY 3.0 | github.com/gleitz/midi-js-soundfonts |
-| Polices | fonts.google.com | Fredoka (Milena Brandão), Nunito (Vernon Adams), Amatic SC (Vernon Adams) | SIL OFL 1.1 | fonts.googleapis.com / fonts.gstatic.com |
+| Musiques (Kevin MacLeod : « Morning », « Kalimba Relaxation Music », « Evening », « Ethereal Relaxation », « Gymnopédie n° 1 », « Dream Catcher », « Beauty Flow », etc. — liste finale en 3.4) | incompetech.com | Kevin MacLeod | CC BY 4.0 | github.com/noobsandnerdsgroup/audio |
+| Ambiances : forêt et oiseaux, ruisseau, vent, pluie, grillons (enregistrements de terrain, boucles) | freesound.org (CC0) | felix.blume, IceVFX, richwise, Sheyvan, SecureSubset | CC0 1.0 | github.com/funcoder/omarchy-ambient |
+| SFX : bois, papier, eau, cloches, créatures (packs « 100 CC0 SFX », « 80 CC0 creature SFX », etc.) | opengameart.org | rubberduck et autres | CC0 1.0 | github.com/lavenderdotpet/CC0-Public-Domain-Sounds |
+| Samples d'instruments réels (carillons de points, jingles de saison) | FluidR3_GM | Frank Wen | CC BY 3.0 | github.com/gleitz/midi-js-soundfonts |
+| Polices | fonts.google.com | Lora (Cyreal), Quicksand (Andrew Paglinawan) | SIL OFL 1.1 | fonts.googleapis.com / fonts.gstatic.com |
 
 ### 3.4 Plan audio
 
-- **Musiques (Kevin MacLeod, CC BY 4.0)**, une par contexte, avec crossfade : menu (« Night in Venice », accordéon de café), acte I (« Bossa Antigua »), acte II (« Casa Bossa Nova »), acte III (« Modern Jazz Samba »), finale (« Sneaky Adventure » ou équivalent tendu), résultats / bar (« Gymnopédie n° 1 »), défaite (« Gymnopédie n° 3 »), fin (« Gymnopédie n° 2 » puis « Night in Venice »). Recompressées en OGG Vorbis q5, boucles propres.
-- **Ambiances (CC0)** : cigales (`crickets.ogg`) en boucle permanente de jour, oiseaux, vent léger ; nuit de la finale : grillons plus doux et rumeur de fête.
-- **SFX** : impact boule contre boule (`metal_hit_*`, plusieurs variantes selon la vitesse), boule au sol (impact sourd + gravier), roulement (boucle de gravier modulée par la vitesse), cochonnet (petit clac bois), carreau (impact + « ding »), applaudissements/rumeur de terrasse (si une source CC0 existe ; sinon réactions par émoticônes et cloche du bar), mètre-ruban, jetons, UI (Kenney).
-- **Interdit** : toute synthèse « chiptune ». Si un jingle est composé, il l'est avec des samples d'instruments réels (FluidR3).
+- **Musiques (Kevin MacLeod, CC BY 4.0)** : une par saison, enchaînées par crossfade au changement de saison : printemps « Morning », été « Kalimba Relaxation Music », automne « Evening », hiver « Ethereal Relaxation » (ou « Gymnopédie n° 1ère ») ; menu « Dream Catcher » ; bilan / atelier « Beauty Flow » ; fin « Almost Bliss ». OGG Vorbis q5, boucles propres.
+- **Ambiances (CC0)** : oiseaux de forêt (printemps/été), ruisseau près des rivières, vent (automne/hiver), pluie (transition d'automne), grillons (été). Mixées selon la saison et la composition de l'île (plus de forêt = plus d'oiseaux).
+- **SFX** : pose de tuile (bois, « toc » + variantes), points (carillon de samples réels : glockenspiel/célesta, une note par point, gamme montante sur les combos), région close (accord), animal (petit cri CC0 + « pop »), saison (jingle de 2 s aux samples réels par saison), vœu réussi (carillon), souffle (souffle de vent court), UI (Kenney), échec de vœu (note grave douce).
+- **Interdit** : toute synthèse « chiptune » ; les jingles sont faits de samples d'instruments réels.
 
 ---
 
@@ -205,38 +195,41 @@ Le proxy réseau de cette session bloque les sites des banques (kenney.nl, openg
 
 ### 4.1 Choix
 
-- **Vanilla JS + Canvas 2D, sans moteur ni build** (inchangé) : GitHub Pages sans compilation, aucune dépendance réseau, rendu 2D léger, lisibilité à froid.
-- **Résolution logique 1280×720**, mise à l'échelle (letterbox), `devicePixelRatio` géré.
-- **Simulation physique déterministe** (pas fixe 1/120 s pour les boules) : la même fonction sert au jeu, à l'IA (qui simule ses lancers candidats) et aux tests.
-- **Audio** : Web Audio API (bus master / musique / ambiance / SFX, déverrouillage au premier geste).
-- **Sauvegarde** : `localStorage` versionné (campagne, étoiles, jetons, améliorations, carnets, records, options).
-- **Tests** : Playwright + Chromium préinstallé : parcours automatique de la campagne par un bot qui utilise l'IA du jeu, sans erreur console.
+- **Vanilla JS + Canvas 2D, sans moteur ni build** : GitHub Pages sans compilation, aucune dépendance réseau, rendu 2D léger, lisibilité à froid.
+- **Résolution logique 1280×720**, mise à l'échelle (letterbox), `devicePixelRatio` géré ; caméra (zoom/pan) sur l'île.
+- **Modèle de jeu pur** (`src/game/board.js`, `rules.js`, `seasons.js`, `fauna.js`, `wishes.js`) sans DOM ni canvas : testable en Node, utilisé par le bot de QA et par les prévisualisations de score.
+- **Audio** : Web Audio API (bus master / musique / ambiance / SFX).
+- **Sauvegarde** : `localStorage` versionné (campagne, étoiles, graines, améliorations, fragments lus, records, options).
+- **Tests** : Playwright + Chromium : bot qui joue toutes les îles (placement glouton par score prévisualisé), zéro erreur console ; tests Node des règles (`tests/rules.test.js`).
 
 ### 4.2 Arborescence
 
 ```
 /
 ├── index.html
-├── css/                     base.css, menu.css, hud.css, fonts.css
+├── css/                 base.css, menu.css, hud.css, fonts.css
 ├── src/
-│   ├── main.js              bootstrap, scènes, flux de campagne
-│   ├── core/                loop, input, assets, audio, save, scenes, particles, shake, math
+│   ├── main.js          bootstrap, scènes, flux de campagne
+│   ├── core/            loop, input, assets, audio, save, scenes, particles, shake, math
 │   ├── game/
-│   │   ├── physics.js       boules, cochonnet, rebonds, friction, pentes, obstacles, collisions (déterministe)
-│   │   ├── terrain.js       définition et rendu des terrains (sol, pentes, obstacles, bords, décor)
-│   │   ├── match.js         règles : mènes, ordre de jeu, comptage, mesure, score, fin de partie
-│   │   ├── throw.js         entrée du joueur : donnée, type de lancer, jauge, effet → paramètres de lancer
-│   │   ├── ai.js            adversaires : profils, échantillonnage de lancers simulés, choix
-│   │   ├── camera.js        zoom/pan sur les boules, ralenti
-│   │   ├── render.js        rendu (sol, ombres, boules, personnages, spectateurs, HUD canvas)
-│   │   ├── hud.js           HUD DOM (score, mène, lancer choisi, jauge, boules restantes)
-│   │   ├── effects.js       particules, textes flottants, émoticônes
-│   │   └── tutorial.js      consignes de la partie 1 et des parties qui débloquent une technique
-│   ├── ui/                  menu, options, crédits, story (dialogues), results, bar (améliorations), pause, dom
-│   └── data/                balance.js, terrains.js, opponents.js, campaign.js, upgrades.js, story.js, credits
-├── assets/                  img/, audio/, fonts/, credits/
-├── tools/                   pipelines Python/Node (images, audio, rasterisation SVG)
-├── tests/                   autoplay.js (bot Playwright)
+│   │   ├── hex.js       coordonnées axiales, voisins, conversion écran ↔ grille
+│   │   ├── board.js     état d'une île : masque, tuiles, régions connexes
+│   │   ├── rules.js     affinités, prévisualisation de score, fermeture de régions, rivières
+│   │   ├── seasons.js   cycle des saisons et leurs effets
+│   │   ├── fauna.js     habitats, apparition et départ des animaux
+│   │   ├── wishes.js    vœux, échéances, récompenses
+│   │   ├── queue.js     file de tuiles, poche, souffles (échange, défausse, bourgeon, souvenir)
+│   │   ├── island.js    déroulement d'une île (orchestration, événements, fin)
+│   │   ├── camera.js    zoom, pan, cadrage automatique
+│   │   ├── render.js    rendu (mer, tuiles par saison, faune, surbrillances, particules)
+│   │   ├── hud.js       HUD DOM (saison, score, file, vœux, souffles, poche)
+│   │   ├── effects.js   particules, textes flottants, transitions de saison
+│   │   └── tutorial.js  consignes par île
+│   ├── ui/              menu, options, crédits, story, results, atelier, pause, dom
+│   └── data/            balance.js, tiles.js, islands.js, upgrades.js, story.js
+├── assets/              img/, audio/, fonts/, credits/
+├── tools/               pipelines Python/Node (rasterisation SVG, recoloration saisonnière, audio)
+├── tests/               autoplay.js (bot Playwright), rules.test.js (Node)
 ├── README.md, CREDITS.md, LICENSE, JOURNAL_DE_BORD.md
 ```
 
@@ -244,13 +237,13 @@ Le proxy réseau de cette session bloque les sites des banques (kenney.nl, openg
 
 | Rôle | Périmètre | Livrables |
 |---|---|---|
-| **Lead (orchestration)** | Vision, GDD, architecture, physique, règles, IA, rendu, revue de tout, journal | `JOURNAL_DE_BORD.md`, `src/core`, `src/game` |
-| **Narration & univers** | Dialogues d'avant/après-partie, répliques en jeu, carnets de Fanny, fin, tutoriel | `src/data/story.js` |
-| **DA & assets** | Extraction, rasterisation SVG, optimisation ; polices ; licences | `assets/img`, `assets/fonts`, `assets/credits/images.json` |
-| **Audio** | Sélection, boucles, normalisation, SFX de boules, licences | `assets/audio`, `assets/credits/audio.json` |
-| **UI/UX** | Menu d'accueil, options (mode test), pause, résultats, bar, crédits, HUD | `css/*`, `src/ui/*` |
-| **QA** | Bot Playwright, rapport de bugs, performance | `tests/*`, rapport dans ce journal |
-| **Documentation** | README, crédits lisibles, relecture du journal | `README.md`, `CREDITS.md` |
+| **Lead** | Vision, GDD, architecture, modèle de jeu, rendu, revue, journal | `JOURNAL_DE_BORD.md`, `src/core`, `src/game`, `src/data/*.js` (hors story) |
+| **Narration** | Fragments de mémoire, vœux, tutoriel, fin | `src/data/story.js` |
+| **DA & assets** | Tuiles 2×, variantes saisonnières, objets, faune, UI, polices | `assets/img`, `assets/fonts`, `assets/credits/images.json` |
+| **Audio** | Musiques par saison, ambiances, SFX, jingles | `assets/audio`, `assets/credits/audio.json` |
+| **UI/UX** | Menu, options (mode test), pause, bilan, atelier, crédits, HUD | `css/*`, `src/ui/*` |
+| **QA** | Bot Playwright, tests des règles, rapport | `tests/*` |
+| **Documentation** | README, crédits lisibles, relecture | `README.md`, `CREDITS.md` |
 
 ---
 
@@ -258,14 +251,15 @@ Le proxy réseau de cette session bloque les sites des banques (kenney.nl, openg
 
 | Date | Décision | Alternatives envisagées | Raison |
 |---|---|---|---|
-| 2026-09-17 | Vanilla JS + Canvas 2D, zéro dépendance | Phaser, PixiJS, Kaboom | CDN bloqués par le proxy ; rendu 2D natif suffisant ; lisibilité à froid |
+| 2026-09-17 | Vanilla JS + Canvas 2D, zéro dépendance | Phaser, PixiJS, Kaboom | CDN bloqués ; rendu 2D natif suffisant ; lisibilité à froid |
 | 2026-09-17 | Assets via miroirs GitHub des banques CC0/CC-BY | Attendre un accès direct ; placeholders | Sites bloqués ; miroirs avec licences embarquées ; placeholders interdits |
-| 2026-09-17 | **Pivot** : abandon de « Feux de Brume » (phare) pour « Tu tires ou tu pointes ? » (pétanque narrative) | Enlèvement d'animaux en soucoupe (infiltration), puzzle de tuiles hexagonales (écologie), gestion de cirque | Le commanditaire a signalé que le phare reproduisait un de ses premiers jeux. La pétanque est très rarement traitée, culturellement française, physiquement satisfaisante en 20 secondes, et le Sports Pack Kenney (personnages vus de dessus, boules, sols) la sert parfaitement |
-| 2026-09-17 | Tête-à-tête à 3 boules, parties en 7/11/13 | Doublette, triplette ; toujours 13 | Parties courtes (4–10 min), lisibilité, une IA par adversaire ; le 13 est réservé aux grandes parties pour le rythme de la campagne |
-| 2026-09-17 | Jauge de précision à relâcher dans une zone (timing) plutôt qu'une visée « parfaite » | Visée directe sans aléa ; aléa pur | Le timing donne de la compétence et du suspense sans frustration ; la zone évolue avec les améliorations |
-| 2026-09-17 | Physique déterministe partagée entre jeu et IA | IA par heuristiques géométriques | Une IA qui simule ses coups joue « juste » et ses défauts sont des paramètres de personnage (bruit ajouté), pas des tricheries |
-| 2026-09-17 | Terrain vu de dessus, gauche → droite, tout le terrain visible | Vue 3/4 avec scrolling ; vertical | Tout est lisible en permanence ; le zoom caméra ajoute le drame sans perdre le contexte |
-| 2026-09-17 | Techniques débloquées par l'histoire, améliorations achetées en jetons | Tout acheté ; tout débloqué d'emblée | L'apprentissage progressif est porté par les personnages ; les jetons récompensent le style (carreaux) |
+| 2026-09-17 | Pivot n° 1 : abandon de « Feux de Brume » | — | Reproduisait un jeu antérieur du commanditaire |
+| 2026-09-17 | Pivot n° 2 : dix propositions, le commanditaire retient **Cent Saisons** (parmi Cent Saisons, Stagiaire de l'espace, L'Hiver de la panne) | Pétanque narrative (ébauchée), 7 autres concepts | Choix du commanditaire ; assets Kenney taillés pour le genre ; aucune IA adverse ; boucle « encore une tuile » très rejouable ; cadre intemporel (le commanditaire a relevé un excès de cadres historiques) |
+| 2026-09-17 | Tuiles sans orientation (pas de rotation), rivières = chaînes de tuiles d'eau | Rivières et routes par bords (style Dorfromantik) | Les packs Kenney n'ont pas de tuiles à rivières par bord ; la décision « où » suffit ; les chaînes d'eau restent lisibles et stratégiques |
+| 2026-09-17 | Variantes saisonnières par recoloration contrôlée des tuiles Kenney (tons vert → ocre → neige) | Mélanger deux packs de styles différents | Cohérence du style ; les saisons doivent recolorer *toute* l'île, y compris arbres et champs |
+| 2026-09-17 | Base tuiles = Hexagon Pack (120×140, rasterisé 2×) ; Hexagon Tiles pour l'eau et quelques détails | Hexagon Tiles seul | Le Hexagon Pack a bien plus d'objets (hameaux, moulin, chapelle, champs) et 19 variantes par terrain |
+| 2026-09-17 | Score de bord affiché avant la pose ; aucune défaite, étoiles | Score caché ; conditions d'échec | Lisibilité totale : le jeu est un puzzle de décision, pas de devinette |
+| 2026-09-17 | Deux monnaies : souffles (dans l'île) et graines (méta) | Une seule | Séparer le tactique (pouvoirs pendant la partie) du stratégique (améliorations durables) sans mélange |
 | 2026-09-17 | Français exclusif ; mode test dans les options ; GitHub Pages géré par le commanditaire | — | Demandes explicites |
 
 ---
@@ -274,13 +268,12 @@ Le proxy réseau de cette session bloque les sites des banques (kenney.nl, openg
 
 | Idée | Pourquoi écartée |
 |---|---|
-| **« Feux de Brume »** (gardienne de phare, faisceau, routes de navires, corne de brume, marée, Bête de brume, huile, pages du journal — 12 nuits, 3 actes) | Reproduisait un des premiers jeux du commanditaire ; conception, prototype jouable et assets archivés dans l'historique git (commits `98867ba`, `eceeed8`, `3af81f7`, `a872a51`) |
-| Enlèvement d'animaux en soucoupe volante (infiltration) | Ton comique intéressant mais trope connu ; assets (humains vus de dessus armés) mal adaptés |
-| Puzzle de placement de tuiles hexagonales (écologie d'une île) | Excellent fit d'assets, mais boucle de jeu moins immédiate et genre proche de titres connus |
-| Doublette / triplette | Trop long, trop de personnages à gérer par partie |
-| Mesure systématique à chaque mène | Casse le rythme : la mesure est proposée seulement sur un point serré |
+| **« Feux de Brume »** (gardienne de phare, 1893) — prototype complet | Reproduisait un des premiers jeux du commanditaire (commits `98867ba` → `854aa52`) |
+| **« Tu tires ou tu pointes ? »** (pétanque narrative, 1962) — données, physique, IA ébauchées | Le commanditaire a demandé dix propositions et retenu Cent Saisons (commit `7bffa4f`) |
+| Rotation des tuiles et rivières par bords | Pas d'assets adaptés ; complexité d'entrée sans gain de fun |
+| Adversaire IA / multijoueur | Le genre est solitaire et contemplatif ; l'Île infinie apporte la compétition contre soi |
+| Cadres historiques datés | Remarque du commanditaire ; Cent Saisons est intemporel |
 | Musique composée par synthèse Web Audio | Interdite par le cahier des charges |
-| Multijoueur local | Hors périmètre ; possible extension (la logique de match est symétrique) |
 
 ---
 
@@ -288,12 +281,10 @@ Le proxy réseau de cette session bloque les sites des banques (kenney.nl, openg
 
 | Date | Phase | Sous-agent | Fait | Testé | Reste à faire |
 |---|---|---|---|---|---|
-| 2026-09-17 | 0 | Lead | Reformulation, plan d'équipe, validation du commanditaire (français exclusif, GitHub Pages géré par lui, menu d'accueil complet avec mode test) | — | — |
-| 2026-09-17 | 1 | Lead | Audit du réseau : sites des banques bloqués, `raw.githubusercontent.com`, `registry.npmjs.org`, `pypi.org`, `fonts.googleapis.com` accessibles. Clone partiel des miroirs Kenney, Kevin MacLeod, ambiances CC0, SFX CC0. Installation de `numpy`, `Pillow`, `imageio-ffmpeg` | Accès vérifiés, licences lues | — |
-| 2026-09-17 | 1 | Lead | Journal initial (concept « Feux de Brume ») | — | — |
-| 2026-09-17 | 3 | Narration / DA / Audio / UI | Livrables du concept phare : `story.js` (12 nuits), 389 sprites (pirate/cartographie), 8 musiques, 52 SFX, 4 ambiances, UI parchemin | Playwright | Archivés (voir pivot) |
-| 2026-09-17 | 2 | Lead | Moteur générique et prototype « Feux de Brume » : `src/core/*`, écrans DOM, flux nuit → résultats → atelier, bot de QA jouant 12 nuits sans erreur console | Playwright : parcours complet sans erreur | — |
-| 2026-09-17 | **Pivot** | Lead | Le commanditaire signale que le phare reproduit un de ses premiers jeux. Réécriture de ce journal (sections 0 à 6) pour « Tu tires ou tu pointes ? ». Conservation de `src/core`, `src/ui/dom.js`, options/crédits/pause/story/résultats (à rethématiser), pipelines `tools/`, `tests/autoplay.js` (à adapter). Les agents narration/DA/audio/UI sont relancés avec les nouveaux briefs. | — | Phase 2 bis : physique + règles + IA jouables |
+| 2026-09-17 | 0 | Lead | Reformulation, plan d'équipe, validation du commanditaire (français exclusif, GitHub Pages géré par lui, menu complet avec mode test) | — | — |
+| 2026-09-17 | 1–3 | Lead + agents | Concept « Feux de Brume » : journal, moteur générique (`src/core`), prototype jouable, 389 sprites, 8 musiques, 52 SFX, UI ; bot de QA parcourant 12 nuits sans erreur console | Playwright | Archivé |
+| 2026-09-17 | Pivot 1 | Lead | Réorientation vers la pétanque : journal v2, données, physique déterministe, résolution de lancer, IA | — | Archivé |
+| 2026-09-17 | Pivot 2 | Lead | Dix propositions ; le commanditaire choisit **Cent Saisons**. Analyse des packs Hexagon Pack / Hexagon Tiles / Animal Pack (géométrie : hexagones à sommet en haut, 120×140, lignes à 105 px). Journal v3 (ce document). | — | Phase 1 : briefs agents ; Phase 2 : prototype de la boucle (poser, scorer, fermer une région) |
 
 ---
 
@@ -301,8 +292,8 @@ Le proxy réseau de cette session bloque les sites des banques (kenney.nl, openg
 
 | Problème | Solution |
 |---|---|
-| Sites des banques d'assets bloqués par le proxy (403 CONNECT) | Miroirs GitHub des mêmes packs CC0/CC-BY, avec licence embarquée ; clone partiel (`--filter=blob:none --sparse`) |
+| Sites des banques d'assets bloqués par le proxy (403 CONNECT) | Miroirs GitHub des mêmes packs CC0/CC-BY, clone partiel (`--filter=blob:none --sparse`) |
 | Pas de `ffmpeg` système | `pip install imageio-ffmpeg` : binaire statique avec libvorbis/libopus/libmp3lame |
-| Pas de rasteriseur SVG (rsvg, inkscape) pour obtenir des sprites Kenney en haute résolution | Chromium (Playwright) rend le SVG à 3× ou 4× ; un script Python apparie les composantes connexes aux sprites du manifeste (`tools/rasterize_ships.js`, `tools/upscale_ships.py`, généralisés en `tools/rasterize_svg.js` / `tools/upscale_from_svg.py`) |
-| Rendu logiciel (Playwright headless) très lent sur les gros calques alpha plein écran | Calques lourds en demi-résolution, images pré-teintées hors ligne (plus de `ctx.filter`) |
-| Le concept initial dupliquait un jeu antérieur du commanditaire | Pivot complet documenté ci-dessus, moteur conservé |
+| Pas de rasteriseur SVG (rsvg, inkscape) | Chromium (Playwright) rend les SVG Kenney à 2× ; appariement des composantes connexes aux sprites du manifeste par taille et similarité (`tools/rasterize_svg.js`, `tools/upscale_from_svg.py`) |
+| Rendu logiciel (Playwright headless) lent sur les gros calques alpha | Calques lourds en demi-résolution, images pré-teintées hors ligne |
+| Concepts jugés non originaux par le commanditaire | Deux pivots documentés ; choix final par le commanditaire parmi dix propositions |
