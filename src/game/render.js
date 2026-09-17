@@ -264,8 +264,30 @@ export class IslandRenderer {
     const vis = (c, m = 200) => !(c.x < -m || c.x > STAGE.W + m || c.y < -m || c.y > STAGE.H + m);
     const S = (p) => cam.toScreen(p.x, p.y);
     const jit = (a, c) => { const h = Math.sin(a.x * 12.9898 + a.y * 78.233 + c.x * 37.719 + c.y * 4.1) * 43758.5453; return (h - Math.floor(h)) - 0.5; };
-    const organic = (pts) => { const out = [pts[0]]; for (let i = 0; i < pts.length - 1; i++) { const a = pts[i], c = pts[i + 1]; const dx = c.x - a.x, dy = c.y - a.y, len = Math.hypot(dx, dy) || 1; const j = jit(a, c), j2 = jit(c, a); out.push({ x: a.x + dx * 0.35 + (-dy / len) * j * 22, y: a.y + dy * 0.35 + (dx / len) * j * 22 }); out.push({ x: a.x + dx * 0.7 + (-dy / len) * j2 * 16, y: a.y + dy * 0.7 + (dx / len) * j2 * 16 }); out.push(c); } return out; };
     const trace = (sp) => { ctx.beginPath(); ctx.moveTo(sp[0].x, sp[0].y); if (sp.length === 2) ctx.lineTo(sp[1].x, sp[1].y); else { for (let i = 1; i < sp.length - 1; i++) { const mx = (sp[i].x + sp[i + 1].x) / 2, my = (sp[i].y + sp[i + 1].y) / 2; ctx.quadraticCurveTo(sp[i].x, sp[i].y, mx, my); } ctx.lineTo(sp[sp.length - 1].x, sp[sp.length - 1].y); } };
+    const meander = (pts) => {
+      const out = [pts[0]]; let side = jit(pts[0], pts[pts.length - 1]) > 0 ? 1 : -1;
+      for (let i = 0; i < pts.length - 1; i++) {
+        const a = pts[i], c = pts[i + 1]; const dx = c.x - a.x, dy = c.y - a.y, len = Math.hypot(dx, dy) || 1; const nx = -dy / len, ny = dx / len;
+        const amp = 14 + 10 * Math.abs(jit(a, c)) * 2, amp2 = 10 + 8 * Math.abs(jit(c, a)) * 2;
+        out.push({ x: a.x + dx * 0.25 + nx * side * amp, y: a.y + dy * 0.25 + ny * side * amp });
+        out.push({ x: a.x + dx * 0.5 + nx * jit(a, c) * 6, y: a.y + dy * 0.5 + ny * jit(a, c) * 6 });
+        out.push({ x: a.x + dx * 0.75 - nx * side * amp2, y: a.y + dy * 0.75 - ny * side * amp2 });
+        out.push(c);
+      }
+      return out;
+    };
+    // tracé lissé tronçon par tronçon, largeur variable (bouts ronds)
+    const tapered = (sp, wAt, mul, color) => {
+      ctx.strokeStyle = color;
+      if (sp.length < 3) { ctx.lineWidth = wAt(0) * mul; ctx.beginPath(); ctx.moveTo(sp[0].x, sp[0].y); ctx.lineTo(sp[sp.length - 1].x, sp[sp.length - 1].y); ctx.stroke(); return; }
+      let px = sp[0].x, py = sp[0].y;
+      for (let i = 1; i < sp.length - 1; i++) {
+        const mx = (sp[i].x + sp[i + 1].x) / 2, my = (sp[i].y + sp[i + 1].y) / 2;
+        ctx.lineWidth = wAt(i) * mul; ctx.beginPath(); ctx.moveTo(px, py); ctx.quadraticCurveTo(sp[i].x, sp[i].y, mx, my); ctx.stroke(); px = mx; py = my;
+      }
+      ctx.lineWidth = wAt(sp.length - 1) * mul; ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(sp[sp.length - 1].x, sp[sp.length - 1].y); ctx.stroke();
+    };
     ctx.save(); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
     for (const body of bodies) {
       if (body.cells.some((c) => dropping.has(key(c.q, c.r)))) continue;
@@ -279,12 +301,15 @@ export class IslandRenderer {
         const ext = (cell, pred, pt, len) => { for (let d = 0; d < 6; d++) { const n = b.get(cell.q + DIRS[d][0], cell.r + DIRS[d][1]); const sea = b.isSea(cell.q + DIRS[d][0], cell.r + DIRS[d][1]); if (pred(n, sea)) { const m = edgeMid(pt.x, pt.y, d); return { x: pt.x + (m.x - pt.x) * len, y: pt.y + (m.y - pt.y) * len }; } } return null; };
         const src = first ? ext(first, (n) => n && (n.family === 'rock' || n.family === 'hill' || (n.rare && (n.family === 'watchtower' || n.family === 'mine'))), pts[0], 0.75) : null;
         const mouth = body.mouth && last ? ext(last, (n, sea) => sea, pts[pts.length - 1], 1.05) : null;
-        const full = organic([...(src ? [src] : []), ...pts, ...(mouth ? [mouth] : [])]);
+        // méandres : trois points par segment, décalés en alternance d'un côté puis de l'autre (serpent) avec une part de hasard déterministe
+        const full = meander([...(src ? [src] : []), ...pts, ...(mouth ? [mouth] : [])]);
         const sp = full.map(S); if (!sp.some((p) => vis(p))) continue;
-        ctx.globalAlpha = 1; ctx.strokeStyle = pal.edge; ctx.lineWidth = 62 * z; trace(sp); ctx.stroke();
-        ctx.strokeStyle = pal.fill; ctx.lineWidth = 50 * z; trace(sp); ctx.stroke();
-        if (mouth) { const m = S(mouth); ctx.fillStyle = pal.fill; ctx.beginPath(); ctx.ellipse(m.x, m.y, 40 * z, 26 * z, 0, 0, TAU); ctx.fill(); }
-        if (!frozen) { ctx.strokeStyle = pal.foam; ctx.lineWidth = (this.finale ? 4 : 2) * z; ctx.setLineDash([10 * z, 26 * z]); ctx.lineDashOffset = -this.time * (this.finale ? 120 : 40) * z; trace(sp); ctx.stroke(); ctx.setLineDash([]); }
+        // filet qui s'élargit de la source à l'embouchure : chaque tronçon lissé a sa propre largeur (bouts ronds : pas de joint visible)
+        const wAt = (i) => { const t = i / Math.max(1, sp.length - 1); return (16 + 12 * t + 3 * Math.sin(i * 2.3)) * z; };
+        ctx.globalAlpha = 1;
+        tapered(sp, wAt, 1.45, pal.edge); tapered(sp, wAt, 1, pal.fill);
+        if (mouth) { const m = S(mouth); ctx.fillStyle = pal.fill; ctx.beginPath(); ctx.ellipse(m.x, m.y, 26 * z, 16 * z, 0, 0, TAU); ctx.fill(); }
+        if (!frozen) { ctx.strokeStyle = pal.foam; ctx.lineWidth = (this.finale ? 3 : 1.5) * z; ctx.setLineDash([8 * z, 22 * z]); ctx.lineDashOffset = -this.time * (this.finale ? 120 : 40) * z; trace(sp); ctx.stroke(); ctx.setLineDash([]); }
         else this.drawCracks(ctx, sp, z);
       } else if (body.kind === 'pond') {
         const c = S(c0); if (!vis(c)) continue;
