@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-17T20:13:59+00:00",
+ "generated": "2026-09-17T20:55:56+00:00",
  "generator": "tools/build_images.py",
  "conventions": {
   "hex": {
@@ -3416,6 +3416,86 @@
    "source": "hexagontiles",
    "original": "Tiles/bushGrass.png",
    "note": "Touffe sèche.",
+   "anchor": "bottom"
+  },
+  "obj_treeRound_blossom": {
+   "file": "deco/obj_treeRound_blossom.png",
+   "w": 28,
+   "h": 64,
+   "bytes": 2484,
+   "source": "hexagon-pack",
+   "original": "PNG/Objects/treeRound_small.png",
+   "note": "Feuillu en fleurs (feuillage recoloré rose pâle) : forêts et vergers au printemps.",
+   "anchor": "bottom"
+  },
+  "obj_treeRound_blossom_large": {
+   "file": "deco/obj_treeRound_blossom_large.png",
+   "w": 40,
+   "h": 92,
+   "bytes": 4676,
+   "source": "hexagon-pack",
+   "original": "PNG/Objects/treeRound_large.png",
+   "note": "Grand feuillu en fleurs (printemps).",
+   "anchor": "bottom"
+  },
+  "obj_leafpile": {
+   "file": "deco/obj_leafpile.png",
+   "w": 33,
+   "h": 44,
+   "bytes": 2623,
+   "source": "hexagontiles",
+   "original": "Tiles/bushAutumn.png",
+   "note": "Tas de feuilles mortes (bushAutumn ×2.2) : forêts et vergers en automne.",
+   "anchor": "bottom"
+  },
+  "obj_snowdrift": {
+   "file": "deco/obj_snowdrift.png",
+   "w": 36,
+   "h": 48,
+   "bytes": 2983,
+   "source": "hexagontiles",
+   "original": "Tiles/bushSnow.png",
+   "note": "Congère (bushSnow ×2.4) : hiver et bourrasque.",
+   "anchor": "bottom"
+  },
+  "obj_moss": {
+   "file": "deco/obj_moss.png",
+   "w": 97,
+   "h": 146,
+   "bytes": 8268,
+   "source": "hexagontiles",
+   "original": "Tiles/rockStone_moss1.png",
+   "note": "Petit rocher moussu (rockStone_moss1 ×1.6) : roches au printemps.",
+   "anchor": "bottom"
+  },
+  "obj_flowerBlue": {
+   "file": "deco/obj_flowerBlue.png",
+   "w": 34,
+   "h": 31,
+   "bytes": 2874,
+   "source": "hexagontiles",
+   "original": "Tiles/flowerBlue.png",
+   "note": "Fleur bleue (Hexagon Tiles ×2.8).",
+   "anchor": "bottom"
+  },
+  "obj_lily": {
+   "file": "deco/obj_lily.png",
+   "w": 24,
+   "h": 22,
+   "bytes": 1629,
+   "source": "hexagontiles",
+   "original": "Tiles/flowerGreen.png",
+   "note": "Nénuphar (flowerGreen ×2.0) : lacs et étangs en été.",
+   "anchor": "bottom"
+  },
+  "obj_basket": {
+   "file": "deco/obj_basket.png",
+   "w": 36,
+   "h": 46,
+   "bytes": 2870,
+   "source": "hexagon-pack",
+   "original": "PNG/Objects/box1.png",
+   "note": "Caisse de récolte (box1) : vergers en automne, cueillette.",
    "anchor": "bottom"
   },
   "obj_rockGrey_large": {

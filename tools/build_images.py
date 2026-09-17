@@ -89,6 +89,7 @@ COLORS = {
     "heath_ground": {"spring": "#a9b26a", "summer": "#b0a45a", "autumn": "#b58c55", "winter": SNOW},
     "heather": {"spring": "#b98ccc", "summer": "#a67bb8", "autumn": "#8f6a9e", "winter": "#d9d0e2"},
     "crop": {"spring": "#8fca5c", "summer": "#a9c24a", "autumn": "#e2b44b", "winter": "#e8edf1"},
+    "blossom": "#f2d3de",
 }
 
 
@@ -513,6 +514,8 @@ class Composer:
             im = recolor(im, COLORS["heather"][season], mask="all", shade=1.0)
         elif kind == "crop":
             im = recolor(im, COLORS["crop"][season], mask="all", shade=1.0)
+        elif kind == "blossom":
+            im = recolor(im, COLORS["blossom"])
         elif kind == "hill":
             im = snowify(im) if season == "winter" else recolor(im, COLORS["grass"][season])
         elif kind == "dry":
@@ -754,6 +757,15 @@ class Builder:
             for name in ("farmland", "farmland_empty"):
                 obj(f"obj_{name}_{season}", L(f"obj:{name}", 0, 0, "field"), season, f"Parcelle {name} ({season}).")
         obj("obj_bushGrass_dry", L("ht:bushGrass:2.4", 0, 0, "dry"), "summer", "Touffe sèche.", pack=HT)
+        # objets saisonniers : fleurs de printemps sur les arbres, tas de feuilles, congères, mousse, fleurs bleues, nénuphars, paniers
+        obj("obj_treeRound_blossom", L(ROUND_S, 0, 0, "blossom"), "spring", "Feuillu en fleurs (feuillage recoloré rose pâle) : forêts et vergers au printemps.")
+        obj("obj_treeRound_blossom_large", L(ROUND, 0, 0, "blossom"), "spring", "Grand feuillu en fleurs (printemps).")
+        obj("obj_leafpile", L("ht:bushAutumn:2.2", 0, 0), "autumn", "Tas de feuilles mortes (bushAutumn ×2.2) : forêts et vergers en automne.", pack=HT)
+        obj("obj_snowdrift", L("ht:bushSnow:2.4", 0, 0), "winter", "Congère (bushSnow ×2.4) : hiver et bourrasque.", pack=HT)
+        obj("obj_moss", L("ht:rockStone_moss1:1.6", 0, 0), "spring", "Petit rocher moussu (rockStone_moss1 ×1.6) : roches au printemps.", pack=HT)
+        obj("obj_flowerBlue", L("ht:flowerBlue:2.8", 0, 0), "spring", "Fleur bleue (Hexagon Tiles ×2.8).", pack=HT)
+        obj("obj_lily", L("ht:flowerGreen:2.0", 0, 0), "summer", "Nénuphar (flowerGreen ×2.0) : lacs et étangs en été.", pack=HT)
+        obj("obj_basket", L("obj:box1", 0, 0), "autumn", "Caisse de récolte (box1) : vergers en automne, cueillette.")
         for name in ("rockGrey_large", "rockGrey_medium1", "rockGrey_medium2", "rockGrey_medium3", "rockGrey_small1", "rockGrey_small2", "rockGrey_small3", "rockGrey_small4", "rockBrown_small"):
             obj(f"obj_{name}", L(f"obj:{name}", 0, 0, "rock"), "summer", f"Rocher {name}.")
             obj(f"obj_{name}_winter", L(f"obj:{name}", 0, 0, "rock"), "winter", f"Rocher {name} enneigé.")
