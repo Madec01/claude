@@ -21,6 +21,16 @@ Toutes les œuvres ci-dessous appartiennent à leurs auteurs et sont utilisées 
   - Attribution : "Almost Bliss" Kevin MacLeod (incompetech.com) — Licensed under Creative Commons: By Attribution 4.0 License — http://creativecommons.org/licenses/by/4.0/
 - **Study And Relax** — Kevin MacLeod — licence CC BY 4.0 ([texte](http://creativecommons.org/licenses/by/4.0/)) — [source](https://incompetech.com/music/royalty-free/index.html?keywords=Study+And+Relax) — [miroir utilisé](https://github.com/noobsandnerdsgroup/audio)
   - Attribution : "Study And Relax" Kevin MacLeod (incompetech.com) — Licensed under Creative Commons: By Attribution 4.0 License — http://creativecommons.org/licenses/by/4.0/
+- **Cloud Dancer** — Kevin MacLeod — licence CC BY 4.0 ([texte](http://creativecommons.org/licenses/by/4.0/)) — [source](https://incompetech.com/music/royalty-free/index.html?keywords=Cloud+Dancer) — [miroir utilisé](https://github.com/noobsandnerdsgroup/audio)
+  - Attribution : "Cloud Dancer" Kevin MacLeod (incompetech.com) — Licensed under Creative Commons: By Attribution 4.0 License — http://creativecommons.org/licenses/by/4.0/
+- **Pleasant Porridge** — Kevin MacLeod — licence CC BY 4.0 ([texte](http://creativecommons.org/licenses/by/4.0/)) — [source](https://incompetech.com/music/royalty-free/index.html?keywords=Pleasant+Porridge) — [miroir utilisé](https://github.com/noobsandnerdsgroup/audio)
+  - Attribution : "Pleasant Porridge" Kevin MacLeod (incompetech.com) — Licensed under Creative Commons: By Attribution 4.0 License — http://creativecommons.org/licenses/by/4.0/
+- **Leaving Home** — Kevin MacLeod — licence CC BY 4.0 ([texte](http://creativecommons.org/licenses/by/4.0/)) — [source](https://incompetech.com/music/royalty-free/index.html?keywords=Leaving+Home) — [miroir utilisé](https://github.com/noobsandnerdsgroup/audio)
+  - Attribution : "Leaving Home" Kevin MacLeod (incompetech.com) — Licensed under Creative Commons: By Attribution 4.0 License — http://creativecommons.org/licenses/by/4.0/
+- **Night Vigil** — Kevin MacLeod — licence CC BY 4.0 ([texte](http://creativecommons.org/licenses/by/4.0/)) — [source](https://incompetech.com/music/royalty-free/index.html?keywords=Night+Vigil) — [miroir utilisé](https://github.com/noobsandnerdsgroup/audio)
+  - Attribution : "Night Vigil" Kevin MacLeod (incompetech.com) — Licensed under Creative Commons: By Attribution 4.0 License — http://creativecommons.org/licenses/by/4.0/
+- **Maccary Bay** — Kevin MacLeod — licence CC BY 4.0 ([texte](http://creativecommons.org/licenses/by/4.0/)) — [source](https://incompetech.com/music/royalty-free/index.html?keywords=Maccary+Bay) — [miroir utilisé](https://github.com/noobsandnerdsgroup/audio)
+  - Attribution : "Maccary Bay" Kevin MacLeod (incompetech.com) — Licensed under Creative Commons: By Attribution 4.0 License — http://creativecommons.org/licenses/by/4.0/
 
 ## Sons et ambiances
 
@@ -30,6 +40,7 @@ Toutes les œuvres ci-dessous appartiennent à leurs auteurs et sont utilisées 
 - **Soft rain on a tile roof** — richwise — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://freesound.org/s/466241/) — [miroir utilisé](https://github.com/funcoder/omarchy-ambient)
 - **Crickets (close recording)** — felix.blume — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://freesound.org/s/476672/) — [miroir utilisé](https://github.com/funcoder/omarchy-ambient)
 - **Crashing Waves - Pacific Ocean** — SecureSubset — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://freesound.org/s/817075/) — [miroir utilisé](https://github.com/funcoder/omarchy-ambient)
+- **Rain and Thunder Ambience Tübingen** — Sheyvan — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://freesound.org/s/369547/) — [miroir utilisé](https://github.com/funcoder/omarchy-ambient)
 - **Impact Sounds** — Kenney — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://kenney.nl/assets/impact-sounds) — [miroir utilisé](https://github.com/ETdoFresh/kenney.nl)
 - **100 CC0 SFX** — rubberduck — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://opengameart.org/content/100-cc0-sfx) — [miroir utilisé](https://github.com/lavenderdotpet/CC0-Public-Domain-Sounds)
 - **Micro Pack - Paper Cutter** — Ben Burnes (Abstraction) — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://abstractionmusic.com/) — [miroir utilisé](https://github.com/lavenderdotpet/CC0-Public-Domain-Sounds)
@@ -46,11 +57,11 @@ Toutes les œuvres ci-dessous appartiennent à leurs auteurs et sont utilisées 
 ## Graphismes
 
 - **Hexagon Pack** — Kenney (kenney.nl) — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://kenney.nl/assets/hexagon-pack) — [miroir utilisé](https://github.com/ETdoFresh/kenney.nl)
-  - Fichiers : 126
+  - Fichiers : 294
 - **Hexagon Tiles** — Kenney (kenney.nl) — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://kenney.nl/assets/hexagon-tiles) — [miroir utilisé](https://github.com/ETdoFresh/kenney.nl)
-  - Fichiers : 39
+  - Fichiers : 79
 - **Animal Pack Redux** — Kenney (kenney.nl) — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://kenney.nl/assets/animal-pack-redux) — [miroir utilisé](https://github.com/ETdoFresh/kenney.nl)
-  - Fichiers : 10
+  - Fichiers : 12
 - **Particle Pack (1.1)** — Kenney (kenney.nl) — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://kenney.nl/assets/particle-pack) — [miroir utilisé](https://github.com/ETdoFresh/kenney.nl)
   - Fichiers : 43
 - **Smoke Particles** — Kenney (kenney.nl) — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://kenney.nl/assets/smoke-particles) — [miroir utilisé](https://github.com/ETdoFresh/kenney.nl)

@@ -3,6 +3,7 @@ import { h, button, icon, stagger, append } from './dom.js';
 import { Save } from '../core/save.js';
 import { ISLANDS } from '../data/islands.js';
 import { STORY } from '../data/story.js';
+import { dailyKey, dailyLabel } from '../data/daily.js';
 
 export const VERSION = 'v1.0';
 
@@ -25,10 +26,13 @@ export function buildMenu({ game }) {
     navButton(primaryLabel, () => game.startCampaign(), { cls: 'btn-primary btn-big', iconName: 'icon_play', sub: primarySub }),
     navButton('Choisir une île', () => showIslands(), { iconName: 'icon_menu', disabled: !started && !testMode, sub: started || testMode ? `${Math.min(c.unlockedIsland, 12)} / 12` : '' }),
     navButton('Île infinie', () => game.startInfinite(), { iconName: 'icon_wind', disabled: !(Save.data.infinite.unlocked || c.unlockedIsland > 6 || testMode), title: 'Se déverrouille après l’île 6', sub: Save.data.infinite.best ? `${Save.data.infinite.best} pts` : '' }),
+    navButton('Île du jour', () => game.startDaily(), { iconName: 'icon_sun', disabled: !(c.unlockedIsland >= 4 || testMode), title: `Se déverrouille après l’île 3 · ${dailyLabel(dailyKey())}`, sub: (Save.data.daily && Save.data.daily.best[dailyKey()]) ? `${Save.data.daily.best[dailyKey()]} pts` : (Save.data.daily && Save.data.daily.streak ? `${Save.data.daily.streak} j` : '') }),
     navButton('Jardin', () => game.startGarden(), { iconName: 'icon_leaf', disabled: !(started || testMode), title: 'Pose libre, sans score' }),
-    navButton('Guide', () => game.showGuide(), { iconName: 'icon_question', title: 'Tuiles, saisons, faune, souffles, graines' }),
-    navButton('Options', () => game.showOptions(), { iconName: 'icon_gear' }),
-    navButton('Crédits', () => game.showCredits(), { iconName: 'icon_info' }),
+    h('div', { class: 'menu-row' },
+      navButton('Guide', () => game.showGuide(), { iconName: 'icon_question', title: 'Tuiles, saisons, faune, souffles, graines' }),
+      navButton('Options', () => game.showOptions(), { iconName: 'icon_gear' }),
+      navButton('Crédits', () => game.showCredits(), { iconName: 'icon_info' }),
+    ),
     navButton('Plein écran', () => game.toggleFullscreen(), { cls: 'btn-ghost', iconName: 'icon_fullscreen' }),
   );
   const foot = h('div', { class: 'menu-foot' },
@@ -40,7 +44,7 @@ export function buildMenu({ game }) {
     h('div', { class: 'foot-right' }, `${STORY.title} · ${VERSION}`),
   );
   append(root, h('div', { class: 'menu-veil' }), title, nav, foot);
-  setTimeout(() => stagger(nav, ':scope > *', 60), 60);
+  setTimeout(() => stagger(nav, '.btn', 60), 60);
 
   function showIslands() {
     const rows = h('div', { class: 'acts' });

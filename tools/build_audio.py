@@ -62,6 +62,7 @@ P_RD1, P_RD_WM, P_RD2, P_RD_CRE, P_RD_CRE2, P_RD_RPG, P_RD_WATER = (
 P_BB_WOOSH, P_BB_PAPER, P_BB_CUTTER = "bb_wooshes", "bb_paper", "bb_papercutter"
 P_K_UI, P_K_IF, P_K_IMP, P_K_RPG = "kenney_ui", "kenney_interface", "kenney_impact", "kenney_rpg"
 P_FLUID = "fluidr3"
+P_FS_STORM = "fs_storm"
 
 PACKS = {
     P_KM: dict(dir=KM, author="Kevin MacLeod", license="CC BY 4.0"),
@@ -71,6 +72,7 @@ PACKS = {
     P_FS_RAIN: dict(dir=AMB, author="richwise", license="CC0 1.0"),
     P_FS_CRICKETS: dict(dir=AMB, author="felix.blume", license="CC0 1.0"),
     P_FS_WAVES: dict(dir=AMB, author="SecureSubset", license="CC0 1.0"),
+    P_FS_STORM: dict(dir=AMB, author="Sheyvan", license="CC0 1.0"),
     P_RD1: dict(dir=CC0 / "100-CC0-SFX", author="rubberduck", license="CC0 1.0"),
     P_RD_WM: dict(dir=CC0 / "100-CC0-wood-metal-SFX", author="rubberduck", license="CC0 1.0"),
     P_RD2: dict(dir=CC0 / "100-cc0-sfx-2", author="rubberduck", license="CC0 1.0"),
@@ -110,6 +112,8 @@ WORKS = {
                         license_url=CC0_URL, source_url="https://freesound.org/s/476672/", mirror=OMARCHY),
     P_FS_WAVES: dict(title="Crashing Waves - Pacific Ocean", author="SecureSubset", license="CC0 1.0",
                      license_url=CC0_URL, source_url="https://freesound.org/s/817075/", mirror=OMARCHY),
+    P_FS_STORM: dict(title="Rain and Thunder Ambience Tübingen", author="Sheyvan", license="CC0 1.0",
+                     license_url=CC0_URL, source_url="https://freesound.org/s/369547/", mirror=OMARCHY),
     P_RD1: dict(title="100 CC0 SFX", author="rubberduck", license="CC0 1.0", license_url=CC0_URL,
                 source_url="https://opengameart.org/content/100-cc0-sfx", mirror=LAVENDER),
     P_RD_WM: dict(title="100 CC0 wood / metal SFX", author="rubberduck", license="CC0 1.0", license_url=CC0_URL,
@@ -478,6 +482,12 @@ MUSIC = {
     "results": ("Beauty Flow", 115, 3.0, "bilan / atelier : coulée douce, contemplative"),
     "ending": ("Almost Bliss", 115, 4.0, "fin : lumineux et apaisé, l'île qui se souvient"),
     "garden": ("Study And Relax", 115, 3.0, "jardin (mode libre) : studieux, sans tension"),
+    # deuxième piste par saison (alternance d'une île à l'autre) et modes
+    "spring_2": ("Cloud Dancer", 115, 3.0, "printemps (variante) : aérien, nuages qui passent"),
+    "summer_2": ("Pleasant Porridge", 115, 3.0, "été (variante) : chaleur tranquille, guitare douce"),
+    "autumn_2": ("Leaving Home", 115, 3.0, "automne (variante) : départ, feuilles qui tombent"),
+    "winter_2": ("Night Vigil", 115, 3.0, "hiver (variante) : veille nocturne, froid et calme"),
+    "daily": ("Maccary Bay", 115, 3.0, "île du jour : baie tranquille, un jour à la fois"),
 }
 MUSIC_LUFS = -16.0
 MUSIC_MIN_LOOP = 60.0
@@ -540,6 +550,7 @@ def build_ambience(only: set[str] | None = None) -> dict:
                 "vagues douces au loin (passe-bas 1,1 kHz : la mer autour de l'île)"),
         "winter": (P_FS_WIND, "wind.ogg", "highpass=f=40,lowpass=f=650:p=2,lowpass=f=900",
                    "vent doux passe-bas : hiver, neige et ombres bleues"),
+        "storm": (P_FS_STORM, "storm.ogg", None, "orage : pluie et tonnerre (météo de printemps)"),
     }
     for key, (pack, name, chain, why) in specs.items():
         if only and key not in only:
@@ -797,6 +808,11 @@ def build_sfx(only: set[str] | None = None) -> dict:
     R["ui_back"] = (lambda: L(P_K_IF, "back_002.ogg"), [(P_K_IF, "back_002.ogg")], "retour")
     R["ui_confirm"] = (lambda: L(P_K_IF, "confirmation_001.ogg"), [(P_K_IF, "confirmation_001.ogg")], "validation")
     R["ui_error"] = (lambda: L(P_K_IF, "error_006.ogg"), [(P_K_IF, "error_006.ogg")], "erreur, brève et feutrée")
+    # ---- Météo -------------------------------------------------------------------
+    R["thunder"] = (lambda: cut(ff_filter(L(P_RD2, "sfx100v2_thunder_01.ogg", 2), "lowpass=f=2200," + REVERB_FAR), 4.0, 1.2),
+                    [(P_RD2, "sfx100v2_thunder_01.ogg")], "tonnerre lointain (orage)")
+    R["weather"] = (lambda: stereo_spread(cut(ff_filter(mix((L(P_RD1, "bell_02.ogg"), 0.0, -3.0), (L(P_RD1, "bell_03.ogg"), 0.35, -7.0)), REVERB_OUT), 2.4, 0.8)),
+                    [(P_RD1, "bell_02.ogg"), (P_RD1, "bell_03.ogg")], "annonce météo : cloches lointaines")
     R["ui_open"] = (lambda: L(P_K_RPG, "bookOpen.ogg"), [(P_K_RPG, "bookOpen.ogg")], "ouverture (carnet)")
     R["ui_close"] = (lambda: L(P_K_RPG, "bookClose.ogg"), [(P_K_RPG, "bookClose.ogg")], "fermeture (carnet)")
     R["page_flip_1"] = (lambda: L(P_K_RPG, "bookFlip2.ogg"), [(P_K_RPG, "bookFlip2.ogg")], "page tournée")

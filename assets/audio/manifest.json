@@ -79,6 +79,56 @@
       "license": "CC BY 4.0",
       "attribution": "\"Study And Relax\" Kevin MacLeod (incompetech.com) — Licensed under Creative Commons: By Attribution 4.0 License — http://creativecommons.org/licenses/by/4.0/",
       "note": "jardin (mode libre) : studieux, sans tension"
+    },
+    "spring_2": {
+      "file": "music/spring_2.ogg",
+      "duration": 107.666,
+      "loop": true,
+      "source": "Cloud Dancer",
+      "author": "Kevin MacLeod",
+      "license": "CC BY 4.0",
+      "attribution": "\"Cloud Dancer\" Kevin MacLeod (incompetech.com) — Licensed under Creative Commons: By Attribution 4.0 License — http://creativecommons.org/licenses/by/4.0/",
+      "note": "printemps (variante) : aérien, nuages qui passent"
+    },
+    "summer_2": {
+      "file": "music/summer_2.ogg",
+      "duration": 72.604,
+      "loop": true,
+      "source": "Pleasant Porridge",
+      "author": "Kevin MacLeod",
+      "license": "CC BY 4.0",
+      "attribution": "\"Pleasant Porridge\" Kevin MacLeod (incompetech.com) — Licensed under Creative Commons: By Attribution 4.0 License — http://creativecommons.org/licenses/by/4.0/",
+      "note": "été (variante) : chaleur tranquille, guitare douce"
+    },
+    "autumn_2": {
+      "file": "music/autumn_2.ogg",
+      "duration": 84.493,
+      "loop": true,
+      "source": "Leaving Home",
+      "author": "Kevin MacLeod",
+      "license": "CC BY 4.0",
+      "attribution": "\"Leaving Home\" Kevin MacLeod (incompetech.com) — Licensed under Creative Commons: By Attribution 4.0 License — http://creativecommons.org/licenses/by/4.0/",
+      "note": "automne (variante) : départ, feuilles qui tombent"
+    },
+    "winter_2": {
+      "file": "music/winter_2.ogg",
+      "duration": 107.875,
+      "loop": true,
+      "source": "Night Vigil",
+      "author": "Kevin MacLeod",
+      "license": "CC BY 4.0",
+      "attribution": "\"Night Vigil\" Kevin MacLeod (incompetech.com) — Licensed under Creative Commons: By Attribution 4.0 License — http://creativecommons.org/licenses/by/4.0/",
+      "note": "hiver (variante) : veille nocturne, froid et calme"
+    },
+    "daily": {
+      "file": "music/daily.ogg",
+      "duration": 59.996,
+      "loop": true,
+      "source": "Maccary Bay",
+      "author": "Kevin MacLeod",
+      "license": "CC BY 4.0",
+      "attribution": "\"Maccary Bay\" Kevin MacLeod (incompetech.com) — Licensed under Creative Commons: By Attribution 4.0 License — http://creativecommons.org/licenses/by/4.0/",
+      "note": "île du jour : baie tranquille, un jour à la fois"
     }
   },
   "ambience": {
@@ -165,6 +215,18 @@
         "fs_wind"
       ],
       "note": "vent doux passe-bas : hiver, neige et ombres bleues"
+    },
+    "storm": {
+      "file": "ambience/storm.ogg",
+      "duration": 64.0,
+      "loop": true,
+      "source": "Rain and Thunder Ambience Tübingen",
+      "author": "Sheyvan",
+      "license": "CC0 1.0",
+      "packs": [
+        "fs_storm"
+      ],
+      "note": "orage : pluie et tonnerre (météo de printemps)"
     }
   },
   "sfx": {
@@ -912,6 +974,30 @@
         "kenney_interface"
       ],
       "note": "craie : trait de crayon sur papier + grattement"
+    },
+    "thunder": {
+      "file": "sfx/thunder.ogg",
+      "duration": 3.891,
+      "loop": false,
+      "source": "sfx100v2_thunder_01.ogg",
+      "author": "rubberduck",
+      "license": "CC0 1.0",
+      "packs": [
+        "rd_100sfx2"
+      ],
+      "note": "tonnerre lointain (orage)"
+    },
+    "weather": {
+      "file": "sfx/weather.ogg",
+      "duration": 1.844,
+      "loop": false,
+      "source": "bell_02.ogg + bell_03.ogg",
+      "author": "rubberduck",
+      "license": "CC0 1.0",
+      "packs": [
+        "rd_100sfx"
+      ],
+      "note": "annonce météo : cloches lointaines"
     }
   }
 }

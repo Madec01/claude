@@ -23,6 +23,8 @@ export class IslandRenderer {
     for (let i = 0; i < 40; i++) this.waves.push({ x: rnd(-1400, 1400), y: rnd(-900, 900), t: rnd(0, 10), s: rnd(0.6, 1.1) });
     this.faunaPos = new Map();  // clé -> { x, y, bob }
     this.decor = new Decor((island.def && island.def.seed) || 1);
+    this.weather = null; this.flash = 0; this.rain = [];
+    this.wander = new Map();   // faune : position et cible de déplacement par clé
     this.legacy = !Assets.has('ground_grass_spring');   // manifeste sans sols/objets : tuiles composées (repli)
   }
 
@@ -63,6 +65,7 @@ export class IslandRenderer {
     this.drawFauna(ctx, dt);
     this.p.render(ctx, 1);
     this.drawTexts(ctx);
+    this.drawWeather(ctx, dt);
     this.drawTransition(ctx);
   }
 
@@ -235,6 +238,28 @@ export class IslandRenderer {
     ctx.restore();
   }
 
+  /** Voiles et pluie de la météo active (espace écran). */
+  drawWeather(ctx, dt) {
+    const w = this.weather; const W = STAGE.W, H = STAGE.H;
+    if (this.flash > 0) { ctx.save(); ctx.globalAlpha = Math.min(0.5, this.flash * 2.5); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, W, H); ctx.restore(); this.flash -= dt; }
+    if (!w) { this.rain.length = 0; return; }
+    if (w === 'storm') {
+      while (this.rain.length < 160) this.rain.push({ x: Math.random() * (W + 200) - 100, y: Math.random() * H, l: 10 + Math.random() * 14, v: 700 + Math.random() * 400 });
+      ctx.save(); ctx.strokeStyle = 'rgba(220,240,255,0.45)'; ctx.lineWidth = 1.2; ctx.beginPath();
+      for (const d of this.rain) { d.y += d.v * dt; d.x -= d.v * 0.18 * dt; if (d.y > H + 20) { d.y = -30; d.x = Math.random() * (W + 200) - 60; } ctx.moveTo(d.x, d.y); ctx.lineTo(d.x - d.l * 0.18, d.y + d.l); }
+      ctx.stroke();
+      ctx.globalAlpha = 0.12; ctx.fillStyle = '#3a5a78'; ctx.fillRect(0, 0, W, H); ctx.restore();
+    } else if (w === 'heat') {
+      ctx.save(); const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, 'rgba(255,200,110,0.16)'); g.addColorStop(1, 'rgba(255,160,80,0.06)'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H); ctx.restore();
+    } else if (w === 'blizzard') {
+      ctx.save(); ctx.globalAlpha = 0.22 + 0.05 * Math.sin(this.time * 1.7); ctx.fillStyle = '#eef4fa'; ctx.fillRect(0, 0, W, H); ctx.restore();
+    } else if (w === 'wind') {
+      ctx.save(); ctx.globalAlpha = 0.18; ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5;
+      for (let i = 0; i < 6; i++) { const y = ((this.time * 60 + i * 137) % (H + 80)) - 40; const x = ((this.time * 380 + i * 331) % (W + 400)) - 200; ctx.beginPath(); ctx.moveTo(x, y); ctx.quadraticCurveTo(x + 60, y - 8, x + 130, y + 4); ctx.stroke(); }
+      ctx.restore();
+    }
+  }
+
   drawBloom(ctx, cx, cy) {
     ctx.save(); ctx.globalAlpha = 0.8;
     for (let i = 0; i < 5; i++) { const a = this.time * 0.6 + i * 1.3; const r = 14 * this.cam.zoom; ctx.fillStyle = i % 2 ? '#fff6c9' : '#f7c8d8'; ctx.beginPath(); ctx.arc(cx + Math.cos(a) * r * 1.6, cy + Math.sin(a) * r * 0.9 + 6 * this.cam.zoom, 2.2 * this.cam.zoom, 0, TAU); ctx.fill(); }
@@ -312,11 +337,35 @@ export class IslandRenderer {
     }
   }
 
+  /** Position animée d'un animal : il se déplace lentement de case en case dans sa région. */
+  wanderPos(k, a, dt) {
+    const HAB = { rabbit: 'meadow', cow: 'meadow', moose: 'forest', bear: 'forest', owl: 'forest', duck: 'water', penguin: 'water', frog: 'marsh', chicken: 'hamlet', horse: 'hill' };
+    const home = toWorld(a.q, a.r);
+    let st = this.wander.get(k);
+    if (!st) { st = { x: home.x, y: home.y, tx: home.x, ty: home.y, wait: 1 + Math.random() * 3, hop: 0 }; this.wander.set(k, st); }
+    st.wait -= dt;
+    const fam = HAB[a.species];
+    if (st.wait <= 0 && fam) {
+      const reg = this.isl.board.region(a.q, a.r, fam);
+      const cells = reg ? reg.cells.filter((c) => !c.rare && !(fam === 'meadow' && c.dry) && !(fam === 'water' && c.frozen !== (a.species === 'penguin'))) : [];
+      const c = cells.length ? cells[Math.floor(Math.random() * cells.length)] : null;
+      const t = c ? toWorld(c.q, c.r) : home;
+      st.tx = t.x + (Math.random() - 0.5) * 36; st.ty = t.y + (Math.random() - 0.5) * 26;
+      st.wait = 2.5 + Math.random() * 4;
+    }
+    const dx = st.tx - st.x, dy = st.ty - st.y; const d = Math.hypot(dx, dy);
+    const speed = a.species === 'duck' || a.species === 'penguin' ? 18 : a.species === 'horse' ? 30 : 24;
+    if (d > 1) { const step = Math.min(d, speed * dt); st.x += (dx / d) * step; st.y += (dy / d) * step; st.hop += dt * (a.species === 'duck' ? 3 : 9); }
+    return st;
+  }
+
   drawFauna(ctx, dt) {
     const cam = this.cam;
     for (const [k, a] of this.isl.fauna) {
       const img = Assets.img(`fauna_${a.species}`);
-      const w = toWorld(a.q, a.r); const c = cam.toScreen(w.x, w.y - 26);
+      const st = this.wanderPos(k, a, dt);
+      const moving = Math.hypot(st.tx - st.x, st.ty - st.y) > 1;
+      const c = cam.toScreen(st.x, st.y - 26 - (moving ? Math.abs(Math.sin(st.hop)) * 6 : 0));
       let s = 1, alpha = 1;
       const an = this.fx.faunaAnim.get(k);
       if (an) { const t = Math.min(1, an.t / 0.8); s = an.kind === 'arrive' ? 0.3 + 0.7 * easeOutCubic(t) * (1 + 0.25 * Math.sin(t * Math.PI)) : 1 - t; alpha = an.kind === 'arrive' ? 1 : 1 - t; }

@@ -411,6 +411,17 @@ TILES = {
                  note="Grenier (silo1) + foin + clôture."),
     "fountain": T("rare", "grass_05", [L("obj:fountain", 60, 94), L("obj:fence", 26, 100), L("obj:fence", 94, 100)] + FLOWERS_SPRING + FLOWERS_SUMMER,
                   note="Fontaine + clôtures + fleurs au printemps et en été."),
+    # --- tuiles d'événement (dès l'île 5) et rares tardives (dès l'île 8)
+    "market": T("rare", "grass_05", [L("obj:shop", 60, 98), L("obj:hay", 22, 104), L("obj:banner", 98, 74)], note="Marché : échoppe + foin + bannière."),
+    "fete": T("rare", "grass_05", [L("obj:banner", 38, 96), L("obj:banner", 82, 96), L("obj:log", 60, 112), L("obj:hay", 60, 74)] + FLOWERS_SPRING + FLOWERS_SUMMER,
+              note="Fête : deux bannières, un tronc pour s'asseoir, du foin, des fleurs."),
+    "restore": T("rare", "grass_05", [L("obj:ruinsCorner", 62, 100, "rock"), L("obj:ruins_brick1", 28, 104, "rock"), L("obj:ruins_brick1", 94, 84, "rock")],
+                 note="Ruine à restaurer : pans de mur sur l'herbe (devient la famille majoritaire autour d'elle)."),
+    "tavern": T("rare", "grass_05", [L("obj:tavern", 60, 98), L("obj:fence", 98, 110), L("obj:logPile", 22, 104)], note="Auberge + clôture + bûches."),
+    "trough": T("rare", "grass_05", [L("obj:horseTrough", 60, 94), L("obj:fence", 26, 104), L("obj:fence", 94, 104)] + FLOWERS_SPRING, note="Abreuvoir + clôtures + fleurs au printemps."),
+    "archway": T("rare", "grass_05", [L("obj:archway", 60, 100), L("obj:wall_small", 24, 104), L("obj:wall_small", 96, 104)], note="Porche + murets."),
+    "mine": T("rare", "stone_07", [L("obj:mine", 60, 98), L("obj:rockGrey_small1", 24, 100, "rock"), L("obj:log", 96, 108)], base_kind="stone", note="Mine sur pierre + rocher + bûche."),
+    "oven": T("rare", "grass_05", [L("obj:oven", 60, 96), L("obj:hay", 94, 106), L("obj:logPile", 26, 100)], note="Four à pain + foin + bûches."),
     "dry_meadow": T("rare", "grass_05", [L("ht:bushGrass:2.6", 36, 96, "dry"), L("ht:bushGrass:2.6", 88, 66, "dry")], base_kind="dry",
                     note="Prairie sèche d'été (herbe paille #cdbb6a), identique aux 4 saisons."),
 }

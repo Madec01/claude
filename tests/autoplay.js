@@ -14,7 +14,7 @@ fs.mkdirSync(OUT, { recursive: true });
 function parseList(s) {
   const out = [];
   for (const part of s.split(',')) {
-    if (part === 'infinite' || part === 'garden') out.push(part);
+    if (part === 'infinite' || part === 'garden' || part === 'daily') out.push(part);
     else if (part.includes('-')) { const [a, b] = part.split('-').map(Number); for (let i = a; i <= b; i++) out.push(i); }
     else out.push(Number(part));
   }
@@ -42,10 +42,10 @@ function parseList(s) {
   const report = [];
   for (const id of parseList(arg)) {
     const t0 = Date.now();
-    await page.evaluate((id) => { const G = window.CS.Game; if (id === 'infinite') G.startInfinite(); else if (id === 'garden') G.startGarden(); else G.startIsland(id, { skipIntro: true }); }, id);
+    await page.evaluate((id) => { const G = window.CS.Game; if (id === 'infinite') G.startInfinite(); else if (id === 'garden') G.startGarden(); else if (id === 'daily') G.startDaily(); else G.startIsland(id, { skipIntro: true }); }, id);
     // passer l'intro des modes spéciaux (bouton « Passer »), puis attendre l'île attendue (le changement de scène passe par un fondu)
-    const isMine = (id) => { const sc = window.CS.scenes.current, isl = sc && sc.isl; return window.CS.scenes.currentName === 'island' && isl && (id === 'garden' ? isl.garden : id === 'infinite' ? isl.infinite : isl.def.id === id); };
-    if (id === 'infinite' || id === 'garden') {
+    const isMine = (id) => { const sc = window.CS.scenes.current, isl = sc && sc.isl; return window.CS.scenes.currentName === 'island' && isl && (id === 'garden' ? isl.garden : id === 'infinite' ? isl.infinite : id === 'daily' ? isl.def.daily : isl.def.id === id); };
+    if (id === 'infinite' || id === 'garden' || id === 'daily') {
       await page.waitForFunction(() => window.CS.scenes.currentName === 'story' && document.querySelector('.story-actions button'), null, { timeout: 15000 });
       await page.waitForTimeout(300); await page.click('.story-actions button');
     }
@@ -90,7 +90,7 @@ function parseList(s) {
     report.push({ id, seconds: ((Date.now() - t0) / 1000).toFixed(0), summary: res.replace(/\s+/g, ' ').slice(0, 170) });
     console.log(`Île ${id} (${report[report.length - 1].seconds}s) :: ${report[report.length - 1].summary}`);
     // Continuer : bilan → souvenir → atelier
-    if (id === 'infinite' || id === 'garden') { await page.evaluate(() => window.CS.scenes.go('menu')); await page.waitForTimeout(800); }
+    if (id === 'infinite' || id === 'garden' || id === 'daily') { await page.evaluate(() => window.CS.scenes.go('menu')); await page.waitForTimeout(800); }
     else if (await page.$('.panel-results .btn-primary')) {
       await page.click('.panel-results .btn-primary'); await page.waitForTimeout(700);
       for (let g = 0; g < 6; g++) {

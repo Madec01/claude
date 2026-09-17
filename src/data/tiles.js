@@ -2,16 +2,18 @@
 export const FAMILIES = ['meadow', 'forest', 'field', 'hamlet', 'orchard', 'water', 'marsh', 'rock', 'sand', 'hill', 'heath'];
 /** Île à partir de laquelle une famille peut apparaître (absente = dès le début). */
 export const FAMILY_FROM = { hill: 7, heath: 9 };
-export const RARE = ['mill', 'chapel', 'watchtower', 'well', 'camp', 'granary', 'fountain'];
+export const RARE = ['mill', 'chapel', 'watchtower', 'well', 'camp', 'granary', 'fountain', 'market', 'fete', 'restore', 'tavern', 'trough', 'archway', 'mine', 'oven'];
+/** Tuiles d'événement : un effet immédiat ou ponctuel plutôt qu'un bonus permanent. */
+export const EVENT_TILES = ['market', 'fete', 'restore'];
 /** Tuiles rares réservées aux îles tardives (et aux modes libres). */
-export const RARE_LATE = { granary: 7, fountain: 7 };
+export const RARE_LATE = { granary: 7, fountain: 7, market: 5, fete: 5, restore: 5, tavern: 8, trough: 8, archway: 8, mine: 8, oven: 8 };
 export const SEASONS = ['spring', 'summer', 'autumn', 'winter'];
 
 /** Nombre de variantes graphiques par famille (clés d'image : `${family}_${n}_${season}`). */
-export const VARIANTS = { meadow: 3, forest: 3, field: 2, hamlet: 3, orchard: 2, water: 2, marsh: 2, rock: 3, sand: 2, hill: 2, heath: 2, granary: 1, fountain: 1, mill: 1, chapel: 1, watchtower: 1, well: 1, camp: 1, ruins: 1, dry_meadow: 1 };
+export const VARIANTS = { meadow: 3, forest: 3, field: 2, hamlet: 3, orchard: 2, water: 2, marsh: 2, rock: 3, sand: 2, hill: 2, heath: 2, granary: 1, fountain: 1, market: 1, fete: 1, restore: 1, tavern: 1, trough: 1, archway: 1, mine: 1, oven: 1, mill: 1, chapel: 1, watchtower: 1, well: 1, camp: 1, ruins: 1, dry_meadow: 1 };
 
 /** Familles « effectives » d'une tuile rare pour les affinités (une rare peut compter pour plusieurs familles). */
-export const RARE_AS = { mill: ['field', 'hamlet'], chapel: ['hamlet'], watchtower: ['rock'], well: ['meadow'], camp: ['meadow'], granary: ['field'], fountain: ['hamlet'], ruins: [] };
+export const RARE_AS = { mill: ['field', 'hamlet'], chapel: ['hamlet'], watchtower: ['rock'], well: ['meadow'], camp: ['meadow'], granary: ['field'], fountain: ['hamlet'], market: ['hamlet'], fete: ['hamlet'], restore: [], tavern: ['hamlet'], trough: ['meadow'], archway: ['hamlet'], mine: ['rock'], oven: ['hamlet'], ruins: [] };
 
 /** Table des affinités : clé "a|b" (ordre indifférent) → points par bord partagé. */
 const PAIRS = {
@@ -45,4 +47,4 @@ export const PAIR_LABELS = {
 };
 
 /** Icônes d'UI par famille (Game Icons) et couleurs d'accent. */
-export const FAMILY_COLORS = { meadow: '#7cc46f', forest: '#3f8a3d', field: '#d8a33c', hamlet: '#c96b4a', orchard: '#e0785a', water: '#5aa7d6', marsh: '#7ea36b', rock: '#8f9aa3', sand: '#e6d29a', mill: '#d8a33c', chapel: '#c96b4a', watchtower: '#8f9aa3', well: '#5aa7d6', camp: '#e0a33a', ruins: '#8f9aa3', hill: '#9bb56a', heath: '#a67bb8', granary: '#d8a33c', fountain: '#5aa7d6' };
+export const FAMILY_COLORS = { meadow: '#7cc46f', forest: '#3f8a3d', field: '#d8a33c', hamlet: '#c96b4a', orchard: '#e0785a', water: '#5aa7d6', marsh: '#7ea36b', rock: '#8f9aa3', sand: '#e6d29a', mill: '#d8a33c', chapel: '#c96b4a', watchtower: '#8f9aa3', well: '#5aa7d6', camp: '#e0a33a', ruins: '#8f9aa3', hill: '#9bb56a', heath: '#a67bb8', granary: '#d8a33c', fountain: '#5aa7d6', market: '#c96b4a', fete: '#e0a33a', restore: '#8f9aa3', tavern: '#c96b4a', trough: '#7cc46f', archway: '#c96b4a', mine: '#8f9aa3', oven: '#c96b4a' };

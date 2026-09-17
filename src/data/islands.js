@@ -78,6 +78,7 @@ export const ISLANDS = [
 ];
 
 export const getIsland = (id) => ISLANDS.find((i) => i.id === id);
+export const WEIGHTS = W;
 
 export const INFINITE = { id: 'infinite', arch: 3, cells: 40, seed: 7777, roughness: 0.45, holes: 1, seasonLength: 10, startSeason: 'spring', weights: W.all, tilesRatio: Infinity, start: [{ q: 0, r: 0, family: 'hamlet' }, { q: 3, r: -1, family: 'rock' }], wishes: [], mechanics: [], infinite: true };
 export const GARDEN = { id: 'garden', arch: 1, cells: 80, seed: 4242, roughness: 0.4, holes: 2, seasonLength: 14, startSeason: 'spring', weights: W.all, tilesRatio: Infinity, start: [{ q: 0, r: 0, family: 'hamlet' }], wishes: [], mechanics: [], garden: true };

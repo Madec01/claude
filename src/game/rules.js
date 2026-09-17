@@ -26,6 +26,9 @@ function edgePoints(tile, other, season) {
   // grenier : +1 par bord avec un champ ; fontaine : +1 par bord avec un hameau
   if ((tile.family === 'granary' && fb.includes('field')) || (other.family === 'granary' && fa.includes('field'))) best += 1;
   if ((tile.family === 'fountain' && fb.includes('hamlet')) || (other.family === 'fountain' && fa.includes('hamlet'))) best += 1;
+  // four à pain : +1 par bord avec un champ ; mine : +1 par bord avec une roche
+  if ((tile.family === 'oven' && fb.includes('field')) || (other.family === 'oven' && fa.includes('field'))) best += 1;
+  if ((tile.family === 'mine' && fb.includes('rock')) || (other.family === 'mine' && fa.includes('rock'))) best += 1;
   return { pts: best, label: bestKey ? (PAIR_LABELS[bestKey] || '') : '' };
 }
 
@@ -52,6 +55,7 @@ export function preview(board, q, r, tile, season, mods = {}) {
     else river = { pts: P.pond + (season === 'spring' ? P.springWater : 0), len: reg.size, pond: true };
     if (river.pts) { base.push({ pts: river.pts, label: river.pond ? 'mare' : 'rivière' }); total += river.pts; }
   }
+  if (mods.wind && (Board.isFamily(placed, 'forest') || Board.isFamily(placed, 'orchard'))) { base.push({ pts: 1, label: 'vent' }); total += 1; }
   const closes = closedRegionsAround(board, q, r);
   for (const c of closes) total += c.bonus;
   board.remove(q, r);
@@ -71,7 +75,11 @@ export function closedRegionsAround(board, q, r) {
       seen.add(reg.id);
       if (fam === 'rock' && reg.cells.every((c) => c.rare || c.start)) continue; // les rochers de départ ne font pas de prime
       const closed = board.isRegionClosed(reg) || (reg.cells.some((c) => c.family === 'watchtower') && openCells(board, reg) <= 1);
-      if (closed) out.push({ family: fam, size: reg.size, bonus: reg.size * (P.closeBonusMul[fam] || 1), keys: reg.keys, id: reg.id, cells: reg.cells });
+      // porche : un bourg clos vaut ×3 ; mine : une roche close vaut ×2
+      let mul = P.closeBonusMul[fam] || 1;
+      if (fam === 'hamlet' && reg.cells.some((c) => c.family === 'archway')) mul = 3;
+      if (fam === 'rock' && reg.cells.some((c) => c.family === 'mine')) mul = Math.max(mul, 2);
+      if (closed) out.push({ family: fam, size: reg.size, bonus: reg.size * mul, keys: reg.keys, id: reg.id, cells: reg.cells });
     }
   }
   return out;

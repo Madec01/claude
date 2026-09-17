@@ -17,7 +17,7 @@ export class Hud {
         <div class="hud-block hud-title"><div class="hud-island">${title}</div><div class="hud-arch" data-ref="arch"></div></div>
         <div class="hud-block hud-season" data-ref="seasonBox">
           <span class="season-icon" data-ref="seasonIcon"></span>
-          <div class="season-txt"><b data-ref="seasonName">—</b><span class="season-rule" data-ref="seasonRule"></span></div>
+          <div class="season-txt"><b data-ref="seasonName">—</b><span class="season-rule" data-ref="seasonRule"></span><span class="season-weather hidden" data-ref="weather"></span></div>
           <div class="season-pips" data-ref="pips" title="Poses avant la prochaine saison"></div>
         </div>
         <div class="hud-block hud-score"><span class="hud-label">Points</span><b data-ref="score">0</b></div>
@@ -35,7 +35,7 @@ export class Hud {
           <button class="pw" data-ref="pwBud" title="Bourgeon : transformer une prairie (B)">${icon('icon_leaf')}<span>Bourgeon</span><em>${BALANCE.breaths.bud}</em></button>
           <button class="pw" data-ref="pwUndo" title="Souvenir : annuler la dernière pose (Z)">${icon('icon_return')}<span>Souvenir</span><em data-ref="undoCost">${island.undoCost}</em></button>
         </div>
-        <div class="garden-pick ${island.garden ? '' : 'hidden'}" data-ref="gardenPick"></div>
+        <div class="garden-pick ${island.garden ? '' : 'hidden'}" data-ref="gardenPick"><div class="queue-title" data-ref="pickTitle">Choisir</div><div class="gpick-list" data-ref="pickList"></div></div>
       </div>
       <div class="hud-wishes ${island.wishes.length ? '' : 'hidden'} ${compact ? 'collapsed' : ''}" data-ref="wishes"><button class="wish-toggle" data-ref="wishToggle" title="Afficher les vœux">Vœux <b data-ref="wishCount"></b></button><div class="queue-title">Vœux</div><div class="wish-list" data-ref="wishList"></div></div>
       <button class="hud-place hidden" data-ref="placeBtn"></button>
@@ -60,7 +60,7 @@ export class Hud {
     this.notes = [];
     this.arch = STORY.archipelagos[island.def.arch];
     if (this.arch) this.r.arch.textContent = `${this.arch.name} · ${this.arch.sub}`;
-    if (island.garden) this.buildGardenPick();
+    this.buildGardenPick();
     this.renderQueue(); this.renderWishes(); this.renderFauna();
   }
 
@@ -93,9 +93,10 @@ export class Hud {
   }
 
   buildGardenPick() {
-    const fams = FAMILIES;
-    this.r.gardenPick.innerHTML = '<div class="queue-title">Choisir</div>' + fams.map((f) => `<button class="gpick" data-fam="${f}" style="--fam:${FAMILY_COLORS[f]}">${(STORY.tiles[f] || {}).name || f}</button>`).join('');
-    this.r.gardenPick.querySelectorAll('.gpick').forEach((b) => b.addEventListener('click', (e) => { e.stopPropagation(); this.onGardenPick(b.dataset.fam); }));
+    const w = this.isl.def.weights || {};
+    const fams = FAMILIES.filter((f) => this.isl.garden || (w[f] || 0) > 0);
+    this.r.pickList.innerHTML = fams.map((f) => `<button class="gpick" data-fam="${f}" style="--fam:${FAMILY_COLORS[f]}">${(STORY.tiles[f] || {}).name || f}</button>`).join('');
+    this.r.pickList.querySelectorAll('.gpick').forEach((b) => b.addEventListener('click', (e) => { e.stopPropagation(); this.onGardenPick(b.dataset.fam); }));
   }
 
   renderWishes() {
@@ -152,6 +153,16 @@ export class Hud {
     // pips
     const pipHtml = isl.garden ? '' : Array.from({ length: isl.seasonLength }, (_, i) => `<i class="${i < isl.inSeason ? 'on' : ''}"></i>`).join('');
     if (pipHtml !== this.last.pips) { this.last.pips = pipHtml; r.pips.innerHTML = pipHtml; }
+    // météo annoncée / active
+    const w = isl.weather; const wt = w ? (STORY.weather[w.key] || { name: w.key, rule: '' }) : null;
+    const wtxt = !w ? '' : w.phase === 'announced' ? `${wt.name} dans ${Math.max(0, w.at - isl.inSeason)} pose${w.at - isl.inSeason > 1 ? 's' : ''}` : `${wt.name} en cours`;
+    if (wtxt !== this.last.weather) { this.last.weather = wtxt; r.weather.textContent = wtxt; r.weather.title = wt ? wt.rule : ''; r.weather.classList.toggle('hidden', !wtxt); r.weather.classList.toggle('active', !!w && w.phase === 'active'); }
+    const choose = isl.garden || isl.freeChoice > 0;
+    if (choose !== this.last.choose) { this.last.choose = choose; r.gardenPick.classList.toggle('hidden', !choose); }
+    const pt = isl.garden ? 'Choisir' : `Marché : ${isl.freeChoice} choix`;
+    if (choose && pt !== this.last.pickTitle) { this.last.pickTitle = pt; r.pickTitle.textContent = pt; }
+    const bliz = isl.weatherActive && isl.weatherActive('blizzard');
+    if (bliz !== this.last.bliz) { this.last.bliz = bliz; r.queueList.classList.toggle('blizzard', !!bliz); }
     this.set('score', String(isl.score));
     this.set('breaths', String(isl.breaths));
     this.set('left', isl.infinite || isl.garden ? '∞' : String(isl.queue.remaining));

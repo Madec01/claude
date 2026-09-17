@@ -21,7 +21,8 @@ import { buildMenu } from './ui/menu.js';
 import { buildOptions } from './ui/options.js';
 import { buildCredits, loadCredits } from './ui/credits.js';
 import { buildGuide } from './ui/guide.js';
-import { buildStory, islandIntroScreens, islandMemoryScreens, prologueScreens, endingScreens, infiniteScreens, gardenScreens } from './ui/story.js';
+import { dailyDef, dailyKey, yesterdayKey } from './data/daily.js';
+import { buildStory, islandIntroScreens, islandMemoryScreens, prologueScreens, endingScreens, infiniteScreens, gardenScreens, dailyScreens } from './ui/story.js';
 import { buildResults } from './ui/results.js';
 import { buildWorkshop } from './ui/workshop.js';
 import { buildPause } from './ui/pause.js';
@@ -49,6 +50,8 @@ if (window.visualViewport) window.visualViewport.addEventListener('resize', resi
 resize();
 
 const SEASON_MUSIC = { spring: 'spring', summer: 'summer', autumn: 'autumn', winter: 'winter' };
+let musicSet = 0;   // 0 : pistes de base, 1 : variantes (_2) quand elles existent
+const seasonMusic = (season) => { const alt = `${SEASON_MUSIC[season]}_2`; return musicSet === 1 && AudioSys.has(alt, 'music') ? alt : SEASON_MUSIC[season]; };
 
 const Game = {
   credits: null, fpsEl: null,
@@ -111,6 +114,7 @@ const Game = {
     scenes.go('story', { screens: islandIntroScreens(def), onDone: () => scenes.go('island', { def }, { fade: 0.5 }) });
   },
   startInfinite() { scenes.go('story', { screens: infiniteScreens(), onDone: () => scenes.go('island', { def: INFINITE }, { fade: 0.5 }) }); },
+  startDaily() { const def = dailyDef(); scenes.go('story', { screens: dailyScreens(def), onDone: () => scenes.go('island', { def }, { fade: 0.5 }) }); },
   startGarden() { scenes.go('story', { screens: gardenScreens(), onDone: () => scenes.go('island', { def: GARDEN }, { fade: 0.5 }) }); },
 
   afterIsland(result, def) {
@@ -123,6 +127,17 @@ const Game = {
       return;
     }
     if (def.garden) { scenes.go('results', { result, def }); return; }
+    if (def.daily) {
+      const d = Save.data.daily, today = def.date, prev = d.best[today] || 0;
+      if (!test) {
+        if (result.score > prev) { d.best[today] = result.score; newRecord = prev > 0; }
+        const h = d.history.filter((x) => x.date !== today); h.unshift({ date: today, score: Math.max(prev, result.score), stars: result.stars }); d.history = h.slice(0, 30);
+        if (d.lastPlayed !== today) d.streak = d.lastPlayed === yesterdayKey(today) ? (d.streak || 0) + 1 : 1;
+        d.lastPlayed = today; Save.save();
+      }
+      scenes.go('results', { result, def, newRecord, daily: { best: Math.max(prev, result.score), streak: d.streak || 0 } });
+      return;
+    }
     if (!test) {
       c.islandsPlayed++;
       Save.data.stats.placements += result.placements; Save.data.stats.closed += result.stats.closed; Save.data.stats.wishes += result.wishesDone;
@@ -143,6 +158,7 @@ const Game = {
   afterResults(result, def) {
     if (def.infinite) { this.startInfinite(); return; }
     if (def.garden) { this.startGarden(); return; }
+    if (def.daily) { this.showMenu(); return; }
     const c = Save.campaign;
     const memory = islandMemoryScreens(def);
     const next = () => {
@@ -231,7 +247,7 @@ class IslandScene {
     this.particles = new ParticleSystem(1500); this.fx = new Effects(this.particles); this.shake = new Shake(); this.shake.enabled = Save.options.shake !== false;
     this.renderer = new IslandRenderer(isl, this.cam, this.fx, this.particles);
     this.paused = false; this.budMode = false; this.endTimer = 0; this.finished = false;
-    const name = STORY.islands[def.id] ? STORY.islands[def.id].name : def.infinite ? 'Île infinie' : 'Jardin';
+    const name = STORY.islands[def.id] ? STORY.islands[def.id].name : def.infinite ? 'Île infinie' : def.daily ? def.name : 'Jardin';
     this.title = name;
     this.hud = new Hud(document.getElementById('hud'), isl, {
       title: name, mechanics: mech,
@@ -254,7 +270,8 @@ class IslandScene {
     document.getElementById('tutorial').classList.add('on');
     isl.on((e) => this.onEvent(e));
     // audio
-    AudioSys.playMusic(def.garden ? 'garden' : SEASON_MUSIC[isl.season], { fade: 2 });
+    musicSet = def.daily ? 0 : (typeof def.id === 'number' ? def.id % 2 : Math.round(Math.random()));
+    AudioSys.playMusic(def.garden ? 'garden' : def.daily && AudioSys.has('daily', 'music') ? 'daily' : seasonMusic(isl.season), { fade: 2 });
     this.updateAmbience(true);
     AudioSys.play('island_start', { volume: 0.6 });
     // entrées
@@ -292,7 +309,13 @@ class IslandScene {
     AudioSys.setAmbience('winter', s === 'winter' ? 0.4 : 0, fade);
     AudioSys.setAmbience('crickets', s === 'summer' ? 0.35 : 0, fade);
     AudioSys.setAmbience('sea', 0.25, fade);
-    AudioSys.setAmbience('rain', 0, fade);
+    const w = isl.weatherActive && isl.weather && isl.weather.phase === 'active' ? isl.weather.key : null;
+    AudioSys.setAmbience('rain', w === 'storm' ? 0.55 : 0, fade);
+    if (AudioSys.has('storm', 'ambience')) AudioSys.setAmbience('storm', w === 'storm' ? 0.6 : 0, fade);
+    if (w === 'wind') AudioSys.setAmbience('wind', 0.7, fade);
+    if (w === 'blizzard') { AudioSys.setAmbience('winter', 0.8, fade); AudioSys.setAmbience('wind', 0.5, fade); }
+    if (w === 'heat') AudioSys.setAmbience('crickets', 0.6, fade);
+    if (w === 'thaw') AudioSys.setAmbience('stream', 0.5, fade);
   }
 
   onEvent(e) {
@@ -306,6 +329,9 @@ class IslandScene {
       for (const ed of e.result.edges) { const nw = toWorld(ed.q, ed.r); const mx = (w.x + nw.x) / 2, my = (w.y + nw.y) / 2; setTimeout(() => { fx.floatText(mx, my, `${ed.pts > 0 ? '+' : ''}${ed.pts}`, ed.pts > 0 ? '#2f9e8f' : '#d95f4b', 18, 1.1); if (ed.pts > 0) AudioSys.play(`point_${Math.min(8, i + 1)}`, { volume: 0.45 }); else AudioSys.play('point_bad', { volume: 0.4 }); }, 90 * i); i++; }
       for (const bs of e.result.base) { setTimeout(() => fx.floatText(w.x, w.y + 30, `+${bs.pts} ${bs.label}`, '#5aa7d6', 18, 1.2), 90 * i++); if (bs.label === 'rivière') this.tutorial.onEvent('river'); }
       if (e.result.total !== 0) setTimeout(() => fx.floatText(w.x, w.y - 40, `${e.result.total > 0 ? '+' : ''}${e.result.total}`, e.result.total > 0 ? '#2b2a26' : '#d95f4b', 26, 1.4), 90 * i + 60);
+      if (isl.season === 'winter') { const pts = []; for (const o of this.renderer.decor.objects) if (o.tpl && o.tpl.startsWith('obj_tree') && Math.hypot(o.x - w.x, o.y - w.y) < 150 && Math.hypot(o.x - w.x, o.y - w.y) > 50) pts.push({ x: o.x, y: o.y }); if (pts.length) fx.snowShake(pts.slice(0, 10)); }
+      if (e.restoredFrom) this.hud.notify(`La ruine restaurée devient : ${(STORY.tiles[e.tile.family] || {}).name || e.tile.family}`, 'rare');
+      if (e.market) this.hud.notify(`Marché : choisis ta tuile pour les ${e.market} prochaines poses`, 'gold');
       if (e.tile.rare) this.tutorial.onEvent('rare');
       if (e.tile.family === 'hill' || e.tile.family === 'heath') this.tutorial.onEvent(e.tile.family);
       this.updateAmbience();
@@ -321,7 +347,7 @@ class IslandScene {
     } else if (e.type === 'season') {
       this.renderer.startTransition(e.from, e.to);
       AudioSys.play(`season_${e.to}`, { volume: 0.8 }); AudioSys.play('season_sweep', { volume: 0.5 });
-      AudioSys.playMusic(SEASON_MUSIC[e.to], { fade: 3 });
+      if (!this.def.daily) AudioSys.playMusic(seasonMusic(e.to), { fade: 3 });
       const s = STORY.seasons[e.to];
       this.hud.notify(`${s.name} — ${s.line}`, 'season');
       if (e.pts) setTimeout(() => this.hud.notify(`Saison : +${e.pts} points${e.faunaBonus ? `, +${e.faunaBonus} souffle${e.faunaBonus > 1 ? 's' : ''} (faune)` : ''}${e.links ? `, ${e.links} sentier${e.links > 1 ? 's' : ''}` : ''}`, 'good'), 900);
@@ -341,6 +367,19 @@ class IslandScene {
       const s = STORY.wishes[e.wish.def.id] || { title: '', done: '', failed: '' };
       if (e.kind === 'done') { AudioSys.play('wish_done', { volume: 0.8 }); setTimeout(() => AudioSys.play('rare_tile', { volume: 0.6 }), 600); this.hud.notify(`Vœu exaucé — ${s.done}`, 'gold'); this.hud.notify(`Une tuile rare rejoint la file : ${(STORY.tiles[e.rare] || {}).name || e.rare}`, 'rare'); }
       else { AudioSys.play('wish_failed', { volume: 0.6 }); this.hud.notify(`${s.title} — ${s.failed}`, 'warn'); }
+    } else if (e.type === 'weather') {
+      const wt = STORY.weather[e.key] || { name: e.key, announce: '', line: '', rule: '' };
+      if (e.kind === 'announce') { this.hud.notify(`${wt.name} annoncé : ${wt.announce}`, 'wish'); AudioSys.play('weather', { volume: 0.5 }); }
+      else if (e.kind === 'start') {
+        this.renderer.weather = e.key; this.hud.notify(`${wt.name} — ${wt.line}`, 'season'); setTimeout(() => this.hud.notify(wt.rule, 'info'), 900);
+        if (e.key === 'storm') { this.renderer.flash = 0.2; AudioSys.play('thunder', { volume: 0.8 }); this.shake.trigger(0.3); this.thunderTimer = 6 + Math.random() * 8; }
+        if (e.key === 'wind') AudioSys.play('season_sweep', { volume: 0.6 });
+        if (e.key === 'blizzard') AudioSys.play('season_winter', { volume: 0.5 });
+        if (e.key === 'thaw') AudioSys.play('season_spring', { volume: 0.5 });
+        if (e.key === 'heat') AudioSys.play('season_summer', { volume: 0.5 });
+        let i = 0; for (const ev of e.events || []) { const w = toWorld(ev.q, ev.r); setTimeout(() => fx.floatText(w.x, w.y - 10, ev.type === 'dry' ? 'sèche' : 'dégel', ev.type === 'dry' ? '#d95f4b' : '#5aa7d6', 16, 1.2), 60 * i++); }
+      } else if (e.kind === 'end') { this.renderer.weather = null; }
+      this.updateAmbience();
     } else if (e.type === 'breath') {
       if (e.kind === 'bud') { const w = toWorld(e.q, e.r); fx.drop(key(e.q, e.r)); fx.placeBurst(w.x, w.y, true); AudioSys.play('bud', { volume: 0.7 }); }
       else if (e.kind !== 'undo') AudioSys.play('breath_spend', { volume: 0.5 });
@@ -441,7 +480,13 @@ class IslandScene {
     } else this.renderer.hover = null;
     this.particles.update(dt); this.fx.update(dt); this.shake.update(dt);
     const b = (() => { const tl = this.cam.toWorldPoint(0, 0), br = this.cam.toWorldPoint(STAGE.W, STAGE.H); return { minX: tl.x, maxX: br.x, minY: tl.y, maxY: br.y }; })();
-    this.fx.ambient(dt, isl.season, b, 1);
+    const wkey = isl.weather && isl.weather.phase === 'active' ? isl.weather.key : null;
+    if (this.renderer.weather !== wkey) this.renderer.weather = wkey;
+    const objs = this.renderer.decor.objects;
+    if (this._srcV !== isl.board.version) { this._srcV = isl.board.version; this._sources = objs.filter((o) => o.tpl && (o.tpl.startsWith('obj_tree'))).map((o) => ({ x: o.x, y: o.y })); this._tiles = [...isl.board.tiles.values()].map((t) => { const w = toWorld(t.q, t.r); return { family: t.family, frozen: t.frozen, rare: t.rare, wx: w.x, wy: w.y }; }); }
+    this.fx.ambient(dt, isl.season, b, 1, this._sources);
+    this.fx.life(dt, { objects: objs, tiles: this._tiles, season: isl.season, weather: wkey, bounds: b });
+    if (wkey === 'storm') { this.thunderTimer = (this.thunderTimer || 8) - dt; if (this.thunderTimer <= 0) { this.thunderTimer = 7 + Math.random() * 9; this.renderer.flash = 0.16; AudioSys.play('thunder', { volume: 0.6 }); this.shake.trigger(0.15); } }
     this.hud.update();
     this.tutorial.update(dt);
     if (this.finished) { this.endTimer += dt; if (this.endTimer > 2.2) { this.finished = false; Game.afterIsland(isl.result, this.def); } }
@@ -456,10 +501,10 @@ class IslandScene {
 }
 
 class ResultsScene {
-  async enter({ result, def, newRecord, seedsGained }) {
+  async enter({ result, def, newRecord, seedsGained, daily }) {
     AudioSys.playMusic('results', { fade: 1.5 });
     this.bg = scenes.scenes.get('menu').ensureBg();
-    showUI(buildResults({ result, def, newRecord, seedsGained, onContinue: () => Game.afterResults(result, def), onRetry: () => Game.startIsland(def.id, { skipIntro: true }), onMenu: () => scenes.go('menu') }), 'results-wrap');
+    showUI(buildResults({ result, def, newRecord, seedsGained, daily, onContinue: () => Game.afterResults(result, def), onRetry: () => Game.startIsland(def.id, { skipIntro: true }), onMenu: () => scenes.go('menu') }), 'results-wrap');
   }
   exit() { hideUI(); }
   update(dt) { this.bg.update(dt); input.endFrame(); }

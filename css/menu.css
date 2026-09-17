@@ -73,3 +73,8 @@
 .panel.panel-workshop .ws-desc { font-size: 13px; }
 .panel.panel-workshop .ws-head-row { margin-bottom: 8px; }
 .panel.panel-workshop .panel-actions { margin-top: 10px; }
+.menu-row { display: flex; gap: 6px; }
+.menu-row .btn { flex: 1 1 0; justify-content: center; padding: 9px 8px; font-size: 16px; min-width: 0; }
+.menu-row .btn span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+html.compact .menu-row .btn { font-size: 14px; padding: 8px 6px; }
+html.compact.landscape .menu-row { grid-column: 1 / -1; }

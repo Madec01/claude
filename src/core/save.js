@@ -11,6 +11,7 @@ const defaults = () => ({
     prologueSeen: false, completed: false, islandsPlayed: 0, memoriesRead: [],
   },
   infinite: { best: 0, bestSeasons: 0, unlocked: false },
+  daily: { best: {}, history: [], streak: 0, lastPlayed: null },
   stats: { placements: 0, closed: 0, fauna: 0, wishes: 0 },
 });
 

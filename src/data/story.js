@@ -235,6 +235,15 @@ export const STORY = {
       done: 'Le garde a fait le tour du bois. Il a mis du temps : c’est bon signe.',
       failed: 'Le garde a compté les arbres sur ses doigts. Il en manquait.',
     },
+    d_forest: { giver: 'Le passant du jour', title: 'Un bois pour aujourd’hui', text: 'Une forêt de six tuiles avant la quarantième pose.', done: 'Le passant s’est assis à l’ombre. Il repassera demain.', failed: 'Le passant a continué son chemin, sans ombre.' },
+    d_river: { giver: 'La rameuse', title: 'Cinq tuiles d’eau qui coulent', text: 'Une rivière de cinq tuiles jusqu’à la mer ou la roche.', done: 'La rameuse a descendu la rivière en chantant.', failed: 'La rameuse a porté sa barque. Elle n’a pas chanté.' },
+    d_rabbit: { giver: 'L’enfant du matin', title: 'Un lapin avant midi', text: 'Un lapin, donc une prairie de trois tuiles, vite.', done: 'L’enfant a vu le lapin. Il a couru le dire à tout le monde.', failed: 'L’enfant a cherché dans l’herbe rase. Rien.' },
+    d_bourg: { giver: 'Le maire d’un jour', title: 'Deux bourgs', text: 'Deux hameaux clos de partout.', done: 'Le maire a fait le tour des deux bourgs, très digne.', failed: 'Le maire a rendu son écharpe. Un seul bourg, ce n’est pas une commune.' },
+    d_pairs: { giver: 'La boulangère', title: 'Quatre champs contre les toits', text: 'Quatre bords champ-hameau.', done: 'La boulangère a chauffé le four pour tout le monde.', failed: 'La boulangère a fermé boutique avant le soir.' },
+    d_species: { giver: 'La naturaliste', title: 'Quatre espèces', text: 'Quatre animaux différents sur l’île en même temps.', done: 'La naturaliste a rempli quatre pages de son carnet.', failed: 'La naturaliste a refermé un carnet à moitié vide.' },
+    d_meadow: { giver: 'Le berger de passage', title: 'Un pré fermé', text: 'Un pré d’au moins quatre tuiles, clos de partout.', done: 'Le berger a laissé ses bêtes paître sans les surveiller.', failed: 'Le berger a gardé ses bêtes en ligne. Fatigant.' },
+    d_lake: { giver: 'Le pêcheur du dimanche', title: 'Un lac', text: 'Cinq tuiles d’eau ensemble.', done: 'Le pêcheur a lancé sa ligne et n’a rien pris. Il était content quand même.', failed: 'Le pêcheur a lancé sa ligne dans une flaque.' },
+    d_harvest: { giver: 'La cidrière', title: 'Trois récoltes', text: 'Trois paires verger-hameau à l’automne.', done: 'La cidrière a rempli trois tonneaux.', failed: 'La cidrière a rangé ses tonneaux vides.' },
     w5_1: {
       giver: 'Le bûcheron de la baie',
       title: 'Un bois pour se perdre',
@@ -510,6 +519,14 @@ export const STORY = {
     hill: { name: 'Colline', blurb: 'Aime la roche (+2), la forêt, la prairie, le verger et le hameau ; fait naître les rivières comme la roche ; les chevaux y montent depuis les prés.' },
     heath: { name: 'Lande', blurb: 'Sol pauvre (le champ et le verger n’y poussent pas) mais fleurit au printemps, ne sèche jamais et protège les prairies voisines de l’été ; les vaches paissent en lisière.' },
     granary: { name: 'Grenier', blurb: 'Compte comme champ, +1 par bord avec un champ, et ne dort pas en hiver.' },
+    market: { name: 'Marché', blurb: 'Tuile d’événement : compte comme hameau ; une fois posé, tu choisis toi-même la famille des trois tuiles suivantes.' },
+    fete: { name: 'Fête', blurb: 'Tuile d’événement : compte comme hameau ; au prochain changement de saison, chaque hameau voisin rapporte +2, une seule fois.' },
+    restore: { name: 'Ruine à restaurer', blurb: 'Tuile d’événement : posée, elle prend la famille majoritaire de ses voisines et devient une tuile ordinaire.' },
+    tavern: { name: 'Auberge', blurb: 'Compte comme hameau ; chaque sentier qui rejoint son village rapporte +1 de plus à chaque saison.' },
+    trough: { name: 'Abreuvoir', blurb: 'Compte comme prairie ; protège les prairies voisines de la sécheresse et fait venir cheval et vache avec une seule tuile.' },
+    archway: { name: 'Porche', blurb: 'Compte comme hameau ; un bourg clos qui le contient rapporte ×3 au lieu de ×2.' },
+    mine: { name: 'Mine', blurb: 'Compte comme roche ; +1 par bord avec une roche, et une roche close qui la contient rapporte ×2.' },
+    oven: { name: 'Four à pain', blurb: 'Compte comme hameau ; +1 par bord avec un champ.' },
     fountain: { name: 'Fontaine', blurb: 'Compte comme hameau, +1 par bord avec un hameau, et protège les prairies voisines de la sécheresse.' },
   },
 
@@ -540,6 +557,14 @@ export const STORY = {
     ],
   },
 
+  weather: {
+    storm: { name: 'Orage', announce: 'Le ciel se charge. Les rivières attendent la pluie.', line: 'L’orage éclate. L’eau court partout et les rivières débordent de joie.', rule: 'Chaque tuile de rivière posée rapporte +2 de plus.' },
+    heat: { name: 'Canicule', announce: 'L’air tremble déjà. Les prairies isolées vont souffrir.', line: 'La canicule s’installe. L’herbe jaunit loin de l’eau.', rule: 'Une prairie ne reste verte que si elle touche l’eau, un puits, une fontaine, un abreuvoir ou une lande.' },
+    wind: { name: 'Grand vent', announce: 'Le vent tourne. Les moulins s’impatientent.', line: 'Le grand vent souffle. Les feuilles volent, les ailes tournent.', rule: 'Chaque forêt ou verger posé rapporte +1 ; chaque moulin rapportera +3 à la prochaine saison.' },
+    blizzard: { name: 'Bourrasque', announce: 'La neige se lève à l’horizon. On n’y verra bientôt plus rien.', line: 'La bourrasque efface tout. On ne voit plus que la tuile dans sa main.', rule: 'La file est masquée : seule la tuile à poser est visible, et on ne peut plus échanger.' },
+    thaw: { name: 'Redoux', announce: 'Un vent tiède se lève. La glace craque déjà.', line: 'Le redoux : la glace fond, l’eau reprend sa voix et les canards reviennent.', rule: 'L’eau dégèle au milieu de l’hiver : les canards reviennent, les manchots repartent.' },
+  },
+
   closed: ['Bouclé !', 'Une région entière !', 'Tout autour !', 'Voilà qui tient.'],
 
   ending: [
@@ -558,6 +583,13 @@ export const STORY = {
     intro: [
       'Une île sans fin. Elle grandit à chaque saison et la file de tuiles ne se vide jamais.',
       'Ici nous ne te demandons rien : nous regardons jusqu’où tu iras avant qu’il ne reste plus une case.',
+    ],
+  },
+
+  daily: {
+    intro: [
+      'L’île du jour. Elle n’existe que vingt-quatre heures et elle est la même pour tout le monde.',
+      'Trois vœux, la météo qui change, et ton meilleur score de la journée qui reste. Demain, une autre île.',
     ],
   },
 

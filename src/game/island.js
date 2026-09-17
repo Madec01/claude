@@ -9,8 +9,9 @@ import { TileQueue } from './queue.js';
 import { generateMask } from '../data/islands.js';
 import { BALANCE } from '../data/balance.js';
 import { computeLinks } from './paths.js';
+import { pickWeather } from './weather.js';
 import { RNG } from '../core/math.js';
-import { key } from './hex.js';
+import { key, neighbors } from './hex.js';
 
 export class Island {
   /**
@@ -38,7 +39,7 @@ export class Island {
     // ouverture guidée : les premières tuiles des îles d'apprentissage sont fixées (pas de marais ni de sable en première minute)
     if (def.opening) def.opening.forEach((f, i) => { if (i < this.queue.list.length) this.queue.list[i] = this.queue.makeTile(f); });
     if ((this.upgrades.rare || 0) > 0) this.queue.inject(this.queue.makeRare([null, 'well', 'mill', 'granary', 'fountain'][Math.min(4, this.upgrades.rare)]), false);
-    this.mods = { river: BALANCE.upgrades.source[this.upgrades.source || 0] || 0, refuge: BALANCE.upgrades.refuge[this.upgrades.refuge || 0] || 0 };
+    this.baseMods = { river: BALANCE.upgrades.source[this.upgrades.source || 0] || 0, refuge: BALANCE.upgrades.refuge[this.upgrades.refuge || 0] || 0 };
     this.season = def.startSeason || 'spring';
     this.seasonLength = def.seasonLength + BALANCE.queue.seasonExtra[this.upgrades.patience || 0];
     this.inSeason = 0;
@@ -55,7 +56,47 @@ export class Island {
     this.result = null;
     this.listeners = [];
     this.lastEvents = [];
+    // météo : dès l'île 4, dans les modes libres et sur l'île du jour
+    this.weatherOn = !!def.weather || this.infinite || (typeof def.id === 'number' && def.id >= 4);
+    this.weather = null;          // { key, phase: 'announced' | 'active', at }
+    this.windSeason = false;      // grand vent actif pendant la saison écoulée → prime des moulins
+    this.freeChoice = 0;          // marché : nombre de poses où l'on choisit sa tuile
+    this.scheduleWeather(0.5);
     this.updateFauna();
+  }
+
+  /** Modificateurs de règles (améliorations + météo active). */
+  get mods() {
+    const w = this.weather && this.weather.phase === 'active' ? this.weather.key : null;
+    return { river: this.baseMods.river + (w === 'storm' ? BALANCE.points.stormRiver : 0), refuge: this.baseMods.refuge, wind: w === 'wind' };
+  }
+  weatherActive(key) { return !!this.weather && this.weather.phase === 'active' && (!key || this.weather.key === key); }
+
+  scheduleWeather(chance = 0.7) {
+    if (!this.weatherOn || this.garden) { this.weather = null; return; }
+    const key = pickWeather(this.season, () => this.rng.next(), chance);
+    this.weather = key ? { key, phase: 'announced', at: Math.max(2, Math.floor(this.seasonLength / 2)) } : null;
+    if (this.weather) this.emit({ type: 'weather', kind: 'announce', key, inPlacements: this.weather.at });
+  }
+
+  activateWeather() {
+    const w = this.weather; if (!w || w.phase === 'active') return;
+    w.phase = 'active';
+    const ev = [];
+    if (w.key === 'heat') {
+      for (const t of this.board.tiles.values()) {
+        if (t.family !== 'meadow' || t.rare || t.dry) continue;
+        const ns = neighbors(t.q, t.r).map(([a, b]) => this.board.get(a, b)).filter(Boolean);
+        const wet = ns.some((n) => Board.isFamily(n, 'water') || Board.isFamily(n, 'heath') || n.family === 'well' || n.family === 'fountain' || n.family === 'trough');
+        if (!wet) { t.dry = true; ev.push({ type: 'dry', q: t.q, r: t.r }); }
+      }
+    } else if (w.key === 'thaw') {
+      for (const t of this.board.tiles.values()) if (t.frozen) { t.frozen = false; ev.push({ type: 'thaw', q: t.q, r: t.r }); }
+    } else if (w.key === 'wind') this.windSeason = true;
+    this.board.touch();
+    this.emit({ type: 'weather', kind: 'start', key: w.key, events: ev });
+    this.updateFauna();
+    this.checkWishes();
   }
 
   on(fn) { this.listeners.push(fn); }
@@ -80,12 +121,24 @@ export class Island {
     if (!tile || !this.board.canPlace(q, r)) return null;
     this.pushHistory();
     if (!tileOverride) this.queue.take();
-    const res = apply(this.board, q, r, tile, this.season, this.mods);
+    // ruine à restaurer : elle prend la famille majoritaire autour d'elle
+    let placedTile = tile, restoredTo = null;
+    if (tile.rare && tile.family === 'restore') {
+      const counts = {};
+      for (const [a, b] of neighbors(q, r)) { const n = this.board.get(a, b); if (!n) continue; const f = n.rare ? (Board.familiesOf(n)[0] || null) : n.family; if (f) counts[f] = (counts[f] || 0) + 1; }
+      const fam = Object.keys(counts).sort((x, y) => counts[y] - counts[x])[0] || 'meadow';
+      restoredTo = fam; placedTile = { family: fam, variant: 1, rare: false, id: tile.id, restored: true };
+    }
+    const res = apply(this.board, q, r, placedTile, this.season, this.mods);
+    if (restoredTo) res.restoredTo = restoredTo;
+    if (this.freeChoice > 0) this.freeChoice--;
+    if (tile.rare && tile.family === 'market') { this.freeChoice += 3; }
     this.placements++; this.inSeason++;
     this.score += res.total;
+    if (this.weather && this.weather.phase === 'announced' && this.inSeason >= this.weather.at) this.activateWeather();
     for (const c of res.closes) { this.stats.closed++; this.stats.closedThisSeason++; this.breaths += BALANCE.breaths.close; this.stats.biggestRegion = Math.max(this.stats.biggestRegion, c.size); }
     if (this.season === 'summer' && Board.isFamily(tile, 'field') && this.board.landNeighbors(q, r).some(([a, b]) => { const n = this.board.get(a, b); return n && Board.isFamily(n, 'water'); })) this.stats.irrigatedSummer++;
-    this.emit({ type: 'place', q, r, tile, result: res });
+    this.emit({ type: 'place', q, r, tile: placedTile, result: res, restoredFrom: restoredTo ? 'restore' : null, market: tile.rare && tile.family === 'market' ? this.freeChoice : 0 });
     for (const c of res.closes) this.emit({ type: 'close', ...c, breath: BALANCE.breaths.close });
     this.updateFauna();
     this.checkWishes();
@@ -112,6 +165,16 @@ export class Island {
     const links = computeLinks(this.board).links.length;
     this.stats.links = Math.max(this.stats.links, links);
     pts += links * BALANCE.points.pathSeason;
+    // fête : chaque hameau voisin d'une fête rapporte +2, une seule fois ; auberge : +1 par sentier touchant son village
+    for (const t of this.board.tiles.values()) {
+      if (t.family === 'fete' && !t.used) { const n = neighbors(t.q, t.r).filter(([a, b]) => Board.isFamily(this.board.get(a, b), 'hamlet')).length; if (n) { ev.push({ type: 'fete', q: t.q, r: t.r, pts: n * 2 }); pts += n * 2; } t.used = true; }
+    }
+    const tavernRegions = new Set(this.board.regions('hamlet').filter((reg) => reg.cells.some((c) => c.family === 'tavern')).map((reg) => reg.id));
+    if (tavernRegions.size) { const extra = computeLinks(this.board).links.filter((l) => tavernRegions.has(l.a) || tavernRegions.has(l.b)).length; pts += extra; }
+    // grand vent : les moulins ont tourné toute la saison
+    if (this.windSeason) { this.windSeason = false; for (const t of this.board.tiles.values()) if (t.family === 'mill') { ev.push({ type: 'mill', q: t.q, r: t.r, pts: BALANCE.points.windMill }); pts += BALANCE.points.windMill; } }
+    if (this.weather) this.emit({ type: 'weather', kind: 'end', key: this.weather.key });
+    this.weather = null;
     for (const e of ev) { if (e.pts) pts += e.pts; if (e.type === 'harvest') this.stats.harvest++; if (e.type === 'bloom') this.stats.bloom++; }
     // faune : chaque animal présent donne des souffles et des points
     const faunaBonus = this.fauna.size;
@@ -121,6 +184,7 @@ export class Island {
     this.emit({ type: 'season', from, to: this.season, events: ev, pts, faunaBonus, links });
     this.updateFauna();
     this.checkWishes();
+    this.scheduleWeather();
     if (this.season === 'summer') this.stats.irrigatedSummer = this.countIrrigated();
   }
 
@@ -153,11 +217,18 @@ export class Island {
     }
   }
 
-  pickRare() { const late = this.infinite || this.garden || (typeof this.def.id === 'number' && this.def.id >= 7); const pool = ['mill', 'chapel', 'watchtower', 'well', 'camp', ...(late ? ['granary', 'fountain'] : [])]; return pool[Math.floor(this.rng.next() * pool.length)]; }
+  pickRare() {
+    const id = typeof this.def.id === 'number' ? this.def.id : 99;
+    const pool = ['mill', 'chapel', 'watchtower', 'well', 'camp'];
+    if (id >= 5) pool.push('market', 'fete', 'restore');
+    if (id >= 7) pool.push('granary', 'fountain');
+    if (id >= 8) pool.push('tavern', 'trough', 'archway', 'mine', 'oven');
+    return pool[Math.floor(this.rng.next() * pool.length)];
+  }
 
   // ---- Souffles ----
   get undoCost() { return BALANCE.breaths.undo[this.upgrades.memory || 0]; }
-  canSwap(i) { return this.breaths >= BALANCE.breaths.swap && i < this.queue.list.length; }
+  canSwap(i) { return !this.weatherActive('blizzard') && this.breaths >= BALANCE.breaths.swap && i < this.queue.list.length; }
   swap(i) { if (!this.canSwap(i) || !this.queue.swap(i)) return false; this.breaths -= BALANCE.breaths.swap; this.emit({ type: 'breath', kind: 'swap' }); return true; }
   canDiscard() { return this.breaths >= BALANCE.breaths.discard && this.queue.list.length > 0; }
   discard() { if (!this.canDiscard()) return false; this.breaths -= BALANCE.breaths.discard; const t = this.queue.discard(); this.emit({ type: 'breath', kind: 'discard', tile: t }); this.checkEnd(); return true; }
@@ -176,7 +247,7 @@ export class Island {
   undo() {
     if (!this.canUndo()) return false;
     const s = this.history.pop();
-    this.board.restore(s.board); this.queue.restore(s.queue);
+    this.board.restore(s.board); this.queue.restore(s.queue); this.weather = s.weather ? { ...s.weather } : null; this.windSeason = !!s.windSeason; this.freeChoice = s.freeChoice || 0;
     this.score = s.score; this.placements = s.placements; this.inSeason = s.inSeason; this.season = s.season; this.seasonsPassed = [...s.seasonsPassed];
     this.stats = { ...s.stats }; this.wishes = s.wishes.map((w) => ({ ...w }));
     this.breaths = s.breaths - this.undoCost;
@@ -190,12 +261,13 @@ export class Island {
   fromPocket(i = 0) { if (!this.queue.pocket.length) return false; this.queue.fromPocket(i); this.emit({ type: 'pocket', kind: 'out' }); return true; }
 
   pushHistory() {
-    this.history.push({ board: this.board.snapshot(), queue: this.queue.snapshot(), score: this.score, placements: this.placements, inSeason: this.inSeason, season: this.season, seasonsPassed: [...this.seasonsPassed], stats: { ...this.stats }, wishes: this.wishes.map((w) => ({ ...w })), breaths: this.breaths, fauna: new Map(this.fauna) });
+    this.history.push({ freeChoice: this.freeChoice, weather: this.weather ? { ...this.weather } : null, windSeason: this.windSeason, board: this.board.snapshot(), queue: this.queue.snapshot(), score: this.score, placements: this.placements, inSeason: this.inSeason, season: this.season, seasonsPassed: [...this.seasonsPassed], stats: { ...this.stats }, wishes: this.wishes.map((w) => ({ ...w })), breaths: this.breaths, fauna: new Map(this.fauna) });
     if (this.history.length > 3) this.history.shift();
   }
 
   /** Jardin : choisir librement la famille de la tuile courante. */
-  setGardenTile(family) { if (!this.garden) return; this.queue.list[0] = this.queue.makeTile(family); }
+  get canChoose() { return this.garden || this.freeChoice > 0; }
+  setGardenTile(family) { if (!this.canChoose || !this.queue.list.length) return; this.queue.list[0] = this.queue.makeTile(family); this.emit({ type: 'choice', family }); }
 
   checkEnd() {
     if (this.ended) return;

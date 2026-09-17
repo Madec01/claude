@@ -2,7 +2,7 @@
 
 > Une île s'est éteinte : sable, roche, silence. Tu es la Saison, l'esprit qui la remet en marche. Tuile après tuile, tu redessines forêts, prés, hameaux et rivières ; les saisons passent, les animaux reviennent, et l'île se souvient.
 
-Puzzle de placement de tuiles hexagonales, contemplatif et stratégique, jouable dans un navigateur, en français. Campagne de 12 îles en trois archipels, Île infinie, Jardin (pose libre), Atelier des saisons (améliorations), sauvegarde locale.
+Puzzle de placement de tuiles hexagonales, contemplatif et stratégique, jouable dans un navigateur, en français. Campagne de 12 îles en trois archipels, Île du jour, Île infinie, Jardin (pose libre), Atelier des saisons (améliorations), sauvegarde locale. Le décor est composé par région (forêts continues, massifs, villages avec ruelles et sentiers), la météo et la vie sur les tuiles animent l'île.
 
 ## Jouer
 
@@ -28,8 +28,10 @@ Navigateurs pris en charge : Chrome, Firefox et Edge à jour sur ordinateur, Chr
 4. Les **rivières** (chaînes d'eau reliées à la mer ou à la roche) rapportent un bonus par tuile.
 5. Toutes les *N* poses, la **saison** change et modifie la valeur des tuiles : les marais fleurissent au printemps, les prés isolés sèchent en été, la récolte lie vergers et hameaux en automne, l'eau gèle en hiver et relie les hameaux pour la veillée.
 6. La **faune** s'installe quand un habitat existe (lapin dans les prés, élan dans les grandes forêts, ours près de la roche, hibou au-dessus des toits, canard sur l'eau, manchot sur la glace, grenouille au marais, chèvre au camp, poule entre hameau et champs, cheval sur les collines, vache en lisière de lande) et rapporte des points à chaque saison.
-7. Dès l'île 2, les **vœux** des habitants donnent des objectifs à échéance : les exaucer rapporte des points, des souffles et une tuile rare (moulin, chapelle, tour de guet, puits, camp, puis grenier et fontaine).
-8. Les **souffles** sont des pouvoirs limités, gagnés en fermant des régions, en exauçant des vœux et grâce à la faune : échanger la tuile avec la suivante, la défausser, faire bourgeonner une prairie en forêt ou en verger, annuler la dernière pose, garder une tuile en poche.
+7. Dès l'île 2, les **vœux** des habitants donnent des objectifs à échéance : les exaucer rapporte des points, des souffles et une tuile rare (moulin, chapelle, tour de guet, puits, camp, puis grenier, fontaine et les tuiles d'événement).
+8. Dès l'île 4, la **météo** peut annoncer un événement en début de saison, déclenché à la mi-saison : orage (rivières +2), canicule (sécheresse étendue), grand vent (forêts et vergers +1, moulins +3), bourrasque (file masquée) ou redoux (dégel).
+9. Les **tuiles d'événement** (Marché, Fête, Ruine à restaurer) et les rares tardives (Auberge, Abreuvoir, Porche, Mine, Four à pain) arrivent par les vœux à partir des îles 5 et 8.
+10. Les **souffles** sont des pouvoirs limités, gagnés en fermant des régions, en exauçant des vœux et grâce à la faune : échanger la tuile avec la suivante, la défausser, faire bourgeonner une prairie en forêt ou en verger, annuler la dernière pose, garder une tuile en poche.
 
 Une île se termine quand elle est pleine ou quand aucune pose n'est possible. Le score donne 0 à 3 étoiles (la troisième exige tous les vœux). Les étoiles, les vœux et les îles rapportent des **graines**, à dépenser dans l'Atelier des saisons entre deux îles.
 
@@ -51,6 +53,7 @@ Une île se termine quand elle est pleine ou quand aucune pose n'est possible. L
 
 - **Campagne** : 12 îles dessinées à la main, de 30 à 120 cases, chacune avec ses vœux et son souvenir. Les mécaniques sont introduites progressivement avec un tutoriel intégré.
 - **Île infinie** : l'île grandit à chaque pose, sans fin ; le score et le nombre de saisons sont enregistrés.
+- **Île du jour** : une île générée depuis la date, la même pour tout le monde, trois vœux tirés au sort, météo active ; meilleur score du jour et série de jours conservés.
 - **Jardin** : pose libre, choix de la tuile, sans saisons ni score : pour composer.
 - **Atelier des saisons** : neuf améliorations (regard, poche, souffle de départ, patience, semence rare, refuge, source, almanach, seconde chance) achetées avec les graines. Les graines viennent des nouvelles étoiles, des vœux exaucés et de chaque île terminée la première fois.
 - **Guide** : depuis le menu ou la pause, toutes les tuiles avec leurs bonnes et mauvaises paires, les saisons, la faune, les tuiles rares, les souffles, les vœux et les graines.

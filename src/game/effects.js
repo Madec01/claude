@@ -10,6 +10,7 @@ export class Effects {
     this.drops = new Map();// animations de chute par clé de case { t }
     this.faunaAnim = new Map(); // clé -> { t, kind }
     this.ambientTimer = 0;
+    this.lifeTimers = { smoke: 0, shimmer: 0, gust: 0, heat: 0, snow: 0 };
   }
 
   img(prefix) { const keys = Assets.keysStarting(prefix); return keys.length ? Assets.img(rndPick(keys)) : null; }
@@ -36,16 +37,62 @@ export class Effects {
 
   faunaBurst(x, y) { const c = this.img('circle_'); for (let i = 0; i < 8; i++) { const a = rnd(0, TAU); this.p.emit({ x, y: y - 10, vx: Math.cos(a) * 50, vy: Math.sin(a) * 50 - 30, life: 0.7, size: 10, sizeEnd: 0, img: c, color: '#fff', alpha: 0.9, alphaEnd: 0, layer: 1 }); } }
 
-  /** Particules ambiantes de saison autour d'une zone (monde). */
-  ambient(dt, season, bounds, count) {
+  /** Particules ambiantes de saison autour d'une zone (monde). `sources` : points (arbres, vergers) d'où partent feuilles et pétales. */
+  ambient(dt, season, bounds, count, sources = null) {
     this.ambientTimer -= dt;
     if (this.ambientTimer > 0) return;
     this.ambientTimer = season === 'winter' ? 0.05 : 0.14;
     const img = season === 'autumn' ? this.img('leaf_') : season === 'spring' ? this.img('petal_') : season === 'winter' ? (this.img('snowflake_') || this.img('circle_')) : null;
     if (!img && season !== 'summer') return;
-    const x = rnd(bounds.minX, bounds.maxX), y = rnd(bounds.minY - 200, bounds.minY);
+    let x = rnd(bounds.minX, bounds.maxX), y = rnd(bounds.minY - 200, bounds.minY);
+    if (sources && sources.length && season !== 'winter' && Math.random() < 0.7) { const p = rndPick(sources); x = p.x + rnd(-30, 30); y = p.y - rnd(20, 50); }
     if (season === 'summer') { const c = this.img('light_') || this.img('circle_'); if (Math.random() < 0.4) this.p.emit({ x, y: rnd(bounds.minY, bounds.maxY), vx: rnd(-6, 6), vy: rnd(-14, -4), life: rnd(2, 3.5), size: rnd(6, 12), sizeEnd: 0, img: c, color: '#fff2b0', alpha: 0.7, alphaEnd: 0, blend: 'lighter', layer: 1 }); return; }
     this.p.emit({ x, y, vx: rnd(-25, 25) + (season === 'autumn' ? 30 : 0), vy: season === 'winter' ? rnd(30, 60) : rnd(40, 80), life: rnd(5, 8), size: season === 'winter' ? rnd(4, 9) : rnd(12, 20), sizeEnd: season === 'winter' ? rnd(3, 7) : rnd(10, 18), img, alpha: 0.9, alphaEnd: 0.6, layer: 1, rot: rnd(0, TAU), rotV: rnd(-2, 2) });
+  }
+
+  /**
+   * Vie sur les tuiles : fumée des cheminées (hiver, automne), reflets sur l'eau, rafales de feuilles (grand vent),
+   * chaleur qui tremble (canicule), neige de bourrasque. `objects` = décor composé, `tiles` = tuiles du plateau.
+   */
+  life(dt, { objects, tiles, season, weather, bounds }) {
+    const T = this.lifeTimers;
+    for (const k of Object.keys(T)) T[k] -= dt;
+    if (T.smoke <= 0 && (season === 'winter' || season === 'autumn')) {
+      T.smoke = season === 'winter' ? 0.22 : 0.6;
+      const houses = objects.filter((o) => o.tpl === 'obj_house' || o.tpl === 'obj_house_small' || o.tpl === 'obj_villa' || o.tpl === 'obj_farm');
+      if (houses.length) {
+        const h = rndPick(houses); const smoke = this.img('smoke_');
+        const top = h.tpl === 'obj_house' ? 62 : h.tpl === 'obj_villa' ? 58 : 48; const off = h.tpl === 'obj_house' ? 22 : 10;
+        this.p.emit({ x: h.x + off, y: h.y - top, vx: rnd(4, 12), vy: rnd(-18, -10), life: rnd(2.4, 3.6), size: rnd(6, 9), sizeEnd: rnd(22, 30), img: smoke, alpha: 0.32, alphaEnd: 0, layer: 1, rotV: rnd(-0.4, 0.4) });
+      }
+    }
+    if (T.shimmer <= 0) {
+      T.shimmer = weather === 'thaw' ? 0.06 : 0.16;
+      const water = tiles.filter((t) => t.family === 'water' && !t.frozen && !t.rare);
+      if (water.length) { const t = rndPick(water); const c = this.img('light_') || this.img('circle_'); this.p.emit({ x: t.wx + rnd(-40, 40), y: t.wy + rnd(-28, 34), vx: 0, vy: 0, life: rnd(0.9, 1.6), size: 3, sizeEnd: rnd(10, 16), img: c, color: '#fff', alpha: 0.55, alphaEnd: 0, blend: 'lighter', layer: 1 }); }
+    }
+    if (weather === 'wind' && T.gust <= 0) {
+      T.gust = 0.04; const img = this.img('leaf_');
+      this.p.emit({ x: bounds.minX - 80, y: rnd(bounds.minY, bounds.maxY), vx: rnd(260, 420), vy: rnd(-30, 30), life: 3, size: rnd(8, 16), sizeEnd: rnd(8, 14), img, alpha: 0.9, alphaEnd: 0.6, layer: 1, rotV: rnd(-9, 9) });
+    }
+    if (weather === 'heat' && T.heat <= 0) {
+      T.heat = 0.12; const c = this.img('light_') || this.img('circle_');
+      this.p.emit({ x: rnd(bounds.minX, bounds.maxX), y: rnd(bounds.minY, bounds.maxY), vx: rnd(-4, 4), vy: rnd(-26, -12), life: rnd(1.5, 2.5), size: rnd(8, 16), sizeEnd: 0, img: c, color: '#ffd27a', alpha: 0.35, alphaEnd: 0, blend: 'lighter', layer: 1 });
+    }
+    if (weather === 'blizzard' && T.snow <= 0) {
+      T.snow = 0.012; const img = this.img('snowflake_') || this.img('circle_');
+      this.p.emit({ x: bounds.minX - 60, y: rnd(bounds.minY - 100, bounds.maxY), vx: rnd(280, 460), vy: rnd(60, 140), life: 3, size: rnd(3, 8), sizeEnd: rnd(3, 7), img, alpha: 0.9, alphaEnd: 0.5, layer: 1 });
+    }
+    if (weather === 'storm' && T.snow <= 0) {
+      T.snow = 0.03; const c = this.img('circle_');
+      this.p.emit({ x: rnd(bounds.minX, bounds.maxX), y: rnd(bounds.minY, bounds.maxY), vx: 0, vy: 0, life: 0.35, size: 2, sizeEnd: 10, img: c, color: '#dff2ff', alpha: 0.5, alphaEnd: 0, layer: 1 });
+    }
+  }
+
+  /** Neige qui tombe des arbres voisins d'une pose en hiver (coordonnées monde des arbres). */
+  snowShake(points) {
+    const c = this.img('circle_');
+    for (const p of points) for (let i = 0; i < 4; i++) this.p.emit({ x: p.x + rnd(-8, 8), y: p.y - rnd(14, 30), vx: rnd(-10, 10), vy: rnd(20, 50), life: rnd(0.6, 1.1), size: rnd(3, 6), sizeEnd: 2, img: c, color: '#fff', alpha: 0.9, alphaEnd: 0, gravity: 60, layer: 1 });
   }
 
   update(dt) {

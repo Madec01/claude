@@ -98,6 +98,66 @@
       ]
     },
     {
+      "title": "Cloud Dancer",
+      "author": "Kevin MacLeod",
+      "license": "CC BY 4.0",
+      "license_url": "http://creativecommons.org/licenses/by/4.0/",
+      "source_url": "https://incompetech.com/music/royalty-free/index.html?keywords=Cloud+Dancer",
+      "mirror": "https://github.com/noobsandnerdsgroup/audio",
+      "attribution": "\"Cloud Dancer\" Kevin MacLeod (incompetech.com) — Licensed under Creative Commons: By Attribution 4.0 License — http://creativecommons.org/licenses/by/4.0/",
+      "used_in": [
+        "music/spring_2.ogg"
+      ]
+    },
+    {
+      "title": "Pleasant Porridge",
+      "author": "Kevin MacLeod",
+      "license": "CC BY 4.0",
+      "license_url": "http://creativecommons.org/licenses/by/4.0/",
+      "source_url": "https://incompetech.com/music/royalty-free/index.html?keywords=Pleasant+Porridge",
+      "mirror": "https://github.com/noobsandnerdsgroup/audio",
+      "attribution": "\"Pleasant Porridge\" Kevin MacLeod (incompetech.com) — Licensed under Creative Commons: By Attribution 4.0 License — http://creativecommons.org/licenses/by/4.0/",
+      "used_in": [
+        "music/summer_2.ogg"
+      ]
+    },
+    {
+      "title": "Leaving Home",
+      "author": "Kevin MacLeod",
+      "license": "CC BY 4.0",
+      "license_url": "http://creativecommons.org/licenses/by/4.0/",
+      "source_url": "https://incompetech.com/music/royalty-free/index.html?keywords=Leaving+Home",
+      "mirror": "https://github.com/noobsandnerdsgroup/audio",
+      "attribution": "\"Leaving Home\" Kevin MacLeod (incompetech.com) — Licensed under Creative Commons: By Attribution 4.0 License — http://creativecommons.org/licenses/by/4.0/",
+      "used_in": [
+        "music/autumn_2.ogg"
+      ]
+    },
+    {
+      "title": "Night Vigil",
+      "author": "Kevin MacLeod",
+      "license": "CC BY 4.0",
+      "license_url": "http://creativecommons.org/licenses/by/4.0/",
+      "source_url": "https://incompetech.com/music/royalty-free/index.html?keywords=Night+Vigil",
+      "mirror": "https://github.com/noobsandnerdsgroup/audio",
+      "attribution": "\"Night Vigil\" Kevin MacLeod (incompetech.com) — Licensed under Creative Commons: By Attribution 4.0 License — http://creativecommons.org/licenses/by/4.0/",
+      "used_in": [
+        "music/winter_2.ogg"
+      ]
+    },
+    {
+      "title": "Maccary Bay",
+      "author": "Kevin MacLeod",
+      "license": "CC BY 4.0",
+      "license_url": "http://creativecommons.org/licenses/by/4.0/",
+      "source_url": "https://incompetech.com/music/royalty-free/index.html?keywords=Maccary+Bay",
+      "mirror": "https://github.com/noobsandnerdsgroup/audio",
+      "attribution": "\"Maccary Bay\" Kevin MacLeod (incompetech.com) — Licensed under Creative Commons: By Attribution 4.0 License — http://creativecommons.org/licenses/by/4.0/",
+      "used_in": [
+        "music/daily.ogg"
+      ]
+    },
+    {
       "title": "Forest quiet atmosphere with some birds",
       "author": "felix.blume",
       "license": "CC0 1.0",
@@ -167,6 +227,17 @@
       ]
     },
     {
+      "title": "Rain and Thunder Ambience Tübingen",
+      "author": "Sheyvan",
+      "license": "CC0 1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "source_url": "https://freesound.org/s/369547/",
+      "mirror": "https://github.com/funcoder/omarchy-ambient",
+      "used_in": [
+        "ambience/storm.ogg"
+      ]
+    },
+    {
       "title": "Impact Sounds",
       "author": "Kenney",
       "license": "CC0 1.0",
@@ -200,7 +271,8 @@
         "sfx/fauna_arrive.ogg",
         "sfx/fauna_leave.ogg",
         "sfx/wish_new.ogg",
-        "sfx/bud.ogg"
+        "sfx/bud.ogg",
+        "sfx/weather.ogg"
       ]
     },
     {
@@ -329,7 +401,8 @@
       "source_url": "https://opengameart.org/content/100-cc0-sfx-2",
       "mirror": "https://github.com/lavenderdotpet/CC0-Public-Domain-Sounds",
       "used_in": [
-        "sfx/breath_spend.ogg"
+        "sfx/breath_spend.ogg",
+        "sfx/thunder.ogg"
       ]
     },
     {

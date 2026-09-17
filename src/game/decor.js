@@ -8,7 +8,7 @@ import { RARE_AS } from '../data/tiles.js';
 /** Type de sol d'une tuile (image `ground_<type>_<saison>`). */
 export function groundOf(t) {
   if (!t) return null;
-  if (t.rare) return t.family === 'ruins' ? 'stone' : 'grass';
+  if (t.rare) return t.family === 'ruins' || t.family === 'mine' ? 'stone' : 'grass';
   if (t.family === 'meadow' && t.dry) return 'dry';
   if (t.family === 'water' && t.frozen) return 'ice';
   return { meadow: 'grass', forest: 'grass', field: 'grass', hamlet: 'grass', orchard: 'grass', water: 'water', marsh: 'dirt', rock: 'stone', sand: 'sand', hill: 'hill', heath: 'heath' }[t.family] || 'grass';

@@ -27,7 +27,7 @@ export function transition(board, season) {
       if (t.bloom) t.bloom = false;
       if (t.family === 'meadow' && !t.rare) {
         const ns = neighbors(t.q, t.r).map(([a, b]) => board.get(a, b)).filter(Boolean);
-        const wet = ns.some((n) => Board.isFamily(n, 'water') || Board.isFamily(n, 'forest') || Board.isFamily(n, 'marsh') || Board.isFamily(n, 'heath') || n.family === 'well' || n.family === 'fountain');
+        const wet = ns.some((n) => Board.isFamily(n, 'water') || Board.isFamily(n, 'forest') || Board.isFamily(n, 'marsh') || Board.isFamily(n, 'heath') || n.family === 'well' || n.family === 'fountain' || n.family === 'trough');
         if (!wet) { t.dry = true; ev.push({ type: 'dry', q: t.q, r: t.r }); }
       }
     }
