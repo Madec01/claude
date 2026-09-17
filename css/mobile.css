@@ -204,3 +204,16 @@ html.compact .panel-actions { padding-top: 4px; }
 html.compact .panel .panel-actions .btn { min-height: 40px; }
 
 html.compact .hud-logpanel { z-index: 6; }
+
+/* ---- règle de saison sur téléphone : en portrait, la saison prend toute une seconde ligne de la barre (nom · règle, puis le texte de la règle) ---- */
+html.compact .season-rule { display: block; font-size: 11px; line-height: 1.2; opacity: 0.8; max-width: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+html.compact.portrait .hud-top { flex-wrap: wrap; row-gap: 4px; }
+html.compact.portrait .hud-season { order: 10; flex: 1 1 100%; overflow: visible; padding-right: 22px; }
+html.compact.portrait .season-txt b { font-size: 13px; }
+html.compact.portrait .tile-help { top: 96px; }
+html.compact.portrait .hud-wishes { top: 96px; }
+html.compact.portrait .hud-notify { top: 130px; }
+html.compact.landscape .hud-season { padding-right: 22px; }
+.season-pop { z-index: 40; }
+html.compact.landscape .hud-queue { top: 64px; }
+html.compact.landscape .hud-wishes { top: 64px; }
