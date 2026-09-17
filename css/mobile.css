@@ -1,0 +1,194 @@
+/* Disposition compacte (téléphones et petites tablettes) : classes posées sur <html> par src/core/stage.js :
+   .compact (scène = fenêtre, échelle 1), .portrait / .landscape, .touch (périphérique tactile). */
+html, body { overscroll-behavior: none; -webkit-tap-highlight-color: transparent; }
+#stage { touch-action: none; }
+html.touch #hud, html.touch #ui, html.touch #tutorial { -webkit-user-select: none; user-select: none; }
+html.compact #app { background: #dfe8ec; }
+html.compact #stage { border-radius: 0; box-shadow: none; }
+.toast { position: absolute; left: 50%; bottom: 28px; transform: translateX(-50%); z-index: 60; max-width: 92%; background: var(--ink); color: #fff; padding: 10px 16px; border-radius: 12px; font-size: 14px; line-height: 1.35; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.25); animation: noteIn 0.3s ease; pointer-events: none; }
+
+/* Éléments réservés au tactile */
+html:not(.touch) .hud-place, html:not(.touch) .hud-fs { display: none !important; }
+html.touch .pause-controls { display: none; }
+.hud-place { position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); pointer-events: all; z-index: 3; background: var(--breath); color: #fff; font-family: inherit; font-weight: 800; font-size: 17px; padding: 12px 26px; border-radius: 28px; border: 2px solid #fff; box-shadow: 0 10px 26px rgba(30,50,70,0.3); cursor: pointer; white-space: nowrap; }
+.hud-place.neg { background: var(--loss); }
+.hud-fs { margin-left: 6px; }
+.wish-toggle { display: none; }
+.hud-bud-hint { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: center; pointer-events: all; }
+.hud-bud-hint button { font-family: inherit; font-weight: 700; font-size: 13px; padding: 4px 10px; border-radius: 9px; border: 1px solid rgba(255,255,255,0.5); background: rgba(255,255,255,0.15); color: #fff; cursor: pointer; }
+.hud-bud-hint button:hover { background: rgba(255,255,255,0.3); }
+.hud-bud-hint.hidden { display: none; }
+
+/* ---------- HUD compact ---------- */
+html.compact .hud-top { padding: 5px 6px; gap: 5px; padding-left: max(6px, env(safe-area-inset-left)); padding-right: max(6px, env(safe-area-inset-right)); }
+html.compact .hud-title { display: none; }
+html.compact .hud-block { padding: 4px 8px; gap: 5px; border-radius: 9px; box-shadow: 0 2px 8px rgba(30,50,70,0.12); }
+html.compact .hud-season { min-width: 0; flex: 1 1 auto; }
+html.compact .season-rule { display: none; }
+html.compact .season-txt b { font-size: 13px; }
+html.compact .hud-season .season-icon .hud-icon { width: 20px; height: 20px; }
+html.compact .season-pips { max-width: 44px; gap: 2px; }
+html.compact .season-pips i { width: 6px; height: 6px; }
+html.compact .hud-label { font-size: 9px; letter-spacing: 0.06em; }
+html.compact .hud-score b, html.compact .hud-breaths b, html.compact .hud-left-tiles b { font-size: 16px; }
+html.compact .hud-pause { width: 34px; height: 34px; }
+html.compact .hud-pause .hud-icon { width: 13px; height: 13px; }
+html.compact .hud-notify { top: 46px; gap: 3px; width: 94%; }
+html.compact .hud-note { font-size: 12px; padding: 3px 10px; max-width: 100%; }
+html.compact .fauna-chip { font-size: 11px; padding: 2px 7px 2px 2px; gap: 4px; }
+html.compact .fauna-chip img { width: 18px; height: 18px; }
+html.compact .tuto-card { width: calc(100% - 16px); padding: 8px 10px; font-size: 13px; gap: 8px; border-radius: 10px; }
+html.compact .tuto-ok { font-size: 12px; padding: 4px 9px; }
+html.compact .tuto-hint { display: none; }
+html.compact .hud-bud-hint { font-size: 12px; padding: 6px 10px; width: calc(100% - 16px); }
+html.compact .hud-bud-hint button { font-size: 12px; padding: 3px 8px; }
+/* file de tuiles */
+html.compact .queue-title { display: none; }
+html.compact .qtile { padding: 4px 6px; gap: 4px; border-radius: 9px; }
+html.compact .qtile.rare::after { font-size: 8px; right: 4px; top: 2px; }
+html.compact .pw { padding: 3px 4px; font-size: 10px; gap: 1px; border-radius: 8px; }
+html.compact .pw .hud-icon { width: 14px; height: 14px; }
+html.compact .pw em { font-size: 10px; }
+html.compact .gpick { font-size: 11px; padding: 3px 6px; border-radius: 6px; }
+/* vœux : repliés derrière un bouton */
+html.compact .hud-wishes { right: 6px; top: 46px; width: auto; max-width: 236px; display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+html.compact .hud-wishes .queue-title { display: none; }
+html.compact .wish-toggle { display: inline-flex; align-items: center; gap: 6px; font-family: inherit; font-weight: 800; font-size: 12px; padding: 5px 10px; border-radius: 16px; border: 1px solid rgba(43,42,38,0.14); border-left: 4px solid var(--wish); background: rgba(255,253,248,0.94); color: var(--ink); cursor: pointer; box-shadow: 0 3px 10px rgba(30,50,70,0.12); }
+html.compact .wish-toggle b { color: var(--wish); }
+html.compact .hud-wishes.collapsed .wish-list { display: none; }
+html.compact .wish-list { width: 230px; max-height: 52vh; overflow: auto; gap: 4px; }
+html.compact .wish { padding: 6px 8px; border-radius: 9px; }
+html.compact .wish-head b { font-size: 12px; } html.compact .wish-giver { font-size: 10px; }
+html.compact .wish-text { font-size: 11px; margin: 2px 0 4px; }
+html.compact .wish-foot { font-size: 11px; }
+
+/* portrait : file horizontale en bas, faune juste au-dessus */
+html.compact.portrait .hud-queue { left: 0; right: 0; top: auto; bottom: 0; width: auto; flex-direction: row; align-items: flex-end; gap: 6px; padding: 6px 8px calc(8px + env(safe-area-inset-bottom)); background: linear-gradient(to top, rgba(244,239,230,0.96) 60%, rgba(244,239,230,0)); }
+html.compact.portrait .queue-list { flex-direction: row; gap: 5px; flex: 1; align-items: flex-end; }
+html.compact.portrait .qtile { flex-direction: column; padding: 4px 5px; }
+html.compact.portrait .qtile img { width: 30px; height: 35px; }
+html.compact.portrait .qtile.current img { width: 60px; height: 70px; }
+html.compact.portrait .qtile .qname { font-size: 10px; }
+html.compact.portrait .qtile.current .qname { font-size: 12px; }
+html.compact.portrait .pocket { display: flex; flex-direction: column; }
+html.compact.portrait .pocket-list { flex-direction: row; min-height: 0; }
+html.compact.portrait .powers { flex-direction: column; gap: 3px; }
+html.compact.portrait .pw { flex-direction: row; gap: 4px; padding: 3px 7px; }
+html.compact.portrait .garden-pick { position: absolute; left: 6px; right: 6px; bottom: 100%; margin-bottom: 4px; }
+html.compact.portrait .hud-fauna { left: 6px; right: 6px; bottom: 124px; max-width: none; gap: 4px; }
+html.compact.portrait .hud-place { bottom: 156px; }
+html.compact.portrait .tuto-card { bottom: 160px; }
+html.compact.portrait .hud-bud-hint { bottom: 130px; }
+/* paysage : colonne étroite à gauche */
+html.compact.landscape .hud-queue { left: max(6px, env(safe-area-inset-left)); top: 46px; bottom: 6px; width: 118px; gap: 4px; overflow: hidden; }
+html.compact.landscape .queue-list { gap: 4px; }
+html.compact.landscape .qtile { padding: 3px 6px; gap: 5px; }
+html.compact.landscape .qtile img { width: 26px; height: 30px; }
+html.compact.landscape .qtile.current img { width: 46px; height: 54px; }
+html.compact.landscape .qtile .qname { font-size: 10px; }
+html.compact.landscape .qtile.current .qname { font-size: 11px; }
+html.compact.landscape .powers { gap: 3px; }
+html.compact.landscape .pw span { display: none; }
+html.compact.landscape .hud-fauna { left: 132px; right: 50px; bottom: 6px; max-width: none; gap: 4px; }
+html.compact.landscape .hud-place { bottom: 8px; left: auto; right: max(10px, env(safe-area-inset-right)); transform: none; }
+html.compact.landscape .tuto-card { bottom: auto; top: 46px; width: calc(100% - 300px); left: calc(50% + 30px); }
+html.compact.landscape .tuto-card.on { transform: translate(-50%, 0); }
+html.compact.landscape .hud-bud-hint { bottom: 40px; left: calc(50% + 60px); width: auto; max-width: calc(100% - 150px); }
+
+/* ---------- Menu et panneaux compacts ---------- */
+html.compact .menu-veil { background: linear-gradient(180deg, rgba(244,239,230,0.94) 0%, rgba(244,239,230,0.8) 55%, rgba(244,239,230,0.35) 100%); }
+html.compact .menu-title { left: 16px; right: 16px; top: 16px; width: auto; text-align: center; }
+html.compact .menu-title h1 { font-size: 46px; white-space: normal; margin: 2px 0 0; }
+html.compact .menu-kicker { font-size: 14px; }
+html.compact .menu-sub { font-size: 13px; margin-top: 4px; }
+html.compact .menu-nav { left: 16px; right: 16px; width: auto; top: 150px; gap: 6px; }
+html.compact .menu-nav .btn { font-size: 15px; padding: 9px 14px; }
+html.compact .menu-nav .btn-big { font-size: 17px; padding: 11px 16px; }
+html.compact .menu-foot { left: 10px; right: 10px; bottom: 6px; font-size: 11px; }
+html.compact .menu-foot .foot-left { gap: 10px; }
+html.compact.landscape .menu-title { top: 4px; }
+html.compact.landscape .menu-title h1 { font-size: 34px; }
+html.compact.landscape .menu-kicker { font-size: 12px; }
+html.compact.landscape .menu-sub { display: none; }
+html.compact.landscape .menu-nav { top: 84px; display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+html.compact.landscape .menu-nav .btn { font-size: 13px; padding: 7px 12px; }
+html.compact.landscape .menu-nav .btn-big { font-size: 14px; padding: 8px 12px; grid-column: 1 / -1; }
+html.compact.landscape .menu-foot { bottom: 3px; }
+
+html.compact .panel { width: calc(100% - 16px) !important; max-height: calc(100% - 16px); padding: 12px 14px; border-radius: 12px; }
+html.compact .panel-title { font-size: 24px; margin-bottom: 8px; }
+html.compact .panel h3 { font-size: 17px; margin: 10px 0 6px; }
+html.compact .panel-actions { gap: 8px; margin-top: 12px; }
+html.compact .panel-actions.column .btn { width: 100%; }
+html.compact .btn { font-size: 15px; padding: 8px 14px; gap: 8px; }
+html.compact .btn-small { font-size: 13px; padding: 5px 10px; }
+html.compact .opt-cols { flex-direction: column; gap: 6px; }
+html.compact .opt-group { padding: 8px 10px; }
+html.compact .res-kicker { font-size: 11px; }
+html.compact .res-line { font-size: 15px; }
+html.compact .res-grid { gap: 2px 18px; }
+html.compact.portrait .res-grid { grid-template-columns: 1fr; }
+html.compact .res-row { font-size: 14px; padding: 4px 0; } html.compact .res-row b { font-size: 15px; }
+html.compact .panel.panel-workshop { padding: 12px 14px; }
+html.compact .ws-grid { gap: 6px; }
+html.compact.portrait .ws-grid { grid-template-columns: 1fr; }
+html.compact.landscape .ws-grid { grid-template-columns: repeat(2, 1fr); }
+html.compact .ws-head-row { flex-direction: column; align-items: flex-start; gap: 4px; }
+html.compact .ws-intro { font-size: 13px; }
+html.compact .ws-card { padding: 8px 10px; gap: 4px; }
+html.compact .ws-head h4 { font-size: 16px; } html.compact .ws-desc { font-size: 12px; }
+html.compact .act-row { grid-template-columns: 1fr 1fr; gap: 6px; }
+html.compact .act-head { grid-column: 1 / -1; border: none; padding: 0; flex-direction: row; align-items: baseline; gap: 8px; }
+html.compact .act-head .act-num { font-size: 16px; } html.compact .act-head .act-name { margin: 0; font-size: 12px; }
+html.compact .night-card { padding: 8px 8px 6px 12px; }
+html.compact .nc-title { font-size: 15px; margin: 2px 0 5px; }
+html.compact .guide-tabs { gap: 4px; margin-bottom: 8px; }
+html.compact .guide-body { max-height: calc(100vh - 210px); }
+html.compact .g-grid { gap: 6px; }
+html.compact.portrait .g-grid { grid-template-columns: 1fr; }
+html.compact .g-card { padding: 8px 10px; gap: 8px; }
+html.compact .g-card > img { width: 60px; height: 70px; }
+html.compact .g-card h4 { font-size: 16px; } html.compact .g-card p { font-size: 13px; }
+html.compact .g-intro { font-size: 13px; }
+html.compact .credits-scroll, html.compact .ending-credits .credits-scroll { max-height: calc(100vh - 210px); font-size: 13px; }
+html.compact .story-card { width: calc(100% - 24px); padding: 18px 20px; }
+html.compact .story-title { font-size: 34px; }
+html.compact .story-sub { font-size: 16px; }
+html.compact .story-text { font-size: 16px; }
+html.compact .story-text.voice { font-size: 17px; }
+html.compact .story-hint { font-size: 10px; bottom: 8px; }
+html.compact .story-actions { top: 8px; right: 8px; }
+html.compact .panel-pause { width: calc(100% - 16px); }
+html.compact .pause-controls { font-size: 12px; gap: 2px 10px; }
+html.compact .opt-keys { display: none; }
+
+/* ---- ajustements après test téléphone ---- */
+html.compact .hud-top { align-items: center; flex-wrap: nowrap; }
+html.compact .hud-block { padding: 3px 7px; flex: 0 0 auto; }
+html.compact .hud-season { flex: 1 1 60px; min-width: 0; overflow: hidden; }
+html.compact .season-txt { min-width: 0; }
+html.compact .season-txt b { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+html.compact .season-pips { flex: 0 0 auto; width: 38px; max-width: 38px; margin-left: 4px; }
+html.compact .hud-label { font-size: 8px; }
+html.compact .hud-score b, html.compact .hud-breaths b, html.compact .hud-left-tiles b { font-size: 15px; }
+html.compact .hud-pause { width: 30px; height: 30px; flex: 0 0 auto; }
+html.compact .hud-fs { margin-left: 2px; }
+html.compact .hud-notify { top: 44px; }
+html.compact.landscape .hud-notify { top: auto; bottom: 40px; left: 130px; right: 130px; width: auto; transform: none; }
+html.compact.landscape .hud-note { font-size: 11px; }
+html.compact.landscape .panel-title { font-size: 20px; margin-bottom: 4px; }
+html.compact.landscape .panel-results .stars { margin: 2px 0 4px; }
+html.compact.landscape .panel-results .star .icon { width: 26px; height: 26px; }
+html.compact.landscape .res-kicker { font-size: 10px; }
+html.compact.landscape .res-line { font-size: 13px; margin: 0 0 4px; }
+html.compact.landscape .res-row { padding: 2px 0; font-size: 13px; } html.compact.landscape .res-row b { font-size: 14px; }
+html.compact.landscape .res-note { margin-top: 4px; font-size: 11px; }
+html.compact.landscape .panel-actions { margin-top: 8px; }
+html.compact.landscape .panel { padding: 10px 14px; }
+/* saison : les pastilles deviennent une fine barre sous le nom ; plein écran HUD réservé au paysage */
+html.compact .hud-season { position: relative; padding-bottom: 8px; }
+html.compact .season-pips { position: absolute; left: 8px; right: 8px; bottom: 3px; width: auto; max-width: none; margin: 0; gap: 2px; flex-wrap: nowrap; }
+html.compact .season-pips i { flex: 1 1 0; width: auto; height: 3px; border-radius: 2px; }
+html.compact.portrait .hud-fs { display: none !important; }
+html.compact.portrait .hud-notify { top: 80px; }
+html.compact.landscape .hud-notify { right: 230px; }

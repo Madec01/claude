@@ -9,7 +9,7 @@ const icon = (name, cls = '') => `<img class="hud-icon ${cls}" src="assets/img/u
 const SEASON_ICON = { spring: 'icon_leaf', summer: 'icon_sun', autumn: 'icon_wind', winter: 'icon_snow' };
 
 export class Hud {
-  constructor(root, island, { title, onPause, onSwap, onDiscard, onBud, onUndo, onPocket, onPocketOut, onGardenPick, mechanics }) {
+  constructor(root, island, { title, onPause, onSwap, onDiscard, onBud, onUndo, onPocket, onPocketOut, onGardenPick, onPlace, onBudChoice, onBudCancel, onFullscreen, compact = false, mechanics }) {
     this.root = root; this.isl = island; this.mech = mechanics;
     const m = mechanics;
     root.innerHTML = `
@@ -24,6 +24,7 @@ export class Hud {
         <div class="hud-block hud-breaths ${m.has('breath') ? '' : 'hidden'}" title="Souffles"><span class="hud-label">Souffles</span><b data-ref="breaths">0</b></div>
         <div class="hud-block hud-left-tiles"><span class="hud-label">Tuiles</span><b data-ref="left">0</b></div>
         <button class="hud-pause" data-ref="pause" title="Pause (Échap)">${icon('icon_pause')}</button>
+        <button class="hud-pause hud-fs" data-ref="fs" title="Plein écran">${icon('icon_fullscreen')}</button>
       </div>
       <div class="hud-queue" data-ref="queue">
         <div class="queue-title">À poser</div>
@@ -36,10 +37,11 @@ export class Hud {
         </div>
         <div class="garden-pick ${island.garden ? '' : 'hidden'}" data-ref="gardenPick"></div>
       </div>
-      <div class="hud-wishes ${island.wishes.length ? '' : 'hidden'}" data-ref="wishes"><div class="queue-title">Vœux</div><div class="wish-list" data-ref="wishList"></div></div>
+      <div class="hud-wishes ${island.wishes.length ? '' : 'hidden'} ${compact ? 'collapsed' : ''}" data-ref="wishes"><button class="wish-toggle" data-ref="wishToggle" title="Afficher les vœux">Vœux <b data-ref="wishCount"></b></button><div class="queue-title">Vœux</div><div class="wish-list" data-ref="wishList"></div></div>
+      <button class="hud-place hidden" data-ref="placeBtn"></button>
       <div class="hud-fauna" data-ref="fauna"></div>
       <div class="hud-notify" data-ref="notify"></div>
-      <div class="hud-bud-hint hidden" data-ref="budHint">Choisis une prairie à transformer · <b>F</b> forêt · <b>V</b> verger · <b>Échap</b> annuler</div>
+      <div class="hud-bud-hint hidden" data-ref="budHint"><span data-ref="budText">Choisis une prairie à transformer</span><button data-ref="budForest" title="Touche F">Forêt</button><button data-ref="budOrchard" title="Touche V">Verger</button><button data-ref="budCancel" title="Échap">Annuler</button></div>
     `;
     this.r = {};
     root.querySelectorAll('[data-ref]').forEach((el) => { this.r[el.dataset.ref] = el; });
@@ -47,6 +49,12 @@ export class Hud {
     this.r.pwDiscard.addEventListener('click', (e) => { e.stopPropagation(); onDiscard(); });
     this.r.pwBud.addEventListener('click', (e) => { e.stopPropagation(); onBud(); });
     this.r.pwUndo.addEventListener('click', (e) => { e.stopPropagation(); onUndo(); });
+    this.r.fs.addEventListener('click', (e) => { e.stopPropagation(); onFullscreen && onFullscreen(); });
+    this.r.placeBtn.addEventListener('click', (e) => { e.stopPropagation(); onPlace && onPlace(); });
+    this.r.wishToggle.addEventListener('click', (e) => { e.stopPropagation(); this.r.wishes.classList.toggle('collapsed'); });
+    this.r.budForest.addEventListener('click', (e) => { e.stopPropagation(); onBudChoice && onBudChoice('forest'); });
+    this.r.budOrchard.addEventListener('click', (e) => { e.stopPropagation(); onBudChoice && onBudChoice('orchard'); });
+    this.r.budCancel.addEventListener('click', (e) => { e.stopPropagation(); onBudCancel && onBudCancel(); });
     this.onSwap = onSwap; this.onPocket = onPocket; this.onPocketOut = onPocketOut; this.onGardenPick = onGardenPick;
     this.last = {};
     this.notes = [];
@@ -99,6 +107,8 @@ export class Hud {
       return `<div class="wish ${w.status}"><div class="wish-head"><b>${s.title}</b><span class="wish-giver">${s.giver}</span></div><div class="wish-text">${s.text}</div><div class="wish-bar"><div style="width:${pct}%"></div></div><div class="wish-foot"><span>${w.progress} / ${w.target}</span><span class="wish-dl">${w.status === 'open' ? deadlineLabel(w, ctx, STORY) : w.status === 'done' ? 'exaucé' : 'passé'}</span></div></div>`;
     }).join('');
     if (html !== this.last.wishes) { this.last.wishes = html; this.r.wishList.innerHTML = html; }
+    const cnt = `${this.isl.wishes.filter((w) => w.status === 'done').length} / ${this.isl.wishes.length}`;
+    if (cnt !== this.last.wishCount) { this.last.wishCount = cnt; this.r.wishCount.textContent = cnt; }
   }
 
   renderFauna() {
@@ -117,7 +127,22 @@ export class Hud {
     while (this.r.notify.children.length > 4) this.r.notify.firstChild.remove();
   }
 
-  setBudMode(on) { this.r.budHint.classList.toggle('hidden', !on); this.r.pwBud.classList.toggle('active', on); }
+  setBudMode(on, hasTarget = false) {
+    this.r.budHint.classList.toggle('hidden', !on); this.r.pwBud.classList.toggle('active', on);
+    this.r.budText.textContent = hasTarget ? 'Cette prairie devient :' : 'Choisis une prairie à transformer';
+    this.r.budForest.disabled = this.r.budOrchard.disabled = !hasTarget;
+  }
+
+  /** Bouton « Poser ici » (tactile) : total de la pose armée, ou null pour le masquer. */
+  setPlaceButton(total) {
+    if (total === null || total === undefined) { if (!this.r.placeBtn.classList.contains('hidden')) this.r.placeBtn.classList.add('hidden'); return; }
+    const txt = `Poser ici · ${total >= 0 ? '+' : ''}${total}`;
+    if (this.last.placeTxt !== txt) { this.last.placeTxt = txt; this.r.placeBtn.textContent = txt; this.r.placeBtn.classList.toggle('neg', total < 0); }
+    this.r.placeBtn.classList.remove('hidden');
+  }
+
+  /** Déplie brièvement les vœux (mode compact) quand un vœu change. */
+  flashWishes() { if (!this.r.wishes.classList.contains('collapsed')) return; this.r.wishes.classList.remove('collapsed'); clearTimeout(this._wishT); this._wishT = setTimeout(() => this.r.wishes.classList.add('collapsed'), 3500); }
 
   update() {
     const isl = this.isl, r = this.r;

@@ -26,23 +26,26 @@ import { buildResults } from './ui/results.js';
 import { buildWorkshop } from './ui/workshop.js';
 import { buildPause } from './ui/pause.js';
 import { h, showUI, hideUI } from './ui/dom.js';
+import { STAGE, layoutStage, uiMargins } from './core/stage.js';
 
-const W = 1280, H = 720;
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d', { alpha: false });
-const input = new Input(canvas, W, H);
+layoutStage();
+const input = new Input(canvas, STAGE.W, STAGE.H);
+let onResizeHook = null;
 const scenes = new SceneManager();
 
 function resize() {
-  const dpr = Math.min(2, window.devicePixelRatio || 1);
-  const stage = document.getElementById('stage');
-  const s = Math.min(window.innerWidth / W, window.innerHeight / H);
-  stage.style.width = `${Math.round(W * s)}px`; stage.style.height = `${Math.round(H * s)}px`;
-  stage.style.setProperty('--scale', s);
-  canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
+  layoutStage();
+  const dpr = STAGE.dpr;
+  canvas.width = Math.round(STAGE.W * dpr); canvas.height = Math.round(STAGE.H * dpr);
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  input.setSize(STAGE.W, STAGE.H);
+  if (onResizeHook) onResizeHook();
 }
 window.addEventListener('resize', resize);
+window.addEventListener('orientationchange', () => setTimeout(resize, 80));
+if (window.visualViewport) window.visualViewport.addEventListener('resize', resize);
 resize();
 
 const SEASON_MUSIC = { spring: 'spring', summer: 'summer', autumn: 'autumn', winter: 'winter' };
@@ -71,7 +74,24 @@ const Game = {
   showOptions(onBack) { this.showPanel(buildOptions({ onBack: onBack || (() => this.showMenu()), game: this })); },
   showGuide(onBack) { this.showPanel(buildGuide({ onBack: onBack || (() => this.showMenu()) })); },
   showCredits(onBack) { this.showPanel(buildCredits({ onBack: onBack || (() => this.showMenu()), credits: this.credits })); },
-  toggleFullscreen() { const el = document.documentElement; if (!document.fullscreenElement) (el.requestFullscreen || el.webkitRequestFullscreen).call(el).catch(() => {}); else document.exitFullscreen(); },
+  toggleFullscreen() {
+    const el = document.documentElement;
+    const req = el.requestFullscreen || el.webkitRequestFullscreen;
+    const isFs = () => !!(document.fullscreenElement || document.webkitFullscreenElement);
+    if (!req) { this.toast(navigator.standalone ? 'Le jeu est déjà en plein écran.' : 'Plein écran indisponible dans ce navigateur. Sur iPhone : Partager → « Sur l’écran d’accueil », puis lancez le jeu depuis l’icône.'); return; }
+    if (!isFs()) { const r = req.call(el); if (r && r.catch) r.catch(() => this.toast('Le plein écran a été refusé par le navigateur.')); }
+    else (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+    setTimeout(resize, 150); setTimeout(resize, 600);
+  },
+  toast(msg, ms = 4200) {
+    const stage = document.getElementById('stage');
+    stage.querySelectorAll('.toast').forEach((t) => t.remove());
+    const t = h('div', { class: 'toast' }, msg); stage.appendChild(t); setTimeout(() => t.remove(), ms);
+  },
+  onResize() {
+    const m = scenes.scenes.get('menu'); if (m && m.bg) m.bg.refit();
+    if (scenes.current && scenes.current.onResize) scenes.current.onResize();
+  },
   setFpsVisible(v) { if (!this.fpsEl) { this.fpsEl = h('div', { class: 'fps' }); document.getElementById('app').appendChild(this.fpsEl); } this.fpsEl.style.display = v ? 'block' : 'none'; },
   setTestMode() { if (scenes.currentName === 'menu') this.showOptions(); },
   onSaveReset() {},
@@ -134,24 +154,26 @@ const Game = {
     if (result.stars >= 1) scenes.go('story', { screens: memory, onDone: next }); else next();
   },
 };
-window.CS = { Game, Save, scenes, AudioSys, ISLANDS, BALANCE, STORY };
+window.CS = { Game, Save, scenes, AudioSys, ISLANDS, BALANCE, STORY, STAGE, input };
+onResizeHook = () => Game.onResize();
 
 // ---------- Scène de fond : une île qui se construit toute seule ----------
 class AmbientIsland {
   constructor(defId = 4) {
     const def = { ...getIsland(defId), id: 'ambient', wishes: [], start: [{ q: 0, r: 0, family: 'hamlet' }, { q: 2, r: -1, family: 'rock' }] };
     this.isl = new Island(def, { upgrades: {} });
-    this.cam = new Camera(); this.cam.fit(this.isl.board.mask, { uiLeft: 380, uiRight: 40, uiTop: 40, uiBottom: 40, immediate: true });
+    this.cam = new Camera(); this.cam.fit(this.isl.board.mask, { ...uiMargins('ambient'), immediate: true });
     this.particles = new ParticleSystem(600); this.fx = new Effects(this.particles);
     this.renderer = new IslandRenderer(this.isl, this.cam, this.fx, this.particles);
     this.timer = 1.2;
     this.isl.on((e) => { if (e.type === 'place') this.fx.drop(key(e.q, e.r)); if (e.type === 'season') this.renderer.startTransition(e.from, e.to); if (e.type === 'fauna') this.fx.fauna(`${e.species}@${e.regionId}`, e.kind); });
   }
+  refit() { this.cam.fit(this.isl.board.mask, uiMargins('ambient')); }
   update(dt) {
     this.timer -= dt;
     if (this.timer <= 0) {
       this.timer = 1.0;
-      if (this.isl.ended) { const def = this.isl.def; this.isl = new Island({ ...def, seed: def.seed + Math.floor(Math.random() * 1000) }, { upgrades: {} }); this.renderer.isl = this.isl; this.cam.fit(this.isl.board.mask, { uiLeft: 380, uiRight: 40, uiTop: 40, uiBottom: 40 }); this.isl.on((e) => { if (e.type === 'place') this.fx.drop(key(e.q, e.r)); if (e.type === 'season') this.renderer.startTransition(e.from, e.to); if (e.type === 'fauna') this.fx.fauna(`${e.species}@${e.regionId}`, e.kind); }); }
+      if (this.isl.ended) { const def = this.isl.def; this.isl = new Island({ ...def, seed: def.seed + Math.floor(Math.random() * 1000) }, { upgrades: {} }); this.renderer.isl = this.isl; this.cam.fit(this.isl.board.mask, uiMargins('ambient')); this.isl.on((e) => { if (e.type === 'place') this.fx.drop(key(e.q, e.r)); if (e.type === 'season') this.renderer.startTransition(e.from, e.to); if (e.type === 'fauna') this.fx.fauna(`${e.species}@${e.regionId}`, e.kind); }); }
       else {
         let best = null, bs = -Infinity;
         for (const c of this.isl.board.legalCells()) { const p = this.isl.preview(c.q, c.r); if (p && p.total + Math.random() * 0.5 > bs) { bs = p.total + Math.random() * 0.5; best = c; } }
@@ -162,7 +184,7 @@ class AmbientIsland {
     const b = this.bounds();
     this.fx.ambient(dt, this.isl.season, b, 1);
   }
-  bounds() { const c = this.cam; const tl = c.toWorldPoint(0, 0), br = c.toWorldPoint(W, H); return { minX: tl.x, maxX: br.x, minY: tl.y, maxY: br.y }; }
+  bounds() { const c = this.cam; const tl = c.toWorldPoint(0, 0), br = c.toWorldPoint(STAGE.W, STAGE.H); return { minX: tl.x, maxX: br.x, minY: tl.y, maxY: br.y }; }
   render(ctx, alpha, dt) { this.renderer.render(ctx, alpha, dt); }
 }
 
@@ -190,7 +212,7 @@ class StoryScene {
   }
   exit() { if (this.node && this.node.destroy) this.node.destroy(); hideUI(); }
   update(dt) { this.bg.update(dt); input.endFrame(); }
-  render(ctx, alpha, dt) { this.bg.render(ctx, alpha, dt); ctx.fillStyle = 'rgba(244,239,230,0.45)'; ctx.fillRect(0, 0, W, H); }
+  render(ctx, alpha, dt) { this.bg.render(ctx, alpha, dt); ctx.fillStyle = 'rgba(244,239,230,0.45)'; ctx.fillRect(0, 0, STAGE.W, STAGE.H); }
 }
 
 // ---------- Scène de jeu ----------
@@ -204,7 +226,8 @@ class IslandScene {
     this.mech = mech;
     const isl = new Island(def, { upgrades });
     this.isl = isl;
-    this.cam = new Camera(); this.cam.fit(isl.board.mask, { immediate: true });
+    this.cam = new Camera(); this.cam.fit(isl.board.mask, { ...uiMargins('island'), immediate: true });
+    this.armed = null;   // tactile : case « armée » (aperçu affiché) en attente d'une seconde touche
     this.particles = new ParticleSystem(1500); this.fx = new Effects(this.particles); this.shake = new Shake(); this.shake.enabled = Save.options.shake !== false;
     this.renderer = new IslandRenderer(isl, this.cam, this.fx, this.particles);
     this.paused = false; this.budMode = false; this.endTimer = 0; this.finished = false;
@@ -220,6 +243,11 @@ class IslandScene {
       onPocket: () => { if (isl.toPocket()) AudioSys.play('tile_pocket', { volume: 0.6 }); },
       onPocketOut: (i) => { if (isl.fromPocket(i)) AudioSys.play('tile_pocket', { volume: 0.6 }); },
       onGardenPick: (fam) => { isl.setGardenTile(fam); AudioSys.play('ui_click', { volume: 0.4 }); },
+      onPlace: () => this.placeArmed(),
+      onBudChoice: (fam) => { if (this.budMode && this.budTarget && isl.bud(this.budTarget.q, this.budTarget.r, fam)) this.setBud(false); },
+      onBudCancel: () => this.setBud(false),
+      onFullscreen: () => Game.toggleFullscreen(),
+      compact: STAGE.compact,
     });
     document.getElementById('hud').classList.add('on');
     this.tutorial = new Tutorial(document.getElementById('tutorial'), isl, def.id, !Save.options.skipTutorial && !def.infinite && !def.garden);
@@ -236,6 +264,9 @@ class IslandScene {
       input.on('mouseup', (b, x, y) => this.onMouseUp(b, x, y)),
       input.on('wheel', (dy) => { if (this.paused) return; this.cam.zoomBy(dy > 0 ? 0.9 : 1.1, input.mouse.x, input.mouse.y); }),
       input.on('keydown', (k) => this.onKey(k)),
+      input.on('tap', (x, y) => this.onTap(x, y)),
+      input.on('pan', (dx, dy) => { if (!this.paused) this.cam.pan(dx, dy); }),
+      input.on('pinch', (f, cx, cy) => { if (!this.paused) this.cam.zoomBy(f, cx, cy); }),
     ];
     document.getElementById('stage').classList.add('playing');
   }
@@ -306,6 +337,7 @@ class IslandScene {
       else { const an = { t: 0, kind: 'leave', info: e }; fx.faunaAnim.set(k, an); AudioSys.play('fauna_leave', { volume: 0.5 }); this.hud.notify(`${s.name} : ${s.leave}`, 'warn'); }
       this.tutorial.onEvent('fauna');
     } else if (e.type === 'wish') {
+      this.hud.flashWishes();
       const s = STORY.wishes[e.wish.def.id] || { title: '', done: '', failed: '' };
       if (e.kind === 'done') { AudioSys.play('wish_done', { volume: 0.8 }); setTimeout(() => AudioSys.play('rare_tile', { volume: 0.6 }), 600); this.hud.notify(`Vœu exaucé — ${s.done}`, 'gold'); this.hud.notify(`Une tuile rare rejoint la file : ${(STORY.tiles[e.rare] || {}).name || e.rare}`, 'rare'); }
       else { AudioSys.play('wish_failed', { volume: 0.6 }); this.hud.notify(`${s.title} — ${s.failed}`, 'warn'); }
@@ -321,7 +353,7 @@ class IslandScene {
     }
   }
 
-  setBud(on) { if (on && !this.mech.has('breath')) return; this.budMode = on; this.renderer.budMode = on; this.hud.setBudMode(on); this.budTarget = null; }
+  setBud(on) { if (on && !this.mech.has('breath')) return; this.budMode = on; this.renderer.budMode = on; this.hud.setBudMode(on, false); this.budTarget = null; if (on) { this.armed = null; this.hud.setPlaceButton(null); } }
 
   onMouseDown(b, x, y) {
     if (this.paused || !this.isl || this.isl.ended) return;
@@ -329,7 +361,7 @@ class IslandScene {
     if (b !== 0) return;
     const w = this.cam.toWorldPoint(x, y); const { q, r } = fromWorld(w.x, w.y);
     if (this.budMode) {
-      if (this.isl.canBud(q, r)) { this.budTarget = { q, r }; this.hud.notify('Forêt (F) ou verger (V) ?', 'info'); }
+      if (this.isl.canBud(q, r)) { this.budTarget = { q, r }; this.hud.setBudMode(true, true); }
       else { this.setBud(false); }
       return;
     }
@@ -337,6 +369,26 @@ class IslandScene {
     else if (this.isl.board.has(q, r) && !this.isl.board.get(q, r)) { AudioSys.play('tile_invalid', { volume: 0.5 }); this.hud.notify('Une tuile doit toucher une tuile posée', 'warn'); }
   }
   onMouseUp(b, x, y) { if (b === 2 || b === 1) this.drag = null; }
+  onResize() { if (this.cam && this.isl) this.cam.fit(this.isl.board.mask, uiMargins('island')); }
+  /** Tactile : première touche = aperçu (case armée), seconde touche sur la même case = pose. */
+  onTap(x, y) {
+    if (this.paused || !this.isl || this.isl.ended) return;
+    const w = this.cam.toWorldPoint(x, y); const { q, r } = fromWorld(w.x, w.y);
+    if (this.budMode) {
+      if (this.isl.canBud(q, r)) { this.budTarget = { q, r }; this.hud.setBudMode(true, true); AudioSys.play('tile_hover', { volume: 0.3 }); }
+      else this.setBud(false);
+      return;
+    }
+    if (!this.isl.board.has(q, r) || this.isl.board.get(q, r)) { this.armed = null; this.hud.setPlaceButton(null); return; }
+    if (!this.isl.canPlace(q, r)) { this.armed = null; this.hud.setPlaceButton(null); AudioSys.play('tile_invalid', { volume: 0.5 }); this.hud.notify('Une tuile doit toucher une tuile posée', 'warn'); return; }
+    if (this.armed && this.armed.q === q && this.armed.r === r) { this.placeArmed(); return; }
+    this.armed = { q, r }; AudioSys.play('tile_hover', { volume: 0.3 });
+  }
+  placeArmed() {
+    if (!this.armed || this.paused || !this.isl || this.isl.ended) return;
+    const { q, r } = this.armed; this.armed = null; this.hud.setPlaceButton(null);
+    if (this.isl.canPlace(q, r)) { this.isl.place(q, r); this.renderer.hover = null; }
+  }
   onKey(k) {
     if (k === 'Escape') { if (this.budMode) { this.setBud(false); return; } this.togglePause(); return; }
     if (k === 'KeyM') { const m = AudioSys.toggleMute(); Save.options.muted = m; Save.save(); return; }
@@ -364,7 +416,7 @@ class IslandScene {
     document.getElementById('tutorial').classList.toggle('paused', this.paused);
     if (this.paused) {
       AudioSys.play('ui_open', { volume: 0.5 });
-      const build = () => buildPause({ title: this.title, onResume: () => this.togglePause(false), onRestart: () => scenes.go('island', { def: this.def }, { fade: 0.5 }), onOptions: () => Game.showOptions(() => showUI(build(), 'pause-wrap')), onGuide: () => Game.showGuide(() => showUI(build(), 'pause-wrap')), onMenu: () => scenes.go('menu') });
+      const build = () => buildPause({ title: this.title, onResume: () => this.togglePause(false), onRestart: () => scenes.go('island', { def: this.def }, { fade: 0.5 }), onOptions: () => Game.showOptions(() => showUI(build(), 'pause-wrap')), onGuide: () => Game.showGuide(() => showUI(build(), 'pause-wrap')), onFullscreen: () => { Game.toggleFullscreen(); setTimeout(() => { if (this.paused) showUI(build(), 'pause-wrap'); }, 400); }, onMenu: () => scenes.go('menu') });
       showUI(build(), 'pause-wrap');
     } else { hideUI(); AudioSys.play('ui_close', { volume: 0.5 }); }
   }
@@ -378,14 +430,17 @@ class IslandScene {
     const pan = 320 * dt; if (input.isDown('ArrowLeft')) this.cam.pan(pan, 0); if (input.isDown('ArrowRight')) this.cam.pan(-pan, 0); if (input.isDown('ArrowUp')) this.cam.pan(0, pan); if (input.isDown('ArrowDown')) this.cam.pan(0, -pan);
     this.cam.update(dt);
     // survol
-    if (!isl.ended) {
+    if (!isl.ended && input.lastPointer === 'touch' && !this.budMode) {
+      if (this.armed && isl.canPlace(this.armed.q, this.armed.r)) { const pv = isl.preview(this.armed.q, this.armed.r); this.renderer.hover = { q: this.armed.q, r: this.armed.r, preview: pv }; this.hud.setPlaceButton(pv ? pv.total : null); }
+      else { this.armed = null; this.renderer.hover = null; this.hud.setPlaceButton(null); }
+    } else if (!isl.ended) {
       const w = this.cam.toWorldPoint(input.mouse.x, input.mouse.y); const { q, r } = fromWorld(w.x, w.y);
       const hk = key(q, r);
       if (this.lastHover !== hk) { this.lastHover = hk; if (isl.board.has(q, r) && !isl.board.get(q, r) && isl.canPlace(q, r)) AudioSys.play('tile_hover', { volume: 0.18, minInterval: 0.08 }); }
       this.renderer.hover = isl.board.has(q, r) ? { q, r, preview: isl.preview(q, r) } : null;
     } else this.renderer.hover = null;
     this.particles.update(dt); this.fx.update(dt); this.shake.update(dt);
-    const b = (() => { const tl = this.cam.toWorldPoint(0, 0), br = this.cam.toWorldPoint(W, H); return { minX: tl.x, maxX: br.x, minY: tl.y, maxY: br.y }; })();
+    const b = (() => { const tl = this.cam.toWorldPoint(0, 0), br = this.cam.toWorldPoint(STAGE.W, STAGE.H); return { minX: tl.x, maxX: br.x, minY: tl.y, maxY: br.y }; })();
     this.fx.ambient(dt, isl.season, b, 1);
     this.hud.update();
     this.tutorial.update(dt);
@@ -408,13 +463,13 @@ class ResultsScene {
   }
   exit() { hideUI(); }
   update(dt) { this.bg.update(dt); input.endFrame(); }
-  render(ctx, alpha, dt) { this.bg.render(ctx, alpha, dt); ctx.fillStyle = 'rgba(244,239,230,0.5)'; ctx.fillRect(0, 0, W, H); }
+  render(ctx, alpha, dt) { this.bg.render(ctx, alpha, dt); ctx.fillStyle = 'rgba(244,239,230,0.5)'; ctx.fillRect(0, 0, STAGE.W, STAGE.H); }
 }
 class WorkshopScene {
   async enter({ onContinue }) { AudioSys.playMusic('results', { fade: 1.5 }); this.bg = scenes.scenes.get('menu').ensureBg(); showUI(buildWorkshop({ onContinue }), 'workshop-wrap'); }
   exit() { hideUI(); }
   update(dt) { this.bg.update(dt); input.endFrame(); }
-  render(ctx, alpha, dt) { this.bg.render(ctx, alpha, dt); ctx.fillStyle = 'rgba(244,239,230,0.5)'; ctx.fillRect(0, 0, W, H); }
+  render(ctx, alpha, dt) { this.bg.render(ctx, alpha, dt); ctx.fillStyle = 'rgba(244,239,230,0.5)'; ctx.fillRect(0, 0, STAGE.W, STAGE.H); }
 }
 class EndingScene {
   async enter() {
@@ -427,7 +482,7 @@ class EndingScene {
   }
   exit() { hideUI(); }
   update(dt) { this.bg.update(dt); input.endFrame(); }
-  render(ctx, alpha, dt) { this.bg.render(ctx, alpha, dt); ctx.fillStyle = 'rgba(244,239,230,0.35)'; ctx.fillRect(0, 0, W, H); }
+  render(ctx, alpha, dt) { this.bg.render(ctx, alpha, dt); ctx.fillStyle = 'rgba(244,239,230,0.35)'; ctx.fillRect(0, 0, STAGE.W, STAGE.H); }
 }
 
 scenes.register('menu', new MenuScene());

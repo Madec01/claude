@@ -2,8 +2,7 @@
 import { BALANCE } from '../data/balance.js';
 import { toWorld, parse, TILE_W, TILE_H } from './hex.js';
 import { clamp } from '../core/math.js';
-
-const W = 1280, H = 720;
+import { STAGE, minZoom } from '../core/stage.js';
 
 export class Camera {
   constructor() {
@@ -18,8 +17,8 @@ export class Camera {
     let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
     for (const k of mask) { const [q, r] = parse(k); const p = toWorld(q, r); minX = Math.min(minX, p.x); maxX = Math.max(maxX, p.x); minY = Math.min(minY, p.y); maxY = Math.max(maxY, p.y); }
     const w = maxX - minX + TILE_W, h = maxY - minY + TILE_H;
-    const availW = W - uiLeft - uiRight - padding, availH = H - uiTop - uiBottom - padding;
-    const z = clamp(Math.min(availW / w, availH / h), BALANCE.camera.minZoom, BALANCE.camera.maxZoom);
+    const availW = STAGE.W - uiLeft - uiRight - padding, availH = STAGE.H - uiTop - uiBottom - padding;
+    const z = clamp(Math.min(availW / w, availH / h), minZoom(), BALANCE.camera.maxZoom);
     this.tx = (minX + maxX) / 2; this.ty = (minY + maxY) / 2 + 10;
     this.tzoom = z;
     this.offsetX = (uiLeft - uiRight) / 2; this.offsetY = (uiTop - uiBottom) / 2;
@@ -31,12 +30,12 @@ export class Camera {
     this.x += (this.tx - this.x) * k; this.y += (this.ty - this.y) * k; this.zoom += (this.tzoom - this.zoom) * k;
   }
 
-  toScreen(wx, wy) { return { x: (wx - this.x) * this.zoom + W / 2 + this.offsetX, y: (wy - this.y) * this.zoom + H / 2 + this.offsetY }; }
-  toWorldPoint(sx, sy) { return { x: (sx - W / 2 - this.offsetX) / this.zoom + this.x, y: (sy - H / 2 - this.offsetY) / this.zoom + this.y }; }
+  toScreen(wx, wy) { return { x: (wx - this.x) * this.zoom + STAGE.W / 2 + this.offsetX, y: (wy - this.y) * this.zoom + STAGE.H / 2 + this.offsetY }; }
+  toWorldPoint(sx, sy) { return { x: (sx - STAGE.W / 2 - this.offsetX) / this.zoom + this.x, y: (sy - STAGE.H / 2 - this.offsetY) / this.zoom + this.y }; }
 
   zoomBy(f, sx, sy) {
     const before = this.toWorldPoint(sx, sy);
-    this.tzoom = clamp(this.tzoom * f, BALANCE.camera.minZoom, BALANCE.camera.maxZoom);
+    this.tzoom = clamp(this.tzoom * f, minZoom(), BALANCE.camera.maxZoom);
     this.zoom = this.tzoom;
     const after = this.toWorldPoint(sx, sy);
     this.tx += before.x - after.x; this.ty += before.y - after.y; this.x = this.tx; this.y = this.ty;

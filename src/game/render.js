@@ -4,7 +4,7 @@ import { toWorld, corners, parse, key, DIRS, edgeMid, TILE_W, TILE_H, SIZE } fro
 import { FAMILY_COLORS, SEASONS } from '../data/tiles.js';
 import { clamp, lerp, TAU, easeOutCubic, rnd } from '../core/math.js';
 
-const W = 1280, H = 720;
+import { STAGE } from '../core/stage.js';
 const SEA = { spring: ['#8fc8e6', '#5f9fc8'], summer: ['#7fc0e4', '#4f93c2'], autumn: ['#8cb9d3', '#5d8fb3'], winter: ['#a9c7db', '#7aa2bf'] };
 
 export class IslandRenderer {
@@ -30,7 +30,7 @@ export class IslandRenderer {
     // balayage diagonal de gauche à droite
     const p = this.transition.t / 1.6;
     const sx = this.cam.toScreen(worldX, 0).x;
-    const sweep = -200 + p * (W + 400);
+    const sweep = -200 + p * (STAGE.W + 400);
     return sx < sweep ? this.transition.to : this.transition.from;
   }
 
@@ -65,15 +65,15 @@ export class IslandRenderer {
   drawSea(ctx, season) {
     const tr = this.transition;
     const cols = SEA[season] || SEA.spring;
-    const g = ctx.createLinearGradient(0, 0, 0, H);
+    const g = ctx.createLinearGradient(0, 0, 0, STAGE.H);
     g.addColorStop(0, cols[0]); g.addColorStop(1, cols[1]);
-    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = g; ctx.fillRect(0, 0, STAGE.W, STAGE.H);
     // vagues discrètes
     ctx.save();
     for (const w of this.waves) {
       w.t += 0.016;
       const p = this.cam.toScreen(w.x + Math.sin(w.t * 0.5) * 10, w.y);
-      if (p.x < -60 || p.x > W + 60 || p.y < -30 || p.y > H + 30) continue;
+      if (p.x < -60 || p.x > STAGE.W + 60 || p.y < -30 || p.y > STAGE.H + 30) continue;
       const img = this.waveImgs[Math.floor(w.t * 0.7) % Math.max(1, this.waveImgs.length)];
       const a = 0.25 + 0.2 * Math.sin(w.t * 1.3);
       ctx.globalAlpha = a;
@@ -105,7 +105,7 @@ export class IslandRenderer {
     for (const k of b.mask) {
       if (b.tiles.has(k)) continue;
       const [q, r] = parse(k); const w = toWorld(q, r); const c = cam.toScreen(w.x, w.y);
-      if (c.x < -100 || c.x > W + 100 || c.y < -100 || c.y > H + 100) continue;
+      if (c.x < -100 || c.x > STAGE.W + 100 || c.y < -100 || c.y > STAGE.H + 100) continue;
       const pts = corners(c.x, c.y, SIZE * cam.zoom * 0.96);
       ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]); for (let i = 1; i < 6; i++) ctx.lineTo(pts[i][0], pts[i][1]); ctx.closePath();
       ctx.fillStyle = legal.has(k) ? 'rgba(244,239,230,0.55)' : 'rgba(244,239,230,0.28)';
@@ -139,7 +139,7 @@ export class IslandRenderer {
     }
     for (const t of list) {
       const w = toWorld(t.q, t.r); const c = cam.toScreen(w.x, w.y);
-      if (c.x < -150 || c.x > W + 150 || c.y < -160 || c.y > H + 160) continue;
+      if (c.x < -150 || c.x > STAGE.W + 150 || c.y < -160 || c.y > STAGE.H + 160) continue;
       const d = this.fx.dropTransform(key(t.q, t.r));
       this.drawTileAt(ctx, t, c.x, c.y + d.dy * cam.zoom, d.s, 1);
       if (t.bloom) this.drawBloom(ctx, c.x, c.y);
@@ -268,13 +268,13 @@ export class IslandRenderer {
   drawTransition(ctx) {
     const tr = this.transition; if (!tr) return;
     const p = tr.t / 1.6;
-    const sweep = -200 + p * (W + 400);
+    const sweep = -200 + p * (STAGE.W + 400);
     const cols = { spring: '#bfe8a8', summer: '#ffe9a8', autumn: '#f2c08a', winter: '#eef4fa' };
     ctx.save();
     const g = ctx.createLinearGradient(sweep - 160, 0, sweep + 40, 0);
     g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(0.7, cols[tr.to] || '#fff'); g.addColorStop(1, 'rgba(255,255,255,0)');
     ctx.globalAlpha = 0.75 * (1 - Math.max(0, p - 0.9) * 10);
-    ctx.fillStyle = g; ctx.fillRect(sweep - 160, 0, 200, H);
+    ctx.fillStyle = g; ctx.fillRect(sweep - 160, 0, 200, STAGE.H);
     ctx.restore();
   }
 }

@@ -1,0 +1,16 @@
+{
+  "name": "Cent Saisons — L’île qui se souvient",
+  "short_name": "Cent Saisons",
+  "description": "Puzzle contemplatif de tuiles hexagonales : faites revivre douze îles au fil des saisons.",
+  "lang": "fr",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "fullscreen",
+  "orientation": "any",
+  "background_color": "#f4efe6",
+  "theme_color": "#f4efe6",
+  "icons": [
+    { "src": "assets/img/ui/app_icon_192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "assets/img/ui/app_icon_512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

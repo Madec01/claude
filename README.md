@@ -16,7 +16,9 @@ python3 -m http.server 8080
 # puis http://localhost:8080/
 ```
 
-Navigateurs pris en charge : Chrome, Firefox et Edge à jour, sur ordinateur (souris requise). Le son se lance après la première interaction (règle des navigateurs).
+Navigateurs pris en charge : Chrome, Firefox et Edge à jour sur ordinateur, Chrome Android et Safari iOS sur téléphone et tablette. Le son se lance après la première interaction (règle des navigateurs).
+
+**Sur téléphone** : l'interface se réorganise (file de tuiles en bas en portrait, en colonne en paysage, vœux derrière un bouton). Toucher une case affiche ses points, toucher à nouveau (ou le bouton « Poser ici ») pose la tuile ; un doigt déplace la vue, deux doigts zooment. Le bouton plein écran est dans le menu, la pause et en haut à droite en jeu. Sur iPhone, où le plein écran n'existe pas dans Safari, ajoutez le jeu à l'écran d'accueil (Partager → Sur l'écran d'accueil) : il s'ouvre alors sans barre de navigateur.
 
 ## Comment on joue
 
@@ -63,8 +65,8 @@ Le **mode test** déverrouille toutes les îles, l'Île infinie et le Jardin, et
 
 ```
 index.html            point d'entrée
-css/                  thème papier clair (base, menu, HUD)
-src/core/             moteur générique : boucle, scènes, entrées, audio, sauvegarde, chargement
+css/                  thème papier clair (base, menu, HUD, disposition mobile)
+src/core/             moteur générique : boucle, scènes, scène logique (bureau / mobile), entrées souris et tactile, audio, sauvegarde, chargement
 src/data/             tuiles et affinités, équilibrage, îles, améliorations, narration
 src/game/             grille hexagonale, plateau, règles, saisons, faune, vœux, file, île, caméra, rendu, effets, HUD, tutoriel
 src/ui/               menu, options, crédits, écrans narratifs, bilan, atelier, pause
@@ -83,6 +85,7 @@ CREDITS.md            crédits complets générés
 ```bash
 node tests/rules.test.js          # règles, fermetures, couverture narrative, bot glouton sur les 14 îles
 node tests/autoplay.js 1-12,infinite,garden   # parcours réel dans Chromium (serveur statique sur le port 8765 requis)
+node tests/mobile.js                          # émulation téléphone (iPhone 12 portrait/paysage, Pixel 7) : tactile, captures
 ```
 
 ## Assets et licences
