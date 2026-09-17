@@ -59,14 +59,22 @@ export class IslandRenderer {
     this.drawShallows(ctx);
     this.drawEmptyCells(ctx);
     if (this.legacy) this.drawTiles(ctx); else this.drawLayered(ctx);
-    this.p.render(ctx, 0);
+    this.particlesWorld(ctx, 0);
     this.drawHover(ctx);
     this.drawRings(ctx);
     this.drawFauna(ctx, dt);
-    this.p.render(ctx, 1);
+    this.particlesWorld(ctx, 1);
     this.drawTexts(ctx);
     this.drawWeather(ctx, dt);
     this.drawTransition(ctx);
+  }
+
+  /** Particules exprimées en coordonnées monde : on applique la caméra avant de les dessiner. */
+  particlesWorld(ctx, layer) {
+    const cam = this.cam;
+    ctx.save(); ctx.translate(STAGE.W / 2 + cam.offsetX, STAGE.H / 2 + cam.offsetY); ctx.scale(cam.zoom, cam.zoom); ctx.translate(-cam.x, -cam.y);
+    this.p.render(ctx, layer);
+    ctx.restore();
   }
 
   drawSea(ctx, season) {
@@ -207,7 +215,8 @@ export class IslandRenderer {
       if (o.composed) { const cw = toWorld(o.tile.q, o.tile.r); const cc = cam.toScreen(cw.x, cw.y); const dd = d || { s: 1, dy: 0 }; this.drawTileAt(ctx, o.tile, cc.x, cc.y + dd.dy * z, dd.s, 1); continue; }
       const sk = spriteKey(o.tpl, season); const img = Assets.img(sk); if (!img) continue;
       const m = images[sk]; const div = o.wave ? 3 : 2;
-      const w = (m ? m.w : img.width) / div, h = (m ? m.h : img.height) / div;
+      const os = o.scale || 1;
+      const w = (m ? m.w : img.width) / div * os, h = (m ? m.h : img.height) / div * os;
       const sc = d ? z * d.s : z, dy = d ? d.dy * z : 0;
       ctx.save();
       if (o.alpha) ctx.globalAlpha = o.alpha;
@@ -351,10 +360,10 @@ export class IslandRenderer {
       const c = cells.length ? cells[Math.floor(Math.random() * cells.length)] : null;
       const t = c ? toWorld(c.q, c.r) : home;
       st.tx = t.x + (Math.random() - 0.5) * 36; st.ty = t.y + (Math.random() - 0.5) * 26;
-      st.wait = 2.5 + Math.random() * 4;
+      st.wait = 1.2 + Math.random() * 2.5;
     }
     const dx = st.tx - st.x, dy = st.ty - st.y; const d = Math.hypot(dx, dy);
-    const speed = a.species === 'duck' || a.species === 'penguin' ? 18 : a.species === 'horse' ? 30 : 24;
+    const speed = a.species === 'duck' || a.species === 'penguin' ? 22 : a.species === 'horse' ? 40 : 30;
     if (d > 1) { const step = Math.min(d, speed * dt); st.x += (dx / d) * step; st.y += (dy / d) * step; st.hop += dt * (a.species === 'duck' ? 3 : 9); }
     return st;
   }

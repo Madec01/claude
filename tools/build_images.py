@@ -88,6 +88,7 @@ COLORS = {
     "stone_winter": "#e3eaf0", "dirt_winter": "#e6ebf0",
     "heath_ground": {"spring": "#a9b26a", "summer": "#b0a45a", "autumn": "#b58c55", "winter": SNOW},
     "heather": {"spring": "#b98ccc", "summer": "#a67bb8", "autumn": "#8f6a9e", "winter": "#d9d0e2"},
+    "crop": {"spring": "#8fca5c", "summer": "#a9c24a", "autumn": "#e2b44b", "winter": "#e8edf1"},
 }
 
 
@@ -510,6 +511,8 @@ class Composer:
             im = recolor(im, COLORS["reed"][season], mask="all", shade=1.0)
         elif kind == "heather":
             im = recolor(im, COLORS["heather"][season], mask="all", shade=1.0)
+        elif kind == "crop":
+            im = recolor(im, COLORS["crop"][season], mask="all", shade=1.0)
         elif kind == "hill":
             im = snowify(im) if season == "winter" else recolor(im, COLORS["grass"][season])
         elif kind == "dry":
@@ -723,6 +726,12 @@ class Builder:
                 col = "#%02x%02x%02x" % tuple(int(v) for v in arr)
                 self.emit(f"ground_{kind}_{season}", "tiles", im, HP, self.src.hp_original(base), f"Sol « {kind} » ({season}) pour le décor composé par région.",
                           ground=kind, season=season, ground_color=col)
+        # sol de champ : terre nue (dirt_06) ; les rangs de culture sont des objets posés par région (obj_crop_*)
+        for season in SEASONS:
+            base = comp.base_for(T("field", "dirt_06", [], base_kind="dirt"), season)
+            arr = np.asarray(base)[120:170, 95:145, :3].reshape(-1, 3).mean(0)
+            self.emit(f"ground_field_{season}", "tiles", base, HP, self.src.hp_original("dirt_06"), f"Sol de champ ({season}) : terre nue, les rangs de culture sont ajoutés par région.",
+                      ground="field", season=season, ground_color="#%02x%02x%02x" % tuple(int(v) for v in arr))
         im = comp.base_for(T("dry", "grass_05", [], base_kind="dry"), "summer")
         arr = np.asarray(im)[120:170, 95:145, :3].reshape(-1, 3).mean(0)
         self.emit("ground_dry", "tiles", im, HP, self.src.hp_original("grass_05"), "Sol de prairie sèche (été).", ground="dry", ground_color="#%02x%02x%02x" % tuple(int(v) for v in arr))
@@ -741,6 +750,7 @@ class Builder:
             obj(f"obj_hedge_{season}", L("obj:hedge", 0, 0, "foliage", scale=0.45), season, f"Haie ×0.45 ({season}).")
             obj(f"obj_bushGrass_{season}", L("ht:bushGrass:2.4", 0, 0, "reed"), season, f"Touffe d'herbe / roseau ({season}).", pack=HT)
             obj(f"obj_heather_{season}", L("ht:bushGrass:2.4", 0, 0, "heather"), season, f"Bruyère ({season}).", pack=HT)
+            obj(f"obj_crop_{season}", L("ht:bushGrass:" + {"spring": "1.5", "summer": "2.0", "autumn": "2.1", "winter": "1.3"}[season], 0, 0, "crop"), season, f"Rang de culture ({season}) : touffe recolorée (pousses, blé vert, blé mûr, chaume sous la neige).", pack=HT)
             for name in ("farmland", "farmland_empty"):
                 obj(f"obj_{name}_{season}", L(f"obj:{name}", 0, 0, "field"), season, f"Parcelle {name} ({season}).")
         obj("obj_bushGrass_dry", L("ht:bushGrass:2.4", 0, 0, "dry"), "summer", "Touffe sèche.", pack=HT)

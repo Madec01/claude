@@ -43,11 +43,14 @@ export class Effects {
     if (this.ambientTimer > 0) return;
     this.ambientTimer = season === 'winter' ? 0.05 : 0.14;
     const img = season === 'autumn' ? this.img('leaf_') : season === 'spring' ? this.img('petal_') : season === 'winter' ? (this.img('snowflake_') || this.img('circle_')) : null;
-    if (!img && season !== 'summer') return;
+    if (!img) return;
     let x = rnd(bounds.minX, bounds.maxX), y = rnd(bounds.minY - 200, bounds.minY);
-    if (sources && sources.length && season !== 'winter' && Math.random() < 0.7) { const p = rndPick(sources); x = p.x + rnd(-30, 30); y = p.y - rnd(20, 50); }
-    if (season === 'summer') { const c = this.img('light_') || this.img('circle_'); if (Math.random() < 0.4) this.p.emit({ x, y: rnd(bounds.minY, bounds.maxY), vx: rnd(-6, 6), vy: rnd(-14, -4), life: rnd(2, 3.5), size: rnd(6, 12), sizeEnd: 0, img: c, color: '#fff2b0', alpha: 0.7, alphaEnd: 0, blend: 'lighter', layer: 1 }); return; }
-    this.p.emit({ x, y, vx: rnd(-25, 25) + (season === 'autumn' ? 30 : 0), vy: season === 'winter' ? rnd(30, 60) : rnd(40, 80), life: rnd(5, 8), size: season === 'winter' ? rnd(4, 9) : rnd(12, 20), sizeEnd: season === 'winter' ? rnd(3, 7) : rnd(10, 18), img, alpha: 0.9, alphaEnd: 0.6, layer: 1, rot: rnd(0, TAU), rotV: rnd(-2, 2) });
+    if (season !== 'winter') {
+      if (!sources || !sources.length) return;
+      const p = rndPick(sources); x = p.x + rnd(-24, 24); y = p.y - rnd(20, 44);
+      if (x < bounds.minX - 100 || x > bounds.maxX + 100 || y < bounds.minY - 100 || y > bounds.maxY + 100) return;
+    }
+    this.p.emit({ x, y, vx: rnd(-25, 25) + (season === 'autumn' ? 30 : 0), vy: season === 'winter' ? rnd(30, 60) : rnd(40, 80), life: season === 'winter' ? rnd(5, 8) : rnd(1.6, 2.6), size: season === 'winter' ? rnd(4, 9) : rnd(12, 20), sizeEnd: season === 'winter' ? rnd(3, 7) : rnd(10, 18), img, alpha: 0.9, alphaEnd: 0.6, layer: 1, rot: rnd(0, TAU), rotV: rnd(-2, 2) });
   }
 
   /**
@@ -57,13 +60,13 @@ export class Effects {
   life(dt, { objects, tiles, season, weather, bounds }) {
     const T = this.lifeTimers;
     for (const k of Object.keys(T)) T[k] -= dt;
-    if (T.smoke <= 0 && (season === 'winter' || season === 'autumn')) {
-      T.smoke = season === 'winter' ? 0.22 : 0.6;
+    if (T.smoke <= 0) {
+      T.smoke = season === 'winter' ? 0.09 : season === 'autumn' ? 0.2 : 0.45;
       const houses = objects.filter((o) => o.tpl === 'obj_house' || o.tpl === 'obj_house_small' || o.tpl === 'obj_villa' || o.tpl === 'obj_farm');
       if (houses.length) {
         const h = rndPick(houses); const smoke = this.img('smoke_');
         const top = h.tpl === 'obj_house' ? 62 : h.tpl === 'obj_villa' ? 58 : 48; const off = h.tpl === 'obj_house' ? 22 : 10;
-        this.p.emit({ x: h.x + off, y: h.y - top, vx: rnd(4, 12), vy: rnd(-18, -10), life: rnd(2.4, 3.6), size: rnd(6, 9), sizeEnd: rnd(22, 30), img: smoke, alpha: 0.32, alphaEnd: 0, layer: 1, rotV: rnd(-0.4, 0.4) });
+        this.p.emit({ x: h.x + off, y: h.y - top, vx: rnd(3, 10), vy: rnd(-22, -12), life: rnd(2.8, 4), size: rnd(9, 13), sizeEnd: rnd(30, 40), img: smoke, tint: '#5c6168', alpha: 0.75, alphaEnd: 0, layer: 1, rotV: rnd(-0.4, 0.4), drag: 0.15 });
       }
     }
     if (T.shimmer <= 0) {

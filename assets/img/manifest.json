@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-17T18:59:38+00:00",
+ "generated": "2026-09-17T19:32:46+00:00",
  "generator": "tools/build_images.py",
  "conventions": {
   "hex": {
@@ -2885,6 +2885,54 @@
    "season": "winter",
    "ground_color": "#eef2f6"
   },
+  "ground_field_spring": {
+   "file": "tiles/ground_field_spring.png",
+   "w": 240,
+   "h": 280,
+   "bytes": 6964,
+   "source": "hexagon-pack",
+   "original": "PNG/Tiles/Terrain/Dirt/dirt_06.png",
+   "note": "Sol de champ (spring) : terre nue, les rangs de culture sont ajoutés par région.",
+   "ground": "field",
+   "season": "spring",
+   "ground_color": "#bb8044"
+  },
+  "ground_field_summer": {
+   "file": "tiles/ground_field_summer.png",
+   "w": 240,
+   "h": 280,
+   "bytes": 6964,
+   "source": "hexagon-pack",
+   "original": "PNG/Tiles/Terrain/Dirt/dirt_06.png",
+   "note": "Sol de champ (summer) : terre nue, les rangs de culture sont ajoutés par région.",
+   "ground": "field",
+   "season": "summer",
+   "ground_color": "#bb8044"
+  },
+  "ground_field_autumn": {
+   "file": "tiles/ground_field_autumn.png",
+   "w": 240,
+   "h": 280,
+   "bytes": 6964,
+   "source": "hexagon-pack",
+   "original": "PNG/Tiles/Terrain/Dirt/dirt_06.png",
+   "note": "Sol de champ (autumn) : terre nue, les rangs de culture sont ajoutés par région.",
+   "ground": "field",
+   "season": "autumn",
+   "ground_color": "#bb8044"
+  },
+  "ground_field_winter": {
+   "file": "tiles/ground_field_winter.png",
+   "w": 240,
+   "h": 280,
+   "bytes": 6309,
+   "source": "hexagon-pack",
+   "original": "PNG/Tiles/Terrain/Dirt/dirt_06.png",
+   "note": "Sol de champ (winter) : terre nue, les rangs de culture sont ajoutés par région.",
+   "ground": "field",
+   "season": "winter",
+   "ground_color": "#d3bba3"
+  },
   "ground_dry": {
    "file": "tiles/ground_dry.png",
    "w": 240,
@@ -3096,6 +3144,16 @@
    "note": "Bruyère (spring).",
    "anchor": "bottom"
   },
+  "obj_crop_spring": {
+   "file": "deco/obj_crop_spring.png",
+   "w": 22,
+   "h": 30,
+   "bytes": 1418,
+   "source": "hexagontiles",
+   "original": "Tiles/bushGrass.png",
+   "note": "Rang de culture (spring) : touffe recolorée (pousses, blé vert, blé mûr, chaume sous la neige).",
+   "anchor": "bottom"
+  },
   "obj_farmland_spring": {
    "file": "deco/obj_farmland_spring.png",
    "w": 112,
@@ -3154,6 +3212,16 @@
    "source": "hexagontiles",
    "original": "Tiles/bushGrass.png",
    "note": "Bruyère (summer).",
+   "anchor": "bottom"
+  },
+  "obj_crop_summer": {
+   "file": "deco/obj_crop_summer.png",
+   "w": 30,
+   "h": 40,
+   "bytes": 2290,
+   "source": "hexagontiles",
+   "original": "Tiles/bushGrass.png",
+   "note": "Rang de culture (summer) : touffe recolorée (pousses, blé vert, blé mûr, chaume sous la neige).",
    "anchor": "bottom"
   },
   "obj_farmland_summer": {
@@ -3216,6 +3284,16 @@
    "note": "Bruyère (autumn).",
    "anchor": "bottom"
   },
+  "obj_crop_autumn": {
+   "file": "deco/obj_crop_autumn.png",
+   "w": 32,
+   "h": 42,
+   "bytes": 2375,
+   "source": "hexagontiles",
+   "original": "Tiles/bushGrass.png",
+   "note": "Rang de culture (autumn) : touffe recolorée (pousses, blé vert, blé mûr, chaume sous la neige).",
+   "anchor": "bottom"
+  },
   "obj_farmland_autumn": {
    "file": "deco/obj_farmland_autumn.png",
    "w": 112,
@@ -3274,6 +3352,16 @@
    "source": "hexagontiles",
    "original": "Tiles/bushGrass.png",
    "note": "Bruyère (winter).",
+   "anchor": "bottom"
+  },
+  "obj_crop_winter": {
+   "file": "deco/obj_crop_winter.png",
+   "w": 20,
+   "h": 26,
+   "bytes": 1210,
+   "source": "hexagontiles",
+   "original": "Tiles/bushGrass.png",
+   "note": "Rang de culture (winter) : touffe recolorée (pousses, blé vert, blé mûr, chaume sous la neige).",
    "anchor": "bottom"
   },
   "obj_farmland_winter": {

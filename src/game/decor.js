@@ -11,7 +11,7 @@ export function groundOf(t) {
   if (t.rare) return t.family === 'ruins' || t.family === 'mine' ? 'stone' : 'grass';
   if (t.family === 'meadow' && t.dry) return 'dry';
   if (t.family === 'water' && t.frozen) return 'ice';
-  return { meadow: 'grass', forest: 'grass', field: 'grass', hamlet: 'grass', orchard: 'grass', water: 'water', marsh: 'dirt', rock: 'stone', sand: 'sand', hill: 'hill', heath: 'heath' }[t.family] || 'grass';
+  return { meadow: 'grass', forest: 'grass', field: 'field', hamlet: 'grass', orchard: 'grass', water: 'water', marsh: 'dirt', rock: 'stone', sand: 'sand', hill: 'hill', heath: 'heath' }[t.family] || 'grass';
 }
 export const groundKey = (g, season) => (g === 'dry' ? 'ground_dry' : g === 'ice' ? 'water_frozen' : `ground_${g}_${season}`);
 export const GROUND_COLORS = { dry: '#cdbb6a', ice: '#dbe9f4' };
@@ -78,19 +78,23 @@ export class Decor {
           const c = toWorld(cell.q, cell.r); const deg = degreeOf(cell, keys);
           const push = (p, tpl, extra = {}) => add(Object.assign({ x: p.x, y: p.y, tpl, cell: ck }, extra));
           if (family === 'forest') {
-            const n = 5 + Math.round(deg * 1.1);
-            for (const p of sample(rng, cell, keys, n, { minDist: 17, margin: 7, radius: 0.95, placed })) { placed.push(p); const r = rng(); push(p, r < 0.32 ? 'obj_treePine_large_{s}' : r < 0.6 ? 'obj_treePine_small_{s}' : r < 0.75 ? 'obj_treeRound_large_{s}' : 'obj_treeRound_small_{s}'); }
+            const n = 16 + Math.round(deg * 2.2);
+            for (const p of sample(rng, cell, keys, n, { minDist: 9, margin: 4, radius: 1.0, placed, tries: 30 })) { placed.push(p); const r = rng(); push(p, r < 0.34 ? 'obj_treePine_large_{s}' : r < 0.58 ? 'obj_treePine_small_{s}' : r < 0.8 ? 'obj_treeRound_large_{s}' : 'obj_treeRound_small_{s}'); }
           } else if (family === 'meadow') {
             if (cell.dry) { for (const p of sample(rng, cell, keys, 2, { minDist: 26, margin: 8, placed })) { placed.push(p); push(p, 'obj_bushGrass_dry'); } continue; }
             for (const p of sample(rng, cell, keys, deg >= 3 ? 1 : 2, { minDist: 26, margin: 8, placed })) { placed.push(p); push(p, 'obj_bushGrass_{s}'); }
             for (const p of sample(rng, cell, keys, 2, { minDist: 22, margin: 10, placed })) { placed.push(p); push(p, PICK(rng, ['obj_flowerWhite', 'obj_flowerYellow']), { seasons: ['spring'] }); }
             for (const p of sample(rng, cell, keys, 1, { minDist: 22, margin: 10, placed })) { placed.push(p); push(p, PICK(rng, ['obj_flowerYellow', 'obj_flowerRed']), { seasons: ['summer'] }); }
           } else if (family === 'field') {
-            const flip = (cell.q + cell.r) % 2 === 0;
-            push({ x: c.x - 16, y: c.y + 12 }, 'obj_farmland_{s}', { flip });
-            push({ x: c.x + 18, y: c.y + 30 }, rng() < 0.7 ? 'obj_farmland_{s}' : 'obj_farmland_empty_{s}', { flip: !flip });
-            if (rng() < 0.6) for (const p of sample(rng, cell, keys, 1, { minDist: 30, margin: 9, placed, radius: 0.8 })) { placed.push(p); push(p, 'obj_hay'); }
-            if (deg >= 3 && rng() < 0.5) push({ x: c.x + 24, y: c.y - 6 }, 'obj_farmland_empty_{s}', { flip });
+            // rangs de culture alignés sur une grille commune à la région (les sillons se prolongent d'une tuile à l'autre)
+            const sx = 19, sy = 14, ox = (reg.id.length * 5) % sx, oy = (reg.id.length * 3) % sy;
+            const x0 = Math.floor((c.x - 70 - ox) / sx) * sx + ox, y0 = Math.floor((c.y - 80 - oy) / sy) * sy + oy;
+            for (let y = y0; y < c.y + 80; y += sy) for (let x = x0 + ((Math.round((y - oy) / sy) % 2) ? sx / 2 : 0); x < c.x + 70; x += sx) {
+              const p = { x: x + (rng() - 0.5) * 3, y: y + (rng() - 0.5) * 2 };
+              if (inRegion(p, keys) !== ck || !edgeOk(p, ck, keys, 5)) continue;
+              push(p, 'obj_crop_{s}');
+            }
+            if (rng() < 0.45) for (const p of sample(rng, cell, keys, 1, { minDist: 30, margin: 12, placed, radius: 0.7 })) { placed.push(p); push(p, 'obj_hay'); }
           } else if (family === 'hamlet') {
             const isCenter = cells.length >= 3 && cell === center && !hasRareCenter;
             const dx = Math.max(-10, Math.min(10, (cen.x - c.x) * 0.15)), dy = Math.max(-6, Math.min(6, (cen.y - c.y) * 0.1));
@@ -119,11 +123,15 @@ export class Decor {
             for (const p of sample(rng, cell, keys, 2, { minDist: 30, margin: 12, placed })) { placed.push(p); push(p, 'obj_puddle{w}'); }
             for (const p of sample(rng, cell, keys, 3, { minDist: 15, margin: 5, placed })) { placed.push(p); push(p, 'obj_bushGrass_{s}'); }
           } else if (family === 'rock') {
-            if (deg >= 3) push({ x: c.x + (rng() - 0.5) * 10, y: c.y + 40 }, 'obj_rockGrey_large{w}');
-            else if (deg >= 1) push({ x: c.x + (rng() - 0.5) * 16, y: c.y + 34 }, PICK(rng, ['obj_rockGrey_medium1{w}', 'obj_rockGrey_medium2{w}', 'obj_rockGrey_medium3{w}']));
-            else { push({ x: c.x - 6, y: c.y + 34 }, PICK(rng, ['obj_rockGrey_medium2{w}', 'obj_rockGrey_medium3{w}'])); push({ x: c.x + 30, y: c.y + 16 }, 'obj_rockGrey_small2{w}'); }
-            for (let d = 0; d < 3; d++) { const nk = key(cell.q + DIRS[d][0], cell.r + DIRS[d][1]); if (!keys.has(nk)) continue; const m = edgeMid(c.x, c.y, d); push({ x: m.x + (rng() - 0.5) * 8, y: m.y + 12 }, PICK(rng, ['obj_rockGrey_small1{w}', 'obj_rockGrey_small3{w}', 'obj_rockGrey_small4{w}'])); }
-            if (rng() < 0.5) for (const p of sample(rng, cell, keys, 1, { minDist: 26, margin: 10, placed })) { placed.push(p); push(p, 'obj_rockGrey_small3{w}'); }
+            if (cells.length === 1) { push({ x: c.x - 6, y: c.y + 36 }, 'obj_rockGrey_large{w}', { scale: 0.9 }); push({ x: c.x + 34, y: c.y + 18 }, 'obj_rockGrey_small2{w}'); push({ x: c.x - 34, y: c.y + 24 }, 'obj_rockGrey_small4{w}'); }
+            else {
+              // massif : les crêtes sont posées à cheval sur les arêtes communes, les gros sommets sur les cellules intérieures
+              const dc = Math.hypot(c.x - cen.x, c.y - cen.y);
+              const peak = deg >= 3 || dc < 40;
+              push({ x: c.x + (rng() - 0.5) * 12, y: c.y + 44 }, peak ? 'obj_rockGrey_large{w}' : PICK(rng, ['obj_rockGrey_medium1{w}', 'obj_rockGrey_medium3{w}']), { scale: peak ? 1.35 + Math.min(0.5, cells.length * 0.06) : 1.15 });
+              for (let d = 0; d < 6; d++) { const nk = key(cell.q + DIRS[d][0], cell.r + DIRS[d][1]); if (!keys.has(nk) || d >= 3) continue; const m = edgeMid(c.x, c.y, d); push({ x: m.x + (rng() - 0.5) * 10, y: m.y + 26 }, PICK(rng, ['obj_rockGrey_medium2{w}', 'obj_rockGrey_medium3{w}', 'obj_rockGrey_large{w}']), { scale: 1.05 }); }
+              for (const p of sample(rng, cell, keys, 2, { minDist: 22, margin: 6, placed })) { placed.push(p); push(p, PICK(rng, ['obj_rockGrey_small1{w}', 'obj_rockGrey_small3{w}', 'obj_rockGrey_small4{w}'])); }
+            }
           } else if (family === 'sand') {
             if (rng() < 0.35) for (const p of sample(rng, cell, keys, 1, { minDist: 30, margin: 12, placed })) { placed.push(p); push(p, 'obj_rockBrown_small{w}'); }
           } else if (family === 'hill') {

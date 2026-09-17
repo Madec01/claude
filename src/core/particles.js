@@ -1,7 +1,15 @@
 // Système de particules simple et rapide (pool tableau, rendu canvas).
 
 export class ParticleSystem {
-  constructor(max = 1500) { this.list = []; this.max = max; }
+  constructor(max = 1500) { this.list = []; this.max = max; this._tints = new Map(); }
+
+  /** Image teintée (canvas hors écran mis en cache) pour les particules d'image colorées (fumée grise…). */
+  tinted(img, color) {
+    const k = `${img.src || img.width + 'x' + img.height}|${color}`;
+    let c = this._tints.get(k);
+    if (!c) { c = document.createElement('canvas'); c.width = img.width; c.height = img.height; const g = c.getContext('2d'); g.drawImage(img, 0, 0); g.globalCompositeOperation = 'source-in'; g.fillStyle = color; g.fillRect(0, 0, c.width, c.height); this._tints.set(k, c); }
+    return c;
+  }
 
   /**
    * @param {object} p {x,y,vx,vy,life,size,sizeEnd,color,img,alpha,alphaEnd,rot,rotV,gravity,drag,blend,layer}
@@ -18,6 +26,7 @@ export class ParticleSystem {
       gravity: p.gravity || 0, drag: p.drag ?? 0,
       blend: p.blend || 'source-over', layer: p.layer || 0,
       ease: p.ease || null,
+      tint: p.tint || null,
     });
   }
 
@@ -50,7 +59,7 @@ export class ParticleSystem {
       if (p.img) {
         ctx.save();
         ctx.translate(p.x, p.y); ctx.rotate(p.rot);
-        ctx.drawImage(p.img, -s / 2, -s / 2, s, s);
+        ctx.drawImage(p.tint ? this.tinted(p.img, p.tint) : p.img, -s / 2, -s / 2, s, s);
         ctx.restore();
       } else {
         ctx.fillStyle = p.color;
