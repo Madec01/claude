@@ -8,6 +8,8 @@ import { STAGE } from '../core/stage.js';
 import { Decor, groundOf, groundKey, GROUND_COLORS, spriteKey } from './decor.js';
 import { computeLinks } from './paths.js';
 const SEA = { spring: ['#8fc8e6', '#5f9fc8'], summer: ['#7fc0e4', '#4f93c2'], autumn: ['#8cb9d3', '#5d8fb3'], winter: ['#a9c7db', '#7aa2bf'] };
+const WATER = { spring: { fill: '#5aa7d6', edge: '#3f86b6', foam: 'rgba(255,255,255,0.55)' }, summer: { fill: '#4f9ed2', edge: '#397fb0', foam: 'rgba(255,255,255,0.5)' }, autumn: { fill: '#5b95bd', edge: '#41769a', foam: 'rgba(255,255,255,0.45)' }, winter: { fill: '#6f9fc0', edge: '#4f7f9f', foam: 'rgba(255,255,255,0.4)' } };
+const ICE = { fill: '#dbe9f4', edge: '#b9cfe0', foam: 'rgba(255,255,255,0.8)' };
 
 export class IslandRenderer {
   constructor(island, camera, effects, particles) {
@@ -182,21 +184,38 @@ export class IslandRenderer {
       const w = toWorld(t.q, t.r); const c = cam.toScreen(w.x, w.y);
       const k = key(t.q, t.r); const d = this.fx.dropTransform(k); if (d.dy !== 0 || d.s !== 1) dropping.set(k, d);
       if (!vis(c)) continue;
-      const img = Assets.img(groundKey(groundOf(t), this.seasonFor(w.x)));
+      const img = Assets.img(groundKey(this.decor.groundFor(t), this.seasonFor(w.x)));
       const zz = z * d.s, cy = c.y + d.dy * z;
       if (img) ctx.drawImage(img, c.x - TILE_W * zz / 2, cy - TILE_H * zz / 2, TILE_W * zz, TILE_H * zz);
       else this.drawTileAt(ctx, t, c.x, cy, d.s, 1);
+    }
+    // rives par arête : sur une tuile d'eau, chaque côté reprend le sol de la voisine (secteur découpé)
+    for (const t of tiles) {
+      if (!(t.family === 'water' || (t.rare && false))) continue;
+      const k = key(t.q, t.r); if (dropping.has(k)) continue;
+      const w = toWorld(t.q, t.r); const c = cam.toScreen(w.x, w.y); if (!vis(c)) continue;
+      const base = this.decor.groundFor(t); const pts = corners(c.x, c.y, SIZE * z * 1.02);
+      for (let d = 0; d < 6; d++) {
+        const n = b.get(t.q + DIRS[d][0], t.r + DIRS[d][1]); if (!n || n.family === 'water') continue;
+        let g = this.decor.groundFor(n); if (g === 'hill') g = 'grass'; if (g === base) continue;
+        const img = Assets.img(groundKey(g, this.seasonFor(w.x))); if (!img) continue;
+        ctx.save(); ctx.beginPath(); ctx.moveTo(c.x, c.y); ctx.lineTo(pts[d][0], pts[d][1]); ctx.lineTo(pts[(d + 1) % 6][0], pts[(d + 1) % 6][1]); ctx.closePath(); ctx.clip();
+        ctx.drawImage(img, c.x - TILE_W * z / 2, c.y - TILE_H * z / 2, TILE_W * z, TILE_H * z); ctx.restore();
+      }
     }
     // raccords : un ruban de la couleur du sol sur chaque arête partagée par deux sols identiques (efface la couture)
     ctx.save();
     const half = SIZE * 0.46, e = 7;
     for (const t of tiles) {
       const k = key(t.q, t.r); if (dropping.has(k)) continue;
-      const g = groundOf(t); if (g === 'hill') continue;
+      const g = this.decor.groundFor(t); if (g === 'hill') continue;
       const w = toWorld(t.q, t.r);
       for (let d = 0; d < 3; d++) {
         const n = b.get(t.q + DIRS[d][0], t.r + DIRS[d][1]);
-        if (!n || groundOf(n) !== g || dropping.has(key(n.q, n.r))) continue;
+        if (!n || dropping.has(key(n.q, n.r))) continue;
+        // avec une tuile d'eau voisine, la rive du côté concerné est déjà dans notre sol : on raccorde aussi
+        const gn = this.decor.groundFor(n); if (gn !== g && !(n.family === 'water' && g !== 'water')) continue;
+        if (t.family === 'water' && n.family === 'water') continue;
         const season = this.seasonFor(w.x);
         const col = GROUND_COLORS[g] || (images[groundKey(g, season)] || {}).ground_color; if (!col) continue;
         const m = edgeMid(w.x, w.y, d); const nx = m.x - w.x, ny = m.y - w.y; const len = Math.hypot(nx, ny) || 1; const ux = nx / len, uy = ny / len, tx = -uy, ty = ux;
@@ -206,6 +225,7 @@ export class IslandRenderer {
       }
     }
     ctx.restore();
+    this.drawWater(ctx, dropping);
     this.drawPaths(ctx);
     // objets
     for (const o of this.decor.objects) {
@@ -225,6 +245,78 @@ export class IslandRenderer {
       ctx.restore();
     }
     for (const t of tiles) if (t.bloom) { const w = toWorld(t.q, t.r); const c = cam.toScreen(w.x, w.y); if (vis(c)) this.drawBloom(ctx, c.x, c.y); }
+  }
+
+  /**
+   * Plans d'eau : étang (mare ronde), lac (nappe continue aux coutures effacées, rive sur le pourtour), rivière (ruban
+   * courbe de la source à l'embouchure, rides animées). Les rives reprennent le sol des voisines (dessiné en dessous).
+   */
+  drawWater(ctx, dropping) {
+    const cam = this.cam, z = cam.zoom, b = this.isl.board;
+    const bodies = this.decor.water && this.decor.water.bodies ? this.decor.water.bodies : [];
+    if (!bodies.length) return;
+    const vis = (c, m = 200) => !(c.x < -m || c.x > STAGE.W + m || c.y < -m || c.y > STAGE.H + m);
+    const S = (p) => cam.toScreen(p.x, p.y);
+    const jit = (a, c) => { const h = Math.sin(a.x * 12.9898 + a.y * 78.233 + c.x * 37.719 + c.y * 4.1) * 43758.5453; return (h - Math.floor(h)) - 0.5; };
+    const organic = (pts) => { const out = [pts[0]]; for (let i = 0; i < pts.length - 1; i++) { const a = pts[i], c = pts[i + 1]; const dx = c.x - a.x, dy = c.y - a.y, len = Math.hypot(dx, dy) || 1; const j = jit(a, c), j2 = jit(c, a); out.push({ x: a.x + dx * 0.35 + (-dy / len) * j * 22, y: a.y + dy * 0.35 + (dx / len) * j * 22 }); out.push({ x: a.x + dx * 0.7 + (-dy / len) * j2 * 16, y: a.y + dy * 0.7 + (dx / len) * j2 * 16 }); out.push(c); } return out; };
+    const trace = (sp) => { ctx.beginPath(); ctx.moveTo(sp[0].x, sp[0].y); if (sp.length === 2) ctx.lineTo(sp[1].x, sp[1].y); else { for (let i = 1; i < sp.length - 1; i++) { const mx = (sp[i].x + sp[i + 1].x) / 2, my = (sp[i].y + sp[i + 1].y) / 2; ctx.quadraticCurveTo(sp[i].x, sp[i].y, mx, my); } ctx.lineTo(sp[sp.length - 1].x, sp[sp.length - 1].y); } };
+    ctx.save(); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    for (const body of bodies) {
+      if (body.cells.some((c) => dropping.has(key(c.q, c.r)))) continue;
+      const frozen = body.cells.every((c) => c.frozen);
+      const c0 = toWorld(body.cells[0].q, body.cells[0].r);
+      const pal = frozen ? ICE : (WATER[this.seasonFor(c0.x)] || WATER.spring);
+      if (body.kind === 'river') {
+        // ruban de la source à l'embouchure, prolongé vers la montagne et vers la mer
+        const pts = body.chain.map((k) => { const [q, r] = parse(k); return toWorld(q, r); });
+        const first = body.cells.find((c) => key(c.q, c.r) === body.chain[0]); const last = body.cells.find((c) => key(c.q, c.r) === body.chain[body.chain.length - 1]);
+        const ext = (cell, pred, pt, len) => { for (let d = 0; d < 6; d++) { const n = b.get(cell.q + DIRS[d][0], cell.r + DIRS[d][1]); const sea = b.isSea(cell.q + DIRS[d][0], cell.r + DIRS[d][1]); if (pred(n, sea)) { const m = edgeMid(pt.x, pt.y, d); return { x: pt.x + (m.x - pt.x) * len, y: pt.y + (m.y - pt.y) * len }; } } return null; };
+        const src = first ? ext(first, (n) => n && (n.family === 'rock' || n.family === 'hill' || (n.rare && (n.family === 'watchtower' || n.family === 'mine'))), pts[0], 0.75) : null;
+        const mouth = body.mouth && last ? ext(last, (n, sea) => sea, pts[pts.length - 1], 1.05) : null;
+        const full = organic([...(src ? [src] : []), ...pts, ...(mouth ? [mouth] : [])]);
+        const sp = full.map(S); if (!sp.some((p) => vis(p))) continue;
+        ctx.globalAlpha = 1; ctx.strokeStyle = pal.edge; ctx.lineWidth = 62 * z; trace(sp); ctx.stroke();
+        ctx.strokeStyle = pal.fill; ctx.lineWidth = 50 * z; trace(sp); ctx.stroke();
+        if (mouth) { const m = S(mouth); ctx.fillStyle = pal.fill; ctx.beginPath(); ctx.ellipse(m.x, m.y, 40 * z, 26 * z, 0, 0, TAU); ctx.fill(); }
+        if (!frozen) { ctx.strokeStyle = pal.foam; ctx.lineWidth = 2 * z; ctx.setLineDash([10 * z, 26 * z]); ctx.lineDashOffset = -this.time * 40 * z; trace(sp); ctx.stroke(); ctx.setLineDash([]); }
+        else this.drawCracks(ctx, sp, z);
+      } else if (body.kind === 'pond') {
+        const c = S(c0); if (!vis(c)) continue;
+        const rr = SIZE * 0.66 * z; ctx.fillStyle = pal.edge; this.blob(ctx, c.x, c.y + 2 * z, rr, c0); ctx.fill();
+        ctx.fillStyle = pal.fill; this.blob(ctx, c.x, c.y, rr * 0.9, c0); ctx.fill();
+        if (!frozen) { ctx.strokeStyle = pal.foam; ctx.lineWidth = 1.5 * z; ctx.beginPath(); ctx.ellipse(c.x - rr * 0.2, c.y - rr * 0.25, rr * 0.35, rr * 0.16, -0.4, 0, TAU); ctx.stroke(); }
+      } else {
+        // lac : union d'hexagones légèrement réduits, tracée d'un seul chemin (pas de couture), contour de rive arrondi
+        const hexes = body.cells.map((cell) => { const w = toWorld(cell.q, cell.r); return corners(w.x, w.y, SIZE * 0.93).map(([x, y]) => S({ x, y })); });
+        if (!hexes.some((h) => h.some((p) => vis(p)))) continue;
+        const path = () => { ctx.beginPath(); for (const h of hexes) { ctx.moveTo(h[0].x, h[0].y); for (let i = 1; i < 6; i++) ctx.lineTo(h[i].x, h[i].y); ctx.closePath(); } };
+        ctx.fillStyle = pal.edge; ctx.strokeStyle = pal.edge; ctx.lineWidth = 16 * z; path(); ctx.stroke(); path(); ctx.fill();
+        ctx.fillStyle = pal.fill; ctx.strokeStyle = pal.fill; ctx.lineWidth = 6 * z; path(); ctx.stroke(); path(); ctx.fill();
+        // écume sur les arêtes extérieures
+        if (!frozen) {
+          ctx.strokeStyle = pal.foam; ctx.lineWidth = 1.6 * z; ctx.beginPath();
+          for (const cell of body.cells) { const w = toWorld(cell.q, cell.r); const pts = corners(w.x, w.y, SIZE * 0.84); for (let d = 0; d < 6; d++) { const nk = key(cell.q + DIRS[d][0], cell.r + DIRS[d][1]); if (body.keys.has(nk)) continue; const a = S({ x: pts[d][0], y: pts[d][1] }), c2 = S({ x: pts[(d + 1) % 6][0], y: pts[(d + 1) % 6][1] }); ctx.moveTo(a.x, a.y); ctx.lineTo(c2.x, c2.y); } }
+          ctx.stroke();
+        } else this.drawCracks(ctx, hexes.map((h) => ({ x: (h[0].x + h[3].x) / 2, y: (h[0].y + h[3].y) / 2 })), z);
+      }
+    }
+    ctx.restore();
+  }
+
+  /** Forme arrondie légèrement irrégulière (mare). */
+  blob(ctx, cx, cy, r, seed) {
+    const N = 28, pts = [];
+    for (let i = 0; i < N; i++) { const a = (i / N) * TAU; const j = 0.92 + 0.08 * Math.sin(seed.x * 0.037 + seed.y * 0.011 + a * 3) + 0.05 * Math.cos(a * 5 + seed.y * 0.02); pts.push([cx + Math.cos(a) * r * j, cy + Math.sin(a) * r * 0.8 * j]); }
+    ctx.beginPath(); ctx.moveTo((pts[0][0] + pts[N - 1][0]) / 2, (pts[0][1] + pts[N - 1][1]) / 2);
+    for (let i = 0; i < N; i++) { const p = pts[i], q = pts[(i + 1) % N]; ctx.quadraticCurveTo(p[0], p[1], (p[0] + q[0]) / 2, (p[1] + q[1]) / 2); }
+    ctx.closePath();
+  }
+
+  /** Fissures blanches sur la glace, le long d'une suite de points écran. */
+  drawCracks(ctx, sp, z) {
+    ctx.strokeStyle = 'rgba(255,255,255,0.75)'; ctx.lineWidth = 1.5 * z; ctx.beginPath();
+    for (let i = 0; i < sp.length; i++) { const p = sp[i]; const h = Math.sin(i * 7.3 + p.x * 0.01) * 20 * z; ctx.moveTo(p.x - 14 * z, p.y + h * 0.3); ctx.lineTo(p.x + 4 * z, p.y - 8 * z + h * 0.1); ctx.lineTo(p.x + 18 * z, p.y + 6 * z); }
+    ctx.stroke();
   }
 
   /** Ruelles entre hameaux voisins et sentiers entre villages, tracés en courbes douces sous les objets. */

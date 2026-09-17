@@ -5,7 +5,7 @@ export const BALANCE = {
   season: { baseLength: 12 },
   points: { springHeath: 1, pathSeason: 1, stormRiver: 2, windMill: 3,
     closeBonusMul: { hamlet: 2 },      // prime de fermeture = taille × mul (1 par défaut)
-    river: 2, pond: 0, springWater: 1, summerIrrigation: 1, springMarsh: 2, autumnHarvest: 2, winterVeillee: 3,
+    river: 2, pond: 1, lake: 1, mouth: 3, pondSeason: 1, springWater: 1, summerIrrigation: 1, springMarsh: 2, autumnHarvest: 2, winterVeillee: 3,
     faunaSeason: 3, wish: 10,
   },
   breaths: { swap: 1, discard: 2, bud: 3, undo: [4, 3, 2], close: 1, faunaSeason: 1, wish: 2, start: [0, 2, 4, 6] },

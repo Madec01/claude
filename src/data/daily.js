@@ -17,7 +17,7 @@ export const DAILY_WISHES = [
   { id: 'd_pairs', type: 'pairs', a: 'field', b: 'hamlet', count: 4, deadline: { placements: 50 } },
   { id: 'd_species', type: 'species', count: 4, deadline: { placements: 60 } },
   { id: 'd_meadow', type: 'closed', family: 'meadow', size: 4, deadline: { placements: 50 } },
-  { id: 'd_lake', type: 'region', family: 'water', size: 5, deadline: { placements: 45 } },
+  { id: 'd_lake', type: 'lake', size: 5, deadline: { placements: 45 } },
   { id: 'd_harvest', type: 'harvest', count: 3, deadline: { placements: 70 } },
 ];
 

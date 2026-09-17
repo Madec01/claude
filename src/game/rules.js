@@ -3,6 +3,7 @@ import { affinity, PAIR_LABELS, pairKey } from '../data/tiles.js';
 import { BALANCE } from '../data/balance.js';
 import { Board } from './board.js';
 import { DIRS, key, neighbors } from './hex.js';
+import { classifyWater, KIND_LABEL } from './water.js';
 
 const P = BALANCE.points;
 
@@ -53,11 +54,22 @@ export function preview(board, q, r, tile, season, mods = {}) {
   const placed = board.place(q, r, tile);
   let river = null;
   if (Board.isFamily(placed, 'water')) {
-    const reg = board.region(q, r, 'water');
-    if (board.isRiver(reg)) { river = { pts: P.river + (mods.river || 0) + (season === 'spring' ? P.springWater : 0), len: reg.size }; }
-    else river = { pts: P.pond + (season === 'spring' ? P.springWater : 0), len: reg.size, pond: true };
-    if (river.pts) { base.push({ pts: river.pts, label: river.pond ? 'mare' : 'rivière' }); total += river.pts; }
+    // nature de l'eau avant / après la pose (embouchure atteinte ?)
+    const before = neighbors(q, r).map(([a, b]) => classifyWater(board).get(key(a, b))).filter(Boolean);
+    const mouthBefore = before.some((w) => w.kind === 'river' && w.mouth);
+    board.version++; board._water = null;
+    const body = classifyWater(board).get(key(q, r));
+    const spring = season === 'spring' && (mods.rule === 'crue' || !mods.rule) ? P.springWater : 0;
+    if (body.kind === 'river') {
+      river = { pts: P.river + (mods.river || 0) + spring, len: body.size, kind: 'river' };
+      if (body.mouth && !mouthBefore) river.mouthPts = P.mouth;
+    } else if (body.kind === 'pond') river = { pts: P.pond + spring, len: 1, pond: true, kind: 'pond' };
+    else if (body.kind === 'mountainLake') { const rocks = neighbors(q, r).filter(([a, b]) => { const n = board.get(a, b); return n && (Board.isFamily(n, 'rock') || Board.isFamily(n, 'hill')); }).length; river = { pts: P.lake + rocks + spring, len: body.size, kind: 'mountainLake' }; }
+    else river = { pts: P.lake + spring, len: body.size, kind: 'lake' };
+    if (river.pts) { base.push({ pts: river.pts, label: KIND_LABEL[body.kind] }); total += river.pts; }
+    if (river.mouthPts) { base.push({ pts: river.mouthPts, label: 'embouchure' }); total += river.mouthPts; }
     if (mods.rule === 'chaleurs') { base.push({ pts: 2, label: 'fraîcheur' }); total += 2; }
+    board.version++; board._water = null;
   }
   if (mods.wind && (Board.isFamily(placed, 'forest') || Board.isFamily(placed, 'orchard'))) { base.push({ pts: 1, label: 'vent' }); total += 1; }
   if (mods.rule === 'feux' && Board.isFamily(placed, 'forest') && neighbors(q, r).some(([a, b]) => Board.isFamily(board.get(a, b), 'water'))) { base.push({ pts: 2, label: 'pare-feu' }); total += 2; }

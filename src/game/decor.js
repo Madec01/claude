@@ -4,6 +4,7 @@
 import { toWorld, fromWorld, key, parse, neighbors, edgeMid, DIRS, SIZE, TILE_H } from './hex.js';
 import { Board } from './board.js';
 import { RARE_AS } from '../data/tiles.js';
+import { classifyWater } from './water.js';
 
 /** Type de sol d'une tuile (image `ground_<type>_<saison>`). */
 export function groundOf(t) {
@@ -28,8 +29,25 @@ export class Decor {
   sync(board) {
     if (this.version === board.version) return;
     this.version = board.version;
+    this.water = classifyWater(board);
+    this.bank = this.computeBanks(board);
     this.objects = this.generate(board);
   }
+
+  /** Sol de rive de chaque tuile d'eau : le sol majoritaire de ses voisines de terre (herbe par défaut). */
+  computeBanks(board) {
+    const bank = new Map();
+    for (const t of board.tiles.values()) {
+      if (!Board.isFamily(t, 'water')) continue;
+      const counts = {};
+      for (const [a, b] of neighbors(t.q, t.r)) { const n = board.get(a, b); if (!n || Board.isFamily(n, 'water')) continue; let g = groundOf(n); if (g === 'ice' || g === 'water') continue; if (g === 'hill') g = 'grass'; if (g === 'dry') g = 'grass'; counts[g] = (counts[g] || 0) + 1; }
+      bank.set(key(t.q, t.r), Object.keys(counts).sort((x, y) => counts[y] - counts[x])[0] || 'grass');
+    }
+    return bank;
+  }
+
+  /** Sol à dessiner pour une tuile (rive pour l'eau). */
+  groundFor(t) { const g = groundOf(t); if (g === 'water' || g === 'ice') return this.bank.get(key(t.q, t.r)) || 'grass'; return g; }
 
   generate(board) {
     const out = [];
@@ -118,7 +136,8 @@ export class Decor {
             }
           } else if (family === 'water') {
             if (cell.frozen) continue;
-            for (const p of sample(rng, cell, keys, deg >= 2 ? 2 : 1, { minDist: 34, margin: 14, placed })) { placed.push(p); push(p, PICK(rng, ['sea_wave_1', 'sea_wave_2', 'sea_wave_3']), { alpha: 0.75, wave: true }); }
+            const body = this.water.get(ck); if (!body || body.kind === 'pond' || body.kind === 'river') continue;
+            for (const p of sample(rng, cell, keys, deg >= 3 ? 2 : 1, { minDist: 34, margin: 22, placed })) { placed.push(p); push(p, PICK(rng, ['sea_wave_1', 'sea_wave_2', 'sea_wave_3']), { alpha: 0.6, wave: true }); }
           } else if (family === 'marsh') {
             for (const p of sample(rng, cell, keys, 2, { minDist: 30, margin: 12, placed })) { placed.push(p); push(p, 'obj_puddle{w}'); }
             for (const p of sample(rng, cell, keys, 3, { minDist: 15, margin: 5, placed })) { placed.push(p); push(p, 'obj_bushGrass_{s}'); }

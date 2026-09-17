@@ -3,6 +3,7 @@ import { SEASONS } from '../data/tiles.js';
 import { BALANCE } from '../data/balance.js';
 import { Board } from './board.js';
 import { neighbors } from './hex.js';
+import { waterBodies } from './water.js';
 
 const P = BALANCE.points;
 
@@ -15,6 +16,7 @@ export function nextSeason(s) { return SEASONS[(SEASONS.indexOf(s) + 1) % SEASON
 export function transition(board, season, rule = null) {
   const ev = [];
   const tiles = [...board.tiles.values()];
+  for (const body of waterBodies(board)) if (body.kind === 'pond') { const t = body.cells[0]; if (neighbors(t.q, t.r).some(([a, b]) => { const n = board.get(a, b); return n && (Board.isFamily(n, 'meadow') || Board.isFamily(n, 'marsh')); })) ev.push({ type: 'pond', q: t.q, r: t.r, pts: P.pondSeason }); }
   if (season === 'spring') {
     for (const t of tiles) {
       if (t.frozen) { t.frozen = false; ev.push({ type: 'thaw', q: t.q, r: t.r }); }

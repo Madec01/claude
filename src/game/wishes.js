@@ -4,6 +4,7 @@ import { veilleePairs } from './seasons.js';
 import { speciesCount } from './fauna.js';
 import { neighbors } from './hex.js';
 import { SEASONS } from '../data/tiles.js';
+import { rivers, lakes } from './water.js';
 
 /** État d'un vœu : { def, status: 'open'|'done'|'failed', progress, target } */
 export function initWishes(defs) { return defs.map((def) => ({ def, status: 'open', progress: 0, target: targetOf(def) })); }
@@ -13,7 +14,7 @@ function targetOf(def) {
     case 'region': case 'closed': return def.size;
     case 'pairs': case 'bourg': case 'irrigated': case 'bloom': case 'harvest': case 'species': case 'rivers': case 'closedInSeason': return def.count;
     case 'veillee': return def.pairs;
-    case 'river': return def.minLen;
+    case 'river': case 'lake': return def.minLen || def.size;
     case 'fauna': return 1;
     default: return 1;
   }
@@ -39,8 +40,9 @@ export function progressOf(w, ctx) {
     case 'region': return Math.max(0, ...b.regions(d.family).map((r) => r.size));
     case 'closed': { let best = 0; for (const id of b.closedRegions) { if (d.family && !id.startsWith(d.family + ':')) continue; const [fam, k] = id.split(':'); const [q, r] = k.split(',').map(Number); const reg = b.region(q, r, fam); if (reg) best = Math.max(best, reg.size); } return best; }
     case 'pairs': return countPairs(b, d.a, d.b);
-    case 'river': { let best = 0; for (const reg of b.regions('water')) if (b.regionTouchesSea(reg)) best = Math.max(best, reg.size); return best; }
-    case 'rivers': return b.regions('water').filter((reg) => b.regionTouchesSea(reg)).length;
+    case 'river': return Math.max(0, ...rivers(b).filter((w) => !d.mouth || w.mouth).map((w) => w.size));
+    case 'rivers': return rivers(b).filter((w) => w.mouth).length;
+    case 'lake': return Math.max(0, ...lakes(b).map((w) => w.size));
     case 'fauna': return [...ctx.fauna.values()].some((a) => a.species === d.species) ? 1 : 0;
     case 'species': return speciesCount(ctx.fauna);
     case 'bourg': return [...b.closedRegions].filter((id) => id.startsWith('hamlet:')).length;
