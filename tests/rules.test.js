@@ -6,6 +6,7 @@ import { Board } from '../src/game/board.js';
 import { affinity } from '../src/data/tiles.js';
 import { preview } from '../src/game/rules.js';
 import { STORY } from '../src/data/story.js';
+import { playStrong } from './bot.js';
 
 let failures = 0;
 const check = (cond, msg) => { if (!cond) { failures++; console.error('ÉCHEC :', msg); } };
@@ -72,5 +73,12 @@ for (const def of [...ISLANDS, INFINITE, GARDEN]) {
   } catch (e) { failures++; console.error(`EXCEPTION île ${def.id} :`, e); }
 }
 console.table(summary);
+
+// --- bot fort (tests/bot.js) : les seuils d'étoiles sont calibrés sur lui, il doit au moins décrocher une étoile sur les premières îles
+for (const def of ISLANDS.slice(0, 4)) {
+  const { result } = playStrong(def);
+  check(!!result && result.stars >= 1, `bot fort : au moins une étoile sur l'île ${def.id} (${result && result.score} pts, seuils ${result && result.thresholds.join('/')})`);
+  console.log(`bot fort île ${def.id} : ${result.score} pts, ${result.stars} étoile(s), vœux ${result.wishesDone}/${result.wishesTotal}`);
+}
 console.log(failures ? `${failures} échec(s)` : 'Tous les tests passent.');
 process.exit(failures ? 1 : 0);

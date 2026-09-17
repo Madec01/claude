@@ -32,6 +32,7 @@ html.compact .season-pips { max-width: 44px; gap: 2px; }
 html.compact .season-pips i { width: 6px; height: 6px; }
 html.compact .hud-label { font-size: 9px; letter-spacing: 0.06em; }
 html.compact .hud-score b, html.compact .hud-breaths b, html.compact .hud-left-tiles b { font-size: 16px; }
+html.compact .hud-stars { font-size: 9px; }
 html.compact .hud-pause { width: 34px; height: 34px; }
 html.compact .hud-pause .hud-icon { width: 13px; height: 13px; }
 html.compact .hud-notify { top: 46px; gap: 3px; width: 94%; }

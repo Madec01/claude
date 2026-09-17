@@ -34,7 +34,7 @@ Navigateurs pris en charge : Chrome, Firefox et Edge à jour sur ordinateur, Chr
 10. Les **tuiles d'événement** (Marché, Fête, Ruine à restaurer) et les rares tardives (Auberge, Abreuvoir, Porche, Mine, Four à pain) arrivent par les vœux à partir des îles 5 et 8.
 11. Les **souffles** sont des pouvoirs limités, gagnés en fermant des régions, en exauçant des vœux et grâce à la faune : échanger la tuile avec la suivante, la défausser, faire bourgeonner une prairie en forêt ou en verger, annuler la dernière pose, garder une tuile en poche.
 
-Une île se termine quand elle est pleine ou quand aucune pose n'est possible : la caméra recule, chaque région s'illumine à son tour pendant que le compteur monte, les quatre saisons balaient l'île, puis son nom s'écrit et les étoiles se posent (un toucher passe au bilan). Le score donne 0 à 3 étoiles (la troisième exige tous les vœux). Les étoiles, les vœux et les îles rapportent des **graines**, à dépenser dans l'Atelier des saisons entre deux îles.
+Une île se termine quand elle est pleine ou quand aucune pose n'est possible : la caméra recule, chaque région s'illumine à son tour pendant que le compteur monte, les quatre saisons balaient l'île, puis son nom s'écrit et les étoiles se posent (un toucher passe au bilan). Le score donne 0 à 3 étoiles selon trois seuils propres à chaque île, affichés sous les points pendant la partie (la troisième exige aussi tous les vœux) ; ils sont calibrés sur un joueur automatique qui anticipe ses coups (`tools/calibrate.js`). Les étoiles, les vœux et les îles rapportent des **graines**, à dépenser dans l'Atelier des saisons entre deux îles.
 
 ## Contrôles
 
@@ -89,7 +89,8 @@ CREDITS.md            crédits complets générés
 ## Tests
 
 ```bash
-node tests/rules.test.js          # règles, fermetures, couverture narrative, bot glouton sur les 14 îles
+node tests/rules.test.js          # règles, fermetures, couverture narrative, bot glouton sur les 14 îles, bot fort sur les premières
+node tools/calibrate.js 8         # calibrage des étoiles : bot fort (tests/bot.js) et glouton, 8 graines par île
 node tests/autoplay.js 1-12,infinite,garden   # parcours réel dans Chromium (serveur statique sur le port 8765 requis)
 node tests/mobile.js                          # émulation téléphone (iPhone 12 portrait/paysage, Pixel 7) : tactile, captures
 ```

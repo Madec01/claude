@@ -111,6 +111,8 @@ export class Island {
 
   get wishCtx() { return { board: this.board, season: this.season, fauna: this.fauna, stats: this.stats, placements: this.placements, seasonsPassed: this.seasonsPassed }; }
   get current() { return this.queue.next; }
+  /** Seuils des trois étoiles (points), calibrés par île. */
+  get thresholds() { const f = this.def.starFactors || BALANCE.stars.perCell; return f.map((x) => Math.round(this.board.cells * x)); }
   get seasonProgress() { return this.inSeason / this.seasonLength; }
 
   /** Prévisualisation d'une pose de la tuile courante. */
@@ -294,7 +296,7 @@ export class Island {
     if (this.ended) return this.result;
     this.ended = true;
     const cells = this.board.cells;
-    const th = BALANCE.stars.perCell.map((f) => Math.round(cells * f));
+    const th = this.thresholds;
     let stars = 0;
     for (const t of th) if (this.score >= t) stars++;
     const wishesTotal = this.wishes.length;

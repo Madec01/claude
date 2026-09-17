@@ -22,7 +22,7 @@ export class Hud {
           <div class="season-pips" data-ref="pips" title="Poses avant la prochaine saison"></div>
           <div class="season-pop hidden" data-ref="seasonPop"></div>
         </div>
-        <div class="hud-block hud-score"><span class="hud-label">Points</span><b data-ref="score">0</b></div>
+        <div class="hud-block hud-score"><span class="hud-label">Points</span><b data-ref="score">0</b><span class="hud-stars" data-ref="starsLine" title="Seuils des étoiles"></span></div>
         <div class="hud-block hud-breaths ${m.has('breath') ? '' : 'hidden'}" title="Souffles"><span class="hud-label">Souffles</span><b data-ref="breaths">0</b></div>
         <div class="hud-block hud-left-tiles"><span class="hud-label">Tuiles</span><b data-ref="left">0</b></div>
         <button class="hud-pause" data-ref="pause" title="Pause (Échap)">${icon('icon_pause')}</button>
@@ -226,6 +226,11 @@ export class Hud {
     const bliz = isl.weatherActive && isl.weatherActive('blizzard');
     if (bliz !== this.last.bliz) { this.last.bliz = bliz; r.queueList.classList.toggle('blizzard', !!bliz); }
     this.set('score', String(isl.score));
+    if (!isl.infinite && !isl.garden) {
+      const th = isl.thresholds; const reached = th.filter((t) => isl.score >= t).length;
+      const line = reached >= 3 ? '★★★' : `${'★'.repeat(reached)}☆ ${th[reached]}`;
+      if (line !== this.last.starsLine) { this.last.starsLine = line; r.starsLine.textContent = line; r.starsLine.title = `Étoiles : ${th.join(' · ')} points${isl.wishes.length ? ' (la troisième exige tous les vœux)' : ''}`; }
+    }
     this.set('breaths', String(isl.breaths));
     this.set('left', isl.infinite || isl.garden ? '∞' : String(isl.queue.remaining));
     r.pwDiscard.disabled = !isl.canDiscard();
