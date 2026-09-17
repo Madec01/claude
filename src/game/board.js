@@ -4,6 +4,7 @@ import { RARE_AS } from '../data/tiles.js';
 
 export class Board {
   constructor(mask) {
+    this.version = 0;
     this.mask = new Set(mask);
     this.tiles = new Map();     // key -> tile { family, variant, rare?, q, r, dry, frozen, bloom, closed }
     this.closedRegions = new Set(); // clés de régions déjà fermées ("family:minKey")
@@ -35,10 +36,13 @@ export class Board {
   place(q, r, tile) {
     const t = { ...tile, q, r, dry: false, frozen: false, bloom: false };
     this.tiles.set(key(q, r), t);
+    this.version = (this.version || 0) + 1;
     return t;
   }
 
-  remove(q, r) { this.tiles.delete(key(q, r)); }
+  remove(q, r) { this.tiles.delete(key(q, r)); this.version = (this.version || 0) + 1; }
+  /** À appeler quand des tuiles changent d'état sans pose (saison : sèche, gelée). */
+  touch() { this.version = (this.version || 0) + 1; }
 
   /** Familles effectives d'une tuile (une rare compte pour plusieurs familles). */
   static familiesOf(tile) { return tile.rare ? (RARE_AS[tile.family] || []) : [tile.family]; }
@@ -120,5 +124,5 @@ export class Board {
 
   /** Instantané sérialisable (pour le souvenir / annulation). */
   snapshot() { return { mask: [...this.mask], tiles: [...this.tiles.values()].map((t) => ({ ...t })), closed: [...this.closedRegions] }; }
-  restore(s) { this.mask = new Set(s.mask); this.tiles = new Map(s.tiles.map((t) => [key(t.q, t.r), { ...t }])); this.closedRegions = new Set(s.closed); }
+  restore(s) { this.mask = new Set(s.mask); this.tiles = new Map(s.tiles.map((t) => [key(t.q, t.r), { ...t }])); this.closedRegions = new Set(s.closed); this.version = (this.version || 0) + 1; }
 }

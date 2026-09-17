@@ -36,7 +36,7 @@ const TABS = {
   seasons: { label: 'Saisons', build: () => h('div', {},
     h('p', { class: 'g-intro' }, 'La ligne de saison, en haut de l’écran, se remplit à chaque pose. Quand elle est pleine, la saison change et une règle avec elle. Chaque île traverse les quatre saisons, parfois plusieurs fois.'),
     h('div', { class: 'g-grid' }, ...SEASONS.map((s) => { const st = STORY.seasons[s]; return h('div', { class: `g-card season-${s}` }, h('span', { class: 'g-sicon' }, icon(SEASON_ICON[s])), h('div', {}, h('h4', {}, st.name), h('p', { class: 'g-voice' }, st.line), h('p', {}, st.rule))); })),
-    h('p', { class: 'g-note' }, `À chaque changement de saison, chaque animal présent rapporte ${B.points.faunaSeason} points et ${B.breaths.faunaSeason} souffle.`),
+    h('p', { class: 'g-note' }, `À chaque changement de saison, chaque animal présent rapporte ${B.points.faunaSeason} points et ${B.breaths.faunaSeason} souffle, et chaque sentier reliant deux villages rapporte ${B.points.pathSeason} point. Un sentier se trace tout seul entre deux hameaux séparés d’au plus trois tuiles de terre ouverte (prairie, champ, verger, lande, colline).`),
   ) },
   fauna: { label: 'Faune', build: () => h('div', {},
     h('p', { class: 'g-intro' }, 'Les animaux ne se posent pas : ils s’installent quand un habitat existe et repartent s’il se brise. Ils rapportent des points à chaque saison et comptent pour certains vœux.'),

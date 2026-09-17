@@ -8,6 +8,7 @@ import { initWishes, updateWishes } from './wishes.js';
 import { TileQueue } from './queue.js';
 import { generateMask } from '../data/islands.js';
 import { BALANCE } from '../data/balance.js';
+import { computeLinks } from './paths.js';
 import { RNG } from '../core/math.js';
 import { key } from './hex.js';
 
@@ -47,7 +48,7 @@ export class Island {
     this.breaths = BALANCE.breaths.start[this.upgrades.breath || 0];
     this.wishes = initWishes(def.wishes || []);
     this.fauna = new Map();
-    this.stats = { harvest: 0, bloom: 0, closedThisSeason: 0, irrigatedSummer: 0, closed: 0, rivers: 0, faunaMax: 0, wishesDone: 0, biggestRegion: 0, undo: 0 };
+    this.stats = { harvest: 0, bloom: 0, closedThisSeason: 0, irrigatedSummer: 0, closed: 0, rivers: 0, faunaMax: 0, wishesDone: 0, biggestRegion: 0, undo: 0, links: 0 };
     this.history = [];         // instantanés pour le souvenir
     this.undoUsedThisSeason = false;
     this.ended = false;
@@ -105,14 +106,19 @@ export class Island {
     this.stats.closedThisSeason = 0;
     this.undoUsedThisSeason = false;
     const ev = transition(this.board, this.season);
+    this.board.touch();
     let pts = 0;
+    // sentiers : chaque liaison entre deux villages rapporte des points
+    const links = computeLinks(this.board).links.length;
+    this.stats.links = Math.max(this.stats.links, links);
+    pts += links * BALANCE.points.pathSeason;
     for (const e of ev) { if (e.pts) pts += e.pts; if (e.type === 'harvest') this.stats.harvest++; if (e.type === 'bloom') this.stats.bloom++; }
     // faune : chaque animal présent donne des souffles et des points
     const faunaBonus = this.fauna.size;
     pts += faunaBonus * (BALANCE.points.faunaSeason + this.mods.refuge);
     this.breaths += faunaBonus * BALANCE.breaths.faunaSeason;
     this.score += pts;
-    this.emit({ type: 'season', from, to: this.season, events: ev, pts, faunaBonus });
+    this.emit({ type: 'season', from, to: this.season, events: ev, pts, faunaBonus, links });
     this.updateFauna();
     this.checkWishes();
     if (this.season === 'summer') this.stats.irrigatedSummer = this.countIrrigated();

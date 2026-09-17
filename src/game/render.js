@@ -5,6 +5,8 @@ import { FAMILY_COLORS, SEASONS } from '../data/tiles.js';
 import { clamp, lerp, TAU, easeOutCubic, rnd } from '../core/math.js';
 
 import { STAGE } from '../core/stage.js';
+import { Decor, groundOf, groundKey, GROUND_COLORS, spriteKey } from './decor.js';
+import { computeLinks } from './paths.js';
 const SEA = { spring: ['#8fc8e6', '#5f9fc8'], summer: ['#7fc0e4', '#4f93c2'], autumn: ['#8cb9d3', '#5d8fb3'], winter: ['#a9c7db', '#7aa2bf'] };
 
 export class IslandRenderer {
@@ -20,6 +22,8 @@ export class IslandRenderer {
     this.waves = [];
     for (let i = 0; i < 40; i++) this.waves.push({ x: rnd(-1400, 1400), y: rnd(-900, 900), t: rnd(0, 10), s: rnd(0.6, 1.1) });
     this.faunaPos = new Map();  // clé -> { x, y, bob }
+    this.decor = new Decor((island.def && island.def.seed) || 1);
+    this.legacy = !Assets.has('ground_grass_spring');   // manifeste sans sols/objets : tuiles composées (repli)
   }
 
   startTransition(from, to) { this.transition = { from, to, t: 0 }; }
@@ -52,7 +56,7 @@ export class IslandRenderer {
     this.drawSea(ctx, season);
     this.drawShallows(ctx);
     this.drawEmptyCells(ctx);
-    this.drawTiles(ctx);
+    if (this.legacy) this.drawTiles(ctx); else this.drawLayered(ctx);
     this.p.render(ctx, 0);
     this.drawHover(ctx);
     this.drawRings(ctx);
@@ -144,6 +148,91 @@ export class IslandRenderer {
       this.drawTileAt(ctx, t, c.x, c.y + d.dy * cam.zoom, d.s, 1);
       if (t.bloom) this.drawBloom(ctx, c.x, c.y);
     }
+  }
+
+  /**
+   * Rendu par couches : ombres → sols → raccords entre sols identiques → sentiers → objets du décor (triés par pied) et tuiles rares.
+   * Les objets sont générés par région (src/game/decor.js), ce qui donne forêts continues, massifs et villages.
+   */
+  drawLayered(ctx) {
+    const cam = this.cam, b = this.isl.board, z = cam.zoom;
+    this.decor.sync(b);
+    const tiles = [...b.tiles.values()];
+    const vis = (c, m = 170) => !(c.x < -m || c.x > STAGE.W + m || c.y < -m || c.y > STAGE.H + m);
+    if (this.hexShadow) {
+      ctx.save(); ctx.globalAlpha = 0.28;
+      for (const t of tiles) { const w = toWorld(t.q, t.r); const c = cam.toScreen(w.x, w.y); if (!vis(c)) continue; ctx.drawImage(this.hexShadow, c.x - TILE_W * z / 2 + 4 * z, c.y - TILE_H * z / 2 + 10 * z, TILE_W * z, TILE_H * z); }
+      ctx.restore();
+    }
+    // sols
+    const dropping = new Map();
+    const images = Assets.manifest().images || {};
+    for (const t of tiles) {
+      const w = toWorld(t.q, t.r); const c = cam.toScreen(w.x, w.y);
+      const k = key(t.q, t.r); const d = this.fx.dropTransform(k); if (d.dy !== 0 || d.s !== 1) dropping.set(k, d);
+      if (!vis(c)) continue;
+      const img = Assets.img(groundKey(groundOf(t), this.seasonFor(w.x)));
+      const zz = z * d.s, cy = c.y + d.dy * z;
+      if (img) ctx.drawImage(img, c.x - TILE_W * zz / 2, cy - TILE_H * zz / 2, TILE_W * zz, TILE_H * zz);
+      else this.drawTileAt(ctx, t, c.x, cy, d.s, 1);
+    }
+    // raccords : un ruban de la couleur du sol sur chaque arête partagée par deux sols identiques (efface la couture)
+    ctx.save();
+    const half = SIZE * 0.46, e = 7;
+    for (const t of tiles) {
+      const k = key(t.q, t.r); if (dropping.has(k)) continue;
+      const g = groundOf(t); if (g === 'hill') continue;
+      const w = toWorld(t.q, t.r);
+      for (let d = 0; d < 3; d++) {
+        const n = b.get(t.q + DIRS[d][0], t.r + DIRS[d][1]);
+        if (!n || groundOf(n) !== g || dropping.has(key(n.q, n.r))) continue;
+        const season = this.seasonFor(w.x);
+        const col = GROUND_COLORS[g] || (images[groundKey(g, season)] || {}).ground_color; if (!col) continue;
+        const m = edgeMid(w.x, w.y, d); const nx = m.x - w.x, ny = m.y - w.y; const len = Math.hypot(nx, ny) || 1; const ux = nx / len, uy = ny / len, tx = -uy, ty = ux;
+        const quad = [[m.x + tx * half - ux * e, m.y + ty * half - uy * e], [m.x + tx * half + ux * e, m.y + ty * half + uy * e], [m.x - tx * half + ux * e, m.y - ty * half + uy * e], [m.x - tx * half - ux * e, m.y - ty * half - uy * e]].map(([x, y]) => cam.toScreen(x, y));
+        if (!vis(quad[0], 120)) continue;
+        ctx.fillStyle = col; ctx.beginPath(); ctx.moveTo(quad[0].x, quad[0].y); for (let i = 1; i < 4; i++) ctx.lineTo(quad[i].x, quad[i].y); ctx.closePath(); ctx.fill();
+      }
+    }
+    ctx.restore();
+    this.drawPaths(ctx);
+    // objets
+    for (const o of this.decor.objects) {
+      const c = cam.toScreen(o.x, o.y); if (!vis(c)) continue;
+      const d = dropping.get(o.cell); const season = this.seasonFor(o.x);
+      if (o.seasons && !o.seasons.includes(season)) continue;
+      if (o.composed) { const cw = toWorld(o.tile.q, o.tile.r); const cc = cam.toScreen(cw.x, cw.y); const dd = d || { s: 1, dy: 0 }; this.drawTileAt(ctx, o.tile, cc.x, cc.y + dd.dy * z, dd.s, 1); continue; }
+      const sk = spriteKey(o.tpl, season); const img = Assets.img(sk); if (!img) continue;
+      const m = images[sk]; const div = o.wave ? 3 : 2;
+      const w = (m ? m.w : img.width) / div, h = (m ? m.h : img.height) / div;
+      const sc = d ? z * d.s : z, dy = d ? d.dy * z : 0;
+      ctx.save();
+      if (o.alpha) ctx.globalAlpha = o.alpha;
+      if (o.flip) { ctx.translate(c.x, c.y + dy); ctx.scale(-1, 1); ctx.drawImage(img, -w * sc / 2, -h * sc, w * sc, h * sc); }
+      else ctx.drawImage(img, c.x - w * sc / 2, c.y + dy - h * sc, w * sc, h * sc);
+      ctx.restore();
+    }
+    for (const t of tiles) if (t.bloom) { const w = toWorld(t.q, t.r); const c = cam.toScreen(w.x, w.y); if (vis(c)) this.drawBloom(ctx, c.x, c.y); }
+  }
+
+  /** Ruelles entre hameaux voisins et sentiers entre villages, tracés en courbes douces sous les objets. */
+  drawPaths(ctx) {
+    const b = this.isl.board, cam = this.cam, z = cam.zoom;
+    const { lanes, links } = computeLinks(b);
+    if (!lanes.length && !links.length) return;
+    const season = this.isl.season;
+    const col = { spring: '#c9a570', summer: '#d1ab74', autumn: '#bf9463', winter: '#dcd2c3' }[season] || '#c9a570';
+    const dark = { spring: '#a37f4c', summer: '#ab864f', autumn: '#966f42', winter: '#b7ab9a' }[season] || '#a37f4c';
+    ctx.save(); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    const trace = (sp) => { ctx.beginPath(); ctx.moveTo(sp[0].x, sp[0].y); if (sp.length === 2) ctx.lineTo(sp[1].x, sp[1].y); else { for (let i = 1; i < sp.length - 1; i++) { const mx = (sp[i].x + sp[i + 1].x) / 2, my = (sp[i].y + sp[i + 1].y) / 2; ctx.quadraticCurveTo(sp[i].x, sp[i].y, mx, my); } ctx.lineTo(sp[sp.length - 1].x, sp[sp.length - 1].y); } };
+    const w = (k) => { const [q, r] = parse(k); return toWorld(q, r); };
+    const all = [...lanes.map(([a, c]) => ({ sp: [w(a), w(c)].map((p) => cam.toScreen(p.x, p.y)), width: 6 })), ...links.map((l) => ({ sp: l.cells.map(w).map((p) => cam.toScreen(p.x, p.y)), width: 9 }))]
+      .filter((o) => !o.sp.every((p) => p.x < -200 || p.x > STAGE.W + 200 || p.y < -200 || p.y > STAGE.H + 200));
+    // trois passes globales (bordure sombre, terre, pointillé clair) pour que les croisements restent propres
+    ctx.globalAlpha = 0.5; ctx.strokeStyle = dark; for (const o of all) { ctx.lineWidth = (o.width + 4) * z; trace(o.sp); ctx.stroke(); }
+    ctx.globalAlpha = 1; ctx.strokeStyle = col; for (const o of all) { ctx.lineWidth = o.width * z; trace(o.sp); ctx.stroke(); }
+    ctx.globalAlpha = 0.4; ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.4 * z; ctx.setLineDash([4 * z, 9 * z]); for (const o of all) { trace(o.sp); ctx.stroke(); } ctx.setLineDash([]);
+    ctx.restore();
   }
 
   drawBloom(ctx, cx, cy) {

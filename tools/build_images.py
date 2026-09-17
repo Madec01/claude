@@ -700,6 +700,53 @@ class Builder:
             im = tint(silhouette(im, "#ffffff"), "#ffffff", 0.85)
             self.emit(f"sea_wave_{i}", "tiles", im, HT, f"Tiles/{name}.png", "Vague blanche translucide pour la mer (Hexagon Tiles ×3.7" + (", miroir" if mirror else "") + ").")
 
+    # --- A bis. décor composé par région : sols par type de terrain et objets par saison (ancrés en bas au centre)
+    def build_deco(self):
+        comp = Composer(self.src)
+        GROUNDS = {"grass": ("grass_05", "grass"), "water": ("grass_05", "water"), "dirt": ("dirt_06", "dirt"), "stone": ("stone_07", "stone"),
+                   "sand": ("sand_07", "sand"), "hill": ("grass_17", "grass"), "heath": ("grass_05", "heath")}
+        for kind, (base, bk) in GROUNDS.items():
+            for season in SEASONS:
+                im = comp.base_for(T(kind, base, [], base_kind=bk), season)
+                arr = np.asarray(im)[120:170, 95:145, :3].reshape(-1, 3).mean(0)
+                col = "#%02x%02x%02x" % tuple(int(v) for v in arr)
+                self.emit(f"ground_{kind}_{season}", "tiles", im, HP, self.src.hp_original(base), f"Sol « {kind} » ({season}) pour le décor composé par région.",
+                          ground=kind, season=season, ground_color=col)
+        im = comp.base_for(T("dry", "grass_05", [], base_kind="dry"), "summer")
+        arr = np.asarray(im)[120:170, 95:145, :3].reshape(-1, 3).mean(0)
+        self.emit("ground_dry", "tiles", im, HP, self.src.hp_original("grass_05"), "Sol de prairie sèche (été).", ground="dry", ground_color="#%02x%02x%02x" % tuple(int(v) for v in arr))
+        def obj(keyname, layer, season, note, pack=HP, original=None):
+            im = comp.layer_image(layer, season, 0)
+            bb = im.split()[3].getbbox()
+            if bb:
+                im = im.crop((bb[0], 0, bb[2], im.height))
+            self.emit(keyname, "deco", im, pack, original or (self.src.hp_original(layer["sprite"][4:]) if layer["sprite"].startswith("obj:") else "Tiles/" + layer["sprite"].split(":")[1] + ".png"),
+                      note, anchor="bottom")
+        for name in ("treePine_large", "treePine_small", "treeRound_large", "treeRound_small"):
+            for season in SEASONS:
+                obj(f"obj_{name}_{season}", L(f"obj:{name}", 0, 0, "foliage"), season, f"{name} recoloré ({season}).")
+        for season in SEASONS:
+            obj(f"obj_treeRound_fruit_{season}", L(ROUND_S, 0, 0, "foliage", fruits=True), season, f"Fruitier ({season}) : feuillu + fruits dessinés en été et en automne.")
+            obj(f"obj_hedge_{season}", L("obj:hedge", 0, 0, "foliage", scale=0.45), season, f"Haie ×0.45 ({season}).")
+            obj(f"obj_bushGrass_{season}", L("ht:bushGrass:2.4", 0, 0, "reed"), season, f"Touffe d'herbe / roseau ({season}).", pack=HT)
+            obj(f"obj_heather_{season}", L("ht:bushGrass:2.4", 0, 0, "heather"), season, f"Bruyère ({season}).", pack=HT)
+            for name in ("farmland", "farmland_empty"):
+                obj(f"obj_{name}_{season}", L(f"obj:{name}", 0, 0, "field"), season, f"Parcelle {name} ({season}).")
+        obj("obj_bushGrass_dry", L("ht:bushGrass:2.4", 0, 0, "dry"), "summer", "Touffe sèche.", pack=HT)
+        for name in ("rockGrey_large", "rockGrey_medium1", "rockGrey_medium2", "rockGrey_medium3", "rockGrey_small1", "rockGrey_small2", "rockGrey_small3", "rockGrey_small4", "rockBrown_small"):
+            obj(f"obj_{name}", L(f"obj:{name}", 0, 0, "rock"), "summer", f"Rocher {name}.")
+            obj(f"obj_{name}_winter", L(f"obj:{name}", 0, 0, "rock"), "winter", f"Rocher {name} enneigé.")
+        for name in ("house", "house_small", "villa", "tinyBuilding", "farm", "well", "fence", "hay", "logPile", "log", "fountain", "silo1", "campingTent", "fire",
+                     "windmill_complete", "church", "tower", "tombstone1", "towerRuin", "ruinsCorner", "ruins_brick1", "wall_small", "wall", "lightpost", "tavern",
+                     "oven", "archway", "horseTrough", "mine", "banner", "shop"):
+            obj(f"obj_{name}", L(f"obj:{name}", 0, 0), "summer", f"Objet {name} (Hexagon Pack).")
+        for name in ("flowerWhite", "flowerYellow", "flowerRed"):
+            obj(f"obj_{name}", L(f"ht:{name}:2.8", 0, 0), "summer", f"Fleur {name} (Hexagon Tiles ×2.8).", pack=HT)
+        for season, k in (("summer", "obj_puddle"), ("winter", "obj_puddle_winter")):
+            lay = Image.new("RGBA", (80, 50), (0, 0, 0, 0))
+            comp.draw_puddle(lay, {"x": 20, "y": 12, "rx": 16, "ry": 9}, season)
+            self.emit(k, "deco", lay, HP, "grass_05 (alpha)", "Flaque d'eau" + (" gelée" if season == "winter" else "") + " (ellipse dessinée, liseré sombre).", anchor="bottom")
+
     # --- B. faune
     def build_fauna(self):
         animals = {"rabbit": "lapin", "moose": "élan", "frog": "grenouille", "duck": "canard", "bear": "ours", "owl": "hibou",
@@ -904,6 +951,7 @@ def main():
     b = Builder(src_root, repo, sheets=args.sheets)
     b.src.prepare(rebuild=args.rebuild_cache)
     b.build_tiles()
+    b.build_deco()
     b.build_fauna()
     b.build_fx()
     b.build_ui()
