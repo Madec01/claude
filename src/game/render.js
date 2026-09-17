@@ -185,29 +185,12 @@ export class IslandRenderer {
       const w = toWorld(t.q, t.r); const c = cam.toScreen(w.x, w.y);
       const k = key(t.q, t.r); const d = this.fx.dropTransform(k); if (d.dy !== 0 || d.s !== 1) dropping.set(k, d);
       if (!vis(c)) continue;
-      const img = Assets.img(groundKey(this.decor.groundFor(t), this.seasonFor(w.x)));
+      const img = t.family === 'water' ? this.waterGround(t, this.seasonFor(w.x)) : Assets.img(groundKey(this.decor.groundFor(t), this.seasonFor(w.x)));
       const zz = z * d.s, cy = c.y + d.dy * z;
       if (img) ctx.drawImage(img, c.x - TILE_W * zz / 2, cy - TILE_H * zz / 2, TILE_W * zz, TILE_H * zz);
       else this.drawTileAt(ctx, t, c.x, cy, d.s, 1);
     }
-    // rives par arête : sur une tuile d'eau, chaque côté reprend le sol de la voisine (secteur découpé)
-    for (const t of tiles) {
-      if (!(t.family === 'water' || (t.rare && false))) continue;
-      const k = key(t.q, t.r); if (dropping.has(k)) continue;
-      const w = toWorld(t.q, t.r); const c = cam.toScreen(w.x, w.y); if (!vis(c)) continue;
-      const base = this.decor.groundFor(t); const pts = corners(c.x, c.y, SIZE * z * 1.02);
-      // limites ondulées entre deux rives : chaque rayon centre → sommet est une ligne brisée décalée (déterministe par case et sommet,
-      // partagée par les deux secteurs voisins), au lieu d'une couture droite
-      const ray = (i) => { const [px, py] = pts[i]; const dx = px - c.x, dy = py - c.y, len = Math.hypot(dx, dy) || 1; const nx = -dy / len, ny = dx / len; const out = []; for (let j = 1; j <= 3; j++) { const f = j / 4; const h = Math.sin(t.q * 12.9898 + t.r * 78.233 + i * 37.719 + j * 4.1) * 43758.5453; const o = ((h - Math.floor(h)) - 0.5) * 16 * z * (1 - Math.abs(f - 0.5)); out.push([c.x + dx * f + nx * o, c.y + dy * f + ny * o]); } return out; };
-      for (let d = 0; d < 6; d++) {
-        const n = b.get(t.q + DIRS[d][0], t.r + DIRS[d][1]); if (!n || n.family === 'water') continue;
-        let g = this.decor.groundFor(n); if (g === 'hill') g = 'grass'; if (g === base) continue;
-        const img = Assets.img(groundKey(g, this.seasonFor(w.x))); if (!img) continue;
-        const r1 = ray(d), r2 = ray((d + 1) % 6);
-        ctx.save(); ctx.beginPath(); ctx.moveTo(c.x, c.y); for (const [x, y] of r1) ctx.lineTo(x, y); ctx.lineTo(pts[d][0], pts[d][1]); ctx.lineTo(pts[(d + 1) % 6][0], pts[(d + 1) % 6][1]); for (let j = r2.length - 1; j >= 0; j--) ctx.lineTo(r2[j][0], r2[j][1]); ctx.closePath(); ctx.clip();
-        ctx.drawImage(img, c.x - TILE_W * z / 2, c.y - TILE_H * z / 2, TILE_W * z, TILE_H * z); ctx.restore();
-      }
-    }
+    // (rives : composées dans waterGround, en cache par signature)
     // raccords : un ruban de la couleur du sol sur chaque arête partagée par deux sols identiques (efface la couture)
     ctx.save();
     const half = SIZE * 0.46, e = 7;
@@ -341,6 +324,34 @@ export class IslandRenderer {
       }
     }
     ctx.restore();
+  }
+
+  /**
+   * Sol d'une tuile d'eau : le sol majoritaire de ses voisines, sur lequel chaque voisine d'un autre sol déborde en une
+   * lentille fondue centrée sur le milieu du bord partagé (dégradé radial, pas de couture ni de secteur). Mis en cache par
+   * signature (sol de base, sol par côté, saison), car les combinaisons sont peu nombreuses.
+   */
+  waterGround(t, season) {
+    const b = this.isl.board; const base = this.decor.groundFor(t);
+    const gs = []; for (let d = 0; d < 6; d++) { const n = b.get(t.q + DIRS[d][0], t.r + DIRS[d][1]); let g = n && n.family !== 'water' ? this.decor.groundFor(n) : ''; if (g === 'hill') g = 'grass'; gs.push(g === base ? '' : g); }
+    const sig = `${base}|${gs.join(',')}|${season}`;
+    this._wg = this._wg || new Map(); const hit = this._wg.get(sig); if (hit) return hit;
+    const baseImg = Assets.img(groundKey(base, season)); if (!baseImg) return null;
+    const W = baseImg.width, H = baseImg.height, sc = W / TILE_W;   // images 2×
+    const cv = document.createElement('canvas'); cv.width = W; cv.height = H; const g = cv.getContext('2d');
+    g.drawImage(baseImg, 0, 0);
+    const tmp = document.createElement('canvas'); tmp.width = W; tmp.height = H; const tg = tmp.getContext('2d');
+    const c0 = toWorld(t.q, t.r);
+    for (let d = 0; d < 6; d++) {
+      if (!gs[d]) continue; const img = Assets.img(groundKey(gs[d], season)); if (!img) continue;
+      const m = edgeMid(c0.x, c0.y, d); const mx = W / 2 + (m.x - c0.x) * sc, my = H / 2 + (m.y - c0.y) * sc;
+      tg.globalCompositeOperation = 'source-over'; tg.clearRect(0, 0, W, H); tg.drawImage(img, 0, 0);
+      const r = SIZE * 0.95 * sc; const grad = tg.createRadialGradient(mx, my, 0, mx, my, r);
+      grad.addColorStop(0, 'rgba(0,0,0,1)'); grad.addColorStop(0.45, 'rgba(0,0,0,0.9)'); grad.addColorStop(1, 'rgba(0,0,0,0)');
+      tg.globalCompositeOperation = 'destination-in'; tg.fillStyle = grad; tg.fillRect(0, 0, W, H);
+      g.drawImage(tmp, 0, 0);
+    }
+    this._wg.set(sig, cv); return cv;
   }
 
   /** Forme arrondie légèrement irrégulière (mare). */
