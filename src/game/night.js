@@ -100,7 +100,7 @@ export class Night {
     this.notify(`${ship.name} à quai`, 'good');
     this.emit('dock', ship);
     if (this.infinite) this.stats.score += this.wave * 10;
-    if (ship.isYann) this.emit('yann', ship);
+    if (ship.isYann) { this.emit('yann', ship); this.notify('La Sirène est à quai', 'special'); setTimeout(() => this.endNight(true, 'yann'), 2200); }
   }
 
   onShipWrecked(ship, reason) {
@@ -230,7 +230,7 @@ export class Night {
       this.dawn = clamp(1 - left / 18, 0, 1);
       if (this.state === 'play' && left <= 18) { this.state = 'dawn'; this.emit('dawn'); this.sfx('dawn', { volume: 0.6 }); }
       if (left <= 0) {
-        const win = this.stats.docked >= this.def.quota && (!this.def.finale || this.stats.requiredDocked);
+        const win = this.def.finale ? this.stats.requiredDocked : this.stats.docked >= this.def.quota;
         this.endNight(win, win ? 'dawn' : (this.def.finale && !this.stats.requiredDocked ? 'yann' : 'quota'));
       }
     }

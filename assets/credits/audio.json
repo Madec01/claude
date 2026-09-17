@@ -1,0 +1,384 @@
+{
+  "note": "Crédits audio de « Feux de Brume ». Les fichiers ont été recompressés (OGG Vorbis), coupés en boucles, normalisés et parfois superposés ; aucune source n'est utilisée hors de sa licence.",
+  "works": [
+    {
+      "title": "Evening",
+      "author": "Kevin MacLeod",
+      "license": "CC BY 4.0",
+      "license_url": "http://creativecommons.org/licenses/by/4.0/",
+      "source_url": "https://incompetech.com/music/royalty-free/index.html?keywords=Evening",
+      "mirror": "https://github.com/noobsandnerdsgroup/audio",
+      "attribution": "\"Evening\" Kevin MacLeod (incompetech.com) — Licensed under Creative Commons: By Attribution 4.0 License — http://creativecommons.org/licenses/by/4.0/",
+      "used_in": [
+        "music/menu.ogg"
+      ]
+    },
+    {
+      "title": "Midnight Tale",
+      "author": "Kevin MacLeod",
+      "license": "CC BY 4.0",
+      "license_url": "http://creativecommons.org/licenses/by/4.0/",
+      "source_url": "https://incompetech.com/music/royalty-free/index.html?keywords=Midnight+Tale",
+      "mirror": "https://github.com/noobsandnerdsgroup/audio",
+      "attribution": "\"Midnight Tale\" Kevin MacLeod (incompetech.com) — Licensed under Creative Commons: By Attribution 4.0 License — http://creativecommons.org/licenses/by/4.0/",
+      "used_in": [
+        "music/act1.ogg"
+      ]
+    },
+    {
+      "title": "Night Vigil",
+      "author": "Kevin MacLeod",
+      "license": "CC BY 4.0",
+      "license_url": "http://creativecommons.org/licenses/by/4.0/",
+      "source_url": "https://incompetech.com/music/royalty-free/index.html?keywords=Night+Vigil",
+      "mirror": "https://github.com/noobsandnerdsgroup/audio",
+      "attribution": "\"Night Vigil\" Kevin MacLeod (incompetech.com) — Licensed under Creative Commons: By Attribution 4.0 License — http://creativecommons.org/licenses/by/4.0/",
+      "used_in": [
+        "music/act2.ogg"
+      ]
+    },
+    {
+      "title": "Spellbound",
+      "author": "Kevin MacLeod",
+      "license": "CC BY 4.0",
+      "license_url": "http://creativecommons.org/licenses/by/4.0/",
+      "source_url": "https://incompetech.com/music/royalty-free/index.html?keywords=Spellbound",
+      "mirror": "https://github.com/noobsandnerdsgroup/audio",
+      "attribution": "\"Spellbound\" Kevin MacLeod (incompetech.com) — Licensed under Creative Commons: By Attribution 4.0 License — http://creativecommons.org/licenses/by/4.0/",
+      "used_in": [
+        "music/act3.ogg"
+      ]
+    },
+    {
+      "title": "Piano Between",
+      "author": "Kevin MacLeod",
+      "license": "CC BY 4.0",
+      "license_url": "http://creativecommons.org/licenses/by/4.0/",
+      "source_url": "https://incompetech.com/music/royalty-free/index.html?keywords=Piano+Between",
+      "mirror": "https://github.com/noobsandnerdsgroup/audio",
+      "attribution": "\"Piano Between\" Kevin MacLeod (incompetech.com) — Licensed under Creative Commons: By Attribution 4.0 License — http://creativecommons.org/licenses/by/4.0/",
+      "used_in": [
+        "music/results.ogg"
+      ]
+    },
+    {
+      "title": "Mourning Song",
+      "author": "Kevin MacLeod",
+      "license": "CC BY 4.0",
+      "license_url": "http://creativecommons.org/licenses/by/4.0/",
+      "source_url": "https://incompetech.com/music/royalty-free/index.html?keywords=Mourning+Song",
+      "mirror": "https://github.com/noobsandnerdsgroup/audio",
+      "attribution": "\"Mourning Song\" Kevin MacLeod (incompetech.com) — Licensed under Creative Commons: By Attribution 4.0 License — http://creativecommons.org/licenses/by/4.0/",
+      "used_in": [
+        "music/defeat.ogg"
+      ]
+    },
+    {
+      "title": "Stay the Course",
+      "author": "Kevin MacLeod",
+      "license": "CC BY 4.0",
+      "license_url": "http://creativecommons.org/licenses/by/4.0/",
+      "source_url": "https://incompetech.com/music/royalty-free/index.html?keywords=Stay+the+Course",
+      "mirror": "https://github.com/noobsandnerdsgroup/audio",
+      "attribution": "\"Stay the Course\" Kevin MacLeod (incompetech.com) — Licensed under Creative Commons: By Attribution 4.0 License — http://creativecommons.org/licenses/by/4.0/",
+      "used_in": [
+        "music/ending.ogg"
+      ]
+    },
+    {
+      "title": "Virtutes Vocis",
+      "author": "Kevin MacLeod",
+      "license": "CC BY 4.0",
+      "license_url": "http://creativecommons.org/licenses/by/4.0/",
+      "source_url": "https://incompetech.com/music/royalty-free/index.html?keywords=Virtutes+Vocis",
+      "mirror": "https://github.com/noobsandnerdsgroup/audio",
+      "attribution": "\"Virtutes Vocis\" Kevin MacLeod (incompetech.com) — Licensed under Creative Commons: By Attribution 4.0 License — http://creativecommons.org/licenses/by/4.0/",
+      "used_in": [
+        "music/finale.ogg"
+      ]
+    },
+    {
+      "title": "Crashing Waves - Pacific Ocean",
+      "author": "SecureSubset",
+      "license": "CC0 1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "source_url": "https://freesound.org/s/817075/",
+      "mirror": "https://github.com/funcoder/omarchy-ambient",
+      "used_in": [
+        "ambience/waves.ogg"
+      ]
+    },
+    {
+      "title": "Wind on bushes with muffled gust of wind, twig branch, close to desert ground",
+      "author": "felix.blume",
+      "license": "CC0 1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "source_url": "https://freesound.org/s/711106/",
+      "mirror": "https://github.com/funcoder/omarchy-ambient",
+      "used_in": [
+        "ambience/wind.ogg",
+        "sfx/fog_whisper.ogg",
+        "sfx/gust.ogg"
+      ]
+    },
+    {
+      "title": "Soft rain on a tile roof",
+      "author": "richwise",
+      "license": "CC0 1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "source_url": "https://freesound.org/s/466241/",
+      "mirror": "https://github.com/funcoder/omarchy-ambient",
+      "used_in": [
+        "ambience/rain.ogg"
+      ]
+    },
+    {
+      "title": "Rain and Thunder Ambience Tübingen",
+      "author": "Sheyvan",
+      "license": "CC0 1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "source_url": "https://freesound.org/s/369547/",
+      "mirror": "https://github.com/funcoder/omarchy-ambient",
+      "used_in": [
+        "ambience/storm.ogg"
+      ]
+    },
+    {
+      "title": "Micro Pack - Chairmat",
+      "author": "Ben Burnes (Abstraction)",
+      "license": "CC0 1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "source_url": "https://abstractionmusic.com/",
+      "mirror": "https://github.com/lavenderdotpet/CC0-Public-Domain-Sounds",
+      "used_in": [
+        "ambience/storm.ogg",
+        "sfx/beast_retreat.ogg",
+        "sfx/thunder_2.ogg",
+        "sfx/thunder_3.ogg"
+      ]
+    },
+    {
+      "title": "UI Audio",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "source_url": "https://kenney.nl/assets/ui-audio",
+      "mirror": "https://github.com/ETdoFresh/kenney.nl",
+      "used_in": [
+        "sfx/ui_hover.ogg",
+        "sfx/ui_click.ogg"
+      ]
+    },
+    {
+      "title": "Interface Sounds",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "source_url": "https://kenney.nl/assets/interface-sounds",
+      "mirror": "https://github.com/ETdoFresh/kenney.nl",
+      "used_in": [
+        "sfx/ui_back.ogg",
+        "sfx/ui_confirm.ogg",
+        "sfx/ui_error.ogg",
+        "sfx/route_invalid.ogg",
+        "sfx/warning.ogg",
+        "sfx/tick.ogg"
+      ]
+    },
+    {
+      "title": "RPG Audio",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "source_url": "https://kenney.nl/assets/rpg-audio",
+      "mirror": "https://github.com/ETdoFresh/kenney.nl",
+      "used_in": [
+        "sfx/ui_open.ogg",
+        "sfx/ui_close.ogg",
+        "sfx/page_flip_1.ogg",
+        "sfx/page_flip_2.ogg",
+        "sfx/lens_tick_1.ogg",
+        "sfx/lens_start.ogg",
+        "sfx/ship_creak_1.ogg",
+        "sfx/ship_creak_2.ogg"
+      ]
+    },
+    {
+      "title": "Smol Mechanisms (May 2021)",
+      "author": "Ben Burnes (Abstraction)",
+      "license": "CC0 1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "source_url": "https://abstractionmusic.com/",
+      "mirror": "https://github.com/lavenderdotpet/CC0-Public-Domain-Sounds",
+      "used_in": [
+        "sfx/lens_tick_2.ogg",
+        "sfx/lens_start.ogg"
+      ]
+    },
+    {
+      "title": "Bottle Plops (Apr 2021)",
+      "author": "Ben Burnes (Abstraction)",
+      "license": "CC0 1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "source_url": "https://abstractionmusic.com/",
+      "mirror": "https://github.com/lavenderdotpet/CC0-Public-Domain-Sounds",
+      "used_in": [
+        "sfx/oil_refill.ogg"
+      ]
+    },
+    {
+      "title": "40 CC0 water / splash / slime SFX",
+      "author": "rubberduck",
+      "license": "CC0 1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "source_url": "https://opengameart.org/content/40-cc0-water-splash-slime-sfx",
+      "mirror": "https://github.com/lavenderdotpet/CC0-Public-Domain-Sounds",
+      "used_in": [
+        "sfx/oil_refill.ogg",
+        "sfx/anchor_drop.ogg",
+        "sfx/wreck_splash.ogg",
+        "sfx/splash_small_1.ogg",
+        "sfx/splash_small_2.ogg",
+        "sfx/splash_small_3.ogg"
+      ]
+    },
+    {
+      "title": "100 CC0 SFX #2",
+      "author": "rubberduck",
+      "license": "CC0 1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "source_url": "https://opengameart.org/content/100-cc0-sfx-2",
+      "mirror": "https://github.com/lavenderdotpet/CC0-Public-Domain-Sounds",
+      "used_in": [
+        "sfx/oil_out.ogg",
+        "sfx/thunder_1.ogg"
+      ]
+    },
+    {
+      "title": "80 CC0 RPG SFX",
+      "author": "rubberduck",
+      "license": "CC0 1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "source_url": "https://opengameart.org/content/80-cc0-rpg-sfx",
+      "mirror": "https://github.com/lavenderdotpet/CC0-Public-Domain-Sounds",
+      "used_in": [
+        "sfx/oil_relight.ogg",
+        "sfx/anchor_drop.ogg",
+        "sfx/anchor_raise.ogg",
+        "sfx/beast_growl_2.ogg",
+        "sfx/beast_hurt.ogg"
+      ]
+    },
+    {
+      "title": "100 CC0 SFX",
+      "author": "rubberduck",
+      "license": "CC0 1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "source_url": "https://opengameart.org/content/100-cc0-sfx",
+      "mirror": "https://github.com/lavenderdotpet/CC0-Public-Domain-Sounds",
+      "used_in": [
+        "sfx/bell_dock_1.ogg",
+        "sfx/bell_dock_2.ogg",
+        "sfx/page_pickup.ogg"
+      ]
+    },
+    {
+      "title": "100 CC0 wood / metal SFX",
+      "author": "rubberduck",
+      "license": "CC0 1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "source_url": "https://opengameart.org/content/100-cc0-wood-metal-sfx",
+      "mirror": "https://github.com/lavenderdotpet/CC0-Public-Domain-Sounds",
+      "used_in": [
+        "sfx/ship_creak_3.ogg",
+        "sfx/wreck_wood.ogg"
+      ]
+    },
+    {
+      "title": "Impact Sounds",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "source_url": "https://kenney.nl/assets/impact-sounds",
+      "mirror": "https://github.com/ETdoFresh/kenney.nl",
+      "used_in": [
+        "sfx/wreck_wood.ogg",
+        "sfx/shard.ogg"
+      ]
+    },
+    {
+      "title": "75 CC0 breaking / falling / hit SFX",
+      "author": "rubberduck",
+      "license": "CC0 1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "source_url": "https://opengameart.org/content/75-cc0-breaking-falling-hit-sfx",
+      "mirror": "https://github.com/lavenderdotpet/CC0-Public-Domain-Sounds",
+      "used_in": [
+        "sfx/wreck_wood.ogg"
+      ]
+    },
+    {
+      "title": "Books, Paper, Writing (Jan 2021)",
+      "author": "Ben Burnes (Abstraction)",
+      "license": "CC0 1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "source_url": "https://abstractionmusic.com/",
+      "mirror": "https://github.com/lavenderdotpet/CC0-Public-Domain-Sounds",
+      "used_in": [
+        "sfx/route_draw.ogg",
+        "sfx/route_set.ogg"
+      ]
+    },
+    {
+      "title": "FluidR3_GM SoundFont (samples d'instruments, rendus MP3 par note)",
+      "author": "Frank Wen",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "source_url": "https://member.keymusician.com/Member/FluidR3_GM/index.html",
+      "mirror": "https://github.com/gleitz/midi-js-soundfonts",
+      "used_in": [
+        "sfx/horn.ogg",
+        "sfx/horn_distant.ogg",
+        "sfx/page_pickup.ogg",
+        "sfx/shard.ogg",
+        "sfx/star_1.ogg",
+        "sfx/star_2.ogg",
+        "sfx/star_3.ogg",
+        "sfx/upgrade.ogg",
+        "sfx/night_win.ogg",
+        "sfx/night_lose.ogg",
+        "sfx/dawn.ogg"
+      ]
+    },
+    {
+      "title": "80 CC0 creature SFX",
+      "author": "rubberduck",
+      "license": "CC0 1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "source_url": "https://opengameart.org/content/80-cc0-creature-sfx",
+      "mirror": "https://github.com/lavenderdotpet/CC0-Public-Domain-Sounds",
+      "used_in": [
+        "sfx/beast_growl_1.ogg",
+        "sfx/beast_growl_2.ogg",
+        "sfx/fog_whisper.ogg"
+      ]
+    },
+    {
+      "title": "Micro Pack - Organic Wooshes",
+      "author": "Ben Burnes (Abstraction)",
+      "license": "CC0 1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "source_url": "https://abstractionmusic.com/",
+      "mirror": "https://github.com/lavenderdotpet/CC0-Public-Domain-Sounds",
+      "used_in": [
+        "sfx/beast_retreat.ogg",
+        "sfx/gust.ogg"
+      ]
+    }
+  ],
+  "licenses": {
+    "CC BY 4.0": "http://creativecommons.org/licenses/by/4.0/",
+    "CC BY 3.0": "https://creativecommons.org/licenses/by/3.0/",
+    "CC0 1.0": "https://creativecommons.org/publicdomain/zero/1.0/"
+  }
+}

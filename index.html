@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Feux de Brume — Chroniques du phare de Sant-Aël</title>
+  <meta name="description" content="Feux de Brume : guidez les navires à travers une brume vivante depuis la lanterne du phare de Sant-Aël. Jeu d'action-stratégie atmosphérique, 1893.">
+  <link rel="icon" href="assets/img/ui/lighthouse.png" type="image/png">
+  <link rel="stylesheet" href="css/fonts.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/menu.css">
+  <link rel="stylesheet" href="css/hud.css">
+</head>
+<body>
+  <div id="app">
+    <!-- Zone de jeu (canvas) -->
+    <div id="stage">
+      <canvas id="game" width="1280" height="720"></canvas>
+      <!-- HUD superposé au canvas pendant une nuit -->
+      <div id="hud" class="screen" aria-live="polite"></div>
+      <!-- Messages de tutoriel -->
+      <div id="tutorial" class="screen"></div>
+      <!-- Écrans DOM (menu, options, histoire, résultats, pause...) -->
+      <div id="ui" class="screen"></div>
+      <!-- Voile de transition (fondu au noir) -->
+      <div id="fade"></div>
+    </div>
+    <!-- Écran de chargement -->
+    <div id="boot">
+      <div class="boot-inner">
+        <div class="boot-lamp" id="boot-lamp" aria-hidden="true">
+          <div class="boot-halo"></div>
+          <div class="boot-glass"></div>
+          <div class="boot-wick"></div>
+          <div class="boot-flame"></div>
+          <div class="boot-base"></div>
+          <div class="boot-foot"></div>
+        </div>
+        <div class="boot-title">Feux de Brume</div>
+        <div class="boot-sub">Chroniques du phare de Sant-Aël</div>
+        <div class="boot-bar"><div class="boot-bar-fill" id="boot-fill"></div></div>
+        <div class="boot-status" id="boot-status">Allumage de la mèche…</div>
+      </div>
+    </div>
+  </div>
+  <script>
+    // La flamme de la lampe suit la barre de chargement (largeur écrite par main.js).
+    (function () {
+      var fill = document.getElementById('boot-fill'), lamp = document.getElementById('boot-lamp');
+      if (!fill || !lamp || !window.MutationObserver) return;
+      new MutationObserver(function () { lamp.style.setProperty('--boot-p', (parseFloat(fill.style.width) || 0) / 100); }).observe(fill, { attributes: true, attributeFilter: ['style'] });
+    })();
+  </script>
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>

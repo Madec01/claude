@@ -1,0 +1,76 @@
+/* Menu d'accueil et sélection des nuits. Composition 1280×720 : titre et navigation à gauche,
+   le phare et son faisceau (canvas) restent visibles à droite. */
+.menu-wrap { display: block !important; }
+.menu { position: absolute; inset: 0; overflow: hidden; }
+.menu-veil { position: absolute; inset: 0; background:
+  linear-gradient(90deg, rgba(4,10,20,0.88) 0%, rgba(4,10,20,0.78) 34%, rgba(4,10,20,0.35) 58%, rgba(4,10,20,0.12) 80%, rgba(4,10,20,0.4) 100%),
+  radial-gradient(ellipse at 50% 50%, transparent 55%, rgba(2,6,12,0.55) 100%); pointer-events: none; }
+.menu .chart-frame { position: absolute; inset: 0; color: var(--brass-1); opacity: 0; pointer-events: none; animation: fadeIn 1.2s ease 0.2s forwards; }
+.menu-rose { position: absolute; right: 78px; bottom: 66px; color: var(--brass-2); opacity: 0; filter: drop-shadow(0 0 12px rgba(0,0,0,0.6)); animation: roseIn 1.4s var(--ease-out) 0.5s forwards; pointer-events: none; }
+@keyframes roseIn { from { opacity: 0; transform: rotate(-20deg) scale(0.9); } to { opacity: 0.5; transform: none; } }
+@keyframes fadeIn { to { opacity: 1; } }
+
+/* Titre : plaque de lanterne */
+.menu-title { position: absolute; left: 96px; top: 62px; width: 520px; opacity: 0; transform: translateY(10px); animation: riseIn 0.9s var(--ease-out) 0.1s forwards; }
+@keyframes riseIn { to { opacity: 1; transform: none; } }
+.lantern-glow { position: absolute; left: 50%; top: 40%; width: 760px; height: 420px; transform: translate(-50%, -50%); background: radial-gradient(ellipse, rgba(255,207,110,0.28) 0%, rgba(255,207,110,0.08) 40%, transparent 68%); pointer-events: none; animation: glowPulse 4s ease-in-out infinite; }
+@keyframes glowPulse { 50% { opacity: 0.7; transform: translate(-50%, -50%) scale(1.06); } }
+.menu-title .menu-kicker { position: relative; font-family: var(--font-title); font-size: 17px; letter-spacing: 0.35em; text-transform: uppercase; color: var(--brass-0); opacity: 0.9; display: flex; align-items: center; gap: 14px; }
+.menu-title .menu-kicker::before, .menu-title .menu-kicker::after { content: ''; height: 1px; width: 40px; background: var(--brass-1); opacity: 0.8; }
+.menu-title h1 { position: relative; font-family: var(--font-title); font-weight: normal; font-size: 96px; line-height: 1; margin: 4px 0 0 -4px; letter-spacing: 0.03em; color: var(--beam-0); text-shadow: 0 0 46px rgba(255,207,110,0.5), 0 0 6px rgba(255,233,176,0.35), 0 4px 0 rgba(0,0,0,0.5), 0 6px 22px rgba(0,0,0,0.6); white-space: nowrap; }
+.menu-sub { position: relative; font-style: italic; font-size: 25px; color: var(--paper); opacity: 0.88; margin-top: 4px; letter-spacing: 0.02em; }
+.menu-title .rule { display: block; width: 300px; height: 14px; color: var(--brass-1); margin-top: 10px; opacity: 0.9; }
+
+/* Navigation : étiquettes de carte / plaques de cuivre */
+.menu-nav { position: absolute; left: 96px; top: 284px; display: flex; flex-direction: column; gap: 8px; width: 372px; }
+.menu-nav .btn { justify-content: flex-start; opacity: 0; transform: translateX(-14px); transition: opacity 0.45s var(--ease-out), transform 0.45s var(--ease-out), background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease; padding: 7px 18px 7px 12px; font-size: 21px; }
+.menu-nav .btn.in { opacity: 1; transform: none; }
+.menu-nav .btn:disabled.in { opacity: 0.42; }
+.menu-nav .btn .icon { width: 22px; height: 22px; padding: 0; margin-right: 2px; }
+.menu-nav .btn .btn-medal { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--brass-2); background: radial-gradient(circle at 35% 30%, rgba(255,233,176,0.18), rgba(0,0,0,0.35)); box-shadow: inset 0 1px 0 rgba(255,225,160,0.2); flex: none; }
+.menu-nav .btn .btn-medal .icon { width: 18px; height: 18px; margin: 0; }
+.menu-nav .btn-primary .btn-medal { border-color: rgba(255,240,200,0.5); background: radial-gradient(circle at 35% 30%, rgba(255,246,220,0.35), rgba(120,80,30,0.4)); }
+.menu-nav .btn .btn-sub { margin-left: auto; font-size: 15px; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.6; }
+.menu-nav .btn-big { font-size: 24px; padding: 10px 18px 10px 12px; }
+.menu-nav .btn-ghost { margin-top: 4px; font-size: 18px; padding-top: 5px; padding-bottom: 5px; }
+.menu-nav .btn-ghost .btn-medal { border-color: rgba(226,191,122,0.3); background: transparent; }
+.menu-nav .btn:hover:not(:disabled) { transform: translateX(4px); }
+
+/* Pied de page : carte de progression et version */
+.menu-foot { position: absolute; left: 60px; right: 60px; bottom: 34px; display: flex; justify-content: space-between; align-items: center; font-size: 16px; letter-spacing: 0.06em; color: var(--paper); opacity: 0; animation: fadeIn 0.8s ease 0.9s forwards; pointer-events: none; }
+.menu-foot .foot-left { display: flex; align-items: center; gap: 18px; opacity: 0.85; }
+.menu-foot .foot-stat { display: inline-flex; align-items: center; gap: 7px; }
+.menu-foot .foot-stat .icon { width: 16px; height: 16px; filter: sepia(1) saturate(2.4) brightness(1.05); opacity: 0.9; }
+.menu-foot .foot-test { color: var(--gold); font-family: var(--font-title); letter-spacing: 0.15em; text-transform: uppercase; font-size: 15px; }
+.menu-foot .foot-right { opacity: 0.6; font-style: italic; }
+
+/* Sélection de nuit : rangée par acte */
+.panel-nights { width: 1000px; padding: 26px 40px 24px; }
+.acts { display: flex; flex-direction: column; gap: 10px; }
+.act-row { display: grid; grid-template-columns: 150px repeat(4, 1fr); gap: 10px; align-items: stretch; }
+.act-head { display: flex; flex-direction: column; justify-content: center; padding: 6px 12px 6px 0; border-right: 1px solid rgba(226,191,122,0.28); }
+.act-head .act-num { font-family: var(--font-title); font-size: 30px; line-height: 1; color: var(--brass-0); }
+.act-head .act-name { font-size: 17px; font-style: italic; opacity: 0.8; margin-top: 4px; line-height: 1.2; }
+.act-head .act-stars { font-size: 15px; opacity: 0.6; margin-top: 6px; letter-spacing: 0.06em; }
+.night-card { position: relative; padding: 12px 12px 10px 16px; border-radius: 3px; border: 1px solid var(--brass-3); background: linear-gradient(180deg, rgba(233,220,192,0.07), rgba(233,220,192,0.02)); color: var(--paper); cursor: pointer; text-align: left; font-family: var(--font-body); transition: background 0.2s, border-color 0.2s, transform 0.15s, box-shadow 0.2s; overflow: hidden; min-height: 96px; box-shadow: inset 0 1px 0 rgba(255,225,160,0.08); }
+.night-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--act-color, var(--brass-1)); box-shadow: 0 0 10px var(--act-color, var(--brass-1)); opacity: 0.85; }
+.night-card:hover:not(:disabled), .night-card:focus-visible:not(:disabled) { background: linear-gradient(180deg, rgba(255,207,110,0.16), rgba(255,207,110,0.05)); border-color: var(--brass-0); transform: translateY(-2px); box-shadow: 0 10px 24px rgba(0,0,0,0.4), 0 0 0 1px rgba(226,191,122,0.2); }
+.night-card.locked { cursor: not-allowed; }
+.night-card.locked > * { opacity: 0.35; }
+.night-card.locked::before { opacity: 0.3; box-shadow: none; }
+.night-card.act-1 { --act-color: #7bd389; } .night-card.act-2 { --act-color: #6f9fd8; } .night-card.act-3 { --act-color: #d9634f; }
+.night-card.current { border-color: var(--beam-1); box-shadow: 0 0 0 1px rgba(255,207,110,0.35), 0 0 18px rgba(255,207,110,0.18); }
+.night-card.current .nc-num::after { content: '· en cours'; margin-left: 6px; color: var(--beam-0); letter-spacing: 0.06em; text-transform: none; }
+.nc-num { font-size: 15px; text-transform: uppercase; letter-spacing: 0.15em; opacity: 0.75; font-family: var(--font-title); }
+.nc-title { font-family: var(--font-title); font-size: 21px; margin: 2px 0 8px; line-height: 1.1; }
+.nc-stars { display: flex; gap: 3px; align-items: center; }
+.nc-stars .star .icon { width: 15px; height: 15px; opacity: 0.22; transform: none; }
+.nc-stars .star.on .icon { opacity: 1; filter: sepia(1) saturate(4) brightness(1.2) drop-shadow(0 0 3px rgba(242,177,52,0.6)); }
+.nc-best { margin-left: auto; font-size: 15px; opacity: 0.65; font-variant-numeric: tabular-nums; }
+.nc-lock { position: absolute; right: 10px; top: 10px; width: 16px; height: 16px; opacity: 0.6 !important; filter: sepia(1) saturate(2.4) brightness(1.05); }
+.nc-mech { position: absolute; right: 10px; bottom: 9px; font-size: 15px; font-style: italic; opacity: 0.6; }
+.nights-foot { display: flex; align-items: center; justify-content: space-between; margin-top: 16px; }
+.nights-foot .nights-total { display: flex; align-items: center; gap: 8px; font-size: 17px; opacity: 0.85; }
+.nights-foot .nights-total .icon { width: 18px; height: 18px; filter: sepia(1) saturate(4) brightness(1.2); }
+.nights-foot .nights-total b { font-family: var(--font-title); font-weight: normal; font-size: 22px; color: var(--gold); }
+.nights-foot .panel-actions { margin-top: 0; }

@@ -1,7 +1,9 @@
-# JOURNAL DE BORD — « FEUX DE BRUME »
+# JOURNAL DE BORD — « TU TIRES OU TU POINTES ? »
 
 > Document de référence du projet. Il permet à n'importe qui (humain ou IA) de reprendre le projet à froid.
 > Règle : aucune modification significative du jeu sans une ligne dans le **Journal des modifications** (section 7).
+
+> **Note de pivot (2026-09-17).** Le projet a d'abord été conçu comme « Feux de Brume », un jeu de gardienne de phare guidant des navires dans la brume. Le commanditaire a signalé que ce concept reproduisait l'un de ses tout premiers jeux. Le projet a été **entièrement réorienté** vers un jeu de pétanque narratif, « Tu tires ou tu pointes ? ». Le moteur générique (boucle, entrées, chargeur, audio, sauvegarde, scènes, particules, écrans DOM, pipelines d'assets, bot de QA) est conservé ; la logique de jeu, l'histoire, la direction artistique et l'audio sont refaits. L'historique complet reste en section 7 et l'ancien concept est archivé en section 6.
 
 ---
 
@@ -9,12 +11,12 @@
 
 | | |
 |---|---|
-| **Titre** | Feux de Brume |
-| **Sous-titre** | Chroniques du phare de Sant-Aël |
-| **Genre** | Action-stratégie atmosphérique en temps réel, vue de dessus (« guide les navires à travers la brume ») |
+| **Titre** | Tu tires ou tu pointes ? |
+| **Sous-titre** | Un été à Saint-Aubin-des-Cigales |
+| **Genre** | Sport / physique / narratif : pétanque en tête-à-tête, vue de dessus, tour par tour avec exécution en temps réel |
 | **Plateforme** | Navigateur desktop (Chrome / Firefox / Edge à jour), serveur statique ou GitHub Pages |
 | **Langue** | Français exclusivement (UI, textes, histoire). Code et identifiants en anglais. |
-| **Durée d'une partie** | 12 nuits de 3 à 5 minutes (campagne ≈ 60–75 min), plus un mode « Veille infinie » |
+| **Durée d'une partie** | Une partie de 4 à 10 minutes ; campagne de 12 parties (≈ 75–90 min) ; partie rapide et entraînement illimités |
 | **Stack** | HTML5 + CSS3 + JavaScript ES2022 (modules natifs), Canvas 2D, Web Audio API. Aucune dépendance, aucun build. |
 | **Dépôt** | `Madec01/claude`, branche `claude/modest-faraday-o5034z` |
 | **Point d'entrée** | `index.html` à la racine (chemins relatifs, compatible GitHub Pages) |
@@ -23,17 +25,17 @@
 
 ## 1. Vision du jeu
 
-**Pitch (3 lignes).** 1893. Élise Kervran reprend le phare de Sant-Aël après la disparition de son père. Chaque nuit, une brume anormale monte sur la passe et avale les navires. Avec son faisceau, sa corne de brume et ses cartes, Élise doit guider les bateaux jusqu'au port, nuit après nuit, et comprendre ce que la Brume veut vraiment.
+**Pitch (3 lignes).** Été 1962. Camille revient à Saint-Aubin-des-Cigales pour vider la maison de sa grand-mère Fanny, championne de pétanque que le village a oubliée. Dans une boîte à biscuits, trois boules d'acier et un cochonnet rouge. Le concours de la Saint-Éloi commence samedi : douze parties pour reprendre la place de Fanny, apprivoiser chaque terrain du village, et comprendre pourquoi personne ne veut parler de la finale de 1948.
 
-**Public visé.** Joueuses et joueurs desktop de 12 ans et plus, amateurs de jeux d'ambiance et de gestion tendue (type *Mini Metro*, *Flight Control*, *Papers, Please* pour la montée de tension), sessions courtes de 3 à 5 minutes.
+**Public visé.** Joueuses et joueurs desktop de 10 ans et plus, amateurs de jeux de sport « faciles à prendre, durs à maîtriser » (*Golf Story*, *Wii Sports*, *Bocce*), de comédie de village et de parties courtes. Aucune connaissance de la pétanque requise : le jeu l'enseigne.
 
-**Sensation recherchée.** Être seule dans une lanterne au-dessus d'une mer noire : le calme hypnotique du faisceau qui balaie la brume, puis la panique douce quand trois navires arrivent en même temps et que la corne est en recharge. Chaque nuit doit se terminer par un soupir de soulagement et l'envie de relancer « juste une nuit de plus ».
+**Sensation recherchée.** La chaleur d'une place de village à cinq heures de l'après-midi : cigales, gravier qui crisse, le « clac » d'un carreau qui fait lever la terrasse du bar. Chaque lancer est un petit suspense (la boule roule… roule… s'arrête à deux doigts du bouchon), chaque mène une décision (« tu tires ou tu pointes ? »), chaque partie une conversation avec un personnage du village.
 
 **Pourquoi ce jeu est amusant (thèse de design).**
-1. **Un geste principal satisfaisant** : orienter le faisceau à la souris. Le faisceau a de l'inertie (la lentille est lourde), un son de mécanisme, et il *révèle* : les écueils apparaissent dans la lumière, les navires y gagnent en assurance. Le joueur « peint » la sécurité.
-2. **Une tension lisible** : les dangers sont invisibles hors du faisceau mais parfaitement lisibles dedans. Le joueur sait toujours pourquoi il a perdu un navire.
-3. **Des mécaniques qui s'emboîtent** : la lumière révèle, la route guide, la corne arrête, la marée change les règles, la Brume réagit à la lumière. Chaque nouvelle mécanique modifie la valeur des précédentes.
-4. **Un rythme de vagues** : accalmies pour tracer les routes, pics où tout arrive en même temps, aube libératrice.
+1. **Un geste principal satisfaisant** : viser à la souris, choisir son lancer, relâcher au bon moment. Le résultat est immédiat, lisible et physiquement crédible : la boule rebondit sur le gravier, ralentit sur le sable, dévie sur une racine.
+2. **Une décision permanente** : pointer (se rapprocher du cochonnet) ou tirer (chasser la boule adverse). Le tir est risqué et spectaculaire ; le point est sûr mais laisse l'adversaire jouer. La question du titre est le cœur du jeu.
+3. **Des mécaniques qui s'emboîtent** : le type de lancer × le terrain × la position des boules × la personnalité de l'adversaire. Un terrain de sable rend le tir indispensable ; un goudron rapide rend la plombée précieuse.
+4. **Une comédie humaine** : chaque adversaire est un personnage avec une manière de jouer (le pointeur méticuleux, le tireur fou, le tricheur qui « mesure ») et une histoire qui avance à chaque partie.
 
 ---
 
@@ -41,88 +43,106 @@
 
 ### 2.1 Univers et contexte
 
-- **Lieu** : l'île de Sant-Aël, un rocher au large d'une côte bretonne imaginaire, au sud de la « passe des Loups », un chenal semé d'écueils qui mène à Port-Aël.
-- **Époque** : automne 1893. Lentille de Fresnel à huile, corne de brume à air comprimé actionnée à la main, cartes marines à l'encre.
-- **Le phénomène** : depuis trois mois, une brume épaisse et « trop blanche » monte chaque nuit avec la marée. Elle ne suit pas le vent. Les navires qui y entrent perdent le nord. On l'appelle simplement *la Brume*.
+- **Lieu** : Saint-Aubin-des-Cigales, village imaginaire de Provence entre vignes, pins et garrigue. Une place avec des platanes, un bar-tabac (« Le Bar des Sports »), une fontaine, une église, une plage à quatre kilomètres, une clairière de pins, le parking du garage des jumeaux.
+- **Époque** : été 1962. Solex, 2CV, transistor, jeu de boules en acier, tradition de « la Fanny » (celle ou celui qui perd 13 à 0 embrasse le tableau).
+- **Le concours de la Saint-Éloi** : tournoi de tête-à-tête ouvert à tout le village. Douze rencontres pour Camille : des défis de qualification, un tableau à élimination directe et une finale de nuit sous les lampions.
 
 ### 2.2 Personnages
 
-| Personnage | Rôle | Note de jeu |
+| Personnage | Rôle | Manière de jouer |
 |---|---|---|
-| **Élise Kervran** (27 ans) | Gardienne du phare, protagoniste. Ses pages de journal ouvrent chaque nuit. | Voix narrative du jeu. Sobre, précise, obstinée. |
-| **Yann Kervran** | Son père, gardien avant elle, disparu en mer trois mois plus tôt. | Ses pages dérivent dans la brume : collectibles narratifs. |
-| **Madame Le Goff** | Capitaine de port de Port-Aël. Méfiante puis alliée. | Donne les objectifs (quotas de navires), commente les résultats. |
-| **Maël** | Jeune pêcheur, fait la navette avec l'île. | Apporte l'huile, les nouvelles, les améliorations de l'atelier. |
-| **La Brume** | Antagoniste. Une mémoire de la mer : le souvenir du naufrage de *La Sirène* (1852), la nuit où le feu de Sant-Aël s'est éteint. | Réagit à la lumière et au son. Prend forme en acte III (« la Bête »). |
+| **Camille Roux** (31 ans) | Protagoniste, citadine revenue au village, petite-fille de Fanny | Le joueur |
+| **Fanny Roux** (†) | Grand-mère de Camille, championne de 1948, surnommée « la Fanny » par ironie après sa défaite | Présente par ses boules, ses carnets et les souvenirs des autres |
+| **Marius Ventre** (78 ans) | Vieux champion, mentor bourru, ami de Fanny ; a gardé un secret sur 1948 | Pointeur d'une régularité effrayante (adversaire 1 : partie-tutoriel) |
+| **Josiane Peyrol** | Boulangère, bavarde, cœur d'or | Joue vite, pointe court, rit de tout (adversaire 2) |
+| **Lucien Barbier** | Facteur, connaît tous les secrets, un peu tricheur (« déplace le bouchon du pied ») | Pointeur roublard qui aime les terrains à bosses (adversaire 3) |
+| **Kevin Aubanel** (16 ans) | Ado du village, tireur fou, transistor sur l'épaule | Tire sur tout, souvent à côté, parfois carreau (adversaire 4) |
+| **Père Anselme** | Curé, joueur du dimanche, philosophe | Plombée parfaite, patience infinie (adversaire 5) |
+| **Toni et Nino Ferrer** | Jumeaux du garage, jouent en alternance (« un tête-à-tête à deux têtes ») | Toni pointe, Nino tire : deux styles dans une même partie (adversaires 6 et 7) |
+| **Dr Hélène Faure** | Médecin, maniaque de la mesure, toujours un mètre-ruban | Précise, exige la mesure au moindre doute (adversaire 8) |
+| **Mme Roubaud** | Patronne du Bar des Sports, veuve, arbitre officieuse | Dure, joue serré, ne rate jamais un tir de rafle (adversaire 9) |
+| **Gaby Ponsard** | Fille de Gérard, brillante, tiraillée entre son père et la vérité | Style complet, adversaire loyale (adversaire 10) |
+| **Gérard Ponsard** | Champion en titre depuis vingt ans, fils d'Aimé Ponsard qui battit Fanny en 1948 | Tireur redoutable, joue l'intimidation (demi-finale 11, finale 12) |
 
-### 2.3 Histoire en trois actes (12 nuits)
+### 2.3 Histoire en trois actes (12 parties)
 
-- **Acte I — La Relève (nuits 1 à 4).** Élise arrive, apprend le métier (tutoriel intégré), gagne la confiance du port. La Brume est d'abord un obstacle. Première page du journal de Yann retrouvée dans l'eau, éclairée par le faisceau.
-- **Acte II — Ce que la mer rend (nuits 5 à 8).** La marée découvre des épaves et des roches absentes des cartes ; les tempêtes poussent les navires hors de leur route. Les pages révèlent que Yann a compris que la Brume *répond* à la lumière : elle cherche le feu qui l'a abandonnée en 1852. Madame Le Goff avoue que le gardien de 1852 était le grand-père d'Élise.
-- **Acte III — Le Feu du fond (nuits 9 à 12).** La Brume prend forme : la Bête, une masse qui traque les navires et ne recule que devant le faisceau et la corne. L'huile manque. Yann est parti sonner la cloche de *La Sirène* pour l'apaiser et n'est jamais revenu. Nuit 12 : un navire portant le signal de lanterne de Yann sort de la Brume. Élise doit le ramener à quai avec ses dernières réserves d'huile. À quai, la Brume se dissipe pour de bon ; Yann est vivant ; l'équipage de *La Sirène* est enfin rentré.
-- **Épilogue.** « La Brume reviendra, comme la marée. » Déverrouillage du mode *Veille infinie*.
+- **Acte I — La boîte à biscuits (parties 1 à 4).** Camille retrouve les boules de Fanny. Marius lui apprend à pointer (partie 1, tutoriel), Josiane lui apprend qu'on peut jouer en riant (2), Lucien lui apprend la demi-portée et la méfiance (3), Kevin lui apprend le tir (4). Le village découvre « la petite de la Fanny ».
+- **Acte II — Le tableau (parties 5 à 8).** Élimination directe. Le Père Anselme enseigne la plombée (5). Les jumeaux (6, 7) révèlent que le village a longtemps ri de Fanny. Le Dr Faure (8) sort son mètre : la mesure devient une mécanique, et une obsession. Les carnets de Fanny, retrouvés au grenier, racontent 1948 par fragments.
+- **Acte III — La finale de 1948 (parties 9 à 12).** Mme Roubaud (9) avoue avoir vu Aimé Ponsard déplacer le cochonnet lors de la finale de 1948, et Marius se taire. Gaby (10) hésite entre son père et la vérité. Gérard (11, demi-finale) joue l'intimidation. Finale de nuit (12) : Gérard, sous les lampions, à 13 points. Victoire : Marius parle enfin, la place est rebaptisée « Boulodrome Fanny-Roux », Camille décide de revenir chaque été.
+- **Épilogue.** « À Saint-Aubin, on ne perd jamais vraiment : on remet ça samedi. » Déverrouillage de tous les adversaires en partie rapide.
 
-Le détail des textes (pages, dialogues, intros/outros de nuit) est dans `src/data/story.js`, rédigé par le sous-agent narration.
+Les textes (dialogues d'avant et d'après-partie, commentaires en cours de partie, carnets de Fanny, fin) sont dans `src/data/story.js`, rédigés par le sous-agent narration.
 
-### 2.4 Mécaniques
+### 2.4 Règles de pétanque implémentées
 
-Les mécaniques sont introduites progressivement (une nouveauté par nuit maximum en acte I).
+- **Tête-à-tête** : deux joueurs, **3 boules** chacun. Une partie se joue en **7 points** (parties 1 à 4), **11 points** (5 à 8) ou **13 points** (9 à 12, partie rapide).
+- **Mène** : le joueur qui a gagné la mène précédente (au début, tirage au sort) trace le rond et lance le cochonnet entre 6 et 10 m, puis joue sa première boule. Ensuite, c'est toujours **le joueur qui n'a pas le point** qui joue. Quand un joueur n'a plus de boules, l'autre joue les siennes.
+- **Comptage** : le joueur dont la boule est la plus proche du cochonnet marque autant de points qu'il a de boules plus proches que la meilleure boule adverse.
+- **Mesure** : si deux boules sont à moins de 3 cm d'écart, une séquence de mesure au mètre-ruban est jouée (animation) ; l'égalité parfaite annule la mène.
+- **Cochonnet sorti** du terrain : mène annulée (si un seul joueur avait encore des boules, il marque autant de points que de boules restantes — règle officielle simplifiée).
+- **Boule sortie** du terrain : boule morte.
+- **La Fanny** : perdre 13 à 0 (ou 7/11 à 0) déclenche la scène du tableau, rituel comique du village.
 
-1. **Le Feu (faisceau)** — *nuit 1*. Le faisceau suit le curseur avec inertie. Dans le cône : les écueils, épaves et pages deviennent visibles (et restent « relevés » sur la carte jusqu'à l'aube) ; les navires éclairés sont **guidés** (liseré vert, vitesse normale, suivent leur route avec précision). Hors du cône et sans route, un navire **dérive** (vent + courant) et peut s'échouer.
-2. **Les Routes** — *nuit 1*. Cliquer-glisser depuis un navire trace une route (polyligne) jusqu'au quai. Le navire la suit. Un tracé à travers un écueil relevé est refusé (le trait devient rouge) ; à travers un écueil non relevé, c'est le naufrage. Les navires ont des vitesses et des rayons de giration différents (chaloupe, cotre, trois-mâts).
-3. **La Corne de brume** — *nuit 2*. Barre d'espace (ou clic droit dans le vide) : tous les navires dans le rayon de la corne stoppent 3 secondes (arrêt d'urgence), puis repartent. Recharge 8 secondes. En acte III, la corne repousse la Bête.
-4. **L'Ancre** — *nuit 3*. Clic droit sur un navire : il mouille / lève l'ancre. Permet de faire attendre un navire pendant qu'un autre passe.
-5. **Les Pages** — *nuit 4*. Des pages du journal de Yann dérivent. Garder le faisceau dessus 1,5 s les « lit » : texte narratif + **Éclats** (monnaie d'amélioration).
-6. **La Marée** — *nuit 5*. Jauge de marée sur la nuit. À marée basse, certains écueils émergent (visibles même hors faisceau, bloquants) ; à marée haute ils sont **submergés** : invisibles, franchissables par les chaloupes, mortels pour les navires à fort tirant d'eau.
-7. **La Tempête** — *nuit 6*. Rafales (flèche de vent au HUD) qui poussent les navires hors de leur route ; la pluie réduit la portée du faisceau. La corne reste le seul frein.
-8. **La Bête** — *nuit 9*. Masse de brume qui se déplace vers le navire le plus proche. Sous le faisceau elle ralentit et se dissipe partiellement ; la corne la repousse. Un navire touché est « perdu » (il s'arrête, perd sa route, devient invisible hors faisceau) : le joueur doit le retrouver et le rerouter.
-9. **L'Huile** — *nuit 10*. Le faisceau consomme de l'huile. Bouton *Feu réduit* (touche `F`) pour économiser : demi-portée. Les navires à quai livrent des barils. À sec, le faisceau s'éteint 5 secondes pour relancer la mèche.
+### 2.5 Mécaniques de jeu
 
-### 2.5 Boucle de jeu
+Introduites progressivement par les personnages (une par partie en acte I).
 
-**Boucle de 10 secondes** : un navire surgit de la brume → je balaie la passe avec le faisceau → j'aperçois un écueil → je trace la route qui le contourne → le navire accoste : cloche du quai, particules, +1 au quota.
+1. **Viser et doser** — *partie 1*. La souris place la **donnée** (le point où la boule doit toucher le sol). Cliquer-maintenir lance la **jauge de précision** : une aiguille oscille, relâcher dans la zone verte donne un lancer exact ; hors zone, la boule est courte, longue ou déviée proportionnellement à l'erreur. La zone verte rétrécit avec la distance et le type de lancer, s'élargit avec les améliorations.
+2. **Pointer (roulette)** — *partie 1*. Lancer bas, la boule roule longtemps : très sensible au terrain (bosses, pente, sable).
+3. **Demi-portée** — *partie 3*. La boule tombe à mi-distance puis roule : compromis, contourne les bosses proches du rond.
+4. **Tirer** — *partie 4*. Lancer tendu et rapide vers une boule adverse. La zone verte est étroite. Réussite : la boule adverse est chassée ; **carreau** si la boule tirée prend exactement sa place (bonus de jetons et ovation).
+5. **Plombée** — *partie 5*. Lancer très haut qui tombe presque à la verticale et ne roule pas : idéale sur sable et pour passer au-dessus des boules.
+6. **Le terrain** — *toute la campagne*. Chaque terrain a une **friction** (goudron rapide, gravier, terre, sable lent), des **pentes** (la boule dévie), des **obstacles** (racines, cailloux, pommes de pin) qui font sauter la boule, et des **bords** (boules mortes). Le terrain est visible : lire le sol fait partie du jeu.
+7. **La mesure** — *partie 8*. Sur un point serré, le jeu propose de mesurer (touche `M` ou bouton) : animation du mètre, verdict. Le Dr Faure et Lucien en abusent.
+8. **L'effet** — *partie 7*. Molette ou touches `Q`/`D` avant le lancer : effet latéral qui fait dévier la boule en fin de course (permet de contourner une boule).
+9. **La lecture de l'adversaire** — *toute la campagne*. Chaque adversaire a un profil (précision au point, au tir, agressivité, lancer favori) et réagit (émoticônes, répliques). L'IA choisit ses lancers en simulant réellement la physique : elle joue « juste », avec ses défauts de caractère.
 
-**Boucle d'une nuit (3 à 5 min)** : page de journal (intro) → nuit jouée (vagues de navires, un pic de tension au 2/3, l'aube qui monte) → écran de résultats (navires sauvés / perdus, pages, Éclats, étoiles) → dialogue de Madame Le Goff ou de Maël → **Atelier** (dépenser les Éclats) → nuit suivante.
+### 2.6 Boucle de jeu
 
-**Boucle de campagne** : 12 nuits, 3 actes, une mécanique nouvelle par nuit jusqu'à la nuit 10, deux nuits de synthèse, une fin.
+**Boucle de 20 secondes** : je regarde la mène (où est le bouchon, qui a le point) → je choisis « tirer ou pointer » → je vise, je dose, je relâche → la boule roule, rebondit, clac → le point change de camp, réplique de l'adversaire.
 
-### 2.6 Conditions de victoire et de défaite
+**Boucle d'une mène (≈ 1 min)** : 6 boules, comptage, points, réactions, changement de côté.
 
-- **Nuit gagnée** : l'aube se lève (timer de la nuit) avec au moins `quota` navires à quai **et** moins de `naufragesMax` (3 par défaut) navires perdus. Les navires encore en mer à l'aube ne comptent ni pour ni contre.
-- **Nuit perdue** : `naufragesMax` naufrages avant l'aube. Écran « La mer a pris... » et proposition de rejouer immédiatement (une seconde chance sans pénalité : la difficulté ne monte pas).
-- **Étoiles** : 1 étoile = nuit gagnée, 2 = quota + 2 navires, 3 = aucun naufrage.
-- **Campagne terminée** : nuit 12 gagnée → épilogue, générique, déverrouillage de la Veille infinie.
+**Boucle d'une partie (4 à 10 min)** : dialogue d'avant-partie → mènes → score final → dialogue d'après-partie → **Bar des Sports** (jetons, améliorations, carnets de Fanny) → partie suivante.
 
-### 2.7 Économie et progression
+**Boucle de campagne** : 12 parties, 3 actes, une mécanique par partie en acte I, montée en difficulté par la précision des adversaires et la difficulté des terrains, finale à 13.
 
-- **Éclats** (fragments de l'ancienne lentille) : gagnés par page lue (+3), par étoile (+2), par nuit sans naufrage (+3).
-- **Atelier du phare** (entre les nuits, via Maël) — six améliorations à 3 niveaux :
-  - *Lentille large* : angle du faisceau 28° → 34° → 40° → 46°.
-  - *Mécanisme huilé* : vitesse de rotation de la lentille +25 % par niveau.
-  - *Corne longue* : rayon de la corne +20 % par niveau.
-  - *Corne rapide* : recharge 8 s → 7 → 6 → 5 s.
-  - *Réserve d'huile* : capacité +25 % par niveau (utile dès la nuit 10).
-  - *Lanterne de secours* : +1 naufrage toléré par niveau (max 2).
-- Les Éclats dépensés le sont définitivement ; le total disponible est calibré pour permettre environ 10 niveaux sur 18 en fin de campagne (choix stratégiques).
+### 2.7 Conditions de victoire et de défaite
 
-### 2.8 Modes de jeu
+- **Partie gagnée** : atteindre le score cible (7 / 11 / 13). **Perdue** : l'adversaire l'atteint. Une partie perdue en campagne se rejoue immédiatement (l'histoire ne change pas, sauf répliques de consolation).
+- **Étoiles** par partie : 1 = gagnée, 2 = gagnée avec au moins un carreau ou 3 points d'écart, 3 = gagnée sans concéder plus de 3 points (ou « Fanny » infligée).
+- **Campagne terminée** : finale gagnée → fin, générique, tout déverrouillé en partie rapide.
 
-- **Campagne** (12 nuits, sauvegarde automatique, sélection de nuit déjà jouée pour améliorer ses étoiles).
-- **Veille infinie** (déverrouillée après la fin, ou par le mode test) : vagues infinies, difficulté croissante toutes les 60 s, meilleur score sauvegardé.
-- **Mode test** (options) : déverrouille toutes les nuits et la Veille infinie, active un panneau de débogage (FPS, nombre d'entités, brouillard désactivable), invulnérabilité des navires, vitesse du temps ×2, saut de tutoriel. Pensé pour la QA et la démonstration ; les scores du mode test ne sont pas enregistrés.
+### 2.8 Économie et progression
 
-### 2.9 Contrôles
+- **Jetons du bar** : gagnés par point marqué (+1), par carreau (+3), par partie gagnée (+5), par étoile (+2).
+- **Bar des Sports** (entre les parties) :
+  - *Boules* (3 jeux) : « Les boules de Fanny » (équilibrées), « Les tendres » (acier doux : rebond faible, roule moins loin — pointeur), « Les dures » (acier dur : rebond fort, idéales au tir, carreaux plus faciles). Chaque jeu modifie restitution et friction de la boule.
+  - *Régularité* (3 niveaux) : zone verte plus large.
+  - *Sang-froid* (3 niveaux) : l'aiguille de la jauge est plus lente.
+  - *Œil du tireur* (3 niveaux) : aide à la visée au tir (trajectoire prévisualisée plus longue).
+  - *Lecture du terrain* (3 niveaux) : les pentes et obstacles sont mieux affichés (flèches, halos).
+- Les techniques (demi-portée, tir, plombée, effet) sont déverrouillées par l'histoire, pas achetées.
+
+### 2.9 Modes de jeu
+
+- **Campagne** (12 parties, sauvegarde automatique, rejouer une partie gagnée pour ses étoiles).
+- **Partie rapide** : adversaire et terrain au choix parmi les déverrouillés, score cible 7/11/13.
+- **Entraînement** : le boulodrome vide, toutes les techniques, affichage des distances, réinitialisation à volonté.
+- **Mode test** (options) : déverrouille tout, panneau de débogage (`F1`), jauge toujours parfaite (`F2`), vitesse ×2 (`F3`), IA sans erreur (`F4`), terminer la partie (`F5`). Les scores du mode test ne sont pas enregistrés.
+
+### 2.10 Contrôles
 
 | Action | Entrée |
 |---|---|
-| Orienter le faisceau | Déplacer la souris |
-| Tracer une route | Cliquer-glisser depuis un navire (relâcher n'importe où ; le trait est complété jusqu'au quai si on relâche dessus) |
-| Effacer une route | Clic simple sur le navire |
-| Corne de brume | `Espace` ou clic droit dans le vide |
-| Ancre | Clic droit sur un navire |
-| Feu réduit (huile) | `F` (nuit 10+) |
+| Placer la donnée (point de chute visé) | Déplacer la souris |
+| Changer de lancer (point, demi-portée, tir, plombée) | Molette ou touches `1` `2` `3` `4` ou boutons du HUD |
+| Effet latéral | `Q` / `D` (ou `A` / `E`) |
+| Lancer | Cliquer-maintenir puis relâcher dans la zone verte |
+| Demander la mesure | `M` ou bouton (quand proposé) |
+| Accélérer le roulement | `Espace` maintenu |
 | Pause | `Échap` ou `P` |
-| Couper le son | `M` |
+| Couper le son | `Ctrl+M` |
 
 ---
 
@@ -130,59 +150,54 @@ Les mécaniques sont introduites progressivement (une nouveauté par nuit maximu
 
 ### 3.1 Style visuel
 
-- **Vue de dessus, 2D vectorielle « propre »** (packs Kenney), replongée dans la nuit : palette bleu nuit / ardoise pour l'eau, blanc cassé chaud pour le faisceau, ocre parchemin pour l'interface (cartes marines, encre).
-- **Éclairage par composition canvas** : couche de brouillard dessinée par-dessus le monde, percée par le cône du faisceau (`destination-out`), halo additif (`lighter`) et grain léger. Les écueils relevés restent tracés à l'encre sur la « carte » (calque parchemin translucide).
-- **Feedback** : particules (écume, étincelles de la lentille, éclats de bois), tremblement d'écran au naufrage, flash de l'aube, cloche du quai avec ondes concentriques.
+- **Vue de dessus, 2D vectorielle Kenney** (Sports Pack : personnages vus de dessus, boules, sols gravier/sable/goudron/herbe), en plein soleil : ombres courtes et chaudes, ocres, verts de platane, bleu de volets.
+- **Composition** : le terrain (15 m × 4 m) traverse l'écran de gauche à droite ; au-dessus, la terrasse du bar, les platanes, les spectateurs ; au-dessous, la fontaine, les bancs, la route. Chaque terrain a son décor (place, plage, clairière, parking, nuit sous les lampions).
+- **Feedback** : poussière à l'impact, étincelles au « clac » d'un tir, tremblement d'écran sur un carreau, ralenti sur le contact d'un tir, zoom caméra sur le groupe de boules en fin de lancer, émoticônes (Kenney Emotes) au-dessus des personnages, réactions de la terrasse, ruban de mesure animé.
 - **Palette** :
 
 | Usage | Couleur |
 |---|---|
-| Fond de mer (nuit) | `#0b1a2b` → `#123049` |
-| Brume | `#c9d3dc` à 80 % d'opacité, animée |
-| Faisceau | `#ffe9b0` (cœur) → `#ffcf6e` (bord) |
-| Parchemin (UI) | `#e9dcc0`, encre `#2a2118` |
-| Danger | `#d94f3d` |
-| Guidé / sûr | `#7bd389` |
-| Accent (Éclats) | `#f2b134` |
+| Ocre / gravier | `#d9b57a` → `#c49a5c` |
+| Sable | `#eedcae` |
+| Goudron | `#5b5f66` |
+| Platanes | `#6f9a4a` / ombre `#3f6b34` |
+| Ciel d'été / volets | `#7cc4e8` / `#2f6fa3` |
+| Lampions (finale) | `#ffb347`, `#ff6b57` |
+| UI : ardoise de bar | `#2e3a2e`, craie `#f4efe4` |
+| Accent (jetons, carreau) | `#f2b134` |
 
 ### 3.2 Polices (Google Fonts, auto-hébergées en WOFF2)
 
-- **IM Fell English** (titres, 1893 oblige) ;
-- **Cormorant Garamond** (corps de texte, HUD) ;
-- **Homemade Apple** (écriture manuscrite des pages de journal) — attention : cette police est sous **Apache License 2.0** (dossier `apache/` de google/fonts), pas OFL.
+- **Fredoka** (titres et boutons : rondeur Kenney, affiche de fête votive) ;
+- **Nunito** (corps de texte, HUD) ;
+- **Amatic SC** (ardoise du bar, écriture à la craie, carnets de Fanny).
+
+Toutes trois sous licence SIL OFL 1.1.
 
 ### 3.3 Banques d'assets utilisées (toutes vérifiées)
 
-Le proxy réseau de cette session bloque les sites des banques (kenney.nl, opengameart.org, freesound.org, incompetech.com, pixabay.com). Les assets ont été récupérés depuis des **miroirs GitHub** de ces mêmes banques, ce qui est licite pour des contenus CC0 / CC-BY. Chaque source ci-dessous a été vérifiée (fichier de licence présent dans le dépôt miroir).
+Le proxy réseau de cette session bloque les sites des banques (kenney.nl, opengameart.org, freesound.org, incompetech.com, pixabay.com). Les assets sont récupérés depuis des **miroirs GitHub** de ces mêmes banques, licites pour des contenus CC0 / CC-BY, dont la licence est embarquée.
 
 | Asset | Source | Auteur | Licence | Miroir utilisé |
 |---|---|---|---|---|
-| Pirate Pack (navires, tuiles mer/sable/roches, tours, effets) | kenney.nl | Kenney | CC0 1.0 | github.com/ETdoFresh/kenney.nl (`kenney_piratepack`) |
-| Fish Pack (faune marine) | kenney.nl | Kenney | CC0 1.0 | idem (`kenney_fishpack`) |
-| Cartography Pack (parchemins, boussole, icônes de carte, phare) | kenney.nl | Kenney | CC0 1.0 | idem (`cartographypack`) |
-| Particle Pack (fumées, halos, éclats) | kenney.nl | Kenney | CC0 1.0 | idem (`particlePack_1.1`) |
-| UI Pack, Game Icons | kenney.nl | Kenney | CC0 1.0 | idem (`uipack_fixed`, `gameicons`) |
-| UI Audio, Interface Sounds, Impact Sounds, RPG Audio | kenney.nl | Kenney | CC0 1.0 | idem (`kenney_uiaudio`, `kenney_interfacesounds`, `kenney_impactsounds`, `kenney_rpgaudio`) |
-| Musiques (« Night Vigil », « Midnight Tale », « Evening », « Relent », « Stay the Course », « Spellbound », « Past Sadness », etc. — liste finale en section 3.4) | incompetech.com | Kevin MacLeod | CC BY 4.0 | github.com/noobsandnerdsgroup/audio |
-| Ambiances : vagues, vent, orage, pluie (enregistrements de terrain, boucles) | freesound.org (CC0) | SecureSubset, felix.blume, Sheyvan, richwise | CC0 1.0 | github.com/funcoder/omarchy-ambient (`sounds/`, CREDITS.md) |
-| SFX : éclaboussures, cloche, papier, bois qui craque, créature, tonnerre | opengameart.org (packs « 100 CC0 SFX », « 80 CC0 creature SFX », « 40 CC0 water/splash », etc.) | rubberduck et autres (voir `_README` de chaque pack) | CC0 1.0 | github.com/lavenderdotpet/CC0-Public-Domain-Sounds |
-| Samples d'instruments (corne de brume construite à partir de vrais samples de tuba / cor, si aucun enregistrement de corne n'est disponible) | FluidR3_GM (soundfont) | Frank Wen | CC BY 3.0 | github.com/gleitz/midi-js-soundfonts |
-| Polices | fonts.google.com | Igino Marini (IM Fell English), Christian Thalmann (Cormorant Garamond), Font Diner (Homemade Apple) | SIL OFL 1.1 (IM Fell, Cormorant) ; Apache 2.0 (Homemade Apple) | fonts.googleapis.com / fonts.gstatic.com (accessibles) |
+| Sports Pack (personnages vus de dessus, boules, sols) | kenney.nl | Kenney | CC0 1.0 | github.com/ETdoFresh/kenney.nl (`kenney_sportspack`) |
+| Emotes Pack (émoticônes des personnages) | kenney.nl | Kenney | CC0 1.0 | idem (`kenney_emotespack`) |
+| Foliage Sprites, Hexagon Pack, Roguelike packs, Top-down Shooter (décor : arbres, bancs, tables, voitures, fontaine, tuiles) | kenney.nl | Kenney | CC0 1.0 | idem |
+| Particle Pack (poussière, étincelles, halos) | kenney.nl | Kenney | CC0 1.0 | idem (`particlePack_1.1`) |
+| UI Pack, Game Icons | kenney.nl | Kenney | CC0 1.0 | idem (`uipack_fixed`, `gameicons`, `gameicons-expansion`) |
+| UI Audio, Interface Sounds, Impact Sounds, RPG Audio | kenney.nl | Kenney | CC0 1.0 | idem |
+| Musiques (Erik Satie interprété par Kevin MacLeod « Gymnopédie n° 1/2/3 », « Night in Venice », « Bossa Antigua », « Casa Bossa Nova », « Modern Jazz Samba », « Sneaky Adventure », etc. — liste finale en 3.4) | incompetech.com | Kevin MacLeod | CC BY 4.0 | github.com/noobsandnerdsgroup/audio |
+| Ambiances : cigales/grillons, oiseaux, vent, pluie (enregistrements de terrain, boucles) | freesound.org (CC0) | felix.blume, SecureSubset, richwise, Sheyvan | CC0 1.0 | github.com/funcoder/omarchy-ambient |
+| SFX : impacts métal (boules), gravier, bois, papier, cloche, foule légère | opengameart.org (packs « 100 CC0 SFX », « 100 CC0 wood/metal SFX », etc.) | rubberduck et autres | CC0 1.0 | github.com/lavenderdotpet/CC0-Public-Domain-Sounds |
+| Samples d'instruments réels (jingles de fin de mène et de carreau, s'il faut composer) | FluidR3_GM | Frank Wen | CC BY 3.0 | github.com/gleitz/midi-js-soundfonts |
+| Polices | fonts.google.com | Fredoka (Milena Brandão), Nunito (Vernon Adams), Amatic SC (Vernon Adams) | SIL OFL 1.1 | fonts.googleapis.com / fonts.gstatic.com |
 
 ### 3.4 Plan audio
 
-- **Musiques (Kevin MacLeod, CC BY 4.0)** — une par contexte, avec crossfade :
-  - Menu : « Evening » ;
-  - Acte I (nuits calmes) : « Midnight Tale » ;
-  - Acte II : « Night Vigil » ;
-  - Acte III : « Spellbound » ;
-  - Résultats / atelier : « Piano Between » (boucle) ;
-  - Défaite : « Mourning Song » ;
-  - Fin / générique : « Stay the Course ».
-  Les fichiers sont recompressés en OGG Vorbis q5 (≈ 160 kb/s) et coupés en boucles propres.
-- **Ambiances (CC0)** : vagues en boucle permanente, vent et pluie/orage mixés selon la météo de la nuit.
-- **SFX** : mécanisme de lentille (Kenney `metalClick`, `switch`), cloche de quai (`bell_0x`, `impactBell_heavy`), naufrage (`wood_breaking` + `splash`), corne de brume (samples de tuba/cor superposés, réverbération), pages (`paper_0x`), ancre (`chain_0x`), UI (Kenney interface).
-- **Interdit** : toute synthèse « chiptune ». La corne de brume, si construite, est un montage de samples d'instruments réels.
+- **Musiques (Kevin MacLeod, CC BY 4.0)**, une par contexte, avec crossfade : menu (« Night in Venice », accordéon de café), acte I (« Bossa Antigua »), acte II (« Casa Bossa Nova »), acte III (« Modern Jazz Samba »), finale (« Sneaky Adventure » ou équivalent tendu), résultats / bar (« Gymnopédie n° 1 »), défaite (« Gymnopédie n° 3 »), fin (« Gymnopédie n° 2 » puis « Night in Venice »). Recompressées en OGG Vorbis q5, boucles propres.
+- **Ambiances (CC0)** : cigales (`crickets.ogg`) en boucle permanente de jour, oiseaux, vent léger ; nuit de la finale : grillons plus doux et rumeur de fête.
+- **SFX** : impact boule contre boule (`metal_hit_*`, plusieurs variantes selon la vitesse), boule au sol (impact sourd + gravier), roulement (boucle de gravier modulée par la vitesse), cochonnet (petit clac bois), carreau (impact + « ding »), applaudissements/rumeur de terrasse (si une source CC0 existe ; sinon réactions par émoticônes et cloche du bar), mètre-ruban, jetons, UI (Kenney).
+- **Interdit** : toute synthèse « chiptune ». Si un jingle est composé, il l'est avec des samples d'instruments réels (FluidR3).
 
 ---
 
@@ -190,66 +205,38 @@ Le proxy réseau de cette session bloque les sites des banques (kenney.nl, openg
 
 ### 4.1 Choix
 
-- **Vanilla JS + Canvas 2D, sans moteur ni build.** Raisons : (1) GitHub Pages et serveur statique sans étape de compilation ; (2) aucune dépendance réseau ou CDN (le proxy de la session bloque jsDelivr/unpkg, et un jeu « publiable » ne doit pas dépendre d'un CDN) ; (3) le rendu (brouillard percé, halos additifs) se fait très bien avec les modes de composition natifs ; (4) le projet reste lisible pour une reprise à froid.
-- **Résolution logique 1280×720**, mise à l'échelle pour remplir la fenêtre (letterbox), `devicePixelRatio` géré.
-- **Boucle** : `requestAnimationFrame` avec pas de temps fixe pour la simulation (60 Hz, accumulateur) et rendu interpolé.
-- **Audio** : Web Audio API (buffers décodés, bus musique / ambiance / SFX avec gains séparés, déverrouillage à la première interaction).
-- **Sauvegarde** : `localStorage` (progression, étoiles, améliorations, options, meilleur score infini), avec versionnage du schéma.
-- **Tests** : Playwright + Chromium préinstallé (aucune erreur console, parcours complet en mode test, captures d'écran).
+- **Vanilla JS + Canvas 2D, sans moteur ni build** (inchangé) : GitHub Pages sans compilation, aucune dépendance réseau, rendu 2D léger, lisibilité à froid.
+- **Résolution logique 1280×720**, mise à l'échelle (letterbox), `devicePixelRatio` géré.
+- **Simulation physique déterministe** (pas fixe 1/120 s pour les boules) : la même fonction sert au jeu, à l'IA (qui simule ses lancers candidats) et aux tests.
+- **Audio** : Web Audio API (bus master / musique / ambiance / SFX, déverrouillage au premier geste).
+- **Sauvegarde** : `localStorage` versionné (campagne, étoiles, jetons, améliorations, carnets, records, options).
+- **Tests** : Playwright + Chromium préinstallé : parcours automatique de la campagne par un bot qui utilise l'IA du jeu, sans erreur console.
 
 ### 4.2 Arborescence
 
 ```
 /
-├── index.html                 # point d'entrée unique
-├── css/
-│   ├── base.css               # reset, polices, variables de palette
-│   ├── menu.css               # menu d'accueil, options, crédits
-│   └── hud.css                # HUD, dialogues, résultats, atelier
+├── index.html
+├── css/                     base.css, menu.css, hud.css, fonts.css
 ├── src/
-│   ├── main.js                # bootstrap : chargement, scènes, boucle
-│   ├── core/                  # moteur générique
-│   │   ├── loop.js            # boucle à pas fixe
-│   │   ├── input.js           # souris / clavier (coordonnées logiques)
-│   │   ├── assets.js          # chargeur images / audio / atlas
-│   │   ├── audio.js           # bus Web Audio, musique, ambiances, SFX
-│   │   ├── save.js            # localStorage versionné
-│   │   ├── scenes.js          # machine à états des scènes
-│   │   ├── particles.js       # système de particules
-│   │   ├── shake.js           # tremblement d'écran
-│   │   └── math.js            # vecteurs, easing, RNG seedé
-│   ├── game/                  # logique de jeu
-│   │   ├── night.js           # déroulement d'une nuit (timer, vagues, victoire)
-│   │   ├── world.js           # entités, collisions, marée, météo
-│   │   ├── ship.js            # navires (types, suivi de route, dérive)
-│   │   ├── beam.js            # faisceau (inertie, cône, révélation, huile)
-│   │   ├── fog.js             # brouillard (bruit animé, densité)
-│   │   ├── routes.js          # tracé et validation des routes
-│   │   ├── hazards.js         # écueils, épaves, submersion
-│   │   ├── horn.js            # corne de brume
-│   │   ├── pages.js           # pages collectibles
-│   │   ├── beast.js           # la Bête (acte III)
-│   │   ├── port.js            # quai, accostage
-│   │   ├── render.js          # rendu de la scène de jeu (couches)
-│   │   ├── hud.js             # HUD (quota, naufrages, marée, corne, huile)
-│   │   └── tutorial.js        # tutoriel intégré (nuits 1 à 4)
-│   ├── ui/                    # écrans DOM
-│   │   ├── menu.js, options.js, credits.js, pause.js
-│   │   ├── results.js, workshop.js, story.js (pages/dialogues), ending.js
-│   │   └── transitions.js
-│   └── data/
-│       ├── nights.js          # définition des 12 nuits + infini
-│       ├── story.js           # textes narratifs
-│       ├── balance.js         # constantes d'équilibrage
-│       ├── upgrades.js        # atelier
-│       └── credits.js         # crédits affichés en jeu
-├── assets/
-│   ├── img/                   # atlas + sprites (PNG / WebP)
-│   ├── audio/{music,ambience,sfx}/   # OGG
-│   ├── fonts/                 # WOFF2
-│   └── CREDITS.json           # registre machine des licences
-├── tools/                     # scripts de pipeline (Python) — non requis à l'exécution
-├── tests/                     # Playwright
+│   ├── main.js              bootstrap, scènes, flux de campagne
+│   ├── core/                loop, input, assets, audio, save, scenes, particles, shake, math
+│   ├── game/
+│   │   ├── physics.js       boules, cochonnet, rebonds, friction, pentes, obstacles, collisions (déterministe)
+│   │   ├── terrain.js       définition et rendu des terrains (sol, pentes, obstacles, bords, décor)
+│   │   ├── match.js         règles : mènes, ordre de jeu, comptage, mesure, score, fin de partie
+│   │   ├── throw.js         entrée du joueur : donnée, type de lancer, jauge, effet → paramètres de lancer
+│   │   ├── ai.js            adversaires : profils, échantillonnage de lancers simulés, choix
+│   │   ├── camera.js        zoom/pan sur les boules, ralenti
+│   │   ├── render.js        rendu (sol, ombres, boules, personnages, spectateurs, HUD canvas)
+│   │   ├── hud.js           HUD DOM (score, mène, lancer choisi, jauge, boules restantes)
+│   │   ├── effects.js       particules, textes flottants, émoticônes
+│   │   └── tutorial.js      consignes de la partie 1 et des parties qui débloquent une technique
+│   ├── ui/                  menu, options, crédits, story (dialogues), results, bar (améliorations), pause, dom
+│   └── data/                balance.js, terrains.js, opponents.js, campaign.js, upgrades.js, story.js, credits
+├── assets/                  img/, audio/, fonts/, credits/
+├── tools/                   pipelines Python/Node (images, audio, rasterisation SVG)
+├── tests/                   autoplay.js (bot Playwright)
 ├── README.md, CREDITS.md, LICENSE, JOURNAL_DE_BORD.md
 ```
 
@@ -257,13 +244,12 @@ Le proxy réseau de cette session bloque les sites des banques (kenney.nl, openg
 
 | Rôle | Périmètre | Livrables |
 |---|---|---|
-| **Lead (orchestration)** | Vision, GDD, architecture, moteur et boucle centrale, revue de tout, journal | `JOURNAL_DE_BORD.md`, `src/core`, `src/game` (cœur) |
-| **Narration & univers** | Textes de toutes les nuits, pages, dialogues, fin, tutoriel | `src/data/story.js` |
-| **DA & assets** | Extraction, découpe, atlas, optimisation des images ; polices ; licences | `assets/img`, `assets/fonts`, `assets/CREDITS.json` (images) |
-| **Audio** | Sélection, boucles, normalisation, corne de brume, licences | `assets/audio`, `assets/CREDITS.json` (audio) |
-| **Gameplay secondaire** | Marée, tempête, Bête, huile, atelier, équilibrage initial | `src/game/*` (modules secondaires), `src/data/balance.js` |
-| **UI/UX** | Menu d'accueil, options (mode test), pause, résultats, crédits, transitions | `css/*`, `src/ui/*` |
-| **QA** | Tests Playwright, rapport de bugs, performance | `tests/*`, rapport dans ce journal |
+| **Lead (orchestration)** | Vision, GDD, architecture, physique, règles, IA, rendu, revue de tout, journal | `JOURNAL_DE_BORD.md`, `src/core`, `src/game` |
+| **Narration & univers** | Dialogues d'avant/après-partie, répliques en jeu, carnets de Fanny, fin, tutoriel | `src/data/story.js` |
+| **DA & assets** | Extraction, rasterisation SVG, optimisation ; polices ; licences | `assets/img`, `assets/fonts`, `assets/credits/images.json` |
+| **Audio** | Sélection, boucles, normalisation, SFX de boules, licences | `assets/audio`, `assets/credits/audio.json` |
+| **UI/UX** | Menu d'accueil, options (mode test), pause, résultats, bar, crédits, HUD | `css/*`, `src/ui/*` |
+| **QA** | Bot Playwright, rapport de bugs, performance | `tests/*`, rapport dans ce journal |
 | **Documentation** | README, crédits lisibles, relecture du journal | `README.md`, `CREDITS.md` |
 
 ---
@@ -272,18 +258,15 @@ Le proxy réseau de cette session bloque les sites des banques (kenney.nl, openg
 
 | Date | Décision | Alternatives envisagées | Raison |
 |---|---|---|---|
-| 2026-09-17 | Genre : action-stratégie atmosphérique « guide les navires » (gardienne de phare) | Roguelite, plateforme, tower defense, runner, match-3 | Originalité (aucun de ces genres « attendus »), trois mécaniques qui s'imbriquent naturellement, place pour une histoire, boucle testable en 60 s |
-| 2026-09-17 | Vanilla JS + Canvas 2D, zéro dépendance | Phaser, PixiJS, Kaboom | CDN bloqués par le proxy, npm accessible mais un bundle ajouterait une étape de build ; le rendu nécessaire (brouillard, compositing) est natif ; lisibilité à froid |
-| 2026-09-17 | Assets via miroirs GitHub des banques CC0/CC-BY | Attendre un accès direct ; générer des placeholders | Sites des banques bloqués ; les miroirs vérifiés contiennent les licences originales ; interdiction des placeholders |
-| 2026-09-17 | Style Kenney vectoriel re-éclairé en nuit | Pixel art (packs 1-bit/roguelike), LPC (CC-BY-SA) | Cohérence : un seul auteur pour tous les sprites de jeu ; l'éclairage canvas donne l'ambiance sans trahir le style ; licences CC0 sans share-alike |
-| 2026-09-17 | Musique Kevin MacLeod (CC BY 4.0) | Composer avec des samples FluidR3 ; jingles Kenney | Vrais morceaux, rendu moderne, licence claire et crédit simple ; la composition maison reste le plan B pour la corne uniquement |
-| 2026-09-17 | Français exclusif | Bilingue FR/EN | Demande explicite du commanditaire ; évite de doubler tous les textes |
-| 2026-09-17 | 12 nuits en 3 actes + Veille infinie | 20 niveaux courts ; 6 longues nuits | Une mécanique par nuit sans noyer le joueur ; campagne d'une heure ; rejouabilité par étoiles et mode infini |
-| 2026-09-17 | Faisceau qui suit le curseur (pas de « clic pour viser ») | Faisceau en rotation automatique + clic pour arrêter | Le geste continu est le plaisir principal ; tracer une route sous la lumière que l'on déplace crée une synergie naturelle |
-| 2026-09-17 | Mode test dans les options | Paramètre d'URL caché | Demande explicite ; utile à la QA et à la démonstration |
-| 2026-09-17 | Collision navire-navire = dégât (3 dégâts = naufrage), collision écueil/terre = naufrage immédiat | Tout en dégâts ; tout en naufrage immédiat | Règle lisible (« un écueil coule ») tout en donnant du sens à l'ancre et à la corne (éviter les abordages) ; les états de coque du Pirate Pack sont ainsi utilisés |
-| 2026-09-17 | Un navire coulé devient une épave-obstacle relevée | Disparition simple | Conséquence émergente : une erreur change la carte pour le reste de la nuit, ce qui récompense la prudence |
-| 2026-09-17 | Bot de QA (`tests/autoplay.js`) qui joue toute la campagne avec un pathfinding sur grille | Tests unitaires purs | Le jeu est temps réel et visuel : un parcours complet automatisé détecte les erreurs d'enchaînement et donne une référence d'équilibrage (« un joueur compétent doit gagner ») |
+| 2026-09-17 | Vanilla JS + Canvas 2D, zéro dépendance | Phaser, PixiJS, Kaboom | CDN bloqués par le proxy ; rendu 2D natif suffisant ; lisibilité à froid |
+| 2026-09-17 | Assets via miroirs GitHub des banques CC0/CC-BY | Attendre un accès direct ; placeholders | Sites bloqués ; miroirs avec licences embarquées ; placeholders interdits |
+| 2026-09-17 | **Pivot** : abandon de « Feux de Brume » (phare) pour « Tu tires ou tu pointes ? » (pétanque narrative) | Enlèvement d'animaux en soucoupe (infiltration), puzzle de tuiles hexagonales (écologie), gestion de cirque | Le commanditaire a signalé que le phare reproduisait un de ses premiers jeux. La pétanque est très rarement traitée, culturellement française, physiquement satisfaisante en 20 secondes, et le Sports Pack Kenney (personnages vus de dessus, boules, sols) la sert parfaitement |
+| 2026-09-17 | Tête-à-tête à 3 boules, parties en 7/11/13 | Doublette, triplette ; toujours 13 | Parties courtes (4–10 min), lisibilité, une IA par adversaire ; le 13 est réservé aux grandes parties pour le rythme de la campagne |
+| 2026-09-17 | Jauge de précision à relâcher dans une zone (timing) plutôt qu'une visée « parfaite » | Visée directe sans aléa ; aléa pur | Le timing donne de la compétence et du suspense sans frustration ; la zone évolue avec les améliorations |
+| 2026-09-17 | Physique déterministe partagée entre jeu et IA | IA par heuristiques géométriques | Une IA qui simule ses coups joue « juste » et ses défauts sont des paramètres de personnage (bruit ajouté), pas des tricheries |
+| 2026-09-17 | Terrain vu de dessus, gauche → droite, tout le terrain visible | Vue 3/4 avec scrolling ; vertical | Tout est lisible en permanence ; le zoom caméra ajoute le drame sans perdre le contexte |
+| 2026-09-17 | Techniques débloquées par l'histoire, améliorations achetées en jetons | Tout acheté ; tout débloqué d'emblée | L'apprentissage progressif est porté par les personnages ; les jetons récompensent le style (carreaux) |
+| 2026-09-17 | Français exclusif ; mode test dans les options ; GitHub Pages géré par le commanditaire | — | Demandes explicites |
 
 ---
 
@@ -291,12 +274,13 @@ Le proxy réseau de cette session bloque les sites des banques (kenney.nl, openg
 
 | Idée | Pourquoi écartée |
 |---|---|
-| Gestion de l'huile dès la nuit 1 | Trop de charge mentale pendant l'apprentissage du faisceau et des routes ; introduite en nuit 10 quand le reste est maîtrisé |
-| Navires qui tirent au canon / combats de pirates | Le Pirate Pack le permet, mais casserait la thèse « lumière contre brume » et l'ambiance contemplative |
-| Journée / nuit en continu (cycle) | La nuit comme unité de niveau donne un rythme clair et une fin naturelle (l'aube) |
-| Contrôle clavier du faisceau | Précision insuffisante et fatigue ; le jeu est desktop souris |
-| Musique composée par synthèse Web Audio | Interdite par le cahier des charges (rendu chiptune) |
-| Multijoueur local (deux gardiens) | Hors périmètre, et la lisibilité d'un seul faisceau est centrale |
+| **« Feux de Brume »** (gardienne de phare, faisceau, routes de navires, corne de brume, marée, Bête de brume, huile, pages du journal — 12 nuits, 3 actes) | Reproduisait un des premiers jeux du commanditaire ; conception, prototype jouable et assets archivés dans l'historique git (commits `98867ba`, `eceeed8`, `3af81f7`, `a872a51`) |
+| Enlèvement d'animaux en soucoupe volante (infiltration) | Ton comique intéressant mais trope connu ; assets (humains vus de dessus armés) mal adaptés |
+| Puzzle de placement de tuiles hexagonales (écologie d'une île) | Excellent fit d'assets, mais boucle de jeu moins immédiate et genre proche de titres connus |
+| Doublette / triplette | Trop long, trop de personnages à gérer par partie |
+| Mesure systématique à chaque mène | Casse le rythme : la mesure est proposée seulement sur un point serré |
+| Musique composée par synthèse Web Audio | Interdite par le cahier des charges |
+| Multijoueur local | Hors périmètre ; possible extension (la logique de match est symétrique) |
 
 ---
 
@@ -305,12 +289,11 @@ Le proxy réseau de cette session bloque les sites des banques (kenney.nl, openg
 | Date | Phase | Sous-agent | Fait | Testé | Reste à faire |
 |---|---|---|---|---|---|
 | 2026-09-17 | 0 | Lead | Reformulation, plan d'équipe, validation du commanditaire (français exclusif, GitHub Pages géré par lui, menu d'accueil complet avec mode test) | — | — |
-| 2026-09-17 | 1 | Lead | Audit du réseau : sites des banques bloqués, `raw.githubusercontent.com`, `registry.npmjs.org`, `pypi.org`, `fonts.googleapis.com` accessibles. Clone partiel des miroirs Kenney (`ETdoFresh/kenney.nl`), Kevin MacLeod (`noobsandnerdsgroup/audio`), ambiances CC0 (`funcoder/omarchy-ambient`), SFX CC0 (`lavenderdotpet/CC0-Public-Domain-Sounds`). Installation de `numpy`, `Pillow`, `imageio-ffmpeg` (ffmpeg statique avec libvorbis) pour le pipeline. | Accès HTTP vérifié, licences lues | — |
-| 2026-09-17 | 1 | Lead | Rédaction de ce journal : vision, GDD, DA, architecture, décisions | — | Phase 2 |
-| 2026-09-17 | 3b | Narration | `src/data/story.js` : prologue (5 écrans), 12 nuits (titre, journal, briefing, tutoriels aux ids imposés, outros), 20 pages de Yann, fin (7 écrans), épilogue, Veille infinie, phrases de défaite | `node --check`, import ES, longueurs max, typographie | Relecture finale en phase 5 |
-| 2026-09-17 | 3a | DA & assets | `tools/build_images.py`, `tools/fetch_fonts.py` : 389 sprites découpés/optimisés (navires 6 couleurs × 4 états, chaloupes, 97 tuiles, 73 effets, 91 éléments UI, 31 faune), 7 WOFF2, `assets/img/manifest.json`, `assets/credits/images.json`, `assets/credits/fonts.json`, `css/fonts.css` | 389/389 images ouvertes par Pillow, 0 orphelin, licences CC0 lues pack par pack | — |
-| 2026-09-17 | 2 | Lead | Moteur et boucle centrale : `src/core/*` (boucle à pas fixe, entrées, chargeur, audio Web Audio, sauvegarde, scènes, particules, tremblement), `src/game/*` (nuit, navires, faisceau, écueils/marée, météo, corne, pages, Bête, tracé de routes, quai, effets, rendu multi-couches avec brouillard percé, HUD, tutoriel), `src/data/*` (équilibrage, 3 cartes, 12 nuits + infini, atelier), `src/ui/*` (menu, options, crédits, narration, résultats, atelier, pause), `src/main.js` (flux de campagne) | Playwright : chargement sans erreur JS, nuit 1 jouable (faisceau, tracé, quai, corne, pause), enchaînement nuit → résultats → outro → atelier vérifié sur les nuits 1-4 | Audio (agent en cours), UI (agent en cours), équilibrage |
-| 2026-09-17 | 2 | Lead | Rendu : brouillard en demi-résolution (coût ÷5), faisceau volumétrique dessiné au-dessus de la brume, teinte nuit plus sombre, rochers assombris ; correction `h()` (nombres) et robustesse de `SceneManager.go` (une scène qui plante ne bloque plus les transitions) | Profil Playwright : `drawFog` 55 ms → 11 ms (rendu logiciel) | — |
+| 2026-09-17 | 1 | Lead | Audit du réseau : sites des banques bloqués, `raw.githubusercontent.com`, `registry.npmjs.org`, `pypi.org`, `fonts.googleapis.com` accessibles. Clone partiel des miroirs Kenney, Kevin MacLeod, ambiances CC0, SFX CC0. Installation de `numpy`, `Pillow`, `imageio-ffmpeg` | Accès vérifiés, licences lues | — |
+| 2026-09-17 | 1 | Lead | Journal initial (concept « Feux de Brume ») | — | — |
+| 2026-09-17 | 3 | Narration / DA / Audio / UI | Livrables du concept phare : `story.js` (12 nuits), 389 sprites (pirate/cartographie), 8 musiques, 52 SFX, 4 ambiances, UI parchemin | Playwright | Archivés (voir pivot) |
+| 2026-09-17 | 2 | Lead | Moteur générique et prototype « Feux de Brume » : `src/core/*`, écrans DOM, flux nuit → résultats → atelier, bot de QA jouant 12 nuits sans erreur console | Playwright : parcours complet sans erreur | — |
+| 2026-09-17 | **Pivot** | Lead | Le commanditaire signale que le phare reproduit un de ses premiers jeux. Réécriture de ce journal (sections 0 à 6) pour « Tu tires ou tu pointes ? ». Conservation de `src/core`, `src/ui/dom.js`, options/crédits/pause/story/résultats (à rethématiser), pipelines `tools/`, `tests/autoplay.js` (à adapter). Les agents narration/DA/audio/UI sont relancés avec les nouveaux briefs. | — | Phase 2 bis : physique + règles + IA jouables |
 
 ---
 
@@ -318,9 +301,8 @@ Le proxy réseau de cette session bloque les sites des banques (kenney.nl, openg
 
 | Problème | Solution |
 |---|---|
-| Sites des banques d'assets bloqués par le proxy réseau (403 CONNECT) | Utilisation des miroirs GitHub officiels ou communautaires des mêmes packs CC0/CC-BY, avec licence embarquée ; clone partiel (`--filter=blob:none --sparse`) pour ne télécharger que les packs utiles |
-| Pas de `ffmpeg` système | `pip install imageio-ffmpeg` fournit un binaire statique avec libvorbis/libopus/libmp3lame |
-| Aucune corne de brume enregistrée dans les banques accessibles | Plan : montage à partir de samples d'instruments réels (FluidR3_GM, CC BY 3.0) — cuivres graves superposés, réverbération. Revalidé en phase audio. |
-| Le Pirate Pack n'a pas de vraies versions Retina des navires (66×113 px) et aucun rasteriseur SVG n'est disponible | Navires affichés à leur taille native (cotre 66 px, trois-mâts 98 px, chaloupe 40 px) ; qualité suffisante à 1280×720. Le SVG source est conservé comme piste si un rasteriseur devient disponible. |
-| Les tuiles d'île Kenney sont carrées (grille) : impossible de dessiner des côtes organiques en posant des tuiles | Les terres sont des unions de cercles ; le rendu découpe (clip) la texture `sand_full`/`grass_full` dans ces formes et ajoute écume et liseré : style Kenney conservé, côtes libres |
-| Rendu logiciel (Playwright headless) très lent sur le brouillard (46 nappes plein écran + filtre CSS) | Brouillard rendu en demi-résolution, 30 nappes, nappes de la Bête pré-assombries hors ligne (plus de `ctx.filter`) |
+| Sites des banques d'assets bloqués par le proxy (403 CONNECT) | Miroirs GitHub des mêmes packs CC0/CC-BY, avec licence embarquée ; clone partiel (`--filter=blob:none --sparse`) |
+| Pas de `ffmpeg` système | `pip install imageio-ffmpeg` : binaire statique avec libvorbis/libopus/libmp3lame |
+| Pas de rasteriseur SVG (rsvg, inkscape) pour obtenir des sprites Kenney en haute résolution | Chromium (Playwright) rend le SVG à 3× ou 4× ; un script Python apparie les composantes connexes aux sprites du manifeste (`tools/rasterize_ships.js`, `tools/upscale_ships.py`, généralisés en `tools/rasterize_svg.js` / `tools/upscale_from_svg.py`) |
+| Rendu logiciel (Playwright headless) très lent sur les gros calques alpha plein écran | Calques lourds en demi-résolution, images pré-teintées hors ligne (plus de `ctx.filter`) |
+| Le concept initial dupliquait un jeu antérieur du commanditaire | Pivot complet documenté ci-dessus, moteur conservé |
