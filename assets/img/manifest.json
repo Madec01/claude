@@ -18,1458 +18,1555 @@
  "images": {
   "ship_white_0": {
    "file": "ships/ship_white_0.png",
-   "w": 66,
-   "h": 113,
-   "bytes": 4396,
+   "w": 198,
+   "h": 339,
+   "bytes": 19842,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ships/ship (1).png",
-   "note": "Voile/emblème white, état 0 = intact. Proue vers le haut (orientation native Kenney).",
+   "note": "Voile/emblème white, état 0 = intact. Proue vers le haut (orientation native Kenney). Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 66,
     "srcH": 113
-   }
+   },
+   "scale": 3
   },
   "ship_black_0": {
    "file": "ships/ship_black_0.png",
-   "w": 66,
-   "h": 113,
-   "bytes": 5618,
+   "w": 198,
+   "h": 339,
+   "bytes": 24191,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ships/ship (2).png",
-   "note": "Voile/emblème black, état 0 = intact. Proue vers le haut (orientation native Kenney).",
+   "note": "Voile/emblème black, état 0 = intact. Proue vers le haut (orientation native Kenney). Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 66,
     "srcH": 113
-   }
+   },
+   "scale": 3
   },
   "ship_red_0": {
    "file": "ships/ship_red_0.png",
-   "w": 66,
-   "h": 113,
-   "bytes": 5087,
+   "w": 198,
+   "h": 339,
+   "bytes": 21861,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ships/ship (3).png",
-   "note": "Voile/emblème red, état 0 = intact. Proue vers le haut (orientation native Kenney).",
+   "note": "Voile/emblème red, état 0 = intact. Proue vers le haut (orientation native Kenney). Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 66,
     "srcH": 113
-   }
+   },
+   "scale": 3
   },
   "ship_green_0": {
    "file": "ships/ship_green_0.png",
-   "w": 66,
-   "h": 113,
-   "bytes": 5391,
+   "w": 198,
+   "h": 339,
+   "bytes": 23195,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ships/ship (4).png",
-   "note": "Voile/emblème green, état 0 = intact. Proue vers le haut (orientation native Kenney).",
+   "note": "Voile/emblème green, état 0 = intact. Proue vers le haut (orientation native Kenney). Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 66,
     "srcH": 113
-   }
+   },
+   "scale": 3
   },
   "ship_blue_0": {
    "file": "ships/ship_blue_0.png",
-   "w": 66,
-   "h": 113,
-   "bytes": 5184,
+   "w": 198,
+   "h": 339,
+   "bytes": 23037,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ships/ship (5).png",
-   "note": "Voile/emblème blue, état 0 = intact. Proue vers le haut (orientation native Kenney).",
+   "note": "Voile/emblème blue, état 0 = intact. Proue vers le haut (orientation native Kenney). Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 66,
     "srcH": 113
-   }
+   },
+   "scale": 3
   },
   "ship_yellow_0": {
    "file": "ships/ship_yellow_0.png",
-   "w": 66,
-   "h": 113,
-   "bytes": 5162,
+   "w": 198,
+   "h": 339,
+   "bytes": 22368,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ships/ship (6).png",
-   "note": "Voile/emblème yellow, état 0 = intact. Proue vers le haut (orientation native Kenney).",
+   "note": "Voile/emblème yellow, état 0 = intact. Proue vers le haut (orientation native Kenney). Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 66,
     "srcH": 113
-   }
+   },
+   "scale": 3
   },
   "ship_white_1": {
    "file": "ships/ship_white_1.png",
-   "w": 66,
-   "h": 113,
-   "bytes": 5178,
+   "w": 198,
+   "h": 339,
+   "bytes": 22440,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ships/ship (7).png",
-   "note": "Voile/emblème white, état 1 = légèrement abîmé. Proue vers le haut (orientation native Kenney).",
+   "note": "Voile/emblème white, état 1 = légèrement abîmé. Proue vers le haut (orientation native Kenney). Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 66,
     "srcH": 113
-   }
+   },
+   "scale": 3
   },
   "ship_black_1": {
    "file": "ships/ship_black_1.png",
-   "w": 66,
-   "h": 113,
-   "bytes": 6237,
+   "w": 198,
+   "h": 339,
+   "bytes": 26567,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ships/ship (8).png",
-   "note": "Voile/emblème black, état 1 = légèrement abîmé. Proue vers le haut (orientation native Kenney).",
+   "note": "Voile/emblème black, état 1 = légèrement abîmé. Proue vers le haut (orientation native Kenney). Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 66,
     "srcH": 113
-   }
+   },
+   "scale": 3
   },
   "ship_red_1": {
    "file": "ships/ship_red_1.png",
-   "w": 66,
-   "h": 113,
-   "bytes": 5841,
+   "w": 198,
+   "h": 339,
+   "bytes": 24897,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ships/ship (9).png",
-   "note": "Voile/emblème red, état 1 = légèrement abîmé. Proue vers le haut (orientation native Kenney).",
+   "note": "Voile/emblème red, état 1 = légèrement abîmé. Proue vers le haut (orientation native Kenney). Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 66,
     "srcH": 113
-   }
+   },
+   "scale": 3
   },
   "ship_green_1": {
    "file": "ships/ship_green_1.png",
-   "w": 66,
-   "h": 113,
-   "bytes": 6124,
+   "w": 198,
+   "h": 339,
+   "bytes": 25933,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ships/ship (10).png",
-   "note": "Voile/emblème green, état 1 = légèrement abîmé. Proue vers le haut (orientation native Kenney).",
+   "note": "Voile/emblème green, état 1 = légèrement abîmé. Proue vers le haut (orientation native Kenney). Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 66,
     "srcH": 113
-   }
+   },
+   "scale": 3
   },
   "ship_blue_1": {
    "file": "ships/ship_blue_1.png",
-   "w": 66,
-   "h": 113,
-   "bytes": 5991,
+   "w": 198,
+   "h": 339,
+   "bytes": 25837,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ships/ship (11).png",
-   "note": "Voile/emblème blue, état 1 = légèrement abîmé. Proue vers le haut (orientation native Kenney).",
+   "note": "Voile/emblème blue, état 1 = légèrement abîmé. Proue vers le haut (orientation native Kenney). Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 66,
     "srcH": 113
-   }
+   },
+   "scale": 3
   },
   "ship_yellow_1": {
    "file": "ships/ship_yellow_1.png",
-   "w": 66,
-   "h": 113,
-   "bytes": 5938,
+   "w": 198,
+   "h": 339,
+   "bytes": 25421,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ships/ship (12).png",
-   "note": "Voile/emblème yellow, état 1 = légèrement abîmé. Proue vers le haut (orientation native Kenney).",
+   "note": "Voile/emblème yellow, état 1 = légèrement abîmé. Proue vers le haut (orientation native Kenney). Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 66,
     "srcH": 113
-   }
+   },
+   "scale": 3
   },
   "ship_white_2": {
    "file": "ships/ship_white_2.png",
-   "w": 66,
-   "h": 113,
-   "bytes": 5610,
+   "w": 198,
+   "h": 339,
+   "bytes": 23675,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ships/ship (13).png",
-   "note": "Voile/emblème white, état 2 = très abîmé. Proue vers le haut (orientation native Kenney).",
+   "note": "Voile/emblème white, état 2 = très abîmé. Proue vers le haut (orientation native Kenney). Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 66,
     "srcH": 113
-   }
+   },
+   "scale": 3
   },
   "ship_black_2": {
    "file": "ships/ship_black_2.png",
-   "w": 66,
-   "h": 113,
-   "bytes": 6632,
+   "w": 198,
+   "h": 339,
+   "bytes": 28268,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ships/ship (14).png",
-   "note": "Voile/emblème black, état 2 = très abîmé. Proue vers le haut (orientation native Kenney).",
+   "note": "Voile/emblème black, état 2 = très abîmé. Proue vers le haut (orientation native Kenney). Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 66,
     "srcH": 113
-   }
+   },
+   "scale": 3
   },
   "ship_red_2": {
    "file": "ships/ship_red_2.png",
-   "w": 66,
-   "h": 113,
-   "bytes": 6293,
+   "w": 198,
+   "h": 339,
+   "bytes": 26649,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ships/ship (15).png",
-   "note": "Voile/emblème red, état 2 = très abîmé. Proue vers le haut (orientation native Kenney).",
+   "note": "Voile/emblème red, état 2 = très abîmé. Proue vers le haut (orientation native Kenney). Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 66,
     "srcH": 113
-   }
+   },
+   "scale": 3
   },
   "ship_green_2": {
    "file": "ships/ship_green_2.png",
-   "w": 66,
-   "h": 113,
-   "bytes": 6546,
+   "w": 198,
+   "h": 339,
+   "bytes": 27678,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ships/ship (16).png",
-   "note": "Voile/emblème green, état 2 = très abîmé. Proue vers le haut (orientation native Kenney).",
+   "note": "Voile/emblème green, état 2 = très abîmé. Proue vers le haut (orientation native Kenney). Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 66,
     "srcH": 113
-   }
+   },
+   "scale": 3
   },
   "ship_blue_2": {
    "file": "ships/ship_blue_2.png",
-   "w": 66,
-   "h": 113,
-   "bytes": 6350,
+   "w": 198,
+   "h": 339,
+   "bytes": 27616,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ships/ship (17).png",
-   "note": "Voile/emblème blue, état 2 = très abîmé. Proue vers le haut (orientation native Kenney).",
+   "note": "Voile/emblème blue, état 2 = très abîmé. Proue vers le haut (orientation native Kenney). Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 66,
     "srcH": 113
-   }
+   },
+   "scale": 3
   },
   "ship_yellow_2": {
    "file": "ships/ship_yellow_2.png",
-   "w": 66,
-   "h": 113,
-   "bytes": 6335,
+   "w": 198,
+   "h": 339,
+   "bytes": 27280,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ships/ship (18).png",
-   "note": "Voile/emblème yellow, état 2 = très abîmé. Proue vers le haut (orientation native Kenney).",
+   "note": "Voile/emblème yellow, état 2 = très abîmé. Proue vers le haut (orientation native Kenney). Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 66,
     "srcH": 113
-   }
+   },
+   "scale": 3
   },
   "ship_white_3": {
    "file": "ships/ship_white_3.png",
-   "w": 66,
-   "h": 113,
-   "bytes": 4529,
+   "w": 198,
+   "h": 339,
+   "bytes": 20617,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ships/ship (19).png",
-   "note": "Voile/emblème white, état 3 = détruit / coulé (gris). Proue vers le haut (orientation native Kenney).",
+   "note": "Voile/emblème white, état 3 = détruit / coulé (gris). Proue vers le haut (orientation native Kenney). Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 66,
     "srcH": 113
-   }
+   },
+   "scale": 3
   },
   "ship_black_3": {
    "file": "ships/ship_black_3.png",
-   "w": 66,
-   "h": 113,
-   "bytes": 5658,
+   "w": 198,
+   "h": 339,
+   "bytes": 25629,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ships/ship (20).png",
-   "note": "Voile/emblème black, état 3 = détruit / coulé (gris). Proue vers le haut (orientation native Kenney).",
+   "note": "Voile/emblème black, état 3 = détruit / coulé (gris). Proue vers le haut (orientation native Kenney). Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 66,
     "srcH": 113
-   }
+   },
+   "scale": 3
   },
   "ship_red_3": {
    "file": "ships/ship_red_3.png",
-   "w": 66,
-   "h": 113,
-   "bytes": 5101,
+   "w": 198,
+   "h": 339,
+   "bytes": 23629,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ships/ship (21).png",
-   "note": "Voile/emblème red, état 3 = détruit / coulé (gris). Proue vers le haut (orientation native Kenney).",
+   "note": "Voile/emblème red, état 3 = détruit / coulé (gris). Proue vers le haut (orientation native Kenney). Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 66,
     "srcH": 113
-   }
+   },
+   "scale": 3
   },
   "ship_green_3": {
    "file": "ships/ship_green_3.png",
-   "w": 66,
-   "h": 113,
-   "bytes": 5282,
+   "w": 198,
+   "h": 339,
+   "bytes": 24151,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ships/ship (22).png",
-   "note": "Voile/emblème green, état 3 = détruit / coulé (gris). Proue vers le haut (orientation native Kenney).",
+   "note": "Voile/emblème green, état 3 = détruit / coulé (gris). Proue vers le haut (orientation native Kenney). Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 66,
     "srcH": 113
-   }
+   },
+   "scale": 3
   },
   "ship_blue_3": {
    "file": "ships/ship_blue_3.png",
-   "w": 66,
-   "h": 113,
-   "bytes": 5160,
+   "w": 198,
+   "h": 339,
+   "bytes": 23793,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ships/ship (23).png",
-   "note": "Voile/emblème blue, état 3 = détruit / coulé (gris). Proue vers le haut (orientation native Kenney).",
+   "note": "Voile/emblème blue, état 3 = détruit / coulé (gris). Proue vers le haut (orientation native Kenney). Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 66,
     "srcH": 113
-   }
+   },
+   "scale": 3
   },
   "ship_yellow_3": {
    "file": "ships/ship_yellow_3.png",
-   "w": 66,
-   "h": 113,
-   "bytes": 5159,
+   "w": 198,
+   "h": 339,
+   "bytes": 23843,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ships/ship (24).png",
-   "note": "Voile/emblème yellow, état 3 = détruit / coulé (gris). Proue vers le haut (orientation native Kenney).",
+   "note": "Voile/emblème yellow, état 3 = détruit / coulé (gris). Proue vers le haut (orientation native Kenney). Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 66,
     "srcH": 113
-   }
+   },
+   "scale": 3
   },
   "dinghy_large_0": {
    "file": "ships/dinghy_large_0.png",
-   "w": 20,
-   "h": 38,
-   "bytes": 871,
+   "w": 62,
+   "h": 114,
+   "bytes": 3773,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ships/dinghyLarge1.png",
-   "note": "Grande chaloupe, état 0. Proue vers le haut.",
+   "note": "Grande chaloupe, état 0. Proue vers le haut. Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 20,
     "srcH": 38
-   }
+   },
+   "scale": 3
   },
   "dinghy_small_0": {
    "file": "ships/dinghy_small_0.png",
-   "w": 16,
-   "h": 26,
-   "bytes": 664,
+   "w": 49,
+   "h": 78,
+   "bytes": 2649,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ships/dinghySmall1.png",
-   "note": "Petite chaloupe, état 0. Proue vers le haut.",
+   "note": "Petite chaloupe, état 0. Proue vers le haut. Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 16,
     "srcH": 26
-   }
+   },
+   "scale": 3
   },
   "dinghy_large_1": {
    "file": "ships/dinghy_large_1.png",
-   "w": 20,
-   "h": 38,
-   "bytes": 1050,
+   "w": 62,
+   "h": 114,
+   "bytes": 4195,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ships/dinghyLarge2.png",
-   "note": "Grande chaloupe, état 1. Proue vers le haut.",
+   "note": "Grande chaloupe, état 1. Proue vers le haut. Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 20,
     "srcH": 38
-   }
+   },
+   "scale": 3
   },
   "dinghy_small_1": {
    "file": "ships/dinghy_small_1.png",
-   "w": 16,
-   "h": 26,
-   "bytes": 756,
+   "w": 49,
+   "h": 78,
+   "bytes": 2798,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ships/dinghySmall2.png",
-   "note": "Petite chaloupe, état 1. Proue vers le haut.",
+   "note": "Petite chaloupe, état 1. Proue vers le haut. Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 16,
     "srcH": 26
-   }
+   },
+   "scale": 3
   },
   "dinghy_large_2": {
    "file": "ships/dinghy_large_2.png",
-   "w": 20,
-   "h": 38,
-   "bytes": 1130,
+   "w": 62,
+   "h": 114,
+   "bytes": 4464,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ships/dinghyLarge3.png",
-   "note": "Grande chaloupe, état 2. Proue vers le haut.",
+   "note": "Grande chaloupe, état 2. Proue vers le haut. Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 20,
     "srcH": 38
-   }
+   },
+   "scale": 3
   },
   "dinghy_small_2": {
    "file": "ships/dinghy_small_2.png",
-   "w": 16,
-   "h": 26,
-   "bytes": 832,
+   "w": 50,
+   "h": 78,
+   "bytes": 3097,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ships/dinghySmall3.png",
-   "note": "Petite chaloupe, état 2. Proue vers le haut.",
+   "note": "Petite chaloupe, état 2. Proue vers le haut. Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 16,
     "srcH": 26
-   }
+   },
+   "scale": 3
   },
   "hull_large_0": {
    "file": "ships/hull_large_0.png",
-   "w": 50,
-   "h": 108,
-   "bytes": 2861,
+   "w": 150,
+   "h": 324,
+   "bytes": 11547,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ship parts/hullLarge (1).png",
-   "note": "Coque grande, état 0 (intact).",
+   "note": "Coque grande, état 0 (intact). Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 50,
     "srcH": 108
-   }
+   },
+   "scale": 3
   },
   "hull_small_0": {
    "file": "ships/hull_small_0.png",
-   "w": 40,
-   "h": 108,
-   "bytes": 2541,
+   "w": 120,
+   "h": 324,
+   "bytes": 10466,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ship parts/hullSmall (1).png",
-   "note": "Coque petite, état 0 (intact).",
+   "note": "Coque petite, état 0 (intact). Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 40,
     "srcH": 108
-   }
+   },
+   "scale": 3
   },
   "hull_large_1": {
    "file": "ships/hull_large_1.png",
-   "w": 50,
-   "h": 108,
-   "bytes": 3237,
+   "w": 150,
+   "h": 324,
+   "bytes": 12957,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ship parts/hullLarge (2).png",
-   "note": "Coque grande, état 1 (légèrement abîmé).",
+   "note": "Coque grande, état 1 (légèrement abîmé). Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 50,
     "srcH": 108
-   }
+   },
+   "scale": 3
   },
   "hull_small_1": {
    "file": "ships/hull_small_1.png",
-   "w": 40,
-   "h": 108,
-   "bytes": 2758,
+   "w": 120,
+   "h": 324,
+   "bytes": 11070,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ship parts/hullSmall (2).png",
-   "note": "Coque petite, état 1 (légèrement abîmé).",
+   "note": "Coque petite, état 1 (légèrement abîmé). Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 40,
     "srcH": 108
-   }
+   },
+   "scale": 3
   },
   "hull_large_2": {
    "file": "ships/hull_large_2.png",
-   "w": 50,
-   "h": 108,
-   "bytes": 3392,
+   "w": 150,
+   "h": 324,
+   "bytes": 13457,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ship parts/hullLarge (3).png",
-   "note": "Coque grande, état 2 (très abîmé).",
+   "note": "Coque grande, état 2 (très abîmé). Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 50,
     "srcH": 108
-   }
+   },
+   "scale": 3
   },
   "hull_small_2": {
    "file": "ships/hull_small_2.png",
-   "w": 40,
-   "h": 108,
-   "bytes": 2980,
+   "w": 120,
+   "h": 324,
+   "bytes": 11695,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ship parts/hullSmall (3).png",
-   "note": "Coque petite, état 2 (très abîmé).",
+   "note": "Coque petite, état 2 (très abîmé). Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 40,
     "srcH": 108
-   }
+   },
+   "scale": 3
   },
   "hull_large_3": {
    "file": "ships/hull_large_3.png",
-   "w": 50,
-   "h": 108,
-   "bytes": 2782,
+   "w": 150,
+   "h": 324,
+   "bytes": 11571,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ship parts/hullLarge (4).png",
-   "note": "Coque grande, état 3 (détruit / coulé (gris)).",
+   "note": "Coque grande, état 3 (détruit / coulé (gris)). Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 50,
     "srcH": 108
-   }
+   },
+   "scale": 3
   },
   "hull_small_3": {
    "file": "ships/hull_small_3.png",
-   "w": 40,
-   "h": 108,
-   "bytes": 2484,
+   "w": 120,
+   "h": 324,
+   "bytes": 10201,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ship parts/hullSmall (4).png",
-   "note": "Coque petite, état 3 (détruit / coulé (gris)).",
+   "note": "Coque petite, état 3 (détruit / coulé (gris)). Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 40,
     "srcH": 108
-   }
+   },
+   "scale": 3
   },
   "sail_large_1": {
    "file": "ships/sail_large_1.png",
-   "w": 66,
-   "h": 47,
-   "bytes": 2840,
+   "w": 198,
+   "h": 139,
+   "bytes": 12518,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ship parts/sailLarge (1).png",
-   "note": "grande voile jaune, croix d'os",
+   "note": "grande voile jaune, croix d'os Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 66,
     "srcH": 47
-   }
+   },
+   "scale": 3
   },
   "sail_large_2": {
    "file": "ships/sail_large_2.png",
-   "w": 66,
-   "h": 47,
-   "bytes": 2081,
+   "w": 198,
+   "h": 139,
+   "bytes": 9592,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ship parts/sailLarge (2).png",
-   "note": "grande voile blanche, unie",
+   "note": "grande voile blanche, unie Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 66,
     "srcH": 47
-   }
+   },
+   "scale": 3
   },
   "sail_large_3": {
    "file": "ships/sail_large_3.png",
-   "w": 66,
-   "h": 47,
-   "bytes": 2528,
+   "w": 198,
+   "h": 139,
+   "bytes": 11996,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ship parts/sailLarge (3).png",
-   "note": "grande voile noire, crâne",
+   "note": "grande voile noire, crâne Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 66,
     "srcH": 47
-   }
+   },
+   "scale": 3
   },
   "sail_large_4": {
    "file": "ships/sail_large_4.png",
-   "w": 66,
-   "h": 47,
-   "bytes": 2411,
+   "w": 198,
+   "h": 139,
+   "bytes": 10725,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ship parts/sailLarge (4).png",
-   "note": "grande voile rouge, croix",
+   "note": "grande voile rouge, croix Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 66,
     "srcH": 47
-   }
+   },
+   "scale": 3
   },
   "sail_large_5": {
    "file": "ships/sail_large_5.png",
-   "w": 66,
-   "h": 47,
-   "bytes": 2654,
+   "w": 198,
+   "h": 139,
+   "bytes": 11961,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ship parts/sailLarge (5).png",
-   "note": "grande voile verte, sabres",
+   "note": "grande voile verte, sabres Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 66,
     "srcH": 47
-   }
+   },
+   "scale": 3
   },
   "sail_large_6": {
    "file": "ships/sail_large_6.png",
-   "w": 66,
-   "h": 47,
-   "bytes": 2463,
+   "w": 198,
+   "h": 139,
+   "bytes": 11422,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ship parts/sailLarge (6).png",
-   "note": "grande voile bleue, casque",
+   "note": "grande voile bleue, casque Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 66,
     "srcH": 47
-   }
+   },
+   "scale": 3
   },
   "sail_large_7": {
    "file": "ships/sail_large_7.png",
-   "w": 66,
-   "h": 47,
-   "bytes": 2448,
+   "w": 198,
+   "h": 139,
+   "bytes": 11216,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ship parts/sailLarge (7).png",
-   "note": "grande voile jaune (variante)",
+   "note": "grande voile jaune (variante) Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 66,
     "srcH": 47
-   }
+   },
+   "scale": 3
   },
   "sail_large_8": {
    "file": "ships/sail_large_8.png",
-   "w": 66,
-   "h": 46,
-   "bytes": 1460,
+   "w": 198,
+   "h": 138,
+   "bytes": 7121,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ship parts/sailLarge (8).png",
-   "note": "grande voile noire unie",
+   "note": "grande voile noire unie Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 66,
     "srcH": 46
-   }
+   },
+   "scale": 3
   },
   "sail_large_9": {
    "file": "ships/sail_large_9.png",
-   "w": 66,
-   "h": 46,
-   "bytes": 2044,
+   "w": 198,
+   "h": 138,
+   "bytes": 9902,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ship parts/sailLarge (9).png",
-   "note": "voile noire, crâne (déchirée)",
+   "note": "voile noire, crâne (déchirée) Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 66,
     "srcH": 46
-   }
+   },
+   "scale": 3
   },
   "sail_large_10": {
    "file": "ships/sail_large_10.png",
-   "w": 66,
-   "h": 46,
-   "bytes": 1823,
+   "w": 198,
+   "h": 138,
+   "bytes": 8441,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ship parts/sailLarge (10).png",
-   "note": "voile noire, croix (déchirée)",
+   "note": "voile noire, croix (déchirée) Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 66,
     "srcH": 46
-   }
+   },
+   "scale": 3
   },
   "sail_large_11": {
    "file": "ships/sail_large_11.png",
-   "w": 66,
-   "h": 46,
-   "bytes": 2125,
+   "w": 198,
+   "h": 138,
+   "bytes": 9718,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ship parts/sailLarge (11).png",
-   "note": "voile noire, sabres (déchirée)",
+   "note": "voile noire, sabres (déchirée) Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 66,
     "srcH": 46
-   }
+   },
+   "scale": 3
   },
   "sail_large_12": {
    "file": "ships/sail_large_12.png",
-   "w": 66,
-   "h": 46,
-   "bytes": 1944,
+   "w": 198,
+   "h": 138,
+   "bytes": 9283,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ship parts/sailLarge (12).png",
-   "note": "voile noire, casque (déchirée)",
+   "note": "voile noire, casque (déchirée) Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 66,
     "srcH": 46
-   }
+   },
+   "scale": 3
   },
   "sail_large_13": {
    "file": "ships/sail_large_13.png",
-   "w": 66,
-   "h": 46,
-   "bytes": 1833,
+   "w": 198,
+   "h": 138,
+   "bytes": 8923,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ship parts/sailLarge (13).png",
-   "note": "voile noire, os croisés (déchirée)",
+   "note": "voile noire, os croisés (déchirée) Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 66,
     "srcH": 46
-   }
+   },
+   "scale": 3
   },
   "sail_large_14": {
    "file": "ships/sail_large_14.png",
-   "w": 66,
-   "h": 47,
-   "bytes": 2077,
+   "w": 198,
+   "h": 139,
+   "bytes": 10043,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ship parts/sailLarge (14).png",
-   "note": "voile blanche déchirée",
+   "note": "voile blanche déchirée Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 66,
     "srcH": 47
-   }
+   },
+   "scale": 3
   },
   "sail_large_15": {
    "file": "ships/sail_large_15.png",
-   "w": 66,
-   "h": 47,
-   "bytes": 2644,
+   "w": 198,
+   "h": 139,
+   "bytes": 12581,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ship parts/sailLarge (15).png",
-   "note": "voile noire crâne déchirée 2",
+   "note": "voile noire crâne déchirée 2 Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 66,
     "srcH": 47
-   }
+   },
+   "scale": 3
   },
   "sail_large_16": {
    "file": "ships/sail_large_16.png",
-   "w": 66,
-   "h": 47,
-   "bytes": 2405,
+   "w": 198,
+   "h": 139,
+   "bytes": 11329,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ship parts/sailLarge (16).png",
-   "note": "voile rouge déchirée",
+   "note": "voile rouge déchirée Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 66,
     "srcH": 47
-   }
+   },
+   "scale": 3
   },
   "sail_large_17": {
    "file": "ships/sail_large_17.png",
-   "w": 66,
-   "h": 47,
-   "bytes": 2571,
+   "w": 198,
+   "h": 139,
+   "bytes": 12161,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ship parts/sailLarge (17).png",
-   "note": "voile verte déchirée",
+   "note": "voile verte déchirée Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 66,
     "srcH": 47
-   }
+   },
+   "scale": 3
   },
   "sail_large_18": {
    "file": "ships/sail_large_18.png",
-   "w": 66,
-   "h": 47,
-   "bytes": 2476,
+   "w": 198,
+   "h": 139,
+   "bytes": 11874,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ship parts/sailLarge (18).png",
-   "note": "voile bleue déchirée",
+   "note": "voile bleue déchirée Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 66,
     "srcH": 47
-   }
+   },
+   "scale": 3
   },
   "sail_large_19": {
    "file": "ships/sail_large_19.png",
-   "w": 66,
-   "h": 47,
-   "bytes": 2486,
+   "w": 198,
+   "h": 139,
+   "bytes": 11736,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ship parts/sailLarge (19).png",
-   "note": "voile bleue repliée",
+   "note": "voile bleue repliée Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 66,
     "srcH": 47
-   }
+   },
+   "scale": 3
   },
   "sail_large_20": {
    "file": "ships/sail_large_20.png",
-   "w": 66,
-   "h": 47,
-   "bytes": 2466,
+   "w": 198,
+   "h": 139,
+   "bytes": 10735,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ship parts/sailLarge (20).png",
-   "note": "voile jaune repliée",
+   "note": "voile jaune repliée Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 66,
     "srcH": 47
-   }
+   },
+   "scale": 3
   },
   "sail_large_21": {
    "file": "ships/sail_large_21.png",
-   "w": 66,
-   "h": 47,
-   "bytes": 2779,
+   "w": 198,
+   "h": 139,
+   "bytes": 13134,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ship parts/sailLarge (21).png",
-   "note": "voile noire repliée",
+   "note": "voile noire repliée Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 66,
     "srcH": 47
-   }
+   },
+   "scale": 3
   },
   "sail_large_22": {
    "file": "ships/sail_large_22.png",
-   "w": 66,
-   "h": 47,
-   "bytes": 2744,
+   "w": 198,
+   "h": 139,
+   "bytes": 11794,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ship parts/sailLarge (22).png",
-   "note": "voile rouge repliée",
+   "note": "voile rouge repliée Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 66,
     "srcH": 47
-   }
+   },
+   "scale": 3
   },
   "sail_large_23": {
    "file": "ships/sail_large_23.png",
-   "w": 66,
-   "h": 47,
-   "bytes": 3012,
+   "w": 198,
+   "h": 139,
+   "bytes": 13082,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ship parts/sailLarge (23).png",
-   "note": "voile verte repliée",
+   "note": "voile verte repliée Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 66,
     "srcH": 47
-   }
+   },
+   "scale": 3
   },
   "sail_large_24": {
    "file": "ships/sail_large_24.png",
-   "w": 66,
-   "h": 47,
-   "bytes": 2857,
+   "w": 198,
+   "h": 139,
+   "bytes": 12656,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ship parts/sailLarge (24).png",
-   "note": "voile bleue repliée 2",
+   "note": "voile bleue repliée 2 Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 66,
     "srcH": 47
-   }
+   },
+   "scale": 3
   },
   "sail_small_1": {
    "file": "ships/sail_small_1.png",
-   "w": 42,
-   "h": 9,
-   "bytes": 598,
+   "w": 126,
+   "h": 26,
+   "bytes": 2171,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ship parts/sailSmall (1).png",
-   "note": "petite voile (1-7 déployées, 8-13 repliées)",
+   "note": "petite voile (1-7 déployées, 8-13 repliées) Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 42,
     "srcH": 9
-   }
+   },
+   "scale": 3
   },
   "sail_small_2": {
    "file": "ships/sail_small_2.png",
-   "w": 42,
-   "h": 9,
-   "bytes": 580,
+   "w": 126,
+   "h": 26,
+   "bytes": 2164,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ship parts/sailSmall (2).png",
-   "note": "petite voile (1-7 déployées, 8-13 repliées)",
+   "note": "petite voile (1-7 déployées, 8-13 repliées) Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 42,
     "srcH": 9
-   }
+   },
+   "scale": 3
   },
   "sail_small_3": {
    "file": "ships/sail_small_3.png",
-   "w": 42,
-   "h": 9,
-   "bytes": 565,
+   "w": 126,
+   "h": 26,
+   "bytes": 2040,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ship parts/sailSmall (3).png",
-   "note": "petite voile (1-7 déployées, 8-13 repliées)",
+   "note": "petite voile (1-7 déployées, 8-13 repliées) Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 42,
     "srcH": 9
-   }
+   },
+   "scale": 3
   },
   "sail_small_4": {
    "file": "ships/sail_small_4.png",
-   "w": 42,
-   "h": 8,
-   "bytes": 469,
+   "w": 126,
+   "h": 26,
+   "bytes": 2062,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ship parts/sailSmall (4).png",
-   "note": "petite voile (1-7 déployées, 8-13 repliées)",
+   "note": "petite voile (1-7 déployées, 8-13 repliées) Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 42,
     "srcH": 8
-   }
+   },
+   "scale": 3
   },
   "sail_small_5": {
    "file": "ships/sail_small_5.png",
-   "w": 42,
-   "h": 8,
-   "bytes": 450,
+   "w": 126,
+   "h": 26,
+   "bytes": 2034,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ship parts/sailSmall (5).png",
-   "note": "petite voile (1-7 déployées, 8-13 repliées)",
+   "note": "petite voile (1-7 déployées, 8-13 repliées) Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 42,
     "srcH": 8
-   }
+   },
+   "scale": 3
   },
   "sail_small_6": {
    "file": "ships/sail_small_6.png",
-   "w": 42,
-   "h": 8,
-   "bytes": 459,
+   "w": 126,
+   "h": 26,
+   "bytes": 2060,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ship parts/sailSmall (6).png",
-   "note": "petite voile (1-7 déployées, 8-13 repliées)",
+   "note": "petite voile (1-7 déployées, 8-13 repliées) Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 42,
     "srcH": 8
-   }
+   },
+   "scale": 3
   },
   "sail_small_7": {
    "file": "ships/sail_small_7.png",
-   "w": 42,
-   "h": 8,
-   "bytes": 460,
+   "w": 126,
+   "h": 26,
+   "bytes": 2058,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ship parts/sailSmall (7).png",
-   "note": "petite voile (1-7 déployées, 8-13 repliées)",
+   "note": "petite voile (1-7 déployées, 8-13 repliées) Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 42,
     "srcH": 8
-   }
+   },
+   "scale": 3
   },
   "sail_small_8": {
    "file": "ships/sail_small_8.png",
-   "w": 42,
-   "h": 9,
-   "bytes": 541,
+   "w": 126,
+   "h": 24,
+   "bytes": 1807,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ship parts/sailSmall (8).png",
-   "note": "petite voile (1-7 déployées, 8-13 repliées)",
+   "note": "petite voile (1-7 déployées, 8-13 repliées) Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 42,
     "srcH": 9
-   }
+   },
+   "scale": 3
   },
   "sail_small_9": {
    "file": "ships/sail_small_9.png",
-   "w": 42,
-   "h": 9,
-   "bytes": 535,
+   "w": 126,
+   "h": 24,
+   "bytes": 1772,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ship parts/sailSmall (9).png",
-   "note": "petite voile (1-7 déployées, 8-13 repliées)",
+   "note": "petite voile (1-7 déployées, 8-13 repliées) Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 42,
     "srcH": 9
-   }
+   },
+   "scale": 3
   },
   "sail_small_10": {
    "file": "ships/sail_small_10.png",
-   "w": 42,
-   "h": 9,
-   "bytes": 552,
+   "w": 126,
+   "h": 24,
+   "bytes": 1820,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ship parts/sailSmall (10).png",
-   "note": "petite voile (1-7 déployées, 8-13 repliées)",
+   "note": "petite voile (1-7 déployées, 8-13 repliées) Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 42,
     "srcH": 9
-   }
+   },
+   "scale": 3
   },
   "sail_small_11": {
    "file": "ships/sail_small_11.png",
-   "w": 42,
-   "h": 9,
-   "bytes": 532,
+   "w": 126,
+   "h": 24,
+   "bytes": 1788,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ship parts/sailSmall (11).png",
-   "note": "petite voile (1-7 déployées, 8-13 repliées)",
+   "note": "petite voile (1-7 déployées, 8-13 repliées) Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 42,
     "srcH": 9
-   }
+   },
+   "scale": 3
   },
   "sail_small_12": {
    "file": "ships/sail_small_12.png",
-   "w": 42,
-   "h": 9,
-   "bytes": 599,
+   "w": 126,
+   "h": 26,
+   "bytes": 2157,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ship parts/sailSmall (12).png",
-   "note": "petite voile (1-7 déployées, 8-13 repliées)",
+   "note": "petite voile (1-7 déployées, 8-13 repliées) Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 42,
     "srcH": 9
-   }
+   },
+   "scale": 3
   },
   "sail_small_13": {
    "file": "ships/sail_small_13.png",
-   "w": 42,
-   "h": 9,
-   "bytes": 600,
+   "w": 126,
+   "h": 26,
+   "bytes": 2069,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ship parts/sailSmall (13).png",
-   "note": "petite voile (1-7 déployées, 8-13 repliées)",
+   "note": "petite voile (1-7 déployées, 8-13 repliées) Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 42,
     "srcH": 9
-   }
+   },
+   "scale": 3
   },
   "flag_1": {
    "file": "ships/flag_1.png",
-   "w": 6,
-   "h": 22,
-   "bytes": 193,
+   "w": 18,
+   "h": 66,
+   "bytes": 595,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ship parts/flag (1).png",
-   "note": "Fanion blanc",
+   "note": "Fanion blanc Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 6,
     "srcH": 22
-   }
+   },
+   "scale": 3
   },
   "crew_1": {
    "file": "ships/crew_1.png",
-   "w": 22,
-   "h": 20,
-   "bytes": 885,
+   "w": 66,
+   "h": 60,
+   "bytes": 3597,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ship parts/crew (1).png",
-   "note": "Membre d'équipage vu de dessus",
+   "note": "Membre d'équipage vu de dessus Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 22,
     "srcH": 20
-   }
+   },
+   "scale": 3
   },
   "flag_2": {
    "file": "ships/flag_2.png",
-   "w": 6,
-   "h": 22,
-   "bytes": 194,
+   "w": 18,
+   "h": 66,
+   "bytes": 595,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ship parts/flag (2).png",
-   "note": "Fanion gris/noir",
+   "note": "Fanion gris/noir Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 6,
     "srcH": 22
-   }
+   },
+   "scale": 3
   },
   "crew_2": {
    "file": "ships/crew_2.png",
-   "w": 22,
-   "h": 20,
-   "bytes": 878,
+   "w": 66,
+   "h": 60,
+   "bytes": 3613,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ship parts/crew (2).png",
-   "note": "Membre d'équipage vu de dessus",
+   "note": "Membre d'équipage vu de dessus Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 22,
     "srcH": 20
-   }
+   },
+   "scale": 3
   },
   "flag_3": {
    "file": "ships/flag_3.png",
-   "w": 6,
-   "h": 22,
-   "bytes": 197,
+   "w": 18,
+   "h": 66,
+   "bytes": 594,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ship parts/flag (3).png",
-   "note": "Fanion rouge",
+   "note": "Fanion rouge Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 6,
     "srcH": 22
-   }
+   },
+   "scale": 3
   },
   "crew_3": {
    "file": "ships/crew_3.png",
-   "w": 22,
-   "h": 20,
-   "bytes": 996,
+   "w": 67,
+   "h": 60,
+   "bytes": 3976,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ship parts/crew (3).png",
-   "note": "Membre d'équipage vu de dessus",
+   "note": "Membre d'équipage vu de dessus Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 22,
     "srcH": 20
-   }
+   },
+   "scale": 3
   },
   "flag_4": {
    "file": "ships/flag_4.png",
-   "w": 6,
-   "h": 22,
-   "bytes": 195,
+   "w": 18,
+   "h": 66,
+   "bytes": 583,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ship parts/flag (4).png",
-   "note": "Fanion vert",
+   "note": "Fanion vert Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 6,
     "srcH": 22
-   }
+   },
+   "scale": 3
   },
   "crew_4": {
    "file": "ships/crew_4.png",
-   "w": 22,
-   "h": 22,
-   "bytes": 1047,
+   "w": 66,
+   "h": 66,
+   "bytes": 3733,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ship parts/crew (4).png",
-   "note": "Membre d'équipage vu de dessus",
+   "note": "Membre d'équipage vu de dessus Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 22,
     "srcH": 22
-   }
+   },
+   "scale": 3
   },
   "flag_5": {
    "file": "ships/flag_5.png",
-   "w": 6,
-   "h": 22,
-   "bytes": 196,
+   "w": 18,
+   "h": 66,
+   "bytes": 604,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ship parts/flag (5).png",
-   "note": "Fanion bleu",
+   "note": "Fanion bleu Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 6,
     "srcH": 22
-   }
+   },
+   "scale": 3
   },
   "crew_5": {
    "file": "ships/crew_5.png",
-   "w": 22,
-   "h": 22,
-   "bytes": 1006,
+   "w": 66,
+   "h": 66,
+   "bytes": 3632,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ship parts/crew (5).png",
-   "note": "Membre d'équipage vu de dessus",
+   "note": "Membre d'équipage vu de dessus Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 22,
     "srcH": 22
-   }
+   },
+   "scale": 3
   },
   "flag_6": {
    "file": "ships/flag_6.png",
-   "w": 6,
-   "h": 22,
-   "bytes": 192,
+   "w": 18,
+   "h": 66,
+   "bytes": 592,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ship parts/flag (6).png",
-   "note": "Fanion jaune",
+   "note": "Fanion jaune Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 6,
     "srcH": 22
-   }
+   },
+   "scale": 3
   },
   "crew_6": {
    "file": "ships/crew_6.png",
-   "w": 22,
-   "h": 22,
-   "bytes": 976,
+   "w": 66,
+   "h": 66,
+   "bytes": 3659,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ship parts/crew (6).png",
-   "note": "Membre d'équipage vu de dessus",
+   "note": "Membre d'équipage vu de dessus Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 22,
     "srcH": 22
-   }
+   },
+   "scale": 3
   },
   "nest": {
    "file": "ships/nest.png",
-   "w": 20,
-   "h": 18,
-   "bytes": 714,
+   "w": 60,
+   "h": 54,
+   "bytes": 2890,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ship parts/nest.png",
-   "note": "Nid de pie (vue de dessus)",
+   "note": "Nid de pie (vue de dessus) Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 20,
     "srcH": 18
-   }
+   },
+   "scale": 3
   },
   "pole": {
    "file": "ships/pole.png",
-   "w": 12,
-   "h": 11,
-   "bytes": 414,
+   "w": 33,
+   "h": 32,
+   "bytes": 1350,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ship parts/pole.png",
-   "note": "Mât vu de dessus",
+   "note": "Mât vu de dessus Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 12,
     "srcH": 11
-   }
+   },
+   "scale": 3
   },
   "cannon": {
    "file": "ships/cannon.png",
-   "w": 29,
-   "h": 16,
-   "bytes": 562,
+   "w": 87,
+   "h": 48,
+   "bytes": 1874,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ship parts/cannon.png",
-   "note": "Canon",
+   "note": "Canon Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 29,
     "srcH": 16
-   }
+   },
+   "scale": 3
   },
   "cannon_loose": {
    "file": "ships/cannon_loose.png",
-   "w": 20,
-   "h": 12,
-   "bytes": 408,
+   "w": 61,
+   "h": 36,
+   "bytes": 1472,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ship parts/cannonLoose.png",
-   "note": "Canon détaché (débris)",
+   "note": "Canon détaché (débris) Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 20,
     "srcH": 12
-   }
+   },
+   "scale": 3
   },
   "cannon_mobile": {
    "file": "ships/cannon_mobile.png",
-   "w": 29,
-   "h": 20,
-   "bytes": 595,
+   "w": 87,
+   "h": 60,
+   "bytes": 1853,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ship parts/cannonMobile.png",
-   "note": "Canon sur affût",
+   "note": "Canon sur affût Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 29,
     "srcH": 20
-   }
+   },
+   "scale": 3
   },
   "cannonball": {
    "file": "ships/cannonball.png",
-   "w": 10,
-   "h": 10,
-   "bytes": 300,
+   "w": 30,
+   "h": 30,
+   "bytes": 952,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ship parts/cannonBall.png",
-   "note": "Boulet",
+   "note": "Boulet Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 10,
     "srcH": 10
-   }
+   },
+   "scale": 3
   },
   "wood_1": {
    "file": "ships/wood_1.png",
-   "w": 15,
-   "h": 7,
-   "bytes": 162,
+   "w": 45,
+   "h": 21,
+   "bytes": 311,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ship parts/wood (1).png",
-   "note": "Planche de bois (éclats / débris flottants)",
+   "note": "Planche de bois (éclats / débris flottants) Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 15,
     "srcH": 7
-   }
+   },
+   "scale": 3
   },
   "wood_2": {
    "file": "ships/wood_2.png",
-   "w": 26,
-   "h": 10,
-   "bytes": 167,
+   "w": 78,
+   "h": 30,
+   "bytes": 351,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ship parts/wood (2).png",
-   "note": "Planche de bois (éclats / débris flottants)",
+   "note": "Planche de bois (éclats / débris flottants) Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 26,
     "srcH": 10
-   }
+   },
+   "scale": 3
   },
   "wood_3": {
    "file": "ships/wood_3.png",
-   "w": 15,
-   "h": 10,
-   "bytes": 164,
+   "w": 45,
+   "h": 30,
+   "bytes": 324,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ship parts/wood (3).png",
-   "note": "Planche de bois (éclats / débris flottants)",
+   "note": "Planche de bois (éclats / débris flottants) Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 15,
     "srcH": 10
-   }
+   },
+   "scale": 3
   },
   "wood_4": {
    "file": "ships/wood_4.png",
-   "w": 26,
-   "h": 7,
-   "bytes": 163,
+   "w": 78,
+   "h": 21,
+   "bytes": 337,
    "source": "kenney_piratepack",
    "original": "PNG/Retina/Ship parts/wood (4).png",
-   "note": "Planche de bois (éclats / débris flottants)",
+   "note": "Planche de bois (éclats / débris flottants) Rasterisé ×3 depuis Vector/shipsMiscellaneous_vector.svg (Chromium).",
    "trim": {
     "x": 0,
     "y": 0,
     "srcW": 26,
     "srcH": 7
-   }
+   },
+   "scale": 3
   },
   "water": {
    "file": "tiles/water.png",
@@ -5362,5 +5459,10 @@
     "srcH": 376
    }
   }
+ },
+ "upscaled_ships": {
+  "scale": 3,
+  "source": "kenney_piratepack/Vector/shipsMiscellaneous_vector.svg",
+  "tool": "tools/rasterize_ships.js + tools/upscale_ships.py"
  }
 }
