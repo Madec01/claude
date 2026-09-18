@@ -17,7 +17,7 @@ export function buildMenu({ game }) {
   const title = h('div', { class: 'menu-title' },
     h('div', { class: 'menu-kicker' }, STORY.subtitle),
     h('h1', {}, STORY.title),
-    h('div', { class: 'menu-sub' }, 'Douze îles à faire revivre, une tuile à la fois.'),
+    h('div', { class: 'menu-sub' }, 'Cinquante îles à faire revivre, une tuile à la fois.'),
   );
   const nav = h('nav', { class: 'menu-nav', 'aria-label': 'Menu principal' });
   const primaryLabel = c.completed ? 'Rejouer la campagne' : started ? 'Continuer' : 'Commencer';

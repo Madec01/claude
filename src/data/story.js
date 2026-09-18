@@ -7,7 +7,7 @@ export const STORY = {
   subtitle: 'L’île qui se souvient',
 
   prologue: [
-    'Douze îles dorment sous le même ciel. Sable, roche, silence. Nous étions vertes, nous étions pleines, et nous ne savons plus depuis quand nous nous taisons.',
+    'Cinquante îles dorment sous le même ciel. Sable, roche, silence. Nous étions vertes, nous étions pleines, et nous ne savons plus depuis quand nous nous taisons.',
     'Toi, tu es la Saison. Pas une des quatre : celle qui passe de l’une à l’autre. Tu n’as ni corps ni nom. Tu as des tuiles.',
     'Poser une tuile, c’est nous rendre un morceau. Une prairie, une forêt, un hameau. Chaque bord qui touche un autre bord est une chose que nous nous rappelons.',
     'Nous ne te demanderons pas d’aller vite. Nous te demanderons de regarder où tu poses.',
@@ -714,7 +714,7 @@ export const STORY = {
     'Alors la rivière gèle toute seule. Les hameaux se regardent par-dessus la glace. Personne ne t’a rien demandé.',
     'Puis la glace craque au matin, les marais fleurissent, et les canards reviennent en freinant des pattes. Nous avons fait cela sans toi.',
     'Nous avons compris. Ce n’est pas la saison que tu nous rendais. C’est le passage.',
-    'Douze îles. Cent saisons. Nous les avons toutes comptées et nous ne compterons plus.',
+    'Cinquante îles. Cent saisons. Nous les avons toutes comptées et nous ne compterons plus.',
     'Le meunier a remis son aile. La passeuse a retourné sa barque. Les enfants du hameau du nord ont un nouveau vœu, mais ils ne te le diront pas : ils le feront.',
     'Tu peux partir, Saison. Il y a d’autres îles, sous d’autres ciels, qui ne savent plus ce qu’est l’automne.',
   ],
