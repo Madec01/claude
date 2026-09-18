@@ -63,7 +63,7 @@
 | 5. Archipel du Sud | 21–25 | climat chaud, fusions et Cahier | 70–80 | **fait** (structure) |
 | 6. Archipel des Pluies | 26–30 | climat humide, ouvrages | 70–90 | **fait** (structure) |
 | 7. Archipel du Nord | 31–35 | climat froid, niveaux 3 | 80–90 | **fait** (structure) |
-| 8. Les Vents et les Cimes | 36–40 | climats venteux et montagnard, îles à deux climats | 90–100 | **fait** (structure) |
+| 8. Les Quatre Climats | 36–40 | chaque île change de climat (chaud, froid, tempéré, humide, chaud), carte de climat à chaque changement | 90–100 | **fait** |
 | 9. Les grandes îles | 41–45 | tout est là, îles jumelles partageant une rivière | 100–140 | **fait** (structure) |
 | 10. Cent saisons | 46–50 | l'île qui grandit, épilogue, puis génération libre | 120–160 | **fait** (structure) |
 

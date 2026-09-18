@@ -1,6 +1,7 @@
 // Campagne : dix chapitres de cinq îles. Les douze îles dessinées à la main (islands.js) sont les îles-souvenirs, placées à
 // leur chapitre ; les trente-huit autres sont générées ici (masque, file, vœux tirés d'une réserve, textes courts).
 // Chaque mécanique arrive à une île précise (MECH_AT) ; les climats arrivent avec les archipels (chapitres 5 à 8).
+// Une carte de tutoriel propre au climat s'affiche à chaque île dont le climat diffère de la précédente (climateCardFor).
 import { ISLANDS, WEIGHTS } from './islands.js';
 import { CAMPAIGN_TEXTS } from './campaign_texts.js';
 import { CAMPAIGN_STARS } from './campaign_stars.js';
@@ -29,7 +30,7 @@ export const CHAPTERS = [
   { id: 5, name: 'Archipel du Sud', sub: 'Climat chaud, fusions', climate: 'hot', islands: [{ cells: 72, w: 'coastAll' }, { cells: 76, w: 'all' }, { cells: 78, w: 'hills' }, { cells: 80, w: 'coastAll' }, { hand: 9, memory: true }] },
   { id: 6, name: 'Archipel des Pluies', sub: 'Climat humide, ouvrages', climate: 'humid', islands: [{ cells: 76, w: 'rivers' }, { cells: 80, w: 'all' }, { cells: 84, w: 'rivers' }, { cells: 88, w: 'moorFarm' }, { hand: 10, memory: true }] },
   { id: 7, name: 'Archipel du Nord', sub: 'Climat froid, niveau 3', climate: 'cold', islands: [{ cells: 82, w: 'ridges' }, { cells: 86, w: 'all' }, { cells: 88, w: 'ridges' }, { cells: 90, w: 'moor' }, { hand: 11, memory: true }] },
-  { id: 8, name: 'Les Vents et les Cimes', sub: 'Tous les climats, grandes îles', climate: 'mixed', islands: [{ cells: 90, w: 'coastAll', climate: 'temperate' }, { cells: 94, w: 'all', climate: 'hot' }, { cells: 96, w: 'ridges', climate: 'temperate' }, { cells: 100, w: 'moor', climate: 'cold' }, { cells: 100, w: 'coastAll', climate: 'humid', memory: true }] },
+  { id: 8, name: 'Les Quatre Climats', sub: 'Chaque île change de climat', climate: 'mixed', islands: [{ cells: 90, w: 'coastAll', climate: 'hot' }, { cells: 94, w: 'ridges', climate: 'cold' }, { cells: 96, w: 'ridges', climate: 'temperate' }, { cells: 100, w: 'rivers', climate: 'humid' }, { cells: 100, w: 'coastAll', climate: 'hot', memory: true }] },
   { id: 9, name: 'Les grandes îles', sub: 'Tout est là', climate: 'mixed', islands: [{ cells: 104, w: 'all', climate: 'temperate' }, { cells: 112, w: 'rivers', climate: 'humid' }, { cells: 120, w: 'ridges', climate: 'cold' }, { cells: 130, w: 'all', climate: 'temperate' }, { cells: 140, w: 'moorFarm', climate: 'hot', memory: true }] },
   { id: 10, name: 'Cent saisons', sub: 'La fin du souvenir', climate: 'temperate', islands: [{ cells: 120, w: 'all' }, { cells: 130, w: 'coastAll' }, { cells: 140, w: 'all' }, { cells: 150, w: 'all' }, { hand: 12, memory: true }] },
 ];
@@ -107,6 +108,14 @@ export function campaignIsland(n) {
     seasonLength, startSeason, weights: weightsFor(slot.w, climate, mech), tilesRatio, start, wishes, mechanics: [], weather: mech.has('weather'),
     name: t.name, intro: t.intro, memoryText: t.memory, starFactors: stars || [3.6, 5.2, 6.5],
   };
+}
+
+/** Carte de climat à afficher sur l'île n : quand son climat diffère de celui de l'île précédente (ou à la première île à climat). */
+export function climateCardFor(n) {
+  const def = campaignIsland(n); const prev = n > 1 ? campaignIsland(n - 1) : null;
+  if (prev && prev.climate === def.climate) return null;
+  if (!prev || (prev.climate === 'temperate' && def.climate === 'temperate')) return null;
+  return `climate_${def.climate}`;
 }
 
 /** Correspondance ancienne campagne (12 îles) → nouvelle (50), pour migrer les sauvegardes. */

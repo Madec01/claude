@@ -65,7 +65,7 @@ export class Tutorial {
     if (!this.current) {
       if (this.idx >= this.steps.length) { this.doneAll = true; return; }
       const step = this.steps[this.idx];
-      const rule = step.done || step.when || step.info ? { when: step.when || (() => true), done: step.done || (() => false), info: !!step.info, timeout: step.timeout || 0 } : (RULES[step.id] || { when: () => true, done: () => false, info: true, timeout: 12 });
+      const rule = step.done || step.when || step.info ? { when: step.when || (() => true), done: step.done || (() => false), info: !!step.info, timeout: step.timeout || 0 } : (RULES[step.id] || (step.id.startsWith('climate_') ? RULES.climate : null) || { when: () => true, done: () => false, info: true, timeout: 12 });
       if (rule.when(this.isl)) { this.current = { step, rule }; this.show(step, rule); this.shownFor = 0; this.events.clear(); this.isl.restrict = step.target ? new Set([`${step.target[0]},${step.target[1]}`]) : null; }
       return;
     }

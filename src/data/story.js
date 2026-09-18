@@ -738,3 +738,9 @@ export const STORY = {
     ],
   },
 };
+
+// Cartes de tutoriel propres à chaque climat (affichées à chaque changement de climat dans la campagne).
+for (const [id, c] of Object.entries(STORY.climates)) {
+  STORY.mechCards[`climate_${id}`] = id === 'temperate' ? 'Retour au climat tempéré : plus d’avantage ni de contrainte de climat. Les prés sèchent l’été loin de l’eau, l’eau gèle l’hiver, tout fleurit au printemps.'
+    : `${c.name}. ${c.line} ✓ ${c.plus} ✗ ${c.minus} Le détail reste dans la bulle de saison.`;
+}
