@@ -201,6 +201,7 @@ html.compact.landscape .tile-help { left: 132px; width: 260px; bottom: 36px; }
 
 /* Règle de saison en surimpression (boîte de saison cliquable) */
 .hud-season { cursor: pointer; pointer-events: all; }
+.hud-score { cursor: pointer; pointer-events: all; }
 .season-pop { position: absolute; left: 0; top: calc(100% + 6px); width: 340px; z-index: 8; background: rgba(255,253,248,0.98); border: 1px solid rgba(43,42,38,0.14); border-radius: 12px; padding: 10px 12px; box-shadow: 0 12px 34px rgba(30,50,70,0.22); display: flex; flex-direction: column; gap: 4px; font-size: 13px; line-height: 1.35; pointer-events: all; }
 .season-pop.hidden { display: none; }
 .season-pop b { font-family: var(--font-title); font-weight: 500; font-size: 18px; }
@@ -262,3 +263,18 @@ html.compact.portrait .hud-ribbon { top: 118px; } html.compact.portrait .hud-rec
 .panel-results .stars .gold-star .icon { opacity: 0.12; }
 .panel-results .stars .gold-star.on .icon, .panel-results .stars .gold-star.on.pop .icon { opacity: 1; filter: sepia(1) saturate(5) brightness(1.2) drop-shadow(0 0 10px rgba(224,163,58,0.9)); }
 .res-gold { text-align: center; font-family: var(--font-title); color: var(--gold, #e0a33a); margin: -4px 0 8px; }
+/* le pourquoi des points */
+.score-pop { position: absolute; right: 0; top: calc(100% + 6px); width: 320px; z-index: 12; background: rgba(255,253,248,0.98); border: 1px solid rgba(43,42,38,0.14); border-radius: 12px; padding: 10px 12px; box-shadow: 0 12px 34px rgba(30,50,70,0.22); display: flex; flex-direction: column; gap: 5px; font-size: 13px; line-height: 1.3; pointer-events: all; text-align: left; font-weight: 500; }
+.score-pop.hidden { display: none; }
+.score-pop > b { font-family: var(--font-title); font-weight: 500; font-size: 17px; }
+.score-pop > em { font-style: italic; opacity: 0.8; margin-top: 2px; }
+.score-pop .pop-hint { font-size: 11px; opacity: 0.5; font-style: normal; }
+.why-row { display: grid; grid-template-columns: 1fr 70px 44px; align-items: center; gap: 8px; }
+.why-row span { font-size: 12.5px; }
+.why-row i { display: block; height: 6px; border-radius: 3px; background: var(--breath, #2f9e8f); min-width: 2px; }
+.why-row.neg i { background: var(--loss, #d95f4b); }
+.why-row b { text-align: right; font-weight: 800; }
+.res-why { margin: 8px 0 4px; }
+.res-why h3 { font-family: var(--font-title); font-weight: 500; font-size: 18px; margin: 0 0 6px; }
+.res-why .why-row { grid-template-columns: 1fr 120px 54px; }
+.why-best { font-style: italic; opacity: 0.85; margin: 6px 0 0; font-family: var(--font-title); }

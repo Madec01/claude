@@ -5,6 +5,7 @@
 import { ISLANDS, WEIGHTS } from './islands.js';
 import { CAMPAIGN_TEXTS } from './campaign_texts.js';
 import { CAMPAIGN_STARS } from './campaign_stars.js';
+import { SIGNATURE_OF, applySignature } from './signatures.js';
 
 export const CAMPAIGN_SIZE = 50;
 
@@ -114,11 +115,18 @@ export function campaignIsland(n) {
   const start = [{ q: 0, r: 0, family: 'hamlet' }, { q: 2, r: -1, family: 'rock' }];
   if (cells >= 60) start.push({ q: -2, r: 2, family: rng() < 0.5 ? 'rock' : 'water' });
   if (cells >= 100) start.push({ q: 3, r: 1, family: 'meadow' });
-  return {
+  let def = {
     id: n, story: null, chapter: ch.id, climate, memory: !!slot.memory, mech, arch: ch.id, cells, seed, roughness: 0.3 + rng() * 0.2, holes: cells >= 60 ? 1 + Math.floor(rng() * 2) : 0,
     seasonLength, startSeason, weights: weightsFor(slot.w, climate, mech), tilesRatio, start, wishes, mechanics: [], weather: mech.has('weather'),
     name: t.name, intro: t.intro, memoryText: t.memory, starFactors: stars || [3.6, 5.2, 6.5, 7.2],
   };
+  // signature de l'île (fin de campagne) : la contrainte modifie la file et le départ ; les vœux qui n'ont plus de sens tombent
+  if (SIGNATURE_OF[n]) {
+    def = applySignature(def, SIGNATURE_OF[n]);
+    const w2 = def.weights; const tot = Object.values(w2).reduce((a, b) => a + b, 0); const sh = (f) => (w2[f] || 0) / (tot || 1);
+    def.wishes = def.wishes.filter((w) => !((w.type === 'river' || w.type === 'lake') && sh('water') < 0.08) && !(w.type === 'river' && !w2.rock && !w2.hill) && !(w.id === 'c_bloom' && sh('marsh') < 0.04) && !((w.id === 'c_bourg' || w.id === 'c_pairs' || w.id === 'c_veillee') && !w2.hamlet));
+  }
+  return def;
 }
 
 /** Carte de climat à afficher sur l'île n : quand son climat diffère de celui de l'île précédente (ou à la première île à climat). */

@@ -48,9 +48,16 @@ export function islandIntroScreens(def) {
   const s = def.story ? STORY.islands[def.story] : (def.name ? { name: def.name, intro: def.intro || [] } : null); if (!s) return [];
   const ch = def.chapter ? CHAPTERS[def.chapter - 1] : null; const a = ch ? { name: `Chapitre ${ch.id} · ${ch.name}`, sub: ch.sub } : arch(def.arch);
   const cl = def.climate && def.climate !== 'temperate' && STORY.climates && STORY.climates[def.climate] ? ` · ${STORY.climates[def.climate].name}` : '';
-  return [{ kind: 'title', kicker: `${a.name} · île ${def.id}${cl}`, title: s.name, sub: a.sub }, ...s.intro.map((t) => ({ kind: 'voice', text: t }))];
+  const sg = def.signature ? [{ kind: 'voice', kicker: `Signature · ${def.signature.name}`, text: def.signature.text }] : [];
+  return [{ kind: 'title', kicker: `${a.name} · île ${def.id}${cl}`, title: s.name, sub: def.signature ? `${a.sub} · ${def.signature.name}` : a.sub }, ...s.intro.map((t) => ({ kind: 'voice', text: t })), ...sg];
 }
-export function islandMemoryScreens(def) { const s = def.story ? STORY.islands[def.story] : null; const lines = s ? s.memory : (def.memoryText ? [def.memoryText] : []); return lines.map((t) => ({ kind: 'voice', kicker: 'Souvenir', text: t })); }
+export function islandMemoryScreens(def, result = null) {
+  const s = def.story ? STORY.islands[def.story] : null; const lines = [...(s ? s.memory : (def.memoryText ? [def.memoryText] : []))];
+  // la voix tient compte de l'île bâtie : une ligne de plus selon sa dominante
+  const dom = result && result.dominant ? STORY.memoryVoice[result.dominant.family] : null;
+  if (dom && dom.length) lines.push(dom[(Number(def.id) || 0) % dom.length]);
+  return lines.map((t) => ({ kind: 'voice', kicker: 'Souvenir', text: t }));
+}
 export const prologueScreens = () => [{ kind: 'title', kicker: STORY.subtitle, title: STORY.title }, ...STORY.prologue.map((t) => ({ kind: 'voice', text: t }))];
 export const endingScreens = () => [...STORY.ending.map((t) => ({ kind: 'ending', kicker: 'L’île', text: t })), { kind: 'title', kicker: 'Épilogue', title: STORY.title, text: STORY.epilogue }];
 export const infiniteScreens = () => [{ kind: 'title', kicker: 'Mode', title: 'Île infinie' }, ...STORY.infinite.intro.map((t) => ({ kind: 'voice', text: t }))];

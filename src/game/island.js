@@ -79,6 +79,9 @@ export class Island {
     this.breaths = BALANCE.breaths.start[this.upgrades.breath || 0];
     this.wishes = initWishes(def.wishes || []);
     this.fauna = new Map();
+    // d'où viennent les points : cumul par source (le « pourquoi » du score), et le meilleur coup de la partie
+    this.tally = { edges: 0, base: 0, closes: 0, seasons: 0, wishes: 0, fauna: 0, works: 0, fusions: 0, build: 0, streak: 0 };
+    this.bestMove = null;
     this.stats = { harvest: 0, bloom: 0, closedThisSeason: 0, irrigatedSummer: 0, closed: 0, rivers: 0, faunaMax: 0, wishesDone: 0, biggestRegion: 0, undo: 0, links: 0, perfect: 0, streak: 0, bestStreak: 0, built: 0, refunds: 0, fusions: 0, works: 0, worksGood: 0, worksFresh: 0, worksExpired: 0, worksGone: 0, level3: 0 };
     this.history = [];         // instantanés pour le souvenir
     this.undoUsedThisSeason = false;
@@ -221,7 +224,7 @@ export class Island {
       if (pv.refund.ok) { this.refunds++; this.queue.inject(this.queue.makeTile(tile.family), false); this.stats.refunds++; }
     }
     this.placements++; this.inSeason++;
-    this.score += pv.total;
+    this.score += pv.total; this.tally[pv.work ? 'works' : pv.fuse ? 'fusions' : 'build'] += pv.total;
     if (this.weather && this.weather.phase === 'announced' && this.inSeason >= this.weather.at) this.activateWeather();
     this.expireShed();
     this.emit({ type: 'build', kind: pv.work ? 'work' : pv.fuse ? 'fuse' : pv.restore ? 'restore' : 'level', work: pv.work || null, good: !!pv.good, fresh: !!pv.fresh, q, r, tile: placed, level: placed.level, result: pv, refund: pv.refund, family: tile.family, recipe: pv.fuse ? pv.fuse.id : null, first: !!pv.first, rare, milestone: Math.floor(this.score / 100) > Math.floor(scoreBefore / 100) ? Math.floor(this.score / 100) * 100 : 0 });
@@ -260,6 +263,8 @@ export class Island {
     this.expireShed();
     const scoreBefore = this.score;
     this.score += res.total;
+    { const closes = res.closes.reduce((a, c) => a + c.bonus, 0); const base = res.base.reduce((a, b) => a + b.pts, 0); this.tally.closes += closes; this.tally.base += base; this.tally.edges += res.total - closes - base;
+      if (!this.garden && (!this.bestMove || res.total > this.bestMove.pts)) this.bestMove = { pts: res.total, family: placedTile.family, season: this.season, closes: res.closes.length }; }
     const grade = this.garden ? null : gradeMove(res.total, best);
     if (grade === 'master' || grade === 'perfect') this.stats.perfect++;
     if (grade === 'master' || grade === 'perfect' || grade === 'good') { this.stats.streak++; this.stats.bestStreak = Math.max(this.stats.bestStreak, this.stats.streak); } else if (grade === 'meh') this.stats.streak = 0;   // un coup correct ne casse pas la série, il ne la fait pas avancer
@@ -268,7 +273,7 @@ export class Island {
     if (grade && this.stats.streak === BALANCE.streaks.doubleAt && !this.garden) { this.nextCloseDouble = true; this.emit({ type: 'streak', kind: 'double', n: this.stats.streak }); }
     if (this.weather && this.weather.phase === 'announced' && this.inSeason >= this.weather.at) this.activateWeather();
     for (const c of res.closes) { this.stats.closed++; this.stats.closedThisSeason++; this.breaths += BALANCE.breaths.close; this.stats.biggestRegion = Math.max(this.stats.biggestRegion, c.size); }
-    if (this.nextCloseDouble && res.closes.length) { const extra = res.closes.reduce((s, c) => s + c.bonus, 0); this.score += extra; this.nextCloseDouble = false; this.emit({ type: 'streak', kind: 'doubled', pts: extra, q, r }); }
+    if (this.nextCloseDouble && res.closes.length) { const extra = res.closes.reduce((s, c) => s + c.bonus, 0); this.score += extra; this.tally.streak += extra; this.nextCloseDouble = false; this.emit({ type: 'streak', kind: 'doubled', pts: extra, q, r }); }
     if (this.season === 'summer' && Board.isFamily(tile, 'field') && this.board.landNeighbors(q, r).some(([a, b]) => { const n = this.board.get(a, b); return n && Board.isFamily(n, 'water'); })) this.stats.irrigatedSummer++;
     this.emit({ type: 'place', q, r, tile: placedTile, result: res, restoredFrom: restoredTo ? 'restore' : null, market: tile.rare && tile.family === 'market' ? this.freeChoice : 0, best, grade, streak: this.stats.streak, milestone: Math.floor(this.score / 100) > Math.floor(scoreBefore / 100) ? Math.floor(this.score / 100) * 100 : 0 });
     for (const c of res.closes) this.emit({ type: 'close', ...c, breath: BALANCE.breaths.close });
@@ -346,6 +351,7 @@ export class Island {
     // faune : chaque animal présent donne des souffles et des points
     const faunaBonus = [...this.fauna.values()].filter((a) => !a.noBonus).length;
     pts += faunaBonus * (BALANCE.points.faunaSeason + this.mods.refuge);
+    this.tally.fauna += faunaBonus * (BALANCE.points.faunaSeason + this.mods.refuge); this.tally.seasons += pts - faunaBonus * (BALANCE.points.faunaSeason + this.mods.refuge);
     const faunaBreaths = Math.floor(faunaBonus / BALANCE.breaths.faunaPer);   // un souffle pour deux animaux : les souffles restent rares
     this.breaths += faunaBreaths;
     this.score += pts;
@@ -368,7 +374,7 @@ export class Island {
     const first = this.fauna.size === 0 && this.placements === 0;
     this.fauna = current;
     this.stats.faunaMax = Math.max(this.stats.faunaMax, this.fauna.size);
-    for (const a of arrivals) { let bonus = 0; if (this.rule === 'nichees' && this.season === 'spring' && !first) { bonus = 3; this.score += 3; } this.emit({ type: 'fauna', kind: 'arrive', ...a, bonus }); }
+    for (const a of arrivals) { let bonus = 0; if (this.rule === 'nichees' && this.season === 'spring' && !first) { bonus = 3; this.score += 3; this.tally.fauna += 3; } this.emit({ type: 'fauna', kind: 'arrive', ...a, bonus }); }
     for (const d of departures) this.emit({ type: 'fauna', kind: 'leave', ...d });
   }
 
@@ -377,7 +383,7 @@ export class Island {
     for (const e of ev) {
       if (e.type === 'done') {
         this.stats.wishesDone++;
-        this.score += BALANCE.points.wish;
+        this.score += BALANCE.points.wish; this.tally.wishes += BALANCE.points.wish;
         this.breaths += BALANCE.breaths.wish;
         const rare = this.pickRare();
         if (WORKS.includes(rare)) this.giveWork(rare); else this.queue.inject(this.queue.makeRare(rare), false);
@@ -447,7 +453,7 @@ export class Island {
     const s = this.history.pop();
     this.board.restore(s.board); this.queue.restore(s.queue); this.nextCloseDouble = !!s.nextCloseDouble; this.weather = s.weather ? { ...s.weather } : null; this.windSeason = !!s.windSeason; this.freeChoice = s.freeChoice || 0; this.rule = s.rule || this.rule; this.huntSeason = !!s.huntSeason;
     this.score = s.score; this.placements = s.placements; this.inSeason = s.inSeason; this.season = s.season; this.seasonsPassed = [...s.seasonsPassed];
-    this.stats = { ...s.stats }; this.wishes = s.wishes.map((w) => ({ ...w })); this.shed = (s.shed || []).map((t) => ({ ...t }));
+    this.stats = { ...s.stats }; if (s.tally) this.tally = { ...s.tally }; this.bestMove = s.bestMove ? { ...s.bestMove } : null; this.wishes = s.wishes.map((w) => ({ ...w })); this.shed = (s.shed || []).map((t) => ({ ...t }));
     this.breaths = s.breaths - this.undoCost;
     this.undoUsedThisSeason = true; this.stats.undo++;
     this.fauna = new Map(s.fauna);
@@ -459,7 +465,7 @@ export class Island {
   fromPocket(i = 0) { if (!this.queue.pocket.length) return false; this.queue.fromPocket(i); this.emit({ type: 'pocket', kind: 'out' }); return true; }
 
   pushHistory() {
-    this.history.push({ nextCloseDouble: !!this.nextCloseDouble, rule: this.rule, huntSeason: this.huntSeason, freeChoice: this.freeChoice, weather: this.weather ? { ...this.weather } : null, windSeason: this.windSeason, board: this.board.snapshot(), queue: this.queue.snapshot(), score: this.score, placements: this.placements, inSeason: this.inSeason, season: this.season, seasonsPassed: [...this.seasonsPassed], stats: { ...this.stats }, wishes: this.wishes.map((w) => ({ ...w })), breaths: this.breaths, fauna: new Map(this.fauna), shed: this.shed.map((t) => ({ ...t })) });
+    this.history.push({ tally: { ...this.tally }, bestMove: this.bestMove ? { ...this.bestMove } : null, nextCloseDouble: !!this.nextCloseDouble, rule: this.rule, huntSeason: this.huntSeason, freeChoice: this.freeChoice, weather: this.weather ? { ...this.weather } : null, windSeason: this.windSeason, board: this.board.snapshot(), queue: this.queue.snapshot(), score: this.score, placements: this.placements, inSeason: this.inSeason, season: this.season, seasonsPassed: [...this.seasonsPassed], stats: { ...this.stats }, wishes: this.wishes.map((w) => ({ ...w })), breaths: this.breaths, fauna: new Map(this.fauna), shed: this.shed.map((t) => ({ ...t })) });
     if (this.history.length > 3) this.history.shift();
   }
 
@@ -484,8 +490,12 @@ export class Island {
     for (const t of th) if (this.score >= t) stars++;
     const gold = !this.infinite && !this.garden && this.score >= this.goldThreshold;
     const wishesTotal = this.wishes.length;
+    // dominante de l'île bâtie (la voix du bilan et du souvenir en tient compte) : hameaux, eau ou forêt quand une famille prend au moins un tiers des tuiles
+    const counts = {}; let placedN = 0; for (const t of this.board.tiles.values()) { const f = Board.familiesOf(t)[0] || t.family; counts[f] = (counts[f] || 0) + 1; placedN++; }
+    const dom = ['hamlet', 'water', 'forest'].map((f) => ({ family: f, share: placedN ? (counts[f] || 0) / placedN : 0 })).sort((a, b) => b.share - a.share)[0];
+    const dominant = dom && dom.share >= 0.3 ? dom : null;
     const seeds = stars * BALANCE.seeds.star + this.stats.wishesDone * BALANCE.seeds.wish + (this.infinite || this.garden ? 0 : BALANCE.seeds.island);
-    this.result = { island: this.def.id, score: this.score, stars: this.infinite || this.garden ? 0 : stars, gold, goldThreshold: this.goldThreshold, thresholds: th, reason, placements: this.placements, seasons: this.seasonsPassed.length, stats: { ...this.stats }, fauna: this.fauna.size, wishesDone: this.stats.wishesDone, wishesTotal, seeds, cells, filled: this.board.placed };
+    this.result = { island: this.def.id, score: this.score, stars: this.infinite || this.garden ? 0 : stars, gold, goldThreshold: this.goldThreshold, thresholds: th, tally: { ...this.tally }, bestMove: this.bestMove, dominant, reason, placements: this.placements, seasons: this.seasonsPassed.length, stats: { ...this.stats }, fauna: this.fauna.size, wishesDone: this.stats.wishesDone, wishesTotal, seeds, cells, filled: this.board.placed };
     this.emit({ type: 'end', result: this.result });
     return this.result;
   }

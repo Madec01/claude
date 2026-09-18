@@ -222,7 +222,7 @@ const Game = {
     if (def.garden) { this.startGarden(); return; }
     if (def.daily) { this.showMenu(); return; }
     const c = Save.campaign;
-    const memory = islandMemoryScreens(def);
+    const memory = islandMemoryScreens(def, result);
     const next = () => {
       if (result.stars < 1) { this.startIsland(def.id); return; }
       if (def.id === CAMPAIGN_SIZE) { scenes.go('story', { screens: endingScreens(), skippable: false, onDone: () => scenes.go('ending') }); return; }

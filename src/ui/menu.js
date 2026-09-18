@@ -65,7 +65,7 @@ export function buildMenu({ game }) {
         const unlocked = testMode || n <= c.unlockedIsland;
         const stars = c.stars[n] || 0;
         const card = h('button', { class: `night-card ${unlocked ? '' : 'locked'} act-${((ch.id - 1) % 3) + 1} ${def.memory ? 'memory' : ''} ${n === Math.min(c.unlockedIsland, CAMPAIGN_SIZE) && !c.completed ? 'current' : ''}`, disabled: !unlocked, title: unlocked ? `Jouer l’île ${n}` : 'Île verrouillée' },
-          h('div', { class: 'nc-num' }, `Île ${n} · ${def.cells} cases${def.memory ? ' · souvenir' : ''}`),
+          h('div', { class: 'nc-num' }, `Île ${n} · ${def.cells} cases${def.memory ? ' · souvenir' : ''}${def.signature ? ` · ${def.signature.name.toLowerCase()}` : ''}`),
           h('div', { class: 'nc-title' }, name),
           h('div', { class: `nc-stars ${c.gold && c.gold[n] ? 'gold' : ''}`, title: c.gold && c.gold[n] ? 'Étoile d’or' : '' }, ...[0, 1, 2].map((i) => h('span', { class: `star ${i < stars ? 'on' : ''}` }, icon('icon_star'))), c.best[n] ? h('span', { class: 'nc-best' }, `${c.best[n]} pts`) : null),
           unlocked ? null : icon('icon_locked', 'nc-lock'),

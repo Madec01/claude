@@ -9,7 +9,8 @@ export function buildResults({ result, def, onContinue, onRetry, onMenu, newReco
   const special = result.island === 'infinite' || result.island === 'garden';
   const name = def && def.story && STORY.islands[def.story] ? STORY.islands[def.story].name : result.island === 'infinite' ? 'Île infinie' : result.island === 'garden' ? 'Jardin' : (def && def.name) || `Île ${result.island}`;
   const root = h('div', { class: `panel panel-results stars-${stars}` });
-  const lines = STORY.results[stars] || [''];
+  const by = result.dominant && STORY.resultsBy && STORY.resultsBy[result.dominant.family] && STORY.resultsBy[result.dominant.family][stars];
+  const lines = by || STORY.results[stars] || [''];
   const line = lines[Math.floor(Math.random() * lines.length)];
   const starsEl = h('div', { class: `stars ${result.gold ? 'gold' : ''}`, 'aria-label': `${stars} étoile(s) sur 3${result.gold ? ', étoile d’or' : ''}` }, ...[0, 1, 2].map((i) => h('span', { class: `star ${i < stars ? 'on' : ''}`, title: `${thresholds[i]} points` }, icon('icon_star'))), result.goldThreshold && stars >= 3 ? h('span', { class: `star gold-star ${result.gold ? 'on' : ''}`, title: `Étoile d’or : ${result.goldThreshold} points` }, icon('icon_star')) : null);   // l'étoile d'or n'apparaît qu'avec les trois étoiles
   const row = (label, value, cls = '') => h('div', { class: `res-row ${cls}` }, h('span', {}, label), h('b', {}, String(value)));
@@ -39,6 +40,7 @@ export function buildResults({ result, def, onContinue, onRetry, onMenu, newReco
       daily ? row('Meilleur du jour', daily.best, 'gold') : null,
       daily ? row('Jours d’affilée', daily.streak) : null,
     ),
+    result.tally ? whyBlock(result) : null,
     daily ? h('p', { class: 'res-note' }, 'Île du jour : la même île pour tout le monde, un meilleur score par jour. Demain, une autre île.') : special ? null : h('p', { class: 'res-note' }, Save.options.testMode ? 'Mode test : les graines et les étoiles ne sont pas enregistrées.' : seedsGained ? 'Graines : 1 par nouvelle étoile, 1 par vœu exaucé et 2 pour l’île, la première fois. Elles se dépensent dans l’Atelier des saisons.' : 'Pas de nouvelle graine : elles viennent des nouvelles étoiles, des vœux exaucés et de la première fois qu’une île est terminée.'),
     newRecord ? h('div', { class: 'res-record' }, 'Nouveau record !') : null,
     h('div', { class: 'panel-actions' },
@@ -53,4 +55,18 @@ export function buildResults({ result, def, onContinue, onRetry, onMenu, newReco
     starsEl.querySelectorAll('.star.on').forEach((s, i) => setTimeout(() => { s.classList.add('pop'); AudioSys.play(s.classList.contains('gold-star') ? 'achievement' : `star_${Math.min(3, i + 1)}`, { volume: 0.7 }); }, reduced ? 0 : 500 + i * 380));
   }, 200);
   return root;
+}
+
+/** D'où viennent les points : une barre par source, et le meilleur coup de la partie. */
+export const TALLY_LABELS = { edges: 'Bords et affinités', closes: 'Régions fermées', seasons: 'Saisons (récoltes, veillées, sentiers…)', fauna: 'Faune', wishes: 'Vœux', base: 'Rivières, vent, primes de pose', build: 'Bâtir', fusions: 'Fusions', works: 'Ouvrages', streak: 'Séries (fermeture doublée)' };
+export function tallyLines(tally) {
+  const total = Object.values(tally).reduce((a, b) => a + Math.max(0, b), 0) || 1;
+  return Object.entries(tally).filter(([, v]) => v).map(([k, v]) => ({ key: k, label: TALLY_LABELS[k] || k, pts: v, share: Math.max(0, v) / total })).sort((a, b) => b.pts - a.pts);
+}
+function whyBlock(result) {
+  const lines = tallyLines(result.tally); if (!lines.length) return null;
+  const fam = (f) => (STORY.tiles[f] || {}).name || f; const sn = (k) => (STORY.seasons[k] || { name: k }).name;
+  return h('div', { class: 'res-why' }, h('h3', {}, 'D’où viennent les points'),
+    ...lines.map((l) => h('div', { class: `why-row ${l.pts < 0 ? 'neg' : ''}` }, h('span', {}, l.label), h('i', { style: `width:${Math.round(l.share * 100)}%` }), h('b', {}, `${l.pts > 0 ? '+' : ''}${l.pts}`))),
+    result.bestMove ? h('p', { class: 'why-best' }, `Meilleur coup : +${result.bestMove.pts}, ${fam(result.bestMove.family).toLowerCase()} posé${result.bestMove.closes ? `, ${result.bestMove.closes} région${result.bestMove.closes > 1 ? 's' : ''} fermée${result.bestMove.closes > 1 ? 's' : ''}` : ''} (${sn(result.bestMove.season).toLowerCase()})`) : null);
 }

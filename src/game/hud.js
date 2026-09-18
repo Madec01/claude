@@ -3,6 +3,7 @@ import { STAGE } from '../core/stage.js';
 import { STORY } from '../data/story.js';
 import { CHAPTERS } from '../data/campaign.js';
 import { BALANCE } from '../data/balance.js';
+import { TALLY_LABELS } from '../ui/results.js';
 import { FAMILY_COLORS, FAMILIES, affinity, RARE_AS } from '../data/tiles.js';
 import { Save } from '../core/save.js';
 import { deadlineLabel } from './wishes.js';
@@ -25,7 +26,7 @@ export class Hud {
           <div class="season-pips" data-ref="pips" title="Poses avant la prochaine saison"></div>
           <div class="season-pop hidden" data-ref="seasonPop"></div>
         </div>
-        <div class="hud-block hud-score"><span class="hud-label">Points</span><b data-ref="score">0</b><span class="score-delta" data-ref="scoreDelta"></span><span class="hud-stars" data-ref="starsLine" title="Seuils des étoiles"></span><span class="streak-pips hidden" data-ref="streakPips" title="Série de bons coups : un souffle à trois, fermeture doublée à cinq"></span></div>
+        <div class="hud-block hud-score"><span class="hud-label">Points</span><b data-ref="score">0</b><span class="score-delta" data-ref="scoreDelta"></span><span class="hud-stars" data-ref="starsLine" title="Seuils des étoiles"></span><span class="streak-pips hidden" data-ref="streakPips" title="Série de bons coups : un souffle à trois, fermeture doublée à cinq"></span><div class="score-pop hidden" data-ref="scorePop"></div></div>
         <div class="hud-block hud-breaths ${m.has('breath') ? '' : 'hidden'}" title="Souffles"><span class="hud-label">Souffles</span><b data-ref="breaths">0</b></div>
         <div class="hud-block hud-left-tiles"><span class="hud-label">Tuiles</span><b data-ref="left">0</b></div>
         <button class="hud-pause" data-ref="pause" title="Pause (Échap)">${icon('icon_pause')}</button>
@@ -59,6 +60,8 @@ export class Hud {
     this.r.pause.addEventListener('click', (e) => { e.stopPropagation(); onPause(); });
     this.r.seasonBox.addEventListener('click', (e) => { e.stopPropagation(); this.toggleSeasonPop(); });
     this.r.seasonClose.addEventListener('click', (e) => { e.stopPropagation(); this.onCloseSeason(); });
+    // le pourquoi des points : un toucher sur le compteur ouvre le détail par source
+    { const box = this.r.score.parentNode; box.title = 'D’où viennent les points (toucher)'; box.style.cursor = 'pointer'; box.addEventListener('click', (e) => { e.stopPropagation(); this.toggleScorePop(); }); }
     this.r.pwDiscard.addEventListener('click', (e) => { e.stopPropagation(); onDiscard(); });
     this.r.pwBud.addEventListener('click', (e) => { e.stopPropagation(); onBud(); });
     this.r.pwUndo.addEventListener('click', (e) => { e.stopPropagation(); onUndo(); });
@@ -93,6 +96,19 @@ export class Hud {
     return `<div class="qtile ${cls} ${t.rare ? 'rare' : ''}" style="--fam:${FAMILY_COLORS[t.family] || '#999'}" title="${name}${t.rare ? ' (rare)' : ''} — ${(STORY.tiles[t.family] || {}).blurb || ''}">${src ? `<img src="${src}" alt="${name}">` : ''}<span class="qname">${name}${(t.level || 1) >= 2 ? ` <i class="qlvl">niv. ${t.level}</i>` : ''}</span>${help}</div>`;
   }
 
+  /** D'où viennent les points : cumul par source, en surimpression sous le compteur. */
+  toggleScorePop(force) {
+    const pop = this.r.scorePop; const open = force !== undefined ? force : pop.classList.contains('hidden');
+    if (open) { this.renderScorePop(); clearTimeout(this._scorePopT); this._scorePopT = setTimeout(() => this.toggleScorePop(false), 9000); }
+    pop.classList.toggle('hidden', !open);
+  }
+  renderScorePop() {
+    const isl = this.isl; const t = isl.tally || {}; const total = Object.values(t).reduce((a, b) => a + Math.max(0, b), 0) || 1;
+    const rows = Object.entries(t).filter(([, v]) => v).sort((a, b) => b[1] - a[1]).map(([k, v]) => `<div class="why-row ${v < 0 ? 'neg' : ''}"><span>${TALLY_LABELS[k] || k}</span><i style="width:${Math.round(Math.max(0, v) / total * 100)}%"></i><b>${v > 0 ? '+' : ''}${v}</b></div>`).join('');
+    const bm = isl.bestMove; const fam = bm ? ((STORY.tiles[bm.family] || {}).name || bm.family).toLowerCase() : '';
+    this.r.scorePop.innerHTML = `<b>D’où viennent les points</b>${rows || '<span>Rien encore : pose une tuile.</span>'}${bm ? `<em>Meilleur coup : +${bm.pts}, ${fam}</em>` : ''}<i class="pop-hint">Toucher pour fermer</i>`;
+    this._scorePopScore = isl.score;
+  }
   /** Règle de la saison (et météo) en surimpression : utile sur téléphone où la boîte de saison est réduite. */
   toggleSeasonPop(force) {
     const pop = this.r.seasonPop; const open = force !== undefined ? force : pop.classList.contains('hidden');
@@ -311,6 +327,7 @@ export class Hud {
     const target = isl.score - (this.hold || 0);   // les points en vol ne sont pas encore comptés
     if (this.shownScore !== target) { const diff = target - this.shownScore; const step = Math.max(1, Math.ceil(Math.abs(diff) * 0.12)); this.shownScore += Math.sign(diff) * Math.min(Math.abs(diff), step); }
     this.set('score', String(this.shownScore));
+    if (!this.r.scorePop.classList.contains('hidden') && this._scorePopScore !== isl.score) this.renderScorePop();
     // jauge de série : un cran par bon coup, pleine à cinq (fermeture doublée) ; elle se vide en glissant quand la série casse
     if (this.mech && this.mech.has('breath') && !isl.garden) {
       const st = isl.stats.streak || 0, cap = BALANCE.streaks.doubleAt;

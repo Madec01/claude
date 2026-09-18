@@ -155,10 +155,10 @@ Seconde réponse de l'auditeur, « que faudrait-il pour approcher 10/10 » (`doc
 | Contrat d'archipel choisi en début de chapitre, seconde voie pour la porte, avec un rappel de l'avancement | P2 | fait (journal 48) | — |
 | Carte postale de l'île finie (export image) | R5 | retenu (prochain lot) | — |
 | Souffles plus rares, version douce : gains par fermeture et par animal réduits, le vœu conservé | G3 | fait (journal 48) | recalibrage ensuite |
-| Signature écrite par île générée : contrainte affichée sur la carte d'intro | P3 | retenu (prochain lot) | table d'une vingtaine |
-| Un « pourquoi » sur chaque point : détail cumulé au survol du score | E3 | retenu (prochain lot) | repris au bilan |
+| Signature écrite par île générée : contrainte affichée sur la carte d'intro | P3 | fait (journal 49) | table d'une vingtaine |
+| Un « pourquoi » sur chaque point : détail cumulé au survol du score | E3 | fait (journal 49) | repris au bilan |
 | Amélioration de l'Atelier « clore la saison plus tôt » (1, 2 ou 3 poses avant) | C1 | fait (journal 48), compromis | pas de bouton libre |
-| Écrire les îles muettes (36 à 49), voix qui tient compte de ce qu'on a bâti | N2, N3 | retenu (prochain lot) | — |
+| Écrire les îles muettes (36 à 49), voix qui tient compte de ce qu'on a bâti | N2, N3 | fait (journal 49) | — |
 | Passe d'interface : boutons du menu au gabarit, icônes d'Atelier distinctes | A2 | fait (journal 47) | — |
 | Ambiance sonore liée à la composition de l'île | N4 | fait (journal 47) | — |
 | Défis à règle tordue | R3 | plus tard | le commanditaire est réservé, à revoir |

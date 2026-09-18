@@ -618,6 +618,17 @@ export const STORY = {
     ],
   },
 
+  // la voix tient compte de ce qu'on a bâti : variante par dominante de l'île (hameaux, eau, forêt), quand une famille prend au moins un tiers des tuiles
+  resultsBy: {
+    hamlet: { 1: ['Une étoile, et des toits partout. On s’entasse, mais on se parle.'], 2: ['Deux étoiles. Les villages se saluent d’un sentier à l’autre.'], 3: ['Trois étoiles. Une île de toits et de fumées : nous sommes nombreux, et nous nous reconnaissons.'] },
+    water:  { 1: ['Une étoile qui se reflète. L’eau a pris de la place ; elle en rend un peu.'], 2: ['Deux étoiles dans l’eau plate. Les canards trouvent que c’est presque nous.'], 3: ['Trois étoiles sur un pays d’eau. Tout s’y mire, et rien ne bouge sans toi.'] },
+    forest: { 1: ['Une étoile sous les branches. La forêt a gagné, le reste attendra.'], 2: ['Deux étoiles entre les arbres. L’élan en parle à l’ours.'], 3: ['Trois étoiles dans une forêt qui n’en finit pas. Nous nous reconnaissons, à l’ombre.'] },
+  },
+  memoryVoice: {
+    hamlet: ['On y a bâti tant de maisons que les sentiers ont eu des noms.', 'C’était une île de toits. Le soir, on comptait les lumières au lieu des étoiles.'],
+    water:  ['L’eau y a pris toute la place qu’on lui laissait, et un peu plus.', 'On s’en souvient comme d’un reflet : une île à moitié dans le ciel.'],
+    forest: ['La forêt y a gagné. On l’a laissée faire, et on a bien fait.', 'On s’en souvient à l’ombre, avec l’odeur des aiguilles et un élan qui regarde.'],
+  },
   seasonRules: {
     crue: { name: 'Crue', line: 'L’eau court partout. Le marais fleurit là où elle passe.', rule: 'Les marais fleurissent (+2 chacun), la lande aussi (+1), et chaque tuile d’eau posée rapporte +1.' },
     semailles: { name: 'Semailles', line: 'On sème vite, on sème près des maisons. Les vergers plantés maintenant se souviendront de l’automne.', rule: 'Chaque champ posé contre un hameau rapporte +2 de plus ; les vergers posés ce printemps donneront une récolte double à l’automne.' },

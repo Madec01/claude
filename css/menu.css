@@ -156,3 +156,4 @@ html.compact .ach-name { font-size: 18px; }
 .contract-card .contract-target { position: absolute; left: 12px; bottom: 8px; font-style: normal; font-size: 12px; font-weight: 800; color: var(--breath, #2f9e8f); }
 .prep-contract { margin: 0 0 6px; font-size: 14px; font-weight: 700; color: var(--breath, #2f9e8f); }
 .prep-contract.done { color: var(--gold, #e0a33a); }
+.prep-signature { margin: 0 0 6px; font-size: 14px; } .prep-signature b { color: var(--gold, #e0a33a); }

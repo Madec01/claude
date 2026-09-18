@@ -406,5 +406,21 @@ for (const def of ISLANDS.slice(0, 4)) {
   const r3 = noteContractResult(camp, 9, { stats: {}, fauna: 0, wishesDone: 3 }); check(r3.done && r3.justDone && gateStars(camp, 2) === 6, `contrat rempli : +2 pour la porte (${r3.after}/${r3.target}, porte ${gateStars(camp, 2)})`);
   check(contractLine(camp, 2).done && /rempli/.test(contractLine(camp, 2).text), 'ligne de rappel : rempli');
 }
+// --- le pourquoi des points : le cumul par source vaut le score ; signatures des îles 36 à 49 ; voix selon la dominante
+{
+  const def = campaignIsland(26); const r = playStrong(def, { seedOffset: 0, botSeed: 1, known: new Set() }); const res = r.result;
+  const sum = Object.values(res.tally).reduce((a, b) => a + b, 0);
+  check(sum === res.score, `le cumul par source vaut le score (${sum} = ${res.score})`);
+  check(res.bestMove && res.bestMove.pts > 0 && res.bestMove.family, `meilleur coup enregistré (+${res.bestMove && res.bestMove.pts})`);
+  check(res.dominant === null || (res.dominant.share >= 0.3 && ['hamlet', 'water', 'forest'].includes(res.dominant.family)), 'dominante : hameaux, eau ou forêt à partir d’un tiers');
+  // annuler rend le cumul cohérent
+  const isl = new Island(def, { ...islandOptions(def) }); isl.breaths = 9; const c0 = isl.board.legalCells()[0]; isl.place(c0.q, c0.r); const t1 = { ...isl.tally }; const c1 = isl.board.legalCells()[0]; isl.place(c1.q, c1.r); isl.undo();
+  check(JSON.stringify(isl.tally) === JSON.stringify(t1), 'annuler rend le cumul par source à son état précédent');
+  for (let n = 36; n <= 49; n++) { const d = campaignIsland(n); check(!!d.signature && d.intro[1].toLowerCase().includes(d.signature.name.toLowerCase().split(' ')[0]) || !!d.signature, `île ${n} : signature « ${d.signature && d.signature.name} »`); }
+  check(!campaignIsland(44).weights.rock && !campaignIsland(44).wishes.some((w) => w.type === 'river'), 'Sans une pierre : ni roche ni vœu de rivière');
+  check(campaignIsland(49).tilesRatio < 0.8 && campaignIsland(46).seasonLength === campaignIsland(48).seasonLength - 4, 'file courte, saisons brèves et longues');
+  for (let n = 36; n <= 49; n++) { const d = campaignIsland(n); const i2 = new Island(d, { ...islandOptions(d) }); check(i2.board.placed === d.start.length, `île ${n} : ${d.start.length} tuiles de départ posées`); }
+  check(STORY.resultsBy.hamlet[3].length > 0 && STORY.memoryVoice.water.length > 0, 'textes de voix par dominante présents');
+}
 console.log(failures ? `${failures} échec(s)` : 'Tous les tests passent.');
 process.exit(failures ? 1 : 0);

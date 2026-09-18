@@ -1,0 +1,30 @@
+// Signatures des îles générées : une contrainte écrite par île de la fin de campagne (36 à 49), pour qu'on s'en souvienne.
+// Chaque signature modifie la définition générée (file, tuiles de départ, saisons, file plus courte) et s'affiche sur la carte d'intro.
+export const SIGNATURES = {
+  dunes:           { name: 'Les dunes', text: 'Le sable domine la file, l’eau le suit : des lagunes à faire, des prés à garder près de l’eau.', apply: (d) => { d.weights.sand = Math.round((d.weights.sand || 3) * 3); d.weights.water = Math.round((d.weights.water || 4) * 1.3); } },
+  deux_sources:    { name: 'Deux sources', text: 'Deux roches se font face au départ : deux rivières à tracer, deux embouchures possibles.', apply: (d) => { d.start.push({ q: -3, r: 0, family: 'rock' }, { q: 3, r: -3, family: 'rock' }); d.weights.water = Math.round((d.weights.water || 4) * 1.5); } },
+  pierres_dressees:{ name: 'Les pierres dressées', text: 'Quatre roches sont déjà plantées, loin les unes des autres. Il faudra composer avec.', apply: (d) => { d.start.push({ q: 2, r: 1, family: 'rock' }, { q: -2, r: -1, family: 'rock' }, { q: -1, r: 3, family: 'rock' }, { q: 3, r: -3, family: 'rock' }); } },
+  marais_sud:      { name: 'Le sud est un marais', text: 'Une bande de marais barre le sud de l’île dès le départ. Elle fleurira, ou elle gênera.', apply: (d) => { d.start.push({ q: 0, r: 2, family: 'marsh' }, { q: 1, r: 2, family: 'marsh' }, { q: -1, r: 3, family: 'marsh' }, { q: 0, r: 3, family: 'marsh' }); d.weights.marsh = Math.round((d.weights.marsh || 2) * 1.5); } },
+  lac_central:     { name: 'Un lac au milieu', text: 'L’île s’ouvre sur un lac. Tout se bâtit autour de lui, et il rapportera à chaque saison.', apply: (d) => { d.start = [{ q: 0, r: 0, family: 'water' }, { q: 1, r: 0, family: 'water' }, { q: 0, r: 1, family: 'water' }, { q: -1, r: 1, family: 'water' }, { q: 3, r: -2, family: 'hamlet' }, { q: -3, r: 2, family: 'rock' }]; } },
+  champs_ouverts:  { name: 'Les champs ouverts', text: 'Des champs et des hameaux en nombre : les récoltes d’automne feront le score.', apply: (d) => { d.weights.field = Math.round((d.weights.field || 4) * 2.5); d.weights.hamlet = Math.round((d.weights.hamlet || 4) * 1.5); } },
+  riviere_deja:    { name: 'Une rivière la traverse déjà', text: 'Une rivière coule dès le départ, de la roche vers le centre. À toi de la mener à la mer.', apply: (d) => { d.start = [{ q: 0, r: 0, family: 'hamlet' }, { q: -3, r: 1, family: 'rock' }, { q: -2, r: 1, family: 'water' }, { q: -1, r: 1, family: 'water' }, { q: 0, r: 1, family: 'water' }, { q: 1, r: 1, family: 'water' }]; } },
+  foret_profonde:  { name: 'La forêt profonde', text: 'La forêt prend la moitié de la file et un bosquet est déjà là. L’élan et l’ours ne sont pas loin.', apply: (d) => { d.weights.forest = Math.round((d.weights.forest || 5) * 2.5); d.start.push({ q: 1, r: 1, family: 'forest' }, { q: 2, r: 0, family: 'forest' }, { q: 1, r: 2, family: 'forest' }); } },
+  sans_roche:      { name: 'Sans une pierre', text: 'Aucune roche ni colline dans la file : pas de source, donc pas de rivière. L’eau fera des étangs et des lacs.', apply: (d) => { delete d.weights.rock; delete d.weights.hill; d.start = d.start.filter((t) => t.family !== 'rock'); } },
+  tout_verger:     { name: 'Le pays des vergers', text: 'Trois vergers pour un champ : les hameaux et les récoltes en profitent, la roche et le sable gênent.', apply: (d) => { d.weights.orchard = Math.round((d.weights.orchard || 3) * 3); } },
+  saisons_breves:  { name: 'Les saisons passent vite', text: 'Deux poses de moins par saison : les primes tombent souvent, les vœux à échéance pressent.', apply: (d) => { d.seasonLength = Math.max(5, d.seasonLength - 2); } },
+  deux_villages:   { name: 'Deux villages qui se regardent', text: 'Deux hameaux sont posés aux deux bouts. Entre eux, des sentiers à tracer.', apply: (d) => { d.start = [{ q: 0, r: 0, family: 'hamlet' }, { q: 4, r: -2, family: 'hamlet' }, { q: -3, r: 3, family: 'rock' }]; d.weights.hamlet = Math.round((d.weights.hamlet || 4) * 1.3); } },
+  saisons_longues: { name: 'Les saisons s’attardent', text: 'Deux poses de plus par saison : le temps de bâtir haut avant que les comptes tombent.', apply: (d) => { d.seasonLength += 2; } },
+  file_courte:     { name: 'La file est courte', text: 'Moins de tuiles que de cases : l’île ne sera pas pleine. Choisis ce que tu laisses vide.', apply: (d) => { d.tilesRatio = Math.max(0.7, d.tilesRatio - 0.12); } },
+  sans_hameau:     { name: 'Personne n’y vit', text: 'Aucun hameau dans la file : ni vœux de bourg, ni sentiers, ni veillée. Une île sauvage.', apply: (d) => { delete d.weights.hamlet; d.start = d.start.map((t) => (t.family === 'hamlet' ? { ...t, family: 'meadow' } : t)); } },
+  ile_seche:       { name: 'L’île sèche', text: 'Pas une tuile d’eau dans la file. Les prés sècheront loin des forêts et des marais.', apply: (d) => { delete d.weights.water; d.weights.marsh = Math.max(1, Math.round((d.weights.marsh || 2) * 0.5)); d.start = d.start.filter((t) => t.family !== 'water'); } },
+  lande_haute:     { name: 'La lande haute', text: 'Lande et collines à perte de vue : vaches et chevaux, et des prés qui trouvent la lande à leur goût.', apply: (d) => { if (d.weights.heath) d.weights.heath = Math.round(d.weights.heath * 2.5); if (d.weights.hill) d.weights.hill = Math.round(d.weights.hill * 2); } },
+};
+/** Signature de chaque île générée de la fin de campagne (les îles dessinées n'en ont pas). */
+export const SIGNATURE_OF = { 36: 'dunes', 37: 'deux_sources', 38: 'pierres_dressees', 39: 'marais_sud', 40: 'lac_central', 41: 'champs_ouverts', 42: 'riviere_deja', 43: 'foret_profonde', 44: 'sans_roche', 45: 'tout_verger', 46: 'saisons_breves', 47: 'deux_villages', 48: 'saisons_longues', 49: 'file_courte' };
+export function applySignature(def, id) {
+  const sg = SIGNATURES[id]; if (!sg) return def;
+  const d = { ...def, weights: { ...def.weights }, start: def.start.map((t) => ({ ...t })) };
+  sg.apply(d);
+  d.signature = { id, name: sg.name, text: sg.text };
+  return d;
+}

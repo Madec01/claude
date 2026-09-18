@@ -17,6 +17,7 @@ export function buildIslandPrep({ def, semis = true, contract = null, onStart })
   });
   append(root,
     h('h2', { class: 'panel-title' }, name),
+    def.signature ? h('p', { class: 'prep-signature' }, h('b', {}, `${def.signature.name} · `), def.signature.text) : null,
     contract ? h('p', { class: `prep-contract ${contract.done ? 'done' : ''}` }, `Contrat du chapitre : ${contract.text}`) : null,
     semis ? h('h3', { class: 'prep-h' }, 'Choisis ton semis') : null,
     semis ? h('p', { class: 'ws-intro' }, 'Ce que la file donnera plutôt. Un penchant, pas une garantie.') : null,
