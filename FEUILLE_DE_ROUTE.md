@@ -131,16 +131,18 @@ Moyenne 6,1 / 10 (concept 6,5 ; game design 6,5 ; gameplay 6 ; progression 4,5 ;
 
 | Recommandation de l'audit | Impact (audit) | Coût | Statut |
 |---|---|---|---|
-| Faire compter les séries (souffle à 3 bons coups, fermeture double à 5, mauvaise pose remet à zéro) | 5/5 | faible | à décider |
-| Main de saison : quatre tuiles jouables dans l'ordre voulu (dès le chapitre 4) | 5/5 | moyen | à décider |
+| Faire compter les séries (souffle à 3 bons coups, fermeture double à 5, mauvaise pose remet à zéro) | 5/5 | faible | fait (journal 45) |
+| Main de saison : les tuiles visibles jouables dans l'ordre voulu (dès l'île 16) | 5/5 | moyen | fait (journal 46) |
 | Livre II : mer, routes, archipels, en remplacement local plutôt qu'en couche de plus | 4/5 | élevé | prévu (lot 7) |
-| Choix de l'ouverture : trois semis qui biaisent la file avant chaque île | 4/5 | faible | à décider |
-| La friche : une tuile aux bords nuls ou négatifs se met en friche au changement de saison | 4/5 | moyen | à décider |
+| Choix de l'ouverture : trois semis qui biaisent la file avant chaque île (dès l'île 4) | 4/5 | faible | fait (journal 46) |
+| La friche : une pose à total négatif devient friche, ruine ou lit asséché, réparable en bâtissant | 4/5 | moyen | fait (journal 46), à la pose plutôt qu'au changement de saison |
 | Défis à règle tordue (douze, écrits à la main) | 3/5 | faible | déjà listé plus bas |
-| Vœux enchaînés d'un même habitant | 3/5 | moyen | à décider |
+| Vœux enchaînés d'un même habitant | 3/5 | moyen | plus tard |
 | Objectif d'archipel : un contrat par chapitre, seconde voie pour la porte | 3/5 | faible à moyen | à décider |
 | Carte postale de l'île finie (export d'image) | 3/5 | faible | à décider |
-| Porte de chapitre : 8/15 jugée trop haute (bot glouton : 5 à 7 étoiles par chapitre dès le chapitre 4) | — | nul | à décider |
+| Porte de chapitre : 8/15 jugée trop haute (bot glouton : 5 à 7 étoiles par chapitre dès le chapitre 4) | — | nul | fait : 6/15 (journal 45) |
+
+Seconde réponse de l'auditeur, « que faudrait-il pour approcher 10/10 » (`docs/AUDIT_2026-09-18_vers-10.md`) : plafonds réalistes de 8 à 9 par aspect, moyenne projetée 8,1 avec les mesures ci-dessus, 8,7 en plafond structurel. Conseil principal : retirer plutôt qu'ajouter (fondre les ouvrages dans les fusions, vider la transition de saison, raréfier les souffles) ; le Livre II ne relève pas la moyenne, il l'étale.
 
 ## À planifier plus tard
 
