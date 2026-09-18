@@ -18,10 +18,10 @@ export function gradeMove(total, best) {
   if (best <= 0) return null;                 // aucune case ne rapportait : pas de jugement
   if (total === 0) return best >= 2 ? 'meh' : null;
   const r = total / best;
-  if (r >= 1 && total >= 8) return 'master';
-  if (r >= 1 && total >= 4) return 'perfect';
-  if (r >= 0.7) return 'good';
-  if (r >= 0.45) return 'ok';
+  if (r >= 1 && total >= 10) return 'master';   // le meilleur coup, et un gros coup
+  if (r >= 1 && total >= 6) return 'perfect';
+  if (r >= 0.8 && total >= 3) return 'good';
+  if (r >= 0.5) return 'ok';
   return 'meh';
 }
 

@@ -125,6 +125,23 @@ Trois lots de code : **7a** mer, abysse, routes et archipel à deux îles avec b
 
 Hors ligne complet (service worker), version anglaise, export/import de sauvegarde (**fait** : fichier téléchargé / chargé, rappel périodique, copie de secours), politique de confidentialité, captures et fiche, dépôt itch.io puis Google Play (TWA) puis iOS (Capacitor). Réécriture native écartée : le code est emballé tel quel.
 
+## Audit externe du 18 septembre (rapport : `docs/AUDIT_2026-09-18.md`)
+
+Moyenne 6,1 / 10 (concept 6,5 ; game design 6,5 ; gameplay 6 ; progression 4,5 ; équilibrage et lisibilité 6 ; direction artistique 7 ; narration 6,5 ; rejouabilité 6). Corrigé le jour même : plantage des améliorations Semence forte et Talisman, calibrage sur la graine jouée, faisabilité des vœux, compliments resserrés, changement de saison allégé, bannière de succès déplacée, textes contradictoires.
+
+| Recommandation de l'audit | Impact (audit) | Coût | Statut |
+|---|---|---|---|
+| Faire compter les séries (souffle à 3 bons coups, fermeture double à 5, mauvaise pose remet à zéro) | 5/5 | faible | à décider |
+| Main de saison : quatre tuiles jouables dans l'ordre voulu (dès le chapitre 4) | 5/5 | moyen | à décider |
+| Livre II : mer, routes, archipels, en remplacement local plutôt qu'en couche de plus | 4/5 | élevé | prévu (lot 7) |
+| Choix de l'ouverture : trois semis qui biaisent la file avant chaque île | 4/5 | faible | à décider |
+| La friche : une tuile aux bords nuls ou négatifs se met en friche au changement de saison | 4/5 | moyen | à décider |
+| Défis à règle tordue (douze, écrits à la main) | 3/5 | faible | déjà listé plus bas |
+| Vœux enchaînés d'un même habitant | 3/5 | moyen | à décider |
+| Objectif d'archipel : un contrat par chapitre, seconde voie pour la porte | 3/5 | faible à moyen | à décider |
+| Carte postale de l'île finie (export d'image) | 3/5 | faible | à décider |
+| Porte de chapitre : 8/15 jugée trop haute (bot glouton : 5 à 7 étoiles par chapitre dès le chapitre 4) | — | nul | à décider |
+
 ## À planifier plus tard
 
 | Idée | Note | Statut |

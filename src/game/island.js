@@ -24,6 +24,7 @@ export class Island {
    */
   constructor(def, o = {}) {
     this.def = def;
+    this.listeners = []; this.lastEvents = [];   // dès le début : le constructeur peut déjà émettre (Talisman)
     this.upgrades = o.upgrades || {};
     this.climate = climateOf(def.climate);   // chaud, humide, froid ou tempéré
     if ((this.upgrades.cloak || 0) > 0 && this.climate.id !== 'temperate') { const c = { ...this.climate }; delete c.dryEarly; delete c.fieldsDormantAutumn; if (c.hamletMarsh) c.hamletMarsh = -1; this.climate = c; }   // Manteau : contrainte du climat adoucie
@@ -35,15 +36,12 @@ export class Island {
     this.fuseOn = o.fuse !== undefined ? !!o.fuse : (!!def.infinite || !!def.garden || !!def.daily || (typeof def.id === 'number' && def.id >= 8));
     this.known = o.known || new Set();
     this.rareTier = o.rareTier;   // paliers de tuiles rares (0 : base ; 1 : événements ; 2 : grenier, fontaine ; 3 : tardives)
-    // niveau 3 : dès l'île 10 (modes libres et Île du jour compris)
+    // niveau 3 : ouvert par les options de campagne (île 31), toujours dans les modes libres et sur l'Île du jour
     this.level3On = o.level3 !== undefined ? !!o.level3 : (!!def.infinite || !!def.garden || !!def.daily || (typeof def.id === 'number' && def.id >= BALANCE.build.level3From));
-    // Semence forte : une tuile de niveau 2 dans la file de départ
-    if (this.buildOn && (this.upgrades.seed2 || 0) > 0) { const t = this.queue.makeTile(); t.level = 2; this.queue.inject(t, false); }
-    // ouvrages : dès l'île 7 en campagne, toujours dans les modes libres et sur l'Île du jour
+    // ouvrages : ouverts par les options de campagne (île 26), toujours dans les modes libres et sur l'Île du jour
     this.workOn = o.work !== undefined ? !!o.work : (!!def.infinite || !!def.garden || !!def.daily || (typeof def.id === 'number' && def.id >= BALANCE.works.from));
     this.shed = [];                  // remise : ouvrages mis de côté ({ ...tuile, shedAt })
     this.shedSize = 1 + (this.upgrades.shed || 0);
-    if (this.workOn && (this.upgrades.talisman || 0) > 0) this.giveWork(this.pickWork());
     const seed = def.seed + (o.seedOffset || 0);
     this.rng = new RNG(seed * 7 + 1);
     this.board = new Board(generateMask(seed, def.cells, { roughness: def.roughness, holes: def.holes }));
@@ -66,6 +64,9 @@ export class Island {
     this.pendingOpening = [];
     if (def.opening) { def.opening.forEach((f, i) => { if (i < this.queue.list.length) this.queue.list[i] = this.queue.makeTile(f); }); this.pendingOpening = def.opening.slice(this.queue.list.length); }
     if ((this.upgrades.rare || 0) > 0) this.queue.inject(this.queue.makeRare([null, 'well', 'mill', 'granary', 'fountain'][Math.min(4, this.upgrades.rare)]), false);
+    // Semence forte : une tuile de niveau 2 dans la file de départ ; Talisman : un ouvrage (après la création de la file)
+    if (this.buildOn && (this.upgrades.seed2 || 0) > 0) { const t = this.queue.makeTile(); t.level = 2; this.queue.inject(t, false); }
+    if (this.workOn && (this.upgrades.talisman || 0) > 0) this.giveWork(this.pickWork());
     this.baseMods = { river: BALANCE.upgrades.source[this.upgrades.source || 0] || 0, refuge: BALANCE.upgrades.refuge[this.upgrades.refuge || 0] || 0 };
     this.season = def.startSeason || 'spring';
     this.seasonLength = def.seasonLength + BALANCE.queue.seasonExtra[this.upgrades.patience || 0];
@@ -81,8 +82,6 @@ export class Island {
     this.undoUsedThisSeason = false;
     this.ended = false;
     this.result = null;
-    this.listeners = [];
-    this.lastEvents = [];
     // météo : dès l'île 4, dans les modes libres et sur l'île du jour
     this.weatherOn = o.weather !== undefined ? (!!o.weather || this.infinite) : (!!def.weather || this.infinite || (typeof def.id === 'number' && def.id >= 4));
     this.weather = null;          // { key, phase: 'announced' | 'active', at }

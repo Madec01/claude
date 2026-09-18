@@ -437,7 +437,6 @@ class IslandScene {
       if (!this.def.daily) AudioSys.playMusic(seasonMusic(e.to, this.seasonCount[e.to]), { fade: 3 });
       const s = STORY.seasons[e.to]; const rl = e.rule && STORY.seasonRules[e.rule] ? STORY.seasonRules[e.rule] : null;
       this.hud.notify(`${s.name}${rl && isl.rulesVariable ? ` · ${rl.name}` : ''} — ${rl ? rl.line : s.line}`, 'season');
-      setTimeout(() => this.hud.notify(`Règle : ${rl ? rl.rule : s.rule}`, 'info'), 600);
       // relevé de saison : les gains groupés par nature, écrits ligne à ligne ; les tuiles concernées s'illuminent au passage
       const lines = seasonLines(e, isl);
       const groups = lines.map((l) => l.cells);

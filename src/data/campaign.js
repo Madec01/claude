@@ -96,7 +96,18 @@ export function campaignIsland(n) {
   const startSeason = ['spring', 'summer', 'autumn', 'winter'][n % 4];
   // vœux : de la réserve, compatibles avec les mécaniques et le climat
   const wishCount = !mech.has('wish') ? 0 : ch.id <= 2 ? 2 : ch.id <= 7 ? 3 : 4;
-  const pool = CAMPAIGN_WISHES.filter((w) => !w.needs || mech.has(w.needs)).filter((w) => !(climate === 'cold' && (w.id === 'c_bloom' || w.id === 'c_harvest')) && !(climate === 'hot' && (w.id === 'c_veillee' || w.id === 'c_lake')));
+  const wts = weightsFor(slot.w, climate, mech); const share = (f) => (wts[f] || 0) / Object.values(wts).reduce((a, b) => a + b, 0);
+  // faisabilité : pas de vœu d'eau sur une file pauvre en eau, pas de floraison sans marais, pas de bourg sans hameaux, pas de grande forêt sur une petite île
+  const feasible = (w) => {
+    if ((w.type === 'river' || w.type === 'lake') && share('water') < 0.12) return false;
+    if (w.id === 'c_bloom' && share('marsh') < 0.06) return false;
+    if (w.id === 'c_veillee' && (share('water') < 0.1 || share('hamlet') < 0.09)) return false;
+    if ((w.id === 'c_bourg' || w.id === 'c_pairs') && (share('hamlet') < 0.09 || share('field') + share('orchard') < 0.12)) return false;
+    if (w.id === 'c_forest' && (share('forest') < 0.12 || cells < 44)) return false;
+    if (w.id === 'c_species' && cells < 50) return false;
+    return true;
+  };
+  const pool = CAMPAIGN_WISHES.filter((w) => !w.needs || mech.has(w.needs)).filter((w) => !(climate === 'cold' && (w.id === 'c_bloom' || w.id === 'c_harvest')) && !(climate === 'hot' && (w.id === 'c_veillee' || w.id === 'c_lake'))).filter(feasible);
   const wishes = [];
   while (wishes.length < wishCount && pool.length) { const w = pool.splice(Math.floor(rng() * pool.length), 1)[0]; const { dl, needs, ...def } = w; wishes.push({ ...def, deadline: { placements: Math.round(cells * dl) } }); }
   const t = CAMPAIGN_TEXTS[n] || { name: `Île ${n}`, intro: ['Une île sans nom, pour l’instant.', 'Pose, et elle se souviendra.'], memory: 'Elle a fini par avoir un nom. Le tien.' };

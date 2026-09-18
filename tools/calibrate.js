@@ -1,5 +1,6 @@
 // Calibrage des étoiles : fait jouer le bot fort (tests/bot.js) et le bot glouton sur chaque île avec plusieurs graines.
-// Usage : node tools/calibrate.js [nbGraines=6] [îles=1-50] [--write : écrit src/data/campaign_stars.js]
+// Usage : node tools/calibrate.js [nbEssais=6] [îles=1-50] [--write : écrit src/data/campaign_stars.js]
+// L'île est toujours jouée avec sa graine (celle du joueur) ; les essais ne font varier que le hasard du bot.
 import { campaignIsland, CAMPAIGN_SIZE, islandOptions } from '../src/data/campaign.js';
 import { writeFileSync } from 'node:fs';
 import { Island } from '../src/game/island.js';
@@ -23,8 +24,8 @@ for (let n = range[0]; n <= (range[1] ?? range[0]); n++) {
   const t0 = Date.now();
   const strong = [], greedy = [], wishes = [], perCell = [];
   for (let k = 0; k < N; k++) {
-    const r = playStrong(def, { seedOffset: k, known: new Set(KNOWN) }).result; strong.push(r.score); wishes.push(r.wishesTotal ? r.wishesDone / r.wishesTotal : 1); perCell.push(r.score / r.cells);
-    greedy.push(playGreedy(def, k).score);
+    const r = playStrong(def, { seedOffset: 0, botSeed: k, known: new Set(KNOWN) }).result;   // la graine 0 est celle que le joueur joue ; seul le hasard du bot varie strong.push(r.score); wishes.push(r.wishesTotal ? r.wishesDone / r.wishesTotal : 1); perCell.push(r.score / r.cells);
+    greedy.push(playGreedy(def, 0).score);
   }
   const m = med(strong); out[n] = [0.55, 0.8, 1.0].map((f) => Math.round((m / def.cells) * f * 10) / 10);
   rows.push({ île: def.id, cases: def.cells, glouton: Math.round(med(greedy)), fort_med: Math.round(m), fort_min: Math.min(...strong), fort_max: Math.max(...strong), par_case: (m / def.cells).toFixed(2), vœux: (wishes.reduce((a, b) => a + b, 0) / N).toFixed(2), seuils_actuels: (def.starFactors || [2.8, 5.2, 7.8]).map((f) => Math.round(def.cells * f)).join('/'), nouveaux: out[n].join('/'), s: ((Date.now() - t0) / 1000).toFixed(1) });

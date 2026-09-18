@@ -47,11 +47,11 @@ function bestMove(isl, tile, rng) {
 /**
  * Joue une île jusqu'au bout.
  * @param {object} def définition d'île
- * @param {object} o { upgrades, seedOffset, maxPlacements }
+ * @param {object} o { upgrades, seedOffset (graine de l'île), botSeed (hasard du bot, par défaut = seedOffset), maxPlacements }
  */
 export function playStrong(def, o = {}) {
   const isl = new Island(def, { upgrades: o.upgrades || {}, seedOffset: o.seedOffset || 0, known: o.known, ...(def.mech ? islandOptions(def) : {}) });
-  let seed = (o.seedOffset || 0) * 9973 + 17; const rng = () => { seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed / 0x7fffffff; };
+  let seed = ((o.botSeed !== undefined ? o.botSeed : o.seedOffset) || 0) * 9973 + 17; const rng = () => { seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed / 0x7fffffff; };
   const events = {}; isl.on((e) => { events[e.type] = (events[e.type] || 0) + 1; });
   let guard = 0;
   while (!isl.ended && guard++ < 3000) {

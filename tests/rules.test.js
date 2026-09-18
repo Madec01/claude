@@ -145,6 +145,8 @@ check(affinity('meadow', 'water') === 0, 'prairie-eau = 0');
   const d = campaignIsland(31);
   const a = new Island(d, { ...islandOptions(d) }), b = new Island(d, { ...islandOptions(d), upgrades: { spyglass: 2, shed: 1, fresh: 1, master: 1, still: 1, cloak: 1 } });
   check(b.queue.visible === a.queue.visible + 2 && b.shedSize === 2, 'Longue-vue et Grande remise');
+  const c31 = new Island(d, { ...islandOptions(d), upgrades: { seed2: 1, talisman: 1 } });
+  check(c31.queue.list.some((t) => (t.level || 1) === 2) && c31.queue.list.some((t) => t.work), 'Semence forte et Talisman : l’île démarre avec une tuile de niveau 2 et un ouvrage dans la file');
   check(b.fusionCost() === 0 && a.fusionCost() === 1, 'Alambic : première fusion offerte');
   check(b.isMature({ builtAt: b.seasonsPassed.length }) && !a.isMature({ builtAt: a.seasonsPassed.length }), 'Maître d’œuvre : mûrit aussitôt');
   check(!b.climate.fieldsDormantAutumn && a.climate.fieldsDormantAutumn === true, 'Manteau : au froid, les champs ne dorment qu’en hiver');
