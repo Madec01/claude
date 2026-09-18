@@ -10,7 +10,7 @@ const N = Number(process.argv[2] || 6);
 const range = (process.argv[3] || '1-12').split('-').map(Number);
 function playGreedy(def, seedOffset) {
   const isl = new Island(def, { seedOffset }); let g = 0;
-  while (!isl.ended && g++ < 2000) { const t = isl.current; if (!t) { isl.checkEnd(); break; } let best = null, bs = -Infinity; for (const c of isl.board.legalCells()) { const p = isl.preview(c.q, c.r); const s = p.total + Math.random() * 0.01; if (s > bs) { bs = s; best = c; } } if (!best) { isl.checkEnd(); break; } isl.place(best.q, best.r); }
+  while (!isl.ended && g++ < 2000) { const t = isl.current; if (!t) { isl.checkEnd(); break; } if (t.work) { let bt = null, bw = -Infinity; for (const x of isl.board.tiles.values()) { if (!isl.canBuild(x.q, x.r)) continue; const pv = isl.previewBuild(x.q, x.r); if (pv && pv.total > bw) { bw = pv.total; bt = x; } } if (bt && (bw > 0 || !isl.canDiscard())) { isl.build(bt.q, bt.r); continue; } if (isl.canDiscard()) { isl.discard(); continue; } isl.checkEnd(); break; } let best = null, bs = -Infinity; for (const c of isl.board.legalCells()) { const p = isl.preview(c.q, c.r); const s = p.total + Math.random() * 0.01; if (s > bs) { bs = s; best = c; } } if (!best) { isl.checkEnd(); break; } isl.place(best.q, best.r); }
   return isl.result;
 }
 const med = (a) => { const s = [...a].sort((x, y) => x - y); return s.length % 2 ? s[(s.length - 1) / 2] : (s[s.length / 2 - 1] + s[s.length / 2]) / 2; };

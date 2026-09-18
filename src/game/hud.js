@@ -83,7 +83,7 @@ export class Hud {
     let src = k ? `assets/img/${Assets.manifest().images[k].file}` : '';
     if (t.work) { const d = (WORK_DECOR[t.family] || [])[0]; const sk = d ? spriteKey(d.tpl, this.isl.season) : null; const im = sk && Assets.manifest().images[sk]; src = im ? `assets/img/${im.file}` : ''; }
     const help = cls === 'current' ? '<button class="q-help" data-ref="qHelp" title="Fiche de la tuile (H)">?</button>' : '';
-    return `<div class="qtile ${cls} ${t.rare ? 'rare' : ''}" style="--fam:${FAMILY_COLORS[t.family] || '#999'}" title="${name}${t.rare ? ' (rare)' : ''} — ${(STORY.tiles[t.family] || {}).blurb || ''}">${src ? `<img src="${src}" alt="${name}">` : ''}<span class="qname">${name}</span>${help}</div>`;
+    return `<div class="qtile ${cls} ${t.rare ? 'rare' : ''}" style="--fam:${FAMILY_COLORS[t.family] || '#999'}" title="${name}${t.rare ? ' (rare)' : ''} — ${(STORY.tiles[t.family] || {}).blurb || ''}">${src ? `<img src="${src}" alt="${name}">` : ''}<span class="qname">${name}${(t.level || 1) >= 2 ? ` <i class="qlvl">niv. ${t.level}</i>` : ''}</span>${help}</div>`;
   }
 
   /** Règle de la saison (et météo) en surimpression : utile sur téléphone où la boîte de saison est réduite. */

@@ -518,7 +518,7 @@ export class IslandRenderer {
     const py = (30 + pv.base.length * 22) * z;   // sous les pastilles de base
     if (pv.work) { const nm = (STORY.tiles[pv.work] || {}).name || pv.work; this.pill(ctx, c.x, c.y + py, nm, '#2b2a26'); this.pill(ctx, c.x, c.y + py + 22 * z, pv.good ? '✓ bonne place' : '✗ mauvaise place : pénalité chaque saison', pv.good ? '#2f9e8f' : '#d95f4b'); }
     else if (pv.build && pv.fuse) { const nm = (STORY.tiles[pv.fuse.id] || {}).name || pv.fuse.id; this.pill(ctx, c.x, c.y + py, `${nm} · ${pv.cost} souffle`, '#2b2a26'); this.pill(ctx, c.x, c.y + py + 22 * z, pv.first ? '★ recette nouvelle : rend une tuile et une rare' : 'recette connue', pv.first ? '#e0a33a' : '#8a867c'); }
-    else if (pv.build) { const ok = pv.refund && pv.refund.ok; this.pill(ctx, c.x, c.y + py, `niveau ${pv.level} · ${pv.cost} souffle`, '#2b2a26'); this.pill(ctx, c.x, c.y + py + 22 * z, ok ? '↩ rend une tuile' : 'sans retour', ok ? '#2f9e8f' : '#8a867c'); }
+    else if (pv.build) { const ok = pv.refund && pv.refund.ok; const sig = pv.level >= 3 && STORY.level3[this.isl.board.get(hv.q, hv.r).family]; this.pill(ctx, c.x, c.y + py, `${sig ? sig.name : `niveau ${pv.level}`} · ${pv.cost} souffle${pv.cost > 1 ? 's' : ''}`, '#2b2a26'); if (sig) this.pill(ctx, c.x, c.y + py + 22 * z, `★ ${sig.short}, +1 par saison`, '#e0a33a'); this.pill(ctx, c.x, c.y + py + (sig ? 44 : 22) * z, ok ? '↩ rend une tuile' : 'sans retour', ok ? '#2f9e8f' : '#8a867c'); }
     // total : badge nettement plus grand et plus contrasté que les pastilles de bord, avec son libellé
     const tz = clamp(z, 0.8, 1.3);
     const txt = `${pv.total >= 0 ? '+' : ''}${pv.total}`;

@@ -34,7 +34,7 @@
 | 15 | **Grille effacée entre tuiles posées** | Fondus le long des bords entre sols différents (champs compris), roche et colline nettes ; pointillé au survol ; option « Grille discrète ». | **fait** |
 | 16 | **Fusions et Cahier** | Port, rizière, ferme, fortin, cascade, grotte, lagune (commutatives, 1 souffle, +3, prime de saison) ; découverte = retour de tuile + rare ; Cahier des recettes dans le Guide ; vœux de fusion aux îles 8, 10 et 12. | **fait** |
 | 17 | **Ouvrages (tuiles bonus)** | Ruche, épouvantail, ponton, pont, nichoir, feu de camp, menhir, compost : bonne et mauvaise place jugées à chaque saison, marqueur rouge, une toutes les seize poses et en récompense de vœu, amélioration Talisman. Île 7. | **fait** |
-| 18 | **Niveaux 3, Atelier, recalibrage** | Signatures par famille, condition « mûrir », Charpente et Semence forte, bot qui bâtit. Île 10. | à faire |
+| 18 | **Niveaux 3, Atelier, recalibrage** | Signatures par famille (onze), condition « mûrir » (une saison), 2 souffles, +1 par saison ; Charpente, Semence forte, Talisman ; bot qui bâtit, fusionne et pose les ouvrages ; seuils recalibrés. Île 10. | **fait** |
 
 ## Lot 5 : climats (idée du commanditaire)
 

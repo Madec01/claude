@@ -106,6 +106,9 @@ export class Decor {
       return pts;
     };
     const L2 = (cell) => (cell.level || 1) >= 2;   // tuile bâtie : décor nettement plus dense
+    const L3 = (cell) => (cell.level || 1) >= 3;   // niveau 3 : une pièce maîtresse au centre
+    const LANDMARK = { forest: ['obj_treeRound_large_{s}', 1.9], hamlet: ['obj_church', 1.0], field: ['obj_silo1', 1.0], orchard: ['obj_treeRound_fruit_{s}', 1.8], meadow: ['obj_fence', 1.2], marsh: ['obj_bushGrass_{s}', 1.8], rock: ['obj_rockGrey_large{w}', 1.9], sand: ['obj_rockBrown_small{w}', 1.6], hill: ['obj_treePine_large_{s}', 1.4], heath: ['obj_heather_{s}', 1.8] };
+    for (const t of board.tiles.values()) { if (!L3(t) || t.rare) continue; const lm = LANDMARK[t.family]; if (!lm) continue; const c = toWorld(t.q, t.r); add({ x: c.x, y: c.y + (t.family === 'hamlet' ? 34 : 30), tpl: lm[0], cell: key(t.q, t.r), scale: lm[1], alpha: 1, notSeasons: t.family === 'forest' ? ['spring'] : undefined }); if (t.family === 'forest') add({ x: c.x, y: c.y + 30, tpl: 'obj_treeRound_blossom_large', cell: key(t.q, t.r), scale: lm[1], alpha: 1, seasons: ['spring'] }); }
     const degreeOf = (cell, keys) => neighbors(cell.q, cell.r).filter(([a, b]) => keys.has(key(a, b))).length;
     const rareTiles = [];
     for (const t of board.tiles.values()) {

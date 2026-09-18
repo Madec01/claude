@@ -16,7 +16,7 @@ function edgePoints(tile, other, season, rule = null) {
   const fa = Board.familiesOf(tile), fb = Board.familiesOf(other);
   let best = 0, bestKey = null;
   for (const x of fa) for (const y of fb) {
-    if (season === 'winter' && rule !== 'doux' && ((x === 'field' && y === 'hamlet') || (x === 'hamlet' && y === 'field')) && tile.family !== 'granary' && other.family !== 'granary') continue; // champs dormants (sauf grenier, sauf hiver doux)
+    if (season === 'winter' && rule !== 'doux' && ((x === 'field' && y === 'hamlet') || (x === 'hamlet' && y === 'field')) && tile.family !== 'granary' && other.family !== 'granary' && (tile.level || 1) < 3 && (other.level || 1) < 3) continue; // champs dormants (sauf grenier, hiver doux, domaine de niveau 3)
     const v = affinity(x, y);
     if (Math.abs(v) > Math.abs(best)) { best = v; bestKey = pairKey(x, y); }
   }
@@ -34,7 +34,7 @@ function edgePoints(tile, other, season, rule = null) {
   if ((tile.family === 'oven' && fb.includes('field')) || (other.family === 'oven' && fa.includes('field'))) best += 1;
   if ((tile.family === 'mine' && fb.includes('rock')) || (other.family === 'mine' && fa.includes('rock'))) best += 1;
   // niveau 2 : tous les bords de la tuile bâtie valent +1 de plus (les mauvaises paires restent mauvaises)
-  if (best >= 0) best += ((tile.level || 1) >= 2 ? 1 : 0) + ((other.level || 1) >= 2 ? 1 : 0);
+  if (best >= 0) best += Math.max(0, (tile.level || 1) - 1) + Math.max(0, (other.level || 1) - 1);   // niveau 2 : +1, niveau 3 : +2
   return { pts: best, label: bestKey ? (PAIR_LABELS[bestKey] || '') : '' };
 }
 

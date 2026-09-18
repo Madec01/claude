@@ -2,7 +2,7 @@
 // Modèle pur (sans DOM ni canvas) : utilisable en Node pour les tests et le bot.
 import { Board } from './board.js';
 import { preview, apply, previewBuild, canBuild as ruleCanBuild, canFuse, previewFuse, fusedTile, evalWork, previewWork } from './rules.js';
-import { FUSION_BY_ID, WORKS } from '../data/tiles.js';
+import { FUSION_BY_ID, WORKS, LEVEL3_SEASONAL } from '../data/tiles.js';
 import { transition, nextSeason } from './seasons.js';
 import { evaluate as evalFauna, reconcile } from './fauna.js';
 import { initWishes, updateWishes } from './wishes.js';
@@ -30,6 +30,10 @@ export class Island {
     // fusionner : dès l'île 8 en campagne, toujours dans les modes libres et sur l'Île du jour ; `known` = recettes déjà découvertes (sauvegarde)
     this.fuseOn = o.fuse !== undefined ? !!o.fuse : (!!def.infinite || !!def.garden || !!def.daily || (typeof def.id === 'number' && def.id >= 8));
     this.known = o.known || new Set();
+    // niveau 3 : dès l'île 10 (modes libres et Île du jour compris)
+    this.level3On = o.level3 !== undefined ? !!o.level3 : (!!def.infinite || !!def.garden || !!def.daily || (typeof def.id === 'number' && def.id >= BALANCE.build.level3From));
+    // Semence forte : une tuile de niveau 2 dans la file de départ
+    if (this.buildOn && (this.upgrades.seed2 || 0) > 0) { const t = this.queue.makeTile(); t.level = 2; this.queue.inject(t, false); }
     // ouvrages : dès l'île 7 en campagne, toujours dans les modes libres et sur l'Île du jour
     this.workOn = o.work !== undefined ? !!o.work : (!!def.infinite || !!def.garden || !!def.daily || (typeof def.id === 'number' && def.id >= BALANCE.works.from));
     if (this.workOn && (this.upgrades.talisman || 0) > 0) this.queue.inject(this.queue.makeWork(this.pickWork()), false);
@@ -64,7 +68,7 @@ export class Island {
     this.breaths = BALANCE.breaths.start[this.upgrades.breath || 0];
     this.wishes = initWishes(def.wishes || []);
     this.fauna = new Map();
-    this.stats = { harvest: 0, bloom: 0, closedThisSeason: 0, irrigatedSummer: 0, closed: 0, rivers: 0, faunaMax: 0, wishesDone: 0, biggestRegion: 0, undo: 0, links: 0, perfect: 0, streak: 0, bestStreak: 0, built: 0, refunds: 0, fusions: 0, works: 0, worksGood: 0 };
+    this.stats = { harvest: 0, bloom: 0, closedThisSeason: 0, irrigatedSummer: 0, closed: 0, rivers: 0, faunaMax: 0, wishesDone: 0, biggestRegion: 0, undo: 0, links: 0, perfect: 0, streak: 0, bestStreak: 0, built: 0, refunds: 0, fusions: 0, works: 0, worksGood: 0, level3: 0 };
     this.history = [];         // instantanés pour le souvenir
     this.undoUsedThisSeason = false;
     this.ended = false;
@@ -138,10 +142,18 @@ export class Island {
   canBuild(q, r, tile = this.current) {
     if (this.ended || this.restrict || !tile) return false;
     if (tile.work) { const t = this.board.get(q, r); return this.workOn && !!t && !t.rare && !t.work; }
-    if (this.buildOn && ruleCanBuild(this.board, q, r, tile)) return this.breaths >= BALANCE.build.cost;
+    if (this.buildOn && ruleCanBuild(this.board, q, r, tile)) {
+      const t = this.board.get(q, r); const lv = t.level || 1;
+      if (lv >= 2 && (!this.level3On || !this.isMature(t))) return false;   // niveau 3 : débloqué, et la tuile a mûri une saison
+      return this.breaths >= this.buildCost(lv + 1);
+    }
     if (this.fuseOn && canFuse(this.board, q, r, tile)) return this.breaths >= BALANCE.fusion.cost;
     return false;
   }
+  /** Coût en souffles pour atteindre `level` (Charpente : un de moins, jamais moins que 0 pour le niveau 2 ni que 1 pour le niveau 3). */
+  buildCost(level) { const base = level >= 3 ? BALANCE.build.cost3 : BALANCE.build.cost; return Math.max(level >= 3 ? 1 : 0, base - (this.upgrades.frame || 0)); }
+  /** Une tuile de niveau 2 a mûri si une saison a passé depuis sa construction. */
+  isMature(t) { return this.seasonsPassed.length - (t.builtAt || 0) >= BALANCE.build.matureSeasons; }
   previewBuild(q, r, tile = this.current) {
     if (!tile) return null;
     if (tile.work) { if (!this.workOn) return null; const pv = previewWork(this.board, q, r, tile, this.season, this.mods); if (pv) pv.cost = 0; return pv; }
@@ -153,7 +165,7 @@ export class Island {
     }
     if (!ruleCanBuild(this.board, q, r, tile)) return null;
     const pv = previewBuild(this.board, q, r, tile, this.season, this.mods);
-    pv.refund = this.refundFor(q, r, tile.family); pv.cost = BALANCE.build.cost;
+    pv.refund = this.refundFor(q, r, tile.family); pv.cost = this.buildCost(pv.level); if (pv.level >= 3) pv.signature = true;
     return pv;
   }
   /** Une tuile bien bâtie rend une tuile : région close, en saison, ou entourée d'au moins quatre tuiles de sa famille (une seule fois par saison). */
@@ -182,8 +194,8 @@ export class Island {
       this.breaths -= BALANCE.fusion.cost; this.stats.fusions++;
       if (pv.first) { this.known.add(pv.fuse.id); this.queue.inject(this.queue.makeTile(tile.family), false); rare = this.pickRare(); this.queue.inject(WORKS.includes(rare) ? this.queue.makeWork(rare) : this.queue.makeRare(rare), false); this.stats.refunds++; }
     } else {
-      target.level = (target.level || 1) + 1; this.board.touch();
-      this.breaths -= BALANCE.build.cost; this.stats.built++;
+      target.level = (target.level || 1) + 1; target.builtAt = this.seasonsPassed.length; this.board.touch();
+      this.breaths -= this.buildCost(target.level); this.stats.built++; if (target.level >= 3) this.stats.level3++;
       if (pv.refund.ok) { this.refunds++; this.queue.inject(this.queue.makeTile(tile.family), false); this.stats.refunds++; }
     }
     this.placements++; this.inSeason++;
@@ -275,6 +287,14 @@ export class Island {
       if (!t.work) continue; const w = evalWork(this.board, t, this.season, this.rule); t.workBad = !w.good;
       if (w.pts) ev.push({ type: 'work', q: t.q, r: t.r, pts: w.pts, id: t.work, good: w.good, label: w.label });
     }
+    // niveau 3 : +1 par saison et signature de la famille
+    for (const t of this.board.tiles.values()) {
+      if ((t.level || 1) < 3 || t.rare) continue; let p = BALANCE.build.level3Season; const sp = LEVEL3_SEASONAL[t.family];
+      if (sp) { if (sp.family) p += Math.min(sp.cap || 3, neighbors(t.q, t.r).filter(([a, b]) => Board.isFamily(this.board.get(a, b), sp.family)).length) * sp.pts; else if (sp.season === this.season) p += sp.pts; }
+      if (p) ev.push({ type: 'level3', q: t.q, r: t.r, pts: p, family: t.family });
+    }
+    // bourgs (hameau de niveau 3) : chaque sentier qui touche leur village rapporte +1 de plus
+    { const bourgs = new Set(this.board.regions('hamlet').filter((reg) => reg.cells.some((c) => (c.level || 1) >= 3 && !c.rare)).map((reg) => reg.id)); if (bourgs.size) pts += computeLinks(this.board).links.filter((l) => bourgs.has(l.a) || bourgs.has(l.b)).length; }
     // fusions : prime de saison (+pts par voisine d'une famille, plafonnée, ou +pts fixes dans une saison)
     for (const t of this.board.tiles.values()) {
       if (!t.fusion) continue; const rec = FUSION_BY_ID[t.family]; if (!rec || !rec.seasonal) continue; const sp = rec.seasonal; let p = 0;

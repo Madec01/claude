@@ -35,7 +35,7 @@ export function transition(board, season, rule = null) {
           if (badMarsh) { t.dry = true; ev.push({ type: 'dry', q: t.q, r: t.r }); }
           continue;
         }
-        const wet = ns.some((n) => Board.isFamily(n, 'water') || Board.isFamily(n, 'forest') || Board.isFamily(n, 'marsh') || Board.isFamily(n, 'heath') || n.family === 'well' || n.family === 'fountain' || n.family === 'trough');
+        const wet = (t.level || 1) >= 3 || ns.some((n) => Board.isFamily(n, 'water') || Board.isFamily(n, 'forest') || Board.isFamily(n, 'marsh') || Board.isFamily(n, 'heath') || n.family === 'well' || n.family === 'fountain' || n.family === 'trough');
         if (!wet) { t.dry = true; ev.push({ type: 'dry', q: t.q, r: t.r }); }
       }
     }

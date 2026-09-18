@@ -68,6 +68,20 @@ check(affinity('meadow', 'water') === 0, 'prairie-eau = 0');
     check(isl.queue.list.length >= before + 1, 'découverte : une tuile et une rare reviennent dans la file'); }
 }
 
+// --- niveau 3 : mûrir une saison, 2 souffles, bords +2, signature
+{
+  const isl = new Island(ISLANDS[9], { build: true, level3: true }); isl.breaths = 6;   // île 10
+  const f = [...isl.board.tiles.values()].find((t) => !t.rare && t.family === 'forest') || [...isl.board.tiles.values()].find((t) => !t.rare);
+  isl.queue.list[0] = isl.queue.makeTile(f.family); isl.build(f.q, f.r);
+  check(isl.board.get(f.q, f.r).level === 2, 'niveau 2 atteint');
+  isl.queue.list[0] = isl.queue.makeTile(f.family);
+  check(!isl.canBuild(f.q, f.r), 'pas de niveau 3 avant une saison');
+  isl.seasonsPassed.push('summer');
+  check(isl.canBuild(f.q, f.r) && isl.previewBuild(f.q, f.r).cost === 2, 'niveau 3 possible après une saison, 2 souffles');
+  const b0 = isl.breaths; isl.build(f.q, f.r);
+  check(isl.board.get(f.q, f.r).level === 3 && isl.breaths === b0 - 2 && isl.stats.level3 === 1, 'niveau 3 bâti');
+}
+
 // --- ouvrages : bonne et mauvaise place, pénalité de saison
 {
   const isl = new Island(ISLANDS[6], { work: true }); // île 7

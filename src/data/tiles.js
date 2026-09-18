@@ -34,6 +34,13 @@ export const FUSION_BY_ID = Object.fromEntries(FUSIONS.map((f) => [f.id, f]));
 /** Recette pour deux familles de base (ordre indifférent), ou null. */
 export function fusionFor(fa, fb) { return FUSIONS.find((f) => (f.a === fa && f.b === fb) || (f.a === fb && f.b === fa)) || null; }
 
+/** Niveau 3 : prime de saison par famille (+pts par voisine de `family`, plafonnée, ou +pts fixes dans `season`). */
+export const LEVEL3_SEASONAL = {
+  field: { season: 'autumn', pts: 2 }, orchard: { season: 'spring', pts: 2 }, marsh: { season: 'spring', pts: 2 },
+  water: { family: 'water', pts: 1, cap: 3 }, rock: { family: 'water', pts: 1, cap: 3 }, sand: { family: 'water', pts: 1, cap: 3 },
+  hill: { family: 'meadow', pts: 1, cap: 3 }, heath: { family: 'forest', pts: 1, cap: 3 },
+};
+
 /** Ouvrages : tuiles bonus qui se posent SUR une tuile existante (une par tuile) ; bonne ou mauvaise place, jugée à chaque saison. */
 export const WORKS = ['hive', 'scarecrow', 'pier', 'bridge', 'nestbox', 'campfire', 'menhir', 'compost'];
 

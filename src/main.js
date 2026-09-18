@@ -240,9 +240,9 @@ class IslandScene {
     this.def = def;
     const upgrades = Save.campaign.upgrades;
     const mech = def.infinite || def.garden ? mechanicsUpTo(99) : mechanicsUpTo(def.id);
-    if (Game.testMode) for (const m of ['river', 'season', 'fauna', 'wish', 'breath', 'rare', 'build', 'fuse', 'work']) mech.add(m);
+    if (Game.testMode) for (const m of ['river', 'season', 'fauna', 'wish', 'breath', 'rare', 'build', 'fuse', 'work', 'build3']) mech.add(m);
     this.mech = mech;
-    const isl = new Island(def, { upgrades, build: Game.testMode || mech.has('build'), fuse: Game.testMode || mech.has('fuse'), work: Game.testMode || mech.has('work'), known: new Set(Save.data.campaign.recipes || []) });
+    const isl = new Island(def, { upgrades, build: Game.testMode || mech.has('build'), fuse: Game.testMode || mech.has('fuse'), work: Game.testMode || mech.has('work'), level3: Game.testMode || mech.has('build3'), known: new Set(Save.data.campaign.recipes || []) });
     this.isl = isl;
     this.cam = new Camera(); this.cam.fit(isl.board.mask, { ...uiMargins('island'), immediate: true });
     this.armed = null;   // tactile : case « armée » (aperçu affiché) en attente d'une seconde touche
@@ -368,8 +368,9 @@ class IslandScene {
         this.hud.notify(`${nm} (${from.toLowerCase()} + ${fam.toLowerCase()}) : ${e.result.total >= 0 ? '+' : ''}${e.result.total}${e.first ? ` · recette découverte, une ${fam.toLowerCase()} et une ${((STORY.tiles[e.rare] || {}).name || 'rare').toLowerCase()} reviennent dans la file` : ''}`, 'gold');
         this.tutorial.onEvent('fuse');
       } else {
-        const bt = STORY.build.done[Math.floor(Math.random() * STORY.build.done.length)];
-        setTimeout(() => fx.floatText(w.x, w.y - 44, `${bt} ${e.result.total >= 0 ? '+' : ''}${e.result.total}`, '#e0a33a', 26, 1.6), 90 * i + 60);
+        const sig = e.level >= 3 && STORY.level3[e.tile.family];
+        const bt = sig ? `${sig.name} !` : STORY.build.done[Math.floor(Math.random() * STORY.build.done.length)];
+        setTimeout(() => { fx.floatText(w.x, w.y - 44, `${bt} ${e.result.total >= 0 ? '+' : ''}${e.result.total}`, '#e0a33a', sig ? 28 : 26, sig ? 2 : 1.6); if (sig) { fx.closeBurst(w.x, w.y - 10, 7); this.shake.trigger(0.12); AudioSys.play('region_big', { volume: 0.6 }); this.tutorial.onEvent('build3'); } }, 90 * i + 60);
         if (e.refund && e.refund.ok) setTimeout(() => { fx.floatText(w.x, w.y - 80, (STORY.build.refund[e.refund.reason] || '').replace('{f}', fam.toLowerCase()), '#2f9e8f', 20, 1.8); AudioSys.play('point_8', { volume: 0.5 }); }, 90 * i + 500);
         this.hud.notify(`Bâti : ${fam} niveau ${e.level} (${e.result.total >= 0 ? '+' : ''}${e.result.total})${e.refund && e.refund.ok ? ` · une ${fam.toLowerCase()} revient dans la file` : ''}`, 'gold');
       }

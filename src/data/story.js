@@ -171,7 +171,8 @@ export const STORY = {
         'L’été, la même eau se retirait et laissait les champs gras. On semait dans ses traces.',
         'Nous avons réappris ceci : ce qui déborde au printemps nourrit en été. Il faut les deux, ou rien.',
       ],
-      tutorial: [],
+      tutorial: [
+        { id: 'build3', text: 'Niveau 3 : une tuile de niveau 2 qui a traversé une saison peut être bâtie une seconde fois (2 souffles). Elle prend sa signature : forêt ancienne, pâturage, domaine, bourg, grand verger, eau profonde, tourbière, pic, dune… et rapporte +1 à chaque saison en plus.' },],
     },
     11: {
       name: 'Les Vergers de Neige',
@@ -635,6 +636,20 @@ export const STORY = {
   work: {
     good: ['Bien placé !', 'À sa place.', 'Ça rendra.'],
     bad: ['Mal placé…', 'Ça va coûter.', 'Pas ici.'],
+  },
+  // signatures du niveau 3 (bâtir une seconde fois une tuile de niveau 2 qui a traversé une saison)
+  level3: {
+    forest:  { name: 'Forêt ancienne', short: 'ours et hibou, à l’abri des feux' },
+    meadow:  { name: 'Pâturage', short: 'ne sèche jamais, vache et cheval' },
+    field:   { name: 'Domaine', short: 'ne dort pas l’hiver, +2 chaque automne' },
+    hamlet:  { name: 'Bourg', short: 'vaut un bourg clos, sentiers +1' },
+    orchard: { name: 'Grand verger', short: '+2 chaque printemps' },
+    water:   { name: 'Eau profonde', short: '+1 par eau voisine chaque saison' },
+    marsh:   { name: 'Tourbière', short: '+2 chaque printemps' },
+    rock:    { name: 'Pic', short: '+1 par eau voisine chaque saison' },
+    sand:    { name: 'Dune', short: '+1 par eau voisine chaque saison' },
+    hill:    { name: 'Alpage', short: '+1 par prairie voisine chaque saison' },
+    heath:   { name: 'Grande lande', short: '+1 par forêt voisine chaque saison' },
   },
   verdicts: {
     master: ['Coup de maître !', 'Magistral !', 'L’île applaudit !', 'Rien à redire !'],

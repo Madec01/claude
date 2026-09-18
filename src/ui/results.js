@@ -24,6 +24,7 @@ export function buildResults({ result, def, onContinue, onRetry, onMenu, newReco
       row('Tuiles posées', `${result.filled} / ${result.cells}`),
       row('Régions closes', result.stats.closed, result.stats.closed ? 'good' : ''),
       row('Plus grande région', result.stats.biggestRegion),
+      result.stats.level3 ? row('Tuiles de niveau 3', result.stats.level3, 'gold') : null,
       result.stats.works ? row('Ouvrages bien placés', `${result.stats.worksGood} / ${result.stats.works}`, result.stats.worksGood === result.stats.works ? 'good' : '') : null,
       result.stats.fusions ? row('Fusions', result.stats.fusions, 'gold') : null,
       result.stats.built ? row('Tuiles bâties', `${result.stats.built}${result.stats.refunds ? ` (${result.stats.refunds} rendue${result.stats.refunds > 1 ? 's' : ''})` : ''}`, 'good') : null,

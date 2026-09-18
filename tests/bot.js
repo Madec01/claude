@@ -81,7 +81,7 @@ export function playStrong(def, o = {}) {
     // bâtir : si une tuile de même famille bien placée rapporte plus que la meilleure pose (retour de tuile compté 3, souffle compté 1)
     if (isl.buildOn && isl.breaths >= 2) {
       let bb = null, bbs = mv.score + 1;
-      for (const t of isl.board.tiles.values()) { if (!isl.canBuild(t.q, t.r)) continue; const pv = isl.previewBuild(t.q, t.r); if (!pv) continue; const sc = pv.total + (pv.refund.ok ? 3 : -1) - 1; if (sc > bbs) { bbs = sc; bb = t; } }
+      for (const t of isl.board.tiles.values()) { if (!isl.canBuild(t.q, t.r)) continue; const pv = isl.previewBuild(t.q, t.r); if (!pv) continue; const sc = pv.total + (pv.refund && pv.refund.ok ? 3 : -1) - (pv.cost || 1) + (pv.level >= 3 ? 4 : 0) + (pv.fuse ? 3 : 0); if (sc > bbs) { bbs = sc; bb = t; } }
       if (bb && isl.build(bb.q, bb.r)) continue;
     }
     isl.place(mv.cell.q, mv.cell.r);

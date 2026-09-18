@@ -29,6 +29,7 @@
 .qtile { position: relative; display: flex; align-items: center; gap: 8px; background: rgba(255,253,248,0.94); border: 1px solid rgba(43,42,38,0.12); border-radius: 12px; padding: 6px 10px; box-shadow: 0 4px 14px rgba(30,50,70,0.1); transition: transform 0.15s, box-shadow 0.2s; }
 .qtile img { width: 54px; height: 63px; object-fit: contain; }
 .qtile .qname { font-weight: 700; font-size: 15px; }
+.qtile .qlvl { font-style: normal; font-size: 10px; font-weight: 800; color: var(--gold); text-transform: uppercase; letter-spacing: 0.06em; }
 .qtile.current { border-color: var(--breath); box-shadow: 0 0 0 3px rgba(47,158,143,0.25), 0 6px 18px rgba(30,50,70,0.15); }
 .qtile.current img { width: 80px; height: 94px; }
 .qtile.current .qname { font-size: 17px; }
