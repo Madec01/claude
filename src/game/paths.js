@@ -21,7 +21,7 @@ export function computeLinks(board) {
   const lanes = [];
   for (const reg of board.regions('hamlet')) {
     if (reg.size < 2) continue;
-    let cx = 0, cy = 0; for (const c of reg.cells) { cx += c.q; cy += c.r; } cx /= reg.size; cy /= reg.size;
+    let cx = 0, cy = 0; for (const c of reg.cells) { cx += c.q; cy += c.r; } cx /= reg.cells.length; cy /= reg.cells.length;
     let start = reg.cells[0], bd = Infinity;
     for (const c of reg.cells) { const d = Math.hypot(c.q - cx, c.r - cy); if (d < bd) { bd = d; start = c; } }
     const seen = new Set([key(start.q, start.r)]); const queue = [start];

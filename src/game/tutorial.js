@@ -13,6 +13,7 @@ const RULES = {
   rare:     { when: (i) => i.placements >= 2, done: (i, ev) => ev.has('rare'), info: true, timeout: 30 },
   hill:     { when: (i) => i.placements >= 1, done: (i, ev) => ev.has('hill'), info: true, timeout: 35 },
   heath:    { when: (i) => i.placements >= 1, done: (i, ev) => ev.has('heath'), info: true, timeout: 35 },
+  build:    { when: (i) => i.placements >= 3 && i.breaths >= 1, done: (i, ev) => ev.has('build'), info: true, timeout: 45 },
 };
 
 /** Tutoriel guidé de l'île 1 : chaque étape impose la case à jouer (la file est fixée par `opening`). */

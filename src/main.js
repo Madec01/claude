@@ -240,9 +240,9 @@ class IslandScene {
     this.def = def;
     const upgrades = Save.campaign.upgrades;
     const mech = def.infinite || def.garden ? mechanicsUpTo(99) : mechanicsUpTo(def.id);
-    if (Game.testMode) for (const m of ['river', 'season', 'fauna', 'wish', 'breath', 'rare']) mech.add(m);
+    if (Game.testMode) for (const m of ['river', 'season', 'fauna', 'wish', 'breath', 'rare', 'build']) mech.add(m);
     this.mech = mech;
-    const isl = new Island(def, { upgrades });
+    const isl = new Island(def, { upgrades, build: Game.testMode || mech.has('build') });
     this.isl = isl;
     this.cam = new Camera(); this.cam.fit(isl.board.mask, { ...uiMargins('island'), immediate: true });
     this.armed = null;   // tactile : case « armée » (aperçu affiché) en attente d'une seconde touche
@@ -348,6 +348,20 @@ class IslandScene {
       if (e.tile.rare) this.tutorial.onEvent('rare');
       if (e.tile.family === 'hill' || e.tile.family === 'heath') this.tutorial.onEvent(e.tile.family);
       this.updateAmbience();
+    } else if (e.type === 'build') {
+      const w = toWorld(e.q, e.r);
+      fx.drop(key(e.q, e.r)); fx.placeBurst(w.x, w.y, true); fx.closeBurst(w.x, w.y - 10, 4);
+      AudioSys.play(`tile_place_${1 + Math.floor(Math.random() * 4)}`, { volume: 0.7 }); AudioSys.play('region_close', { volume: 0.45 });
+      let i = 0;
+      for (const ed of e.result.edges) { const nw = toWorld(ed.q, ed.r); const mx = (w.x + nw.x) / 2, my = (w.y + nw.y) / 2; setTimeout(() => { fx.floatText(mx, my, `${ed.pts > 0 ? '+' : ''}${ed.pts}`, ed.pts > 0 ? '#2f9e8f' : '#d95f4b', 18, 1.1); if (ed.pts > 0) AudioSys.play(`point_${Math.min(8, i + 1)}`, { volume: 0.45 }); }, 90 * i); i++; }
+      const bt = STORY.build.done[Math.floor(Math.random() * STORY.build.done.length)];
+      setTimeout(() => fx.floatText(w.x, w.y - 44, `${bt} ${e.result.total >= 0 ? '+' : ''}${e.result.total}`, '#e0a33a', 26, 1.6), 90 * i + 60);
+      const fam = (STORY.tiles[e.family] || {}).name || e.family;
+      if (e.refund && e.refund.ok) setTimeout(() => { fx.floatText(w.x, w.y - 80, (STORY.build.refund[e.refund.reason] || '').replace('{f}', fam.toLowerCase()), '#2f9e8f', 20, 1.8); AudioSys.play('point_8', { volume: 0.5 }); }, 90 * i + 500);
+      this.hud.notify(`Bâti : ${fam} niveau ${e.level} (${e.result.total >= 0 ? '+' : ''}${e.result.total})${e.refund && e.refund.ok ? ` · une ${fam.toLowerCase()} revient dans la file` : ''}`, 'gold');
+      if (e.milestone) setTimeout(() => { this.hud.notify(STORY.verdicts.milestone.replace('{n}', e.milestone), 'gold'); AudioSys.play('star_2', { volume: 0.5 }); }, 90 * i + 700);
+      this.tutorial.onEvent('build');
+      this.updateAmbience();
     } else if (e.type === 'close') {
       const cx = e.cells.reduce((s, c) => s + toWorld(c.q, c.r).x, 0) / e.cells.length, cy = e.cells.reduce((s, c) => s + toWorld(c.q, c.r).y, 0) / e.cells.length;
       setTimeout(() => {
@@ -432,7 +446,9 @@ class IslandScene {
       return;
     }
     if (this.isl.canPlace(q, r)) { this.isl.place(q, r); this.renderer.hover = null; }
+    else if (this.isl.canBuild(q, r)) { this.isl.build(q, r); this.renderer.hover = null; }
     else if (this.isl.board.has(q, r) && !this.isl.board.get(q, r)) { AudioSys.play('tile_invalid', { volume: 0.5 }); this.hud.notify(this.isl.restrict ? 'Pose la tuile sur la case qui brille' : 'Une tuile doit toucher une tuile posée', 'warn'); }
+    else if (this.isl.board.get(q, r) && this.isl.buildOn && this.isl.current && !this.isl.current.rare && this.isl.board.get(q, r).family === this.isl.current.family && this.isl.breaths < BALANCE.build.cost) { AudioSys.play('tile_invalid', { volume: 0.5 }); this.hud.notify(`Bâtir demande ${BALANCE.build.cost} souffle`, 'warn'); }
   }
   onMouseUp(b, x, y) { if (b === 2 || b === 1) this.drag = null; }
   onResize() { if (this.cam && this.isl) this.cam.fit(this.isl.board.mask, uiMargins('island')); }
@@ -446,14 +462,21 @@ class IslandScene {
       else this.setBud(false);
       return;
     }
-    if (!this.isl.board.has(q, r) || this.isl.board.get(q, r)) { this.armed = null; this.hud.setPlaceButton(null); return; }
+    if (this.isl.board.get(q, r)) {
+      // toucher une tuile posée : bâtir si c'est possible (même double toucher que la pose)
+      if (!this.isl.canBuild(q, r)) { this.armed = null; this.hud.setPlaceButton(null); return; }
+      if (this.armed && this.armed.q === q && this.armed.r === r) { this.placeArmed(); return; }
+      this.armed = { q, r, build: true }; AudioSys.play('tile_hover', { volume: 0.3 }); return;
+    }
+    if (!this.isl.board.has(q, r)) { this.armed = null; this.hud.setPlaceButton(null); return; }
     if (!this.isl.canPlace(q, r)) { this.armed = null; this.hud.setPlaceButton(null); AudioSys.play('tile_invalid', { volume: 0.5 }); this.hud.notify(this.isl.restrict ? 'Pose la tuile sur la case qui brille' : 'Une tuile doit toucher une tuile posée', 'warn'); return; }
     if (this.armed && this.armed.q === q && this.armed.r === r) { this.placeArmed(); return; }
     this.armed = { q, r }; AudioSys.play('tile_hover', { volume: 0.3 });
   }
   placeArmed() {
     if (!this.armed || this.paused || !this.isl || this.isl.ended) return;
-    const { q, r } = this.armed; this.armed = null; this.hud.setPlaceButton(null);
+    const { q, r, build } = this.armed; this.armed = null; this.hud.setPlaceButton(null);
+    if (build) { if (this.isl.canBuild(q, r)) { this.isl.build(q, r); this.renderer.hover = null; } return; }
     if (this.isl.canPlace(q, r)) { this.isl.place(q, r); this.renderer.hover = null; }
   }
   onKey(k) {
@@ -502,13 +525,14 @@ class IslandScene {
     this.cam.update(dt);
     // survol
     if (!isl.ended && input.lastPointer === 'touch' && !this.budMode) {
-      if (this.armed && isl.canPlace(this.armed.q, this.armed.r)) { const pv = isl.preview(this.armed.q, this.armed.r); this.renderer.hover = { q: this.armed.q, r: this.armed.r, preview: pv }; this.hud.setPlaceButton(pv ? pv.total : null); }
+      if (this.armed && this.armed.build && isl.canBuild(this.armed.q, this.armed.r)) { const pv = isl.previewBuild(this.armed.q, this.armed.r); this.renderer.hover = { q: this.armed.q, r: this.armed.r, preview: pv }; this.hud.setPlaceButton(pv ? pv.total : null, 'build'); }
+      else if (this.armed && !this.armed.build && isl.canPlace(this.armed.q, this.armed.r)) { const pv = isl.preview(this.armed.q, this.armed.r); this.renderer.hover = { q: this.armed.q, r: this.armed.r, preview: pv }; this.hud.setPlaceButton(pv ? pv.total : null); }
       else { this.armed = null; this.renderer.hover = null; this.hud.setPlaceButton(null); }
     } else if (!isl.ended) {
       const w = this.cam.toWorldPoint(input.mouse.x, input.mouse.y); const { q, r } = fromWorld(w.x, w.y);
       const hk = key(q, r);
       if (this.lastHover !== hk) { this.lastHover = hk; if (isl.board.has(q, r) && !isl.board.get(q, r) && isl.canPlace(q, r)) AudioSys.play('tile_hover', { volume: 0.18, minInterval: 0.08 }); }
-      this.renderer.hover = isl.board.has(q, r) ? { q, r, preview: isl.preview(q, r) } : null;
+      this.renderer.hover = isl.board.has(q, r) ? { q, r, preview: isl.board.get(q, r) ? (isl.canBuild(q, r) ? isl.previewBuild(q, r) : null) : isl.preview(q, r) } : null;
     } else this.renderer.hover = null;
     this.particles.update(dt); this.fx.update(dt); this.shake.update(dt);
     const b = (() => { const tl = this.cam.toWorldPoint(0, 0), br = this.cam.toWorldPoint(STAGE.W, STAGE.H); return { minX: tl.x, maxX: br.x, minY: tl.y, maxY: br.y }; })();

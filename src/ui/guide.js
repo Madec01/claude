@@ -58,6 +58,8 @@ const TABS = {
     h('h3', {}, icon('icon_wind'), 'Les souffles'),
     h('p', { class: 'g-intro' }, `Les souffles sont une réserve de pouvoirs. On en gagne ${B.breaths.close} par région fermée, ${B.breaths.wish} par vœu exaucé et ${B.breaths.faunaSeason} par animal présent à chaque changement de saison.`),
     h('ul', { class: 'g-list' }, ...['swap', 'discard', 'bud', 'undo', 'pocket'].map((k) => h('li', {}, STORY.breaths[k]))),
+    h('h3', {}, icon('icon_leaf'), 'Bâtir (dès l’île 6)'),
+    h('p', { class: 'g-intro' }, `Pose une tuile sur une tuile de la même famille (${B.build.cost} souffle) : elle passe au niveau 2, tous ses bords valent +1 de plus, elle compte double dans la taille de sa région et son décor s’épaissit. Bâtir consomme la tuile sans remplir de case, sauf si la tuile est bien bâtie : dans une région close, en sa saison (prés, marais et landes au printemps ; champs et sable en été ; forêts, vergers et collines en automne ; hameaux, eau et roche en hiver) ou entourée d’au moins ${B.build.neighborsForRefund} tuiles de sa famille. Elle rend alors une tuile de la même famille à la file, au plus une fois par saison.`),
     h('h3', {}, icon('icon_star'), 'Les vœux et les étoiles'),
     h('p', { class: 'g-intro' }, `Dès l’île 2, les habitants formulent des vœux à échéance (un nombre de poses ou une saison). Un vœu exaucé rapporte ${B.points.wish} points, ${B.breaths.wish} souffles et une tuile rare.`),
     h('p', { class: 'g-intro' }, 'L’Île du jour (menu) est générée depuis la date, identique pour tout le monde, avec trois vœux tirés au sort et la météo. Le meilleur score du jour et les jours joués d’affilée sont conservés.'),

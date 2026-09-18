@@ -33,7 +33,33 @@ function edgePoints(tile, other, season, rule = null) {
   // four à pain : +1 par bord avec un champ ; mine : +1 par bord avec une roche
   if ((tile.family === 'oven' && fb.includes('field')) || (other.family === 'oven' && fa.includes('field'))) best += 1;
   if ((tile.family === 'mine' && fb.includes('rock')) || (other.family === 'mine' && fa.includes('rock'))) best += 1;
+  // niveau 2 : tous les bords de la tuile bâtie valent +1 de plus (les mauvaises paires restent mauvaises)
+  if (best >= 0) best += ((tile.level || 1) >= 2 ? 1 : 0) + ((other.level || 1) >= 2 ? 1 : 0);
   return { pts: best, label: bestKey ? (PAIR_LABELS[bestKey] || '') : '' };
+}
+
+/** Peut-on bâtir `tile` sur la case (q, r) ? Même famille, pas de rare, niveau maximal non atteint. */
+export function canBuild(board, q, r, tile) {
+  const t = board.get(q, r);
+  return !!t && !!tile && !t.rare && !tile.rare && t.family === tile.family && (t.level || 1) < BALANCE.build.maxLevel;
+}
+
+/**
+ * Aperçu d'une construction : la tuile en place monte d'un niveau et l'on gagne, sur chaque bord, la différence
+ * entre sa valeur au nouveau niveau et sa valeur actuelle (+1 par bord qui n'est pas une mauvaise paire).
+ * Les bords ne sont donc pas rejoués en entier : bâtir vaut à peu près une bonne pose, pas le double.
+ */
+export function previewBuild(board, q, r, tile, season, mods = {}) {
+  const t = board.get(q, r); if (!t) return null;
+  const up = { ...t, level: (t.level || 1) + 1 };
+  const edges = []; let total = 0;
+  DIRS.forEach(([dq, dr], d) => {
+    const n = board.get(q + dq, r + dr); if (!n) return;
+    const after = edgePoints(up, n, season, mods.rule || null), before = edgePoints(t, n, season, mods.rule || null);
+    const pts = after.pts - before.pts;
+    if (pts !== 0) { edges.push({ d, q: q + dq, r: r + dr, pts, label: after.label }); total += pts; }
+  });
+  return { total, edges, closes: [], river: null, base: [], build: true, level: up.level };
 }
 
 /**

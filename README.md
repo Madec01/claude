@@ -32,7 +32,8 @@ Navigateurs pris en charge : Chrome, Firefox et Edge à jour sur ordinateur, Chr
 8. Dès l'île 2, les **vœux** des habitants donnent des objectifs à échéance : les exaucer rapporte des points, des souffles et une tuile rare (moulin, chapelle, tour de guet, puits, camp, puis grenier, fontaine et les tuiles d'événement).
 9. Dès l'île 4, la **météo** peut annoncer un événement en début de saison, déclenché à la mi-saison : orage (rivières +2), canicule (sécheresse étendue), grand vent (forêts et vergers +1, moulins +3), bourrasque (file masquée) ou redoux (dégel).
 10. Les **tuiles d'événement** (Marché, Fête, Ruine à restaurer) et les rares tardives (Auberge, Abreuvoir, Porche, Mine, Four à pain) arrivent par les vœux à partir des îles 5 et 8.
-11. Les **souffles** sont des pouvoirs limités, gagnés en fermant des régions, en exauçant des vœux et grâce à la faune : échanger la tuile avec la suivante, la défausser, faire bourgeonner une prairie en forêt ou en verger, annuler la dernière pose, garder une tuile en poche.
+11. Dès l'île 6, on peut **bâtir** : poser une tuile sur une tuile de la même famille (1 souffle) la fait passer au niveau 2, ses bords valent +1 de plus, elle compte double dans sa région et son décor s'épaissit. Bâtir consomme la tuile sans remplir de case, sauf si elle est bien bâtie (région close, en sa saison, ou entourée d'au moins quatre tuiles de sa famille) : une tuile de la même famille revient alors dans la file.
+12. Les **souffles** sont des pouvoirs limités, gagnés en fermant des régions, en exauçant des vœux et grâce à la faune : échanger la tuile avec la suivante, la défausser, faire bourgeonner une prairie en forêt ou en verger, annuler la dernière pose, garder une tuile en poche.
 
 Chaque pose reçoit un mot selon sa qualité par rapport au meilleur emplacement possible (de « Coup de maître ! » à « Il y avait mieux »), les séries de bons coups et chaque palier de cent points sont salués ; c'est sans effet sur le score. Une île se termine quand elle est pleine ou quand aucune pose n'est possible : la caméra recule, chaque région s'illumine à son tour pendant que le compteur monte, les quatre saisons balaient l'île, puis son nom s'écrit et les étoiles se posent (un toucher passe au bilan). Le score donne 0 à 3 étoiles selon trois seuils propres à chaque île, affichés sous les points pendant la partie (la troisième exige aussi tous les vœux) ; ils sont calibrés sur un joueur automatique qui anticipe ses coups (`tools/calibrate.js`). Les étoiles, les vœux et les îles rapportent des **graines**, à dépenser dans l'Atelier des saisons entre deux îles.
 
@@ -41,6 +42,7 @@ Chaque pose reçoit un mot selon sa qualité par rapport au meilleur emplacement
 | Action | Commande |
 |---|---|
 | Poser la tuile | survol puis clic gauche |
+| Bâtir (dès l'île 6) | survol d'une tuile de même famille puis clic gauche (sur téléphone : deux touchers) |
 | Déplacer la vue / zoomer | clic droit glissé / molette |
 | Échanger avec la 2e ou 3e tuile | `2` / `3` |
 | Défausser | `X` |

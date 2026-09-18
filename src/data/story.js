@@ -111,6 +111,7 @@ export const STORY = {
       ],
       tutorial: [
         { id: 'rare', text: 'Tuiles rares : le moulin vaut champ et hameau, la chapelle réchauffe l’hiver, la tour clôt malgré un trou, le puits garde l’eau, le campement attire.' },
+        { id: 'build', text: 'Bâtir : pose une tuile sur une tuile de la même famille (1 souffle). Elle passe au niveau 2 : ses bords valent +1 de plus et elle compte double dans sa région. Bâtie dans une région close, en sa saison ou entourée d’au moins quatre tuiles de sa famille, elle rend une tuile à la file.' },
       ],
     },
     7: {
@@ -583,6 +584,10 @@ export const STORY = {
   closed: ['Bouclé !', 'Une région entière !', 'Tout autour !', 'Voilà qui tient.'],
 
   // commentaire de chaque coup (feedback.js) : comparé au meilleur emplacement possible pour la même tuile
+  build: {
+    done: ['Bâti !', 'Plus haut !', 'Niveau deux !', 'Ça pousse !'],
+    refund: { closed: 'à l’abri : une {f} revient', season: 'en saison : une {f} revient', crowd: 'bien entourée : une {f} revient', none: 'sans retour' },
+  },
   verdicts: {
     master: ['Coup de maître !', 'Magistral !', 'L’île applaudit !', 'Rien à redire !'],
     perfect: ['Parfait !', 'Pile là !', 'Exactement !', 'La bonne case !'],

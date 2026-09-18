@@ -65,7 +65,7 @@ export class Board {
       }
     }
     const minKey = [...seen].sort()[0];
-    return { family: fam, cells, keys: seen, size: cells.length, id: `${fam}:${minKey}` };
+    return { family: fam, cells, keys: seen, size: cells.reduce((s, c) => s + (c.level || 1), 0), id: `${fam}:${minKey}` };   // une tuile de niveau 2 compte double
   }
 
   /** Toutes les régions d'une famille (chaque tuile dans une seule région par famille). */

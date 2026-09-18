@@ -10,7 +10,7 @@ export const SPECIES = ['rabbit', 'moose', 'frog', 'duck', 'bear', 'owl', 'pengu
 function anchor(reg) {
   let cx = 0, cy = 0;
   for (const c of reg.cells) { cx += c.q; cy += c.r; }
-  cx /= reg.size; cy /= reg.size;
+  cx /= reg.cells.length; cy /= reg.cells.length;
   let best = reg.cells[0], bd = Infinity;
   for (const c of reg.cells) { const d = Math.hypot(c.q - cx, c.r - cy); if (d < bd) { bd = d; best = c; } }
   return best;

@@ -456,9 +456,9 @@ export class IslandRenderer {
       ctx.restore();
     }
     // tuile fantôme
-    const tile = { ...this.isl.current, q: hv.q, r: hv.r };
-    this.drawTileAt(ctx, tile, c.x, c.y - 6 * z, 1, 0.8, this.isl.season);
-    this.outline(ctx, c.x, c.y, pv.total >= 0 ? '#2f9e8f' : '#d95f4b', 0.9);
+    if (!pv.build) { const tile = { ...this.isl.current, q: hv.q, r: hv.r }; this.drawTileAt(ctx, tile, c.x, c.y - 6 * z, 1, 0.8, this.isl.season); }
+    this.outline(ctx, c.x, c.y, pv.build ? '#e0a33a' : pv.total >= 0 ? '#2f9e8f' : '#d95f4b', 0.9);
+    if (pv.build) { const p2 = 0.5 + 0.5 * Math.sin(this.time * 5); ctx.save(); ctx.globalAlpha = 0.18 + 0.12 * p2; ctx.fillStyle = '#ffd77a'; const pts = corners(c.x, c.y, SIZE * z * 0.92); ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]); for (let i = 1; i < 6; i++) ctx.lineTo(pts[i][0], pts[i][1]); ctx.closePath(); ctx.fill(); ctx.restore(); }
     // points par bord
     ctx.save();
     ctx.font = `700 ${Math.round(14 * clamp(z, 0.8, 1.3))}px Quicksand, sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
@@ -468,6 +468,7 @@ export class IslandRenderer {
     }
     for (let i = 0; i < pv.base.length; i++) { const bs = pv.base[i]; this.pill(ctx, c.x, c.y + (30 + i * 22) * z, `+${bs.pts} ${bs.label}`, '#5aa7d6'); }
     for (const cl of pv.closes) this.pill(ctx, c.x, c.y - (64) * z, `région close +${cl.bonus}`, '#e0a33a');
+    if (pv.build) { const ok = pv.refund && pv.refund.ok; this.pill(ctx, c.x, c.y + 30 * z, `niveau ${pv.level} · ${pv.cost} souffle`, '#2b2a26'); this.pill(ctx, c.x, c.y + 52 * z, ok ? '↩ rend une tuile' : 'sans retour', ok ? '#2f9e8f' : '#8a867c'); }
     // total : badge nettement plus grand et plus contrasté que les pastilles de bord, avec son libellé
     const tz = clamp(z, 0.8, 1.3);
     const txt = `${pv.total >= 0 ? '+' : ''}${pv.total}`;
@@ -479,7 +480,7 @@ export class IslandRenderer {
     ctx.strokeStyle = accent; ctx.lineWidth = 2.5 * tz; ctx.beginPath(); ctx.roundRect(bx - bw / 2, by - bh / 2, bw, bh, bh / 2); ctx.stroke();
     ctx.fillStyle = '#fff'; ctx.fillText(txt, bx, by + 1);
     ctx.font = `700 ${Math.round(11 * tz)}px Quicksand, sans-serif`; ctx.fillStyle = '#2b2a26';
-    const lab = 'TOTAL', lw = ctx.measureText(lab).width + 14 * tz;
+    const lab = pv.build ? 'BÂTIR' : 'TOTAL', lw = ctx.measureText(lab).width + 14 * tz;
     ctx.fillStyle = accent; ctx.beginPath(); ctx.roundRect(bx - lw / 2, by - bh / 2 - 15 * tz, lw, 16 * tz, 8 * tz); ctx.fill();
     ctx.fillStyle = pv.total > 0 ? '#2b2a26' : '#d95f4b'; ctx.fillText(lab, bx, by - bh / 2 - 7 * tz);
     ctx.restore();

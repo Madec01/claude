@@ -26,6 +26,16 @@
 | 12 | **Tournée finale** | À la fin d'une île : zoom arrière, régions illuminées de la plus petite à la plus grande avec libellé et faune, sentiers et rivières qui scintillent, compteur, balayage des quatre saisons, nom de l'île et étoiles ; un toucher passe au bilan. | **fait** |
 | 13 | **Recalibrage des étoiles** | Seuils mesurés avec un bot plus fort (≈ 55 / 80 / 100 % de son score ; la troisième étoile exige aussi tous les vœux), affichés dans le HUD. | **fait** |
 
+## Lot 4 (idées du commanditaire : niveaux, superposition, ouvrages)
+
+| # | Idée | Décision de design | Statut |
+|---|---|---|---|
+| 14 | **Bâtir : niveaux 2** | Poser une tuile sur une tuile de même famille (1 souffle) : bords +1, compte double dans sa région, décor plus dense ; retour d'une tuile si région close, en saison ou bien entourée (une fois par saison). Île 6. | **fait** |
+| 15 | **Grille effacée entre tuiles posées** | Fondus le long des bords entre sols différents, roche nette, champs alignés ; contour au survol ; option « Grille discrète ». | à faire |
+| 16 | **Fusions et Cahier** | Port, rizière, ferme, fortin, cascade, grotte, lagune ; découverte = retour de tuile + rare ; Cahier des recettes. Île 8. | à faire |
+| 17 | **Ouvrages (tuiles bonus)** | Ruche, épouvantail, ponton, pont, nichoir, feu de camp, menhir, compost : bonne et mauvaise place, pénalité par saison tant que mal placés. Île 7. | à faire |
+| 18 | **Niveaux 3, Atelier, recalibrage** | Signatures par famille, condition « mûrir », Charpente et Semence forte, bot qui bâtit. Île 10. | à faire |
+
 ## À planifier plus tard
 
 | Idée | Note | Statut |

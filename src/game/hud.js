@@ -200,9 +200,9 @@ export class Hud {
   }
 
   /** Bouton « Poser ici » (tactile) : total de la pose armée, ou null pour le masquer. */
-  setPlaceButton(total) {
+  setPlaceButton(total, mode = 'place') {
     if (total === null || total === undefined) { if (!this.r.placeBtn.classList.contains('hidden')) this.r.placeBtn.classList.add('hidden'); return; }
-    const txt = `Poser ici · ${total >= 0 ? '+' : ''}${total}`;
+    const txt = `${mode === 'build' ? 'Bâtir ici' : 'Poser ici'} · ${total >= 0 ? '+' : ''}${total}`;
     if (this.last.placeTxt !== txt) { this.last.placeTxt = txt; this.r.placeBtn.textContent = txt; this.r.placeBtn.classList.toggle('neg', total < 0); }
     this.r.placeBtn.classList.remove('hidden');
   }

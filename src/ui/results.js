@@ -24,6 +24,7 @@ export function buildResults({ result, def, onContinue, onRetry, onMenu, newReco
       row('Tuiles posées', `${result.filled} / ${result.cells}`),
       row('Régions closes', result.stats.closed, result.stats.closed ? 'good' : ''),
       row('Plus grande région', result.stats.biggestRegion),
+      result.stats.built ? row('Tuiles bâties', `${result.stats.built}${result.stats.refunds ? ` (${result.stats.refunds} rendue${result.stats.refunds > 1 ? 's' : ''})` : ''}`, 'good') : null,
       result.stats.perfect ? row('Coups parfaits', result.stats.perfect, 'good') : null,
       result.stats.bestStreak >= 3 ? row('Meilleure série', `${result.stats.bestStreak} bons coups`, 'gold') : null,
       row('Animaux (au plus)', result.stats.faunaMax, result.stats.faunaMax ? 'good' : ''),

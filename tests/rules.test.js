@@ -4,7 +4,7 @@ import { Island } from '../src/game/island.js';
 import { ISLANDS, INFINITE, GARDEN } from '../src/data/islands.js';
 import { Board } from '../src/game/board.js';
 import { affinity } from '../src/data/tiles.js';
-import { preview } from '../src/game/rules.js';
+import { preview, previewBuild, canBuild } from '../src/game/rules.js';
 import { STORY } from '../src/data/story.js';
 import { playStrong } from './bot.js';
 
@@ -30,6 +30,26 @@ check(affinity('meadow', 'water') === 0, 'prairie-eau = 0');
   const pc = preview(b, 1, -1, { family: 'meadow', variant: 1 }, 'spring');
   check(pc.closes.some((c) => c.family === 'hamlet' && c.bonus === 2), 'fermer un hameau seul = prime 2');
   check(pc.closes.some((c) => c.family === 'meadow' && c.size === 6), 'la prairie de 6 se ferme aussi');
+}
+
+// --- bâtir : niveau 2, bords +1, région pondérée, retour de tuile
+{
+  const b = new Board(['0,0', '1,0', '0,1', '-1,1', '-1,0', '0,-1', '1,-1']);
+  b.place(0, 0, { family: 'hamlet', variant: 1 }); b.place(1, 0, { family: 'field', variant: 1 });
+  check(canBuild(b, 1, 0, { family: 'field', variant: 1 }), 'un champ se bâtit sur un champ');
+  check(!canBuild(b, 1, 0, { family: 'forest', variant: 1 }), 'pas de forêt sur un champ');
+  const pb = previewBuild(b, 1, 0, { family: 'field', variant: 1 }, 'spring');
+  check(pb.total === 1 && pb.level === 2, `bâtir un champ contre un hameau = +1 sur le bord (obtenu ${pb.total})`);
+  b.get(1, 0).level = 2;
+  const p2 = preview(b, 0, 1, { family: 'field', variant: 1 }, 'spring');
+  check(p2.edges.find((e) => e.q === 1 && e.r === 0).pts === 2, 'un champ posé contre un champ de niveau 2 : 1 + 1');
+  check(b.region(1, 0).size === 2, 'une tuile de niveau 2 compte double dans sa région');
+  const isl = new Island(ISLANDS[5], { build: true }); isl.breaths = 3;
+  const f = [...isl.board.tiles.values()].find((t) => !t.rare && t.family !== 'water' && t.family !== 'rock') || [...isl.board.tiles.values()][0];
+  isl.queue.list[0] = isl.queue.makeTile(f.family);
+  const before = isl.queue.list.length, res = isl.build(f.q, f.r);
+  check(!!res && isl.board.get(f.q, f.r).level === 2 && isl.breaths === 2 && isl.stats.built === 1, `bâtir sur l'île 6 (${f.family})`);
+  check(isl.queue.list.length >= before - 1, 'la file avance');
 }
 
 // --- histoire : chaque île a ses textes
