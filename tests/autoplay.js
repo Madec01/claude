@@ -58,6 +58,7 @@ function parseList(s) {
         if (!isl) return { gone: true };
         if (isl.ended) return { ended: true, placements: isl.placements, score: isl.score };
         // bot glouton à un coup, avec une petite prime aux fermetures et aux rivières
+        if (isl.current && isl.current.work) { let bt = null, bsw = -Infinity; for (const t of isl.board.tiles.values()) { if (!isl.canBuild(t.q, t.r)) continue; const pv = isl.previewBuild(t.q, t.r); if (pv && pv.total > bsw) { bsw = pv.total; bt = t; } } if (bt && (bsw > 0 || !isl.canDiscard())) { isl.build(bt.q, bt.r); return { built: true }; } if (isl.canDiscard()) { isl.discard(); return { discarded: true }; } return { stuck: true }; }
         let best = null, bs = -Infinity;
         for (const c of isl.board.legalCells()) {
           const pv = isl.preview(c.q, c.r); if (!pv) continue;
@@ -75,6 +76,7 @@ function parseList(s) {
       if (st.gone) break;
       if (st.ended) { await page.waitForTimeout(1500); break; }
       if (st.swapped) continue;
+      if (st.built || st.discarded) continue;
       if (st.stuck) { await page.evaluate(() => window.CS.scenes.current.isl.finish('full')); await page.waitForTimeout(1500); break; }
       if (st.x < 0 || st.x > 1280 || st.y < 0 || st.y > 720) { await page.evaluate(() => { const sc = window.CS.scenes.current; sc.cam.fit(sc.isl.board.mask, { immediate: true }); }); continue; }
       await page.mouse.move(st.x, st.y); await page.waitForTimeout(PAUSE / 2); await page.mouse.click(st.x, st.y); await page.waitForTimeout(PAUSE);

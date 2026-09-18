@@ -7,7 +7,10 @@ import { RARE } from '../src/data/tiles.js';
 let fails = 0; const check = (ok, m) => { if (!ok) { fails++; console.log('KO', m); } else console.log('OK', m); };
 for (const r of RARE) check(!!STORY.tiles[r], `texte de la tuile rare ${r}`);
 for (const k of Object.keys(STORY.weather)) check(!!STORY.weather[k].rule, `texte météo ${k}`);
-const greedy = (isl) => { let best = null, bs = -Infinity; for (const c of isl.board.legalCells()) { const pv = isl.preview(c.q, c.r); if (pv && pv.total > bs) { bs = pv.total; best = c; } } return best; };
+const greedy = (isl) => {
+  // ouvrage en main : on le pose sur la meilleure tuile (ou on le défausse), puis on continue avec la tuile suivante
+  for (let g = 0; g < 4 && isl.current && isl.current.work && !isl.ended; g++) { let bt = null, bs = -Infinity; for (const t of isl.board.tiles.values()) { if (!isl.canBuild(t.q, t.r)) continue; const pv = isl.previewBuild(t.q, t.r); if (pv && pv.total > bs) { bs = pv.total; bt = t; } } if (bt) isl.build(bt.q, bt.r); else if (isl.canDiscard()) isl.discard(); else break; }
+  let best = null, bs = -Infinity; for (const c of isl.board.legalCells()) { const pv = isl.preview(c.q, c.r); if (pv && pv.total > bs) { bs = pv.total; best = c; } } return best; };
 // île 12 : injecter chaque tuile rare et la poser
 const isl = new Island(getIsland(12), { upgrades: {} });
 const events = []; isl.on((e) => events.push(e));

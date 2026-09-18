@@ -240,9 +240,9 @@ class IslandScene {
     this.def = def;
     const upgrades = Save.campaign.upgrades;
     const mech = def.infinite || def.garden ? mechanicsUpTo(99) : mechanicsUpTo(def.id);
-    if (Game.testMode) for (const m of ['river', 'season', 'fauna', 'wish', 'breath', 'rare', 'build', 'fuse']) mech.add(m);
+    if (Game.testMode) for (const m of ['river', 'season', 'fauna', 'wish', 'breath', 'rare', 'build', 'fuse', 'work']) mech.add(m);
     this.mech = mech;
-    const isl = new Island(def, { upgrades, build: Game.testMode || mech.has('build'), fuse: Game.testMode || mech.has('fuse'), known: new Set(Save.data.campaign.recipes || []) });
+    const isl = new Island(def, { upgrades, build: Game.testMode || mech.has('build'), fuse: Game.testMode || mech.has('fuse'), work: Game.testMode || mech.has('work'), known: new Set(Save.data.campaign.recipes || []) });
     this.isl = isl;
     this.cam = new Camera(); this.cam.fit(isl.board.mask, { ...uiMargins('island'), immediate: true });
     this.armed = null;   // tactile : case « armée » (aperçu affiché) en attente d'une seconde touche
@@ -355,7 +355,12 @@ class IslandScene {
       let i = 0;
       for (const ed of e.result.edges) { const nw = toWorld(ed.q, ed.r); const mx = (w.x + nw.x) / 2, my = (w.y + nw.y) / 2; setTimeout(() => { fx.floatText(mx, my, `${ed.pts > 0 ? '+' : ''}${ed.pts}`, ed.pts > 0 ? '#2f9e8f' : '#d95f4b', 18, 1.1); if (ed.pts > 0) AudioSys.play(`point_${Math.min(8, i + 1)}`, { volume: 0.45 }); }, 90 * i); i++; }
       const fam = (STORY.tiles[e.family] || {}).name || e.family;
-      if (e.kind === 'fuse') {
+      if (e.kind === 'work') {
+        const wt = (e.good ? STORY.work.good : STORY.work.bad)[Math.floor(Math.random() * 3)];
+        setTimeout(() => { fx.floatText(w.x, w.y - 44, `${wt} ${e.result.total >= 0 ? '+' : ''}${e.result.total}`, e.good ? '#2f9e8f' : '#d95f4b', 24, 1.8); if (e.good) { fx.closeBurst(w.x, w.y - 10, 3); AudioSys.play('point_8', { volume: 0.5 }); } else AudioSys.play('point_bad', { volume: 0.5 }); }, 60);
+        this.hud.notify(`${fam} : ${e.good ? 'bien placé' : 'mal placé, pénalité à chaque saison tant que le voisinage ne change pas'} (${e.result.total >= 0 ? '+' : ''}${e.result.total})`, e.good ? 'gold' : 'warn');
+        this.tutorial.onEvent('work');
+      } else if (e.kind === 'fuse') {
         const nm = (STORY.tiles[e.recipe] || {}).name || e.recipe; const ft = STORY.fusion.done[Math.floor(Math.random() * STORY.fusion.done.length)];
         setTimeout(() => { fx.floatText(w.x, w.y - 44, `${ft} ${nm} ${e.result.total >= 0 ? '+' : ''}${e.result.total}`, '#e0a33a', 26, 1.8); fx.closeBurst(w.x, w.y - 10, 6); this.shake.trigger(0.1); AudioSys.play('region_big', { volume: 0.6 }); }, 90 * i + 60);
         if (e.first) { setTimeout(() => { fx.floatText(w.x, w.y - 84, STORY.fusion.discovery.replace('{n}', nm), '#2f9e8f', 22, 2.2); AudioSys.play('star_1', { volume: 0.6 }); }, 90 * i + 600); if (!Save.data.campaign.recipes.includes(e.recipe)) { Save.data.campaign.recipes.push(e.recipe); Save.save(); } }
@@ -390,7 +395,7 @@ class IslandScene {
       setTimeout(() => this.hud.notify(`Règle : ${rl ? rl.rule : s.rule}`, 'info'), 600);
       if (e.pts) setTimeout(() => this.hud.notify(`Saison : +${e.pts} points${e.faunaBonus ? `, +${e.faunaBonus} souffle${e.faunaBonus > 1 ? 's' : ''} (faune)` : ''}${e.links ? `, ${e.links} sentier${e.links > 1 ? 's' : ''}` : ''}`, 'good'), 900);
       let i = 0;
-      for (const ev of e.events) { if (!ev.pts) continue; const w = toWorld(ev.q, ev.r); setTimeout(() => fx.floatText(w.x, w.y - 10, `+${ev.pts}`, '#e0a33a', 18, 1.2), 400 + 70 * i++); }
+      for (const ev of e.events) { if (!ev.pts) continue; const w = toWorld(ev.q, ev.r); setTimeout(() => fx.floatText(w.x, w.y - 10, `${ev.pts > 0 ? '+' : ''}${ev.pts}${ev.label ? ' ' + ev.label : ''}`, ev.pts > 0 ? '#e0a33a' : '#d95f4b', 18, 1.2), 400 + 70 * i++); }
       this.tutorial.onEvent('season');
       this.updateAmbience();
     } else if (e.type === 'fauna') {
@@ -534,7 +539,7 @@ class IslandScene {
     this.cam.update(dt);
     // survol
     if (!isl.ended && input.lastPointer === 'touch' && !this.budMode) {
-      if (this.armed && this.armed.build && isl.canBuild(this.armed.q, this.armed.r)) { const pv = isl.previewBuild(this.armed.q, this.armed.r); this.renderer.hover = { q: this.armed.q, r: this.armed.r, preview: pv }; this.hud.setPlaceButton(pv ? pv.total : null, pv && pv.fuse ? 'fuse' : 'build'); }
+      if (this.armed && this.armed.build && isl.canBuild(this.armed.q, this.armed.r)) { const pv = isl.previewBuild(this.armed.q, this.armed.r); this.renderer.hover = { q: this.armed.q, r: this.armed.r, preview: pv }; this.hud.setPlaceButton(pv ? pv.total : null, pv && pv.work ? 'work' : pv && pv.fuse ? 'fuse' : 'build'); }
       else if (this.armed && !this.armed.build && isl.canPlace(this.armed.q, this.armed.r)) { const pv = isl.preview(this.armed.q, this.armed.r); this.renderer.hover = { q: this.armed.q, r: this.armed.r, preview: pv }; this.hud.setPlaceButton(pv ? pv.total : null); }
       else { this.armed = null; this.renderer.hover = null; this.hud.setPlaceButton(null); }
     } else if (!isl.ended) {

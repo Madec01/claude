@@ -8,6 +8,7 @@ export const UPGRADES = [
   { id: 'refuge', name: 'Refuge', icon: 'icon_tree', desc: 'Chaque animal présent rapporte plus de points à chaque changement de saison.', levels: ['Normal', '+1 point', '+2 points'], costs: [5, 9], requires: 'fauna' },
   { id: 'source', name: 'Source', icon: 'icon_drop', desc: 'Chaque tuile de rivière posée rapporte un point de plus.', levels: ['Normale', '+1 point'], costs: [6], requires: 'river' },
   { id: 'almanac', name: 'Almanach', icon: 'icon_save', desc: 'Des graines supplémentaires à chaque île terminée, même rejouée.', levels: ['Aucune', '+1 graine', '+2 graines'], costs: [4, 8] },
+  { id: 'talisman', name: 'Talisman', icon: 'icon_star', desc: 'Commencer chaque île avec un ouvrage dans la file.', levels: ['Aucun', '1 ouvrage'], costs: [7], requires: 'work' },
   { id: 'memory', name: 'Seconde chance', icon: 'icon_return', desc: 'Le souvenir (annuler) coûte moins de souffles.', levels: ['4 souffles', '3 souffles', '2 souffles'], costs: [4, 8], requires: 'breath' },
 ];
 

@@ -5,6 +5,7 @@ import { FAMILY_COLORS, FAMILIES, affinity, RARE_AS } from '../data/tiles.js';
 import { Save } from '../core/save.js';
 import { deadlineLabel } from './wishes.js';
 import { Assets } from '../core/assets.js';
+import { WORK_DECOR, spriteKey } from './decor.js';
 
 const icon = (name, cls = '') => `<img class="hud-icon ${cls}" src="assets/img/ui/${name}.png" alt="">`;
 const SEASON_ICON = { spring: 'icon_leaf', summer: 'icon_sun', autumn: 'icon_wind', winter: 'icon_snow' };
@@ -79,7 +80,8 @@ export class Hud {
     const alt = Assets.keysStarting(`${t.family}_`);
     const k = Assets.has(seasonKey) ? seasonKey : (alt.find((x) => x.endsWith(`_${this.isl.season}`)) || alt[0]);
     const name = (STORY.tiles[t.family] || {}).name || t.family;
-    const src = k ? `assets/img/${Assets.manifest().images[k].file}` : '';
+    let src = k ? `assets/img/${Assets.manifest().images[k].file}` : '';
+    if (t.work) { const d = (WORK_DECOR[t.family] || [])[0]; const sk = d ? spriteKey(d.tpl, this.isl.season) : null; const im = sk && Assets.manifest().images[sk]; src = im ? `assets/img/${im.file}` : ''; }
     const help = cls === 'current' ? '<button class="q-help" data-ref="qHelp" title="Fiche de la tuile (H)">?</button>' : '';
     return `<div class="qtile ${cls} ${t.rare ? 'rare' : ''}" style="--fam:${FAMILY_COLORS[t.family] || '#999'}" title="${name}${t.rare ? ' (rare)' : ''} — ${(STORY.tiles[t.family] || {}).blurb || ''}">${src ? `<img src="${src}" alt="${name}">` : ''}<span class="qname">${name}</span>${help}</div>`;
   }
@@ -110,12 +112,12 @@ export class Hud {
     this.r.tileHelp.classList.toggle('hidden', !on);
     if (!on) return;
     const st = STORY.tiles[t.family] || { name: t.family, blurb: '' };
-    this.r.thName.textContent = st.name + (t.rare ? ' (rare)' : ''); this.r.thBlurb.textContent = st.blurb || '';
+    this.r.thName.textContent = st.name + (t.rare ? ' (rare)' : t.work ? ' (ouvrage)' : ''); this.r.thBlurb.textContent = st.blurb || '';
     const name = (f) => (STORY.tiles[f] || {}).name || f;
     const good2 = [], good1 = [], bad = [];
-    for (const g of FAMILIES) { if (this.isl.def.weights && !(this.isl.def.weights[g] > 0) && !this.isl.garden) continue; const v = affinity(t.family, g); if (v >= 2) good2.push(g); else if (v === 1) good1.push(g); else if (v < 0) bad.push(g); }
+    for (const g of FAMILIES) { if (t.work) break; if (this.isl.def.weights && !(this.isl.def.weights[g] > 0) && !this.isl.garden) continue; const v = affinity(t.family, g); if (v >= 2) good2.push(g); else if (v === 1) good1.push(g); else if (v < 0) bad.push(g); }
     const row = (lab, cls, list) => (list.length ? `<div><b>${lab}</b>${list.map((g) => `<span class="${cls}">${name(g)}</span>`).join('')}</div>` : '');
-    this.r.thPairs.innerHTML = row('+2', 'p2', good2) + row('+1', 'p1', good1) + row('−1', 'pm', bad) + (t.rare && RARE_AS[t.family] && RARE_AS[t.family].length ? `<div><b>=</b><span class="p0">compte comme ${RARE_AS[t.family].map(name).join(', ')}</span></div>` : '');
+    this.r.thPairs.innerHTML = t.work ? '<div><b>↑</b><span class="p0">se pose sur une tuile posée</span></div>' : row('+2', 'p2', good2) + row('+1', 'p1', good1) + row('−1', 'pm', bad) + (t.rare && RARE_AS[t.family] && RARE_AS[t.family].length ? `<div><b>=</b><span class="p0">compte comme ${RARE_AS[t.family].map(name).join(', ')}</span></div>` : '');
   }
 
   renderQueue() {
@@ -202,7 +204,7 @@ export class Hud {
   /** Bouton « Poser ici » (tactile) : total de la pose armée, ou null pour le masquer. */
   setPlaceButton(total, mode = 'place') {
     if (total === null || total === undefined) { if (!this.r.placeBtn.classList.contains('hidden')) this.r.placeBtn.classList.add('hidden'); return; }
-    const txt = `${mode === 'fuse' ? 'Fusionner ici' : mode === 'build' ? 'Bâtir ici' : 'Poser ici'} · ${total >= 0 ? '+' : ''}${total}`;
+    const txt = `${mode === 'work' ? 'Poser l’ouvrage' : mode === 'fuse' ? 'Fusionner ici' : mode === 'build' ? 'Bâtir ici' : 'Poser ici'} · ${total >= 0 ? '+' : ''}${total}`;
     if (this.last.placeTxt !== txt) { this.last.placeTxt = txt; this.r.placeBtn.textContent = txt; this.r.placeBtn.classList.toggle('neg', total < 0); }
     this.r.placeBtn.classList.remove('hidden');
   }

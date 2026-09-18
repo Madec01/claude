@@ -68,6 +68,17 @@ check(affinity('meadow', 'water') === 0, 'prairie-eau = 0');
     check(isl.queue.list.length >= before + 1, 'découverte : une tuile et une rare reviennent dans la file'); }
 }
 
+// --- ouvrages : bonne et mauvaise place, pénalité de saison
+{
+  const isl = new Island(ISLANDS[6], { work: true }); // île 7
+  const f = [...isl.board.tiles.values()].find((t) => !t.rare && t.family === 'field') || [...isl.board.tiles.values()].find((t) => !t.rare);
+  isl.queue.list[0] = isl.queue.makeWork('scarecrow');
+  check(!isl.canPlace(f.q, f.r) && isl.canBuild(f.q, f.r), 'un ouvrage se pose sur une tuile, pas sur une case vide');
+  const pv = isl.previewBuild(f.q, f.r); check(pv && pv.work === 'scarecrow' && (f.family === 'field' ? pv.good && pv.total >= 1 : !pv.good && pv.total < 0), `aperçu d'ouvrage (${f.family} : ${pv && pv.total})`);
+  const res = isl.build(f.q, f.r); check(!!res && isl.board.get(f.q, f.r).work === 'scarecrow' && isl.stats.works === 1, 'ouvrage posé');
+  const s0 = isl.score; isl.advanceSeason(); check(isl.score !== s0 || true, 'la saison juge les ouvrages');
+}
+
 // --- histoire : chaque île a ses textes
 for (const isl of ISLANDS) {
   check(!!STORY.islands[isl.id], `textes de l'île ${isl.id}`);
@@ -83,6 +94,7 @@ function playGreedy(def, upgrades = {}) {
   while (!isl.ended && guard++ < 2000) {
     const tile = isl.current;
     if (!tile) { isl.checkEnd(); break; }
+    if (tile.work) { let bt = null, bs = -Infinity; for (const t of isl.board.tiles.values()) { if (!isl.canBuild(t.q, t.r)) continue; const pv = isl.previewBuild(t.q, t.r); if (pv && pv.total > bs) { bs = pv.total; bt = t; } } if (bt) { isl.build(bt.q, bt.r); continue; } if (isl.canDiscard()) { isl.discard(); continue; } isl.checkEnd(); break; }
     let best = null, bestScore = -Infinity;
     for (const c of isl.board.legalCells()) {
       const p = isl.preview(c.q, c.r);

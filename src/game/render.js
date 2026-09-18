@@ -67,6 +67,7 @@ export class IslandRenderer {
     this.drawHover(ctx);
     this.drawRings(ctx);
     this.drawFauna(ctx, dt);
+    this.drawWorkMarks(ctx);
     this.particlesWorld(ctx, 1);
     this.drawTexts(ctx);
     this.drawWeather(ctx, dt);
@@ -514,8 +515,10 @@ export class IslandRenderer {
     }
     for (let i = 0; i < pv.base.length; i++) { const bs = pv.base[i]; this.pill(ctx, c.x, c.y + (30 + i * 22) * z, `+${bs.pts} ${bs.label}`, '#5aa7d6'); }
     for (const cl of pv.closes) this.pill(ctx, c.x, c.y - (64) * z, `région close +${cl.bonus}`, '#e0a33a');
-    if (pv.build && pv.fuse) { const nm = (STORY.tiles[pv.fuse.id] || {}).name || pv.fuse.id; this.pill(ctx, c.x, c.y + 30 * z, `${nm} · ${pv.cost} souffle`, '#2b2a26'); this.pill(ctx, c.x, c.y + 52 * z, pv.first ? '★ recette nouvelle : rend une tuile et une rare' : 'recette connue', pv.first ? '#e0a33a' : '#8a867c'); }
-    else if (pv.build) { const ok = pv.refund && pv.refund.ok; this.pill(ctx, c.x, c.y + 30 * z, `niveau ${pv.level} · ${pv.cost} souffle`, '#2b2a26'); this.pill(ctx, c.x, c.y + 52 * z, ok ? '↩ rend une tuile' : 'sans retour', ok ? '#2f9e8f' : '#8a867c'); }
+    const py = (30 + pv.base.length * 22) * z;   // sous les pastilles de base
+    if (pv.work) { const nm = (STORY.tiles[pv.work] || {}).name || pv.work; this.pill(ctx, c.x, c.y + py, nm, '#2b2a26'); this.pill(ctx, c.x, c.y + py + 22 * z, pv.good ? '✓ bonne place' : '✗ mauvaise place : pénalité chaque saison', pv.good ? '#2f9e8f' : '#d95f4b'); }
+    else if (pv.build && pv.fuse) { const nm = (STORY.tiles[pv.fuse.id] || {}).name || pv.fuse.id; this.pill(ctx, c.x, c.y + py, `${nm} · ${pv.cost} souffle`, '#2b2a26'); this.pill(ctx, c.x, c.y + py + 22 * z, pv.first ? '★ recette nouvelle : rend une tuile et une rare' : 'recette connue', pv.first ? '#e0a33a' : '#8a867c'); }
+    else if (pv.build) { const ok = pv.refund && pv.refund.ok; this.pill(ctx, c.x, c.y + py, `niveau ${pv.level} · ${pv.cost} souffle`, '#2b2a26'); this.pill(ctx, c.x, c.y + py + 22 * z, ok ? '↩ rend une tuile' : 'sans retour', ok ? '#2f9e8f' : '#8a867c'); }
     // total : badge nettement plus grand et plus contrasté que les pastilles de bord, avec son libellé
     const tz = clamp(z, 0.8, 1.3);
     const txt = `${pv.total >= 0 ? '+' : ''}${pv.total}`;
@@ -527,14 +530,14 @@ export class IslandRenderer {
     ctx.strokeStyle = accent; ctx.lineWidth = 2.5 * tz; ctx.beginPath(); ctx.roundRect(bx - bw / 2, by - bh / 2, bw, bh, bh / 2); ctx.stroke();
     ctx.fillStyle = '#fff'; ctx.fillText(txt, bx, by + 1);
     ctx.font = `700 ${Math.round(11 * tz)}px Quicksand, sans-serif`; ctx.fillStyle = '#2b2a26';
-    const lab = pv.fuse ? 'FUSION' : pv.build ? 'BÂTIR' : 'TOTAL', lw = ctx.measureText(lab).width + 14 * tz;
+    const lab = pv.work ? 'OUVRAGE' : pv.fuse ? 'FUSION' : pv.build ? 'BÂTIR' : 'TOTAL', lw = ctx.measureText(lab).width + 14 * tz;
     ctx.fillStyle = accent; ctx.beginPath(); ctx.roundRect(bx - lw / 2, by - bh / 2 - 15 * tz, lw, 16 * tz, 8 * tz); ctx.fill();
     ctx.fillStyle = pv.total > 0 ? '#2b2a26' : '#d95f4b'; ctx.fillText(lab, bx, by - bh / 2 - 7 * tz);
     ctx.restore();
   }
 
   pill(ctx, x, y, text, bg, fg = '#fff') {
-    const w = ctx.measureText(text).width + 14, h = parseInt(ctx.font, 10) + 8;
+    const fm = /(\d+(?:\.\d+)?)px/.exec(ctx.font); const w = ctx.measureText(text).width + 14, h = (fm ? parseFloat(fm[1]) : 14) + 8;
     ctx.fillStyle = bg; ctx.beginPath(); ctx.roundRect(x - w / 2, y - h / 2, w, h, h / 2); ctx.fill();
     ctx.fillStyle = fg; ctx.fillText(text, x, y + 1);
   }
@@ -543,6 +546,17 @@ export class IslandRenderer {
     const pts = corners(cx, cy, SIZE * this.cam.zoom * 0.97);
     ctx.save(); ctx.globalAlpha = alpha; ctx.strokeStyle = color; ctx.lineWidth = 3 * this.cam.zoom + 1; ctx.lineJoin = 'round';
     ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]); for (let i = 1; i < 6; i++) ctx.lineTo(pts[i][0], pts[i][1]); ctx.closePath(); ctx.stroke(); ctx.restore();
+  }
+
+  /** Ouvrages mal placés : un marqueur rouge au-dessus de la tuile (la pénalité court tant que le voisinage ne change pas). */
+  drawWorkMarks(ctx) {
+    const cam = this.cam, z = cam.zoom; let any = false;
+    for (const t of this.isl.board.tiles.values()) {
+      if (!t.work || !t.workBad) continue; const w = toWorld(t.q, t.r); const c = cam.toScreen(w.x, w.y - 44); if (c.x < -40 || c.x > STAGE.W + 40 || c.y < -40 || c.y > STAGE.H + 40) continue;
+      if (!any) { ctx.save(); ctx.font = `800 ${Math.round(13 * clamp(z, 0.8, 1.3))}px Quicksand, sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; any = true; }
+      const bob = Math.sin(this.time * 3 + t.q) * 2 * z; this.pill(ctx, c.x, c.y + bob, '!', '#d95f4b');
+    }
+    if (any) ctx.restore();
   }
 
   drawRings(ctx) {

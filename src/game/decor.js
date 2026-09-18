@@ -20,6 +20,18 @@ export const FUSION_DECOR = {
   lagoon: [{ tpl: 'obj_rockBrown_small{w}', dx: -30, dy: 32 }, { tpl: 'sea_wave_2', dx: 8, dy: 6, wave: true }, { tpl: 'obj_bushGrass_dry', dx: 30, dy: 30 }],
 };
 
+/** Décor des ouvrages posés sur une tuile. */
+export const WORK_DECOR = {
+  hive:      [{ tpl: 'obj_box2', dx: 18, dy: 20, scale: 0.7 }, { tpl: 'obj_flowerYellow', dx: 32, dy: 30 }, { tpl: 'obj_flowerWhite', dx: 6, dy: 30 }],
+  scarecrow: [{ tpl: 'obj_pole', dx: 0, dy: 18, scale: 0.9 }, { tpl: 'obj_hay', dx: 0, dy: 26, scale: 0.6 }],
+  pier:      [{ tpl: 'obj_log', dx: -10, dy: 18 }, { tpl: 'obj_log', dx: 10, dy: 26 }, { tpl: 'obj_basket', dx: -4, dy: 12, scale: 0.8 }],
+  bridge:    [{ tpl: 'obj_wall_small', dx: 0, dy: 16, scale: 1.25 }],
+  nestbox:   [{ tpl: 'obj_tinyBuilding', dx: 24, dy: 4, scale: 0.55 }],
+  campfire:  [{ tpl: 'obj_fire', dx: 0, dy: 22 }, { tpl: 'obj_log', dx: 22, dy: 30, scale: 0.8 }],
+  menhir:    [{ tpl: 'obj_tombstone1', dx: 0, dy: 26, scale: 1.5 }],
+  compost:   [{ tpl: 'obj_logPile', dx: 0, dy: 24, scale: 0.9 }, { tpl: 'obj_hay', dx: 22, dy: 30, scale: 0.7 }],
+};
+
 export function groundOf(t) {
   if (!t) return null;
   if (t.fusion) return FUSION_GROUND[t.family] || 'water';
@@ -101,6 +113,7 @@ export class Decor {
       if (t.fusion) { for (const o of FUSION_DECOR[t.family] || []) add({ x: c.x + o.dx, y: c.y + o.dy, tpl: o.tpl, cell: key(t.q, t.r), scale: o.scale || 1, alpha: o.alpha || 1, seasons: o.seasons, wave: o.wave }); continue; }
       add({ x: c.x, y: c.y + 26, tile: t, cell: key(t.q, t.r), composed: true });
     }
+    for (const t of board.tiles.values()) { if (!t.work) continue; const c = toWorld(t.q, t.r); for (const o of WORK_DECOR[t.work] || []) add({ x: c.x + o.dx, y: c.y + o.dy, tpl: o.tpl, cell: key(t.q, t.r), scale: o.scale || 1, alpha: 1 }); }
 
     for (const family of ['forest', 'meadow', 'field', 'hamlet', 'orchard', 'water', 'marsh', 'rock', 'sand', 'hill', 'heath']) {
       for (const reg of board.regions(family)) {

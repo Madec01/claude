@@ -56,6 +56,14 @@ export function playStrong(def, o = {}) {
   while (!isl.ended && guard++ < 3000) {
     const tile = isl.current;
     if (!tile) { isl.checkEnd(); break; }
+    if (tile.work) {
+      // ouvrage : la meilleure tuile d'accueil, sinon défausse, sinon la moins mauvaise
+      let bt = null, bs = -Infinity; for (const t of isl.board.tiles.values()) { if (!isl.canBuild(t.q, t.r)) continue; const pv = isl.previewBuild(t.q, t.r); if (pv && pv.total > bs) { bs = pv.total; bt = t; } }
+      if (bt && (bs > 0 || !isl.canDiscard())) { isl.build(bt.q, bt.r); continue; }
+      if (isl.canDiscard()) { isl.discard(); continue; }
+      if (bt) { isl.build(bt.q, bt.r); continue; }
+      isl.checkEnd(); break;
+    }
     let mv = bestMove(isl, tile, rng);
     if (!mv.cell) { isl.checkEnd(); break; }
     // souffles : échanger avec une meilleure tuile visible, défausser une tuile sans avenir, bourgeonner un pré entouré de forêt

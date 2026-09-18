@@ -34,6 +34,9 @@ export const FUSION_BY_ID = Object.fromEntries(FUSIONS.map((f) => [f.id, f]));
 /** Recette pour deux familles de base (ordre indifférent), ou null. */
 export function fusionFor(fa, fb) { return FUSIONS.find((f) => (f.a === fa && f.b === fb) || (f.a === fb && f.b === fa)) || null; }
 
+/** Ouvrages : tuiles bonus qui se posent SUR une tuile existante (une par tuile) ; bonne ou mauvaise place, jugée à chaque saison. */
+export const WORKS = ['hive', 'scarecrow', 'pier', 'bridge', 'nestbox', 'campfire', 'menhir', 'compost'];
+
 /** Table des affinités : clé "a|b" (ordre indifférent) → points par bord partagé. */
 const PAIRS = {
   'meadow|meadow': 1, 'forest|forest': 1, 'field|field': 1, 'hamlet|hamlet': 2, 'orchard|orchard': 1, 'water|water': 1, 'marsh|marsh': 1, 'rock|rock': 1, 'sand|sand': 1,
@@ -66,4 +69,4 @@ export const PAIR_LABELS = {
 };
 
 /** Icônes d'UI par famille (Game Icons) et couleurs d'accent. */
-export const FAMILY_COLORS = { port: '#4f8fbf', paddy: '#7fb26a', farm: '#c9903a', fort: '#8a8f96', falls: '#6fb2d8', cave: '#7a7f86', lagoon: '#7fcbe0', meadow: '#7cc46f', forest: '#3f8a3d', field: '#d8a33c', hamlet: '#c96b4a', orchard: '#e0785a', water: '#5aa7d6', marsh: '#7ea36b', rock: '#8f9aa3', sand: '#e6d29a', mill: '#d8a33c', chapel: '#c96b4a', watchtower: '#8f9aa3', well: '#5aa7d6', camp: '#e0a33a', ruins: '#8f9aa3', hill: '#9bb56a', heath: '#a67bb8', granary: '#d8a33c', fountain: '#5aa7d6', market: '#c96b4a', fete: '#e0a33a', restore: '#8f9aa3', tavern: '#c96b4a', trough: '#7cc46f', archway: '#c96b4a', mine: '#8f9aa3', oven: '#c96b4a' };
+export const FAMILY_COLORS = { hive: '#e0a33a', scarecrow: '#c9903a', pier: '#8a6a44', bridge: '#8a8f96', nestbox: '#7a5a3a', campfire: '#d95f4b', menhir: '#6f747a', compost: '#7a6a3a', port: '#4f8fbf', paddy: '#7fb26a', farm: '#c9903a', fort: '#8a8f96', falls: '#6fb2d8', cave: '#7a7f86', lagoon: '#7fcbe0', meadow: '#7cc46f', forest: '#3f8a3d', field: '#d8a33c', hamlet: '#c96b4a', orchard: '#e0785a', water: '#5aa7d6', marsh: '#7ea36b', rock: '#8f9aa3', sand: '#e6d29a', mill: '#d8a33c', chapel: '#c96b4a', watchtower: '#8f9aa3', well: '#5aa7d6', camp: '#e0a33a', ruins: '#8f9aa3', hill: '#9bb56a', heath: '#a67bb8', granary: '#d8a33c', fountain: '#5aa7d6', market: '#c96b4a', fete: '#e0a33a', restore: '#8f9aa3', tavern: '#c96b4a', trough: '#7cc46f', archway: '#c96b4a', mine: '#8f9aa3', oven: '#c96b4a' };

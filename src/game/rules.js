@@ -180,3 +180,33 @@ export function previewFuse(board, q, r, tile, season, mods = {}) {
   const base = [{ pts: BALANCE.fusion.bonus, label: 'fusion' }]; total += BALANCE.fusion.bonus;
   return { total, edges, closes, river: null, base, build: true, fuse: recipe, level: 1 };
 }
+
+/**
+ * Ouvrage posé sur la tuile `t` : bonne ou mauvaise place, et points de la saison en cours.
+ * @returns {{ good: boolean, pts: number, label: string }}
+ */
+export function evalWork(board, t, season, rule = null) {
+  const id = t.work; if (!id) return { good: false, pts: 0, label: '' };
+  const nbs = neighbors(t.q, t.r).map(([a, b]) => board.get(a, b)).filter(Boolean);
+  const count = (fam) => nbs.filter((n) => Board.isFamily(n, fam)).length;
+  const is = (fam) => Board.isFamily(t, fam);
+  const regionSize = (fam) => { const reg = board.region(t.q, t.r, fam); return reg ? reg.size : 0; };
+  switch (id) {
+    case 'hive': { const fl = count('orchard') + count('meadow'); if ((is('orchard') || is('meadow')) && fl > 0 && count('marsh') === 0) return { good: true, pts: Math.min(3, fl) + (season === 'spring' ? 1 : 0), label: 'butine' }; return { good: false, pts: -2, label: 'sans fleurs' }; }
+    case 'scarecrow': if (is('field')) return { good: true, pts: 1 + Math.min(3, count('field')), label: 'garde les champs' }; return { good: false, pts: -2, label: 'hors champ' };
+    case 'pier': if (is('water') && count('hamlet') > 0) return { good: true, pts: 3, label: 'à quai' }; return { good: false, pts: -2, label: 'dérive' };
+    case 'bridge': if (is('water') && count('hamlet') >= 2) return { good: true, pts: 3, label: 'relie' }; return { good: false, pts: -1, label: 'ne mène nulle part' };
+    case 'nestbox': if (is('forest') && regionSize('forest') >= 3) return { good: true, pts: 2, label: 'habité' }; return { good: false, pts: -2, label: 'vide' };
+    case 'campfire': { if (rule === 'feux' && season === 'summer') return { good: false, pts: -5, label: 'brûle' }; const h = count('hamlet'); if ((is('forest') || is('meadow')) && h > 0) return { good: true, pts: 1 + Math.min(2, h) + (season === 'winter' ? 1 : 0), label: 'veillée' }; return { good: false, pts: -2, label: 'abandonné' }; }
+    case 'menhir': if (is('rock') || is('hill')) return { good: true, pts: Math.min(4, Math.max(regionSize('rock'), regionSize('hill'))), label: 'dressé' }; return { good: false, pts: -1, label: 'couché' };
+    case 'compost': { const f = count('field') + count('orchard'); if ((is('field') || is('orchard')) && count('hamlet') === 0) return { good: true, pts: Math.max(1, Math.min(3, f)), label: 'nourrit' }; return { good: false, pts: -2, label: 'ça sent' }; }
+    default: return { good: false, pts: 0, label: '' };
+  }
+}
+
+/** Aperçu de la pose d'un ouvrage sur la tuile (q, r) : ce qu'il rapporterait cette saison. */
+export function previewWork(board, q, r, tile, season, mods = {}) {
+  const t = board.get(q, r); if (!t || t.rare || t.work || !tile || !tile.work) return null;
+  const r0 = evalWork(board, { ...t, work: tile.family }, season, mods.rule || null);
+  return { total: r0.pts, edges: [], closes: [], river: null, base: [{ pts: r0.pts, label: r0.label }], build: true, work: tile.family, good: r0.good, level: t.level || 1 };
+}

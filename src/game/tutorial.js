@@ -15,6 +15,7 @@ const RULES = {
   heath:    { when: (i) => i.placements >= 1, done: (i, ev) => ev.has('heath'), info: true, timeout: 35 },
   build:    { when: (i) => i.placements >= 3 && i.breaths >= 1, done: (i, ev) => ev.has('build'), info: true, timeout: 45 },
   fuse:     { when: (i) => i.placements >= 3 && i.breaths >= 1, done: (i, ev) => ev.has('fuse'), info: true, timeout: 50 },
+  work:     { when: (i) => i.queue.list.some((t) => t.work), done: (i, ev) => ev.has('work'), info: true, timeout: 50 },
 };
 
 /** Tutoriel guidé de l'île 1 : chaque étape impose la case à jouer (la file est fixée par `opening`). */

@@ -126,6 +126,7 @@ export const STORY = {
         'La chapelle est restée ouverte. Pas pour prier : pour se serrer. Il n’y avait plus d’hiver, mais il y avait du froid dans les gens.',
       ],
       tutorial: [
+        { id: 'work', text: 'Ouvrages : une tuile bonus qui se pose SUR une tuile posée (ruche, épouvantail, ponton, pont, nichoir, feu de camp, menhir, compost). Bien placée, elle rapporte à chaque saison ; mal placée, elle coûte à chaque saison tant qu’on n’a pas arrangé son voisinage. Sa fiche dit la bonne et la mauvaise place. Une arrive toutes les seize poses, parfois en récompense d’un vœu.' },
         { id: 'hill', text: 'Les collines : +2 contre la roche, +1 avec forêt, prairie, verger et hameau. Comme la roche, elles font naître les rivières, et les chevaux y montent depuis les prés.' },
       ],
     },
@@ -550,6 +551,15 @@ export const STORY = {
     archway: { name: 'Porche', blurb: 'Compte comme hameau ; un bourg clos qui le contient rapporte ×3 au lieu de ×2.' },
     mine: { name: 'Mine', blurb: 'Compte comme roche ; +1 par bord avec une roche, et une roche close qui la contient rapporte ×2.' },
     oven: { name: 'Four à pain', blurb: 'Compte comme hameau ; +1 par bord avec un champ.' },
+    // ouvrages (tuiles bonus à superposer)
+    hive: { name: 'Ruche', blurb: 'Ouvrage. Bonne place : verger ou prairie avec des fleurs autour (+1 par verger ou prairie voisin, +1 au printemps). Mauvaise place : sans fleur, ou près d’un marais (−2 par saison).' },
+    scarecrow: { name: 'Épouvantail', blurb: 'Ouvrage. Bonne place : un champ (+1, +1 par champ voisin). Mauvaise place : ailleurs (−2 par saison).' },
+    pier: { name: 'Ponton', blurb: 'Ouvrage. Bonne place : l’eau collée à un hameau (+3 par saison). Mauvaise place : eau sans hameau, ou terre (−2 par saison, il dérive).' },
+    bridge: { name: 'Pont', blurb: 'Ouvrage. Bonne place : l’eau entre deux hameaux (+3 par saison). Mauvaise place : ailleurs (−1 par saison).' },
+    nestbox: { name: 'Nichoir', blurb: 'Ouvrage. Bonne place : une forêt d’au moins trois tuiles (+2 par saison, le hibou s’installe). Mauvaise place : petite forêt ou autre famille (−2 par saison).' },
+    campfire: { name: 'Feu de camp', blurb: 'Ouvrage. Bonne place : forêt ou prairie près d’un hameau (+1, +1 par hameau voisin, +1 en hiver). Mauvaise place : sans hameau (−2 par saison) ; sous les feux de broussaille, −5.' },
+    menhir: { name: 'Menhir', blurb: 'Ouvrage. Bonne place : roche ou colline (+1 par tuile de son massif, au plus 4). Mauvaise place : ailleurs (−1 par saison).' },
+    compost: { name: 'Compost', blurb: 'Ouvrage. Bonne place : champ ou verger sans hameau voisin (+1 par champ ou verger voisin). Mauvaise place : un hameau voisin (−2 par saison, ça sent).' },
     // fusions
     port: { name: 'Port', blurb: 'Hameau + eau. Compte pour les deux ; +1 par tuile d’eau voisine à chaque saison (au plus 4). Les canards s’y posent.' },
     paddy: { name: 'Rizière', blurb: 'Champ + eau. Compte pour les deux ; +3 à chaque automne. La grenouille s’y plaît.' },
@@ -621,6 +631,10 @@ export const STORY = {
   fusion: {
     done: ['Fusion !', 'Deux en un !', 'Ça se marie !'],
     discovery: 'Recette découverte : {n} !',
+  },
+  work: {
+    good: ['Bien placé !', 'À sa place.', 'Ça rendra.'],
+    bad: ['Mal placé…', 'Ça va coûter.', 'Pas ici.'],
   },
   verdicts: {
     master: ['Coup de maître !', 'Magistral !', 'L’île applaudit !', 'Rien à redire !'],

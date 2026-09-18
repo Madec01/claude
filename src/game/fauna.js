@@ -61,6 +61,8 @@ export function evaluate(board, season, rule = null) {
     if ((alive >= F.cow || troughNear(reg)) && (board.regionTouches(reg, 'heath') || troughNear(reg))) add('cow', reg, reg.cells.find((t) => !t.dry && neighbors(t.q, t.r).some(([a, b]) => { const n = board.get(a, b); return n && Board.isFamily(n, 'heath'); })) || undefined);
   }
   for (const t of board.tiles.values()) if (t.family === 'camp') out.set(`goat@camp:${t.q},${t.r}`, { species: 'goat', q: t.q, r: t.r, regionId: `camp:${t.q},${t.r}` });
+  // nichoirs bien placés : un hibou
+  for (const t of board.tiles.values()) if (t.work === 'nestbox' && !t.workBad) add('owl', { id: `nestbox:${key(t.q, t.r)}`, cells: [t] }, t, { noBonus: true });
   // fusions : chaque tuile composée accueille son animal
   for (const t of board.tiles.values()) {
     if (!t.fusion) continue; const reg = { id: `${t.family}:${key(t.q, t.r)}`, cells: [t] };

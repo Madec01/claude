@@ -28,6 +28,7 @@ export class TileQueue {
   }
 
   makeRare(family) { return { family, variant: 1, rare: true, id: ++this.generated }; }
+  makeWork(id) { return { family: id, variant: 1, rare: false, work: true, id: ++this.generated }; }
 
   fill() {
     while (this.list.length < this.visible && this.total > 0) { this.list.push(this.makeTile()); this.total--; }
