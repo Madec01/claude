@@ -61,6 +61,19 @@ const SEASON_MUSIC = { spring: 'spring', summer: 'summer', autumn: 'autumn', win
 // le printemps garde toujours « Morning » (préférence du commanditaire) ; les autres saisons alternent entre deux pistes
 const seasonMusic = (season, nth = 1) => { const alt = `${SEASON_MUSIC[season]}_2`; return nth >= 2 && nth % 2 === 0 && AudioSys.has(alt, 'music') ? alt : SEASON_MUSIC[season]; };
 
+/** Lignes du relevé de saison : les événements groupés par nature, avec les cases concernées. */
+const SEASON_LABELS = { harvest: 'Récoltes', veillee: 'Veillée', pond: 'Étangs', fete: 'Fête', mill: 'Moulins', work: 'Ouvrages', level3: 'Niveau 3', fusion: 'Fusions', hunt: 'Chasse', firewood: 'Bois de chauffage', fair: 'Grande foire', mild: 'Hiver doux', cold: 'Grand froid', bloom: 'Marais en fleurs', heather: 'Lande en fleurs' };
+function seasonLines(e, isl) {
+  const by = new Map();
+  for (const ev of e.events || []) { if (!ev.pts) continue; const k = ev.type === 'work' && ev.pts < 0 ? 'workBad' : ev.type; const g = by.get(k) || { label: k === 'workBad' ? 'Ouvrages mal placés' : (SEASON_LABELS[ev.type] || ev.type), pts: 0, cells: [] }; g.pts += ev.pts; g.cells.push({ q: ev.q, r: ev.r }); by.set(k, g); }
+  const lines = [...by.values()];
+  if (e.links) lines.push({ label: `Sentiers (${e.links})`, pts: e.links * BALANCE.points.pathSeason, cells: [] });
+  if (e.faunaBonus) lines.push({ label: `Faune (${e.faunaBonus})`, pts: e.faunaBonus * (BALANCE.points.faunaSeason + (isl.mods.refuge || 0)), cells: [...isl.fauna.values()].map((a) => ({ q: a.q, r: a.r })) });
+  const listed = lines.reduce((s, l) => s + l.pts, 0); const rest = (e.pts || 0) - listed;
+  if (rest) lines.push({ label: 'Autres primes', pts: rest, cells: [] });
+  return lines.sort((a, b) => b.pts - a.pts);
+}
+
 const Game = {
   credits: null, fpsEl: null,
   async boot() {
@@ -364,11 +377,13 @@ class IslandScene {
       if (e.grade && GRADES[e.grade]) {
         const g = GRADES[e.grade]; const texts = STORY.verdicts[e.grade]; const txt = texts[Math.floor(Math.random() * texts.length)];
         setTimeout(() => {
-          fx.floatText(w.x, w.y - 78, e.grade === 'meh' && e.best > e.result.total ? `${txt} (+${e.best})` : txt, g.color, g.size, e.grade === 'master' ? 2 : 1.6);
+          // les mots vont dans le ruban sous la saison ; seuls les chiffres restent sur la case
+          this.hud.ribbon(e.grade === 'meh' && e.best > e.result.total ? `${txt} (+${e.best} possible)` : txt, g.color, e.grade === 'master' ? 1900 : 1400, e.grade);
           if (g.burst) fx.closeBurst(w.x, w.y - 20, g.burst);
           if (e.grade === 'master') { AudioSys.play('star_1', { volume: 0.6 }); this.shake.trigger(0.12); } else if (e.grade === 'perfect') AudioSys.play('point_8', { volume: 0.5 });
-          if (g.streak && streakMilestone(e.streak)) { const st = STORY.verdicts.streak; setTimeout(() => { fx.floatText(w.x, w.y - 110, (st[e.streak] || st.default).replace('{n}', e.streak), '#e0a33a', 24, 2); AudioSys.play('region_close', { volume: 0.5 }); fx.closeBurst(w.x, w.y - 60, 5); }, 250); }
+          if (g.streak && streakMilestone(e.streak)) { const st = STORY.verdicts.streak; setTimeout(() => { this.hud.ribbon((st[e.streak] || st.default).replace('{n}', e.streak), '#e0a33a', 1800, 'streak'); AudioSys.play('region_close', { volume: 0.5 }); fx.closeBurst(w.x, w.y - 60, 5); }, 250); }
         }, 90 * i + 380);
+        this.hud.bumpScore(e.result.total);
       }
       if (e.milestone) setTimeout(() => { this.hud.notify(STORY.verdicts.milestone.replace('{n}', e.milestone), 'gold'); AudioSys.play('star_2', { volume: 0.5 }); }, 90 * i + 700);
       if (isl.season === 'winter') { const pts = []; for (const o of this.renderer.decor.objects) if (o.tpl && o.tpl.startsWith('obj_tree') && Math.hypot(o.x - w.x, o.y - w.y) < 150 && Math.hypot(o.x - w.x, o.y - w.y) > 50) pts.push({ x: o.x, y: o.y }); if (pts.length) fx.snowShake(pts.slice(0, 10)); }
@@ -386,21 +401,21 @@ class IslandScene {
       const fam = (STORY.tiles[e.family] || {}).name || e.family;
       if (e.kind === 'work') {
         const wt = (e.good ? STORY.work.good : STORY.work.bad)[Math.floor(Math.random() * 3)];
-        setTimeout(() => { fx.floatText(w.x, w.y - 44, `${wt} ${e.result.total >= 0 ? '+' : ''}${e.result.total}`, e.good ? '#2f9e8f' : '#d95f4b', 24, 1.8); if (e.good) { fx.closeBurst(w.x, w.y - 10, 3); AudioSys.play('point_8', { volume: 0.5 }); } else AudioSys.play('point_bad', { volume: 0.5 }); }, 60);
+        setTimeout(() => { fx.floatText(w.x, w.y - 44, `${e.result.total >= 0 ? '+' : ''}${e.result.total}`, e.good ? '#2f9e8f' : '#d95f4b', 24, 1.6); this.hud.ribbon(`${wt} ${fam}`, e.good ? '#2f9e8f' : '#d95f4b', 1500, e.good ? 'good' : 'bad'); this.hud.bumpScore(e.result.total); if (e.good) { fx.closeBurst(w.x, w.y - 10, 3); AudioSys.play('point_8', { volume: 0.5 }); } else AudioSys.play('point_bad', { volume: 0.5 }); }, 60);
         this.hud.notify(`${fam} : ${e.good ? (e.fresh ? 'bien placé et frais, +1 par saison' : 'bien placé') : 'mal placé : pénalité cette saison, moitié la suivante, puis il s’efface'} (${e.result.total >= 0 ? '+' : ''}${e.result.total})`, e.good ? 'gold' : 'warn');
         this.tutorial.onEvent('work');
       } else if (e.kind === 'fuse') {
         const nm = (STORY.tiles[e.recipe] || {}).name || e.recipe; const ft = STORY.fusion.done[Math.floor(Math.random() * STORY.fusion.done.length)];
-        setTimeout(() => { fx.floatText(w.x, w.y - 44, `${ft} ${nm} ${e.result.total >= 0 ? '+' : ''}${e.result.total}`, '#e0a33a', 26, 1.8); fx.closeBurst(w.x, w.y - 10, 6); this.shake.trigger(0.1); AudioSys.play('region_big', { volume: 0.6 }); }, 90 * i + 60);
-        if (e.first) { setTimeout(() => { fx.floatText(w.x, w.y - 84, STORY.fusion.discovery.replace('{n}', nm), '#2f9e8f', 22, 2.2); AudioSys.play('star_1', { volume: 0.6 }); }, 90 * i + 600); if (!Save.data.campaign.recipes.includes(e.recipe)) { Save.data.campaign.recipes.push(e.recipe); Save.save(); } }
+        setTimeout(() => { fx.floatText(w.x, w.y - 44, `${e.result.total >= 0 ? '+' : ''}${e.result.total}`, '#e0a33a', 26, 1.6); this.hud.ribbon(`${ft} ${nm}`, '#e0a33a', 1800, 'master'); this.hud.bumpScore(e.result.total); fx.closeBurst(w.x, w.y - 10, 6); this.shake.trigger(0.1); AudioSys.play('region_big', { volume: 0.6 }); }, 90 * i + 60);
+        if (e.first) { setTimeout(() => { this.hud.ribbon(STORY.fusion.discovery.replace('{n}', nm), '#2f9e8f', 2200, 'streak'); AudioSys.play('star_1', { volume: 0.6 }); }, 90 * i + 600); if (!Save.data.campaign.recipes.includes(e.recipe)) { Save.data.campaign.recipes.push(e.recipe); Save.save(); } }
         const from = (STORY.tiles[e.tile.from ? e.tile.from[0] : ''] || {}).name || '';
         this.hud.notify(`${nm} (${from.toLowerCase()} + ${fam.toLowerCase()}) : ${e.result.total >= 0 ? '+' : ''}${e.result.total}${e.first ? ` · recette découverte, une ${fam.toLowerCase()} et une ${((STORY.tiles[e.rare] || {}).name || 'rare').toLowerCase()} reviennent dans la file` : ''}`, 'gold');
         this.tutorial.onEvent('fuse');
       } else {
         const sig = e.level >= 3 && STORY.level3[e.tile.family];
         const bt = sig ? `${sig.name} !` : STORY.build.done[Math.floor(Math.random() * STORY.build.done.length)];
-        setTimeout(() => { fx.floatText(w.x, w.y - 44, `${bt} ${e.result.total >= 0 ? '+' : ''}${e.result.total}`, '#e0a33a', sig ? 28 : 26, sig ? 2 : 1.6); if (sig) { fx.closeBurst(w.x, w.y - 10, 7); this.shake.trigger(0.12); AudioSys.play('region_big', { volume: 0.6 }); this.tutorial.onEvent('build3'); } }, 90 * i + 60);
-        if (e.refund && e.refund.ok) setTimeout(() => { fx.floatText(w.x, w.y - 80, (STORY.build.refund[e.refund.reason] || '').replace('{f}', fam.toLowerCase()), '#2f9e8f', 20, 1.8); AudioSys.play('point_8', { volume: 0.5 }); }, 90 * i + 500);
+        setTimeout(() => { fx.floatText(w.x, w.y - 44, `${e.result.total >= 0 ? '+' : ''}${e.result.total}`, '#e0a33a', 24, 1.6); this.hud.ribbon(bt, '#e0a33a', sig ? 2000 : 1400, sig ? 'master' : 'good'); this.hud.bumpScore(e.result.total); if (sig) { fx.closeBurst(w.x, w.y - 10, 7); this.shake.trigger(0.12); AudioSys.play('region_big', { volume: 0.6 }); this.tutorial.onEvent('build3'); } }, 90 * i + 60);
+        if (e.refund && e.refund.ok) setTimeout(() => { this.hud.ribbon((STORY.build.refund[e.refund.reason] || '').replace('{f}', fam.toLowerCase()), '#2f9e8f', 20, 1.8); AudioSys.play('point_8', { volume: 0.5 }); }, 90 * i + 500);
         this.hud.notify(`Bâti : ${fam} niveau ${e.level} (${e.result.total >= 0 ? '+' : ''}${e.result.total})${e.refund && e.refund.ok ? ` · une ${fam.toLowerCase()} revient dans la file` : ''}`, 'gold');
       }
       if (e.milestone) setTimeout(() => { this.hud.notify(STORY.verdicts.milestone.replace('{n}', e.milestone), 'gold'); AudioSys.play('star_2', { volume: 0.5 }); }, 90 * i + 700);
@@ -423,9 +438,13 @@ class IslandScene {
       const s = STORY.seasons[e.to]; const rl = e.rule && STORY.seasonRules[e.rule] ? STORY.seasonRules[e.rule] : null;
       this.hud.notify(`${s.name}${rl && isl.rulesVariable ? ` · ${rl.name}` : ''} — ${rl ? rl.line : s.line}`, 'season');
       setTimeout(() => this.hud.notify(`Règle : ${rl ? rl.rule : s.rule}`, 'info'), 600);
-      if (e.pts) setTimeout(() => this.hud.notify(`Saison : +${e.pts} points${e.faunaBonus ? `, +${e.faunaBonus} souffle${e.faunaBonus > 1 ? 's' : ''} (faune)` : ''}${e.links ? `, ${e.links} sentier${e.links > 1 ? 's' : ''}` : ''}`, 'good'), 900);
-      let i = 0;
-      for (const ev of e.events) { if (!ev.pts) continue; const w = toWorld(ev.q, ev.r); setTimeout(() => fx.floatText(w.x, w.y - 10, `${ev.pts > 0 ? '+' : ''}${ev.pts}${ev.label ? ' ' + ev.label : ''}`, ev.pts > 0 ? '#e0a33a' : '#d95f4b', 18, 1.2), 400 + 70 * i++); }
+      // relevé de saison : les gains groupés par nature, écrits ligne à ligne ; les tuiles concernées s'illuminent au passage
+      const lines = seasonLines(e, isl);
+      const groups = lines.map((l) => l.cells);
+      this.hud.onTick = (i) => { AudioSys.play(`point_${Math.min(8, 1 + i)}`, { volume: 0.35 }); const cells = groups[i] || []; if (cells.length) fx.ring(cells, '#ffd77a'); };
+      setTimeout(() => this.hud.seasonRecap({ from: e.from, to: e.to, lines, total: e.pts }), 700);
+      if (this.hud.recapMode !== 'full') { let i = 0; for (const ev of e.events) { if (!ev.pts) continue; const w = toWorld(ev.q, ev.r); setTimeout(() => fx.floatText(w.x, w.y - 10, `${ev.pts > 0 ? '+' : ''}${ev.pts}`, ev.pts > 0 ? '#e0a33a' : '#d95f4b', 18, 1.1), 400 + 70 * i++); } }
+      if (e.faunaBonus && this.mech.has('breath')) setTimeout(() => this.hud.notify(`+${e.faunaBonus} souffle${e.faunaBonus > 1 ? 's' : ''} (faune)`, 'good'), 1200);
       this.tutorial.onEvent('season');
       this.updateAmbience();
     } else if (e.type === 'fauna') {

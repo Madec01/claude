@@ -1,4 +1,5 @@
 // HUD d'une île (DOM) : saison, score, souffles, file de tuiles, poche, vœux, pouvoirs, notifications.
+import { STAGE } from '../core/stage.js';
 import { STORY } from '../data/story.js';
 import { CHAPTERS } from '../data/campaign.js';
 import { BALANCE } from '../data/balance.js';
@@ -24,7 +25,7 @@ export class Hud {
           <div class="season-pips" data-ref="pips" title="Poses avant la prochaine saison"></div>
           <div class="season-pop hidden" data-ref="seasonPop"></div>
         </div>
-        <div class="hud-block hud-score"><span class="hud-label">Points</span><b data-ref="score">0</b><span class="hud-stars" data-ref="starsLine" title="Seuils des étoiles"></span></div>
+        <div class="hud-block hud-score"><span class="hud-label">Points</span><b data-ref="score">0</b><span class="score-delta" data-ref="scoreDelta"></span><span class="hud-stars" data-ref="starsLine" title="Seuils des étoiles"></span></div>
         <div class="hud-block hud-breaths ${m.has('breath') ? '' : 'hidden'}" title="Souffles"><span class="hud-label">Souffles</span><b data-ref="breaths">0</b></div>
         <div class="hud-block hud-left-tiles"><span class="hud-label">Tuiles</span><b data-ref="left">0</b></div>
         <button class="hud-pause" data-ref="pause" title="Pause (Échap)">${icon('icon_pause')}</button>
@@ -48,6 +49,8 @@ export class Hud {
       <div class="hud-logpanel hidden" data-ref="logPanel"><div class="log-head"><span>Journal de l’île</span><button class="log-close" data-ref="logClose" title="Fermer">✕</button></div><div class="log-list" data-ref="logList"></div></div>
       <div class="tile-help hidden" data-ref="tileHelp"><div class="th-head"><b data-ref="thName"></b><button class="th-close" data-ref="thClose" title="Masquer la fiche (H)">✕</button></div><p class="th-blurb" data-ref="thBlurb"></p><div class="th-pairs" data-ref="thPairs"></div></div>
       <div class="hud-fauna" data-ref="fauna"></div>
+      <div class="hud-ribbon" data-ref="ribbon" aria-live="polite"></div>
+      <div class="hud-recap hidden" data-ref="recap" role="status"></div>
       <div class="hud-notify" data-ref="notify"></div>
       <div class="hud-bud-hint hidden" data-ref="budHint"><span data-ref="budText">Choisis une prairie à transformer</span><button data-ref="budForest" title="Touche F">Forêt</button><button data-ref="budOrchard" title="Touche V">Verger</button><button data-ref="budCancel" title="Échap">Annuler</button></div>
     `;
@@ -181,6 +184,55 @@ export class Hud {
 
   set(key, value) { if (this.last[key] !== value) { this.last[key] = value; this.r[key].textContent = value; } }
 
+  /** Mode du relevé de saison : full, brief ou none (auto : complet sur ordinateur, bref sur téléphone). */
+  get recapMode() { const m = Save.options.recap || 'auto'; return m === 'auto' ? (STAGE.compact ? 'brief' : 'full') : m; }
+
+  /**
+   * Ruban des commentaires : les mots (« Coup de maître ! », séries, verdicts d'ouvrage, de fusion, de construction)
+   * s'affichent ici, sous la boîte de saison, un à la fois. Les chiffres restent sur la case.
+   */
+  ribbon(text, color = '#2b2a26', ms = 1500, cls = '') {
+    this._ribbonQ = this._ribbonQ || []; this._ribbonQ.push({ text, color, ms, cls });
+    if (this._ribbonQ.length > 3) this._ribbonQ.splice(0, this._ribbonQ.length - 3);   // on ne garde que les trois derniers
+    if (!this._ribbonBusy) this._ribbonNext();
+  }
+  _ribbonNext() {
+    const it = this._ribbonQ.shift(); if (!it) { this._ribbonBusy = false; return; }
+    this._ribbonBusy = true; const r = this.r.ribbon;
+    r.textContent = it.text; r.style.setProperty('--rc', it.color); r.className = `hud-ribbon on ${it.cls}`;
+    clearTimeout(this._ribbonT); this._ribbonT = setTimeout(() => { r.classList.remove('on'); setTimeout(() => this._ribbonNext(), 220); }, it.ms);
+  }
+
+  /** Le compteur de points monte en tic-tac vers la vraie valeur ; le badge « +N » flotte à côté. */
+  bumpScore(delta) {
+    if (!delta) return; const d = this.r.scoreDelta;
+    d.textContent = `${delta > 0 ? '+' : ''}${delta}`; d.className = `score-delta on ${delta < 0 ? 'neg' : ''}`;
+    clearTimeout(this._deltaT); this._deltaT = setTimeout(() => d.classList.remove('on'), 1400);
+  }
+
+  /**
+   * Relevé de saison : une carte sous la boîte de saison, les lignes s'écrivent une à une avec un tic, le total en gras à
+   * la fin. Ne bloque rien : un toucher la replie, sinon elle se range seule. En mode bref, seul le badge « +N » reste.
+   */
+  seasonRecap({ from, to, lines, total }) {
+    const mode = this.recapMode; this.bumpScore(total);
+    if (mode !== 'full' || !lines.length) return;
+    const box = this.r.recap; const sn = (k) => (STORY.seasons[k] || { name: k }).name;
+    box.innerHTML = `<div class="recap-head">${sn(from)} → ${sn(to)}</div><div class="recap-lines"></div><div class="recap-total"></div>`;
+    box.className = `hud-recap on s-${to}`;
+    const list = box.querySelector('.recap-lines'); const tot = box.querySelector('.recap-total');
+    clearTimeout(this._recapT); this._recapTimers = (this._recapTimers || []).map(clearTimeout) && [];
+    const close = () => { box.classList.remove('on'); box.classList.add('hidden'); this.r.notify.classList.remove('shifted'); };
+    this.r.notify.classList.add('shifted');   // les notifications se décalent à gauche le temps du relevé
+    box.onclick = (e) => { e.stopPropagation(); close(); };
+    lines.forEach((ln, i) => this._recapTimers.push(setTimeout(() => {
+      const el = document.createElement('div'); el.className = `recap-line ${ln.pts < 0 ? 'neg' : ''}`; el.innerHTML = `<span>${ln.label}</span><b>${ln.pts > 0 ? '+' : ''}${ln.pts}</b>`; list.appendChild(el);
+      if (this.onTick) this.onTick(i);
+    }, 260 + i * 230)));
+    this._recapTimers.push(setTimeout(() => { tot.innerHTML = `<span>Saison</span><b>${total > 0 ? '+' : ''}${total}</b>`; tot.classList.add('on'); }, 260 + lines.length * 230 + 120));
+    this._recapT = setTimeout(close, 260 + lines.length * 230 + 3400);
+  }
+
   notify(text, kind = 'info') {
     const el = document.createElement('div'); el.className = `hud-note ${kind}`; el.textContent = text;
     this.r.notify.appendChild(el);
@@ -243,7 +295,10 @@ export class Hud {
     if (choose && pt !== this.last.pickTitle) { this.last.pickTitle = pt; r.pickTitle.textContent = pt; }
     const bliz = isl.weatherActive && isl.weatherActive('blizzard');
     if (bliz !== this.last.bliz) { this.last.bliz = bliz; r.queueList.classList.toggle('blizzard', !!bliz); }
-    this.set('score', String(isl.score));
+    // le compteur monte vers la vraie valeur (tic-tac), sans jamais traîner plus d'une seconde
+    if (this.shownScore === undefined) this.shownScore = isl.score;
+    if (this.shownScore !== isl.score) { const diff = isl.score - this.shownScore; const step = Math.max(1, Math.ceil(Math.abs(diff) * 0.12)); this.shownScore += Math.sign(diff) * Math.min(Math.abs(diff), step); }
+    this.set('score', String(this.shownScore));
     if (!isl.infinite && !isl.garden) {
       const th = isl.thresholds; const reached = th.filter((t) => isl.score >= t).length;
       const line = reached >= 3 ? '★★★' : `${'★'.repeat(reached)}☆ ${th[reached]}`;

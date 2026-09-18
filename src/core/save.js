@@ -15,7 +15,7 @@ function migrate(data, from) {
 
 const defaults = () => ({
   version: VERSION,
-  options: { master: 0.8, music: 0.7, ambience: 0.8, sfx: 0.9, muted: false, shake: true, testMode: false, skipTutorial: false, showFps: false, tileHelp: true, grid: false },
+  options: { master: 0.8, music: 0.7, ambience: 0.8, sfx: 0.9, muted: false, shake: true, testMode: false, skipTutorial: false, showFps: false, tileHelp: true, grid: false, recap: 'auto' },   // relevé de saison : auto (complet sur ordinateur, bref sur téléphone), full, brief, none
   campaign: {
     recipes: [],   // fusions découvertes (Cahier)
     unlockedIsland: 1, stars: {}, best: {}, seeds: 0, seedsTotal: 0,
