@@ -25,7 +25,7 @@ export class Hud {
           <div class="season-pips" data-ref="pips" title="Poses avant la prochaine saison"></div>
           <div class="season-pop hidden" data-ref="seasonPop"></div>
         </div>
-        <div class="hud-block hud-score"><span class="hud-label">Points</span><b data-ref="score">0</b><span class="score-delta" data-ref="scoreDelta"></span><span class="hud-stars" data-ref="starsLine" title="Seuils des étoiles"></span></div>
+        <div class="hud-block hud-score"><span class="hud-label">Points</span><b data-ref="score">0</b><span class="score-delta" data-ref="scoreDelta"></span><span class="hud-stars" data-ref="starsLine" title="Seuils des étoiles"></span><span class="streak-pips hidden" data-ref="streakPips" title="Série de bons coups : un souffle à trois, fermeture doublée à cinq"></span></div>
         <div class="hud-block hud-breaths ${m.has('breath') ? '' : 'hidden'}" title="Souffles"><span class="hud-label">Souffles</span><b data-ref="breaths">0</b></div>
         <div class="hud-block hud-left-tiles"><span class="hud-label">Tuiles</span><b data-ref="left">0</b></div>
         <button class="hud-pause" data-ref="pause" title="Pause (Échap)">${icon('icon_pause')}</button>
@@ -186,7 +186,7 @@ export class Hud {
   set(key, value) { if (this.last[key] !== value) { this.last[key] = value; this.r[key].textContent = value; } }
 
   /** Mode du relevé de saison : full, brief ou none (auto : complet sur ordinateur, bref sur téléphone). */
-  get recapMode() { const m = Save.options.recap || 'auto'; return m === 'auto' ? (STAGE.compact ? 'brief' : 'full') : m; }
+  get recapMode() { const m = Save.options.recap || 'auto'; return m === 'auto' ? 'brief' : m; }   // automatique : le plan de saison (étincelles) suffit, le badge « +N » en plus
 
   /**
    * Ruban des commentaires : les mots (« Coup de maître ! », séries, verdicts d'ouvrage, de fusion, de construction)
@@ -204,6 +204,15 @@ export class Hud {
     clearTimeout(this._ribbonT); this._ribbonT = setTimeout(() => { r.classList.remove('on'); setTimeout(() => this._ribbonNext(), 220); }, it.ms);
   }
 
+  /** Retient `n` points hors du compteur (ils sont en vol) ; `release` les y verse un à un, avec un battement du compteur. */
+  holdScore(n) { this.hold = (this.hold || 0) + n; }
+  release(pts) { this.hold = Math.max(0, (this.hold || 0) - pts); if (this.hold === 0) this.shownScore = this.isl.score; const b = this.r.score; b.classList.remove('hit'); void b.offsetWidth; b.classList.add('hit'); }
+  /** Position écran (repère de la scène) du compteur de points : cible des étincelles. */
+  scoreTarget() { const st = document.getElementById('stage'); const sr = st ? st.getBoundingClientRect() : { left: 0, top: 0 }; const r = this.r.score.getBoundingClientRect(); return { x: (r.left + r.width / 2 - sr.left) / STAGE.scale, y: (r.top + r.height / 2 - sr.top) / STAGE.scale }; }
+  /** Le bandeau de saison se signale (la règle s'y écrit une seule fois). */
+  seasonTurn() { const b = this.r.seasonBox; b.classList.remove('turn'); void b.offsetWidth; b.classList.add('turn'); }
+  /** Entrée du journal sans bulle à l'écran. */
+  logOnly(text, kind = 'info') { const isl = this.isl; const s = STORY.seasons[isl.season] || { name: isl.season }; this.log.push({ text, kind, when: `${s.name} · pose ${isl.placements}` }); if (this.log.length > 200) this.log.shift(); if (this.r.logPanel.classList.contains('hidden')) { this.unread++; this.r.logBadge.textContent = this.unread > 99 ? '99+' : String(this.unread); this.r.logBadge.classList.remove('hidden'); } else this.renderLog(); }
   /** Le compteur de points monte en tic-tac vers la vraie valeur ; le badge « +N » flotte à côté. */
   bumpScore(delta) {
     if (!delta) return; const d = this.r.scoreDelta;
@@ -282,7 +291,7 @@ export class Hud {
     const s = STORY.seasons[isl.season] || { name: isl.season, rule: '' };
     const rl = isl.rule && STORY.seasonRules[isl.rule] ? STORY.seasonRules[isl.rule] : null;
     this.set('seasonName', rl && isl.rulesVariable ? `${s.name} · ${rl.name}` : s.name); this.set('seasonRule', rl ? rl.rule : s.rule);
-    if (this.last.seasonKey !== isl.season) { this.last.seasonKey = isl.season; r.seasonIcon.innerHTML = icon(SEASON_ICON[isl.season] || 'icon_leaf'); r.seasonBox.className = `hud-block hud-season s-${isl.season}`; }
+    if (this.last.seasonKey !== isl.season) { this.last.seasonKey = isl.season; r.seasonIcon.innerHTML = icon(SEASON_ICON[isl.season] || 'icon_leaf'); r.seasonBox.classList.remove('s-spring', 's-summer', 's-autumn', 's-winter'); r.seasonBox.classList.add(`s-${isl.season}`); }
     // pips
     const pipHtml = isl.garden ? '' : Array.from({ length: isl.seasonLength }, (_, i) => `<i class="${i < isl.inSeason ? 'on' : ''}"></i>`).join('');
     if (pipHtml !== this.last.pips) { this.last.pips = pipHtml; r.pips.innerHTML = pipHtml; }
@@ -298,8 +307,19 @@ export class Hud {
     if (bliz !== this.last.bliz) { this.last.bliz = bliz; r.queueList.classList.toggle('blizzard', !!bliz); }
     // le compteur monte vers la vraie valeur (tic-tac), sans jamais traîner plus d'une seconde
     if (this.shownScore === undefined) this.shownScore = isl.score;
-    if (this.shownScore !== isl.score) { const diff = isl.score - this.shownScore; const step = Math.max(1, Math.ceil(Math.abs(diff) * 0.12)); this.shownScore += Math.sign(diff) * Math.min(Math.abs(diff), step); }
+    const target = isl.score - (this.hold || 0);   // les points en vol ne sont pas encore comptés
+    if (this.shownScore !== target) { const diff = target - this.shownScore; const step = Math.max(1, Math.ceil(Math.abs(diff) * 0.12)); this.shownScore += Math.sign(diff) * Math.min(Math.abs(diff), step); }
     this.set('score', String(this.shownScore));
+    // jauge de série : un cran par bon coup, pleine à cinq (fermeture doublée) ; elle se vide en glissant quand la série casse
+    if (this.mech && this.mech.has('breath') && !isl.garden) {
+      const st = isl.stats.streak || 0, cap = BALANCE.streaks.doubleAt;
+      if (this.last.streak === undefined) { r.streakPips.classList.remove('hidden'); r.streakPips.innerHTML = Array.from({ length: cap }, () => '<i></i>').join(''); this.last.streak = -1; }
+      if (st !== this.last.streak) {
+        const pips = r.streakPips.children; for (let i = 0; i < pips.length; i++) pips[i].classList.toggle('on', i < st);
+        if (st === 0 && this.last.streak > 0) { r.streakPips.classList.remove('break'); void r.streakPips.offsetWidth; r.streakPips.classList.add('break'); }
+        r.streakPips.classList.toggle('full', st >= cap); this.last.streak = st;
+      }
+    }
     if (!isl.infinite && !isl.garden) {
       const th = isl.thresholds; const reached = th.filter((t) => isl.score >= t).length;
       const line = reached >= 3 ? '★★★' : `${'★'.repeat(reached)}☆ ${th[reached]}`;

@@ -9,6 +9,8 @@ export class Effects {
     this.rings = [];       // ondes de fermeture { cells:[{q,r}], t }
     this.drops = new Map();// animations de chute par clé de case { t }
     this.faunaAnim = new Map(); // clé -> { t, kind }
+    this.flights = [];     // étincelles de points qui volent d'une tuile vers le score { x, y (monde), pts, color, t, delay, life, onArrive }
+    this.flightTarget = null;   // cible écran { x, y } (le compteur de points), posée par la scène
     this.ambientTimer = 0;
     this.lifeTimers = { smoke: 0, shimmer: 0, gust: 0, heat: 0, snow: 0 };
   }
@@ -18,6 +20,8 @@ export class Effects {
   floatText(x, y, text, color = '#2b2a26', size = 22, life = 1.4) { this.texts.push({ x, y, text, color, t: 0, life, size }); }
 
   drop(key) { this.drops.set(key, { t: 0 }); }
+  /** Une étincelle part de (x, y) monde vers le compteur de points ; `onArrive` est appelé à l'arrivée (compteur, note). */
+  fly(x, y, pts, { color = '#e0a33a', delay = 0, life = 0.95, onArrive = null } = {}) { this.flights.push({ x, y, pts, color, t: -delay, life, onArrive, done: false }); }
   ring(cells, color = '#e0a33a') { this.rings.push({ cells, t: 0, color }); }
   fauna(key, kind) { this.faunaAnim.set(key, { t: 0, kind }); }
 
@@ -103,7 +107,11 @@ export class Effects {
     for (const r of this.rings) r.t += dt; this.rings = this.rings.filter((r) => r.t < 1.3);
     for (const [k, d] of this.drops) { d.t += dt; if (d.t > 0.6) this.drops.delete(k); }
     for (const [k, a] of this.faunaAnim) { a.t += dt; if (a.t > 0.8) this.faunaAnim.delete(k); }
+    for (const f of this.flights) { f.t += dt; if (!f.done && f.t >= f.life) { f.done = true; if (f.onArrive) f.onArrive(f); } }
+    this.flights = this.flights.filter((f) => f.t < f.life + 0.25);
   }
+  /** Vide les vols en cours en appelant leurs arrivées (fin d'île, changement de scène) : rien ne reste en suspens. */
+  flushFlights() { for (const f of this.flights) if (!f.done) { f.done = true; if (f.onArrive) f.onArrive(f); } this.flights = []; }
 
   /** Échelle et décalage d'une tuile en chute (0..0.6 s). */
   dropTransform(key) {

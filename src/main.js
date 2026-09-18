@@ -37,7 +37,7 @@ import { applySemis } from './data/semis.js';
 import { Achievements } from './game/achievements.js';
 import { buildPause } from './ui/pause.js';
 import { h, showUI, hideUI } from './ui/dom.js';
-import { STAGE, layoutStage, uiMargins } from './core/stage.js';
+import { STAGE, layoutStage, uiMargins, minZoom } from './core/stage.js';
 
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d', { alpha: false });
@@ -74,6 +74,18 @@ function seasonLines(e, isl) {
   const listed = lines.reduce((s, l) => s + l.pts, 0); const rest = (e.pts || 0) - listed;
   if (rest) lines.push({ label: 'Autres primes', pts: rest, cells: [] });
   return lines.sort((a, b) => b.pts - a.pts);
+}
+
+/** Les étincelles d'une saison : une par tuile qui rapporte (couleur selon la nature), les sentiers depuis leur milieu, la faune depuis chaque animal, le reste depuis le centre. */
+const FLIGHT_COLORS = { harvest: '#e0a33a', bloom: '#d98cb3', vigil: '#f2c08a', level3: '#e0a33a', fusion: '#b8862b', work: '#2f9e8f', workBad: '#d95f4b', path: '#c9a26b', fauna: '#3a9c8a', other: '#e0a33a' };
+function seasonFlights(e, isl) {
+  const out = [];
+  for (const ev of e.events || []) if (ev.pts) out.push({ q: ev.q, r: ev.r, pts: ev.pts, color: FLIGHT_COLORS[ev.type] || FLIGHT_COLORS.other });
+  if (e.links) { const ls = computeLinks(isl.board).links; ls.forEach((l) => { const mid = l.cells[Math.floor(l.cells.length / 2)]; const [q, r] = mid.split(',').map(Number); out.push({ q, r, pts: BALANCE.points.pathSeason, color: FLIGHT_COLORS.path }); }); }
+  if (e.faunaBonus) for (const a of isl.fauna.values()) { if (a.noBonus) continue; out.push({ q: a.q, r: a.r, pts: BALANCE.points.faunaSeason + (isl.mods.refuge || 0), color: FLIGHT_COLORS.fauna }); }
+  const listed = out.reduce((a, f) => a + f.pts, 0); const rest = (e.pts || 0) - listed;
+  if (rest) { let cq = 0, cr = 0, n = 0; for (const t of isl.board.tiles.values()) { cq += t.q; cr += t.r; n++; } out.push({ q: n ? cq / n : 0, r: n ? cr / n : 0, pts: rest, color: FLIGHT_COLORS.other }); }
+  return out;
 }
 
 const Game = {
@@ -345,17 +357,20 @@ class IslandScene {
   }
 
   updateAmbience(immediate = false) {
+    // le paysage sonore lit l'île : les oiseaux suivent la forêt et les vergers, le ruisseau les rivières, les grillons les prés et les champs en été,
+    // le vent la roche, les collines et la lande, la mer le sable et les rives
     const isl = this.isl; const b = isl.board;
-    const count = (fam) => [...b.tiles.values()].filter((t) => t.family === fam).length;
-    const forest = count('forest'), water = count('water');
+    const n = {}; let total = 0; for (const t of b.tiles.values()) { n[t.family] = (n[t.family] || 0) + 1; total++; }
+    const c = (f) => n[f] || 0; const share = (...fs) => total ? fs.reduce((a, f) => a + c(f), 0) / total : 0;
+    const rivers = waterBodies(b).filter((w) => w.kind === 'river').reduce((a, w) => a + (w.cells ? w.cells.length : w.size || 0), 0) + c('cascade');
     const s = isl.season;
     const fade = immediate ? 1 : 3;
-    AudioSys.setAmbience('birds', s === 'winter' ? 0.08 : Math.min(0.6, 0.15 + forest * 0.04), fade);
-    AudioSys.setAmbience('stream', Math.min(0.4, water * 0.05), fade);
-    AudioSys.setAmbience('wind', s === 'autumn' ? 0.35 : s === 'winter' ? 0.2 : 0.1, fade);
+    AudioSys.setAmbience('birds', s === 'winter' ? 0.06 + share('forest') * 0.1 : Math.min(0.65, 0.12 + (c('forest') + c('orchard') * 0.6) * 0.04), fade);
+    AudioSys.setAmbience('stream', Math.min(0.45, rivers * 0.06 + c('water') * 0.01), fade);
+    AudioSys.setAmbience('wind', (s === 'autumn' ? 0.3 : s === 'winter' ? 0.2 : 0.08) + share('rock', 'hill', 'heath') * 0.5, fade);
     AudioSys.setAmbience('winter', s === 'winter' ? 0.4 : 0, fade);
-    AudioSys.setAmbience('crickets', s === 'summer' ? 0.35 : 0, fade);
-    AudioSys.setAmbience('sea', 0.25, fade);
+    AudioSys.setAmbience('crickets', s === 'summer' ? Math.min(0.6, 0.15 + share('meadow', 'field') * 0.9) : 0, fade);
+    AudioSys.setAmbience('sea', 0.18 + share('sand') * 0.6, fade);
     const w = isl.weatherActive && isl.weather && isl.weather.phase === 'active' ? isl.weather.key : null;
     AudioSys.setAmbience('rain', w === 'storm' ? 0.55 : 0, fade);
     if (AudioSys.has('storm', 'ambience')) AudioSys.setAmbience('storm', w === 'storm' ? 0.6 : 0, fade);
@@ -380,7 +395,11 @@ class IslandScene {
       fx.placeBurst(w.x, w.y, e.result.total > 0);
       AudioSys.play(`tile_place_${1 + Math.floor(Math.random() * 4)}`, { volume: 0.7 });
       let i = 0;
-      for (const ed of e.result.edges) { const nw = toWorld(ed.q, ed.r); const mx = (w.x + nw.x) / 2, my = (w.y + nw.y) / 2; setTimeout(() => { fx.floatText(mx, my, `${ed.pts > 0 ? '+' : ''}${ed.pts}`, ed.pts > 0 ? '#2f9e8f' : '#d95f4b', 18, 1.1); if (ed.pts > 0) AudioSys.play(`point_${Math.min(8, i + 1)}`, { volume: 0.45 }); else AudioSys.play('point_bad', { volume: 0.4 }); }, 90 * i); i++; }
+      for (const ed of e.result.edges) { const nw = toWorld(ed.q, ed.r); const mx = (w.x + nw.x) / 2, my = (w.y + nw.y) / 2; setTimeout(() => fx.floatText(mx, my, `${ed.pts > 0 ? '+' : ''}${ed.pts}`, ed.pts > 0 ? '#2f9e8f' : '#d95f4b', 18, 1.1), 90 * i); i++; }
+      // le son du coup : une note par point marqué, sur une gamme qui monte avec la série ; une note grave si le coup coûte
+      { const total = e.result.total; const base = Math.min(3, Math.max(0, (e.streak || 0) - 1)); const n = Math.min(8, total);
+        for (let j = 0; j < n; j++) setTimeout(() => AudioSys.play(`point_${Math.min(8, base + j + 1)}`, { volume: 0.42 }), 70 * j);
+        if (total < 0) AudioSys.play('point_bad', { volume: 0.45 }); }
       for (const bs of e.result.base) { setTimeout(() => fx.floatText(w.x, w.y + 30, `+${bs.pts} ${bs.label}`, '#5aa7d6', 18, 1.2), 90 * i++); if (bs.label === 'rivière') this.tutorial.onEvent('river'); }
       if (e.result.total !== 0) setTimeout(() => fx.floatText(w.x, w.y - 40, `${e.result.total > 0 ? '+' : ''}${e.result.total}`, e.result.total > 0 ? '#2b2a26' : '#d95f4b', 26, 1.4), 90 * i + 60);
       // commentaire du coup, série et paliers de score
@@ -391,7 +410,7 @@ class IslandScene {
           // les mots vont dans le ruban sous la saison ; seuls les chiffres restent sur la case
           this.hud.ribbon(e.grade === 'meh' && e.best > e.result.total ? `${txt} (+${e.best} possible)` : txt, g.color, e.grade === 'master' ? 1900 : 1400, e.grade);
           if (g.burst) fx.closeBurst(w.x, w.y - 20, g.burst);
-          if (e.grade === 'master') { AudioSys.play('star_1', { volume: 0.6 }); this.shake.trigger(0.12); } else if (e.grade === 'perfect') AudioSys.play('point_8', { volume: 0.5 });
+          if (e.grade === 'master') { AudioSys.play('star_1', { volume: 0.6 }); this.shake.trigger(0.12); }
           if (g.streak && streakMilestone(e.streak)) { const st = STORY.verdicts.streak; setTimeout(() => { this.hud.ribbon((st[e.streak] || st.default).replace('{n}', e.streak), '#e0a33a', 1800, 'streak'); AudioSys.play('region_close', { volume: 0.5 }); fx.closeBurst(w.x, w.y - 60, 5); }, 250); }
         }, 90 * i + 380);
         this.hud.bumpScore(e.result.total);
@@ -445,19 +464,26 @@ class IslandScene {
         if (e.size >= 6) this.shake.trigger(0.25);
       }, 350);
     } else if (e.type === 'season') {
+      // la saison en plan : aucune bulle ; la caméra recule d'un cran, l'île change d'aspect, la règle s'écrit une fois dans le bandeau,
+      // puis les points volent depuis les tuiles concernées vers le compteur, qui ne monte qu'à leur arrivée
       this.renderer.startTransition(e.from, e.to);
       AudioSys.play(`season_${e.to}`, { volume: 0.8 }); AudioSys.play('season_sweep', { volume: 0.5 });
       this.seasonCount[e.to] = (this.seasonCount[e.to] || 0) + 1;
       if (!this.def.daily) AudioSys.playMusic(seasonMusic(e.to, this.seasonCount[e.to]), { fade: 3 });
       const s = STORY.seasons[e.to]; const rl = e.rule && STORY.seasonRules[e.rule] ? STORY.seasonRules[e.rule] : null;
-      this.hud.notify(`${s.name}${rl && isl.rulesVariable ? ` · ${rl.name}` : ''} — ${rl ? rl.line : s.line}`, 'season');
-      // relevé de saison : les gains groupés par nature, écrits ligne à ligne ; les tuiles concernées s'illuminent au passage
+      this.hud.logOnly(`${s.name}${rl && isl.rulesVariable ? ` · ${rl.name}` : ''} — ${rl ? rl.line : s.line}`, 'season');
+      this.hud.seasonTurn();
+      const cam = this.cam; const z0 = cam.tzoom; const zr = Math.max(minZoom() * 1.0, z0 * 0.9); cam.tzoom = zr;
+      setTimeout(() => { if (Math.abs(cam.tzoom - zr) < 1e-6) cam.tzoom = z0; }, 3200);
+      fx.flightTarget = this.hud.scoreTarget();
+      const flights = seasonFlights(e, isl); const total = flights.reduce((a, f) => a + f.pts, 0);
+      if (total) this.hud.holdScore(total);
+      const stagger = flights.length > 24 ? 1900 / flights.length : 80;
+      flights.forEach((f, i) => { const w = toWorld(f.q, f.r); fx.fly(w.x, w.y, f.pts, { color: f.pts < 0 ? '#d95f4b' : f.color, delay: 0.9 + i * stagger / 1000, onArrive: () => { this.hud.release(f.pts); AudioSys.play(f.pts < 0 ? 'point_bad' : `point_${Math.min(8, 1 + Math.floor(i / Math.max(1, flights.length / 8)))}`, { volume: 0.35 }); } }); });
       const lines = seasonLines(e, isl);
-      const groups = lines.map((l) => l.cells);
-      this.hud.onTick = (i) => { AudioSys.play(`point_${Math.min(8, 1 + i)}`, { volume: 0.35 }); const cells = groups[i] || []; if (cells.length) fx.ring(cells, '#ffd77a'); };
-      setTimeout(() => this.hud.seasonRecap({ from: e.from, to: e.to, lines, total: e.pts }), 700);
-      if (this.hud.recapMode !== 'full') { let i = 0; for (const ev of e.events) { if (!ev.pts) continue; const w = toWorld(ev.q, ev.r); setTimeout(() => fx.floatText(w.x, w.y - 10, `${ev.pts > 0 ? '+' : ''}${ev.pts}`, ev.pts > 0 ? '#e0a33a' : '#d95f4b', 18, 1.1), 400 + 70 * i++); } }
-      if (e.faunaBonus && this.mech.has('breath')) setTimeout(() => this.hud.notify(`+${e.faunaBonus} souffle${e.faunaBonus > 1 ? 's' : ''} (faune)`, 'good'), 1200);
+      if (this.hud.recapMode === 'full') { this.hud.onTick = null; setTimeout(() => this.hud.seasonRecap({ from: e.from, to: e.to, lines, total: e.pts }), 900 + flights.length * stagger + 700); }
+      else if (e.pts) setTimeout(() => this.hud.bumpScore(e.pts), 900 + flights.length * stagger + 800);
+      if (e.faunaBonus && this.mech.has('breath')) setTimeout(() => this.hud.ribbon(`+${e.faunaBonus} souffle${e.faunaBonus > 1 ? 's' : ''} (faune)`, '#3a9c8a', 1600, 'streak'), 1200 + flights.length * stagger);
       this.tutorial.onEvent('season');
       this.updateAmbience();
     } else if (e.type === 'fauna') {
@@ -475,9 +501,9 @@ class IslandScene {
       else { AudioSys.play('wish_failed', { volume: 0.6 }); this.hud.notify(`Vœu manqué (échéance dépassée) : ${s.title} — ${s.failed}`, 'warn'); }
     } else if (e.type === 'weather') {
       const wt = STORY.weather[e.key] || { name: e.key, announce: '', line: '', rule: '' };
-      if (e.kind === 'announce') { this.hud.notify(`${wt.name} annoncé : ${wt.announce}`, 'wish'); AudioSys.play('weather', { volume: 0.5 }); }
+      if (e.kind === 'announce') { this.hud.logOnly(`${wt.name} annoncé : ${wt.announce}`, 'wish'); AudioSys.play('weather', { volume: 0.5 }); }   // l'annonce est déjà écrite sous la saison : pas de bulle pendant la transition
       else if (e.kind === 'start') {
-        this.renderer.weather = e.key; this.hud.notify(`${wt.name} — ${wt.line}`, 'season'); setTimeout(() => this.hud.notify(wt.rule, 'info'), 900);
+        this.renderer.weather = e.key; this.hud.notify(`${wt.name} — ${wt.line}`, 'season'); this.hud.logOnly(wt.rule, 'info'); setTimeout(() => this.hud.ribbon(wt.rule, '#2b2a26', 2600, ''), 900);
         if (e.key === 'storm') { this.renderer.flash = 0.2; AudioSys.play('thunder', { volume: 0.8 }); this.shake.trigger(0.3); this.thunderTimer = 6 + Math.random() * 8; }
         if (e.key === 'wind') AudioSys.play('season_sweep', { volume: 0.6 });
         if (e.key === 'blizzard') AudioSys.play('season_winter', { volume: 0.5 });
@@ -503,6 +529,7 @@ class IslandScene {
     } else if (e.type === 'grow') {
       this.cam.fit(this.isl.board.mask);
     } else if (e.type === 'end') {
+      fx.flushFlights(); this.hud.hold = 0;
       AudioSys.play('island_done', { volume: 0.8 });
       this.startFinale();
     }
