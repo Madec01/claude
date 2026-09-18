@@ -156,10 +156,15 @@ const Game = {
       if (result.stars >= 1 && def.id >= c.unlockedIsland && def.id < CAMPAIGN_SIZE) { const gated = def.id % 5 === 0 && chapterStars(c.stars, def.id / 5) < CHAPTER_GATE; if (!gated) c.unlockedIsland = def.id + 1; }
       if (def.id === CAMPAIGN_SIZE && result.stars >= 1) { c.completed = true; Save.data.infinite.unlocked = true; }
       if (def.id >= 10) Save.data.infinite.unlocked = true;
+      Save.noteIslandDone();
       Save.save();
     }
     scenes.go('results', { result, def, newRecord, seedsGained });
   },
+  /** Après l'import d'une sauvegarde : retour au menu, à jour. */
+  onSaveLoaded() { this.showMenu(); this.toast('Sauvegarde chargée. Bon retour sur l’archipel.'); },
+  /** Rappel de copie locale, à la fin d'une île de campagne. */
+  remindBackup() { if (Save.backupDue() && !this.testMode) this.toast('Pense à télécharger une copie de ta sauvegarde : Options → Sauvegarde.', 6500); },
   afterResults(result, def) {
     if (def.infinite) { this.startInfinite(); return; }
     if (def.garden) { this.startGarden(); return; }
@@ -172,6 +177,7 @@ const Game = {
       scenes.go('workshop', { onContinue: () => { if (c.unlockedIsland > def.id) this.startIsland(def.id + 1); else { this.showMenu(); this.toast(`Il faut ${CHAPTER_GATE} étoiles dans ce chapitre pour passer au suivant`); } } });
     };
     if (result.stars >= 1 && !c.memoriesRead.includes(def.id)) { c.memoriesRead.push(def.id); Save.save(); }
+    this.remindBackup();
     if (result.stars >= 1) scenes.go('story', { screens: memory, onDone: next }); else next();
   },
 };

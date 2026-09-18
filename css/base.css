@@ -76,6 +76,7 @@ button { font-family: inherit; }
 .slider::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: var(--breath); cursor: pointer; border: 2px solid #fff; }
 .opt-val { text-align: right; opacity: 0.7; font-variant-numeric: tabular-nums; font-weight: 700; }
 .opt-note { opacity: 0.75; font-size: 15px; }
+.opt-note.opt-warn { opacity: 1; color: #8a4a1f; background: rgba(224,163,58,0.14); border-left: 3px solid var(--gold, #e0a33a); padding: 6px 10px; border-radius: 6px; }
 .opt-keys { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 14px; opacity: 0.85; margin: 4px 0 8px; }
 .confirm { display: flex; gap: 10px; align-items: center; margin-top: 10px; font-size: 15px; flex-wrap: wrap; }
 .fps { position: fixed; top: 6px; left: 8px; font: 13px monospace; color: var(--ink); z-index: 200; display: none; pointer-events: none; background: rgba(255,255,255,0.6); padding: 2px 6px; }

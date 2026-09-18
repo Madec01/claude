@@ -173,6 +173,26 @@ check(affinity('meadow', 'water') === 0, 'prairie-eau = 0');
   const pier = evalWork(b, { ...b.get(1, 0), work: 'pier' }, 'spring'); check(pier.good, 'ponton sur la rivière collée à un hameau');
 }
 
+
+// --- sauvegarde : export / import (copie locale) et rappel
+{
+  const store = {}; globalThis.localStorage = { getItem: (k) => (k in store ? store[k] : null), setItem: (k, v) => { store[k] = String(v); }, removeItem: (k) => { delete store[k]; } };
+  const { Save } = await import('../src/core/save.js');
+  Save.load(); Save.campaign.unlockedIsland = 23; Save.campaign.seeds = 17; Save.campaign.stars = { 1: 3, 2: 2 }; Save.campaign.upgrades.sight = 2; Save.save();
+  const text = Save.exportText(); const info = Save.inspect(text);
+  check(info && info.unlockedIsland === 23 && info.stars === 5 && info.seeds === 17, 'export : fichier lisible et résumé exact');
+  check(Save.inspect('{"foo":1}') === null && Save.inspect('pas du json') === null, 'import : un fichier étranger est refusé');
+  Save.campaign.unlockedIsland = 1; Save.campaign.seeds = 0; Save.campaign.upgrades.sight = 0; Save.options.muted = true; Save.save();
+  const r = Save.importText(text);
+  check(r && Save.campaign.unlockedIsland === 23 && Save.campaign.seeds === 17 && Save.campaign.upgrades.sight === 2 && Save.options.muted === true, 'import : progression restaurée, options de l’appareil conservées');
+  check(!Save.backupDue(), 'après un import, aucun rappel');
+  for (let i = 0; i < 5; i++) Save.noteIslandDone(); check(Save.backupDue(), 'rappel après cinq îles');
+  Save.markBackedUp(); check(!Save.backupDue() && Save.data.backup.islandsSince === 0, 'copie faite : compteur remis à zéro');
+  // sauvegarde illisible : copie mise de côté et copie précédente relue
+  store['cent-saisons.save'] = '{corrompu'; Save.load();
+  check(store['cent-saisons.save.broken'] === '{corrompu' && Save.campaign.unlockedIsland === 23, 'sauvegarde corrompue : mise de côté, la copie précédente est relue');
+}
+
 // --- campagne : cinquante définitions valides, textes présents, mécaniques cumulatives, bot fort sur les îles générées du début
 for (const w of CAMPAIGN_WISHES) check(!!STORY.wishes[w.id], `texte du vœu de campagne ${w.id}`);
 {

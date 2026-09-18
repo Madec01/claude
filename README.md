@@ -93,6 +93,10 @@ JOURNAL_DE_BORD.md    document de référence du projet (vision, GDD, DA, décis
 CREDITS.md            crédits complets générés
 ```
 
+## Sauvegarde
+
+La progression est gardée dans le navigateur (localStorage, clé `cent-saisons.save`, JSON versionné avec migration). Elle ne quitte pas l'appareil : **Options → Sauvegarde → Télécharger ma sauvegarde** produit un fichier `cent-saisons-AAAA-MM-JJ.json` à garder (Fichiers, Drive, mail) et **Charger une sauvegarde** le relit sur n'importe quel appareil, après confirmation. Le jeu rappelle de faire une copie après cinq îles, ou une semaine, ou dès la troisième île tant qu'aucune copie n'a été faite. À chaque écriture, l'état précédent est conservé en copie de secours et relu si la sauvegarde devient illisible. Sur iPhone, ajouter le jeu à l'écran d'accueil évite l'effacement des données de site après sept jours sans visite (télécharger la sauvegarde avant, la charger dans le jeu installé après).
+
 ## Tests
 
 ```bash

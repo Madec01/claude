@@ -23,6 +23,7 @@ const defaults = () => ({
     prologueSeen: false, completed: false, islandsPlayed: 0, memoriesRead: [],
   },
   seen: {},   // cartes explicatives déjà vues (sentiers, rivière-lac), une seule fois par joueur
+  backup: { lastAt: null, islandsSince: 0 },   // copie locale (fichier téléchargé) : date de la dernière et îles jouées depuis, pour le rappel
   infinite: { best: 0, bestSeasons: 0, unlocked: false },
   daily: { best: {}, history: [], streak: 0, lastPlayed: null },
   stats: { placements: 0, closed: 0, fauna: 0, wishes: 0 },
@@ -41,11 +42,42 @@ export const Save = {
   data: defaults(),
   available: true,
   load() {
-    try { const raw = localStorage.getItem(KEY); if (raw) { const parsed = JSON.parse(raw); this.data = migrate(merge(defaults(), parsed), parsed.version || 1); this.data.version = VERSION; } }
-    catch (e) { console.warn('Sauvegarde illisible, réinitialisation.', e); this.available = false; this.data = defaults(); }
+    let raw = null;
+    try { raw = localStorage.getItem(KEY); if (raw) { const parsed = JSON.parse(raw); this.data = migrate(merge(defaults(), parsed), parsed.version || 1); this.data.version = VERSION; } }
+    catch (e) {
+      // sauvegarde illisible : on la met de côté (jamais écrasée sans copie) et on tente la copie précédente
+      console.warn('Sauvegarde illisible, copie de secours mise de côté.', e);
+      try { if (raw) localStorage.setItem(KEY + '.broken', raw); const prev = localStorage.getItem(KEY + '.prev'); if (prev) { const parsed = JSON.parse(prev); this.data = migrate(merge(defaults(), parsed), parsed.version || 1); this.data.version = VERSION; return this.data; } } catch (_) {}
+      this.available = false; this.data = defaults();
+    }
     return this.data;
   },
-  save() { try { localStorage.setItem(KEY, JSON.stringify(this.data)); } catch (_) { this.available = false; } },
+  /** Écrit la sauvegarde ; l'état précédent est gardé en copie (`.prev`), relue si la sauvegarde devient illisible. */
+  save() { try { const cur = localStorage.getItem(KEY); if (cur) localStorage.setItem(KEY + '.prev', cur); localStorage.setItem(KEY, JSON.stringify(this.data)); } catch (_) { this.available = false; } },
+
+  // ---- copie locale : fichier téléchargé / chargé par le joueur ----
+  /** Texte du fichier de sauvegarde (JSON lisible, avec version et date). */
+  exportText() { return JSON.stringify({ app: 'cent-saisons', version: VERSION, exportedAt: new Date().toISOString(), data: this.data }, null, 1); },
+  /** Résumé d'un fichier sans l'appliquer, ou null s'il n'est pas une sauvegarde du jeu. */
+  inspect(text) {
+    try {
+      const doc = JSON.parse(text); const d = doc && doc.app === 'cent-saisons' && doc.data ? doc.data : (doc && doc.campaign ? doc : null);
+      if (!d || !d.campaign) return null;
+      const c = d.campaign; return { version: doc.version || d.version || 1, exportedAt: doc.exportedAt || null, unlockedIsland: c.unlockedIsland || 1, stars: Object.values(c.stars || {}).reduce((a, b) => a + b, 0), seeds: c.seeds || 0, data: d };
+    } catch (_) { return null; }
+  },
+  /** Remplace la progression par celle du fichier (les options de l'appareil sont conservées). */
+  importText(text) {
+    const info = this.inspect(text); if (!info) return null;
+    const opts = this.data.options;
+    this.data = migrate(merge(defaults(), info.data), info.version); this.data.version = VERSION; this.data.options = opts;
+    this.data.backup = { lastAt: Date.now(), islandsSince: 0 };
+    this.save(); return info;
+  },
+  /** Rappel de copie locale : après cinq îles, ou une semaine, ou dès la troisième île si aucune copie n'a jamais été faite. */
+  noteIslandDone() { const b = this.data.backup || (this.data.backup = { lastAt: null, islandsSince: 0 }); b.islandsSince = (b.islandsSince || 0) + 1; },
+  backupDue() { const b = this.data.backup || {}; const week = 7 * 24 * 3600 * 1000; return (b.islandsSince || 0) >= 5 || (!b.lastAt && (b.islandsSince || 0) >= 3) || (!!b.lastAt && Date.now() - b.lastAt > week && (b.islandsSince || 0) >= 1); },
+  markBackedUp() { this.data.backup = { lastAt: Date.now(), islandsSince: 0 }; this.save(); },
   reset() { const opts = this.data.options; this.data = defaults(); this.data.options = opts; this.save(); },
   get options() { return this.data.options; },
   get campaign() { return this.data.campaign; },

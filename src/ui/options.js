@@ -31,9 +31,37 @@ export function buildOptions({ onBack, game }) {
     h('div', { class: 'opt-keys' }, h('span', {}, key('F1'), 'débogage'), h('span', {}, key('F2'), 'file infinie'), h('span', {}, key('F3'), 'saison suivante'), h('span', {}, key('F4'), '+10 souffles'), h('span', {}, key('F5'), 'terminer l’île')),
     toggle('Sauter les tutoriels', 'skipTutorial', () => {}, 'Les consignes des premières îles ne s’affichent plus.'),
   );
+  const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) && !navigator.standalone;
+  const b = Save.data.backup || {};
+  const lastTxt = b.lastAt ? `Dernière copie : ${new Date(b.lastAt).toLocaleDateString('fr-FR')}${b.islandsSince ? `, ${b.islandsSince} île${b.islandsSince > 1 ? 's' : ''} jouée${b.islandsSince > 1 ? 's' : ''} depuis` : ''}.` : 'Aucune copie locale pour l’instant.';
+  const fileInput = h('input', { type: 'file', accept: '.json,application/json', class: 'hidden', 'data-ref': 'saveFile' });
+  const status = h('p', { class: 'opt-note', 'data-ref': 'saveStatus' }, lastTxt);
+  const download = () => {
+    const text = Save.exportText(); const name = `cent-saisons-${new Date().toISOString().slice(0, 10)}.json`;
+    const blob = new Blob([text], { type: 'application/json' }); const url = URL.createObjectURL(blob);
+    const a = h('a', { href: url, download: name }); document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 2000);
+    Save.markBackedUp(); status.textContent = `Copie téléchargée : ${name}. Garde ce fichier (Fichiers, Drive, mail à toi-même…).`; AudioSys.play('ui_confirm', { volume: 0.5 });
+  };
+  fileInput.addEventListener('change', () => {
+    const f = fileInput.files && fileInput.files[0]; if (!f) return;
+    f.text().then((text) => {
+      const info = Save.inspect(text);
+      if (!info) { status.textContent = 'Ce fichier n’est pas une sauvegarde de Cent Saisons.'; AudioSys.play('ui_error', { volume: 0.5 }); return; }
+      if (root.querySelector('.confirm')) return;
+      const cf = h('div', { class: 'confirm' }, h('span', {}, `Ce fichier contient une progression jusqu’à l’île ${info.unlockedIsland}, ${info.stars} étoiles, ${info.seeds} graines${info.exportedAt ? `, copiée le ${new Date(info.exportedAt).toLocaleDateString('fr-FR')}` : ''}. Remplacer la progression de cet appareil ? `),
+        button('Oui, charger', () => { Save.importText(text); cf.remove(); status.textContent = 'Sauvegarde chargée.'; AudioSys.play('upgrade', { volume: 0.7 }); game.onSaveLoaded && game.onSaveLoaded(); }, { cls: 'btn-primary btn-small', iconName: 'icon_check' }),
+        button('Annuler', () => cf.remove(), { cls: 'btn-small' }));
+      saveGroup.appendChild(cf);
+    });
+    fileInput.value = '';
+  });
   const saveGroup = h('div', { class: 'opt-group opt-save' },
     h('h3', {}, icon('icon_save'), 'Sauvegarde'),
     h('p', { class: 'opt-note' }, `Île ${c.unlockedIsland} débloquée · ${c.seeds} graines · ${Object.values(c.stars || {}).reduce((a, b) => a + b, 0)} étoiles.`),
+    h('p', { class: 'opt-note' }, 'La progression est gardée dans ce navigateur. Pour ne pas la perdre (changement de téléphone, données de site effacées), télécharge une copie de temps en temps : le jeu te le rappelle.'),
+    isIOS ? h('p', { class: 'opt-note opt-warn' }, 'Sur iPhone, Safari peut effacer les données d’un site non ouvert pendant sept jours. Ajoute le jeu à l’écran d’accueil (Partager → « Sur l’écran d’accueil ») : télécharge d’abord ta sauvegarde, puis charge-la dans le jeu installé.') : null,
+    h('div', { class: 'opt-row opt-btnrow' }, button('Télécharger ma sauvegarde', download, { cls: 'btn-primary btn-small', iconName: 'icon_save' }), button('Charger une sauvegarde', () => fileInput.click(), { cls: 'btn-small', iconName: 'icon_return' }), fileInput),
+    status,
     button('Effacer la progression', () => {
       if (root.querySelector('.confirm')) return;
       const cf = h('div', { class: 'confirm' }, h('span', {}, 'Tout effacer, vraiment ? Étoiles, graines et améliorations seront perdues. '),

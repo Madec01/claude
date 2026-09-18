@@ -123,7 +123,7 @@ Trois lots de code : **7a** mer, abysse, routes et archipel à deux îles avec b
 
 ## Lot 8 : publication (à planifier)
 
-Hors ligne complet (service worker), version anglaise, export/import de sauvegarde, politique de confidentialité, captures et fiche, dépôt itch.io puis Google Play (TWA) puis iOS (Capacitor). Réécriture native écartée : le code est emballé tel quel.
+Hors ligne complet (service worker), version anglaise, export/import de sauvegarde (**fait** : fichier téléchargé / chargé, rappel périodique, copie de secours), politique de confidentialité, captures et fiche, dépôt itch.io puis Google Play (TWA) puis iOS (Capacitor). Réécriture native écartée : le code est emballé tel quel.
 
 ## À planifier plus tard
 
