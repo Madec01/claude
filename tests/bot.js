@@ -61,7 +61,7 @@ export function playStrong(def, o = {}) {
       // ouvrage : la meilleure tuile d'accueil tout de suite (frais), sinon en remise, sinon défausse (gratuite)
       let bt = null, bs = -Infinity; for (const t of isl.board.tiles.values()) { if (!isl.canBuild(t.q, t.r)) continue; const pv = isl.previewBuild(t.q, t.r); if (pv && pv.total > bs) { bs = pv.total; bt = t; } }
       if (bt && bs > 0) { isl.build(bt.q, bt.r); continue; }
-      if (isl.canShed() && (isl.shed.length < isl.shedSize || isl.shed.every((s) => isl.shedLeft(s) <= 2))) { isl.toShed(); continue; }
+      if (isl.canShed() && isl.queue.list.length > 1 && (isl.shed.length < isl.shedSize || isl.shed.every((s) => isl.shedLeft(s) <= 2))) { isl.toShed(); continue; }   // en remise seulement s'il reste d'autres tuiles à jouer
       if (isl.canDiscard()) { isl.discard(); continue; }
       if (bt) { isl.build(bt.q, bt.r); continue; }
       isl.checkEnd(); break;
