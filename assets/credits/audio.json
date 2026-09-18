@@ -349,7 +349,8 @@
         "sfx/island_done.ogg",
         "sfx/island_start.ogg",
         "sfx/seed.ogg",
-        "sfx/upgrade.ogg"
+        "sfx/upgrade.ogg",
+        "sfx/achievement.ogg"
       ]
     },
     {
@@ -416,7 +417,19 @@
         "sfx/ui_back.ogg",
         "sfx/ui_confirm.ogg",
         "sfx/ui_error.ogg",
-        "sfx/chalk.ogg"
+        "sfx/chalk.ogg",
+        "sfx/achievement.ogg"
+      ]
+    },
+    {
+      "title": "Music Jingles",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "source_url": "https://kenney.nl/assets/music-jingles",
+      "mirror": "https://github.com/ETdoFresh/kenney.nl",
+      "used_in": [
+        "sfx/achievement.ogg"
       ]
     }
   ],

@@ -193,6 +193,32 @@ check(affinity('meadow', 'water') === 0, 'prairie-eau = 0');
   check(store['cent-saisons.save.broken'] === '{corrompu' && Save.campaign.unlockedIsland === 23, 'sauvegarde corrompue : mise de côté, la copie précédente est relue');
 }
 
+
+// --- succès : données valides, moteur (événements d'île, compteurs, bilan de campagne, copie)
+{
+  const { ACHIEVEMENTS } = await import('../src/data/achievements.js'); const { Achievements } = await import('../src/game/achievements.js');
+  const ids = ACHIEVEMENTS.map((a) => a.id);
+  check(ids.length === 33 && new Set(ids).size === 33 && ACHIEVEMENTS.every((a) => a.name && a.desc && a.cat && /^[a-z0-9-]+$/.test(a.id)), 'trente-trois succès, identifiants uniques en minuscules');
+  check(ACHIEVEMENTS.every((a) => !a.target || a.counter), 'chaque succès qui se compte a son compteur');
+  const store = {}; globalThis.localStorage = { getItem: (k) => (k in store ? store[k] : null), setItem: (k, v) => { store[k] = String(v); }, removeItem: (k) => { delete store[k]; } };
+  const { Save } = await import('../src/core/save.js'); Save.load(); Save.data.campaign.seeds = 0;
+  Achievements.init(Save); const got = []; Achievements.onUnlock((a) => got.push(a.id));
+  const d = campaignIsland(26); const isl = new Island(d, { ...islandOptions(d) });
+  isl.on((e) => Achievements.onIslandEvent(e, isl));
+  const { playStrong } = await import('./bot.js');
+  // une île entière jouée par le bot : première tuile, région close, quatre saisons…
+  const r = playStrong(d, { seedOffset: 0 }); r.isl.lastEvents.forEach((e) => Achievements.onIslandEvent(e, r.isl));
+  check(got.includes('premiere-tuile') && got.includes('un-toit') && got.includes('quatre-saisons'), `succès de base après une île (${got.join(', ')})`);
+  check(Save.data.campaign.seeds === got.length && Object.keys(Save.data.achievements.unlocked).length === got.length, 'une graine par succès, enregistré');
+  const before = got.length; Achievements.unlock('premiere-tuile'); check(got.length === before, 'un succès ne se débloque qu’une fois');
+  // compteurs cumulés et bilan de campagne
+  for (let i = 0; i < 10; i++) Achievements.add('masters'); Achievements.checkCounters(); check(got.includes('coup-de-maitre'), 'dix coups de maître');
+  Save.data.campaign.stars = { 1: 3, 2: 3, 3: 3, 4: 3, 5: 3 }; Achievements.onCampaignResult({ stars: 3 }, campaignIsland(5)); check(got.includes('chapitre-clos'), 'quinze étoiles sur le chapitre 1');
+  check(Achievements.progress(ACHIEVEMENTS.find((a) => a.id === 'cent-cinquante')).value === 15, 'progression des étoiles');
+  Achievements.onBackup(); check(got.includes('prudence'), 'copie de sauvegarde');
+  check(Achievements.counter('climates3') === 1, 'trois étoiles au tempéré seulement');
+}
+
 // --- campagne : cinquante définitions valides, textes présents, mécaniques cumulatives, bot fort sur les îles générées du début
 for (const w of CAMPAIGN_WISHES) check(!!STORY.wishes[w.id], `texte du vœu de campagne ${w.id}`);
 {

@@ -93,6 +93,12 @@ JOURNAL_DE_BORD.md    document de référence du projet (vision, GDD, DA, décis
 CREDITS.md            crédits complets générés
 ```
 
+## Succès
+
+Trente-trois succès à débloquer (écran « Succès » du menu), rangés par famille : prise en main, eau et saisons, faune, habitants et vœux, bâtir, campagne, ailleurs. Chacun rapporte une graine. Ceux qui se comptent (dix coups de maître, vingt tuiles bâties, cinquante vœux…) affichent leur progression ; trois restent cachés jusqu'à leur obtention. Au déblocage, une bannière glisse depuis le haut avec la vignette, des éclats et un jingle pizzicato (Kenney Music Jingles, CC0). Les vignettes sont composées par le pipeline d'images à partir des tuiles et sprites du jeu (`assets/img/succes/`).
+
+Les vœux d'une île se présentent avant la première pose (donneur, demande, objectif, échéance, récompense) avec un bouton « C'est parti » ; ils restent affichés à droite pendant la partie.
+
 ## Sauvegarde
 
 La progression est gardée dans le navigateur (localStorage, clé `cent-saisons.save`, JSON versionné avec migration). Elle ne quitte pas l'appareil : **Options → Sauvegarde → Télécharger ma sauvegarde** produit un fichier `cent-saisons-AAAA-MM-JJ.json` à garder (Fichiers, Drive, mail) et **Charger une sauvegarde** le relit sur n'importe quel appareil, après confirmation. Le jeu rappelle de faire une copie après cinq îles, ou une semaine, ou dès la troisième île tant qu'aucune copie n'a été faite. À chaque écriture, l'état précédent est conservé en copie de secours et relu si la sauvegarde devient illisible. Sur iPhone, ajouter le jeu à l'écran d'accueil évite l'effacement des données de site après sept jours sans visite (télécharger la sauvegarde avant, la charger dans le jeu installé après).

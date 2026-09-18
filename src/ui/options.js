@@ -40,7 +40,7 @@ export function buildOptions({ onBack, game }) {
     const text = Save.exportText(); const name = `cent-saisons-${new Date().toISOString().slice(0, 10)}.json`;
     const blob = new Blob([text], { type: 'application/json' }); const url = URL.createObjectURL(blob);
     const a = h('a', { href: url, download: name }); document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 2000);
-    Save.markBackedUp(); status.textContent = `Copie téléchargée : ${name}. Garde ce fichier (Fichiers, Drive, mail à toi-même…).`; AudioSys.play('ui_confirm', { volume: 0.5 });
+    Save.markBackedUp(); if (game.onBackup) game.onBackup(); status.textContent = `Copie téléchargée : ${name}. Garde ce fichier (Fichiers, Drive, mail à toi-même…).`; AudioSys.play('ui_confirm', { volume: 0.5 });
   };
   fileInput.addEventListener('change', () => {
     const f = fileInput.files && fileInput.files[0]; if (!f) return;

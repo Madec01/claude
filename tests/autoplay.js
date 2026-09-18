@@ -51,6 +51,7 @@ function parseList(s) {
     }
     await page.waitForFunction(isMine, id, { timeout: 30000 });
     await page.waitForTimeout(600);
+    await page.evaluate(() => { const b = [...document.querySelectorAll('button')].find((x) => x.textContent.includes('C’est parti')); if (b) b.click(); });   // écran des vœux
     let ticks = 0, shot = false;
     while (true) {
       const st = await page.evaluate(() => {

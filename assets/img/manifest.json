@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-18T08:45:18+00:00",
+ "generated": "2026-09-18T11:47:22+00:00",
  "generator": "tools/build_images.py",
  "conventions": {
   "hex": {
@@ -5363,6 +5363,391 @@
    "source": "uipack_fixed",
    "original": "PNG/grey_box.png",
    "note": "Case vide"
+  },
+  "premiere-tuile": {
+   "file": "succes/premiere-tuile.png",
+   "w": 240,
+   "h": 280,
+   "bytes": 12142,
+   "source": "hexagon-pack",
+   "original": "meadow_1_spring",
+   "note": "Vignette de succès composée à partir des tuiles et sprites du jeu.",
+   "badge": true
+  },
+  "un-toit": {
+   "file": "succes/un-toit.png",
+   "w": 240,
+   "h": 280,
+   "bytes": 32004,
+   "source": "hexagon-pack",
+   "original": "hamlet_1_summer",
+   "note": "Vignette de succès composée à partir des tuiles et sprites du jeu.",
+   "badge": true
+  },
+  "bourg": {
+   "file": "succes/bourg.png",
+   "w": 240,
+   "h": 280,
+   "bytes": 43219,
+   "source": "hexagon-pack",
+   "original": "archway_summer",
+   "note": "Vignette de succès composée à partir des tuiles et sprites du jeu.",
+   "badge": true
+  },
+  "grand-domaine": {
+   "file": "succes/grand-domaine.png",
+   "w": 240,
+   "h": 280,
+   "bytes": 19684,
+   "source": "hexagon-pack",
+   "original": "forest_1_summer",
+   "note": "Vignette de succès composée à partir des tuiles et sprites du jeu.",
+   "badge": true
+  },
+  "coup-de-maitre": {
+   "file": "succes/coup-de-maitre.png",
+   "w": 240,
+   "h": 280,
+   "bytes": 14596,
+   "source": [
+    "gameicons",
+    "hexagon-pack"
+   ],
+   "original": "ground_grass_summer + icon_star",
+   "note": "Vignette de succès composée à partir des tuiles et sprites du jeu.",
+   "badge": true
+  },
+  "sans-faute": {
+   "file": "succes/sans-faute.png",
+   "w": 240,
+   "h": 280,
+   "bytes": 15062,
+   "source": [
+    "gameicons",
+    "hexagon-pack"
+   ],
+   "original": "ground_grass_spring + icon_check",
+   "note": "Vignette de succès composée à partir des tuiles et sprites du jeu.",
+   "badge": true
+  },
+  "sans-regret": {
+   "file": "succes/sans-regret.png",
+   "w": 240,
+   "h": 280,
+   "bytes": 16682,
+   "source": [
+    "gameicons",
+    "hexagon-pack"
+   ],
+   "original": "ground_grass_autumn + icon_undo",
+   "note": "Vignette de succès composée à partir des tuiles et sprites du jeu.",
+   "badge": true
+  },
+  "la-source": {
+   "file": "succes/la-source.png",
+   "w": 240,
+   "h": 280,
+   "bytes": 26051,
+   "source": "hexagon-pack",
+   "original": "water_1_spring + obj_rockGrey_medium1",
+   "note": "Vignette de succès composée à partir des tuiles et sprites du jeu.",
+   "badge": true
+  },
+  "jusqu-a-la-mer": {
+   "file": "succes/jusqu-a-la-mer.png",
+   "w": 240,
+   "h": 280,
+   "bytes": 18155,
+   "source": [
+    "hexagon-pack",
+    "hexagontiles"
+   ],
+   "original": "ground_sand_summer + sea_wave_1 + sea_wave_2",
+   "note": "Vignette de succès composée à partir des tuiles et sprites du jeu.",
+   "badge": true
+  },
+  "le-lac": {
+   "file": "succes/le-lac.png",
+   "w": 240,
+   "h": 280,
+   "bytes": 22250,
+   "source": [
+    "hexagon-pack",
+    "hexagontiles"
+   ],
+   "original": "water_2_summer + obj_lily + obj_lily",
+   "note": "Vignette de succès composée à partir des tuiles et sprites du jeu.",
+   "badge": true
+  },
+  "veillee": {
+   "file": "succes/veillee.png",
+   "w": 240,
+   "h": 280,
+   "bytes": 19128,
+   "source": "hexagon-pack",
+   "original": "water_frozen + obj_lightpost",
+   "note": "Vignette de succès composée à partir des tuiles et sprites du jeu.",
+   "badge": true
+  },
+  "quatre-saisons": {
+   "file": "succes/quatre-saisons.png",
+   "w": 240,
+   "h": 280,
+   "bytes": 26650,
+   "source": [
+    "generated",
+    "hexagon-pack"
+   ],
+   "original": "ground_grass_autumn + icon_sun",
+   "note": "Vignette de succès composée à partir des tuiles et sprites du jeu.",
+   "badge": true
+  },
+  "grande-foire": {
+   "file": "succes/grande-foire.png",
+   "w": 240,
+   "h": 280,
+   "bytes": 24444,
+   "source": "hexagon-pack",
+   "original": "orchard_1_autumn + obj_basket",
+   "note": "Vignette de succès composée à partir des tuiles et sprites du jeu.",
+   "badge": true
+  },
+  "compagnie": {
+   "file": "succes/compagnie.png",
+   "w": 240,
+   "h": 280,
+   "bytes": 18126,
+   "source": [
+    "hexagon-pack",
+    "kenney_animalpackredux"
+   ],
+   "original": "ground_grass_summer + fauna_rabbit + fauna_duck",
+   "note": "Vignette de succès composée à partir des tuiles et sprites du jeu.",
+   "badge": true
+  },
+  "menagerie": {
+   "file": "succes/menagerie.png",
+   "w": 240,
+   "h": 280,
+   "bytes": 26373,
+   "source": [
+    "hexagon-pack",
+    "kenney_animalpackredux"
+   ],
+   "original": "ground_grass_spring + fauna_moose",
+   "note": "Vignette de succès composée à partir des tuiles et sprites du jeu.",
+   "badge": true
+  },
+  "l-ours": {
+   "file": "succes/l-ours.png",
+   "w": 240,
+   "h": 280,
+   "bytes": 23172,
+   "source": [
+    "hexagon-pack",
+    "kenney_animalpackredux"
+   ],
+   "original": "ground_stone_summer + fauna_bear",
+   "note": "Vignette de succès composée à partir des tuiles et sprites du jeu.",
+   "badge": true
+  },
+  "les-manchots": {
+   "file": "succes/les-manchots.png",
+   "w": 240,
+   "h": 280,
+   "bytes": 24876,
+   "source": [
+    "hexagon-pack",
+    "kenney_animalpackredux"
+   ],
+   "original": "water_frozen + fauna_penguin + fauna_penguin",
+   "note": "Vignette de succès composée à partir des tuiles et sprites du jeu.",
+   "badge": true
+  },
+  "promesse-tenue": {
+   "file": "succes/promesse-tenue.png",
+   "w": 240,
+   "h": 280,
+   "bytes": 16711,
+   "source": "hexagon-pack",
+   "original": "ground_grass_summer + obj_banner",
+   "note": "Vignette de succès composée à partir des tuiles et sprites du jeu.",
+   "badge": true
+  },
+  "toute-l-ile": {
+   "file": "succes/toute-l-ile.png",
+   "w": 240,
+   "h": 280,
+   "bytes": 21472,
+   "source": "hexagon-pack",
+   "original": "fete_summer",
+   "note": "Vignette de succès composée à partir des tuiles et sprites du jeu.",
+   "badge": true
+  },
+  "cinquante-promesses": {
+   "file": "succes/cinquante-promesses.png",
+   "w": 240,
+   "h": 280,
+   "bytes": 29291,
+   "source": "hexagon-pack",
+   "original": "chapel_summer",
+   "note": "Vignette de succès composée à partir des tuiles et sprites du jeu.",
+   "badge": true
+  },
+  "charpentier": {
+   "file": "succes/charpentier.png",
+   "w": 240,
+   "h": 280,
+   "bytes": 24436,
+   "source": "hexagon-pack",
+   "original": "ground_field_summer + obj_logPile + obj_hay",
+   "note": "Vignette de succès composée à partir des tuiles et sprites du jeu.",
+   "badge": true
+  },
+  "signature": {
+   "file": "succes/signature.png",
+   "w": 240,
+   "h": 280,
+   "bytes": 40722,
+   "source": "hexagon-pack",
+   "original": "ground_grass_summer + obj_church",
+   "note": "Vignette de succès composée à partir des tuiles et sprites du jeu.",
+   "badge": true
+  },
+  "le-cahier-complet": {
+   "file": "succes/le-cahier-complet.png",
+   "w": 240,
+   "h": 280,
+   "bytes": 49966,
+   "source": "hexagon-pack",
+   "original": "ground_stone_summer + obj_castle_small",
+   "note": "Vignette de succès composée à partir des tuiles et sprites du jeu.",
+   "badge": true
+  },
+  "port-d-attache": {
+   "file": "succes/port-d-attache.png",
+   "w": 240,
+   "h": 280,
+   "bytes": 36185,
+   "source": [
+    "hexagon-pack",
+    "hexagontiles"
+   ],
+   "original": "ground_water_summer + obj_house_small + obj_pole + sea_wave_1",
+   "note": "Vignette de succès composée à partir des tuiles et sprites du jeu.",
+   "badge": true
+  },
+  "bien-place": {
+   "file": "succes/bien-place.png",
+   "w": 240,
+   "h": 280,
+   "bytes": 19305,
+   "source": [
+    "hexagon-pack",
+    "hexagontiles"
+   ],
+   "original": "ground_grass_summer + obj_box2 + obj_flowerYellow + obj_flowerWhite",
+   "note": "Vignette de succès composée à partir des tuiles et sprites du jeu.",
+   "badge": true
+  },
+  "frais-du-jour": {
+   "file": "succes/frais-du-jour.png",
+   "w": 240,
+   "h": 280,
+   "bytes": 18471,
+   "source": "hexagon-pack",
+   "original": "ground_grass_spring + obj_treeRound_blossom_large",
+   "note": "Vignette de succès composée à partir des tuiles et sprites du jeu.",
+   "badge": true
+  },
+  "chapitre-clos": {
+   "file": "succes/chapitre-clos.png",
+   "w": 240,
+   "h": 280,
+   "bytes": 13132,
+   "source": [
+    "gameicons",
+    "hexagon-pack"
+   ],
+   "original": "ground_grass_summer + icon_trophy",
+   "note": "Vignette de succès composée à partir des tuiles et sprites du jeu.",
+   "badge": true
+  },
+  "les-quatre-climats": {
+   "file": "succes/les-quatre-climats.png",
+   "w": 240,
+   "h": 280,
+   "bytes": 24968,
+   "source": [
+    "hexagon-pack",
+    "hexagontiles"
+   ],
+   "original": "ground_heath_autumn + obj_snowdrift + obj_treePine_small_winter + obj_bushGrass_dry",
+   "note": "Vignette de succès composée à partir des tuiles et sprites du jeu.",
+   "badge": true
+  },
+  "cent-saisons": {
+   "file": "succes/cent-saisons.png",
+   "w": 240,
+   "h": 280,
+   "bytes": 16109,
+   "source": [
+    "gameicons",
+    "hexagon-pack"
+   ],
+   "original": "ground_grass_summer + icon_medal",
+   "note": "Vignette de succès composée à partir des tuiles et sprites du jeu.",
+   "badge": true
+  },
+  "cent-cinquante": {
+   "file": "succes/cent-cinquante.png",
+   "w": 240,
+   "h": 280,
+   "bytes": 21295,
+   "source": [
+    "gameicons",
+    "hexagon-pack",
+    "hexagontiles"
+   ],
+   "original": "ground_grass_spring + icon_trophy + obj_flowerWhite + obj_flowerRed",
+   "note": "Vignette de succès composée à partir des tuiles et sprites du jeu.",
+   "badge": true
+  },
+  "lever-du-jour": {
+   "file": "succes/lever-du-jour.png",
+   "w": 240,
+   "h": 280,
+   "bytes": 27818,
+   "source": [
+    "generated",
+    "hexagon-pack"
+   ],
+   "original": "ground_sand_summer + icon_sun",
+   "note": "Vignette de succès composée à partir des tuiles et sprites du jeu.",
+   "badge": true
+  },
+  "sans-fin": {
+   "file": "succes/sans-fin.png",
+   "w": 240,
+   "h": 280,
+   "bytes": 17336,
+   "source": "hexagon-pack",
+   "original": "hill_1_summer",
+   "note": "Vignette de succès composée à partir des tuiles et sprites du jeu.",
+   "badge": true
+  },
+  "prudence": {
+   "file": "succes/prudence.png",
+   "w": 240,
+   "h": 280,
+   "bytes": 12836,
+   "source": [
+    "gameicons",
+    "hexagon-pack"
+   ],
+   "original": "ground_grass_summer + icon_save",
+   "note": "Vignette de succès composée à partir des tuiles et sprites du jeu.",
+   "badge": true
   }
  }
 }

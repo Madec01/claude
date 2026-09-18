@@ -833,6 +833,78 @@ class Builder:
         self.emit("drop", "fx", im, FO, orig, "Goutte d'eau (pluie, crue) teintée #7fb8d8")
 
     # --- D. UI
+    # --- E. vignettes des succès : composées à partir des tuiles et sprites déjà produits (aucun dessin par code)
+    def build_badges(self):
+        def load(key):
+            e = self.manifest.get(key)
+            if not e:
+                raise KeyError(f"vignette : image absente {key}")
+            return Image.open(self.img_root / e["file"]).convert("RGBA")
+        def shadowed(im, radius=6, alpha=140):
+            """Ombre douce sombre sous un sprite (icônes blanches lisibles sur les sols clairs)."""
+            a = im.split()[3]
+            sh = Image.new("RGBA", im.size, (35, 30, 20, 0)); sh.putalpha(a.point(lambda v: v * alpha // 255))
+            pad = radius * 3
+            big = Image.new("RGBA", (im.width + 2 * pad, im.height + 2 * pad), (0, 0, 0, 0)); big.alpha_composite(sh, (pad, pad + 4))
+            big = big.filter(ImageFilter.GaussianBlur(radius)); big.alpha_composite(im, (pad, pad))
+            return big
+        def sprite(key, x, y, scale=1.0, icon=False):
+            im = load(key)
+            if scale != 1.0:
+                im = im.resize((max(1, round(im.width * scale)), max(1, round(im.height * scale))), Image.LANCZOS)
+            if icon:
+                im = shadowed(im)
+            return im, x, y   # ancré bas-centre en (x, y)
+        ICON = 1.4
+        B = {
+            "premiere-tuile": ("meadow_1_spring", []), "un-toit": ("hamlet_1_summer", []), "bourg": ("archway_summer", []),
+            "grand-domaine": ("forest_1_summer", []),
+            "coup-de-maitre": ("ground_grass_summer", [("icon_star", 120, 190, ICON, True)]),
+            "sans-faute": ("ground_grass_spring", [("icon_check", 120, 190, ICON, True)]),
+            "sans-regret": ("ground_grass_autumn", [("icon_undo", 120, 190, ICON, True)]),
+            "la-source": ("water_1_spring", [("obj_rockGrey_medium1", 60, 150, 1.08)]),
+            "jusqu-a-la-mer": ("ground_sand_summer", [("sea_wave_1", 120, 170, 1.4), ("sea_wave_2", 80, 200, 1.2)]),
+            "le-lac": ("water_2_summer", [("obj_lily", 90, 150, 1.62), ("obj_lily", 150, 185, 1.49)]),
+            "veillee": ("water_frozen", [("obj_lightpost", 120, 210, 1.9)]),
+            "quatre-saisons": ("ground_grass_autumn", [("icon_sun", 120, 190, ICON, True)]),
+            "grande-foire": ("orchard_1_autumn", [("obj_basket", 120, 215, 1.35)]),
+            "compagnie": ("ground_grass_summer", [("fauna_rabbit", 86, 205, 1.0), ("fauna_duck", 156, 205, 1.0)]),
+            "menagerie": ("ground_grass_spring", [("fauna_moose", 120, 215, 1.15)]),
+            "l-ours": ("ground_stone_summer", [("fauna_bear", 120, 215, 1.15)]),
+            "les-manchots": ("water_frozen", [("fauna_penguin", 98, 210, 0.95), ("fauna_penguin", 150, 200, 0.8)]),
+            "promesse-tenue": ("ground_grass_summer", [("obj_banner", 120, 212, 1.8)]),
+            "toute-l-ile": ("fete_summer", []), "cinquante-promesses": ("chapel_summer", []),
+            "charpentier": ("ground_field_summer", [("obj_logPile", 100, 205, 1.49), ("obj_hay", 165, 200, 1.22)]),
+            "signature": ("ground_grass_summer", [("obj_church", 120, 215, 1.35)]),
+            "le-cahier-complet": ("ground_stone_summer", [("obj_castle_small", 120, 210, 1.35)]),
+            "port-d-attache": ("ground_water_summer", [("obj_house_small", 84, 200, 1.35), ("obj_pole", 160, 205, 1.35), ("sea_wave_1", 150, 160, 1.0)]),
+            "bien-place": ("ground_grass_summer", [("obj_box2", 120, 205, 1.35), ("obj_flowerYellow", 80, 205, 1.35), ("obj_flowerWhite", 160, 205, 1.35)]),
+            "frais-du-jour": ("ground_grass_spring", [("obj_treeRound_blossom_large", 120, 220, 1.5)]),
+            "chapitre-clos": ("ground_grass_summer", [("icon_trophy", 120, 190, ICON, True)]),
+            "les-quatre-climats": ("ground_heath_autumn", [("obj_snowdrift", 78, 210, 1.9), ("obj_treePine_small_winter", 156, 205, 1.5), ("obj_bushGrass_dry", 120, 222, 1.4)]),
+            "cent-saisons": ("ground_grass_summer", [("icon_medal", 120, 190, ICON, True)]),
+            "cent-cinquante": ("ground_grass_spring", [("icon_trophy", 120, 190, ICON, True), ("obj_flowerWhite", 60, 215, 1.35), ("obj_flowerRed", 180, 215, 1.35)]),
+            "lever-du-jour": ("ground_sand_summer", [("icon_sun", 120, 190, ICON, True)]),
+            "sans-fin": ("hill_1_summer", []),
+            "prudence": ("ground_grass_summer", [("icon_save", 120, 190, ICON, True)]),
+        }
+        def pack_of(key):
+            pk = self.manifest[key]["source"]
+            return pk if isinstance(pk, str) else pk[0]
+        for bid, (base, layers) in B.items():
+            im = load(base).copy()
+            objs = []
+            for lay in layers:
+                key, x, y, scale = lay[0], lay[1], lay[2], lay[3]
+                icon = len(lay) > 4 and lay[4]
+                sp, x, y = sprite(key, x, y, scale, icon)
+                objs.append((y, sp, x))
+            for y, sp, x in sorted(objs, key=lambda o: o[0]):
+                im.alpha_composite(sp, (int(x - sp.width / 2), int(y - sp.height)))
+            packs = sorted({pack_of(base)} | {pack_of(l[0]) for l in layers})
+            self.emit(bid, "succes", im, packs if len(packs) > 1 else packs[0], base + "".join(" + " + l[0] for l in layers),
+                      "Vignette de succès composée à partir des tuiles et sprites du jeu.", badge=True)
+
     def build_ui(self):
         icons = [
             ("icon_gear", GI, "gear", "Engrenage (options)"), ("icon_audio_on", GI, "audioOn", "Son activé"),
@@ -996,6 +1068,7 @@ def main():
     b.build_fauna()
     b.build_fx()
     b.build_ui()
+    b.build_badges()
     if args.sheets:
         b.contact_sheets()
     b.finish()

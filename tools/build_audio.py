@@ -61,6 +61,7 @@ P_RD1, P_RD_WM, P_RD2, P_RD_CRE, P_RD_CRE2, P_RD_RPG, P_RD_WATER = (
     "rd_100sfx", "rd_woodmetal", "rd_100sfx2", "rd_creature", "rd_creature2", "rd_rpg", "rd_water")
 P_BB_WOOSH, P_BB_PAPER, P_BB_CUTTER = "bb_wooshes", "bb_paper", "bb_papercutter"
 P_K_UI, P_K_IF, P_K_IMP, P_K_RPG = "kenney_ui", "kenney_interface", "kenney_impact", "kenney_rpg"
+P_K_JIN = "kenney_jingles"
 P_FLUID = "fluidr3"
 P_FS_STORM = "fs_storm"
 
@@ -87,6 +88,7 @@ PACKS = {
     P_K_IF: dict(dir=KENNEY / "kenney_interfacesounds" / "Audio", author="Kenney", license="CC0 1.0"),
     P_K_IMP: dict(dir=KENNEY / "kenney_impactsounds" / "Audio", author="Kenney", license="CC0 1.0"),
     P_K_RPG: dict(dir=KENNEY / "kenney_rpgaudio" / "Audio", author="Kenney", license="CC0 1.0"),
+    P_K_JIN: dict(dir=KENNEY / "kenney_musicjingles" / "Audio", author="Kenney", license="CC0 1.0"),
     P_FLUID: dict(dir=FLUID, author="Frank Wen", license="CC BY 3.0"),
 }
 
@@ -143,6 +145,8 @@ WORKS = {
                   source_url="https://kenney.nl/assets/impact-sounds", mirror=KENNEY_MIRROR),
     P_K_RPG: dict(title="RPG Audio", author="Kenney", license="CC0 1.0", license_url=CC0_URL,
                   source_url="https://kenney.nl/assets/rpg-audio", mirror=KENNEY_MIRROR),
+    P_K_JIN: dict(title="Music Jingles", author="Kenney", license="CC0 1.0", license_url=CC0_URL,
+                  source_url="https://kenney.nl/assets/music-jingles", mirror=KENNEY_MIRROR),
     P_FLUID: dict(title="FluidR3_GM SoundFont (samples d'instruments, rendus MP3 par note)", author="Frank Wen",
                   license="CC BY 3.0", license_url=CCBY3_URL,
                   source_url="https://member.keymusician.com/Member/FluidR3_GM/index.html",
@@ -806,6 +810,12 @@ def build_sfx(only: set[str] | None = None) -> dict:
     R["ui_click"] = (lambda: L(P_K_UI, "click1.ogg"), [(P_K_UI, "click1.ogg")], "clic")
     R["ui_back"] = (lambda: L(P_K_IF, "back_002.ogg"), [(P_K_IF, "back_002.ogg")], "retour")
     R["ui_confirm"] = (lambda: L(P_K_IF, "confirmation_001.ogg"), [(P_K_IF, "confirmation_001.ogg")], "validation")
+    # ---- Succès : jingle pizzicato (Kenney Music Jingles) posé sur un verre clair, puis la harpe du jeu ------------
+    R["achievement"] = (lambda: cut(mix((L(P_K_JIN, "Pizzicato jingles/jingles_PIZZI07.ogg"), 0.0, 0.0),
+                                        (gain(L(P_K_IF, "glass_004.ogg"), -10.0), 0.05, 0.0),
+                                        (gain(LF("orchestral_harp", "C5"), -8.0), 0.9, 0.0)), 2.2, 0.35),
+                        [(P_K_JIN, "Pizzicato jingles/jingles_PIZZI07.ogg"), (P_K_IF, "glass_004.ogg"), (P_FLUID, "orchestral_harp C5")],
+                        "succès débloqué : jingle pizzicato, verre, harpe")
     R["ui_error"] = (lambda: L(P_K_IF, "error_006.ogg"), [(P_K_IF, "error_006.ogg")], "erreur, brève et feutrée")
     # ---- Météo -------------------------------------------------------------------
     R["thunder"] = (lambda: cut(ff_filter(L(P_RD2, "sfx100v2_thunder_01.ogg", 2), "lowpass=f=2200," + REVERB_FAR), 4.0, 1.2),

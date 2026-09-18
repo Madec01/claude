@@ -30,6 +30,9 @@ import { waterBodies } from './game/water.js';
 import { buildStory, islandIntroScreens, islandMemoryScreens, prologueScreens, endingScreens, infiniteScreens, gardenScreens, dailyScreens } from './ui/story.js';
 import { buildResults } from './ui/results.js';
 import { buildWorkshop } from './ui/workshop.js';
+import { buildAchievements, celebrate } from './ui/achievements.js';
+import { buildWishesIntro } from './ui/wishes_intro.js';
+import { Achievements } from './game/achievements.js';
 import { buildPause } from './ui/pause.js';
 import { h, showUI, hideUI } from './ui/dom.js';
 import { STAGE, layoutStage, uiMargins } from './core/stage.js';
@@ -64,6 +67,7 @@ const Game = {
     const fill = document.getElementById('boot-fill'), status = document.getElementById('boot-status');
     const setP = (p, txt) => { fill.style.width = `${Math.round(p * 100)}%`; if (txt) status.textContent = txt; };
     Save.load();
+    Achievements.init(Save); Achievements.testMode = () => !!Save.options.testMode; Achievements.onUnlock((a) => celebrate(a, { sound: () => AudioSys.play('achievement', { volume: 0.85 }) }));
     AudioSys.volumes = { master: Save.options.master, music: Save.options.music, ambience: Save.options.ambience, sfx: Save.options.sfx };
     AudioSys.muted = !!Save.options.muted;
     try { await AudioSys.loadManifest(); } catch (e) { console.warn(e); }
@@ -82,6 +86,7 @@ const Game = {
   showOptions(onBack) { this.showPanel(buildOptions({ onBack: onBack || (() => this.showMenu()), game: this })); },
   showGuide(onBack) { this.showPanel(buildGuide({ onBack: onBack || (() => this.showMenu()) })); },
   showCredits(onBack) { this.showPanel(buildCredits({ onBack: onBack || (() => this.showMenu()), credits: this.credits })); },
+  showAchievements(onBack) { this.showPanel(buildAchievements({ onBack: onBack || (() => this.showMenu()) })); },
   toggleFullscreen() {
     const el = document.documentElement;
     const req = el.requestFullscreen || el.webkitRequestFullscreen;
@@ -138,7 +143,7 @@ const Game = {
         if (result.score > prev) { d.best[today] = result.score; newRecord = prev > 0; }
         const h = d.history.filter((x) => x.date !== today); h.unshift({ date: today, score: Math.max(prev, result.score), stars: result.stars }); d.history = h.slice(0, 30);
         if (d.lastPlayed !== today) d.streak = d.lastPlayed === yesterdayKey(today) ? (d.streak || 0) + 1 : 1;
-        d.lastPlayed = today; Save.save();
+        d.lastPlayed = today; Save.save(); Achievements.onDaily();
       }
       scenes.go('results', { result, def, newRecord, daily: { best: Math.max(prev, result.score), streak: d.streak || 0 } });
       return;
@@ -158,10 +163,12 @@ const Game = {
       if (def.id >= 10) Save.data.infinite.unlocked = true;
       Save.noteIslandDone();
       Save.save();
+      Achievements.onCampaignResult(result, def);
     }
     scenes.go('results', { result, def, newRecord, seedsGained });
   },
   /** Après l'import d'une sauvegarde : retour au menu, à jour. */
+  onBackup() { Achievements.onBackup(); },
   onSaveLoaded() { this.showMenu(); this.toast('Sauvegarde chargée. Bon retour sur l’archipel.'); },
   /** Rappel de copie locale, à la fin d'une île de campagne. */
   remindBackup() { if (Save.backupDue() && !this.testMode) this.toast('Pense à télécharger une copie de ta sauvegarde : Options → Sauvegarde.', 6500); },
@@ -244,7 +251,7 @@ class StoryScene {
 
 // ---------- Scène de jeu ----------
 class IslandScene {
-  async enter({ def }) {
+  async enter({ def, skipWishes = false }) {
     hideUI();
     this.def = def;
     const upgrades = Save.campaign.upgrades;
@@ -280,8 +287,12 @@ class IslandScene {
     });
     document.getElementById('hud').classList.add('on');
     this.tutorial = new Tutorial(document.getElementById('tutorial'), isl, def, !Save.options.skipTutorial && !def.infinite && !def.garden);
+    // les vœux se présentent avant la première pose (un bouton pour commencer), sauf en reprise sans intro
+    this.hold = false;
+    if (isl.wishes.length && !def.garden && !skipWishes) { this.hold = true; showUI(buildWishesIntro({ island: isl, onStart: () => { hideUI(); this.hold = false; AudioSys.play('ui_confirm', { volume: 0.5 }); } }), 'panel-wrap'); }
     document.getElementById('tutorial').classList.add('on');
     isl.on((e) => this.onEvent(e));
+    isl.on((e) => { if (!Game.testMode) Achievements.onIslandEvent(e, isl); });
     // audio
     this.seasonCount = { [isl.season]: 1 };
     AudioSys.playMusic(def.garden ? 'garden' : def.daily && AudioSys.has('daily', 'music') ? 'daily' : seasonMusic(isl.season, 1), { fade: 2 });
@@ -475,7 +486,7 @@ class IslandScene {
 
   onMouseDown(b, x, y) {
     if (this.finale && !this.finale.done) { if (b === 0) this.finale.skip(); return; }
-    if (this.paused || !this.isl || this.isl.ended) return;
+    if (this.paused || this.hold || !this.isl || this.isl.ended) return;
     if (b === 2 || b === 1) { this.drag = { x, y, moved: 0 }; return; }
     if (b !== 0) return;
     const w = this.cam.toWorldPoint(x, y); const { q, r } = fromWorld(w.x, w.y);
@@ -494,7 +505,7 @@ class IslandScene {
   /** Tactile : première touche = aperçu (case armée), seconde touche sur la même case = pose. */
   onTap(x, y) {
     if (this.finale && !this.finale.done) { this.finale.skip(); return; }
-    if (this.paused || !this.isl || this.isl.ended) return;
+    if (this.paused || this.hold || !this.isl || this.isl.ended) return;
     const w = this.cam.toWorldPoint(x, y); const { q, r } = fromWorld(w.x, w.y);
     if (this.budMode) {
       if (this.isl.canBud(q, r)) { this.budTarget = { q, r }; this.hud.setBudMode(true, true); AudioSys.play('tile_hover', { volume: 0.3 }); }
@@ -513,7 +524,7 @@ class IslandScene {
     this.armed = { q, r }; AudioSys.play('tile_hover', { volume: 0.3 });
   }
   placeArmed() {
-    if (!this.armed || this.paused || !this.isl || this.isl.ended) return;
+    if (!this.armed || this.paused || this.hold || !this.isl || this.isl.ended) return;
     const { q, r, build } = this.armed; this.armed = null; this.hud.setPlaceButton(null);
     if (build) { if (this.isl.canBuild(q, r)) { this.isl.build(q, r); this.renderer.hover = null; } return; }
     if (this.isl.canPlace(q, r)) { this.isl.place(q, r); this.renderer.hover = null; }
@@ -522,7 +533,7 @@ class IslandScene {
     if (this.finale && !this.finale.done) { if (k !== 'KeyM') this.finale.skip(); return; }
     if (k === 'Escape') { if (this.budMode) { this.setBud(false); return; } this.togglePause(); return; }
     if (k === 'KeyM') { const m = AudioSys.toggleMute(); Save.options.muted = m; Save.save(); return; }
-    if (this.paused || !this.isl || this.isl.ended) return;
+    if (this.paused || this.hold || !this.isl || this.isl.ended) return;
     const isl = this.isl;
     if (k === 'Digit2' || k === 'Numpad2') this.hud.onSwap(1);
     if (k === 'Digit3' || k === 'Numpad3') this.hud.onSwap(2);

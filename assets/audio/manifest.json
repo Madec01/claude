@@ -988,6 +988,20 @@
         "rd_100sfx"
       ],
       "note": "annonce météo : cloches lointaines"
+    },
+    "achievement": {
+      "file": "sfx/achievement.ogg",
+      "duration": 1.947,
+      "loop": false,
+      "source": "Pizzicato jingles/jingles_PIZZI07.ogg + glass_004.ogg + orchestral_harp C5",
+      "author": "Kenney + Frank Wen",
+      "license": "CC0 1.0 + CC BY 3.0",
+      "packs": [
+        "kenney_jingles",
+        "kenney_interface",
+        "fluidr3"
+      ],
+      "note": "succès débloqué : jingle pizzicato, verre, harpe"
     }
   }
 }

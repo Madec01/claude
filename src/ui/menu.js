@@ -1,4 +1,7 @@
 // Menu d'accueil : continuer, choisir une île, Île infinie, Jardin, options, crédits.
+import { ACHIEVEMENTS } from '../data/achievements.js';
+import { Achievements } from '../game/achievements.js';
+const achCount = () => Achievements.count();
 import { h, button, icon, stagger, append } from './dom.js';
 import { CHAPTERS, campaignIsland, chapterStars, CHAPTER_GATE, CAMPAIGN_SIZE } from '../data/campaign.js';
 import { Save } from '../core/save.js';
@@ -25,13 +28,14 @@ export function buildMenu({ game }) {
   const navButton = (label, fn, o) => { const b = button(label, fn, o); if (o.sub) b.appendChild(h('span', { class: 'btn-sub' }, o.sub)); return b; };
   append(nav, 
     navButton(primaryLabel, () => game.startCampaign(), { cls: 'btn-primary btn-big', iconName: 'icon_play', sub: primarySub }),
-    navButton('Choisir une île', () => showIslands(), { iconName: 'icon_menu', disabled: !started && !testMode, sub: started || testMode ? `${Math.min(c.unlockedIsland, 12)} / 12` : '' }),
+    navButton('Choisir une île', () => showIslands(), { iconName: 'icon_menu', disabled: !started && !testMode, sub: started || testMode ? `${Math.min(c.unlockedIsland, CAMPAIGN_SIZE)} / ${CAMPAIGN_SIZE}` : '' }),
     navButton('Île infinie', () => game.startInfinite(), { iconName: 'icon_wind', disabled: !(Save.data.infinite.unlocked || c.unlockedIsland > 6 || testMode), title: 'Se déverrouille après l’île 6', sub: Save.data.infinite.best ? `${Save.data.infinite.best} pts` : '' }),
     navButton('Île du jour', () => game.startDaily(), { iconName: 'icon_sun', disabled: !(c.unlockedIsland >= 8 || testMode), title: `Se déverrouille après l’île 3 · ${dailyLabel(dailyKey())}`, sub: (Save.data.daily && Save.data.daily.best[dailyKey()]) ? `${Save.data.daily.best[dailyKey()]} pts` : (Save.data.daily && Save.data.daily.streak ? `${Save.data.daily.streak} j` : '') }),
     navButton('Jardin', () => game.startGarden(), { iconName: 'icon_leaf', disabled: !(started || testMode), title: 'Pose libre, sans score' }),
     h('div', { class: 'menu-row' },
       navButton('Guide', () => game.showGuide(), { iconName: 'icon_question', title: 'Tuiles, saisons, faune, souffles, graines' }),
       navButton('Options', () => game.showOptions(), { iconName: 'icon_gear' }),
+      navButton('Succès', () => game.showAchievements(), { iconName: 'icon_medal', sub: `${achCount()} / ${ACHIEVEMENTS.length}` }),
       navButton('Crédits', () => game.showCredits(), { iconName: 'icon_info' }),
     ),
     navButton('Plein écran', () => game.toggleFullscreen(), { cls: 'btn-ghost', iconName: 'icon_fullscreen' }),

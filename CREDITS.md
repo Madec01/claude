@@ -51,15 +51,16 @@ Toutes les œuvres ci-dessous appartiennent à leurs auteurs et sont utilisées 
 - **100 CC0 SFX #2** — rubberduck — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://opengameart.org/content/100-cc0-sfx-2) — [miroir utilisé](https://github.com/lavenderdotpet/CC0-Public-Domain-Sounds)
 - **UI Audio** — Kenney — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://kenney.nl/assets/ui-audio) — [miroir utilisé](https://github.com/ETdoFresh/kenney.nl)
 - **Interface Sounds** — Kenney — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://kenney.nl/assets/interface-sounds) — [miroir utilisé](https://github.com/ETdoFresh/kenney.nl)
+- **Music Jingles** — Kenney — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://kenney.nl/assets/music-jingles) — [miroir utilisé](https://github.com/ETdoFresh/kenney.nl)
 
 ## Graphismes
 
 - **Hexagon Pack** — Kenney (kenney.nl) — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://kenney.nl/assets/hexagon-pack) — [miroir utilisé](https://github.com/ETdoFresh/kenney.nl)
-  - Fichiers : 305
+  - Fichiers : 338
 - **Hexagon Tiles** — Kenney (kenney.nl) — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://kenney.nl/assets/hexagon-tiles) — [miroir utilisé](https://github.com/ETdoFresh/kenney.nl)
-  - Fichiers : 96
+  - Fichiers : 102
 - **Animal Pack Redux** — Kenney (kenney.nl) — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://kenney.nl/assets/animal-pack-redux) — [miroir utilisé](https://github.com/ETdoFresh/kenney.nl)
-  - Fichiers : 12
+  - Fichiers : 16
 - **Particle Pack (1.1)** — Kenney (kenney.nl) — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://kenney.nl/assets/particle-pack) — [miroir utilisé](https://github.com/ETdoFresh/kenney.nl)
   - Fichiers : 43
 - **Smoke Particles** — Kenney (kenney.nl) — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://kenney.nl/assets/smoke-particles) — [miroir utilisé](https://github.com/ETdoFresh/kenney.nl)
@@ -67,7 +68,7 @@ Toutes les œuvres ci-dessous appartiennent à leurs auteurs et sont utilisées 
 - **Foliage Sprites** — Kenney (kenney.nl) — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://kenney.nl/assets/foliage-sprites) — [miroir utilisé](https://github.com/ETdoFresh/kenney.nl)
   - Fichiers : 11
 - **Game Icons** — Kenney (kenney.nl) — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://kenney.nl/assets/game-icons) — [miroir utilisé](https://github.com/ETdoFresh/kenney.nl)
-  - Fichiers : 43
+  - Fichiers : 50
 - **Game Icons Expansion** — Kenney (kenney.nl) — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://kenney.nl/assets/game-icons-expansion) — [miroir utilisé](https://github.com/ETdoFresh/kenney.nl)
   - Fichiers : ui/icon_cloud.png, ui/icon_coin.png, ui/icon_diamond.png, ui/icon_flag.png, ui/icon_key.png
 - **UI Pack** — Kenney (kenney.nl) — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://kenney.nl/assets/ui-pack) — [miroir utilisé](https://github.com/ETdoFresh/kenney.nl)
