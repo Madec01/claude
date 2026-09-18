@@ -438,6 +438,7 @@ class IslandScene {
     } else if (e.type === 'wish') {
       this.hud.flashWishes();
       const s = STORY.wishes[e.wish.def.id] || { title: '', done: '', failed: '' };
+      if (e.kind === 'soon') { this.hud.notify(`Plus que ${e.left} poses pour « ${s.title} »`, 'wish'); this.hud.flashWishes(); AudioSys.play('wish_new', { volume: 0.5 }); }
       if (e.kind === 'done') { AudioSys.play('wish_done', { volume: 0.8 }); setTimeout(() => AudioSys.play('rare_tile', { volume: 0.6 }), 600); this.hud.notify(`Vœu exaucé — ${s.done}`, 'gold'); this.hud.notify(`Une tuile rare rejoint la file : ${(STORY.tiles[e.rare] || {}).name || e.rare}`, 'rare'); }
       else { AudioSys.play('wish_failed', { volume: 0.6 }); this.hud.notify(`Vœu manqué (échéance dépassée) : ${s.title} — ${s.failed}`, 'warn'); }
     } else if (e.type === 'weather') {

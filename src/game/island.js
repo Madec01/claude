@@ -257,6 +257,8 @@ export class Island {
     for (const c of res.closes) this.emit({ type: 'close', ...c, breath: BALANCE.breaths.close });
     this.updateFauna();
     this.checkWishes();
+    // rappel : dix poses avant l'échéance d'un vœu encore ouvert
+    for (const w of this.wishes) { const dl = w.def.deadline; if (w.status === 'open' && dl && dl.placements && dl.placements - this.placements === 10) this.emit({ type: 'wish', kind: 'soon', wish: w, left: 10 }); }
     if (!this.garden && this.inSeason >= this.seasonLength) this.advanceSeason();
     if (this.infinite && this.placements % BALANCE.infinite.growEvery === 0 && this.board.cells < BALANCE.infinite.maxCells) {
       const added = this.board.grow(BALANCE.infinite.growCells, this.rng);

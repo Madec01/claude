@@ -219,6 +219,16 @@ check(affinity('meadow', 'water') === 0, 'prairie-eau = 0');
   check(Achievements.counter('climates3') === 1, 'trois étoiles au tempéré seulement');
 }
 
+
+// --- vœux : rappel dix poses avant l'échéance
+{
+  const d = campaignIsland(26); const isl = new Island(d, { ...islandOptions(d) }); const soon = [];
+  isl.on((e) => { if (e.type === 'wish' && e.kind === 'soon') soon.push(e.wish.def.id); });
+  const first = Math.min(...isl.wishes.map((w) => w.def.deadline.placements));
+  let guard = 0; while (isl.placements < first - 10 && !isl.ended && guard++ < 500) { if (isl.current.work) { isl.discard(); continue; } const c = isl.board.legalCells()[0]; isl.place(c.q, c.r); }
+  check(soon.length >= 1, `rappel émis dix poses avant la première échéance (${soon.join(',')})`);
+}
+
 // --- campagne : cinquante définitions valides, textes présents, mécaniques cumulatives, bot fort sur les îles générées du début
 for (const w of CAMPAIGN_WISHES) check(!!STORY.wishes[w.id], `texte du vœu de campagne ${w.id}`);
 {
