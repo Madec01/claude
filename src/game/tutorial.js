@@ -1,5 +1,6 @@
 // Tutoriel intégré : consignes d'une île, validées par des conditions de jeu.
 import { STORY } from '../data/story.js';
+import { mechIsland } from '../data/campaign.js';
 
 const MECH_STEP_IDS = new Set(['river', 'season', 'fauna', 'wish', 'breath', 'rare', 'event', 'weather', 'hill', 'rare2', 'heath', 'build', 'rare3', 'climate', 'fuse', 'work', 'build3']);
 const RULES = {
@@ -50,7 +51,8 @@ export class Tutorial {
     this.guided = enabled && storyId && GUIDED[storyId] ? GUIDED[storyId] : null;
     let steps = [];
     if (!this.guided && enabled) {
-      const hand = sdef && sdef.tutorial ? sdef.tutorial.filter((st) => !mech || !MECH_STEP_IDS.has(st.id) || mech.has(st.id)) : [];
+      const num = def && typeof def === 'object' ? def.id : null;
+      const hand = sdef && sdef.tutorial ? sdef.tutorial.filter((st) => !mech || !MECH_STEP_IDS.has(st.id) || (mech.has(st.id) && (num === null || mechIsland(st.id) === null || mechIsland(st.id) === num))) : [];   // une mécanique déjà présentée sur une île précédente ne se répète pas
       const introduced = def && typeof def === 'object' && def.introduces ? def.introduces.filter((m) => STORY.mechCards[m] && !hand.some((st) => st.id === m)) : [];
       steps = [...introduced.map((m) => ({ id: m, text: STORY.mechCards[m] })), ...hand];
     }
