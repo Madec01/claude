@@ -144,26 +144,69 @@ Moyenne 6,1 / 10 (concept 6,5 ; game design 6,5 ; gameplay 6 ; progression 4,5 ;
 
 Seconde réponse de l'auditeur, « que faudrait-il pour approcher 10/10 » (`docs/AUDIT_2026-09-18_vers-10.md`) : plafonds réalistes de 8 à 9 par aspect, moyenne projetée 8,1 avec les mesures ci-dessus, 8,7 en plafond structurel. Conseil principal : retirer plutôt qu'ajouter (fondre les ouvrages dans les fusions, vider la transition de saison, raréfier les souffles) ; le Livre II ne relève pas la moyenne, il l'étale.
 
+### Mesures « vers 10 » : décisions du commanditaire (18 septembre)
+
+| Mesure | Réf. audit | Décision | Note |
+|---|---|---|---|
+| Transition de saison en plan silencieux : les points volent depuis les régions concernées vers le score, la règle écrite une seule fois | M1 | retenu (prochain lot) | — |
+| Le son du coup : une note par point sur une gamme qui monte avec la série, un accord à la fermeture | M2 | retenu (prochain lot) | — |
+| Jauge de série près du score, qui se vide quand la série casse | M3 | retenu (prochain lot) | — |
+| Troisième étoile à 90 % du bot, étoile d'or cosmétique à 100 % | E1 | retenu (prochain lot) | — |
+| Contrat d'archipel choisi en début de chapitre, seconde voie pour la porte, avec un rappel de l'avancement | P2 | retenu (prochain lot) | — |
+| Carte postale de l'île finie (export image) | R5 | retenu (prochain lot) | — |
+| Souffles plus rares, version douce : gains par fermeture et par animal réduits, le vœu conservé | G3 | retenu (prochain lot) | recalibrage ensuite |
+| Signature écrite par île générée : contrainte affichée sur la carte d'intro | P3 | retenu (prochain lot) | table d'une vingtaine |
+| Un « pourquoi » sur chaque point : détail cumulé au survol du score | E3 | retenu (prochain lot) | repris au bilan |
+| Amélioration de l'Atelier « clore la saison plus tôt » (1, 2 ou 3 poses avant) | C1 | retenu (prochain lot), compromis | pas de bouton libre |
+| Écrire les îles muettes (36 à 49), voix qui tient compte de ce qu'on a bâti | N2, N3 | retenu (prochain lot) | — |
+| Passe d'interface : boutons du menu au gabarit, icônes d'Atelier distinctes | A2 | retenu (prochain lot) | — |
+| Ambiance sonore liée à la composition de l'île | N4 | retenu (prochain lot) | — |
+| Défis à règle tordue | R3 | plus tard | le commanditaire est réservé, à revoir |
+| Décision de fin d'île (clore l'île contre une prime) | G4 | plus tard | jugée « bof » |
+| Vœux enchaînés d'un habitant | N1 | plus tard | — |
+| Écran « Nouvelle île » (taille, climat, graine partageable) | R1 | plus tard | — |
+| Deux difficultés Promenade / Saison | E5 | plus tard | — |
+| Palette par saison pilotée par la lisibilité | A1 | plus tard | — |
+| Faune en groupes animés | A3 | plus tard | — |
+| Classement de l'Île du jour sans serveur (chaîne à copier) | R4 | plus tard | — |
+| Calibrage avec trois styles de bot | E2 | plus tard | — |
+| Docs générées depuis les données | E4 | plus tard | — |
+| Friche qui bloque la fermeture de sa région | G1 (variante) | plus tard | — |
+| Passe de performance (60 fps sur portable modeste) | M4 | plus tard | — |
+| Livre II (mer, routes, archipels) | C3 | plus tard | reste prévu au lot 7, après le socle |
+| Fondre les ouvrages dans les fusions, supprimer la remise | G2 | écarté | la remise vient d'être faite et fonctionne |
+| Atelier à branches exclusives | P4 | écarté | l'Atelier par chapitre vient d'être refait |
+| Assets originaux commandés, serveur | — | écarté | déconseillés par l'auditeur lui-même |
+
 ## À planifier plus tard
 
 | Idée | Note | Statut |
 |---|---|---|
-| Îles par taille libre (30 à 200 cases, climat, graine) | Générateur déjà prêt ; écran « Nouvelle île » | à faire |
+| Îles par taille libre (30 à 200 cases, climat, graine) | Générateur déjà prêt ; écran « Nouvelle île » | plus tard (audit vers 10) |
 | Mode Contemplation (zen, sans score, saisons au sablier) | Différent du Jardin par saisons et faune vivantes | à faire |
 | Mode Cent saisons (endurance sur une île qui grandit) | Fatigue par saison, fin quand plus aucune pose | à faire |
-| Défis à règle tordue (douze défis écrits à la main) | « été permanent », « eau et roche seulement », file à l'envers | à faire |
+| Défis à règle tordue (douze défis écrits à la main) | « été permanent », « eau et roche seulement », file à l'envers | plus tard (audit vers 10) |
 | Archipel 4 : îles jumelles partageant une rivière | Remplacé par les archipels du Livre II | écarté |
 | Migrations (départ en automne, retour au printemps si refuge) | La faune devient un cycle | à faire |
-| Vœux enchaînés (histoire en trois actes par habitant) | Narration surtout | à faire |
+| Vœux enchaînés (histoire en trois actes par habitant) | Narration surtout | plus tard (audit vers 10) |
 | Étoile secrète par île (récompense cosmétique pour le Jardin) | | à faire |
 | Cahier de l'île (encyclopédie qui se remplit, pourcentage) | | à faire |
 | Cosmétiques à graines (palettes de saison, thème papier ancien, animaux rares) | Dépend des banques | à faire |
-| Choix de l'ouverture (trois départs proposés) | | à faire |
+| Choix de l'ouverture (trois départs proposés) | | fait (semis, journal 46) |
 | Musique adaptative par couches (stems) | Nécessite des pistes multipistes libres | à faire |
 | Ambiance spatialisée selon la caméra | | à faire |
 | Cloche des saisons et carillon propre à chaque habitant | | à faire |
 | Cycle jour / nuit lent (fenêtres allumées en hiver) | | à faire |
-| Carte postale (export image de l'île finie) | | à faire |
+| Carte postale (export image de l'île finie) | | retenu (prochain lot) |
 | Mode cadre dans le Jardin (interface masquée, export) | | à faire |
 | Rejouer la construction en accéléré au bilan | | à faire |
 | Accessibilité (motifs pour daltoniens, taille de texte, pose en un toucher) | | à faire |
+| Décision de fin d'île (clore l'île contre une prime) | G4, jugée « bof » par le commanditaire | plus tard (audit vers 10) |
+| Deux difficultés Promenade / Saison | Seuils décalés de ±15 %, longueur des saisons | plus tard (audit vers 10) |
+| Palette par saison pilotée par la lisibilité | Écart de teinte garanti entre familles à chaque saison | plus tard (audit vers 10) |
+| Faune en groupes animés | Un groupe animé par région plutôt que des vignettes répétées | plus tard (audit vers 10) |
+| Classement de l'Île du jour sans serveur | Score encodé dans une chaîne à copier-coller | plus tard (audit vers 10) |
+| Calibrage avec trois styles de bot | Fermeur de régions, chasseur de vœux, bâtisseur | plus tard (audit vers 10) |
+| Docs générées depuis les données | README, tutoriel et Guide régénérés depuis `MECH_AT` et `balance.js` | plus tard (audit vers 10) |
+| Friche qui bloque la fermeture de sa région | Variante de la friche actuelle (mesure G1) | plus tard (audit vers 10) |
+| Passe de performance (60 fps sur portable modeste) | Budget de fluidité, temps de première image < 3 s | plus tard (audit vers 10) |
