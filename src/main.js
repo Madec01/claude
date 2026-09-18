@@ -261,6 +261,8 @@ class IslandScene {
       onUndo: () => { if (isl.undo()) { AudioSys.play('tile_undo', { volume: 0.6 }); this.hud.notify('Souvenir : la dernière pose est annulée', 'info'); } else AudioSys.play('ui_error', { volume: 0.4 }); },
       onPocket: () => { if (isl.toPocket()) AudioSys.play('tile_pocket', { volume: 0.6 }); },
       onPocketOut: (i) => { if (isl.fromPocket(i)) AudioSys.play('tile_pocket', { volume: 0.6 }); },
+      onShed: () => { if (isl.toShed()) AudioSys.play('tile_pocket', { volume: 0.6 }); },
+      onShedOut: (i) => { if (isl.fromShed(i)) AudioSys.play('tile_pocket', { volume: 0.6 }); },
       onGardenPick: (fam) => { isl.setGardenTile(fam); AudioSys.play('ui_click', { volume: 0.4 }); },
       onPlace: () => this.placeArmed(),
       onBudChoice: (fam) => { if (this.budMode && this.budTarget && isl.bud(this.budTarget.q, this.budTarget.r, fam)) this.setBud(false); },
@@ -359,7 +361,7 @@ class IslandScene {
       if (e.kind === 'work') {
         const wt = (e.good ? STORY.work.good : STORY.work.bad)[Math.floor(Math.random() * 3)];
         setTimeout(() => { fx.floatText(w.x, w.y - 44, `${wt} ${e.result.total >= 0 ? '+' : ''}${e.result.total}`, e.good ? '#2f9e8f' : '#d95f4b', 24, 1.8); if (e.good) { fx.closeBurst(w.x, w.y - 10, 3); AudioSys.play('point_8', { volume: 0.5 }); } else AudioSys.play('point_bad', { volume: 0.5 }); }, 60);
-        this.hud.notify(`${fam} : ${e.good ? 'bien placé' : 'mal placé, pénalité à chaque saison tant que le voisinage ne change pas'} (${e.result.total >= 0 ? '+' : ''}${e.result.total})`, e.good ? 'gold' : 'warn');
+        this.hud.notify(`${fam} : ${e.good ? (e.fresh ? 'bien placé et frais, +1 par saison' : 'bien placé') : 'mal placé : pénalité cette saison, moitié la suivante, puis il s’efface'} (${e.result.total >= 0 ? '+' : ''}${e.result.total})`, e.good ? 'gold' : 'warn');
         this.tutorial.onEvent('work');
       } else if (e.kind === 'fuse') {
         const nm = (STORY.tiles[e.recipe] || {}).name || e.recipe; const ft = STORY.fusion.done[Math.floor(Math.random() * STORY.fusion.done.length)];
@@ -427,8 +429,14 @@ class IslandScene {
       this.updateAmbience();
     } else if (e.type === 'breath') {
       if (e.kind === 'bud') { const w = toWorld(e.q, e.r); fx.drop(key(e.q, e.r)); fx.placeBurst(w.x, w.y, true); AudioSys.play('bud', { volume: 0.7 }); }
-      else if (e.kind !== 'undo') AudioSys.play('breath_spend', { volume: 0.5 });
-      this.tutorial.onEvent('breath');
+      else if (e.kind !== 'undo' && !e.free) AudioSys.play('breath_spend', { volume: 0.5 });
+      if (!e.free) this.tutorial.onEvent('breath');
+    } else if (e.type === 'work' && e.kind === 'arrive') {
+      this.hud.notify(`Un ouvrage arrive : ${(STORY.tiles[e.tile.family] || {}).name || e.tile.family}. Pose-le tout de suite (frais : +1 par saison), mets-le en remise (R) ou défausse-le, c’est gratuit`, 'info');
+    } else if (e.type === 'shed') {
+      const nm = (STORY.tiles[e.tile.family] || {}).name || e.tile.family;
+      if (e.kind === 'expired') this.hud.notify(`${nm} : resté trop longtemps en remise, il a expiré`, 'warn');
+      else if (e.kind === 'in' && e.replaced) this.hud.notify(`${nm} prend la place de ${(STORY.tiles[e.replaced.family] || {}).name || e.replaced.family} dans la remise`, 'info');
     } else if (e.type === 'grow') {
       this.cam.fit(this.isl.board.mask);
     } else if (e.type === 'end') {
@@ -509,6 +517,7 @@ class IslandScene {
     if (k === 'KeyH') this.hud.setTileHelp(this.hud.helpHidden || Save.options.tileHelp === false);
     if (k === 'KeyZ') { if (this.mech.has('breath') && isl.undo()) AudioSys.play('tile_undo', { volume: 0.6 }); }
     if (k === 'KeyP') { if (isl.toPocket()) AudioSys.play('tile_pocket', { volume: 0.6 }); else if (isl.queue.pocket.length) { isl.fromPocket(0); AudioSys.play('tile_pocket', { volume: 0.6 }); } }
+    if (k === 'KeyR') { if (isl.toShed()) AudioSys.play('tile_pocket', { volume: 0.6 }); else if (isl.shed.length) { isl.fromShed(0); AudioSys.play('tile_pocket', { volume: 0.6 }); } }
     if (this.budMode && this.budTarget && (k === 'KeyF' || k === 'KeyV')) { if (isl.bud(this.budTarget.q, this.budTarget.r, k === 'KeyF' ? 'forest' : 'orchard')) this.setBud(false); }
     if (Game.testMode) {
       if (k === 'F1') { if (this.debugEl) { this.debugEl.remove(); this.debugEl = null; } else { this.debugEl = h('div', { class: 'debug' }); document.getElementById('app').appendChild(this.debugEl); } }

@@ -35,11 +35,14 @@
 .qtile.current .qname { font-size: 17px; }
 .qtile.next { opacity: 0.85; } .qtile.next img { width: 40px; height: 47px; }
 .qtile.rare::after { content: 'rare'; position: absolute; right: 8px; top: 6px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--gold); font-weight: 800; }
-.qtile.swappable, .qtile.pocketable, .qtile.pocketed { cursor: pointer; }
+.qtile.swappable, .qtile.pocketable, .qtile.pocketed, .qtile.shedable { cursor: pointer; }
+.qtile.shedable { border-style: dashed; }
+.shed .qlvl.warn { color: var(--bad, #d95f4b); }
+.pw.free em { background: var(--good, #2f9e8f); }
 .q-help { position: absolute; left: 6px; top: 6px; width: 22px; height: 22px; border-radius: 50%; border: 1px solid rgba(43,42,38,0.18); background: rgba(255,253,248,0.95); color: var(--ink-2); font-family: inherit; font-weight: 800; font-size: 13px; line-height: 20px; padding: 0; cursor: pointer; box-shadow: 0 2px 6px rgba(30,50,70,0.15); }
 .q-help.on { background: var(--breath); color: #fff; border-color: var(--breath); }
 html.compact .q-help { width: 20px; height: 20px; font-size: 12px; line-height: 18px; left: 4px; top: 4px; }
-.qtile.swappable:hover, .qtile.pocketable:hover, .qtile.pocketed:hover { transform: translateX(3px); border-color: var(--breath); }
+.qtile.swappable:hover, .qtile.pocketable:hover, .qtile.pocketed:hover, .qtile.shedable:hover { transform: translateX(3px); border-color: var(--breath); }
 .qempty { font-size: 14px; opacity: 0.6; padding: 6px; } .qempty.small { font-size: 12px; }
 .pocket-list { display: flex; flex-direction: column; gap: 6px; min-height: 30px; }
 .powers { display: flex; gap: 6px; }

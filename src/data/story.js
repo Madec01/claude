@@ -572,14 +572,14 @@ export const STORY = {
     mine: { name: 'Mine', blurb: 'Compte comme roche ; +1 par bord avec une roche, et une roche close qui la contient rapporte ×2.' },
     oven: { name: 'Four à pain', blurb: 'Compte comme hameau ; +1 par bord avec un champ.' },
     // ouvrages (tuiles bonus à superposer)
-    hive: { name: 'Ruche', blurb: 'Ouvrage. Bonne place : verger ou prairie avec des fleurs autour (+1 par verger ou prairie voisin, +1 au printemps). Mauvaise place : sans fleur, ou près d’un marais (−2 par saison).' },
-    scarecrow: { name: 'Épouvantail', blurb: 'Ouvrage. Bonne place : un champ (+1, +1 par champ voisin). Mauvaise place : ailleurs (−2 par saison).' },
-    pier: { name: 'Ponton', blurb: 'Ouvrage. Bonne place : l’eau collée à un hameau (+3 par saison). Mauvaise place : eau sans hameau, ou terre (−2 par saison, il dérive).' },
-    bridge: { name: 'Pont', blurb: 'Ouvrage. Bonne place : l’eau entre deux hameaux (+3 par saison). Mauvaise place : ailleurs (−1 par saison).' },
-    nestbox: { name: 'Nichoir', blurb: 'Ouvrage. Bonne place : une forêt d’au moins trois tuiles (+2 par saison, le hibou s’installe). Mauvaise place : petite forêt ou autre famille (−2 par saison).' },
-    campfire: { name: 'Feu de camp', blurb: 'Ouvrage. Bonne place : forêt ou prairie près d’un hameau (+1, +1 par hameau voisin, +1 en hiver). Mauvaise place : sans hameau (−2 par saison) ; sous les feux de broussaille, −5.' },
-    menhir: { name: 'Menhir', blurb: 'Ouvrage. Bonne place : roche ou colline (+1 par tuile de son massif, au plus 4). Mauvaise place : ailleurs (−1 par saison).' },
-    compost: { name: 'Compost', blurb: 'Ouvrage. Bonne place : champ ou verger sans hameau voisin (+1 par champ ou verger voisin). Mauvaise place : un hameau voisin (−2 par saison, ça sent).' },
+    hive: { name: 'Ruche', blurb: 'Ouvrage. Bonne place : verger ou prairie avec des fleurs autour (+1 par verger ou prairie voisin, +1 au printemps). Mauvaise place : sans fleur, ou près d’un marais (−2 la première saison, −1 la seconde, puis il s’efface).' },
+    scarecrow: { name: 'Épouvantail', blurb: 'Ouvrage. Bonne place : un champ (+1, +1 par champ voisin). Mauvaise place : ailleurs (−2 la première saison, −1 la seconde, puis il s’efface).' },
+    pier: { name: 'Ponton', blurb: 'Ouvrage. Bonne place : l’eau collée à un hameau (+3 par saison). Mauvaise place : eau sans hameau, ou terre (−2 puis −1, puis il dérive pour de bon).' },
+    bridge: { name: 'Pont', blurb: 'Ouvrage. Bonne place : l’eau entre deux hameaux (+3 par saison). Mauvaise place : ailleurs (−1 deux saisons, puis il s’efface).' },
+    nestbox: { name: 'Nichoir', blurb: 'Ouvrage. Bonne place : une forêt d’au moins trois tuiles (+2 par saison, le hibou s’installe). Mauvaise place : petite forêt ou autre famille (−2 la première saison, −1 la seconde, puis il s’efface).' },
+    campfire: { name: 'Feu de camp', blurb: 'Ouvrage. Bonne place : forêt ou prairie près d’un hameau (+1, +1 par hameau voisin, +1 en hiver). Mauvaise place : sans hameau (−2 la première saison, −1 la seconde, puis il s’efface) ; sous les feux de broussaille, −5.' },
+    menhir: { name: 'Menhir', blurb: 'Ouvrage. Bonne place : roche ou colline (+1 par tuile de son massif, au plus 4). Mauvaise place : ailleurs (−1 deux saisons, puis il s’efface).' },
+    compost: { name: 'Compost', blurb: 'Ouvrage. Bonne place : champ ou verger sans hameau voisin (+1 par champ ou verger voisin). Mauvaise place : un hameau voisin (−2 puis −1, puis on l’enlève).' },
     // fusions
     port: { name: 'Port', blurb: 'Hameau + eau. Compte pour les deux ; +1 par tuile d’eau voisine à chaque saison (au plus 4). Les canards s’y posent.' },
     paddy: { name: 'Rizière', blurb: 'Champ + eau. Compte pour les deux ; +3 à chaque automne. La grenouille s’y plaît.' },
@@ -655,6 +655,7 @@ export const STORY = {
   work: {
     good: ['Bien placé !', 'À sa place.', 'Ça rendra.'],
     bad: ['Mal placé…', 'Ça va coûter.', 'Pas ici.'],
+    gone: ['abandonné', 's’efface', 'emporté par le vent'],
   },
   // signatures du niveau 3 (bâtir une seconde fois une tuile de niveau 2 qui a traversé une saison)
   level3: {
@@ -687,7 +688,7 @@ export const STORY = {
     rare3: 'Rares tardives : auberge (+1 par sentier), abreuvoir (anti-sécheresse), porche (bourg clos ×3), mine (+1 par roche), four à pain (+1 par champ).',
     climate: 'Climat : chaque archipel a le sien. Il change la file, donne un avantage permanent et une contrainte, affichés à côté de la saison.',
     fuse: 'Fusionner : pose une tuile sur une tuile d’une autre famille quand une recette existe (hameau + eau = port…). La tuile compte pour ses deux familles. Une recette découverte rend une tuile et une rare.',
-    work: 'Ouvrages : une tuile bonus qui se pose sur une tuile posée. Bien placée, elle rapporte à chaque saison ; mal placée, elle coûte. Sa fiche dit la bonne et la mauvaise place.',
+    work: 'Ouvrages : une tuile bonus qui se pose sur une tuile posée. Bien placée, elle rapporte à chaque saison ; mal placée, elle coûte deux saisons puis s’efface. Posée tout de suite, elle est fraîche (+1 par saison). Pas de bonne place ? Mets-la en remise (R), elle y attend douze poses, ou défausse-la gratuitement.',
     build3: 'Niveau 3 : une tuile de niveau 2 qui a traversé une saison se bâtit encore (2 souffles). Elle prend sa signature et rapporte +1 par saison.',
   },
   climates: {

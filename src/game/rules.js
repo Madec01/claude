@@ -193,6 +193,11 @@ export function previewFuse(board, q, r, tile, season, mods = {}) {
  * @returns {{ good: boolean, pts: number, label: string }}
  */
 export function evalWork(board, t, season, rule = null) {
+  const r = evalWorkBase(board, t, season, rule);
+  if (r.good && t.workFresh) r.pts += BALANCE.works.freshBonus;   // ouvrage frais (posé sans traîner) : +1 par saison
+  return r;
+}
+function evalWorkBase(board, t, season, rule = null) {
   const id = t.work; if (!id) return { good: false, pts: 0, label: '' };
   const nbs = neighbors(t.q, t.r).map(([a, b]) => board.get(a, b)).filter(Boolean);
   const count = (fam) => nbs.filter((n) => Board.isFamily(n, fam)).length;
@@ -214,6 +219,6 @@ export function evalWork(board, t, season, rule = null) {
 /** Aperçu de la pose d'un ouvrage sur la tuile (q, r) : ce qu'il rapporterait cette saison. */
 export function previewWork(board, q, r, tile, season, mods = {}) {
   const t = board.get(q, r); if (!t || t.rare || t.work || !tile || !tile.work) return null;
-  const r0 = evalWork(board, { ...t, work: tile.family }, season, mods.rule || null);
-  return { total: r0.pts, edges: [], closes: [], river: null, base: [{ pts: r0.pts, label: r0.label }], build: true, work: tile.family, good: r0.good, level: t.level || 1 };
+  const r0 = evalWork(board, { ...t, work: tile.family, workFresh: !!mods.fresh }, season, mods.rule || null);
+  return { total: r0.pts, edges: [], closes: [], river: null, base: [{ pts: r0.pts, label: r0.label }], build: true, work: tile.family, good: r0.good, level: t.level || 1, fresh: !!mods.fresh };
 }

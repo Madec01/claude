@@ -7,6 +7,7 @@ import { neighbors } from '../src/game/hex.js';
 import { affinity } from '../src/data/tiles.js';
 import { preview, previewBuild, canBuild, canFuse, previewFuse } from '../src/game/rules.js';
 import { STORY } from '../src/data/story.js';
+import { BALANCE } from '../src/data/balance.js';
 import { playStrong } from './bot.js';
 import { campaignIsland, CAMPAIGN_SIZE, CAMPAIGN_WISHES, islandOptions } from '../src/data/campaign.js';
 
@@ -93,6 +94,39 @@ check(affinity('meadow', 'water') === 0, 'prairie-eau = 0');
   const pv = isl.previewBuild(f.q, f.r); check(pv && pv.work === 'scarecrow' && (f.family === 'field' ? pv.good && pv.total >= 1 : !pv.good && pv.total < 0), `aperçu d'ouvrage (${f.family} : ${pv && pv.total})`);
   const res = isl.build(f.q, f.r); check(!!res && isl.board.get(f.q, f.r).work === 'scarecrow' && isl.stats.works === 1, 'ouvrage posé');
   const s0 = isl.score; isl.advanceSeason(); check(isl.score !== s0 || true, 'la saison juge les ouvrages');
+}
+
+
+// --- remise des ouvrages : défausse gratuite, expiration au bout de 12 poses, fraîcheur, pénalité qui s'éteint
+{
+  const d = campaignIsland(26); const isl = new Island(d, { ...islandOptions(d) });
+  const cadence = BALANCE.works.everyPlacements; BALANCE.works.everyPlacements = 9999;   // pas d'ouvrage automatique pendant ce scénario
+  const placeOne = () => { if (isl.current.work) return false; const c = isl.board.legalCells()[0]; isl.place(c.q, c.r); return true; };
+  isl.giveWork('scarecrow'); placeOne();
+  check(!!isl.current && isl.current.work && isl.discardCost() === 0 && isl.canDiscard(), 'un ouvrage en tête de file se défausse gratuitement');
+  check(isl.canShed() && !isl.canPocket(), 'un ouvrage va en remise, pas en poche');
+  const before = isl.queue.list.length;
+  check(isl.toShed() && isl.shed.length === 1 && isl.shedLeft(isl.shed[0]) === 12 && isl.queue.list.length === before, 'mise en remise : 12 poses devant lui, la file continue');
+  for (let i = 0; i < 5; i++) placeOne();
+  check(isl.shed.length === 1 && isl.shedLeft(isl.shed[0]) === 7 && !isl.isFresh(isl.shed[0]), 'après cinq poses : sept restantes, plus frais');
+  for (let i = 0; i < 7; i++) placeOne();
+  check(isl.shed.length === 0 && isl.stats.worksExpired === 1, `l'ouvrage expire à la douzième pose (${isl.shed.length}, ${isl.stats.worksExpired})`);
+  // frais : repris dans les quatre poses
+  isl.giveWork('hive'); placeOne(); isl.toShed(); placeOne(); placeOne();
+  check(isl.fromShed(0) && isl.current.work && isl.isFresh(isl.current), 'repris après deux poses : encore frais');
+  // remplacement : un second ouvrage prend la place du premier
+  isl.toShed(); isl.giveWork('menhir'); placeOne(); isl.toShed();
+  check(isl.shed.length === 1 && isl.shed[0].family === 'menhir' && isl.stats.worksExpired === 2, 'la remise pleine : le nouveau remplace l’ancien');
+  // pénalité qui s'éteint : un épouvantail sur une forêt
+  isl.fromShed(0); isl.discard();
+  isl.giveWork('scarecrow'); placeOne();
+  const forest = [...isl.board.tiles.values()].find((t) => t.family === 'forest' && !t.rare && !t.work) || [...isl.board.tiles.values()].find((t) => t.family !== 'field' && !t.rare && !t.work);
+  const pv = isl.previewBuild(forest.q, forest.r); check(pv && !pv.good && pv.fresh, 'épouvantail hors champ : mauvaise place, mais frais');
+  isl.build(forest.q, forest.r); const tt = isl.board.get(forest.q, forest.r); check(tt.work === 'scarecrow' && tt.workBad, 'ouvrage posé mal placé');
+  const pts = [];
+  for (let k = 0; k < 3; k++) { isl.advanceSeason(); const ev = isl.lastEvents.filter((e) => e.type === 'season').pop(); const w = ev.events.filter((x) => x.type === 'work' && x.q === forest.q && x.r === forest.r); pts.push(w.length ? (w[0].gone ? 'gone' : w[0].pts) : null); }
+  check(pts[0] === -2 && pts[1] === -1 && pts[2] === 'gone' && !isl.board.get(forest.q, forest.r).work && isl.stats.worksGone === 1, `pénalité −2, −1 puis effacement (${pts.join(',')})`);
+  BALANCE.works.everyPlacements = cadence;
 }
 
 // --- campagne : cinquante définitions valides, textes présents, mécaniques cumulatives, bot fort sur les îles générées du début

@@ -1,4 +1,5 @@
 // Guide en jeu : tuiles et affinités, saisons, faune, tuiles rares, souffles et vœux, graines et Atelier.
+import { mechIsland } from '../data/campaign.js';
 // Tout est dérivé des données du jeu (tiles.js, balance.js, upgrades.js, story.js) : aucune valeur n'est recopiée à la main.
 import { h, button, icon, append } from './dom.js';
 import { FAMILIES, RARE, RARE_AS, FAMILY_FROM, RARE_LATE, SEASONS, affinity, FUSIONS, WORKS } from '../data/tiles.js';
@@ -57,8 +58,8 @@ const TABS = {
     h('div', { class: 'g-grid' }, ...Object.keys(STORY.fauna).map((sp) => { const f = STORY.fauna[sp]; return h('div', { class: 'g-card g-fauna' }, faunaImg(sp), h('div', {}, h('h4', {}, f.name), h('p', {}, f.habitat), h('p', { class: 'g-voice' }, f.arrive))); })),
   ) },
   rare: { label: 'Tuiles rares', build: () => h('div', {},
-    h('h3', {}, icon('icon_star'), 'Ouvrages (dès l’île 7)'),
-    h('p', { class: 'g-intro' }, `Une tuile bonus qui se pose sur une tuile déjà posée (une par tuile, sans souffle). Chaque ouvrage a sa bonne place, qui rapporte à chaque saison, et sa mauvaise place, qui coûte à chaque saison tant que le voisinage n’a pas été arrangé (un marqueur rouge le rappelle). Il en arrive un toutes les ${B.works.everyPlacements} poses, parfois en récompense d’un vœu.`),
+    h('h3', {}, icon('icon_star'), `Ouvrages (dès l’île ${mechIsland('work')})`),
+    h('p', { class: 'g-intro' }, `Une tuile bonus qui se pose sur une tuile déjà posée (une par tuile, sans souffle). Chaque ouvrage a sa bonne place, qui rapporte à chaque saison, et sa mauvaise place, qui coûte la première saison, moitié la deuxième, puis l’ouvrage s’efface (un marqueur rouge le rappelle). Posé tout de suite, ou repris de la remise dans les ${B.works.freshWindow} poses, il est frais : +1 par saison. Pas de bonne place ? La remise le garde ${B.works.shedLife} poses (touche R), un second ouvrage le remplace, et la défausse d’un ouvrage est gratuite. Il en arrive un toutes les ${B.works.everyPlacements} poses, parfois en récompense d’un vœu.`),
     h('div', { class: 'g-grid' }, ...WORKS.map((w) => { const st = STORY.tiles[w] || { name: w, blurb: '' }; return h('div', { class: 'g-card' }, h('div', {}, h('h4', {}, st.name), h('p', {}, st.blurb.replace(/^Ouvrage\. /, '')))); })),
     h('h3', {}, icon('icon_star'), 'Tuiles rares'),
     h('p', { class: 'g-intro' }, 'Une tuile rare est offerte à chaque vœu exaucé (et par l’amélioration « Semence rare »). Elle compte comme une ou plusieurs familles pour les affinités et possède un pouvoir propre.'),
@@ -71,7 +72,7 @@ const TABS = {
     h('h3', {}, icon('icon_wind'), 'Les souffles'),
     h('p', { class: 'g-intro' }, `Les souffles sont une réserve de pouvoirs. On en gagne ${B.breaths.close} par région fermée, ${B.breaths.wish} par vœu exaucé et ${B.breaths.faunaSeason} par animal présent à chaque changement de saison.`),
     h('ul', { class: 'g-list' }, ...['swap', 'discard', 'bud', 'undo', 'pocket'].map((k) => h('li', {}, STORY.breaths[k]))),
-    h('h3', {}, icon('icon_leaf'), 'Bâtir (dès l’île 6)'),
+    h('h3', {}, icon('icon_leaf'), `Bâtir (dès l’île ${mechIsland('build')})`),
     h('p', { class: 'g-intro' }, `Pose une tuile sur une tuile de la même famille (${B.build.cost} souffle) : elle passe au niveau 2, tous ses bords valent +1 de plus, elle compte double dans la taille de sa région et son décor s’épaissit. Bâtir consomme la tuile sans remplir de case, sauf si la tuile est bien bâtie : dans une région close, en sa saison (prés, marais et landes au printemps ; champs et sable en été ; forêts, vergers et collines en automne ; hameaux, eau et roche en hiver) ou entourée d’au moins ${B.build.neighborsForRefund} tuiles de sa famille. Elle rend alors une tuile de la même famille à la file, au plus une fois par saison.`),
     h('p', { class: 'g-note' }, `Dès l’île 10, une tuile de niveau 2 qui a traversé une saison peut être bâtie une seconde fois (${B.build.cost3} souffles) : elle passe au niveau 3, ses bords valent +2, elle compte triple dans sa région, rapporte +${B.build.level3Season} à chaque saison et prend sa signature : ${Object.values(STORY.level3).map((l) => `${l.name.toLowerCase()} (${l.short})`).join(', ')}.`),
     h('h3', {}, icon('icon_star'), 'Les vœux et les étoiles'),
