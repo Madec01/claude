@@ -96,7 +96,7 @@ CREDITS.md            crédits complets générés
 
 ```bash
 node tests/rules.test.js          # règles, fermetures, couverture narrative, bot glouton sur les 14 îles, bot fort sur les premières
-node tools/calibrate.js 8         # calibrage des étoiles : bot fort (tests/bot.js) et glouton, 8 graines par île
+node tools/calibrate.js 4 1-50 --write   # calibrage des étoiles : bot fort (tests/bot.js) et glouton, 4 graines par île, écrit src/data/campaign_stars.js
 node tests/autoplay.js 1-12,infinite,garden   # parcours réel dans Chromium (serveur statique sur le port 8765 requis)
 node tests/mobile.js                          # émulation téléphone (iPhone 12 portrait/paysage, Pixel 7) : tactile, captures
 ```
