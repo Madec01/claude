@@ -635,6 +635,26 @@
   ]
  },
  {
+  "pack": "Nature Kit",
+  "author": "Kenney (kenney.nl)",
+  "license": "CC0 1.0",
+  "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "url": "https://kenney.nl/assets/nature-kit",
+  "mirror": "https://github.com/ETdoFresh/kenney.nl",
+  "mirrorPath": "kenney_natureKit_2.1",
+  "licenseFile": "https://github.com/ETdoFresh/kenney.nl/blob/main/kenney_natureKit_2.1/License.txt",
+  "files": [
+   "deco/obj_bridge_side_wood_NE.png",
+   "deco/obj_bridge_side_wood_NW.png",
+   "deco/obj_bridge_side_wood_SE.png",
+   "deco/obj_bridge_side_wood_SW.png",
+   "deco/obj_bridge_wood_NE.png",
+   "deco/obj_bridge_wood_NW.png",
+   "deco/obj_bridge_wood_SE.png",
+   "deco/obj_bridge_wood_SW.png"
+  ]
+ },
+ {
   "pack": "Lora",
   "type": "font",
   "author": "Cyreal (Olga Karpushina, Alexei Vanyashin)",

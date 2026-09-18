@@ -57,7 +57,9 @@ PACKS = {
     "gameicons": dict(pack="Game Icons", url="https://kenney.nl/assets/game-icons", license_file="license.txt"),
     "gameicons-expansion": dict(pack="Game Icons Expansion", url="https://kenney.nl/assets/game-icons-expansion", license_file="license.txt"),
     "uipack_fixed": dict(pack="UI Pack", url="https://kenney.nl/assets/ui-pack", license_file="license.txt"),
+    "kenney_natureKit_2.1": dict(pack="Nature Kit", url="https://kenney.nl/assets/nature-kit", license_file="License.txt"),
 }
+NK = "kenney_natureKit_2.1"
 HP, HT, AN, PA, SM, FO, GI, GIE, UI = ("hexagon-pack", "hexagontiles", "kenney_animalpackredux", "particlePack_1.1",
                                        "smokeparticleassets", "kenney_foliagesprites", "gameicons",
                                        "gameicons-expansion", "uipack_fixed")
@@ -775,6 +777,12 @@ class Builder:
             obj(f"obj_{name}", L(f"obj:{name}", 0, 0), "summer", f"Objet {name} (Hexagon Pack).")
         for name in ("flowerWhite", "flowerYellow", "flowerRed"):
             obj(f"obj_{name}", L(f"ht:{name}:2.8", 0, 0), "summer", f"Fleur {name} (Hexagon Tiles ×2.8).", pack=HT)
+        # ponts et jetées : rendus isométriques du Nature Kit (dossier Isometric), recadrés, quatre orientations
+        for kind, fr in (("bridge_wood", "Pont de bois"), ("bridge_side_wood", "Jetée (demi-pont de bois)")):
+            for o in ("NE", "NW", "SE", "SW"):
+                im = Image.open(self.src.path(NK, f"Isometric/{kind}_{o}.png")).convert("RGBA")
+                im = im.crop(im.split()[3].getbbox())
+                self.emit(f"obj_{kind}_{o}", "deco", im, NK, f"Isometric/{kind}_{o}.png", f"{fr}, orientation {o} (Nature Kit, rendu isométrique, taille native).", anchor="bottom")
         for season, k in (("summer", "obj_puddle"), ("winter", "obj_puddle_winter")):
             lay = Image.new("RGBA", (80, 50), (0, 0, 0, 0))
             comp.draw_puddle(lay, {"x": 20, "y": 12, "rx": 16, "ry": 9}, season)

@@ -55,7 +55,7 @@ Toutes les œuvres ci-dessous appartiennent à leurs auteurs et sont utilisées 
 ## Graphismes
 
 - **Hexagon Pack** — Kenney (kenney.nl) — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://kenney.nl/assets/hexagon-pack) — [miroir utilisé](https://github.com/ETdoFresh/kenney.nl)
-  - Fichiers : 301
+  - Fichiers : 305
 - **Hexagon Tiles** — Kenney (kenney.nl) — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://kenney.nl/assets/hexagon-tiles) — [miroir utilisé](https://github.com/ETdoFresh/kenney.nl)
   - Fichiers : 96
 - **Animal Pack Redux** — Kenney (kenney.nl) — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://kenney.nl/assets/animal-pack-redux) — [miroir utilisé](https://github.com/ETdoFresh/kenney.nl)
@@ -71,6 +71,8 @@ Toutes les œuvres ci-dessous appartiennent à leurs auteurs et sont utilisées 
 - **Game Icons Expansion** — Kenney (kenney.nl) — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://kenney.nl/assets/game-icons-expansion) — [miroir utilisé](https://github.com/ETdoFresh/kenney.nl)
   - Fichiers : ui/icon_cloud.png, ui/icon_coin.png, ui/icon_diamond.png, ui/icon_flag.png, ui/icon_key.png
 - **UI Pack** — Kenney (kenney.nl) — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://kenney.nl/assets/ui-pack) — [miroir utilisé](https://github.com/ETdoFresh/kenney.nl)
+  - Fichiers : 8
+- **Nature Kit** — Kenney (kenney.nl) — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://kenney.nl/assets/nature-kit) — [miroir utilisé](https://github.com/ETdoFresh/kenney.nl)
   - Fichiers : 8
 - **Lora** — Cyreal (Olga Karpushina, Alexei Vanyashin) — licence SIL Open Font License 1.1 ([texte](https://openfontlicense.org/open-font-license-official-text/)) — [source](https://fonts.google.com/specimen/Lora) — [miroir utilisé](https://fonts.gstatic.com)
   - Fichiers : assets/fonts/lora-italic-400-latin-ext.woff2, assets/fonts/lora-italic-400-latin.woff2, assets/fonts/lora-normal-400-600-latin-ext.woff2, assets/fonts/lora-normal-400-600-latin.woff2

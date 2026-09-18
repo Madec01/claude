@@ -145,6 +145,28 @@ check(affinity('meadow', 'water') === 0, 'prairie-eau = 0');
   const t = { work: true, family: 'hive', shedAt: 0 }; b.placements = 6; a.placements = 6; check(b.isFresh(t) && !a.isFresh(t), 'Fraîcheur : huit poses de fraîcheur');
 }
 
+
+// --- eau : tronc et lobes (la rivière se jette dans le lac), pont sur une rivière seulement
+{
+  const { classifyWater } = await import('../src/game/water.js'); const { evalWork } = await import('../src/game/rules.js');
+  const cells = []; for (let q = -2; q <= 5; q++) for (let r = -3; r <= 3; r++) cells.push(`${q},${r}`);
+  const b = new Board(cells);
+  b.place(0, 0, { family: 'rock', variant: 1 }); b.place(1, 0, { family: 'water', variant: 1 }); b.place(2, 0, { family: 'water', variant: 1 }); b.place(3, 0, { family: 'water', variant: 1 });
+  let w = classifyWater(b); check(w.get('1,0').kind === 'river' && w.get('3,0').kind === 'river' && w.get('1,0').size === 3, 'trois tuiles d’eau en ligne depuis la roche : rivière de 3');
+  b.place(3, -1, { family: 'water', variant: 1 });   // fourche en (2,0)
+  w = classifyWater(b);
+  check(w.get('1,0').kind === 'river' && w.get('2,0').kind === 'river' && w.get('1,0').size === 2, `le tronc reste une rivière jusqu'à la fourche incluse (${w.get('1,0').kind} ${w.get('1,0').size})`);
+  check(w.get('3,0').kind === 'lake' && w.get('3,-1').kind === 'lake' && w.get('3,0').size === 2 && w.get('3,0').fedBy === w.get('1,0').id, `la suite devient un lac de 2 nourri par la rivière (${w.get('3,0').kind})`);
+  check(w.get('1,0').intoLake === '3,0' || w.get('1,0').intoLake === '3,-1', 'le ruban sait où entrer dans la nappe');
+  // pont : bon sur le tronc entre deux hameaux, mauvais sur le lac
+  b.place(1, -1, { family: 'hamlet', variant: 1 }); b.place(0, 1, { family: 'hamlet', variant: 1 });
+  const onRiver = evalWork(b, { ...b.get(1, 0), work: 'bridge' }, 'spring'); check(onRiver.good && onRiver.pts === 3, 'pont sur la rivière entre deux hameaux : bien placé');
+  b.place(4, -1, { family: 'hamlet', variant: 1 }); b.place(3, 1, { family: 'hamlet', variant: 1 });
+  const onLake = evalWork(b, { ...b.get(3, 0), work: 'bridge' }, 'spring'); check(!onLake.good && onLake.label === 'pas de rivière', `pont sur le lac : mal placé (${onLake.label})`);
+  // ponton : reste sur sa tuile de rivière
+  const pier = evalWork(b, { ...b.get(1, 0), work: 'pier' }, 'spring'); check(pier.good, 'ponton sur la rivière collée à un hameau');
+}
+
 // --- campagne : cinquante définitions valides, textes présents, mécaniques cumulatives, bot fort sur les îles générées du début
 for (const w of CAMPAIGN_WISHES) check(!!STORY.wishes[w.id], `texte du vœu de campagne ${w.id}`);
 {

@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-18T05:37:19+00:00",
+ "generated": "2026-09-18T08:45:18+00:00",
  "generator": "tools/build_images.py",
  "conventions": {
   "hex": {
@@ -4056,6 +4056,86 @@
    "source": "hexagontiles",
    "original": "Tiles/flowerRed.png",
    "note": "Fleur flowerRed (Hexagon Tiles ×2.8).",
+   "anchor": "bottom"
+  },
+  "obj_bridge_wood_NE": {
+   "file": "deco/obj_bridge_wood_NE.png",
+   "w": 136,
+   "h": 98,
+   "bytes": 9725,
+   "source": "kenney_natureKit_2.1",
+   "original": "Isometric/bridge_wood_NE.png",
+   "note": "Pont de bois, orientation NE (Nature Kit, rendu isométrique, taille native).",
+   "anchor": "bottom"
+  },
+  "obj_bridge_wood_NW": {
+   "file": "deco/obj_bridge_wood_NW.png",
+   "w": 136,
+   "h": 98,
+   "bytes": 9561,
+   "source": "kenney_natureKit_2.1",
+   "original": "Isometric/bridge_wood_NW.png",
+   "note": "Pont de bois, orientation NW (Nature Kit, rendu isométrique, taille native).",
+   "anchor": "bottom"
+  },
+  "obj_bridge_wood_SE": {
+   "file": "deco/obj_bridge_wood_SE.png",
+   "w": 136,
+   "h": 98,
+   "bytes": 9658,
+   "source": "kenney_natureKit_2.1",
+   "original": "Isometric/bridge_wood_SE.png",
+   "note": "Pont de bois, orientation SE (Nature Kit, rendu isométrique, taille native).",
+   "anchor": "bottom"
+  },
+  "obj_bridge_wood_SW": {
+   "file": "deco/obj_bridge_wood_SW.png",
+   "w": 136,
+   "h": 98,
+   "bytes": 9787,
+   "source": "kenney_natureKit_2.1",
+   "original": "Isometric/bridge_wood_SW.png",
+   "note": "Pont de bois, orientation SW (Nature Kit, rendu isométrique, taille native).",
+   "anchor": "bottom"
+  },
+  "obj_bridge_side_wood_NE": {
+   "file": "deco/obj_bridge_side_wood_NE.png",
+   "w": 133,
+   "h": 97,
+   "bytes": 7981,
+   "source": "kenney_natureKit_2.1",
+   "original": "Isometric/bridge_side_wood_NE.png",
+   "note": "Jetée (demi-pont de bois), orientation NE (Nature Kit, rendu isométrique, taille native).",
+   "anchor": "bottom"
+  },
+  "obj_bridge_side_wood_NW": {
+   "file": "deco/obj_bridge_side_wood_NW.png",
+   "w": 133,
+   "h": 89,
+   "bytes": 8143,
+   "source": "kenney_natureKit_2.1",
+   "original": "Isometric/bridge_side_wood_NW.png",
+   "note": "Jetée (demi-pont de bois), orientation NW (Nature Kit, rendu isométrique, taille native).",
+   "anchor": "bottom"
+  },
+  "obj_bridge_side_wood_SE": {
+   "file": "deco/obj_bridge_side_wood_SE.png",
+   "w": 133,
+   "h": 97,
+   "bytes": 7186,
+   "source": "kenney_natureKit_2.1",
+   "original": "Isometric/bridge_side_wood_SE.png",
+   "note": "Jetée (demi-pont de bois), orientation SE (Nature Kit, rendu isométrique, taille native).",
+   "anchor": "bottom"
+  },
+  "obj_bridge_side_wood_SW": {
+   "file": "deco/obj_bridge_side_wood_SW.png",
+   "w": 133,
+   "h": 89,
+   "bytes": 8710,
+   "source": "kenney_natureKit_2.1",
+   "original": "Isometric/bridge_side_wood_SW.png",
+   "note": "Jetée (demi-pont de bois), orientation SW (Nature Kit, rendu isométrique, taille native).",
    "anchor": "bottom"
   },
   "obj_puddle": {

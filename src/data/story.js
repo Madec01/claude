@@ -574,8 +574,8 @@ export const STORY = {
     // ouvrages (tuiles bonus à superposer)
     hive: { name: 'Ruche', blurb: 'Ouvrage. Bonne place : verger ou prairie avec des fleurs autour (+1 par verger ou prairie voisin, +1 au printemps). Mauvaise place : sans fleur, ou près d’un marais (−2 la première saison, −1 la seconde, puis il s’efface).' },
     scarecrow: { name: 'Épouvantail', blurb: 'Ouvrage. Bonne place : un champ (+1, +1 par champ voisin). Mauvaise place : ailleurs (−2 la première saison, −1 la seconde, puis il s’efface).' },
-    pier: { name: 'Ponton', blurb: 'Ouvrage. Bonne place : l’eau collée à un hameau (+3 par saison). Mauvaise place : eau sans hameau, ou terre (−2 puis −1, puis il dérive pour de bon).' },
-    bridge: { name: 'Pont', blurb: 'Ouvrage. Bonne place : l’eau entre deux hameaux (+3 par saison). Mauvaise place : ailleurs (−1 deux saisons, puis il s’efface).' },
+    pier: { name: 'Ponton', blurb: 'Ouvrage. Bonne place : l’eau collée à un hameau, la jetée part de sa rive (+3 par saison). Mauvaise place : eau sans hameau, ou terre (−2 puis −1, puis il dérive pour de bon).' },
+    bridge: { name: 'Pont', blurb: 'Ouvrage. Bonne place : une rivière entre deux hameaux, il la traverse (+3 par saison). Mauvaise place : un lac, un étang ou la terre (−1 deux saisons, puis il s’efface).' },
     nestbox: { name: 'Nichoir', blurb: 'Ouvrage. Bonne place : une forêt d’au moins trois tuiles (+2 par saison, le hibou s’installe). Mauvaise place : petite forêt ou autre famille (−2 la première saison, −1 la seconde, puis il s’efface).' },
     campfire: { name: 'Feu de camp', blurb: 'Ouvrage. Bonne place : forêt ou prairie près d’un hameau (+1, +1 par hameau voisin, +1 en hiver). Mauvaise place : sans hameau (−2 la première saison, −1 la seconde, puis il s’efface) ; sous les feux de broussaille, −5.' },
     menhir: { name: 'Menhir', blurb: 'Ouvrage. Bonne place : roche ou colline (+1 par tuile de son massif, au plus 4). Mauvaise place : ailleurs (−1 deux saisons, puis il s’efface).' },
@@ -673,7 +673,7 @@ export const STORY = {
   },
   // cartes de tutoriel des mécaniques, montrées sur l'île qui les introduit (îles générées)
   mechCards: {
-    river: 'L’eau posée contre une roche ou une colline devient une rivière : +2 par tuile, +3 si elle atteint la mer. Seule, c’est un étang ; en tas, un lac.',
+    river: 'L’eau posée contre une roche ou une colline devient une rivière : +2 par tuile, +3 si elle atteint la mer. Seule, c’est un étang ; en tas, un lac. Une rivière qui s’élargit se jette dans un lac : ce qui était rivière le reste.',
     season: 'Quand la ligne de saison est pleine, la saison change et une règle avec elle. Chaque île traverse les quatre saisons.',
     fauna: 'La faune s’installe quand un habitat existe (lapin dans les prés, canard sur l’eau, ours près de la roche…) et rapporte des points à chaque saison.',
     wish: 'Les vœux des habitants (à droite) donnent des objectifs à échéance : exaucés, ils rapportent des points, des souffles et une tuile rare.',
