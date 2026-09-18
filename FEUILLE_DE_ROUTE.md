@@ -69,6 +69,62 @@
 
 Ordre proposé : finir le lot 4 (grille effacée, fusions, ouvrages, niveaux 3), puis lot 5 (modèle de climat, recoloration, chaud et froid jouables sur îles générées, guide), puis lot 6 (chapitres, générateur par climat et taille, carte, textes courts, calibrage), puis lot 7 (venteux, montagnard, deux climats, jumelles).
 
+> Révision (18 septembre) : le lot 7 initial (venteux, montagnard, deux climats, jumelles) est remplacé par le **Livre II** ci-dessous. Venteux devient un climat de mer, montagnard une contrainte d'île, les jumelles sont remplacées par les archipels. Les chapitres 8 à 10 gardent leur structure actuelle.
+
+## Lot 7 : Livre II — la mer (idée du commanditaire)
+
+> Après l'île 50, la campagne continue en mer : cinq chapitres de cinq îles (51 à 75). La mer entre deux îles devient posable, des routes commerciales relient les ports, et les niveaux hauts sont des archipels dont chaque île a sa contrainte. Décisions prises avec le commanditaire : abysses jamais dans le deck (bord de carte ou amas de mer), tuile Mer neutre, routes payées selon le nombre de ports reliés, pas de saisons décalées entre les îles.
+
+### Tuiles de mer
+
+| Tuile | Se pose | Aime | Craint | Paie |
+|---|---|---|---|---|
+| **Mer** | sur le haut-fond | mer, plage, rocher | rien | 0 seule ; support des routes |
+| **Récif** | sur le haut-fond, jamais contre l'abysse | plage, rocher, mer ; climat chaud | hameau, champ (blanchit : −2) | fermeture comme la forêt |
+| **Plaine d'algues** | sur le haut-fond, jamais contre l'abysse | marais, pré, mer ; froid et humide | été au chaud (se fane) | faune (+1 par animal de sa région) |
+| **Abysse** | jamais : émerge quand une case de mer touche le bord de la carte ou a au moins quatre voisines de mer | — | — | rien ; les routes la traversent, chaque case compte double ; la baleine y vient |
+
+### Routes commerciales
+
+Une route est une composante connexe de cases de mer qui touche au moins deux **ports** (fusion hameau + eau, déjà en jeu) ou hameaux côtiers bâtis niveau 2. Elle paie chaque saison :
+
+| Ports reliés | 1 | 2 | 3 | 4 | 5 et plus |
+|---|---|---|---|---|---|
+| Points par saison | 0 (+1 si le port touche des algues : pêche) | 3 | 7 | 12 | 18 (plafond) |
+
+**Cargaisons** : chaque port exporte ce qui l'entoure (verger → fruits, forêt → bois, champ → grain, récif → perles, algues → poisson, roche → pierre). La route gagne +2 par cargaison distincte. Deux réseaux séparés ne s'additionnent pas : les relier est le coup qui fait basculer la partie. Sillage pointillé et barque qui fait l'aller-retour ; longueur limite trois à cinq cases selon le climat (venteux : +2).
+
+### Vie marine, ouvrages, météo
+
+- **Faune** : dauphin (route active, +2 par saison), tortue (récif fermé contre la plage, printemps), phoque (algues contre un rocher au froid), baleine (abysse bordé de deux algues, bonus unique à la fermeture), goéland (rivage habité, sans bonus), crabe (plage, sans bonus).
+- **Fusions** : algues + hameau = pêcherie (+1 poisson par saison), récif + sable = atoll (se ferme avec un trou, tortues), mer + roche = falaise (site du phare), mer + forêt = chantier naval (la route qui en part porte une cargaison de plus).
+- **Ouvrages** : phare sur une falaise (+2 par route à portée de deux cases, annule la tempête, pénalité si aucune route), balise (prolonge une route d'une case, pénalité isolée), filet (case de mer contre des algues, +2 si un port est à deux cases, pénalité sur l'abysse).
+- **Météo de mer** : tempête (routes suspendues une saison sauf sous un phare), brume (routes à moitié), grand vent (routes doublées, pose en mer interdite cette saison).
+- **Climat venteux** : +1 par cargaison, tempêtes deux fois plus fréquentes, routes plus longues.
+- **Marée** (règle de saison, chapitre 14) : marée basse en automne découvre un banc de sable à un pas du rivage, posable une saison ; marée haute au printemps fait compter les marais côtiers comme de l'eau.
+
+### Archipels et contraintes d'île
+
+Un niveau = un deck, un compte de saisons, deux à quatre îles. Contraintes possibles : **réserve** (ni hameau ni champ, seule la faune paie), **montagnard** (roche et collines, pas d'eau douce, la mer est la seule eau), **brume** (météo permanente), **volcanique** (roche double, forêt brûle l'été), **île de vœux** (vœux accomplis par les routes seulement).
+
+### Chapitres 11 à 15
+
+| Chapitre | Îles | Ce qui arrive | Statut |
+|---|---|---|---|
+| 11. La Côte | 51–55 | une île bordée de mer posable : Mer, récif, algues, abysse | **en cours** |
+| 12. Les Routes | 56–60 | deux îles, ports, cargaisons, faune marine | à faire |
+| 13. Les Vents | 61–65 | climat venteux, tempêtes, phare et balise, fusions marines | à faire |
+| 14. L'Archipel | 66–70 | trois îles à contraintes, montagnard, marées | à faire |
+| 15. Le Grand Large | 71–75 | quatre îles, tous les climats, fin du Livre II, génération libre en archipel | à faire |
+
+Récit : une capitaine qui cherche une île disparue, douze souvenirs, l'île 75 la retrouve. Souffle « Expédition » (une barque rapporte une tuile rare marine) et amélioration d'Atelier « Boussole ».
+
+Trois lots de code : **7a** mer, abysse, routes et archipel à deux îles avec bot et calibrage ; **7b** faune, fusions, ouvrages et météo de mer, venteux ; **7c** archipels à contraintes, marée, récit, îles 61 à 75 calibrées.
+
+## Lot 8 : publication (à planifier)
+
+Hors ligne complet (service worker), version anglaise, export/import de sauvegarde, politique de confidentialité, captures et fiche, dépôt itch.io puis Google Play (TWA) puis iOS (Capacitor). Réécriture native écartée : le code est emballé tel quel.
+
 ## À planifier plus tard
 
 | Idée | Note | Statut |
@@ -77,7 +133,7 @@ Ordre proposé : finir le lot 4 (grille effacée, fusions, ouvrages, niveaux 3),
 | Mode Contemplation (zen, sans score, saisons au sablier) | Différent du Jardin par saisons et faune vivantes | à faire |
 | Mode Cent saisons (endurance sur une île qui grandit) | Fatigue par saison, fin quand plus aucune pose | à faire |
 | Défis à règle tordue (douze défis écrits à la main) | « été permanent », « eau et roche seulement », file à l'envers | à faire |
-| Archipel 4 : îles jumelles partageant une rivière | Vrai nouveau chapitre, coût élevé | à faire |
+| Archipel 4 : îles jumelles partageant une rivière | Remplacé par les archipels du Livre II | écarté |
 | Migrations (départ en automne, retour au printemps si refuge) | La faune devient un cycle | à faire |
 | Vœux enchaînés (histoire en trois actes par habitant) | Narration surtout | à faire |
 | Étoile secrète par île (récompense cosmétique pour le Jardin) | | à faire |
