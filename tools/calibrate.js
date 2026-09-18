@@ -24,7 +24,8 @@ for (let n = range[0]; n <= (range[1] ?? range[0]); n++) {
   const t0 = Date.now();
   const strong = [], greedy = [], wishes = [], perCell = [];
   for (let k = 0; k < N; k++) {
-    const r = playStrong(def, { seedOffset: 0, botSeed: k, known: new Set(KNOWN) }).result;   // la graine 0 est celle que le joueur joue ; seul le hasard du bot varie strong.push(r.score); wishes.push(r.wishesTotal ? r.wishesDone / r.wishesTotal : 1); perCell.push(r.score / r.cells);
+    // la graine 0 est celle que le joueur joue ; seul le hasard du bot varie
+    const r = playStrong(def, { seedOffset: 0, botSeed: k, known: new Set(KNOWN) }).result; strong.push(r.score); wishes.push(r.wishesTotal ? r.wishesDone / r.wishesTotal : 1); perCell.push(r.score / r.cells);
     greedy.push(playGreedy(def, 0).score);
   }
   const m = med(strong); out[n] = [0.55, 0.8, 1.0].map((f) => Math.round((m / def.cells) * f * 10) / 10);
