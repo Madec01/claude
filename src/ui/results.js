@@ -7,7 +7,7 @@ import { Save } from '../core/save.js';
 export function buildResults({ result, def, onContinue, onRetry, onMenu, newRecord, seedsGained, daily }) {
   const { stars, score, thresholds } = result;
   const special = result.island === 'infinite' || result.island === 'garden';
-  const name = STORY.islands[result.island] ? STORY.islands[result.island].name : result.island === 'infinite' ? 'Île infinie' : result.island === 'daily' ? (def && def.name) || 'Île du jour' : 'Jardin';
+  const name = def && def.story && STORY.islands[def.story] ? STORY.islands[def.story].name : result.island === 'infinite' ? 'Île infinie' : result.island === 'garden' ? 'Jardin' : (def && def.name) || `Île ${result.island}`;
   const root = h('div', { class: `panel panel-results stars-${stars}` });
   const lines = STORY.results[stars] || [''];
   const line = lines[Math.floor(Math.random() * lines.length)];

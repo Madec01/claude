@@ -1,5 +1,6 @@
 // L'Atelier des saisons : dépenser les graines en améliorations.
 import { h, button, icon, append } from './dom.js';
+import { campaignMechanics, mechIsland } from '../data/campaign.js';
 import { UPGRADES, upgradeCost, upgradeMax, upgradeUnlockIsland } from '../data/upgrades.js';
 import { ISLANDS, mechanicsUpTo } from '../data/islands.js';
 import { Save } from '../core/save.js';
@@ -10,13 +11,13 @@ export function buildWorkshop({ onContinue, intro }) {
   const root = h('div', { class: 'panel panel-workshop' });
   const seedsEl = h('div', { class: 'seeds', title: 'Graines' }, icon('icon_leaf'), h('b', {}, String(c.seeds)), h('span', {}, 'graines'));
   const grid = h('div', { class: 'ws-grid' });
-  const mech = mechanicsUpTo(Math.max(1, c.unlockedIsland || 1));
+  const mech = campaignMechanics(Math.max(1, c.unlockedIsland || 1));
   const render = () => {
     grid.innerHTML = '';
     seedsEl.querySelector('b').textContent = String(c.seeds);
     for (const u of UPGRADES) {
       const lvl = c.upgrades[u.id] || 0, max = upgradeMax(u), cost = upgradeCost(u, lvl);
-      const lockedAt = u.requires && !mech.has(u.requires) ? upgradeUnlockIsland(u, ISLANDS) : null;
+      const lockedAt = u.requires && !mech.has(u.requires) ? mechIsland(u.requires) : null;
       if (lockedAt) {
         grid.appendChild(h('div', { class: 'ws-card locked' }, h('div', { class: 'ws-head' }, h('span', { class: 'ws-icon' }, icon('icon_locked')), h('h4', {}, u.name)), h('p', { class: 'ws-desc' }, u.desc), h('div', { class: 'ws-level' }, h('span', { class: 'ws-cur' }, `Se débloque à l’île ${lockedAt}`))));
         continue;

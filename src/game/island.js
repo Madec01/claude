@@ -30,6 +30,7 @@ export class Island {
     // fusionner : dès l'île 8 en campagne, toujours dans les modes libres et sur l'Île du jour ; `known` = recettes déjà découvertes (sauvegarde)
     this.fuseOn = o.fuse !== undefined ? !!o.fuse : (!!def.infinite || !!def.garden || !!def.daily || (typeof def.id === 'number' && def.id >= 8));
     this.known = o.known || new Set();
+    this.rareTier = o.rareTier;   // paliers de tuiles rares (0 : base ; 1 : événements ; 2 : grenier, fontaine ; 3 : tardives)
     // niveau 3 : dès l'île 10 (modes libres et Île du jour compris)
     this.level3On = o.level3 !== undefined ? !!o.level3 : (!!def.infinite || !!def.garden || !!def.daily || (typeof def.id === 'number' && def.id >= BALANCE.build.level3From));
     // Semence forte : une tuile de niveau 2 dans la file de départ
@@ -76,11 +77,11 @@ export class Island {
     this.listeners = [];
     this.lastEvents = [];
     // météo : dès l'île 4, dans les modes libres et sur l'île du jour
-    this.weatherOn = !!def.weather || this.infinite || (typeof def.id === 'number' && def.id >= 4);
+    this.weatherOn = o.weather !== undefined ? (!!o.weather || this.infinite) : (!!def.weather || this.infinite || (typeof def.id === 'number' && def.id >= 4));
     this.weather = null;          // { key, phase: 'announced' | 'active', at }
     this.windSeason = false;      // grand vent actif pendant la saison écoulée → prime des moulins
     this.huntSeason = false;      // chasse et cueillette : les animaux des forêts rapportent +2 à la saison suivante
-    this.rulesVariable = !!def.weather || this.infinite || (typeof def.id === 'number' && def.id >= 4);
+    this.rulesVariable = this.weatherOn;
     this.rule = this.garden ? BASE_RULE[this.season] : pickRule(this.season, () => this.rng.next(), this.rulesVariable);
     this.freeChoice = 0;          // marché : nombre de poses où l'on choisit sa tuile
     this.scheduleWeather(0.5);
@@ -349,10 +350,11 @@ export class Island {
 
   pickRare() {
     const id = typeof this.def.id === 'number' ? this.def.id : 99;
+    const tier = this.rareTier !== undefined ? this.rareTier : (id >= 8 ? 3 : id >= 7 ? 2 : id >= 5 ? 1 : 0);
     const pool = ['mill', 'chapel', 'watchtower', 'well', 'camp'];
-    if (id >= 5) pool.push('market', 'fete', 'restore');
-    if (id >= 7) pool.push('granary', 'fountain');
-    if (id >= 8) pool.push('tavern', 'trough', 'archway', 'mine', 'oven');
+    if (tier >= 1) pool.push('market', 'fete', 'restore');
+    if (tier >= 2) pool.push('granary', 'fountain');
+    if (tier >= 3) pool.push('tavern', 'trough', 'archway', 'mine', 'oven');
     if (this.workOn && this.rng.next() < BALANCE.works.wishChance) return this.pickWork();
     return pool[Math.floor(this.rng.next() * pool.length)];
   }

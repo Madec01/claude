@@ -1,7 +1,13 @@
 // Tutoriel intégré : consignes d'une île, validées par des conditions de jeu.
 import { STORY } from '../data/story.js';
 
+const MECH_STEP_IDS = new Set(['river', 'season', 'fauna', 'wish', 'breath', 'rare', 'event', 'weather', 'hill', 'rare2', 'heath', 'build', 'rare3', 'climate', 'fuse', 'work', 'build3']);
 const RULES = {
+  event:    { when: (i) => i.placements >= 2, done: () => false, info: true, timeout: 30 },
+  weather:  { when: (i) => i.placements >= 2, done: (i, ev) => ev.has('weather'), info: true, timeout: 40 },
+  rare2:    { when: (i) => i.placements >= 2, done: () => false, info: true, timeout: 30 },
+  rare3:    { when: (i) => i.placements >= 2, done: () => false, info: true, timeout: 30 },
+  climate:  { when: () => true, done: () => false, info: true, timeout: 35 },
   place:    { when: () => true, done: (i) => i.placements >= 1, info: false },
   affinity: { when: (i) => i.placements >= 1, done: (i) => i.score >= 4, info: false, timeout: 60 },
   close:    { when: (i) => i.placements >= 3, done: (i) => i.stats.closed >= 1, info: false, timeout: 45 },
@@ -35,11 +41,20 @@ const GUIDED = {
 };
 
 export class Tutorial {
-  constructor(root, island, islandId, enabled) {
+  constructor(root, island, def, enabled) {
     this.root = root; this.isl = island;
-    const def = STORY.islands[islandId];
-    this.guided = enabled && GUIDED[islandId] ? GUIDED[islandId] : null;
-    this.steps = this.guided ? this.guided : (enabled && def && def.tutorial ? [...def.tutorial] : []);
+    // `def` : définition de campagne (story = île dessinée, mech = mécaniques ouvertes, id = numéro) ou un ancien identifiant
+    const storyId = def && typeof def === 'object' ? def.story : def;
+    const sdef = storyId ? STORY.islands[storyId] : null;
+    const mech = def && typeof def === 'object' && def.mech ? def.mech : null;
+    this.guided = enabled && storyId && GUIDED[storyId] ? GUIDED[storyId] : null;
+    let steps = [];
+    if (!this.guided && enabled) {
+      const hand = sdef && sdef.tutorial ? sdef.tutorial.filter((st) => !mech || !MECH_STEP_IDS.has(st.id) || mech.has(st.id)) : [];
+      const introduced = def && typeof def === 'object' && def.introduces ? def.introduces.filter((m) => STORY.mechCards[m] && !hand.some((st) => st.id === m)) : [];
+      steps = [...introduced.map((m) => ({ id: m, text: STORY.mechCards[m] })), ...hand];
+    }
+    this.steps = this.guided ? this.guided : steps;
     this.idx = 0; this.current = null; this.shownFor = 0; this.events = new Set(); this.dismissed = false;
     this.root.innerHTML = '';
     this.doneAll = this.steps.length === 0;

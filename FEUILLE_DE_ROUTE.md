@@ -56,16 +56,16 @@
 
 | Chapitre | Îles | Ce qui arrive | Taille | Statut |
 |---|---|---|---|---|
-| 1. Prise en main | 1–5 | affinités, fermeture, saisons, rivière, faune | 30–50 | à faire |
-| 2. Les habitants | 6–10 | vœux, souffles, tuiles rares | 50–60 | à faire |
-| 3. Le ciel | 11–15 | météo, règles de saison variables, colline et lande | 60–70 | à faire |
-| 4. Bâtir | 16–20 | niveaux 2, retour de tuile | 60–80 | à faire |
-| 5. Archipel du Sud | 21–25 | climat chaud, fusions et Cahier | 70–80 | à faire |
-| 6. Archipel des Pluies | 26–30 | climat humide, ouvrages | 70–90 | à faire |
-| 7. Archipel du Nord | 31–35 | climat froid, niveaux 3 | 80–90 | à faire |
-| 8. Les Vents et les Cimes | 36–40 | climats venteux et montagnard, îles à deux climats | 90–100 | à faire |
-| 9. Les grandes îles | 41–45 | tout est là, îles jumelles partageant une rivière | 100–140 | à faire |
-| 10. Cent saisons | 46–50 | l'île qui grandit, épilogue, puis génération libre | 120–160 | à faire |
+| 1. Prise en main | 1–5 | affinités, fermeture, saisons, rivière, faune | 30–50 | **fait** (structure) |
+| 2. Les habitants | 6–10 | vœux, souffles, tuiles rares | 50–60 | **fait** (structure) |
+| 3. Le ciel | 11–15 | météo, règles de saison variables, colline et lande | 60–70 | **fait** (structure) |
+| 4. Bâtir | 16–20 | niveaux 2, retour de tuile | 60–80 | **fait** (structure) |
+| 5. Archipel du Sud | 21–25 | climat chaud, fusions et Cahier | 70–80 | **fait** (structure) |
+| 6. Archipel des Pluies | 26–30 | climat humide, ouvrages | 70–90 | **fait** (structure) |
+| 7. Archipel du Nord | 31–35 | climat froid, niveaux 3 | 80–90 | **fait** (structure) |
+| 8. Les Vents et les Cimes | 36–40 | climats venteux et montagnard, îles à deux climats | 90–100 | **fait** (structure) |
+| 9. Les grandes îles | 41–45 | tout est là, îles jumelles partageant une rivière | 100–140 | **fait** (structure) |
+| 10. Cent saisons | 46–50 | l'île qui grandit, épilogue, puis génération libre | 120–160 | **fait** (structure) |
 
 Ordre proposé : finir le lot 4 (grille effacée, fusions, ouvrages, niveaux 3), puis lot 5 (modèle de climat, recoloration, chaud et froid jouables sur îles générées, guide), puis lot 6 (chapitres, générateur par climat et taille, carte, textes courts, calibrage), puis lot 7 (venteux, montagnard, deux climats, jumelles).
 

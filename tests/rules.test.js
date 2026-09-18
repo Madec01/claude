@@ -7,6 +7,7 @@ import { affinity } from '../src/data/tiles.js';
 import { preview, previewBuild, canBuild, canFuse, previewFuse } from '../src/game/rules.js';
 import { STORY } from '../src/data/story.js';
 import { playStrong } from './bot.js';
+import { campaignIsland, CAMPAIGN_SIZE, CAMPAIGN_WISHES, islandOptions } from '../src/data/campaign.js';
 
 let failures = 0;
 const check = (cond, msg) => { if (!cond) { failures++; console.error('ÉCHEC :', msg); } };
@@ -91,6 +92,20 @@ check(affinity('meadow', 'water') === 0, 'prairie-eau = 0');
   const pv = isl.previewBuild(f.q, f.r); check(pv && pv.work === 'scarecrow' && (f.family === 'field' ? pv.good && pv.total >= 1 : !pv.good && pv.total < 0), `aperçu d'ouvrage (${f.family} : ${pv && pv.total})`);
   const res = isl.build(f.q, f.r); check(!!res && isl.board.get(f.q, f.r).work === 'scarecrow' && isl.stats.works === 1, 'ouvrage posé');
   const s0 = isl.score; isl.advanceSeason(); check(isl.score !== s0 || true, 'la saison juge les ouvrages');
+}
+
+// --- campagne : cinquante définitions valides, textes présents, mécaniques cumulatives, bot fort sur les îles générées du début
+for (const w of CAMPAIGN_WISHES) check(!!STORY.wishes[w.id], `texte du vœu de campagne ${w.id}`);
+{
+  let prev = 0;
+  for (let n = 1; n <= CAMPAIGN_SIZE; n++) {
+    const d = campaignIsland(n);
+    check(d.id === n && d.cells > 0 && d.seasonLength > 0 && d.mech && d.mech.size >= prev && Array.isArray(d.wishes), `île de campagne ${n} valide`);
+    check(!!(d.story ? STORY.islands[d.story] : d.name && d.intro && d.intro.length === 2), `textes de l'île de campagne ${n}`);
+    for (const w of d.wishes) check(!!STORY.wishes[w.id] && (!w.deadline || w.deadline.placements > 5 || w.deadline.season), `vœu ${w.id} sur l'île ${n}`);
+    prev = d.mech.size;
+  }
+  for (const n of [2, 4, 6, 9, 11]) { const d = campaignIsland(n); const { result } = playStrong(d, { seedOffset: 0, ...islandOptions(d) }); check(!!result && result.score > 0, `bot fort sur l'île générée ${n} (${result && result.score} pts)`); }
 }
 
 // --- histoire : chaque île a ses textes

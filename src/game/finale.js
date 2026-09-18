@@ -18,7 +18,7 @@ export class Finale {
     this.t = 0; this.done = false; this.phase = 'zoom'; this.idx = -1; this.stepT = 0;
     this.score = 0; this.target = this.isl.result ? this.isl.result.score : this.isl.score;
     this.season0 = this.isl.season; this.sweepIdx = -1; this.starsShown = 0; this.stars = this.isl.result ? this.isl.result.stars : 0;
-    this.name = STORY.islands[this.isl.def.id] ? STORY.islands[this.isl.def.id].name : (this.isl.def.name || (this.isl.def.infinite ? 'Île infinie' : 'Jardin'));
+    const d = this.isl.def; this.name = d.story && STORY.islands[d.story] ? STORY.islands[d.story].name : (d.name || (d.infinite ? 'Île infinie' : 'Jardin'));
     this.stops = this.buildStops();
     this.cam.fit(this.isl.board.mask, { uiLeft: 20, uiRight: 20, uiTop: 90, uiBottom: 60, padding: 60 });
     this.center = { x: this.cam.tx, y: this.cam.ty, z: this.cam.tzoom };

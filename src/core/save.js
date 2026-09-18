@@ -1,6 +1,17 @@
 // Sauvegarde locale versionnée (localStorage).
 const KEY = 'cent-saisons.save';
-const VERSION = 1;
+const VERSION = 2;
+// v1 → v2 : la campagne passe de 12 à 50 îles ; les douze îles dessinées gardent leurs étoiles à leur nouvelle place
+const OLD_TO_NEW = { 1: 1, 2: 3, 3: 7, 4: 5, 5: 10, 6: 15, 7: 13, 8: 20, 9: 25, 10: 30, 11: 35, 12: 50 };
+function migrate(data, from) {
+  if (from < 2) {
+    const c = data.campaign; const remap = (obj) => { const o = {}; for (const [k, v] of Object.entries(obj || {})) { const n = OLD_TO_NEW[Number(k)]; if (n) o[n] = v; } return o; };
+    c.stars = remap(c.stars); c.best = remap(c.best); c.memoriesRead = (c.memoriesRead || []).map((k) => OLD_TO_NEW[k]).filter(Boolean);
+    c.unlockedIsland = c.completed ? 50 : (OLD_TO_NEW[Math.min(12, Math.max(1, c.unlockedIsland || 1))] || 1);
+    c.completed = false;
+  }
+  return data;
+}
 
 const defaults = () => ({
   version: VERSION,
@@ -29,7 +40,7 @@ export const Save = {
   data: defaults(),
   available: true,
   load() {
-    try { const raw = localStorage.getItem(KEY); if (raw) { this.data = merge(defaults(), JSON.parse(raw)); this.data.version = VERSION; } }
+    try { const raw = localStorage.getItem(KEY); if (raw) { const parsed = JSON.parse(raw); this.data = migrate(merge(defaults(), parsed), parsed.version || 1); this.data.version = VERSION; } }
     catch (e) { console.warn('Sauvegarde illisible, réinitialisation.', e); this.available = false; this.data = defaults(); }
     return this.data;
   },

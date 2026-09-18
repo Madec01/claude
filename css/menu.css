@@ -17,7 +17,8 @@
 .menu-foot .foot-test { color: var(--gold); text-transform: uppercase; letter-spacing: 0.12em; }
 .panel-nights { width: 1040px; }
 .acts { display: flex; flex-direction: column; gap: 10px; }
-.act-row { display: grid; grid-template-columns: 170px repeat(4, 1fr); gap: 10px; align-items: stretch; }
+.act-row { display: grid; grid-template-columns: 170px repeat(5, 1fr); gap: 10px; align-items: stretch; }
+.act-row .act-gate { grid-column: 2 / -1; }
 .act-head { display: flex; flex-direction: column; justify-content: center; padding-right: 12px; border-right: 1px solid var(--line); }
 .act-head .act-num { font-family: var(--font-title); font-size: 20px; line-height: 1.15; }
 .act-head .act-name { font-size: 14px; font-style: italic; opacity: 0.7; margin-top: 4px; }
@@ -79,3 +80,6 @@
 html.compact .menu-row .btn { font-size: 14px; padding: 8px 6px; }
 html.compact.landscape .menu-row { grid-column: 1 / -1; }
 .g-card.g-locked { opacity: 0.6; }
+.act-row.act-locked { opacity: 0.55; }
+.act-gate { font-size: 12px; opacity: 0.7; padding: 4px 8px; font-style: italic; }
+.night-card.memory { border-color: var(--gold); }

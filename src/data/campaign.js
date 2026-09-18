@@ -1,0 +1,122 @@
+// Campagne : dix chapitres de cinq îles. Les douze îles dessinées à la main (islands.js) sont les îles-souvenirs, placées à
+// leur chapitre ; les trente-huit autres sont générées ici (masque, file, vœux tirés d'une réserve, textes courts).
+// Chaque mécanique arrive à une île précise (MECH_AT) ; les climats arrivent avec les archipels (chapitres 5 à 8).
+import { ISLANDS, WEIGHTS } from './islands.js';
+import { CAMPAIGN_TEXTS } from './campaign_texts.js';
+import { CAMPAIGN_STARS } from './campaign_stars.js';
+
+export const CAMPAIGN_SIZE = 50;
+
+/** Mécaniques introduites par île (cumulatives). */
+export const MECH_AT = {
+  1: ['affinity', 'close'], 2: ['river', 'season'], 4: ['fauna'],
+  6: ['wish'], 7: ['breath'], 8: ['rare'], 9: ['event'],
+  11: ['weather'], 12: ['hill'], 13: ['rare2'], 14: ['heath'],
+  16: ['build'], 18: ['rare3'],
+  21: ['climate', 'fuse'], 26: ['work'], 31: ['build3'],
+};
+export const MECH_NAMES = { river: 'rivière', season: 'saisons', fauna: 'faune', wish: 'vœux', breath: 'souffles', rare: 'tuiles rares', event: 'tuiles d’événement', weather: 'météo', hill: 'collines', rare2: 'grenier et fontaine', heath: 'lande', build: 'bâtir', rare3: 'rares tardives', climate: 'climats', fuse: 'fusions', work: 'ouvrages', build3: 'niveau 3' };
+/** Île où une mécanique arrive (pour le Guide et l'Atelier). */
+export function mechIsland(m) { for (const [n, list] of Object.entries(MECH_AT)) if (list.includes(m)) return Number(n); return null; }
+/** Mécaniques disponibles jusqu'à l'île n (incluse). Sans argument : toutes (modes libres). */
+export function campaignMechanics(n = 99) { const set = new Set(); for (const [k, list] of Object.entries(MECH_AT)) if (Number(k) <= n) for (const m of list) set.add(m); return set; }
+
+export const CHAPTERS = [
+  { id: 1, name: 'Prise en main', sub: 'Cinq petites îles pour apprendre', climate: 'temperate', islands: [{ hand: 1 }, { cells: 34, w: 'rivers' }, { hand: 2 }, { cells: 40, w: 'farms' }, { hand: 4, memory: true }] },
+  { id: 2, name: 'Les habitants', sub: 'Vœux, souffles et tuiles rares', climate: 'temperate', islands: [{ cells: 50, w: 'farms' }, { hand: 3 }, { cells: 54, w: 'wild' }, { cells: 56, w: 'rivers' }, { hand: 5, memory: true }] },
+  { id: 3, name: 'Le ciel', sub: 'Météo, collines et landes', climate: 'temperate', islands: [{ cells: 60, w: 'balanced' }, { cells: 64, w: 'hills' }, { hand: 7 }, { cells: 68, w: 'moor' }, { hand: 6, memory: true }] },
+  { id: 4, name: 'Bâtir', sub: 'Les tuiles montent de niveau', climate: 'temperate', islands: [{ cells: 66, w: 'all' }, { cells: 70, w: 'moorFarm' }, { cells: 74, w: 'all' }, { cells: 78, w: 'coastAll' }, { hand: 8, memory: true }] },
+  { id: 5, name: 'Archipel du Sud', sub: 'Climat chaud, fusions', climate: 'hot', islands: [{ cells: 72, w: 'coastAll' }, { cells: 76, w: 'all' }, { cells: 78, w: 'hills' }, { cells: 80, w: 'coastAll' }, { hand: 9, memory: true }] },
+  { id: 6, name: 'Archipel des Pluies', sub: 'Climat humide, ouvrages', climate: 'humid', islands: [{ cells: 76, w: 'rivers' }, { cells: 80, w: 'all' }, { cells: 84, w: 'rivers' }, { cells: 88, w: 'moorFarm' }, { hand: 10, memory: true }] },
+  { id: 7, name: 'Archipel du Nord', sub: 'Climat froid, niveau 3', climate: 'cold', islands: [{ cells: 82, w: 'ridges' }, { cells: 86, w: 'all' }, { cells: 88, w: 'ridges' }, { cells: 90, w: 'moor' }, { hand: 11, memory: true }] },
+  { id: 8, name: 'Les Vents et les Cimes', sub: 'Tous les climats, grandes îles', climate: 'mixed', islands: [{ cells: 90, w: 'coastAll', climate: 'temperate' }, { cells: 94, w: 'all', climate: 'hot' }, { cells: 96, w: 'ridges', climate: 'temperate' }, { cells: 100, w: 'moor', climate: 'cold' }, { cells: 100, w: 'coastAll', climate: 'humid', memory: true }] },
+  { id: 9, name: 'Les grandes îles', sub: 'Tout est là', climate: 'mixed', islands: [{ cells: 104, w: 'all', climate: 'temperate' }, { cells: 112, w: 'rivers', climate: 'humid' }, { cells: 120, w: 'ridges', climate: 'cold' }, { cells: 130, w: 'all', climate: 'temperate' }, { cells: 140, w: 'moorFarm', climate: 'hot', memory: true }] },
+  { id: 10, name: 'Cent saisons', sub: 'La fin du souvenir', climate: 'temperate', islands: [{ cells: 120, w: 'all' }, { cells: 130, w: 'coastAll' }, { cells: 140, w: 'all' }, { cells: 150, w: 'all' }, { hand: 12, memory: true }] },
+];
+
+/** Réserve de vœux des îles générées (textes dans STORY.wishes, clés c_*). `needs` : mécanique requise ; `dl` : échéance en fraction des cases. */
+export const CAMPAIGN_WISHES = [
+  { id: 'c_forest', type: 'region', family: 'forest', size: 6, dl: 0.6 },
+  { id: 'c_meadow', type: 'closed', family: 'meadow', size: 4, dl: 0.7 },
+  { id: 'c_pairs', type: 'pairs', a: 'field', b: 'hamlet', count: 4, dl: 0.7 },
+  { id: 'c_river', type: 'river', minLen: 5, dl: 0.65, needs: 'river' },
+  { id: 'c_mouth', type: 'river', minLen: 3, mouth: true, dl: 0.75, needs: 'river' },
+  { id: 'c_lake', type: 'lake', size: 5, dl: 0.7, needs: 'river' },
+  { id: 'c_rabbit', type: 'fauna', species: 'rabbit', dl: 0.5, needs: 'fauna' },
+  { id: 'c_duck', type: 'fauna', species: 'duck', dl: 0.6, needs: 'fauna' },
+  { id: 'c_species', type: 'species', count: 4, dl: 0.85, needs: 'fauna' },
+  { id: 'c_bourg', type: 'bourg', count: 2, dl: 0.85 },
+  { id: 'c_harvest', type: 'harvest', count: 3, dl: 0.95, needs: 'season' },
+  { id: 'c_bloom', type: 'bloom', count: 3, dl: 0.95, needs: 'season' },
+  { id: 'c_veillee', type: 'veillee', pairs: 2, dl: 0.95, needs: 'season' },
+  { id: 'c_closedSeason', type: 'closedInSeason', count: 2, dl: 0.95 },
+  { id: 'c_level', type: 'level', count: 2, dl: 0.85, needs: 'build' },
+  { id: 'c_works', type: 'works', count: 2, dl: 0.9, needs: 'work' },
+  { id: 'c_port', type: 'fusion', recipe: 'port', dl: 0.85, needs: 'fuse' },
+  { id: 'c_farm', type: 'fusion', recipe: 'farm', dl: 0.85, needs: 'fuse' },
+];
+
+function mulberry(seed) { let s = seed >>> 0 || 7; return () => { s += 0x6D2B79F5; let t = Math.imul(s ^ (s >>> 15), 1 | s); t ^= t + Math.imul(t ^ (t >>> 7), 61 | t); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+
+/** Multiplicateurs de file par climat (le reste du climat est dans climates.js). */
+const CLIMATE_WEIGHTS = {
+  temperate: {},
+  hot: { sand: 2.2, rock: 1.4, orchard: 1.3, water: 0.6, marsh: 0.4, forest: 0.8 },
+  humid: { marsh: 2.0, water: 1.5, forest: 1.3, sand: 0.5, orchard: 0.8 },
+  cold: { forest: 1.5, rock: 1.4, orchard: 0.4, marsh: 0.6, sand: 0.5, heath: 1.2 },
+};
+function weightsFor(setName, climate, mech) {
+  const base = { ...WEIGHTS[setName] };
+  if (!mech.has('hill')) delete base.hill; if (!mech.has('heath')) delete base.heath;
+  const mul = CLIMATE_WEIGHTS[climate] || {};
+  for (const k of Object.keys(base)) base[k] = Math.max(1, Math.round(base[k] * (mul[k] || 1)));
+  return base;
+}
+
+const chapterOf = (n) => CHAPTERS[Math.floor((n - 1) / 5)];
+
+/** Définition d'une île de campagne (1 à 50) : île dessinée replacée, ou île générée. */
+export function campaignIsland(n) {
+  n = Math.max(1, Math.min(CAMPAIGN_SIZE, Number(n) || 1));
+  const ch = chapterOf(n); const slot = ch.islands[(n - 1) % 5];
+  const mech = campaignMechanics(n);
+  const climate = slot.climate || (ch.climate === 'mixed' ? 'temperate' : ch.climate);
+  const stars = CAMPAIGN_STARS[n];
+  if (slot.hand) {
+    const h = ISLANDS.find((i) => i.id === slot.hand);
+    // les vœux et tuiles de départ restent ; les vœux disparaissent si l'île est jouée avant l'arrivée des vœux
+    return { ...h, id: n, story: h.id, chapter: ch.id, climate, memory: !!slot.memory, mech, wishes: mech.has('wish') ? h.wishes : [], mechanics: [], starFactors: stars || h.starFactors, weather: mech.has('weather') };
+  }
+  const seed = 5000 + n * 131;
+  const rng = mulberry(seed);
+  const cells = slot.cells;
+  const seasonLength = cells <= 40 ? 7 : cells <= 56 ? 8 : cells <= 80 ? 9 : cells <= 100 ? 10 : 11;
+  const tilesRatio = ch.id <= 2 ? 0.95 : ch.id <= 4 ? 0.93 : ch.id <= 7 ? 0.92 : 0.9;
+  const startSeason = ['spring', 'summer', 'autumn', 'winter'][n % 4];
+  // vœux : de la réserve, compatibles avec les mécaniques et le climat
+  const wishCount = !mech.has('wish') ? 0 : ch.id <= 2 ? 2 : ch.id <= 7 ? 3 : 4;
+  const pool = CAMPAIGN_WISHES.filter((w) => !w.needs || mech.has(w.needs)).filter((w) => !(climate === 'cold' && (w.id === 'c_bloom' || w.id === 'c_harvest')) && !(climate === 'hot' && (w.id === 'c_veillee' || w.id === 'c_lake')));
+  const wishes = [];
+  while (wishes.length < wishCount && pool.length) { const w = pool.splice(Math.floor(rng() * pool.length), 1)[0]; const { dl, needs, ...def } = w; wishes.push({ ...def, deadline: { placements: Math.round(cells * dl) } }); }
+  const t = CAMPAIGN_TEXTS[n] || { name: `Île ${n}`, intro: ['Une île sans nom, pour l’instant.', 'Pose, et elle se souviendra.'], memory: 'Elle a fini par avoir un nom. Le tien.' };
+  const start = [{ q: 0, r: 0, family: 'hamlet' }, { q: 2, r: -1, family: 'rock' }];
+  if (cells >= 60) start.push({ q: -2, r: 2, family: rng() < 0.5 ? 'rock' : 'water' });
+  if (cells >= 100) start.push({ q: 3, r: 1, family: 'meadow' });
+  return {
+    id: n, story: null, chapter: ch.id, climate, memory: !!slot.memory, mech, arch: ch.id, cells, seed, roughness: 0.3 + rng() * 0.2, holes: cells >= 60 ? 1 + Math.floor(rng() * 2) : 0,
+    seasonLength, startSeason, weights: weightsFor(slot.w, climate, mech), tilesRatio, start, wishes, mechanics: [], weather: mech.has('weather'),
+    name: t.name, intro: t.intro, memoryText: t.memory, starFactors: stars || [3.6, 5.2, 6.5],
+  };
+}
+
+/** Correspondance ancienne campagne (12 îles) → nouvelle (50), pour migrer les sauvegardes. */
+export const OLD_TO_NEW = { 1: 1, 2: 3, 3: 7, 4: 5, 5: 10, 6: 15, 7: 13, 8: 20, 9: 25, 10: 30, 11: 35, 12: 50 };
+/** Étoiles du chapitre k dans une sauvegarde. */
+export function chapterStars(stars, k) { let s = 0; for (let n = (k - 1) * 5 + 1; n <= k * 5; n++) s += stars[n] || 0; return s; }
+export const CHAPTER_GATE = 8;   // étoiles nécessaires dans un chapitre pour entrer dans le suivant (sur 15)
+
+/** Options à passer à `new Island(def, …)` depuis les mécaniques de l'île (tout est ouvert dans les modes libres). */
+export function islandOptions(def) {
+  const m = def.mech || campaignMechanics(99);
+  return { build: m.has('build'), fuse: m.has('fuse'), work: m.has('work'), level3: m.has('build3'), weather: m.has('weather'), rareTier: m.has('rare3') ? 3 : m.has('rare2') ? 2 : m.has('event') ? 1 : 0 };
+}

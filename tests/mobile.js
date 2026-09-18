@@ -69,7 +69,7 @@ async function touchDrag(cdp, pts) {
     }
     await page.evaluate(() => window.CS.Game.showOptions()); await page.waitForTimeout(500); await page.screenshot({ path: path.join(OUT, `mobile-${tag}-options.png`) });
     // île 3 : pose tactile
-    await startIsland(page, 3);
+    await startIsland(page, 7);   // île 7 de la campagne : vœux et souffles ouverts
     const cdp = await context.newCDPSession(page);
     let c = await legalCellScreen(page);
     await page.touchscreen.tap(c.x, c.y); await page.waitForTimeout(300);

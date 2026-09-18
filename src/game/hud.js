@@ -1,5 +1,6 @@
 // HUD d'une île (DOM) : saison, score, souffles, file de tuiles, poche, vœux, pouvoirs, notifications.
 import { STORY } from '../data/story.js';
+import { CHAPTERS } from '../data/campaign.js';
 import { BALANCE } from '../data/balance.js';
 import { FAMILY_COLORS, FAMILIES, affinity, RARE_AS } from '../data/tiles.js';
 import { Save } from '../core/save.js';
@@ -69,8 +70,9 @@ export class Hud {
     this.onSwap = onSwap; this.onPocket = onPocket; this.onPocketOut = onPocketOut; this.onGardenPick = onGardenPick;
     this.last = {};
     this.notes = [];
-    this.arch = STORY.archipelagos[island.def.arch];
-    if (this.arch) this.r.arch.textContent = `${this.arch.name} · ${this.arch.sub}`;
+    const d = island.def; const ch = d.chapter ? CHAPTERS[d.chapter - 1] : null;
+    this.arch = ch ? { name: `Chapitre ${ch.id}`, sub: ch.name } : STORY.archipelagos[d.arch];
+    if (this.arch) this.r.arch.textContent = `${this.arch.name} · ${this.arch.sub}${d.climate && d.climate !== 'temperate' && STORY.climates && STORY.climates[d.climate] ? ` · ${STORY.climates[d.climate].name}` : ''}`;
     this.buildGardenPick();
     this.renderQueue(); this.renderWishes(); this.renderFauna();
   }

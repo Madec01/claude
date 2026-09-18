@@ -1,12 +1,12 @@
 // Familles de tuiles, variantes graphiques, table des affinités.
 export const FAMILIES = ['meadow', 'forest', 'field', 'hamlet', 'orchard', 'water', 'marsh', 'rock', 'sand', 'hill', 'heath'];
 /** Île à partir de laquelle une famille peut apparaître (absente = dès le début). */
-export const FAMILY_FROM = { hill: 7, heath: 9 };
+export const FAMILY_FROM = { hill: 12, heath: 14 };
 export const RARE = ['mill', 'chapel', 'watchtower', 'well', 'camp', 'granary', 'fountain', 'market', 'fete', 'restore', 'tavern', 'trough', 'archway', 'mine', 'oven'];
 /** Tuiles d'événement : un effet immédiat ou ponctuel plutôt qu'un bonus permanent. */
 export const EVENT_TILES = ['market', 'fete', 'restore'];
 /** Tuiles rares réservées aux îles tardives (et aux modes libres). */
-export const RARE_LATE = { granary: 7, fountain: 7, market: 5, fete: 5, restore: 5, tavern: 8, trough: 8, archway: 8, mine: 8, oven: 8 };
+export const RARE_LATE = { granary: 13, fountain: 13, market: 9, fete: 9, restore: 9, tavern: 18, trough: 18, archway: 18, mine: 18, oven: 18 };
 export const SEASONS = ['spring', 'summer', 'autumn', 'winter'];
 
 /** Nombre de variantes graphiques par famille (clés d'image : `${family}_${n}_${season}`). */

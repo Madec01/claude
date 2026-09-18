@@ -60,7 +60,7 @@ Chaque pose reçoit un mot selon sa qualité par rapport au meilleur emplacement
 
 ## Modes
 
-- **Campagne** : 12 îles dessinées à la main, de 30 à 120 cases, chacune avec ses vœux et son souvenir. La première île est un tutoriel guidé pas à pas (case cible, file fixée), puis chaque mécanique nouvelle est présentée quand elle arrive.
+- **Campagne** : cinquante îles en dix chapitres de cinq. Les douze îles dessinées à la main sont les îles-souvenirs (récit, fragments), placées à leur chapitre ; les trente-huit autres sont générées (taille, climat, file, vœux tirés d'une réserve) avec un nom et deux lignes d'intro. Chaque chapitre ajoute une mécanique : prise en main (1–5), vœux, souffles et rares (6–10), météo, collines et landes (11–15), bâtir (16–20), climat chaud et fusions (21–25), climat humide et ouvrages (26–30), climat froid et niveau 3 (31–35), tous les climats (36–40), grandes îles (41–45), Cent saisons (46–50). Huit étoiles dans un chapitre ouvrent le suivant. La première île est un tutoriel guidé pas à pas, puis chaque mécanique nouvelle est présentée sur l'île qui l'introduit.
 - **Île infinie** : l'île grandit à chaque pose, sans fin ; le score et le nombre de saisons sont enregistrés.
 - **Île du jour** : une île générée depuis la date, la même pour tout le monde, trois vœux tirés au sort, météo active ; meilleur score du jour et série de jours conservés.
 - **Jardin** : pose libre, choix de la tuile, sans saisons ni score : pour composer.

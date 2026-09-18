@@ -23,6 +23,7 @@ import { buildCredits, loadCredits } from './ui/credits.js';
 import { buildGuide } from './ui/guide.js';
 import { dailyDef, dailyKey, yesterdayKey } from './data/daily.js';
 import { Finale } from './game/finale.js';
+import { campaignIsland, campaignMechanics, islandOptions, CAMPAIGN_SIZE, MECH_AT, chapterStars, CHAPTER_GATE } from './data/campaign.js';
 import { GRADES, streakMilestone } from './game/feedback.js';
 import { buildStory, islandIntroScreens, islandMemoryScreens, prologueScreens, endingScreens, infiniteScreens, gardenScreens, dailyScreens } from './ui/story.js';
 import { buildResults } from './ui/results.js';
@@ -106,12 +107,12 @@ const Game = {
   startCampaign() {
     const c = Save.campaign;
     if (c.completed) { c.unlockedIsland = 1; c.completed = false; Save.save(); }
-    const id = Math.min(c.unlockedIsland, 12);
+    const id = Math.min(c.unlockedIsland, CAMPAIGN_SIZE);
     if (!c.prologueSeen && id === 1) scenes.go('story', { screens: prologueScreens(), onDone: () => { c.prologueSeen = true; Save.save(); this.startIsland(1); } });
     else this.startIsland(id);
   },
   startIsland(id, { skipIntro = false } = {}) {
-    const def = getIsland(id);
+    const def = campaignIsland(id); def.introduces = MECH_AT[def.id] || [];
     if (skipIntro) { scenes.go('island', { def }); return; }
     scenes.go('story', { screens: islandIntroScreens(def), onDone: () => scenes.go('island', { def }, { fade: 0.5 }) });
   },
@@ -150,9 +151,9 @@ const Game = {
       const firstTime = !c.memoriesRead.includes(def.id);
       seedsGained = Math.max(0, result.stars - prevStars) * BALANCE.seeds.star + (firstTime ? result.wishesDone * BALANCE.seeds.wish + BALANCE.seeds.island : 0) + (BALANCE.upgrades.almanac[c.upgrades.almanac || 0] || 0);
       c.seeds += seedsGained; c.seedsTotal += seedsGained;
-      if (result.stars >= 1 && def.id >= c.unlockedIsland && def.id < 12) c.unlockedIsland = def.id + 1;
-      if (def.id === 12 && result.stars >= 1) { c.completed = true; Save.data.infinite.unlocked = true; }
-      if (def.id >= 6) Save.data.infinite.unlocked = true;
+      if (result.stars >= 1 && def.id >= c.unlockedIsland && def.id < CAMPAIGN_SIZE) { const gated = def.id % 5 === 0 && chapterStars(c.stars, def.id / 5) < CHAPTER_GATE; if (!gated) c.unlockedIsland = def.id + 1; }
+      if (def.id === CAMPAIGN_SIZE && result.stars >= 1) { c.completed = true; Save.data.infinite.unlocked = true; }
+      if (def.id >= 10) Save.data.infinite.unlocked = true;
       Save.save();
     }
     scenes.go('results', { result, def, newRecord, seedsGained });
@@ -165,14 +166,14 @@ const Game = {
     const memory = islandMemoryScreens(def);
     const next = () => {
       if (result.stars < 1) { this.startIsland(def.id); return; }
-      if (def.id === 12) { scenes.go('story', { screens: endingScreens(), skippable: false, onDone: () => scenes.go('ending') }); return; }
-      scenes.go('workshop', { onContinue: () => this.startIsland(def.id + 1) });
+      if (def.id === CAMPAIGN_SIZE) { scenes.go('story', { screens: endingScreens(), skippable: false, onDone: () => scenes.go('ending') }); return; }
+      scenes.go('workshop', { onContinue: () => { if (c.unlockedIsland > def.id) this.startIsland(def.id + 1); else { this.showMenu(); this.toast(`Il faut ${CHAPTER_GATE} étoiles dans ce chapitre pour passer au suivant`); } } });
     };
     if (result.stars >= 1 && !c.memoriesRead.includes(def.id)) { c.memoriesRead.push(def.id); Save.save(); }
     if (result.stars >= 1) scenes.go('story', { screens: memory, onDone: next }); else next();
   },
 };
-window.CS = { Game, Save, scenes, AudioSys, ISLANDS, BALANCE, STORY, STAGE, input };
+window.CS = { Game, Save, scenes, AudioSys, ISLANDS, BALANCE, STORY, STAGE, input, campaignIsland };
 onResizeHook = () => Game.onResize();
 
 // ---------- Scène de fond : une île qui se construit toute seule ----------
@@ -239,17 +240,17 @@ class IslandScene {
     hideUI();
     this.def = def;
     const upgrades = Save.campaign.upgrades;
-    const mech = def.infinite || def.garden ? mechanicsUpTo(99) : mechanicsUpTo(def.id);
+    const mech = def.mech ? new Set(def.mech) : campaignMechanics(99);
     if (Game.testMode) for (const m of ['river', 'season', 'fauna', 'wish', 'breath', 'rare', 'build', 'fuse', 'work', 'build3']) mech.add(m);
     this.mech = mech;
-    const isl = new Island(def, { upgrades, build: Game.testMode || mech.has('build'), fuse: Game.testMode || mech.has('fuse'), work: Game.testMode || mech.has('work'), level3: Game.testMode || mech.has('build3'), known: new Set(Save.data.campaign.recipes || []) });
+    const opt = islandOptions({ mech }); const isl = new Island(def, { upgrades, ...opt, known: new Set(Save.data.campaign.recipes || []) });
     this.isl = isl;
     this.cam = new Camera(); this.cam.fit(isl.board.mask, { ...uiMargins('island'), immediate: true });
     this.armed = null;   // tactile : case « armée » (aperçu affiché) en attente d'une seconde touche
     this.particles = new ParticleSystem(1500); this.fx = new Effects(this.particles); this.shake = new Shake(); this.shake.enabled = Save.options.shake !== false;
     this.renderer = new IslandRenderer(isl, this.cam, this.fx, this.particles);
     this.paused = false; this.budMode = false; this.endTimer = 0; this.finished = false; this.finale = null;
-    const name = STORY.islands[def.id] ? STORY.islands[def.id].name : def.infinite ? 'Île infinie' : def.daily ? def.name : 'Jardin';
+    const name = def.story && STORY.islands[def.story] ? STORY.islands[def.story].name : def.infinite ? 'Île infinie' : def.garden ? 'Jardin' : (def.name || 'Île');
     this.title = name;
     this.hud = new Hud(document.getElementById('hud'), isl, {
       title: name, mechanics: mech,
@@ -268,7 +269,7 @@ class IslandScene {
       compact: STAGE.compact,
     });
     document.getElementById('hud').classList.add('on');
-    this.tutorial = new Tutorial(document.getElementById('tutorial'), isl, def.id, !Save.options.skipTutorial && !def.infinite && !def.garden);
+    this.tutorial = new Tutorial(document.getElementById('tutorial'), isl, def, !Save.options.skipTutorial && !def.infinite && !def.garden);
     document.getElementById('tutorial').classList.add('on');
     isl.on((e) => this.onEvent(e));
     // audio
