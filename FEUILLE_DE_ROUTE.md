@@ -31,7 +31,7 @@
 | # | Idée | Décision de design | Statut |
 |---|---|---|---|
 | 14 | **Bâtir : niveaux 2** | Poser une tuile sur une tuile de même famille (1 souffle) : bords +1, compte double dans sa région, décor plus dense ; retour d'une tuile si région close, en saison ou bien entourée (une fois par saison). Île 6. | **fait** |
-| 15 | **Grille effacée entre tuiles posées** | Fondus le long des bords entre sols différents, roche nette, champs alignés ; contour au survol ; option « Grille discrète ». | à faire |
+| 15 | **Grille effacée entre tuiles posées** | Fondus le long des bords entre sols différents (champs compris), roche et colline nettes ; pointillé au survol ; option « Grille discrète ». | **fait** |
 | 16 | **Fusions et Cahier** | Port, rizière, ferme, fortin, cascade, grotte, lagune ; découverte = retour de tuile + rare ; Cahier des recettes. Île 8. | à faire |
 | 17 | **Ouvrages (tuiles bonus)** | Ruche, épouvantail, ponton, pont, nichoir, feu de camp, menhir, compost : bonne et mauvaise place, pénalité par saison tant que mal placés. Île 7. | à faire |
 | 18 | **Niveaux 3, Atelier, recalibrage** | Signatures par famille, condition « mûrir », Charpente et Semence forte, bot qui bâtit. Île 10. | à faire |

@@ -5,6 +5,7 @@ import { FAMILY_COLORS, SEASONS } from '../data/tiles.js';
 import { clamp, lerp, TAU, easeOutCubic, rnd } from '../core/math.js';
 
 import { STAGE } from '../core/stage.js';
+import { Save } from '../core/save.js';
 import { Decor, groundOf, groundKey, GROUND_COLORS, spriteKey } from './decor.js';
 import { computeLinks } from './paths.js';
 const SEA = { spring: ['#8fc8e6', '#5f9fc8'], summer: ['#7fc0e4', '#4f93c2'], autumn: ['#8cb9d3', '#5d8fb3'], winter: ['#a9c7db', '#7aa2bf'] };
@@ -185,10 +186,26 @@ export class IslandRenderer {
       const w = toWorld(t.q, t.r); const c = cam.toScreen(w.x, w.y);
       const k = key(t.q, t.r); const d = this.fx.dropTransform(k); if (d.dy !== 0 || d.s !== 1) dropping.set(k, d);
       if (!vis(c)) continue;
-      const img = t.family === 'water' ? this.waterGround(t, this.seasonFor(w.x)) : Assets.img(groundKey(this.decor.groundFor(t), this.seasonFor(w.x)));
+      const season = this.seasonFor(w.x); const g = this.decor.groundFor(t);
+      const img = t.family === 'water' ? this.waterGround(t, season) : Assets.img(groundKey(g, season));
       const zz = z * d.s, cy = c.y + d.dy * z;
       if (img) ctx.drawImage(img, c.x - TILE_W * zz / 2, cy - TILE_H * zz / 2, TILE_W * zz, TILE_H * zz);
       else this.drawTileAt(ctx, t, c.x, cy, d.s, 1);
+      // la grille s'efface : le sol de chaque voisine de terre déborde en fondu le long du bord partagé
+      // (la roche et la colline gardent une arête nette : falaise et talus ; l'eau compose déjà ses rives)
+      if (!this.noLens && t.family !== 'water' && g !== 'stone' && g !== 'hill' && d.s === 1 && d.dy === 0) {
+        for (let dir = 0; dir < 6; dir++) {
+          const n = b.get(t.q + DIRS[dir][0], t.r + DIRS[dir][1]); if (!n || n.family === 'water') continue;
+          const gn = this.decor.groundFor(n); if (gn === g || gn === 'stone' || gn === 'hill') continue;
+          const lens = this.groundLens(gn, season, dir); if (lens) ctx.drawImage(lens, c.x - TILE_W * z / 2, c.y - TILE_H * z / 2, TILE_W * z, TILE_H * z);
+        }
+      }
+    }
+    // option « Grille discrète » : fin contour sur les tuiles posées
+    if (Save.options.grid) {
+      ctx.save(); ctx.strokeStyle = 'rgba(255,255,255,0.45)'; ctx.lineWidth = 1; ctx.beginPath();
+      for (const t of tiles) { const w = toWorld(t.q, t.r); const c = cam.toScreen(w.x, w.y); if (!vis(c)) continue; const pts = corners(c.x, c.y, SIZE * z * 0.98); ctx.moveTo(pts[0][0], pts[0][1]); for (let i = 1; i < 6; i++) ctx.lineTo(pts[i][0], pts[i][1]); ctx.closePath(); }
+      ctx.stroke(); ctx.restore();
     }
     // lagunes (trous du masque entourés de terre) : sol de rive puis mare, dessinées comme un étang
     for (const h of this.decor.holes || []) {
@@ -367,6 +384,30 @@ export class IslandRenderer {
     this._wg.set(sig, cv); return cv;
   }
 
+  /**
+   * Lentille de sol : l'image du sol `g` masquée par un dégradé perpendiculaire au bord `d` (opaque sur le bord, effacé
+   * à un tiers de l'apothème), limitée au trapèze de ce bord. Dessinée sur la tuile voisine, elle efface la couture.
+   * Cache par sol, saison et direction (au plus quelques dizaines de petites images).
+   */
+  groundLens(g, season, d) {
+    const k = `${g}|${season}|${d}`; this._lens = this._lens || new Map();
+    const hit = this._lens.get(k); if (hit !== undefined) return hit;
+    const img = Assets.img(groundKey(g, season)); if (!img) { this._lens.set(k, null); return null; }
+    const W = img.width, H = img.height, sc = W / TILE_W;
+    const cv = document.createElement('canvas'); cv.width = W; cv.height = H; const c = cv.getContext('2d');
+    const c0 = { x: 0, y: 0 }; const pts = corners(0, 0, SIZE); const m = edgeMid(0, 0, d);
+    const P = (x, y) => [W / 2 + x * sc, H / 2 + y * sc];
+    const a = pts[d], bpt = pts[(d + 1) % 6]; const depth = 0.42;
+    const ia = [a[0] * (1 - depth), a[1] * (1 - depth)], ib = [bpt[0] * (1 - depth), bpt[1] * (1 - depth)];
+    c.beginPath(); c.moveTo(...P(a[0], a[1])); c.lineTo(...P(bpt[0], bpt[1])); c.lineTo(...P(ib[0], ib[1])); c.lineTo(...P(ia[0], ia[1])); c.closePath(); c.clip();
+    c.drawImage(img, 0, 0);
+    const [mx, my] = P(m.x, m.y); const [cx, cy] = P(c0.x, c0.y);
+    const grad = c.createLinearGradient(mx, my, mx + (cx - mx) * depth, my + (cy - my) * depth);
+    grad.addColorStop(0, 'rgba(0,0,0,0.95)'); grad.addColorStop(0.35, 'rgba(0,0,0,0.7)'); grad.addColorStop(1, 'rgba(0,0,0,0)');
+    c.globalCompositeOperation = 'destination-in'; c.fillStyle = grad; c.fillRect(0, 0, W, H);
+    this._lens.set(k, cv); return cv;
+  }
+
   /** Forme arrondie légèrement irrégulière (mare). */
   blob(ctx, cx, cy, r, seed) {
     const N = 28, pts = [];
@@ -447,7 +488,11 @@ export class IslandRenderer {
       this.outline(ctx, c.x, c.y, ok ? '#2f9e8f' : '#d95f4b', 0.9);
       return;
     }
-    if (!hv.preview) { if (this.isl.board.has(hv.q, hv.r) && !this.isl.board.get(hv.q, hv.r)) this.outline(ctx, c.x, c.y, '#d95f4b', 0.6); return; }
+    if (!hv.preview) {
+      if (this.isl.board.has(hv.q, hv.r) && !this.isl.board.get(hv.q, hv.r)) this.outline(ctx, c.x, c.y, '#d95f4b', 0.6);
+      else if (this.isl.board.get(hv.q, hv.r)) { const pts = corners(c.x, c.y, SIZE * z * 0.97); ctx.save(); ctx.globalAlpha = 0.55; ctx.strokeStyle = '#fffdf8'; ctx.lineWidth = 1.5; ctx.setLineDash([5, 5]); ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]); for (let i = 1; i < 6; i++) ctx.lineTo(pts[i][0], pts[i][1]); ctx.closePath(); ctx.stroke(); ctx.restore(); }
+      return;
+    }
     const pv = hv.preview;
     // régions qui se fermeraient
     for (const cl of pv.closes) {

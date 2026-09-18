@@ -65,7 +65,7 @@ Chaque pose reçoit un mot selon sa qualité par rapport au meilleur emplacement
 
 ## Options et mode test
 
-Le menu Options règle les volumes (général, musique, ambiance, effets), la coupure du son, le tremblement de l'écran, l'affichage des images par seconde, le plein écran et l'effacement de la progression.
+Entre deux tuiles posées, il n'y a plus de trait : les sols se fondent le long des bords (la roche et la colline gardent leur arête) ; l'option « Grille discrète » redessine un fin contour. Le menu Options règle les volumes (général, musique, ambiance, effets), la coupure du son, le tremblement de l'écran, l'affichage des images par seconde, le plein écran et l'effacement de la progression.
 
 Le **mode test** déverrouille toutes les îles, l'Île infinie et le Jardin, et active des touches de débogage : `F1` informations, `F2` file de tuiles, `F3` saison suivante, `F4` +10 souffles, `F5` terminer l'île. Les scores ne sont pas enregistrés en mode test.
 
