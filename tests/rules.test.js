@@ -164,6 +164,16 @@ check(affinity('meadow', 'water') === 0, 'prairie-eau = 0');
   check(w.get('1,0').kind === 'river' && w.get('2,0').kind === 'river' && w.get('1,0').size === 2, `le tronc reste une rivière jusqu'à la fourche incluse (${w.get('1,0').kind} ${w.get('1,0').size})`);
   check(w.get('3,0').kind === 'lake' && w.get('3,-1').kind === 'lake' && w.get('3,0').size === 2 && w.get('3,0').fedBy === w.get('1,0').id, `la suite devient un lac de 2 nourri par la rivière (${w.get('3,0').kind})`);
   check(w.get('1,0').intoLake === '3,0' || w.get('1,0').intoLake === '3,-1', 'le ruban sait où entrer dans la nappe');
+  check(!w.get('1,0').mouth, 'une rivière qui se jette dans un lac n’a pas d’embouchure');
+  // embouchure : seul le bout de la rivière compte ; un flanc contre la mer ne suffit pas
+  {
+    const cells2 = []; for (let q = -1; q <= 4; q++) for (let r = -1; r <= 1; r++) cells2.push(`${q},${r}`);
+    const b2 = new Board(cells2);   // masque étroit : (1,0) a la mer au nord et au sud
+    b2.place(0, 0, { family: 'rock', variant: 1 }); b2.place(1, 0, { family: 'water', variant: 1 }); b2.place(2, 0, { family: 'water', variant: 1 });
+    check(!classifyWater(b2).get('2,0').mouth, 'bout de rivière à l’intérieur des terres : pas d’embouchure');
+    b2.place(3, 0, { family: 'water', variant: 1 }); b2.place(4, 0, { family: 'water', variant: 1 });
+    check(classifyWater(b2).get('4,0').mouth, 'le bout de la rivière touche la mer : embouchure');
+  }
   // pont : bon sur le tronc entre deux hameaux, mauvais sur le lac
   b.place(1, -1, { family: 'hamlet', variant: 1 }); b.place(0, 1, { family: 'hamlet', variant: 1 });
   const onRiver = evalWork(b, { ...b.get(1, 0), work: 'bridge' }, 'spring'); check(onRiver.good && onRiver.pts === 3, 'pont sur la rivière entre deux hameaux : bien placé');

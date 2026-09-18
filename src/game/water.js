@@ -28,7 +28,8 @@ export function classifyWater(board) {
       const ends = reg.cells.filter((t) => deg(t) === 1);
       const srcEnd = ends.find(nearMountain) || ends[0];
       const chain = chainFrom(srcEnd);
-      push({ id: reg.id, kind: 'river', cells: chain, keys: reg.keys, size: reg.size, source: true, mouth: touchesSea(reg.cells), chain: chain.map((c) => key(c.q, c.r)) });
+      // embouchure : c'est le bout de la rivière (l'extrémité opposée à la source) qui doit toucher la mer, pas un flanc
+      push({ id: reg.id, kind: 'river', cells: chain, keys: reg.keys, size: reg.size, source: true, mouth: touchesSea([chain[chain.length - 1]]), chain: chain.map((c) => key(c.q, c.r)) });
       continue;
     }
     if (touchesMountain) {
@@ -40,7 +41,8 @@ export function classifyWater(board) {
         const rest = reg.cells.filter((c) => !tk.has(key(c.q, c.r))); const rk = new Set(rest.map((c) => key(c.q, c.r)));
         const junction = best[best.length - 1];
         const lakeAnchor = inReg(junction).find((n) => rk.has(key(n.q, n.r)));
-        const river = { id: `${reg.id}:r`, kind: 'river', cells: best, keys: tk, size: sizeOf(best), source: true, mouth: touchesSea(best), chain: best.map((c) => key(c.q, c.r)), intoLake: lakeAnchor ? key(lakeAnchor.q, lakeAnchor.r) : null };
+        // une rivière qui se jette dans un lac n'atteint pas la mer, même si le lac la touche
+        const river = { id: `${reg.id}:r`, kind: 'river', cells: best, keys: tk, size: sizeOf(best), source: true, mouth: false, chain: best.map((c) => key(c.q, c.r)), intoLake: lakeAnchor ? key(lakeAnchor.q, lakeAnchor.r) : null };
         const lake = { id: `${reg.id}:l`, kind: 'lake', cells: rest, keys: rk, size: sizeOf(rest), source: rest.some(nearMountain), mouth: touchesSea(rest), chain: [], fedBy: river.id };
         push(lake); push(river);
         continue;
