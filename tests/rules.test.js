@@ -241,6 +241,20 @@ check(affinity('meadow', 'water') === 0, 'prairie-eau = 0');
   check(soon.length >= 1, `rappel émis dix poses avant la première échéance (${soon.join(',')})`);
 }
 
+
+// --- les séries comptent : un souffle à trois bons coups, fermeture doublée à cinq
+{
+  const d = campaignIsland(9); const isl = new Island(d, { ...islandOptions(d) }); const ev = [];
+  isl.on((e) => { if (e.type === 'streak') ev.push(e.kind); });
+  const bestMove = () => { let best = null, bs = -Infinity; for (const c of isl.board.legalCells()) { const pv = isl.preview(c.q, c.r); if (pv && pv.total > bs) { bs = pv.total; best = c; } } return { best, bs }; };
+  let g = 0; while (!isl.ended && g++ < 80 && !ev.includes('breath')) { if (isl.current.work) { isl.discard(); continue; } isl.place(bestMove().best.q, bestMove().best.r); }
+  check(ev.includes('breath'), `un souffle à la série de trois (${ev.join(',')})`);
+  // série armée à quatre : le prochain bon coup déclenche la fermeture double
+  isl.stats.streak = 4; let tries = 0; while (!ev.includes('double') && tries++ < 20) { const m = bestMove(); if (m.bs < 2) { isl.stats.streak = 4; } isl.place(m.best.q, m.best.r); if (!ev.includes('double')) isl.stats.streak = 4; }
+  check(ev.includes('double'), `à cinq bons coups, la fermeture double est armée (${ev.join(',')})`);
+  check(isl.nextCloseDouble === true, 'la prochaine fermeture est armée');
+}
+
 // --- campagne : cinquante définitions valides, textes présents, mécaniques cumulatives, bot fort sur les îles générées du début
 for (const w of CAMPAIGN_WISHES) check(!!STORY.wishes[w.id], `texte du vœu de campagne ${w.id}`);
 {

@@ -476,6 +476,10 @@ class IslandScene {
       if (e.kind === 'bud') { const w = toWorld(e.q, e.r); fx.drop(key(e.q, e.r)); fx.placeBurst(w.x, w.y, true); AudioSys.play('bud', { volume: 0.7 }); }
       else if (e.kind !== 'undo' && !e.free) AudioSys.play('breath_spend', { volume: 0.5 });
       if (!e.free) this.tutorial.onEvent('breath');
+    } else if (e.type === 'streak') {
+      if (e.kind === 'breath') { this.hud.ribbon(`Série de ${e.n} : +1 souffle`, '#3a9c8a', 1600, 'streak'); AudioSys.play('breath_gain', { volume: 0.5 }); }
+      else if (e.kind === 'double') { this.hud.ribbon(`Série de ${e.n} : la prochaine fermeture compte double`, '#e0a33a', 2200, 'streak'); AudioSys.play('region_close', { volume: 0.5 }); }
+      else if (e.kind === 'doubled') { const w = toWorld(e.q, e.r); setTimeout(() => { fx.floatText(w.x, w.y - 60, `fermeture doublée +${e.pts}`, '#e0a33a', 24, 1.8); fx.closeBurst(w.x, w.y - 20, 6); AudioSys.play('region_big', { volume: 0.6 }); this.hud.bumpScore(e.pts); }, 500); }
     } else if (e.type === 'work' && e.kind === 'arrive') {
       this.hud.notify(`Un ouvrage arrive : ${(STORY.tiles[e.tile.family] || {}).name || e.tile.family}. Pose-le tout de suite (frais : +1 par saison), mets-le en remise (R) ou défausse-le, c’est gratuit`, 'info');
     } else if (e.type === 'shed') {

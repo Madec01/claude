@@ -20,7 +20,7 @@ export function gradeMove(total, best) {
   const r = total / best;
   if (r >= 1 && total >= 10) return 'master';   // le meilleur coup, et un gros coup
   if (r >= 1 && total >= 6) return 'perfect';
-  if (r >= 0.8 && total >= 3) return 'good';
+  if (r >= 0.8 && total >= 2) return 'good';
   if (r >= 0.5) return 'ok';
   return 'meh';
 }

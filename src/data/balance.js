@@ -8,6 +8,7 @@ export const BALANCE = {
     river: 2, pond: 1, lake: 1, mouth: 3, pondSeason: 1, springWater: 1, summerIrrigation: 1, springMarsh: 2, autumnHarvest: 2, winterVeillee: 3,
     faunaSeason: 3, wish: 10,
   },
+  streaks: { breathAt: 3, doubleAt: 5 },   // les séries comptent : un souffle à trois bons coups d'affilée, fermeture doublée à cinq
   breaths: { swap: 1, discard: 2, bud: 3, undo: [4, 3, 2], close: 1, faunaSeason: 1, wish: 2, start: [0, 2, 4, 6], build: 1 },
   // bâtir : poser une tuile sur une tuile de même famille la monte de niveau (bords +1, compte double dans sa région) ;
   // une tuile bien bâtie (région close, en saison, ou bien entourée) revient dans la file, au plus une fois par saison

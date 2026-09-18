@@ -193,7 +193,7 @@ export class Hud {
    */
   ribbon(text, color = '#2b2a26', ms = 1500, cls = '') {
     this._ribbonQ = this._ribbonQ || []; this._ribbonQ.push({ text, color, ms, cls });
-    if (this._ribbonQ.length > 3) this._ribbonQ.splice(0, this._ribbonQ.length - 3);   // on ne garde que les trois derniers
+    if (this._ribbonQ.length > 2) this._ribbonQ.splice(0, this._ribbonQ.length - 2);   // on ne garde que les deux derniers : un mot ne traîne jamais
     if (!this._ribbonBusy) this._ribbonNext();
   }
   _ribbonNext() {
@@ -236,7 +236,7 @@ export class Hud {
   notify(text, kind = 'info') {
     const el = document.createElement('div'); el.className = `hud-note ${kind}`; el.textContent = text;
     this.r.notify.appendChild(el);
-    const life = kind === 'season' || kind === 'gold' || kind === 'rare' || kind === 'wish' ? 6000 : 4200;
+    const life = kind === 'season' || kind === 'gold' || kind === 'rare' || kind === 'wish' ? 4800 : 3200;   // jamais plus de cinq secondes
     setTimeout(() => el.remove(), life);
     while (this.r.notify.children.length > 4) this.r.notify.firstChild.remove();
     // journal consultable

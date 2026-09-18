@@ -249,8 +249,12 @@ export class Island {
     const grade = this.garden ? null : gradeMove(res.total, best);
     if (grade === 'master' || grade === 'perfect') this.stats.perfect++;
     if (grade === 'master' || grade === 'perfect' || grade === 'good') { this.stats.streak++; this.stats.bestStreak = Math.max(this.stats.bestStreak, this.stats.streak); } else if (grade) this.stats.streak = 0;
+    // les séries comptent : à trois bons coups d'affilée, un souffle ; à cinq, la prochaine fermeture compte double
+    if (grade && this.stats.streak === BALANCE.streaks.breathAt && !this.garden) { this.breaths += 1; this.emit({ type: 'streak', kind: 'breath', n: this.stats.streak }); }
+    if (grade && this.stats.streak === BALANCE.streaks.doubleAt && !this.garden) { this.nextCloseDouble = true; this.emit({ type: 'streak', kind: 'double', n: this.stats.streak }); }
     if (this.weather && this.weather.phase === 'announced' && this.inSeason >= this.weather.at) this.activateWeather();
     for (const c of res.closes) { this.stats.closed++; this.stats.closedThisSeason++; this.breaths += BALANCE.breaths.close; this.stats.biggestRegion = Math.max(this.stats.biggestRegion, c.size); }
+    if (this.nextCloseDouble && res.closes.length) { const extra = res.closes.reduce((s, c) => s + c.bonus, 0); this.score += extra; this.nextCloseDouble = false; this.emit({ type: 'streak', kind: 'doubled', pts: extra, q, r }); }
     if (this.season === 'summer' && Board.isFamily(tile, 'field') && this.board.landNeighbors(q, r).some(([a, b]) => { const n = this.board.get(a, b); return n && Board.isFamily(n, 'water'); })) this.stats.irrigatedSummer++;
     this.emit({ type: 'place', q, r, tile: placedTile, result: res, restoredFrom: restoredTo ? 'restore' : null, market: tile.rare && tile.family === 'market' ? this.freeChoice : 0, best, grade, streak: this.stats.streak, milestone: Math.floor(this.score / 100) > Math.floor(scoreBefore / 100) ? Math.floor(this.score / 100) * 100 : 0 });
     for (const c of res.closes) this.emit({ type: 'close', ...c, breath: BALANCE.breaths.close });
@@ -423,7 +427,7 @@ export class Island {
   undo() {
     if (!this.canUndo()) return false;
     const s = this.history.pop();
-    this.board.restore(s.board); this.queue.restore(s.queue); this.weather = s.weather ? { ...s.weather } : null; this.windSeason = !!s.windSeason; this.freeChoice = s.freeChoice || 0; this.rule = s.rule || this.rule; this.huntSeason = !!s.huntSeason;
+    this.board.restore(s.board); this.queue.restore(s.queue); this.nextCloseDouble = !!s.nextCloseDouble; this.weather = s.weather ? { ...s.weather } : null; this.windSeason = !!s.windSeason; this.freeChoice = s.freeChoice || 0; this.rule = s.rule || this.rule; this.huntSeason = !!s.huntSeason;
     this.score = s.score; this.placements = s.placements; this.inSeason = s.inSeason; this.season = s.season; this.seasonsPassed = [...s.seasonsPassed];
     this.stats = { ...s.stats }; this.wishes = s.wishes.map((w) => ({ ...w })); this.shed = (s.shed || []).map((t) => ({ ...t }));
     this.breaths = s.breaths - this.undoCost;
@@ -437,7 +441,7 @@ export class Island {
   fromPocket(i = 0) { if (!this.queue.pocket.length) return false; this.queue.fromPocket(i); this.emit({ type: 'pocket', kind: 'out' }); return true; }
 
   pushHistory() {
-    this.history.push({ rule: this.rule, huntSeason: this.huntSeason, freeChoice: this.freeChoice, weather: this.weather ? { ...this.weather } : null, windSeason: this.windSeason, board: this.board.snapshot(), queue: this.queue.snapshot(), score: this.score, placements: this.placements, inSeason: this.inSeason, season: this.season, seasonsPassed: [...this.seasonsPassed], stats: { ...this.stats }, wishes: this.wishes.map((w) => ({ ...w })), breaths: this.breaths, fauna: new Map(this.fauna), shed: this.shed.map((t) => ({ ...t })) });
+    this.history.push({ nextCloseDouble: !!this.nextCloseDouble, rule: this.rule, huntSeason: this.huntSeason, freeChoice: this.freeChoice, weather: this.weather ? { ...this.weather } : null, windSeason: this.windSeason, board: this.board.snapshot(), queue: this.queue.snapshot(), score: this.score, placements: this.placements, inSeason: this.inSeason, season: this.season, seasonsPassed: [...this.seasonsPassed], stats: { ...this.stats }, wishes: this.wishes.map((w) => ({ ...w })), breaths: this.breaths, fauna: new Map(this.fauna), shed: this.shed.map((t) => ({ ...t })) });
     if (this.history.length > 3) this.history.shift();
   }
 

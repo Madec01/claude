@@ -133,7 +133,7 @@ export function climateCardFor(n) {
 export const OLD_TO_NEW = { 1: 1, 2: 3, 3: 7, 4: 5, 5: 10, 6: 15, 7: 13, 8: 20, 9: 25, 10: 30, 11: 35, 12: 50 };
 /** Étoiles du chapitre k dans une sauvegarde. */
 export function chapterStars(stars, k) { let s = 0; for (let n = (k - 1) * 5 + 1; n <= k * 5; n++) s += stars[n] || 0; return s; }
-export const CHAPTER_GATE = 8;   // étoiles nécessaires dans un chapitre pour entrer dans le suivant (sur 15)
+export const CHAPTER_GATE = 6;   // étoiles nécessaires dans un chapitre pour entrer dans le suivant (sur 15) ; 8 jugé trop haut par l'audit
 
 /** Options à passer à `new Island(def, …)` depuis les mécaniques de l'île (tout est ouvert dans les modes libres). */
 export function islandOptions(def) {

@@ -204,12 +204,6 @@ export class IslandRenderer {
         }
       }
     }
-    // option « Grille discrète » : fin contour sur les tuiles posées
-    if (Save.options.grid) {
-      ctx.save(); ctx.strokeStyle = 'rgba(255,255,255,0.45)'; ctx.lineWidth = 1; ctx.beginPath();
-      for (const t of tiles) { const w = toWorld(t.q, t.r); const c = cam.toScreen(w.x, w.y); if (!vis(c)) continue; const pts = corners(c.x, c.y, SIZE * z * 0.98); ctx.moveTo(pts[0][0], pts[0][1]); for (let i = 1; i < 6; i++) ctx.lineTo(pts[i][0], pts[i][1]); ctx.closePath(); }
-      ctx.stroke(); ctx.restore();
-    }
     // lagunes (trous du masque entourés de terre) : sol de rive puis mare, dessinées comme un étang
     for (const h of this.decor.holes || []) {
       const w = toWorld(h.q, h.r); const c = cam.toScreen(w.x, w.y); if (!vis(c)) continue;
@@ -262,6 +256,12 @@ export class IslandRenderer {
       ctx.restore();
     }
     for (const t of tiles) if (t.bloom) { const w = toWorld(t.q, t.r); const c = cam.toScreen(w.x, w.y); if (vis(c)) this.drawBloom(ctx, c.x, c.y); }
+    // option « Grille discrète » : fin contour sur les tuiles posées, par-dessus les sols et les objets (sinon les fondus le couvrent)
+    if (Save.options.grid) {
+      ctx.save(); ctx.strokeStyle = 'rgba(43,42,38,0.32)'; ctx.lineWidth = Math.max(1, 1.2 * z); ctx.beginPath();
+      for (const t of tiles) { const w = toWorld(t.q, t.r); const c = cam.toScreen(w.x, w.y); if (!vis(c)) continue; const pts = corners(c.x, c.y, SIZE * z * 0.985); ctx.moveTo(pts[0][0], pts[0][1]); for (let i = 1; i < 6; i++) ctx.lineTo(pts[i][0], pts[i][1]); ctx.closePath(); }
+      ctx.stroke(); ctx.restore();
+    }
   }
 
   /**

@@ -35,7 +35,7 @@ html.compact .hud-score b, html.compact .hud-breaths b, html.compact .hud-left-t
 html.compact .hud-stars { font-size: 9px; }
 html.compact .hud-pause { width: 34px; height: 34px; }
 html.compact .hud-pause .hud-icon { width: 13px; height: 13px; }
-html.compact .hud-notify { top: 46px; gap: 3px; width: 94%; }
+html.compact .hud-notify { top: auto; bottom: 40px; gap: 3px; width: 94%; }
 html.compact .hud-note { font-size: 12px; padding: 3px 10px; max-width: 100%; }
 html.compact .fauna-chip { font-size: 11px; padding: 2px 7px 2px 2px; gap: 4px; }
 html.compact .fauna-chip img { width: 18px; height: 18px; }
@@ -175,7 +175,7 @@ html.compact .hud-label { font-size: 8px; }
 html.compact .hud-score b, html.compact .hud-breaths b, html.compact .hud-left-tiles b { font-size: 15px; }
 html.compact .hud-pause { width: 30px; height: 30px; flex: 0 0 auto; }
 html.compact .hud-fs { margin-left: 2px; }
-html.compact .hud-notify { top: 44px; }
+html.compact .hud-notify { top: auto; bottom: 40px; }
 html.compact.landscape .hud-notify { top: auto; bottom: 40px; left: 130px; right: 130px; width: auto; transform: none; }
 html.compact.landscape .hud-note { font-size: 11px; }
 html.compact.landscape .panel-title { font-size: 20px; margin-bottom: 4px; }
@@ -192,7 +192,7 @@ html.compact .hud-season { position: relative; padding-bottom: 8px; }
 html.compact .season-pips { position: absolute; left: 8px; right: 8px; bottom: 3px; width: auto; max-width: none; margin: 0; gap: 2px; flex-wrap: nowrap; }
 html.compact .season-pips i { flex: 1 1 0; width: auto; height: 3px; border-radius: 2px; }
 html.compact.portrait .hud-fs { display: none !important; }
-html.compact.portrait .hud-notify { top: 80px; }
+html.compact.portrait .hud-notify { top: auto; bottom: 150px; }
 html.compact.landscape .hud-notify { right: 230px; }
 
 /* panneaux compacts : les actions (Retour, Continuer…) restent visibles, seule la zone centrale défile */
@@ -212,7 +212,7 @@ html.compact.portrait .hud-season { order: 10; flex: 1 1 100%; overflow: visible
 html.compact.portrait .season-txt b { font-size: 13px; }
 html.compact.portrait .tile-help { top: 96px; }
 html.compact.portrait .hud-wishes { top: 96px; }
-html.compact.portrait .hud-notify { top: 130px; }
+html.compact.portrait .hud-notify { top: auto; bottom: 150px; }
 html.compact.landscape .hud-season { padding-right: 22px; }
 .season-pop { z-index: 40; }
 html.compact.landscape .hud-queue { top: 64px; }

@@ -219,8 +219,8 @@ html.compact .hud-season::after { content: 'ⓘ'; font-size: 11px; opacity: 0.5;
 .hud-ribbon.streak { background: linear-gradient(180deg, #fffaf0, #fff0cc); }
 .hud-ribbon.meh { font-size: 18px; font-weight: 600; opacity: 0.9; }
 .hud-ribbon.bad { background: rgba(255,246,244,0.96); }
-.hud-notify { top: 146px; max-width: 560px; transition: left 0.3s; }
-.hud-notify.shifted { left: calc(50% - 130px); max-width: 480px; }
+.hud-notify { top: auto; bottom: 62px; max-width: 620px; flex-direction: column-reverse; }
+.hud-notify.shifted { left: 50%; }
 .hud-note { max-width: 100%; }
 .score-delta { position: absolute; right: 10px; top: -12px; font-weight: 800; font-size: 15px; color: var(--breath, #2f9e8f); opacity: 0; transform: translateY(6px); transition: opacity 0.25s, transform 0.25s; pointer-events: none; }
 .score-delta.on { opacity: 1; transform: translateY(0); }
