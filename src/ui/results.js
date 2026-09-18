@@ -4,7 +4,7 @@ import { STORY } from '../data/story.js';
 import { AudioSys } from '../core/audio.js';
 import { Save } from '../core/save.js';
 
-export function buildResults({ result, def, onContinue, onRetry, onMenu, newRecord, seedsGained, daily }) {
+export function buildResults({ result, def, onContinue, onRetry, onMenu, onPostcard = null, newRecord, seedsGained, daily }) {
   const { stars, score, thresholds } = result;
   const special = result.island === 'infinite' || result.island === 'garden';
   const name = def && def.story && STORY.islands[def.story] ? STORY.islands[def.story].name : result.island === 'infinite' ? 'Île infinie' : result.island === 'garden' ? 'Jardin' : (def && def.name) || `Île ${result.island}`;
@@ -46,6 +46,7 @@ export function buildResults({ result, def, onContinue, onRetry, onMenu, newReco
     h('div', { class: 'panel-actions' },
       button(special ? 'Rejouer' : 'Continuer', onContinue, { cls: 'btn-primary', iconName: 'icon_arrow_right' }),
       special || result.island === 'daily' ? null : button('Rejouer l’île', onRetry, { iconName: 'icon_return' }),
+      onPostcard ? button('Carte postale', onPostcard, { iconName: 'icon_save' }) : null,
       button('Menu', onMenu, { cls: 'btn-ghost', iconName: 'icon_home' }),
     ),
   );

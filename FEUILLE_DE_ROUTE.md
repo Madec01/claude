@@ -153,7 +153,7 @@ Seconde réponse de l'auditeur, « que faudrait-il pour approcher 10/10 » (`doc
 | Jauge de série près du score, qui se vide quand la série casse | M3 | fait (journal 47) | — |
 | Troisième étoile à 90 % du bot, étoile d'or cosmétique à 100 % | E1 | fait (journal 48) | — |
 | Contrat d'archipel choisi en début de chapitre, seconde voie pour la porte, avec un rappel de l'avancement | P2 | fait (journal 48) | — |
-| Carte postale de l'île finie (export image) | R5 | retenu (prochain lot) | — |
+| Carte postale de l'île finie (export image) | R5 | fait (journal 50) | — |
 | Souffles plus rares, version douce : gains par fermeture et par animal réduits, le vœu conservé | G3 | fait (journal 48) | recalibrage ensuite |
 | Signature écrite par île générée : contrainte affichée sur la carte d'intro | P3 | fait (journal 49) | table d'une vingtaine |
 | Un « pourquoi » sur chaque point : détail cumulé au survol du score | E3 | fait (journal 49) | repris au bilan |
@@ -197,7 +197,7 @@ Seconde réponse de l'auditeur, « que faudrait-il pour approcher 10/10 » (`doc
 | Ambiance spatialisée selon la caméra | | à faire |
 | Cloche des saisons et carillon propre à chaque habitant | | à faire |
 | Cycle jour / nuit lent (fenêtres allumées en hiver) | | à faire |
-| Carte postale (export image de l'île finie) | | retenu (prochain lot) |
+| Carte postale (export image de l'île finie) | | fait (journal 50) |
 | Mode cadre dans le Jardin (interface masquée, export) | | à faire |
 | Rejouer la construction en accéléré au bilan | | à faire |
 | Accessibilité (motifs pour daltoniens, taille de texte, pose en un toucher) | | à faire |

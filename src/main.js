@@ -38,6 +38,8 @@ import { contractNeeded, chooseContract, noteContractResult, contractLine, chapt
 import { applySemis } from './data/semis.js';
 import { Achievements } from './game/achievements.js';
 import { buildPause } from './ui/pause.js';
+import { buildPostcard } from './ui/postcard.js';
+import { renderPostcard, postcardName } from './game/postcard.js';
 import { h, showUI, hideUI } from './ui/dom.js';
 import { STAGE, layoutStage, uiMargins, minZoom } from './core/stage.js';
 
@@ -639,7 +641,7 @@ class IslandScene {
     document.getElementById('tutorial').classList.toggle('paused', this.paused);
     if (this.paused) {
       AudioSys.play('ui_open', { volume: 0.5 });
-      const build = () => buildPause({ title: this.title, onResume: () => this.togglePause(false), onRestart: () => scenes.go('island', { def: this.def }, { fade: 0.5 }), onOptions: () => Game.showOptions(() => showUI(build(), 'pause-wrap')), onGuide: () => Game.showGuide(() => showUI(build(), 'pause-wrap')), onFullscreen: () => { Game.toggleFullscreen(); setTimeout(() => { if (this.paused) showUI(build(), 'pause-wrap'); }, 400); }, onMenu: () => scenes.go('menu') });
+      const build = () => buildPause({ title: this.title, onResume: () => this.togglePause(false), onRestart: () => scenes.go('island', { def: this.def }, { fade: 0.5 }), onOptions: () => Game.showOptions(() => showUI(build(), 'pause-wrap')), onGuide: () => Game.showGuide(() => showUI(build(), 'pause-wrap')), onFullscreen: () => { Game.toggleFullscreen(); setTimeout(() => { if (this.paused) showUI(build(), 'pause-wrap'); }, 400); }, onMenu: () => scenes.go('menu'), onPostcard: () => { try { showUI(buildPostcard({ canvas: renderPostcard(this), filename: postcardName(this), onBack: () => showUI(build(), 'pause-wrap') }), 'panel-wrap'); } catch (e) { console.warn('carte postale', e); } } });
       showUI(build(), 'pause-wrap');
     } else { hideUI(); AudioSys.play('ui_close', { volume: 0.5 }); }
   }
@@ -675,7 +677,7 @@ class IslandScene {
     if (wkey === 'storm') { this.thunderTimer = (this.thunderTimer || 8) - dt; if (this.thunderTimer <= 0) { this.thunderTimer = 7 + Math.random() * 9; this.renderer.flash = 0.16; AudioSys.play('thunder', { volume: 0.6 }); this.shake.trigger(0.15); } }
     this.hud.update();
     this.tutorial.update(dt);
-    if (this.finished) { this.endTimer += dt; if (this.endTimer > 2.2) { this.finished = false; Game.afterIsland(isl.result, this.def); } }
+    if (this.finished) { this.endTimer += dt; if (this.endTimer > 2.2) { this.finished = false; try { isl.result.postcard = { canvas: renderPostcard(this), filename: postcardName(this) }; } catch (e) { console.warn('carte postale', e); } Game.afterIsland(isl.result, this.def); } }
     if (this.debugEl) this.debugEl.textContent = `placements=${isl.placements} season=${isl.season} ${isl.inSeason}/${isl.seasonLength} score=${isl.score} breaths=${isl.breaths} fauna=${isl.fauna.size} queue=${isl.queue.remaining} fps=${loop.fps} particles=${this.particles.count} zoom=${this.cam.zoom.toFixed(2)}`;
     input.endFrame();
   }
@@ -691,7 +693,7 @@ class ResultsScene {
   async enter({ result, def, newRecord, seedsGained, daily }) {
     AudioSys.playMusic('results', { fade: 1.5 });
     this.bg = scenes.scenes.get('menu').ensureBg();
-    showUI(buildResults({ result, def, newRecord, seedsGained, daily, onContinue: () => Game.afterResults(result, def), onRetry: () => Game.startIsland(def.id, { skipIntro: true }), onMenu: () => scenes.go('menu') }), 'results-wrap');
+    const show = () => showUI(buildResults({ result, def, newRecord, seedsGained, daily, onContinue: () => Game.afterResults(result, def), onRetry: () => Game.startIsland(def.id, { skipIntro: true }), onMenu: () => scenes.go('menu'), onPostcard: result.postcard ? () => showUI(buildPostcard({ canvas: result.postcard.canvas, filename: result.postcard.filename, onBack: show }), 'panel-wrap') : null }), 'results-wrap'); show();
   }
   exit() { hideUI(); }
   update(dt) { this.bg.update(dt); input.endFrame(); }

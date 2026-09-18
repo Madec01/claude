@@ -157,3 +157,7 @@ html.compact .ach-name { font-size: 18px; }
 .prep-contract { margin: 0 0 6px; font-size: 14px; font-weight: 700; color: var(--breath, #2f9e8f); }
 .prep-contract.done { color: var(--gold, #e0a33a); }
 .prep-signature { margin: 0 0 6px; font-size: 14px; } .prep-signature b { color: var(--gold, #e0a33a); }
+/* carte postale */
+.panel-postcard { max-width: 900px; }
+.postcard-wrap { margin: 8px 0 12px; border: 1px solid rgba(43,42,38,0.14); border-radius: 8px; overflow: hidden; box-shadow: 0 10px 30px rgba(30,50,70,0.2); background: #fbf7ee; }
+.postcard-img { display: block; width: 100%; height: auto; }
