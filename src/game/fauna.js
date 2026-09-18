@@ -1,7 +1,7 @@
 // Faune : habitats, apparition et départ des animaux.
 import { BALANCE } from '../data/balance.js';
 import { Board } from './board.js';
-import { neighbors } from './hex.js';
+import { neighbors, key } from './hex.js';
 
 const F = BALANCE.fauna;
 export const SPECIES = ['rabbit', 'moose', 'frog', 'duck', 'bear', 'owl', 'penguin', 'goat', 'chicken', 'horse', 'cow'];
@@ -61,6 +61,15 @@ export function evaluate(board, season, rule = null) {
     if ((alive >= F.cow || troughNear(reg)) && (board.regionTouches(reg, 'heath') || troughNear(reg))) add('cow', reg, reg.cells.find((t) => !t.dry && neighbors(t.q, t.r).some(([a, b]) => { const n = board.get(a, b); return n && Board.isFamily(n, 'heath'); })) || undefined);
   }
   for (const t of board.tiles.values()) if (t.family === 'camp') out.set(`goat@camp:${t.q},${t.r}`, { species: 'goat', q: t.q, r: t.r, regionId: `camp:${t.q},${t.r}` });
+  // fusions : chaque tuile composée accueille son animal
+  for (const t of board.tiles.values()) {
+    if (!t.fusion) continue; const reg = { id: `${t.family}:${key(t.q, t.r)}`, cells: [t] };
+    if (t.family === 'cave') add('bear', reg, t);
+    else if (t.family === 'farm') add('chicken', reg, t);
+    else if (t.family === 'port') add('duck', reg, t);
+    else if (t.family === 'paddy') add('frog', reg, t);
+    else if (t.family === 'lagoon' && season === 'winter') add('penguin', reg, t);
+  }
   return out;
 }
 

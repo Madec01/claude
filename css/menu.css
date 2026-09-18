@@ -78,3 +78,4 @@
 .menu-row .btn span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 html.compact .menu-row .btn { font-size: 14px; padding: 8px 6px; }
 html.compact.landscape .menu-row { grid-column: 1 / -1; }
+.g-card.g-locked { opacity: 0.6; }

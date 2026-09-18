@@ -141,7 +141,8 @@ export const STORY = {
         'Puis l’été est revenu et n’est plus reparti. Les lanternes se sont éteintes une à une. Nous nous sommes endormies au bruit des barques qui s’en allaient.',
         'Voilà. C’est cela qui nous a figées : pas une catastrophe. Une saison qui a trop plu.',
       ],
-      tutorial: [],
+      tutorial: [
+        { id: 'fuse', text: 'Fusionner : pose une tuile sur une tuile d’une autre famille quand une recette existe (1 souffle) : hameau + eau = port, champ + eau = rizière, hameau + champ = ferme, hameau + roche = fortin, roche + eau = cascade, forêt + roche = grotte, sable + eau = lagune. La tuile compte pour ses deux familles et rapporte chaque saison. Une recette découverte rend une tuile et une rare, et s’écrit dans le Cahier du Guide.' },],
     },
     9: {
       name: 'La Falaise de l’Ours',
@@ -307,6 +308,27 @@ export const STORY = {
       text: 'Une grenouille. Le soir, sans elle, la cloche sonne dans le vide.',
       done: 'La grenouille a répondu à la cloche. Le sonneur dit qu’elle chante faux, mais il sourit.',
       failed: 'La cloche a sonné seule. Le sonneur a raccourci la sonnerie.',
+    },
+    w8_4: {
+      giver: 'La capitaine sans bateau',
+      title: 'Un port',
+      text: 'Pose un hameau sur l’eau, ou l’eau sur un hameau : un port. J’ai une barque qui attend depuis dix ans.',
+      done: 'La barque est à quai. La capitaine ne part pas, elle regarde. C’est déjà beaucoup.',
+      failed: 'La barque pourrit dans l’herbe. La capitaine en fait un banc.',
+    },
+    w10_4: {
+      giver: 'Le vieux charbonnier',
+      title: 'Une grotte',
+      text: 'Une forêt sur la roche, ou la roche sur une forêt : une grotte. J’y mettrai mon bois au sec.',
+      done: 'Le bois est au sec. L’ours aussi. Ils se sont arrangés.',
+      failed: 'Le bois a pris l’eau. Le charbonnier a pris froid.',
+    },
+    w12_4: {
+      giver: 'La meunière du haut',
+      title: 'Une cascade',
+      text: 'De l’eau sur la roche, ou la roche sous l’eau : une cascade. Mon moulin en rêve.',
+      done: 'La cascade chante. La meunière moud en rythme.',
+      failed: 'La roche est restée sèche. La meunière moud à la main.',
     },
     w8_1: {
       giver: 'Le garde-forestier',
@@ -528,6 +550,14 @@ export const STORY = {
     archway: { name: 'Porche', blurb: 'Compte comme hameau ; un bourg clos qui le contient rapporte ×3 au lieu de ×2.' },
     mine: { name: 'Mine', blurb: 'Compte comme roche ; +1 par bord avec une roche, et une roche close qui la contient rapporte ×2.' },
     oven: { name: 'Four à pain', blurb: 'Compte comme hameau ; +1 par bord avec un champ.' },
+    // fusions
+    port: { name: 'Port', blurb: 'Hameau + eau. Compte pour les deux ; +1 par tuile d’eau voisine à chaque saison (au plus 4). Les canards s’y posent.' },
+    paddy: { name: 'Rizière', blurb: 'Champ + eau. Compte pour les deux ; +3 à chaque automne. La grenouille s’y plaît.' },
+    farm: { name: 'Ferme', blurb: 'Hameau + champ. Compte pour les deux ; +1 par champ voisin à chaque saison (au plus 4). Les poules y sont chez elles.' },
+    fort: { name: 'Fortin', blurb: 'Hameau + roche. Compte pour les deux ; +1 par roche voisine à chaque saison ; sa région se ferme même avec un trou.' },
+    falls: { name: 'Cascade', blurb: 'Roche + eau. Compte pour les deux ; +1 par tuile d’eau voisine à chaque saison. Une rivière peut en naître.' },
+    cave: { name: 'Grotte', blurb: 'Forêt + roche. Compte pour les deux ; +1 par forêt voisine à chaque saison. L’ours y dort.' },
+    lagoon: { name: 'Lagune', blurb: 'Sable + eau. Compte pour les deux ; +1 par tuile d’eau voisine à chaque saison. Les manchots y glissent l’hiver.' },
     fountain: { name: 'Fontaine', blurb: 'Compte comme hameau, +1 par bord avec un hameau, et protège les prairies voisines de la sécheresse.' },
   },
 
@@ -587,6 +617,10 @@ export const STORY = {
   build: {
     done: ['Bâti !', 'Plus haut !', 'Niveau deux !', 'Ça pousse !'],
     refund: { closed: 'à l’abri : une {f} revient', season: 'en saison : une {f} revient', crowd: 'bien entourée : une {f} revient', none: 'sans retour' },
+  },
+  fusion: {
+    done: ['Fusion !', 'Deux en un !', 'Ça se marie !'],
+    discovery: 'Recette découverte : {n} !',
   },
   verdicts: {
     master: ['Coup de maître !', 'Magistral !', 'L’île applaudit !', 'Rien à redire !'],

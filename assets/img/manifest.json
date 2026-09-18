@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-17T20:55:56+00:00",
+ "generated": "2026-09-18T05:37:19+00:00",
  "generator": "tools/build_images.py",
  "conventions": {
   "hex": {
@@ -3986,6 +3986,46 @@
    "source": "hexagon-pack",
    "original": "PNG/Objects/shop.png",
    "note": "Objet shop (Hexagon Pack).",
+   "anchor": "bottom"
+  },
+  "obj_castle_small": {
+   "file": "deco/obj_castle_small.png",
+   "w": 212,
+   "h": 188,
+   "bytes": 39837,
+   "source": "hexagon-pack",
+   "original": "PNG/Objects/castle_small.png",
+   "note": "Objet castle_small (Hexagon Pack).",
+   "anchor": "bottom"
+  },
+  "obj_medieval_doorway": {
+   "file": "deco/obj_medieval_doorway.png",
+   "w": 96,
+   "h": 112,
+   "bytes": 9080,
+   "source": "hexagon-pack",
+   "original": "PNG/Objects/medieval_doorway.png",
+   "note": "Objet medieval_doorway (Hexagon Pack).",
+   "anchor": "bottom"
+  },
+  "obj_pole": {
+   "file": "deco/obj_pole.png",
+   "w": 72,
+   "h": 64,
+   "bytes": 6207,
+   "source": "hexagon-pack",
+   "original": "PNG/Objects/pole.png",
+   "note": "Objet pole (Hexagon Pack).",
+   "anchor": "bottom"
+  },
+  "obj_box2": {
+   "file": "deco/obj_box2.png",
+   "w": 36,
+   "h": 44,
+   "bytes": 2662,
+   "source": "hexagon-pack",
+   "original": "PNG/Objects/box2.png",
+   "note": "Objet box2 (Hexagon Pack).",
    "anchor": "bottom"
   },
   "obj_flowerWhite": {

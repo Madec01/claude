@@ -1,7 +1,8 @@
 // Guide en jeu : tuiles et affinités, saisons, faune, tuiles rares, souffles et vœux, graines et Atelier.
 // Tout est dérivé des données du jeu (tiles.js, balance.js, upgrades.js, story.js) : aucune valeur n'est recopiée à la main.
 import { h, button, icon, append } from './dom.js';
-import { FAMILIES, RARE, RARE_AS, FAMILY_FROM, RARE_LATE, SEASONS, affinity } from '../data/tiles.js';
+import { FAMILIES, RARE, RARE_AS, FAMILY_FROM, RARE_LATE, SEASONS, affinity, FUSIONS } from '../data/tiles.js';
+import { Save } from '../core/save.js';
 import { BALANCE } from '../data/balance.js';
 import { UPGRADES } from '../data/upgrades.js';
 import { STORY } from '../data/story.js';
@@ -34,6 +35,10 @@ const TABS = {
       h('h4', {}, name(f), FAMILY_FROM[f] ? h('span', { class: 'g-tag' }, `dès l’île ${FAMILY_FROM[f]}`) : null),
       h('p', {}, blurb(f)), pairs(f))))),
   ) },
+  recipes: { label: 'Cahier', build: () => { const known = new Set(Save.data.campaign.recipes || []); return h('div', {},
+    h('p', { class: 'g-intro' }, `Dès l’île 8, poser une tuile sur une tuile d’une autre famille la fusionne quand une recette existe (${B.fusion.cost} souffle, +${B.fusion.bonus} points, l’ordre des deux familles est indifférent). La tuile composée compte pour ses deux familles et rapporte à chaque saison. La première fois qu’une recette est réalisée, une tuile et une rare reviennent dans la file, et la recette s’écrit ici.`),
+    h('div', { class: 'g-grid' }, ...FUSIONS.map((f) => { const st = STORY.tiles[f.id] || { name: f.id, blurb: '' }; const on = known.has(f.id); return h('div', { class: `g-card ${on ? '' : 'g-locked'}` }, h('div', {}, h('h4', {}, on ? st.name : '?', h('span', { class: 'g-tag' }, `${name(f.a)} + ${name(f.b)}`)), h('p', {}, on ? st.blurb : 'Recette à découvrir.'))); })),
+    h('p', { class: 'g-note' }, `${known.size} recette${known.size > 1 ? 's' : ''} découverte${known.size > 1 ? 's' : ''} sur ${FUSIONS.length}.`)); } },
   seasons: { label: 'Saisons', build: () => h('div', {},
     h('p', { class: 'g-intro' }, 'La ligne de saison, en haut de l’écran, se remplit à chaque pose. Quand elle est pleine, la saison change et une règle avec elle. Chaque île traverse les quatre saisons, parfois plusieurs fois.'),
     h('div', { class: 'g-grid' }, ...SEASONS.map((s) => { const st = STORY.seasons[s]; return h('div', { class: `g-card season-${s}` }, h('span', { class: 'g-sicon' }, icon(SEASON_ICON[s])), h('div', {}, h('h4', {}, st.name), h('p', { class: 'g-voice' }, st.line), ...SEASON_RULES[s].map((k, i) => { const r = STORY.seasonRules[k]; return h('p', {}, h('b', {}, r.name + (i === 0 ? ' (de base)' : '') + ' : '), r.rule); }))); })),

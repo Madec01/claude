@@ -13,7 +13,26 @@ export const SEASONS = ['spring', 'summer', 'autumn', 'winter'];
 export const VARIANTS = { meadow: 3, forest: 3, field: 2, hamlet: 3, orchard: 2, water: 2, marsh: 2, rock: 3, sand: 2, hill: 2, heath: 2, granary: 1, fountain: 1, market: 1, fete: 1, restore: 1, tavern: 1, trough: 1, archway: 1, mine: 1, oven: 1, mill: 1, chapel: 1, watchtower: 1, well: 1, camp: 1, ruins: 1, dry_meadow: 1 };
 
 /** Familles « effectives » d'une tuile rare pour les affinités (une rare peut compter pour plusieurs familles). */
-export const RARE_AS = { mill: ['field', 'hamlet'], chapel: ['hamlet'], watchtower: ['rock'], well: ['meadow'], camp: ['meadow'], granary: ['field'], fountain: ['hamlet'], market: ['hamlet'], fete: ['hamlet'], restore: [], tavern: ['hamlet'], trough: ['meadow'], archway: ['hamlet'], mine: ['rock'], oven: ['hamlet'], ruins: [] };
+export const RARE_AS = { mill: ['field', 'hamlet'], chapel: ['hamlet'], watchtower: ['rock'], well: ['meadow'], camp: ['meadow'], granary: ['field'], fountain: ['hamlet'], market: ['hamlet'], fete: ['hamlet'], restore: [], tavern: ['hamlet'], trough: ['meadow'], archway: ['hamlet'], mine: ['rock'], oven: ['hamlet'], ruins: [],
+  // fusions (deux familles superposées) : la tuile compte pour ses deux familles
+  port: ['hamlet', 'water'], paddy: ['field', 'water'], farm: ['hamlet', 'field'], fort: ['hamlet', 'rock'], falls: ['rock', 'water'], cave: ['forest', 'rock'], lagoon: ['sand', 'water'] };
+
+/**
+ * Recettes de fusion : poser une tuile sur une tuile d'une autre famille. Commutatives. `seasonal` : prime à chaque
+ * changement de saison (+pts par voisine de `family`, plafonnée à `cap`, ou +pts fixes dans la saison `season`).
+ */
+export const FUSIONS = [
+  { id: 'port',   a: 'hamlet', b: 'water', seasonal: { family: 'water', pts: 1, cap: 4 } },
+  { id: 'paddy',  a: 'field',  b: 'water', seasonal: { season: 'autumn', pts: 3 } },
+  { id: 'farm',   a: 'hamlet', b: 'field', seasonal: { family: 'field', pts: 1, cap: 4 } },
+  { id: 'fort',   a: 'hamlet', b: 'rock',  seasonal: { family: 'rock', pts: 1, cap: 4 } },
+  { id: 'falls',  a: 'rock',   b: 'water', seasonal: { family: 'water', pts: 1, cap: 4 } },
+  { id: 'cave',   a: 'forest', b: 'rock',  seasonal: { family: 'forest', pts: 1, cap: 4 } },
+  { id: 'lagoon', a: 'sand',   b: 'water', seasonal: { family: 'water', pts: 1, cap: 4 } },
+];
+export const FUSION_BY_ID = Object.fromEntries(FUSIONS.map((f) => [f.id, f]));
+/** Recette pour deux familles de base (ordre indifférent), ou null. */
+export function fusionFor(fa, fb) { return FUSIONS.find((f) => (f.a === fa && f.b === fb) || (f.a === fb && f.b === fa)) || null; }
 
 /** Table des affinités : clé "a|b" (ordre indifférent) → points par bord partagé. */
 const PAIRS = {
@@ -47,4 +66,4 @@ export const PAIR_LABELS = {
 };
 
 /** Icônes d'UI par famille (Game Icons) et couleurs d'accent. */
-export const FAMILY_COLORS = { meadow: '#7cc46f', forest: '#3f8a3d', field: '#d8a33c', hamlet: '#c96b4a', orchard: '#e0785a', water: '#5aa7d6', marsh: '#7ea36b', rock: '#8f9aa3', sand: '#e6d29a', mill: '#d8a33c', chapel: '#c96b4a', watchtower: '#8f9aa3', well: '#5aa7d6', camp: '#e0a33a', ruins: '#8f9aa3', hill: '#9bb56a', heath: '#a67bb8', granary: '#d8a33c', fountain: '#5aa7d6', market: '#c96b4a', fete: '#e0a33a', restore: '#8f9aa3', tavern: '#c96b4a', trough: '#7cc46f', archway: '#c96b4a', mine: '#8f9aa3', oven: '#c96b4a' };
+export const FAMILY_COLORS = { port: '#4f8fbf', paddy: '#7fb26a', farm: '#c9903a', fort: '#8a8f96', falls: '#6fb2d8', cave: '#7a7f86', lagoon: '#7fcbe0', meadow: '#7cc46f', forest: '#3f8a3d', field: '#d8a33c', hamlet: '#c96b4a', orchard: '#e0785a', water: '#5aa7d6', marsh: '#7ea36b', rock: '#8f9aa3', sand: '#e6d29a', mill: '#d8a33c', chapel: '#c96b4a', watchtower: '#8f9aa3', well: '#5aa7d6', camp: '#e0a33a', ruins: '#8f9aa3', hill: '#9bb56a', heath: '#a67bb8', granary: '#d8a33c', fountain: '#5aa7d6', market: '#c96b4a', fete: '#e0a33a', restore: '#8f9aa3', tavern: '#c96b4a', trough: '#7cc46f', archway: '#c96b4a', mine: '#8f9aa3', oven: '#c96b4a' };

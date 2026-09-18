@@ -240,9 +240,9 @@ class IslandScene {
     this.def = def;
     const upgrades = Save.campaign.upgrades;
     const mech = def.infinite || def.garden ? mechanicsUpTo(99) : mechanicsUpTo(def.id);
-    if (Game.testMode) for (const m of ['river', 'season', 'fauna', 'wish', 'breath', 'rare', 'build']) mech.add(m);
+    if (Game.testMode) for (const m of ['river', 'season', 'fauna', 'wish', 'breath', 'rare', 'build', 'fuse']) mech.add(m);
     this.mech = mech;
-    const isl = new Island(def, { upgrades, build: Game.testMode || mech.has('build') });
+    const isl = new Island(def, { upgrades, build: Game.testMode || mech.has('build'), fuse: Game.testMode || mech.has('fuse'), known: new Set(Save.data.campaign.recipes || []) });
     this.isl = isl;
     this.cam = new Camera(); this.cam.fit(isl.board.mask, { ...uiMargins('island'), immediate: true });
     this.armed = null;   // tactile : case « armée » (aperçu affiché) en attente d'une seconde touche
@@ -354,11 +354,20 @@ class IslandScene {
       AudioSys.play(`tile_place_${1 + Math.floor(Math.random() * 4)}`, { volume: 0.7 }); AudioSys.play('region_close', { volume: 0.45 });
       let i = 0;
       for (const ed of e.result.edges) { const nw = toWorld(ed.q, ed.r); const mx = (w.x + nw.x) / 2, my = (w.y + nw.y) / 2; setTimeout(() => { fx.floatText(mx, my, `${ed.pts > 0 ? '+' : ''}${ed.pts}`, ed.pts > 0 ? '#2f9e8f' : '#d95f4b', 18, 1.1); if (ed.pts > 0) AudioSys.play(`point_${Math.min(8, i + 1)}`, { volume: 0.45 }); }, 90 * i); i++; }
-      const bt = STORY.build.done[Math.floor(Math.random() * STORY.build.done.length)];
-      setTimeout(() => fx.floatText(w.x, w.y - 44, `${bt} ${e.result.total >= 0 ? '+' : ''}${e.result.total}`, '#e0a33a', 26, 1.6), 90 * i + 60);
       const fam = (STORY.tiles[e.family] || {}).name || e.family;
-      if (e.refund && e.refund.ok) setTimeout(() => { fx.floatText(w.x, w.y - 80, (STORY.build.refund[e.refund.reason] || '').replace('{f}', fam.toLowerCase()), '#2f9e8f', 20, 1.8); AudioSys.play('point_8', { volume: 0.5 }); }, 90 * i + 500);
-      this.hud.notify(`Bâti : ${fam} niveau ${e.level} (${e.result.total >= 0 ? '+' : ''}${e.result.total})${e.refund && e.refund.ok ? ` · une ${fam.toLowerCase()} revient dans la file` : ''}`, 'gold');
+      if (e.kind === 'fuse') {
+        const nm = (STORY.tiles[e.recipe] || {}).name || e.recipe; const ft = STORY.fusion.done[Math.floor(Math.random() * STORY.fusion.done.length)];
+        setTimeout(() => { fx.floatText(w.x, w.y - 44, `${ft} ${nm} ${e.result.total >= 0 ? '+' : ''}${e.result.total}`, '#e0a33a', 26, 1.8); fx.closeBurst(w.x, w.y - 10, 6); this.shake.trigger(0.1); AudioSys.play('region_big', { volume: 0.6 }); }, 90 * i + 60);
+        if (e.first) { setTimeout(() => { fx.floatText(w.x, w.y - 84, STORY.fusion.discovery.replace('{n}', nm), '#2f9e8f', 22, 2.2); AudioSys.play('star_1', { volume: 0.6 }); }, 90 * i + 600); if (!Save.data.campaign.recipes.includes(e.recipe)) { Save.data.campaign.recipes.push(e.recipe); Save.save(); } }
+        const from = (STORY.tiles[e.tile.from ? e.tile.from[0] : ''] || {}).name || '';
+        this.hud.notify(`${nm} (${from.toLowerCase()} + ${fam.toLowerCase()}) : ${e.result.total >= 0 ? '+' : ''}${e.result.total}${e.first ? ` · recette découverte, une ${fam.toLowerCase()} et une ${((STORY.tiles[e.rare] || {}).name || 'rare').toLowerCase()} reviennent dans la file` : ''}`, 'gold');
+        this.tutorial.onEvent('fuse');
+      } else {
+        const bt = STORY.build.done[Math.floor(Math.random() * STORY.build.done.length)];
+        setTimeout(() => fx.floatText(w.x, w.y - 44, `${bt} ${e.result.total >= 0 ? '+' : ''}${e.result.total}`, '#e0a33a', 26, 1.6), 90 * i + 60);
+        if (e.refund && e.refund.ok) setTimeout(() => { fx.floatText(w.x, w.y - 80, (STORY.build.refund[e.refund.reason] || '').replace('{f}', fam.toLowerCase()), '#2f9e8f', 20, 1.8); AudioSys.play('point_8', { volume: 0.5 }); }, 90 * i + 500);
+        this.hud.notify(`Bâti : ${fam} niveau ${e.level} (${e.result.total >= 0 ? '+' : ''}${e.result.total})${e.refund && e.refund.ok ? ` · une ${fam.toLowerCase()} revient dans la file` : ''}`, 'gold');
+      }
       if (e.milestone) setTimeout(() => { this.hud.notify(STORY.verdicts.milestone.replace('{n}', e.milestone), 'gold'); AudioSys.play('star_2', { volume: 0.5 }); }, 90 * i + 700);
       this.tutorial.onEvent('build');
       this.updateAmbience();
@@ -525,7 +534,7 @@ class IslandScene {
     this.cam.update(dt);
     // survol
     if (!isl.ended && input.lastPointer === 'touch' && !this.budMode) {
-      if (this.armed && this.armed.build && isl.canBuild(this.armed.q, this.armed.r)) { const pv = isl.previewBuild(this.armed.q, this.armed.r); this.renderer.hover = { q: this.armed.q, r: this.armed.r, preview: pv }; this.hud.setPlaceButton(pv ? pv.total : null, 'build'); }
+      if (this.armed && this.armed.build && isl.canBuild(this.armed.q, this.armed.r)) { const pv = isl.previewBuild(this.armed.q, this.armed.r); this.renderer.hover = { q: this.armed.q, r: this.armed.r, preview: pv }; this.hud.setPlaceButton(pv ? pv.total : null, pv && pv.fuse ? 'fuse' : 'build'); }
       else if (this.armed && !this.armed.build && isl.canPlace(this.armed.q, this.armed.r)) { const pv = isl.preview(this.armed.q, this.armed.r); this.renderer.hover = { q: this.armed.q, r: this.armed.r, preview: pv }; this.hud.setPlaceButton(pv ? pv.total : null); }
       else { this.armed = null; this.renderer.hover = null; this.hud.setPlaceButton(null); }
     } else if (!isl.ended) {

@@ -16,6 +16,7 @@ function targetOf(def) {
     case 'veillee': return def.pairs;
     case 'river': case 'lake': return def.minLen || def.size;
     case 'fauna': return 1;
+    case 'fusion': return def.count || 1;
     default: return 1;
   }
 }
@@ -44,6 +45,7 @@ export function progressOf(w, ctx) {
     case 'rivers': return rivers(b).filter((w) => w.mouth).length;
     case 'lake': return Math.max(0, ...lakes(b).map((w) => w.size));
     case 'fauna': return [...ctx.fauna.values()].some((a) => a.species === d.species) ? 1 : 0;
+    case 'fusion': return [...b.tiles.values()].filter((t) => t.fusion && t.family === d.recipe).length;
     case 'species': return speciesCount(ctx.fauna);
     case 'bourg': return [...b.closedRegions].filter((id) => id.startsWith('hamlet:')).length;
     case 'veillee': return veilleePairs(b);

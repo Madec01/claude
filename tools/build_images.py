@@ -771,7 +771,7 @@ class Builder:
             obj(f"obj_{name}_winter", L(f"obj:{name}", 0, 0, "rock"), "winter", f"Rocher {name} enneigé.")
         for name in ("house", "house_small", "villa", "tinyBuilding", "farm", "well", "fence", "hay", "logPile", "log", "fountain", "silo1", "campingTent", "fire",
                      "windmill_complete", "church", "tower", "tombstone1", "towerRuin", "ruinsCorner", "ruins_brick1", "wall_small", "wall", "lightpost", "tavern",
-                     "oven", "archway", "horseTrough", "mine", "banner", "shop"):
+                     "oven", "archway", "horseTrough", "mine", "banner", "shop", "castle_small", "medieval_doorway", "pole", "box2"):
             obj(f"obj_{name}", L(f"obj:{name}", 0, 0), "summer", f"Objet {name} (Hexagon Pack).")
         for name in ("flowerWhite", "flowerYellow", "flowerRed"):
             obj(f"obj_{name}", L(f"ht:{name}:2.8", 0, 0), "summer", f"Fleur {name} (Hexagon Tiles ×2.8).", pack=HT)

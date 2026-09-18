@@ -1,5 +1,5 @@
 // Règles de score : affinités par bord, rivières, saisons, fermeture de régions.
-import { affinity, PAIR_LABELS, pairKey } from '../data/tiles.js';
+import { affinity, PAIR_LABELS, pairKey, fusionFor } from '../data/tiles.js';
 import { BALANCE } from '../data/balance.js';
 import { Board } from './board.js';
 import { DIRS, key, neighbors } from './hex.js';
@@ -117,7 +117,7 @@ export function closedRegionsAround(board, q, r) {
       if (!reg || seen.has(reg.id) || board.closedRegions.has(reg.id)) continue;
       seen.add(reg.id);
       if (fam === 'rock' && reg.cells.every((c) => c.rare || c.start)) continue; // les rochers de départ ne font pas de prime
-      const closed = board.isRegionClosed(reg) || (reg.cells.some((c) => c.family === 'watchtower') && openCells(board, reg) <= 1);
+      const closed = board.isRegionClosed(reg) || (reg.cells.some((c) => c.family === 'watchtower' || c.family === 'fort') && openCells(board, reg) <= 1);
       // porche : un bourg clos vaut ×3 ; mine : une roche close vaut ×2
       let mul = P.closeBonusMul[fam] || 1;
       if (fam === 'hamlet' && reg.cells.some((c) => c.family === 'archway')) mul = 3;
@@ -147,4 +147,36 @@ export function countClosedRegions(board, family = null) {
   let n = 0;
   for (const id of board.closedRegions) if (!family || id.startsWith(family + ':')) n++;
   return n;
+}
+
+/** Recette de fusion applicable en posant `tile` sur la case (q, r), ou null. */
+export function canFuse(board, q, r, tile) {
+  const t = board.get(q, r);
+  if (!t || !tile || t.rare || tile.rare || t.family === tile.family) return null;
+  return fusionFor(t.family, tile.family);
+}
+
+/** Tuile fusionnée (compte pour ses deux familles). */
+export function fusedTile(t, recipe) { return { ...t, family: recipe.id, rare: true, fusion: true, level: 1, from: [t.family] }; }
+
+/**
+ * Aperçu d'une fusion : la tuile en place devient la tuile composée ; on gagne la différence de valeur des bords,
+ * la prime de fusion et les éventuelles fermetures de régions (la tuile composée appartient à deux familles).
+ */
+export function previewFuse(board, q, r, tile, season, mods = {}) {
+  const t = board.get(q, r); const recipe = canFuse(board, q, r, tile); if (!recipe) return null;
+  const fused = fusedTile(t, recipe);
+  const edges = []; let total = 0;
+  DIRS.forEach(([dq, dr], d) => {
+    const n = board.get(q + dq, r + dr); if (!n) return;
+    const after = edgePoints(fused, n, season, mods.rule || null), before = edgePoints(t, n, season, mods.rule || null);
+    const pts = after.pts - before.pts;
+    if (pts !== 0) { edges.push({ d, q: q + dq, r: r + dr, pts, label: after.label }); total += pts; }
+  });
+  const k = key(q, r); board.tiles.set(k, fused); board.version++; board._water = null;
+  const closes = closedRegionsAround(board, q, r);
+  board.tiles.set(k, t); board.version++; board._water = null;
+  for (const c of closes) total += c.bonus;
+  const base = [{ pts: BALANCE.fusion.bonus, label: 'fusion' }]; total += BALANCE.fusion.bonus;
+  return { total, edges, closes, river: null, base, build: true, fuse: recipe, level: 1 };
 }

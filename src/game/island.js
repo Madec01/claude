@@ -1,7 +1,8 @@
 // Déroulement d'une île : orchestration des règles, saisons, faune, vœux, souffles, fin et bilan.
 // Modèle pur (sans DOM ni canvas) : utilisable en Node pour les tests et le bot.
 import { Board } from './board.js';
-import { preview, apply, previewBuild, canBuild as ruleCanBuild } from './rules.js';
+import { preview, apply, previewBuild, canBuild as ruleCanBuild, canFuse, previewFuse, fusedTile } from './rules.js';
+import { FUSION_BY_ID } from '../data/tiles.js';
 import { transition, nextSeason } from './seasons.js';
 import { evaluate as evalFauna, reconcile } from './fauna.js';
 import { initWishes, updateWishes } from './wishes.js';
@@ -26,6 +27,9 @@ export class Island {
     // bâtir : dès l'île 6 en campagne, toujours dans les modes libres et sur l'Île du jour (forçable par les options : mode test)
     this.buildOn = o.build !== undefined ? !!o.build : (!!def.infinite || !!def.garden || !!def.daily || (typeof def.id === 'number' && def.id >= 6));
     this.refunds = 0;            // tuiles rendues cette saison (au plus une)
+    // fusionner : dès l'île 8 en campagne, toujours dans les modes libres et sur l'Île du jour ; `known` = recettes déjà découvertes (sauvegarde)
+    this.fuseOn = o.fuse !== undefined ? !!o.fuse : (!!def.infinite || !!def.garden || !!def.daily || (typeof def.id === 'number' && def.id >= 8));
+    this.known = o.known || new Set();
     const seed = def.seed + (o.seedOffset || 0);
     this.rng = new RNG(seed * 7 + 1);
     this.board = new Board(generateMask(seed, def.cells, { roughness: def.roughness, holes: def.holes }));
@@ -57,7 +61,7 @@ export class Island {
     this.breaths = BALANCE.breaths.start[this.upgrades.breath || 0];
     this.wishes = initWishes(def.wishes || []);
     this.fauna = new Map();
-    this.stats = { harvest: 0, bloom: 0, closedThisSeason: 0, irrigatedSummer: 0, closed: 0, rivers: 0, faunaMax: 0, wishesDone: 0, biggestRegion: 0, undo: 0, links: 0, perfect: 0, streak: 0, bestStreak: 0, built: 0, refunds: 0 };
+    this.stats = { harvest: 0, bloom: 0, closedThisSeason: 0, irrigatedSummer: 0, closed: 0, rivers: 0, faunaMax: 0, wishesDone: 0, biggestRegion: 0, undo: 0, links: 0, perfect: 0, streak: 0, bestStreak: 0, built: 0, refunds: 0, fusions: 0 };
     this.history = [];         // instantanés pour le souvenir
     this.undoUsedThisSeason = false;
     this.ended = false;
@@ -128,9 +132,21 @@ export class Island {
   canPlace(q, r) { return !this.ended && !!this.current && this.board.canPlace(q, r) && (!this.restrict || this.restrict.has(key(q, r))); }
 
   // ---- Bâtir : poser une tuile sur une tuile de même famille ----
-  canBuild(q, r, tile = this.current) { return !this.ended && this.buildOn && !this.restrict && !!tile && ruleCanBuild(this.board, q, r, tile) && this.breaths >= BALANCE.build.cost; }
+  canBuild(q, r, tile = this.current) {
+    if (this.ended || this.restrict || !tile) return false;
+    if (this.buildOn && ruleCanBuild(this.board, q, r, tile)) return this.breaths >= BALANCE.build.cost;
+    if (this.fuseOn && canFuse(this.board, q, r, tile)) return this.breaths >= BALANCE.fusion.cost;
+    return false;
+  }
   previewBuild(q, r, tile = this.current) {
-    if (!tile || !ruleCanBuild(this.board, q, r, tile)) return null;
+    if (!tile) return null;
+    if (this.fuseOn && canFuse(this.board, q, r, tile)) {
+      const pv = previewFuse(this.board, q, r, tile, this.season, this.mods); if (!pv) return null;
+      const first = !this.known.has(pv.fuse.id);
+      pv.refund = first ? { ok: true, reason: 'discovery' } : { ok: false, reason: 'none' }; pv.cost = BALANCE.fusion.cost; pv.first = first;
+      return pv;
+    }
+    if (!ruleCanBuild(this.board, q, r, tile)) return null;
     const pv = previewBuild(this.board, q, r, tile, this.season, this.mods);
     pv.refund = this.refundFor(q, r, tile.family); pv.cost = BALANCE.build.cost;
     return pv;
@@ -150,14 +166,23 @@ export class Island {
     const pv = this.previewBuild(q, r, tile); if (!pv) return null;
     this.pushHistory();
     this.queue.take();
-    target.level = (target.level || 1) + 1; this.board.touch();
-    this.breaths -= BALANCE.build.cost;
+    const scoreBefore = this.score; let placed = target, rare = null;
+    if (pv.fuse) {
+      // fusion : la tuile en place devient la tuile composée ; fermetures éventuelles ; découverte = une tuile de retour et une rare
+      placed = fusedTile(target, pv.fuse); this.board.tiles.set(key(q, r), placed); this.board.touch();
+      for (const c of pv.closes) { this.board.closedRegions.add(c.id); this.stats.closed++; this.stats.closedThisSeason++; this.breaths += BALANCE.breaths.close; this.stats.biggestRegion = Math.max(this.stats.biggestRegion, c.size); }
+      this.breaths -= BALANCE.fusion.cost; this.stats.fusions++;
+      if (pv.first) { this.known.add(pv.fuse.id); this.queue.inject(this.queue.makeTile(tile.family), false); rare = this.pickRare(); this.queue.inject(this.queue.makeRare(rare), false); this.stats.refunds++; }
+    } else {
+      target.level = (target.level || 1) + 1; this.board.touch();
+      this.breaths -= BALANCE.build.cost; this.stats.built++;
+      if (pv.refund.ok) { this.refunds++; this.queue.inject(this.queue.makeTile(tile.family), false); this.stats.refunds++; }
+    }
     this.placements++; this.inSeason++;
-    const scoreBefore = this.score; this.score += pv.total; this.stats.built++;
-    const refund = pv.refund;
-    if (refund.ok) { this.refunds++; this.queue.inject(this.queue.makeTile(tile.family), false); this.stats.refunds++; }
+    this.score += pv.total;
     if (this.weather && this.weather.phase === 'announced' && this.inSeason >= this.weather.at) this.activateWeather();
-    this.emit({ type: 'build', q, r, tile: target, level: target.level, result: pv, refund, family: tile.family, milestone: Math.floor(this.score / 100) > Math.floor(scoreBefore / 100) ? Math.floor(this.score / 100) * 100 : 0 });
+    this.emit({ type: 'build', kind: pv.fuse ? 'fuse' : 'level', q, r, tile: placed, level: placed.level, result: pv, refund: pv.refund, family: tile.family, recipe: pv.fuse ? pv.fuse.id : null, first: !!pv.first, rare, milestone: Math.floor(this.score / 100) > Math.floor(scoreBefore / 100) ? Math.floor(this.score / 100) * 100 : 0 });
+    for (const c of pv.closes || []) this.emit({ type: 'close', ...c, breath: BALANCE.breaths.close });
     this.updateFauna(); this.checkWishes();
     if (!this.garden && this.inSeason >= this.seasonLength) this.advanceSeason();
     this.checkEnd();
@@ -236,6 +261,13 @@ export class Island {
     if (tavernRegions.size) { const extra = computeLinks(this.board).links.filter((l) => tavernRegions.has(l.a) || tavernRegions.has(l.b)).length; pts += extra; }
     // grand vent : les moulins ont tourné toute la saison
     if (this.windSeason) { this.windSeason = false; for (const t of this.board.tiles.values()) if (t.family === 'mill') { ev.push({ type: 'mill', q: t.q, r: t.r, pts: BALANCE.points.windMill }); pts += BALANCE.points.windMill; } }
+    // fusions : prime de saison (+pts par voisine d'une famille, plafonnée, ou +pts fixes dans une saison)
+    for (const t of this.board.tiles.values()) {
+      if (!t.fusion) continue; const rec = FUSION_BY_ID[t.family]; if (!rec || !rec.seasonal) continue; const sp = rec.seasonal; let p = 0;
+      if (sp.family) p = Math.min(sp.cap || 6, neighbors(t.q, t.r).filter(([a, b]) => Board.isFamily(this.board.get(a, b), sp.family)).length) * sp.pts;
+      else if (sp.season === this.season) p = sp.pts;
+      if (p) { ev.push({ type: 'fusion', q: t.q, r: t.r, pts: p, id: t.family }); }
+    }
     if (this.weather) this.emit({ type: 'weather', kind: 'end', key: this.weather.key });
     this.weather = null;
     for (const e of ev) { if (e.pts) pts += e.pts; if (e.type === 'harvest') this.stats.harvest++; if (e.type === 'bloom') this.stats.bloom++; }

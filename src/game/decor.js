@@ -7,8 +7,22 @@ import { RARE_AS } from '../data/tiles.js';
 import { classifyWater } from './water.js';
 
 /** Type de sol d'une tuile (image `ground_<type>_<saison>`). */
+/** Sol des tuiles composées (les fusions d'eau prennent la rive de leurs voisines, l'eau est dessinée par plan). */
+const FUSION_GROUND = { farm: 'field', fort: 'stone', cave: 'stone' };
+/** Décor des tuiles composées : objets posés autour du centre (dx, dy en unités monde). */
+export const FUSION_DECOR = {
+  port:   [{ tpl: 'obj_house_small', dx: -24, dy: 22 }, { tpl: 'obj_lightpost', dx: 22, dy: 30 }, { tpl: 'obj_log', dx: 12, dy: 44 }, { tpl: 'obj_basket', dx: 32, dy: 44 }, { tpl: 'obj_pole', dx: 4, dy: 36 }],
+  paddy:  [{ tpl: 'obj_crop_{s}', dx: -20, dy: 10 }, { tpl: 'obj_crop_{s}', dx: 0, dy: 20 }, { tpl: 'obj_crop_{s}', dx: 20, dy: 10 }, { tpl: 'obj_crop_{s}', dx: -10, dy: 34 }, { tpl: 'obj_crop_{s}', dx: 12, dy: 36 }, { tpl: 'obj_lily', dx: -26, dy: 30, seasons: ['summer'] }],
+  farm:   [{ tpl: 'obj_farm', dx: 0, dy: 30 }, { tpl: 'obj_silo1', dx: -34, dy: 22 }, { tpl: 'obj_fence', dx: 32, dy: 40 }, { tpl: 'obj_hay', dx: 30, dy: 12 }, { tpl: 'obj_crop_{s}', dx: -28, dy: 44 }],
+  fort:   [{ tpl: 'obj_castle_small', dx: 0, dy: 30 }, { tpl: 'obj_wall_small', dx: -34, dy: 34 }, { tpl: 'obj_rockGrey_small1{w}', dx: 32, dy: 36 }],
+  falls:  [{ tpl: 'obj_rockGrey_large{w}', dx: -10, dy: 34, scale: 1.15 }, { tpl: 'obj_rockGrey_medium2{w}', dx: 28, dy: 18 }, { tpl: 'sea_wave_1', dx: 2, dy: 14, wave: true }, { tpl: 'obj_moss', dx: -28, dy: 20, seasons: ['spring'] }],
+  cave:   [{ tpl: 'obj_rockGrey_large{w}', dx: 0, dy: 40, scale: 1.3 }, { tpl: 'obj_medieval_doorway', dx: 0, dy: 44, scale: 0.8 }, { tpl: 'obj_treePine_small_{s}', dx: -34, dy: 22 }, { tpl: 'obj_treePine_small_{s}', dx: 34, dy: 26 }],
+  lagoon: [{ tpl: 'obj_rockBrown_small{w}', dx: -30, dy: 32 }, { tpl: 'sea_wave_2', dx: 8, dy: 6, wave: true }, { tpl: 'obj_bushGrass_dry', dx: 30, dy: 30 }],
+};
+
 export function groundOf(t) {
   if (!t) return null;
+  if (t.fusion) return FUSION_GROUND[t.family] || 'water';
   if (t.rare) return t.family === 'ruins' || t.family === 'mine' ? 'stone' : 'grass';
   if (t.family === 'meadow' && t.dry) return 'dry';
   if (t.family === 'water' && t.frozen) return 'ice';
@@ -82,7 +96,11 @@ export class Decor {
     const L2 = (cell) => (cell.level || 1) >= 2;   // tuile bâtie : décor nettement plus dense
     const degreeOf = (cell, keys) => neighbors(cell.q, cell.r).filter(([a, b]) => keys.has(key(a, b))).length;
     const rareTiles = [];
-    for (const t of board.tiles.values()) if (t.rare) { const c = toWorld(t.q, t.r); add({ x: c.x, y: c.y + 26, tile: t, cell: key(t.q, t.r), composed: true }); }
+    for (const t of board.tiles.values()) {
+      if (!t.rare) continue; const c = toWorld(t.q, t.r);
+      if (t.fusion) { for (const o of FUSION_DECOR[t.family] || []) add({ x: c.x + o.dx, y: c.y + o.dy, tpl: o.tpl, cell: key(t.q, t.r), scale: o.scale || 1, alpha: o.alpha || 1, seasons: o.seasons, wave: o.wave }); continue; }
+      add({ x: c.x, y: c.y + 26, tile: t, cell: key(t.q, t.r), composed: true });
+    }
 
     for (const family of ['forest', 'meadow', 'field', 'hamlet', 'orchard', 'water', 'marsh', 'rock', 'sand', 'hill', 'heath']) {
       for (const reg of board.regions(family)) {
