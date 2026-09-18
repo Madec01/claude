@@ -26,6 +26,7 @@ export class Island {
     this.def = def;
     this.upgrades = o.upgrades || {};
     this.climate = climateOf(def.climate);   // chaud, humide, froid ou tempéré
+    if ((this.upgrades.cloak || 0) > 0 && this.climate.id !== 'temperate') { const c = { ...this.climate }; delete c.dryEarly; delete c.fieldsDormantAutumn; if (c.hamletMarsh) c.hamletMarsh = -1; this.climate = c; }   // Manteau : contrainte du climat adoucie
     this.longSeasonDone = false;
     // bâtir : dès l'île 6 en campagne, toujours dans les modes libres et sur l'Île du jour (forçable par les options : mode test)
     this.buildOn = o.build !== undefined ? !!o.build : (!!def.infinite || !!def.garden || !!def.daily || (typeof def.id === 'number' && def.id >= 6));
@@ -58,7 +59,7 @@ export class Island {
       t.start = true;
     }
     const total = Number.isFinite(def.tilesRatio) ? Math.round(def.cells * def.tilesRatio) - def.start.length : Infinity;
-    const visible = BALANCE.queue.visible[this.upgrades.sight || 0];
+    const visible = BALANCE.queue.visible[this.upgrades.sight || 0] + (this.upgrades.spyglass || 0);   // Regard + Longue-vue
     this.queue = new TileQueue(seed * 3 + 11, def.weights, total, visible);
     this.queue.pocketSize = BALANCE.queue.pocket[this.upgrades.pocket || 0];
     // ouverture guidée : les premières tuiles des îles d'apprentissage sont fixées (pas de marais ni de sable en première minute)
@@ -154,20 +155,22 @@ export class Island {
       if (lv >= 2 && (!this.level3On || !this.isMature(t))) return false;   // niveau 3 : débloqué, et la tuile a mûri une saison
       return this.breaths >= this.buildCost(lv + 1);
     }
-    if (this.fuseOn && canFuse(this.board, q, r, tile)) return this.breaths >= BALANCE.fusion.cost;
+    if (this.fuseOn && canFuse(this.board, q, r, tile)) return this.breaths >= this.fusionCost();
     return false;
   }
   /** Coût en souffles pour atteindre `level` (Charpente : un de moins, jamais moins que 0 pour le niveau 2 ni que 1 pour le niveau 3). */
+  /** Coût d'une fusion (Alambic : la première de l'île est offerte). */
+  fusionCost() { return (this.upgrades.still || 0) > 0 && this.stats.fusions === 0 ? 0 : BALANCE.fusion.cost; }
   buildCost(level) { const base = level >= 3 ? BALANCE.build.cost3 : BALANCE.build.cost; return Math.max(level >= 3 ? 1 : 0, base - (this.upgrades.frame || 0)); }
   /** Une tuile de niveau 2 a mûri si une saison a passé depuis sa construction. */
-  isMature(t) { return this.seasonsPassed.length - (t.builtAt || 0) >= BALANCE.build.matureSeasons; }
+  isMature(t) { return (this.upgrades.master || 0) > 0 || this.seasonsPassed.length - (t.builtAt || 0) >= BALANCE.build.matureSeasons; }
   previewBuild(q, r, tile = this.current) {
     if (!tile) return null;
     if (tile.work) { if (!this.workOn) return null; const pv = previewWork(this.board, q, r, tile, this.season, { ...this.mods, fresh: this.isFresh(tile) }); if (pv) pv.cost = 0; return pv; }
     if (this.fuseOn && canFuse(this.board, q, r, tile)) {
       const pv = previewFuse(this.board, q, r, tile, this.season, this.mods); if (!pv) return null;
       const first = !this.known.has(pv.fuse.id);
-      pv.refund = first ? { ok: true, reason: 'discovery' } : { ok: false, reason: 'none' }; pv.cost = BALANCE.fusion.cost; pv.first = first;
+      pv.refund = first ? { ok: true, reason: 'discovery' } : { ok: false, reason: 'none' }; pv.cost = this.fusionCost(); pv.first = first;
       return pv;
     }
     if (!ruleCanBuild(this.board, q, r, tile)) return null;
@@ -198,7 +201,7 @@ export class Island {
       // fusion : la tuile en place devient la tuile composée ; fermetures éventuelles ; découverte = une tuile de retour et une rare
       placed = fusedTile(target, pv.fuse); this.board.tiles.set(key(q, r), placed); this.board.touch();
       for (const c of pv.closes) { this.board.closedRegions.add(c.id); this.stats.closed++; this.stats.closedThisSeason++; this.breaths += BALANCE.breaths.close; this.stats.biggestRegion = Math.max(this.stats.biggestRegion, c.size); }
-      this.breaths -= BALANCE.fusion.cost; this.stats.fusions++;
+      this.breaths -= this.fusionCost(); this.stats.fusions++;
       if (pv.first) { this.known.add(pv.fuse.id); this.queue.inject(this.queue.makeTile(tile.family), false); rare = this.pickRare(); if (WORKS.includes(rare)) this.giveWork(rare); else this.queue.inject(this.queue.makeRare(rare), false); this.stats.refunds++; }
     } else {
       target.level = (target.level || 1) + 1; target.builtAt = this.seasonsPassed.length; this.board.touch();
@@ -388,7 +391,7 @@ export class Island {
   /** Donne un ouvrage : il entre dans la file juste après la tuile courante. */
   giveWork(id) { const t = this.queue.makeWork(id); t.arrivedAt = this.placements; this.queue.inject(t, false); this.emit({ type: 'work', kind: 'arrive', tile: t }); return t; }
   /** Un ouvrage est frais s'il n'a pas traîné en remise (posé directement, ou repris dans les `freshWindow` poses). */
-  isFresh(tile) { return !!tile && !!tile.work && (tile.shedAt === undefined || this.placements - tile.shedAt <= BALANCE.works.freshWindow); }
+  isFresh(tile) { return !!tile && !!tile.work && (tile.shedAt === undefined || this.placements - tile.shedAt <= BALANCE.works.freshWindow * (1 + (this.upgrades.fresh || 0))); }
   /** Poses restantes avant expiration d'un ouvrage en remise. */
   shedLeft(tile) { return tile.shedAt === undefined ? BALANCE.works.shedLife : Math.max(0, BALANCE.works.shedLife - (this.placements - tile.shedAt)); }
   canShed() { return this.workOn && !this.ended && !!this.current && !!this.current.work; }

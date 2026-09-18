@@ -149,7 +149,7 @@ const Game = {
       if (result.score > (c.best[def.id] || 0)) { newRecord = !!c.best[def.id]; c.best[def.id] = result.score; }
       // graines : étoiles nouvelles + vœux + île terminée la première fois
       const firstTime = !c.memoriesRead.includes(def.id);
-      seedsGained = Math.max(0, result.stars - prevStars) * BALANCE.seeds.star + (firstTime ? result.wishesDone * BALANCE.seeds.wish + BALANCE.seeds.island : 0) + (BALANCE.upgrades.almanac[c.upgrades.almanac || 0] || 0);
+      seedsGained = Math.max(0, result.stars - prevStars) * (BALANCE.seeds.star + (c.upgrades.evening || 0)) + (firstTime ? result.wishesDone * BALANCE.seeds.wish + BALANCE.seeds.island : 0) + (BALANCE.upgrades.almanac[c.upgrades.almanac || 0] || 0);
       c.seeds += seedsGained; c.seedsTotal += seedsGained;
       if (result.stars >= 1 && def.id >= c.unlockedIsland && def.id < CAMPAIGN_SIZE) { const gated = def.id % 5 === 0 && chapterStars(c.stars, def.id / 5) < CHAPTER_GATE; if (!gated) c.unlockedIsland = def.id + 1; }
       if (def.id === CAMPAIGN_SIZE && result.stars >= 1) { c.completed = true; Save.data.infinite.unlocked = true; }

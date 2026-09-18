@@ -129,6 +129,22 @@ check(affinity('meadow', 'water') === 0, 'prairie-eau = 0');
   BALANCE.works.everyPlacements = cadence;
 }
 
+
+// --- Atelier par chapitre : cohérence des données et effets des nouvelles améliorations
+{
+  const { UPGRADES, playerChapter } = await import('../src/data/upgrades.js'); const { mechIsland } = await import('../src/data/campaign.js');
+  let prevCh = 0;
+  for (const u of UPGRADES) { check(u.chapter >= prevCh && u.chapter >= 1 && u.chapter <= 10, `amélioration ${u.id} : chapitre croissant`); prevCh = u.chapter; if (u.requires) { const at = mechIsland(u.requires); check(at !== null && Math.ceil(at / 5) <= u.chapter, `amélioration ${u.id} : sa mécanique (${u.requires}, île ${at}) arrive avant son chapitre ${u.chapter}`); } check(u.levels.length === u.costs.length + 1, `amélioration ${u.id} : niveaux et coûts`); }
+  check(playerChapter(1) === 1 && playerChapter(5) === 1 && playerChapter(6) === 2 && playerChapter(50) === 10, 'chapitre du joueur');
+  const d = campaignIsland(31);
+  const a = new Island(d, { ...islandOptions(d) }), b = new Island(d, { ...islandOptions(d), upgrades: { spyglass: 2, shed: 1, fresh: 1, master: 1, still: 1, cloak: 1 } });
+  check(b.queue.visible === a.queue.visible + 2 && b.shedSize === 2, 'Longue-vue et Grande remise');
+  check(b.fusionCost() === 0 && a.fusionCost() === 1, 'Alambic : première fusion offerte');
+  check(b.isMature({ builtAt: b.seasonsPassed.length }) && !a.isMature({ builtAt: a.seasonsPassed.length }), 'Maître d’œuvre : mûrit aussitôt');
+  check(!b.climate.fieldsDormantAutumn && a.climate.fieldsDormantAutumn === true, 'Manteau : au froid, les champs ne dorment qu’en hiver');
+  const t = { work: true, family: 'hive', shedAt: 0 }; b.placements = 6; a.placements = 6; check(b.isFresh(t) && !a.isFresh(t), 'Fraîcheur : huit poses de fraîcheur');
+}
+
 // --- campagne : cinquante définitions valides, textes présents, mécaniques cumulatives, bot fort sur les îles générées du début
 for (const w of CAMPAIGN_WISHES) check(!!STORY.wishes[w.id], `texte du vœu de campagne ${w.id}`);
 {

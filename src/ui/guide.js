@@ -85,7 +85,7 @@ const TABS = {
     h('p', { class: 'g-intro' }, `Les graines sont la monnaie de la campagne. On en gagne ${B.seeds.star} par nouvelle étoile sur une île, ${B.seeds.wish} par vœu exaucé et ${B.seeds.island} pour chaque île terminée, la première fois. Rejouer une île pour gagner une étoile de plus rapporte donc aussi des graines. En mode test, rien n’est enregistré.`),
     h('h3', {}, icon('icon_gear'), 'L’Atelier des saisons'),
     h('p', { class: 'g-intro' }, 'Après chaque île, l’Atelier propose des améliorations permanentes. Certaines n’apparaissent qu’une fois leur mécanique introduite dans la campagne.'),
-    h('div', { class: 'g-grid' }, ...UPGRADES.map((u) => h('div', { class: 'g-card g-up' }, h('span', { class: 'g-sicon' }, icon(u.icon)), h('div', {}, h('h4', {}, u.name), h('p', {}, u.desc), h('p', { class: 'g-note' }, `Niveaux : ${u.levels.join(' → ')} · coût : ${u.costs.join(', ')} graines`))))),
+    h('div', { class: 'g-grid' }, ...UPGRADES.map((u) => h('div', { class: 'g-card g-up' }, h('span', { class: 'g-sicon' }, icon(u.icon)), h('div', {}, h('h4', {}, u.name, h('span', { class: 'g-tag' }, `chapitre ${u.chapter}`)), h('p', {}, u.desc), h('p', { class: 'g-note' }, `Niveaux : ${u.levels.join(' → ')} · coût : ${u.costs.join(', ')} graines`))))),
   ) },
 };
 

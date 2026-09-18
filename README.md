@@ -2,7 +2,7 @@
 
 > Une île s'est éteinte : sable, roche, silence. Tu es la Saison, l'esprit qui la remet en marche. Tuile après tuile, tu redessines forêts, prés, hameaux et rivières ; les saisons passent, les animaux reviennent, et l'île se souvient.
 
-Puzzle de placement de tuiles hexagonales, contemplatif et stratégique, jouable dans un navigateur, en français. Campagne de 12 îles en trois archipels, Île du jour, Île infinie, Jardin (pose libre), Atelier des saisons (améliorations), sauvegarde locale. Le décor est composé par région (forêts continues, massifs, villages avec ruelles et sentiers), la météo et la vie sur les tuiles animent l'île.
+Puzzle de placement de tuiles hexagonales, contemplatif et stratégique, jouable dans un navigateur, en français. Campagne de cinquante îles en dix chapitres, Île du jour, Île infinie, Jardin (pose libre), Atelier des saisons (améliorations), sauvegarde locale. Le décor est composé par région (forêts continues, massifs, villages avec ruelles et sentiers), la météo et la vie sur les tuiles animent l'île.
 
 ## Jouer
 
@@ -64,7 +64,7 @@ Chaque pose reçoit un mot selon sa qualité par rapport au meilleur emplacement
 - **Île infinie** : l'île grandit à chaque pose, sans fin ; le score et le nombre de saisons sont enregistrés.
 - **Île du jour** : une île générée depuis la date, la même pour tout le monde, trois vœux tirés au sort, météo active ; meilleur score du jour et série de jours conservés.
 - **Jardin** : pose libre, choix de la tuile, sans saisons ni score : pour composer.
-- **Atelier des saisons** : douze améliorations (regard, poche, souffle de départ, patience, semence rare, refuge, source, almanach, seconde chance, charpente, semence forte, talisman) achetées avec les graines. Les graines viennent des nouvelles étoiles, des vœux exaucés et de chaque île terminée la première fois.
+- **Atelier des saisons** : dix-neuf améliorations permanentes achetées en graines, ouvertes chapitre par chapitre (regard et patience au chapitre 1 ; souffle de départ, poche et semence rare au 2 ; source, refuge et almanach au 3 ; charpente, semence forte et seconde chance au 4 ; alambic et manteau au 5 ; talisman, grande remise et fraîcheur au 6 ; maître d'œuvre au 7 ; longue-vue et étoile du soir ensuite). Les suivantes restent visibles, grisées, avec leur chapitre.
 - **Guide** : depuis le menu ou la pause, toutes les tuiles avec leurs bonnes et mauvaises paires, les saisons, la faune, les tuiles rares, les souffles, les vœux et les graines.
 
 ## Options et mode test
