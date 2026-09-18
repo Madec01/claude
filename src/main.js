@@ -25,6 +25,8 @@ import { dailyDef, dailyKey, yesterdayKey } from './data/daily.js';
 import { Finale } from './game/finale.js';
 import { campaignIsland, campaignMechanics, islandOptions, CAMPAIGN_SIZE, MECH_AT, chapterStars, CHAPTER_GATE, climateCardFor } from './data/campaign.js';
 import { GRADES, streakMilestone } from './game/feedback.js';
+import { computeLinks } from './game/paths.js';
+import { waterBodies } from './game/water.js';
 import { buildStory, islandIntroScreens, islandMemoryScreens, prologueScreens, endingScreens, infiniteScreens, gardenScreens, dailyScreens } from './ui/story.js';
 import { buildResults } from './ui/results.js';
 import { buildWorkshop } from './ui/workshop.js';
@@ -323,9 +325,16 @@ class IslandScene {
     if (w === 'thaw') AudioSys.setAmbience('stream', 0.5, fade);
   }
 
+  /** Cartes qui n'ont pas d'île attitrée : premier sentier, première rivière qui se jette dans un lac (une fois par joueur). */
+  checkDiscoveryCards() {
+    const seen = Save.data.seen || (Save.data.seen = {}); const b = this.isl.board;
+    if (!seen.paths && computeLinks(b).links.length > 0) { seen.paths = true; Save.save(); this.tutorial.pushCard('paths', STORY.mechCards.paths); }
+    if (!seen.riverLake && waterBodies(b).some((w) => w.fedBy)) { seen.riverLake = true; Save.save(); this.tutorial.pushCard('riverLake', STORY.mechCards.riverLake); }
+  }
   onEvent(e) {
     const isl = this.isl, fx = this.fx;
     if (e.type === 'place') {
+      if (!this.isl.garden) this.checkDiscoveryCards();
       const w = toWorld(e.q, e.r);
       fx.drop(key(e.q, e.r));
       fx.placeBurst(w.x, w.y, e.result.total > 0);

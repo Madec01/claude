@@ -22,6 +22,7 @@ const defaults = () => ({
     upgrades: { sight: 0, pocket: 0, breath: 0, patience: 0, rare: 0, memory: 0 },
     prologueSeen: false, completed: false, islandsPlayed: 0, memoriesRead: [],
   },
+  seen: {},   // cartes explicatives déjà vues (sentiers, rivière-lac), une seule fois par joueur
   infinite: { best: 0, bestSeasons: 0, unlocked: false },
   daily: { best: {}, history: [], streak: 0, lastPlayed: null },
   stats: { placements: 0, closed: 0, fauna: 0, wishes: 0 },

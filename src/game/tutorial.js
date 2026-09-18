@@ -56,12 +56,15 @@ export class Tutorial {
       const introduced = def && typeof def === 'object' && def.introduces ? def.introduces.filter((m) => STORY.mechCards[m] && !hand.some((st) => st.id === m)) : [];
       steps = [...introduced.map((m) => ({ id: m, text: STORY.mechCards[m] })), ...hand];
     }
+    this.enabled = !!enabled;
     this.steps = this.guided ? this.guided : steps;
     this.idx = 0; this.current = null; this.shownFor = 0; this.events = new Set(); this.dismissed = false;
     this.root.innerHTML = '';
     this.doneAll = this.steps.length === 0;
   }
   onEvent(ev) { this.events.add(ev); }
+  /** Ajoute une carte d'information à la volée (sentier apparu, rivière qui se jette dans un lac…), si le tutoriel est actif. */
+  pushCard(id, text, timeout = 30) { if (!this.enabled || this.steps.some((s) => s.id === id)) return false; this.steps.push({ id, text, info: true, timeout }); this.doneAll = false; return true; }
   update(dt) {
     if (this.doneAll) return;
     if (!this.current) {
