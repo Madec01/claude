@@ -136,7 +136,13 @@ export class Island {
   get wishCtx() { return { board: this.board, season: this.season, fauna: this.fauna, stats: this.stats, placements: this.placements, seasonsPassed: this.seasonsPassed }; }
   get current() { return this.queue.next; }
   /** Seuils des trois étoiles (points), calibrés par île. */
-  get thresholds() { const f = this.def.starFactors || BALANCE.stars.perCell; return f.map((x) => Math.round(this.board.cells * x)); }
+  get thresholds() { const f = this.def.starFactors || BALANCE.stars.perCell; return f.slice(0, 3).map((x) => Math.round(this.board.cells * x)); }
+  /** Étoile d'or : la médiane du bot fort (quatrième facteur calibré), cosmétique, hors porte de chapitre. */
+  get goldThreshold() { const f = this.def.starFactors || BALANCE.stars.perCell; return Math.round(this.board.cells * (f[3] !== undefined ? f[3] : f[2] / 0.9)); }
+  // ---- Faucille : clore la saison avant son terme ----
+  get sickle() { return this.upgrades.sickle || 0; }
+  canCloseSeason() { return !this.ended && !this.garden && this.sickle > 0 && this.inSeason < this.seasonLength && this.seasonLength - this.inSeason <= this.sickle; }
+  closeSeason() { if (!this.canCloseSeason()) return false; this.stats.sickled = (this.stats.sickled || 0) + 1; this.emit({ type: 'sickle', left: this.seasonLength - this.inSeason }); this.advanceSeason(); return true; }
   get seasonProgress() { return this.inSeason / this.seasonLength; }
 
   /** Prévisualisation d'une pose de la tuile courante. */
@@ -233,7 +239,8 @@ export class Island {
     if (!tile || !this.board.canPlace(q, r) || (this.restrict && !this.restrict.has(key(q, r)))) return null;
     this.pushHistory();
     // meilleur total possible pour cette tuile, pour commenter le coup (cosmétique)
-    let best = -Infinity; if (!this.garden) for (const c of this.board.legalCells()) { const p = preview(this.board, c.q, c.r, tile, this.season, this.mods); if (p && p.total > best) best = p.total; }
+    // meilleur coup de référence, primes de fermeture exclues : garder une fermeture pour plus tard n'est pas une faute
+    let best = -Infinity; if (!this.garden) for (const c of this.board.legalCells()) { const p = preview(this.board, c.q, c.r, tile, this.season, this.mods); if (!p) continue; const v = p.total - p.closes.reduce((a, x) => a + x.bonus, 0); if (v > best) best = v; }
     if (!tileOverride) { this.queue.take(); if (this.pendingOpening.length && this.queue.list.length) this.queue.list[this.queue.list.length - 1] = this.queue.makeTile(this.pendingOpening.shift()); }
     // ruine à restaurer : elle prend la famille majoritaire autour d'elle
     let placedTile = tile, restoredTo = null;
@@ -255,7 +262,7 @@ export class Island {
     this.score += res.total;
     const grade = this.garden ? null : gradeMove(res.total, best);
     if (grade === 'master' || grade === 'perfect') this.stats.perfect++;
-    if (grade === 'master' || grade === 'perfect' || grade === 'good') { this.stats.streak++; this.stats.bestStreak = Math.max(this.stats.bestStreak, this.stats.streak); } else if (grade) this.stats.streak = 0;
+    if (grade === 'master' || grade === 'perfect' || grade === 'good') { this.stats.streak++; this.stats.bestStreak = Math.max(this.stats.bestStreak, this.stats.streak); } else if (grade === 'meh') this.stats.streak = 0;   // un coup correct ne casse pas la série, il ne la fait pas avancer
     // les séries comptent : à trois bons coups d'affilée, un souffle ; à cinq, la prochaine fermeture compte double
     if (grade && this.stats.streak === BALANCE.streaks.breathAt && !this.garden) { this.breaths += 1; this.emit({ type: 'streak', kind: 'breath', n: this.stats.streak }); }
     if (grade && this.stats.streak === BALANCE.streaks.doubleAt && !this.garden) { this.nextCloseDouble = true; this.emit({ type: 'streak', kind: 'double', n: this.stats.streak }); }
@@ -339,9 +346,10 @@ export class Island {
     // faune : chaque animal présent donne des souffles et des points
     const faunaBonus = [...this.fauna.values()].filter((a) => !a.noBonus).length;
     pts += faunaBonus * (BALANCE.points.faunaSeason + this.mods.refuge);
-    this.breaths += faunaBonus * BALANCE.breaths.faunaSeason;
+    const faunaBreaths = Math.floor(faunaBonus / BALANCE.breaths.faunaPer);   // un souffle pour deux animaux : les souffles restent rares
+    this.breaths += faunaBreaths;
     this.score += pts;
-    this.emit({ type: 'season', from, to: this.season, events: ev, pts, faunaBonus, links, rule: this.rule, prevRule });
+    this.emit({ type: 'season', from, to: this.season, events: ev, pts, faunaBonus, faunaBreaths, links, rule: this.rule, prevRule });
     this.updateFauna();
     this.checkWishes();
     this.scheduleWeather();
@@ -474,9 +482,10 @@ export class Island {
     const th = this.thresholds;
     let stars = 0;
     for (const t of th) if (this.score >= t) stars++;
+    const gold = !this.infinite && !this.garden && this.score >= this.goldThreshold;
     const wishesTotal = this.wishes.length;
     const seeds = stars * BALANCE.seeds.star + this.stats.wishesDone * BALANCE.seeds.wish + (this.infinite || this.garden ? 0 : BALANCE.seeds.island);
-    this.result = { island: this.def.id, score: this.score, stars: this.infinite || this.garden ? 0 : stars, thresholds: th, reason, placements: this.placements, seasons: this.seasonsPassed.length, stats: { ...this.stats }, fauna: this.fauna.size, wishesDone: this.stats.wishesDone, wishesTotal, seeds, cells, filled: this.board.placed };
+    this.result = { island: this.def.id, score: this.score, stars: this.infinite || this.garden ? 0 : stars, gold, goldThreshold: this.goldThreshold, thresholds: th, reason, placements: this.placements, seasons: this.seasonsPassed.length, stats: { ...this.stats }, fauna: this.fauna.size, wishesDone: this.stats.wishesDone, wishesTotal, seeds, cells, filled: this.board.placed };
     this.emit({ type: 'end', result: this.result });
     return this.result;
   }

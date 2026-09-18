@@ -27,7 +27,7 @@ async function boot(context, opts = {}) {
 const stageInfo = (page) => page.evaluate(() => ({ ...window.CS.STAGE, html: document.documentElement.className, inner: [innerWidth, innerHeight] }));
 async function startIsland(page, id) {
   await page.evaluate((id) => window.CS.Game.startIsland(id, { skipIntro: true }), id);
-  await page.waitForFunction(() => window.CS.scenes.currentName === 'island' || [...document.querySelectorAll('button')].some((x) => x.textContent.includes('C’est parti')), null, { timeout: 20000 }); await page.evaluate(() => { const b = [...document.querySelectorAll('button')].find((x) => x.textContent.includes('C’est parti')); if (b) b.click(); });  await page.waitForTimeout(500);
+  await page.waitForFunction(() => window.CS.scenes.currentName === 'island' || document.querySelector('.contract-card') || [...document.querySelectorAll('button')].some((x) => x.textContent.includes('C’est parti')), null, { timeout: 20000 }); if (await page.$('.contract-card')) { await page.click('.contract-card'); await page.evaluate(() => [...document.querySelectorAll('button')].find((x) => x.textContent.includes('Signer'))?.click()); await page.waitForFunction(() => window.CS.scenes.currentName === 'island' || [...document.querySelectorAll('button')].some((x) => x.textContent.includes('C’est parti')), null, { timeout: 20000 }); }   /* contrat d'archipel à l'entrée d'un chapitre */ await page.evaluate(() => { const b = [...document.querySelectorAll('button')].find((x) => x.textContent.includes('C’est parti')); if (b) b.click(); });  await page.waitForTimeout(500);
   await page.waitForFunction((id) => window.CS.scenes.currentName === 'island' && window.CS.scenes.current.isl && window.CS.scenes.current.isl.def.id === id, id, { timeout: 20000 });
 
 }

@@ -657,17 +657,19 @@ export class IslandRenderer {
     ctx.save(); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     for (const f of fx.flights) {
       if (f.t < 0) continue;
-      const k = Math.min(1, f.t / f.life); const e = k * k * (3 - 2 * k);   // départ doux, arrivée franche
-      const s0 = cam.toScreen(f.x, f.y); const cx = (s0.x + tgt.x) / 2, cy = Math.min(s0.y, tgt.y) - 90;
+      // temps de départ : l'étincelle naît sur sa tuile, s'élève un peu et reste posée avec son « +N » ; puis elle part
+      const hv = Math.min(1, f.t / f.hover); const fl = Math.max(0, (f.t - f.hover) / (f.life - f.hover));
+      const k = Math.min(1, fl); const e = k * k * (3 - 2 * k);   // départ doux, arrivée franche
+      const s0 = cam.toScreen(f.x, f.y); s0.y -= 14 * (1 - (1 - hv) * (1 - hv)); const cx = (s0.x + tgt.x) / 2, cy = Math.min(s0.y, tgt.y) - 90;
       const at = (u) => ({ x: (1 - u) * (1 - u) * s0.x + 2 * (1 - u) * u * cx + u * u * tgt.x, y: (1 - u) * (1 - u) * s0.y + 2 * (1 - u) * u * cy + u * u * tgt.y });
       const p = at(e);
       if (f.done) {   // éclat à l'arrivée
         const a = 1 - (f.t - f.life) / 0.25; ctx.globalAlpha = Math.max(0, a) * 0.8; ctx.fillStyle = f.color; ctx.beginPath(); ctx.arc(tgt.x, tgt.y, 6 + (1 - a) * 22, 0, TAU); ctx.fill(); continue;
       }
-      for (let i = 4; i >= 1; i--) { const q = at(Math.max(0, e - i * 0.045)); ctx.globalAlpha = 0.35 - i * 0.07; ctx.fillStyle = f.color; ctx.beginPath(); ctx.arc(q.x, q.y, 5 - i * 0.6, 0, TAU); ctx.fill(); }
+      if (k > 0) for (let i = 6; i >= 1; i--) { const q = at(Math.max(0, e - i * 0.04)); ctx.globalAlpha = 0.38 - i * 0.055; ctx.fillStyle = f.color; ctx.beginPath(); ctx.arc(q.x, q.y, 6 - i * 0.7, 0, TAU); ctx.fill(); }
       ctx.globalAlpha = 1; const rad = 12 + Math.min(6, Math.abs(f.pts)); const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, rad); g.addColorStop(0, '#fffdf2'); g.addColorStop(0.4, f.color); g.addColorStop(1, 'rgba(255,255,255,0)');
       ctx.fillStyle = g; ctx.beginPath(); ctx.arc(p.x, p.y, rad, 0, TAU); ctx.fill();
-      if (k < 0.6) { ctx.globalAlpha = 1 - k / 0.6; ctx.font = '800 18px Quicksand, sans-serif'; ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(255,255,255,0.9)'; ctx.strokeText(`${f.pts > 0 ? '+' : ''}${f.pts}`, p.x, p.y - 20); ctx.fillStyle = f.color; ctx.fillText(`${f.pts > 0 ? '+' : ''}${f.pts}`, p.x, p.y - 20); }
+      if (k < 0.75) { ctx.globalAlpha = Math.min(1, hv * 2) * (1 - Math.max(0, k - 0.45) / 0.3); ctx.font = '800 18px Quicksand, sans-serif'; ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(255,255,255,0.9)'; ctx.strokeText(`${f.pts > 0 ? '+' : ''}${f.pts}`, p.x, p.y - 20); ctx.fillStyle = f.color; ctx.fillText(`${f.pts > 0 ? '+' : ''}${f.pts}`, p.x, p.y - 20); }
     }
     ctx.restore();
   }

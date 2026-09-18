@@ -255,3 +255,10 @@ html.compact.portrait .hud-ribbon { top: 118px; } html.compact.portrait .hud-rec
 .streak-pips.full i.on { background: var(--gold, #e0a33a); box-shadow: 0 0 6px rgba(224,163,58,0.6); }
 @keyframes pips-break { 0% { transform: translateX(0); opacity: 1; } 100% { transform: translateX(14px); opacity: 0.2; } }
 .streak-pips.break i { animation: pips-break 0.45s ease-in; }
+/* Faucille : clore la saison */
+.season-close { margin-top: 4px; align-self: flex-start; font: 700 12px var(--font-ui, Quicksand, sans-serif); color: #fff; background: var(--breath, #2f9e8f); border: 0; border-radius: 999px; padding: 3px 10px; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+.season-close:hover { filter: brightness(1.08); }
+.season-close.hidden { display: none; }
+.panel-results .stars .gold-star .icon { opacity: 0.12; }
+.panel-results .stars .gold-star.on .icon, .panel-results .stars .gold-star.on.pop .icon { opacity: 1; filter: sepia(1) saturate(5) brightness(1.2) drop-shadow(0 0 10px rgba(224,163,58,0.9)); }
+.res-gold { text-align: center; font-family: var(--font-title); color: var(--gold, #e0a33a); margin: -4px 0 8px; }

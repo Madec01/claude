@@ -49,7 +49,7 @@ function parseList(s) {
       await page.waitForFunction(() => window.CS.scenes.currentName === 'story' && document.querySelector('.story-actions button'), null, { timeout: 15000 });
       await page.waitForTimeout(300); await page.click('.story-actions button');
     }
-    if (!(id === 'infinite' || id === 'garden')) { await page.waitForFunction(() => window.CS.scenes.currentName === 'island' || [...document.querySelectorAll('button')].some((x) => x.textContent.includes('C’est parti')), null, { timeout: 20000 }); await page.evaluate(() => { const b = [...document.querySelectorAll('button')].find((x) => x.textContent.includes('C’est parti')); if (b) b.click(); }); }   // préparation (semis, vœux)
+    if (!(id === 'infinite' || id === 'garden')) { await page.waitForFunction(() => window.CS.scenes.currentName === 'island' || document.querySelector('.contract-card') || [...document.querySelectorAll('button')].some((x) => x.textContent.includes('C’est parti')), null, { timeout: 20000 }); if (await page.$('.contract-card')) { await page.click('.contract-card'); await page.evaluate(() => [...document.querySelectorAll('button')].find((x) => x.textContent.includes('Signer'))?.click()); await page.waitForFunction(() => window.CS.scenes.currentName === 'island' || [...document.querySelectorAll('button')].some((x) => x.textContent.includes('C’est parti')), null, { timeout: 20000 }); }   /* contrat d'archipel à l'entrée d'un chapitre */ await page.evaluate(() => { const b = [...document.querySelectorAll('button')].find((x) => x.textContent.includes('C’est parti')); if (b) b.click(); }); }   // préparation (semis, vœux)
     await page.waitForFunction(isMine, id, { timeout: 30000 });
     await page.waitForTimeout(600);
     let ticks = 0, shot = false;

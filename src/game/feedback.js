@@ -1,4 +1,5 @@
-// Commentaire de chaque coup : la pose est comparée au meilleur emplacement possible pour la même tuile.
+// Commentaire de chaque coup : la pose est comparée au meilleur emplacement possible pour la même tuile (primes de fermeture exclues :
+// on n'est pas jugé par rapport à une fermeture qu'on choisit de garder pour plus tard).
 // Purement cosmétique (aucun point), mais compté dans les statistiques du bilan (coups parfaits, meilleure série).
 export const GRADES = {
   master:  { color: '#e0a33a', size: 30, burst: 7, streak: true },
@@ -20,9 +21,9 @@ export function gradeMove(total, best) {
   const r = total / best;
   if (r >= 1 && total >= 10) return 'master';   // le meilleur coup, et un gros coup
   if (r >= 1 && total >= 6) return 'perfect';
-  if (r >= 0.8 && total >= 2) return 'good';
-  if (r >= 0.5) return 'ok';
-  return 'meh';
+  if ((r >= 0.8 || total >= best - 2) && total >= 2) return 'good';   // 80 % du meilleur, ou à deux points de lui
+  if (r >= 0.5) return 'ok';                  // correct : la série ne bouge pas
+  return 'meh';                               // faible : la série casse
 }
 
 /** Paliers de série (coups bons ou mieux d'affilée) qui méritent un mot. */

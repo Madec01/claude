@@ -3,7 +3,8 @@ import { ACHIEVEMENTS } from '../data/achievements.js';
 import { Achievements } from '../game/achievements.js';
 const achCount = () => Achievements.count();
 import { h, button, icon, stagger, append } from './dom.js';
-import { CHAPTERS, campaignIsland, chapterStars, CHAPTER_GATE, CAMPAIGN_SIZE } from '../data/campaign.js';
+import { CHAPTERS, campaignIsland, chapterStars, gateStars, CHAPTER_GATE, CAMPAIGN_SIZE } from '../data/campaign.js';
+import { contractLine } from '../data/contracts.js';
 import { Save } from '../core/save.js';
 import { ISLANDS } from '../data/islands.js';
 import { STORY } from '../data/story.js';
@@ -57,7 +58,8 @@ export function buildMenu({ game }) {
       const first = (ch.id - 1) * 5 + 1; const got = chapterStars(c.stars, ch.id);
       const open = testMode || c.unlockedIsland >= first;
       const climate = ch.climate !== 'mixed' && ch.climate !== 'temperate' && STORY.climates && STORY.climates[ch.climate] ? ` · ${STORY.climates[ch.climate].name}` : (ch.climate === 'mixed' ? ' · climats variés' : '');
-      const row = h('div', { class: `act-row ${open ? '' : 'act-locked'}` }, h('div', { class: 'act-head' }, h('div', { class: 'act-num' }, `Chapitre ${ch.id} · ${ch.name}`), h('div', { class: 'act-name' }, `${ch.sub}${climate} · ${got} / 15 étoiles`)));
+      const ctr = contractLine(c, ch.id);
+      const row = h('div', { class: `act-row ${open ? '' : 'act-locked'}` }, h('div', { class: 'act-head' }, h('div', { class: 'act-num' }, `Chapitre ${ch.id} · ${ch.name}`), h('div', { class: 'act-name' }, `${ch.sub}${climate} · ${got} / 15 étoiles`), ctr ? h('div', { class: `act-contract ${ctr.done ? 'done' : ''}`, title: 'Contrat d’archipel : rempli, il vaut deux étoiles pour la porte' }, `Contrat · ${ctr.text}`) : null));
       for (let n = first; n < first + 5; n++) {
         const def = campaignIsland(n); const name = def.story && STORY.islands[def.story] ? STORY.islands[def.story].name : def.name;
         const unlocked = testMode || n <= c.unlockedIsland;
@@ -65,13 +67,13 @@ export function buildMenu({ game }) {
         const card = h('button', { class: `night-card ${unlocked ? '' : 'locked'} act-${((ch.id - 1) % 3) + 1} ${def.memory ? 'memory' : ''} ${n === Math.min(c.unlockedIsland, CAMPAIGN_SIZE) && !c.completed ? 'current' : ''}`, disabled: !unlocked, title: unlocked ? `Jouer l’île ${n}` : 'Île verrouillée' },
           h('div', { class: 'nc-num' }, `Île ${n} · ${def.cells} cases${def.memory ? ' · souvenir' : ''}`),
           h('div', { class: 'nc-title' }, name),
-          h('div', { class: 'nc-stars' }, ...[0, 1, 2].map((i) => h('span', { class: `star ${i < stars ? 'on' : ''}` }, icon('icon_star'))), c.best[n] ? h('span', { class: 'nc-best' }, `${c.best[n]} pts`) : null),
+          h('div', { class: `nc-stars ${c.gold && c.gold[n] ? 'gold' : ''}`, title: c.gold && c.gold[n] ? 'Étoile d’or' : '' }, ...[0, 1, 2].map((i) => h('span', { class: `star ${i < stars ? 'on' : ''}` }, icon('icon_star'))), c.best[n] ? h('span', { class: 'nc-best' }, `${c.best[n]} pts`) : null),
           unlocked ? null : icon('icon_locked', 'nc-lock'),
         );
         card.addEventListener('click', () => game.startIsland(n, { fromSelect: true }));
         row.appendChild(card);
       }
-      if (ch.id < CHAPTERS.length && got < CHAPTER_GATE && c.unlockedIsland <= first + 4) row.appendChild(h('div', { class: 'act-gate' }, `${CHAPTER_GATE} étoiles dans ce chapitre ouvrent le suivant`));
+      if (ch.id < CHAPTERS.length && gateStars(c, ch.id) < CHAPTER_GATE && c.unlockedIsland <= first + 4) row.appendChild(h('div', { class: 'act-gate' }, `${CHAPTER_GATE} étoiles dans ce chapitre ouvrent le suivant${ch.id >= 2 ? ' (le contrat d’archipel en vaut deux)' : ''}`));
       rows.appendChild(row);
     }
     game.showPanel(h('div', { class: 'panel panel-nights' }, h('h2', { class: 'panel-title' }, 'Choisir une île'), rows,

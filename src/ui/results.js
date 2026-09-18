@@ -11,13 +11,14 @@ export function buildResults({ result, def, onContinue, onRetry, onMenu, newReco
   const root = h('div', { class: `panel panel-results stars-${stars}` });
   const lines = STORY.results[stars] || [''];
   const line = lines[Math.floor(Math.random() * lines.length)];
-  const starsEl = h('div', { class: 'stars', 'aria-label': `${stars} étoile(s) sur 3` }, ...[0, 1, 2].map((i) => h('span', { class: `star ${i < stars ? 'on' : ''}`, title: `${thresholds[i]} points` }, icon('icon_star'))));
+  const starsEl = h('div', { class: `stars ${result.gold ? 'gold' : ''}`, 'aria-label': `${stars} étoile(s) sur 3${result.gold ? ', étoile d’or' : ''}` }, ...[0, 1, 2].map((i) => h('span', { class: `star ${i < stars ? 'on' : ''}`, title: `${thresholds[i]} points` }, icon('icon_star'))), result.goldThreshold && stars >= 3 ? h('span', { class: `star gold-star ${result.gold ? 'on' : ''}`, title: `Étoile d’or : ${result.goldThreshold} points` }, icon('icon_star')) : null);   // l'étoile d'or n'apparaît qu'avec les trois étoiles
   const row = (label, value, cls = '') => h('div', { class: `res-row ${cls}` }, h('span', {}, label), h('b', {}, String(value)));
   append(root, 
     h('div', { class: 'res-kicker' }, special ? (result.island === 'infinite' ? `Île infinie · ${result.seasons} saisons` : 'Jardin') : result.island === 'daily' ? name : `Île ${result.island} · ${name}`),
     h('h2', { class: 'panel-title' }, special ? 'L’île se repose' : stars === 0 ? 'L’île attend encore' : 'L’île se souvient'),
     special ? null : starsEl,
     h('p', { class: 'res-line' }, line),
+    !special && result.goldThreshold && stars >= 3 ? h('p', { class: 'res-gold' }, result.gold ? 'Étoile d’or : la mémoire de l’île est complète.' : `L’étoile d’or attend ${result.goldThreshold} points.`) : null,
     h('div', { class: 'res-grid' },
       row('Points', fmtInt(score), 'score'),
       special ? null : row('Seuils', thresholds.join(' · ')),
@@ -33,6 +34,7 @@ export function buildResults({ result, def, onContinue, onRetry, onMenu, newReco
       row('Animaux (au plus)', result.stats.faunaMax, result.stats.faunaMax ? 'good' : ''),
       result.wishesTotal ? row('Vœux exaucés', `${result.wishesDone} / ${result.wishesTotal}`, result.wishesDone === result.wishesTotal ? 'gold' : '') : null,
       row('Saisons traversées', result.seasons),
+      result.contract ? row('Contrat', result.contract.done ? `${result.contract.contract.name} · rempli, +2 étoiles` : `${result.contract.contract.name} · ${result.contract.after} / ${result.contract.target}${result.contract.gained ? ` (+${result.contract.gained})` : ''}`, result.contract.done ? 'gold' : result.contract.gained ? 'good' : '') : null,
       seedsGained ? row('Graines gagnées', `+${seedsGained}`, 'gold') : null,
       daily ? row('Meilleur du jour', daily.best, 'gold') : null,
       daily ? row('Jours d’affilée', daily.streak) : null,
@@ -48,7 +50,7 @@ export function buildResults({ result, def, onContinue, onRetry, onMenu, newReco
   const reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   setTimeout(() => {
     stagger(root, '.res-row', reduced ? 0 : 80);
-    starsEl.querySelectorAll('.star.on').forEach((s, i) => setTimeout(() => { s.classList.add('pop'); AudioSys.play(`star_${i + 1}`, { volume: 0.7 }); }, reduced ? 0 : 500 + i * 380));
+    starsEl.querySelectorAll('.star.on').forEach((s, i) => setTimeout(() => { s.classList.add('pop'); AudioSys.play(s.classList.contains('gold-star') ? 'achievement' : `star_${Math.min(3, i + 1)}`, { volume: 0.7 }); }, reduced ? 0 : 500 + i * 380));
   }, 200);
   return root;
 }

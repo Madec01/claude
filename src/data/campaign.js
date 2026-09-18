@@ -117,7 +117,7 @@ export function campaignIsland(n) {
   return {
     id: n, story: null, chapter: ch.id, climate, memory: !!slot.memory, mech, arch: ch.id, cells, seed, roughness: 0.3 + rng() * 0.2, holes: cells >= 60 ? 1 + Math.floor(rng() * 2) : 0,
     seasonLength, startSeason, weights: weightsFor(slot.w, climate, mech), tilesRatio, start, wishes, mechanics: [], weather: mech.has('weather'),
-    name: t.name, intro: t.intro, memoryText: t.memory, starFactors: stars || [3.6, 5.2, 6.5],
+    name: t.name, intro: t.intro, memoryText: t.memory, starFactors: stars || [3.6, 5.2, 6.5, 7.2],
   };
 }
 
@@ -133,6 +133,8 @@ export function climateCardFor(n) {
 export const OLD_TO_NEW = { 1: 1, 2: 3, 3: 7, 4: 5, 5: 10, 6: 15, 7: 13, 8: 20, 9: 25, 10: 30, 11: 35, 12: 50 };
 /** Étoiles du chapitre k dans une sauvegarde. */
 export function chapterStars(stars, k) { let s = 0; for (let n = (k - 1) * 5 + 1; n <= k * 5; n++) s += stars[n] || 0; return s; }
+/** Étoiles comptées pour la porte : celles des cinq îles, plus deux si le contrat d'archipel du chapitre est rempli. */
+export function gateStars(campaign, k) { const ct = campaign.contracts && campaign.contracts[k]; return chapterStars(campaign.stars, k) + (ct && ct.done ? 2 : 0); }
 export const CHAPTER_GATE = 6;   // étoiles nécessaires dans un chapitre pour entrer dans le suivant (sur 15) ; 8 jugé trop haut par l'audit
 
 /** Options à passer à `new Island(def, …)` depuis les mécaniques de l'île (tout est ouvert dans les modes libres). */

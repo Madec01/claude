@@ -5,7 +5,7 @@ import { BALANCE } from '../data/balance.js';
 import { SEMIS } from '../data/semis.js';
 import { targetOf } from '../game/wishes.js';
 
-export function buildIslandPrep({ def, semis = true, onStart }) {
+export function buildIslandPrep({ def, semis = true, contract = null, onStart }) {
   const root = h('div', { class: 'panel panel-wishes-intro' });
   const name = def.story && STORY.islands[def.story] ? STORY.islands[def.story].name : (def.name || 'Île');
   let chosen = 'saisons';
@@ -17,6 +17,7 @@ export function buildIslandPrep({ def, semis = true, onStart }) {
   });
   append(root,
     h('h2', { class: 'panel-title' }, name),
+    contract ? h('p', { class: `prep-contract ${contract.done ? 'done' : ''}` }, `Contrat du chapitre : ${contract.text}`) : null,
     semis ? h('h3', { class: 'prep-h' }, 'Choisis ton semis') : null,
     semis ? h('p', { class: 'ws-intro' }, 'Ce que la file donnera plutôt. Un penchant, pas une garantie.') : null,
     semis ? h('div', { class: 'semis-list' }, ...semisCards) : null,

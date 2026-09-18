@@ -21,7 +21,7 @@ export class Effects {
 
   drop(key) { this.drops.set(key, { t: 0 }); }
   /** Une étincelle part de (x, y) monde vers le compteur de points ; `onArrive` est appelé à l'arrivée (compteur, note). */
-  fly(x, y, pts, { color = '#e0a33a', delay = 0, life = 0.95, onArrive = null } = {}) { this.flights.push({ x, y, pts, color, t: -delay, life, onArrive, done: false }); }
+  fly(x, y, pts, { color = '#e0a33a', delay = 0, hover = 0.5, life = 1.4, cell = null, onArrive = null } = {}) { this.flights.push({ x, y, pts, color, t: -delay, hover, life: hover + life, onArrive, cell, born: false, done: false }); }
   ring(cells, color = '#e0a33a') { this.rings.push({ cells, t: 0, color }); }
   fauna(key, kind) { this.faunaAnim.set(key, { t: 0, kind }); }
 
@@ -107,7 +107,7 @@ export class Effects {
     for (const r of this.rings) r.t += dt; this.rings = this.rings.filter((r) => r.t < 1.3);
     for (const [k, d] of this.drops) { d.t += dt; if (d.t > 0.6) this.drops.delete(k); }
     for (const [k, a] of this.faunaAnim) { a.t += dt; if (a.t > 0.8) this.faunaAnim.delete(k); }
-    for (const f of this.flights) { f.t += dt; if (!f.done && f.t >= f.life) { f.done = true; if (f.onArrive) f.onArrive(f); } }
+    for (const f of this.flights) { f.t += dt; if (!f.born && f.t >= 0) { f.born = true; if (f.cell) this.ring([f.cell], f.color); } if (!f.done && f.t >= f.life) { f.done = true; if (f.onArrive) f.onArrive(f); } }
     this.flights = this.flights.filter((f) => f.t < f.life + 0.25);
   }
   /** Vide les vols en cours en appelant leurs arrivées (fin d'île, changement de scène) : rien ne reste en suspens. */

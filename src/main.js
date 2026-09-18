@@ -23,7 +23,7 @@ import { buildCredits, loadCredits } from './ui/credits.js';
 import { buildGuide } from './ui/guide.js';
 import { dailyDef, dailyKey, yesterdayKey } from './data/daily.js';
 import { Finale } from './game/finale.js';
-import { campaignIsland, campaignMechanics, islandOptions, CAMPAIGN_SIZE, MECH_AT, chapterStars, CHAPTER_GATE, climateCardFor } from './data/campaign.js';
+import { campaignIsland, campaignMechanics, islandOptions, CAMPAIGN_SIZE, MECH_AT, chapterStars, gateStars, CHAPTER_GATE, climateCardFor } from './data/campaign.js';
 import { GRADES, streakMilestone } from './game/feedback.js';
 import { computeLinks } from './game/paths.js';
 import { waterBodies } from './game/water.js';
@@ -33,6 +33,8 @@ import { buildWorkshop } from './ui/workshop.js';
 import { buildAchievements, celebrate } from './ui/achievements.js';
 import { buildWishesIntro } from './ui/wishes_intro.js';
 import { buildIslandPrep } from './ui/island_prep.js';
+import { buildContractPick } from './ui/contract.js';
+import { contractNeeded, chooseContract, noteContractResult, contractLine, chapterOf } from './data/contracts.js';
 import { applySemis } from './data/semis.js';
 import { Achievements } from './game/achievements.js';
 import { buildPause } from './ui/pause.js';
@@ -152,10 +154,17 @@ const Game = {
   },
   /** Semis et vœux avant la première pose ; sans rien à choisir ni à lire, l'île démarre directement. */
   prepIsland(def) {
+    // contrat d'archipel : à l'entrée d'un chapitre (dès le deuxième), avant le semis et les vœux
+    if (!def.daily && typeof def.id === 'number' && contractNeeded(Save.campaign, def.id)) {
+      const ch = chapterOf(def.id);
+      this.showPanel(buildContractPick({ chapter: ch, onPick: (id) => { chooseContract(Save.campaign, ch, id); Save.save(); AudioSys.play('ui_confirm', { volume: 0.5 }); this.prepIsland(def); } }));
+      return;
+    }
+    const contract = !def.daily && typeof def.id === 'number' ? contractLine(Save.campaign, chapterOf(def.id)) : null;
     const semis = !!(def.mech && def.mech.has('semis')) && !def.daily;
     const go = (semisId) => { const d2 = semisId && semisId !== 'saisons' ? { ...def, weights: applySemis(def.weights, semisId), semis: semisId } : def; hideUI(); scenes.go('island', { def: d2, skipWishes: true }, { fade: 0.5 }); };
-    if (!semis && !(def.wishes && def.wishes.length)) { go(null); return; }
-    this.showPanel(buildIslandPrep({ def, semis, onStart: (id) => { AudioSys.play('ui_confirm', { volume: 0.5 }); go(id); } }));
+    if (!semis && !(def.wishes && def.wishes.length) && !contract) { go(null); return; }
+    this.showPanel(buildIslandPrep({ def, semis, contract, onStart: (id) => { AudioSys.play('ui_confirm', { volume: 0.5 }); go(id); } }));
   },
   startInfinite() { scenes.go('story', { screens: infiniteScreens(), onDone: () => scenes.go('island', { def: INFINITE }, { fade: 0.5 }) }); },
   startDaily() { const def = dailyDef(); scenes.go('story', { screens: dailyScreens(def), onDone: () => this.prepIsland(def) }); },
@@ -187,12 +196,14 @@ const Game = {
       Save.data.stats.placements += result.placements; Save.data.stats.closed += result.stats.closed; Save.data.stats.wishes += result.wishesDone;
       const prevStars = c.stars[def.id] || 0;
       c.stars[def.id] = Math.max(prevStars, result.stars);
+      const ctr = noteContractResult(c, def.id, result); if (ctr) result.contract = ctr;
+      const prevGold = !!(c.gold && c.gold[def.id]); if (result.gold) { c.gold = c.gold || {}; c.gold[def.id] = true; }
       if (result.score > (c.best[def.id] || 0)) { newRecord = !!c.best[def.id]; c.best[def.id] = result.score; }
       // graines : étoiles nouvelles + vœux + île terminée la première fois
       const firstTime = !c.memoriesRead.includes(def.id);
-      seedsGained = Math.max(0, result.stars - prevStars) * (BALANCE.seeds.star + (c.upgrades.evening || 0)) + (firstTime ? result.wishesDone * BALANCE.seeds.wish + BALANCE.seeds.island : 0) + (BALANCE.upgrades.almanac[c.upgrades.almanac || 0] || 0);
+      seedsGained = Math.max(0, result.stars - prevStars) * (BALANCE.seeds.star + (c.upgrades.evening || 0)) + (result.gold && !prevGold ? 1 : 0) + (firstTime ? result.wishesDone * BALANCE.seeds.wish + BALANCE.seeds.island : 0) + (BALANCE.upgrades.almanac[c.upgrades.almanac || 0] || 0);
       c.seeds += seedsGained; c.seedsTotal += seedsGained;
-      if (result.stars >= 1 && def.id >= c.unlockedIsland && def.id < CAMPAIGN_SIZE) { const gated = def.id % 5 === 0 && chapterStars(c.stars, def.id / 5) < CHAPTER_GATE; if (!gated) c.unlockedIsland = def.id + 1; }
+      if (result.stars >= 1 && def.id >= c.unlockedIsland && def.id < CAMPAIGN_SIZE) { const gated = def.id % 5 === 0 && gateStars(c, def.id / 5) < CHAPTER_GATE; if (!gated) c.unlockedIsland = def.id + 1; }
       if (def.id === CAMPAIGN_SIZE && result.stars >= 1) { c.completed = true; Save.data.infinite.unlocked = true; }
       if (def.id >= 10) Save.data.infinite.unlocked = true;
       Save.noteIslandDone();
@@ -215,7 +226,7 @@ const Game = {
     const next = () => {
       if (result.stars < 1) { this.startIsland(def.id); return; }
       if (def.id === CAMPAIGN_SIZE) { scenes.go('story', { screens: endingScreens(), skippable: false, onDone: () => scenes.go('ending') }); return; }
-      scenes.go('workshop', { onContinue: () => { if (c.unlockedIsland > def.id) this.startIsland(def.id + 1); else { this.showMenu(); this.toast(`Il faut ${CHAPTER_GATE} étoiles dans ce chapitre pour passer au suivant`); } } });
+      scenes.go('workshop', { onContinue: () => { if (c.unlockedIsland > def.id) this.startIsland(def.id + 1); else { this.showMenu(); this.toast(`Il faut ${CHAPTER_GATE} étoiles dans ce chapitre pour passer au suivant (le contrat d’archipel en vaut deux)`); } } });
     };
     if (result.stars >= 1 && !c.memoriesRead.includes(def.id)) { c.memoriesRead.push(def.id); Save.save(); }
     this.remindBackup();
@@ -306,6 +317,7 @@ class IslandScene {
       onPause: () => this.togglePause(),
       onSwap: (i) => { if (isl.swap(i)) AudioSys.play('tile_swap', { volume: 0.6 }); else AudioSys.play('ui_error', { volume: 0.4 }); },
       onPick: (i) => { if (isl.pick(i)) { AudioSys.play('tile_swap', { volume: 0.5 }); this.tutorial.onEvent('hand'); } },
+      onCloseSeason: () => { if (isl.closeSeason()) AudioSys.play('ui_confirm', { volume: 0.5 }); },
       onDiscard: () => { if (isl.discard()) AudioSys.play('tile_discard', { volume: 0.6 }); else AudioSys.play('ui_error', { volume: 0.4 }); },
       onBud: () => this.setBud(!this.budMode),
       onUndo: () => { if (isl.undo()) { AudioSys.play('tile_undo', { volume: 0.6 }); this.hud.notify('Souvenir : la dernière pose est annulée', 'info'); } else AudioSys.play('ui_error', { volume: 0.4 }); },
@@ -473,17 +485,17 @@ class IslandScene {
       const s = STORY.seasons[e.to]; const rl = e.rule && STORY.seasonRules[e.rule] ? STORY.seasonRules[e.rule] : null;
       this.hud.logOnly(`${s.name}${rl && isl.rulesVariable ? ` · ${rl.name}` : ''} — ${rl ? rl.line : s.line}`, 'season');
       this.hud.seasonTurn();
-      const cam = this.cam; const z0 = cam.tzoom; const zr = Math.max(minZoom() * 1.0, z0 * 0.9); cam.tzoom = zr;
-      setTimeout(() => { if (Math.abs(cam.tzoom - zr) < 1e-6) cam.tzoom = z0; }, 3200);
       fx.flightTarget = this.hud.scoreTarget();
       const flights = seasonFlights(e, isl); const total = flights.reduce((a, f) => a + f.pts, 0);
       if (total) this.hud.holdScore(total);
-      const stagger = flights.length > 24 ? 1900 / flights.length : 80;
-      flights.forEach((f, i) => { const w = toWorld(f.q, f.r); fx.fly(w.x, w.y, f.pts, { color: f.pts < 0 ? '#d95f4b' : f.color, delay: 0.9 + i * stagger / 1000, onArrive: () => { this.hud.release(f.pts); AudioSys.play(f.pts < 0 ? 'point_bad' : `point_${Math.min(8, 1 + Math.floor(i / Math.max(1, flights.length / 8)))}`, { volume: 0.35 }); } }); });
+      const stagger = Math.min(140, Math.max(30, 1800 / Math.max(1, flights.length)));   // 140 ms entre deux départs, resserrés pour que tout tienne en quatre secondes
+      const cam = this.cam; const z0 = cam.tzoom; const zr = Math.max(minZoom() * 1.0, z0 * 0.9); cam.tzoom = zr;
+      setTimeout(() => { if (Math.abs(cam.tzoom - zr) < 1e-6) cam.tzoom = z0; }, 1500 + flights.length * stagger + 2000);
+      flights.forEach((f, i) => { const w = toWorld(f.q, f.r); fx.fly(w.x, w.y, f.pts, { color: f.pts < 0 ? '#d95f4b' : f.color, delay: 0.9 + i * stagger / 1000, cell: Number.isInteger(f.q) ? { q: f.q, r: f.r } : null, onArrive: () => { this.hud.release(f.pts); AudioSys.play(f.pts < 0 ? 'point_bad' : `point_${Math.min(8, 1 + Math.floor(i / Math.max(1, flights.length / 8)))}`, { volume: 0.35 }); } }); });
       const lines = seasonLines(e, isl);
-      if (this.hud.recapMode === 'full') { this.hud.onTick = null; setTimeout(() => this.hud.seasonRecap({ from: e.from, to: e.to, lines, total: e.pts }), 900 + flights.length * stagger + 700); }
-      else if (e.pts) setTimeout(() => this.hud.bumpScore(e.pts), 900 + flights.length * stagger + 800);
-      if (e.faunaBonus && this.mech.has('breath')) setTimeout(() => this.hud.ribbon(`+${e.faunaBonus} souffle${e.faunaBonus > 1 ? 's' : ''} (faune)`, '#3a9c8a', 1600, 'streak'), 1200 + flights.length * stagger);
+      if (this.hud.recapMode === 'full') { this.hud.onTick = null; setTimeout(() => this.hud.seasonRecap({ from: e.from, to: e.to, lines, total: e.pts }), 900 + flights.length * stagger + 1900); }
+      else if (e.pts) setTimeout(() => this.hud.bumpScore(e.pts), 900 + flights.length * stagger + 2000);
+      if (e.faunaBreaths && this.mech.has('breath')) setTimeout(() => this.hud.ribbon(`+${e.faunaBreaths} souffle${e.faunaBreaths > 1 ? 's' : ''} (faune)`, '#3a9c8a', 1600, 'streak'), 1400 + flights.length * stagger);
       this.tutorial.onEvent('season');
       this.updateAmbience();
     } else if (e.type === 'fauna') {
@@ -599,6 +611,7 @@ class IslandScene {
     if (k === 'KeyM') { const m = AudioSys.toggleMute(); Save.options.muted = m; Save.save(); return; }
     if (this.paused || this.hold || !this.isl || this.isl.ended) return;
     const isl = this.isl;
+    if (k === 'KeyC') { this.hud.onCloseSeason(); return; }
     if (k === 'Digit2' || k === 'Numpad2') { if (isl.handOn) this.hud.onPick(1); else this.hud.onSwap(1); }
     if (k === 'Digit3' || k === 'Numpad3') { if (isl.handOn) this.hud.onPick(2); else this.hud.onSwap(2); }
     if (k === 'Digit4' || k === 'Numpad4') { if (isl.handOn) this.hud.onPick(3); }

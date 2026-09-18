@@ -148,19 +148,19 @@ Seconde réponse de l'auditeur, « que faudrait-il pour approcher 10/10 » (`doc
 
 | Mesure | Réf. audit | Décision | Note |
 |---|---|---|---|
-| Transition de saison en plan silencieux : les points volent depuis les régions concernées vers le score, la règle écrite une seule fois | M1 | retenu (prochain lot) | — |
-| Le son du coup : une note par point sur une gamme qui monte avec la série, un accord à la fermeture | M2 | retenu (prochain lot) | — |
-| Jauge de série près du score, qui se vide quand la série casse | M3 | retenu (prochain lot) | — |
-| Troisième étoile à 90 % du bot, étoile d'or cosmétique à 100 % | E1 | retenu (prochain lot) | — |
-| Contrat d'archipel choisi en début de chapitre, seconde voie pour la porte, avec un rappel de l'avancement | P2 | retenu (prochain lot) | — |
+| Transition de saison en plan silencieux : les points volent depuis les régions concernées vers le score, la règle écrite une seule fois | M1 | fait (journal 47) | — |
+| Le son du coup : une note par point sur une gamme qui monte avec la série, un accord à la fermeture | M2 | fait (journal 47) | — |
+| Jauge de série près du score, qui se vide quand la série casse | M3 | fait (journal 47) | — |
+| Troisième étoile à 90 % du bot, étoile d'or cosmétique à 100 % | E1 | fait (journal 48) | — |
+| Contrat d'archipel choisi en début de chapitre, seconde voie pour la porte, avec un rappel de l'avancement | P2 | fait (journal 48) | — |
 | Carte postale de l'île finie (export image) | R5 | retenu (prochain lot) | — |
-| Souffles plus rares, version douce : gains par fermeture et par animal réduits, le vœu conservé | G3 | retenu (prochain lot) | recalibrage ensuite |
+| Souffles plus rares, version douce : gains par fermeture et par animal réduits, le vœu conservé | G3 | fait (journal 48) | recalibrage ensuite |
 | Signature écrite par île générée : contrainte affichée sur la carte d'intro | P3 | retenu (prochain lot) | table d'une vingtaine |
 | Un « pourquoi » sur chaque point : détail cumulé au survol du score | E3 | retenu (prochain lot) | repris au bilan |
-| Amélioration de l'Atelier « clore la saison plus tôt » (1, 2 ou 3 poses avant) | C1 | retenu (prochain lot), compromis | pas de bouton libre |
+| Amélioration de l'Atelier « clore la saison plus tôt » (1, 2 ou 3 poses avant) | C1 | fait (journal 48), compromis | pas de bouton libre |
 | Écrire les îles muettes (36 à 49), voix qui tient compte de ce qu'on a bâti | N2, N3 | retenu (prochain lot) | — |
-| Passe d'interface : boutons du menu au gabarit, icônes d'Atelier distinctes | A2 | retenu (prochain lot) | — |
-| Ambiance sonore liée à la composition de l'île | N4 | retenu (prochain lot) | — |
+| Passe d'interface : boutons du menu au gabarit, icônes d'Atelier distinctes | A2 | fait (journal 47) | — |
+| Ambiance sonore liée à la composition de l'île | N4 | fait (journal 47) | — |
 | Défis à règle tordue | R3 | plus tard | le commanditaire est réservé, à revoir |
 | Décision de fin d'île (clore l'île contre une prime) | G4 | plus tard | jugée « bof » |
 | Vœux enchaînés d'un habitant | N1 | plus tard | — |

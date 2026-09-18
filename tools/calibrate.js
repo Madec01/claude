@@ -30,7 +30,7 @@ for (let n = range[0]; n <= (range[1] ?? range[0]); n++) {
     strong.push(r.score); wishes.push(r.wishesTotal ? r.wishesDone / r.wishesTotal : 1); perCell.push(r.score / r.cells);
     greedy.push(playGreedy(def, 0).score);
   }
-  const m = med(strong); out[n] = [0.55, 0.8, 1.0].map((f) => Math.round((m / def.cells) * f * 10) / 10);
+  const m = med(strong); out[n] = [0.55, 0.8, 0.9, 1.0].map((f) => Math.round((m / def.cells) * f * 10) / 10);   // trois étoiles à 55 / 80 / 90 %, étoile d'or à 100 %
   rows.push({ île: def.id, cases: def.cells, glouton: Math.round(med(greedy)), fort_med: Math.round(m), fort_min: Math.min(...strong), fort_max: Math.max(...strong), par_case: (m / def.cells).toFixed(2), vœux: (wishes.reduce((a, b) => a + b, 0) / N).toFixed(2), seuils_actuels: (def.starFactors || [2.8, 5.2, 7.8]).map((f) => Math.round(def.cells * f)).join('/'), nouveaux: out[n].join('/'), s: ((Date.now() - t0) / 1000).toFixed(1) });
   console.error(`île ${def.id} : ${rows[rows.length - 1].s} s`);
 }
@@ -38,6 +38,6 @@ console.table(rows);
 if (WRITE) {
   const { CAMPAIGN_STARS } = await import('../src/data/campaign_stars.js'); const merged = { ...CAMPAIGN_STARS, ...out };
   const body = Object.keys(merged).map(Number).sort((a, b) => a - b).map((k) => `  ${k}: [${merged[k].join(', ')}],`).join('\n');
-  writeFileSync(new URL('../src/data/campaign_stars.js', import.meta.url), `// Seuils d'étoiles des îles de campagne (points par case, 55 / 80 / 100 % de la médiane du bot fort), générés par tools/calibrate.js.\nexport const CAMPAIGN_STARS = {\n${body}\n};\n`);
+  writeFileSync(new URL('../src/data/campaign_stars.js', import.meta.url), `// Seuils d'étoiles des îles de campagne (points par case : 55 / 80 / 90 % de la médiane du bot fort, puis l'étoile d'or à 100 %), générés par tools/calibrate.js.\nexport const CAMPAIGN_STARS = {\n${body}\n};\n`);
   console.error('campaign_stars.js écrit');
 }

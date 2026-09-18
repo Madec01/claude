@@ -9,7 +9,9 @@ import { preview, previewBuild, canBuild, canFuse, previewFuse } from '../src/ga
 import { STORY } from '../src/data/story.js';
 import { BALANCE } from '../src/data/balance.js';
 import { playStrong } from './bot.js';
-import { campaignIsland, CAMPAIGN_SIZE, CAMPAIGN_WISHES, islandOptions } from '../src/data/campaign.js';
+import { campaignIsland, CAMPAIGN_SIZE, CAMPAIGN_WISHES, islandOptions, gateStars, chapterStars } from '../src/data/campaign.js';
+import { contractOffers, chooseContract, noteContractResult, contractLine, contractNeeded, CONTRACTS } from '../src/data/contracts.js';
+import { gradeMove } from '../src/game/feedback.js';
 
 let failures = 0;
 const check = (cond, msg) => { if (!cond) { failures++; console.error('ÉCHEC :', msg); } };
@@ -367,6 +369,42 @@ for (const def of ISLANDS.slice(0, 4)) {
   const { result } = playStrong(def);
   check(!!result && result.stars >= 1, `bot fort : au moins une étoile sur l'île ${def.id} (${result && result.score} pts, seuils ${result && result.thresholds.join('/')})`);
   console.log(`bot fort île ${def.id} : ${result.score} pts, ${result.stars} étoile(s), vœux ${result.wishesDone}/${result.wishesTotal}`);
+}
+// --- séries assouplies : un coup correct ne casse pas, à deux points du meilleur c'est bon, fermetures hors étalon
+{
+  check(gradeMove(4, 6) === 'good', 'à deux points du meilleur : bon');
+  check(gradeMove(3, 6) === 'ok', 'à la moitié : correct');
+  check(gradeMove(2, 6) === 'meh', 'sous la moitié : faible');
+  const def = campaignIsland(9); const isl = new Island(def, { ...islandOptions(def) });
+  isl.stats.streak = 2;
+  const cells = isl.board.legalCells().map((c) => ({ c, pv: isl.preview(c.q, c.r) })).filter((x) => x.pv).sort((a, b) => b.pv.total - a.pv.total);
+  const mid = cells.find((x) => x.pv.total > 0 && x.pv.total >= cells[0].pv.total * 0.5 && x.pv.total < cells[0].pv.total * 0.8 && x.pv.total < cells[0].pv.total - 2);
+  if (mid) { isl.place(mid.c.q, mid.c.r); check(isl.stats.streak === 2, `un coup correct laisse la série à 2 (${isl.stats.streak})`); }
+}
+// --- étoile d'or, Faucille
+{
+  const def = campaignIsland(12); const isl = new Island(def, { ...islandOptions(def), upgrades: { sickle: 2 } });
+  check(isl.goldThreshold > isl.thresholds[2], `l'étoile d'or est au-dessus de la troisième étoile (${isl.thresholds[2]} < ${isl.goldThreshold})`);
+  check(!isl.canCloseSeason(), 'Faucille : pas de clôture en début de saison');
+  isl.inSeason = isl.seasonLength - 2; check(isl.canCloseSeason(), 'Faucille 2 : clôture possible à deux poses de la fin');
+  isl.inSeason = isl.seasonLength - 3; check(!isl.canCloseSeason(), 'Faucille 2 : pas à trois poses de la fin');
+  isl.inSeason = isl.seasonLength - 1; const s0 = isl.season; check(isl.closeSeason() && isl.season !== s0 && isl.inSeason === 0 && isl.stats.sickled === 1, 'clore la saison la fait avancer');
+  const isl2 = new Island(def, { ...islandOptions(def) }); isl2.inSeason = isl2.seasonLength - 1; check(!isl2.canCloseSeason(), 'sans Faucille, rien');
+}
+// --- contrats d'archipel
+{
+  const offers = contractOffers(2); check(offers.length === 3 && JSON.stringify(offers.map((c) => c.id)) === JSON.stringify(contractOffers(2).map((c) => c.id)), 'trois contrats, tirage stable');
+  check(contractOffers(3).every((c) => c.from <= 3), 'pas de contrat dont la mécanique est fermée');
+  for (const c of CONTRACTS) for (const ch of Object.keys(c.targets)) check(Number(ch) >= c.from, `${c.id} : cibles à partir de son chapitre`);
+  const camp = { stars: { 6: 1, 7: 1, 8: 1, 9: 1 }, contracts: {} };
+  check(contractNeeded(camp, 6) && !contractNeeded(camp, 3), 'contrat demandé à l’entrée du chapitre 2, pas au chapitre 1');
+  chooseContract(camp, 2, 'wishes'); check(!contractNeeded(camp, 7), 'plus demandé une fois choisi');
+  const r1 = noteContractResult(camp, 6, { stats: {}, fauna: 0, wishesDone: 3 }); check(r1.after === 3 && !r1.done, 'progression enregistrée');
+  const r2 = noteContractResult(camp, 6, { stats: {}, fauna: 0, wishesDone: 2 }); check(r2.after === 3, 'rejouer une île ne cumule pas (le meilleur compte)');
+  for (const n of [7, 8]) noteContractResult(camp, n, { stats: {}, fauna: 0, wishesDone: 1 });
+  check(gateStars(camp, 2) === 4 && chapterStars(camp.stars, 2) === 4, 'porte sans contrat rempli : les étoiles seules');
+  const r3 = noteContractResult(camp, 9, { stats: {}, fauna: 0, wishesDone: 3 }); check(r3.done && r3.justDone && gateStars(camp, 2) === 6, `contrat rempli : +2 pour la porte (${r3.after}/${r3.target}, porte ${gateStars(camp, 2)})`);
+  check(contractLine(camp, 2).done && /rempli/.test(contractLine(camp, 2).text), 'ligne de rappel : rempli');
 }
 console.log(failures ? `${failures} échec(s)` : 'Tous les tests passent.');
 process.exit(failures ? 1 : 0);

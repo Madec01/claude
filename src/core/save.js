@@ -18,7 +18,8 @@ const defaults = () => ({
   options: { master: 0.8, music: 0.7, ambience: 0.8, sfx: 0.9, muted: false, shake: true, testMode: false, skipTutorial: false, showFps: false, tileHelp: true, grid: false, recap: 'auto' },   // relevé de saison : auto (complet sur ordinateur, bref sur téléphone), full, brief, none
   campaign: {
     recipes: [],   // fusions découvertes (Cahier)
-    unlockedIsland: 1, stars: {}, best: {}, seeds: 0, seedsTotal: 0,
+    unlockedIsland: 1, stars: {}, gold: {}, best: {}, seeds: 0, seedsTotal: 0,   // gold : étoile d'or par île (cosmétique) ; contracts : contrat d'archipel par chapitre
+    contracts: {},
     upgrades: { sight: 0, pocket: 0, breath: 0, patience: 0, rare: 0, memory: 0 },
     prologueSeen: false, completed: false, islandsPlayed: 0, memoriesRead: [],
   },
