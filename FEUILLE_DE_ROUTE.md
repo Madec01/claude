@@ -43,9 +43,9 @@
 | Climat | File | Avantage permanent | Contrainte permanente | Saisons et vie | Statut |
 |---|---|---|---|---|---|
 | Tempéré (actuel) | équilibrée | — | — | référence | fait |
-| Chaud, aride | sable et roche fréquents, eau rare | eau posée +2, étang +2 par saison, vergers +1 | prés secs dès le printemps loin de l'eau, pas de gel ni de veillée | été de deux saisons, chèvres, poules, palette ocre | à faire |
-| Humide, pluvieux | marais, eau, forêts | prés jamais secs, rivières +1, lacs +1 | hameau contre marais −2, sentiers de deux cases au plus, orages fréquents | grenouilles, canards, vert saturé, brume | à faire |
-| Froid, boréal | pins et roche, vergers rares | veillée +1, forêts près d'un hameau +1 chaque hiver, glace tôt | champs dormants deux saisons, pas de floraison | deux hivers par cycle, manchots, ours, neige persistante | à faire |
+| Chaud, aride | sable et roche fréquents, eau rare | eau posée +2, étang +2 par saison, vergers +1 | prés secs dès le printemps loin de l'eau, pas de gel ni de veillée | été de deux saisons, chèvres, poules, palette ocre | **fait** |
+| Humide, pluvieux | marais, eau, forêts | prés jamais secs, rivières +1, lacs +1 | hameau contre marais −2, sentiers de deux cases au plus, orages fréquents | grenouilles, canards, vert saturé, brume | **fait** |
+| Froid, boréal | pins et roche, vergers rares | veillée +1, forêts près d'un hameau +1 chaque hiver, glace tôt | champs dormants deux saisons, pas de floraison | deux hivers par cycle, manchots, ours, neige persistante | **fait** |
 | Venteux, côtier | îles allongées et trouées, sable | moulins +1 par saison, grand vent fréquent, tours renforcées | forêt seule −1, rivières courtes | canards, manchots l'hiver, embruns | plus tard |
 | Montagnard | roche et collines | tuile contre la roche +1, lacs de montagne +1, mines | champs −1 loin de l'eau, saisons plus courtes | chèvres, ours, brouillard | plus tard |
 | Île à deux climats, choix du climat en infini / jour | | | | | plus tard |

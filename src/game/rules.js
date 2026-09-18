@@ -11,12 +11,12 @@ const P = BALANCE.points;
 function active(tile) { return !(tile.dry); }
 
 /** Points d'un bord entre la tuile posée et un voisin, selon la saison. */
-function edgePoints(tile, other, season, rule = null) {
+function edgePoints(tile, other, season, rule = null, climate = null) {
   if (!active(other) && !tile.rare) { if (Board.isFamily(other, 'meadow')) return { pts: 0, label: 'sèche' }; }
   const fa = Board.familiesOf(tile), fb = Board.familiesOf(other);
   let best = 0, bestKey = null;
   for (const x of fa) for (const y of fb) {
-    if (season === 'winter' && rule !== 'doux' && ((x === 'field' && y === 'hamlet') || (x === 'hamlet' && y === 'field')) && tile.family !== 'granary' && other.family !== 'granary' && (tile.level || 1) < 3 && (other.level || 1) < 3) continue; // champs dormants (sauf grenier, hiver doux, domaine de niveau 3)
+    if ((season === 'winter' || (season === 'autumn' && climate && climate.fieldsDormantAutumn)) && rule !== 'doux' && ((x === 'field' && y === 'hamlet') || (x === 'hamlet' && y === 'field')) && tile.family !== 'granary' && other.family !== 'granary' && (tile.level || 1) < 3 && (other.level || 1) < 3) continue; // champs dormants (sauf grenier, hiver doux, domaine de niveau 3 ; dès l'automne en climat froid)
     const v = affinity(x, y);
     if (Math.abs(v) > Math.abs(best)) { best = v; bestKey = pairKey(x, y); }
   }
@@ -33,6 +33,11 @@ function edgePoints(tile, other, season, rule = null) {
   // four à pain : +1 par bord avec un champ ; mine : +1 par bord avec une roche
   if ((tile.family === 'oven' && fb.includes('field')) || (other.family === 'oven' && fa.includes('field'))) best += 1;
   if ((tile.family === 'mine' && fb.includes('rock')) || (other.family === 'mine' && fa.includes('rock'))) best += 1;
+  // climat : vergers +1 au chaud ; hameau contre marais −2 en climat humide
+  if (climate) {
+    if (climate.orchardEdge && best > 0 && (fa.includes('orchard') || fb.includes('orchard'))) best += climate.orchardEdge;
+    if (climate.hamletMarsh && ((fa.includes('hamlet') && fb.includes('marsh')) || (fa.includes('marsh') && fb.includes('hamlet')))) best = climate.hamletMarsh;
+  }
   // niveau 2 : tous les bords de la tuile bâtie valent +1 de plus (les mauvaises paires restent mauvaises)
   if (best >= 0) best += Math.max(0, (tile.level || 1) - 1) + Math.max(0, (other.level || 1) - 1);   // niveau 2 : +1, niveau 3 : +2
   return { pts: best, label: bestKey ? (PAIR_LABELS[bestKey] || '') : '' };
@@ -55,7 +60,7 @@ export function previewBuild(board, q, r, tile, season, mods = {}) {
   const edges = []; let total = 0;
   DIRS.forEach(([dq, dr], d) => {
     const n = board.get(q + dq, r + dr); if (!n) return;
-    const after = edgePoints(up, n, season, mods.rule || null), before = edgePoints(t, n, season, mods.rule || null);
+    const after = edgePoints(up, n, season, mods.rule || null, mods.climate || null), before = edgePoints(t, n, season, mods.rule || null, mods.climate || null);
     const pts = after.pts - before.pts;
     if (pts !== 0) { edges.push({ d, q: q + dq, r: r + dr, pts, label: after.label }); total += pts; }
   });
@@ -73,7 +78,7 @@ export function preview(board, q, r, tile, season, mods = {}) {
   DIRS.forEach(([dq, dr], d) => {
     const n = board.get(q + dq, r + dr);
     if (!n) return;
-    const e = edgePoints(tile, n, season, mods.rule || null);
+    const e = edgePoints(tile, n, season, mods.rule || null, mods.climate || null);
     if (e.pts !== 0) { edges.push({ d, q: q + dq, r: r + dr, pts: e.pts, label: e.label }); total += e.pts; }
   });
   // simulation de la pose pour rivières et fermetures
@@ -86,15 +91,17 @@ export function preview(board, q, r, tile, season, mods = {}) {
     board.version++; board._water = null;
     const body = classifyWater(board).get(key(q, r));
     const spring = season === 'spring' && (mods.rule === 'crue' || !mods.rule) ? P.springWater : 0;
+    const cl = mods.climate || {};
     if (body.kind === 'river') {
-      river = { pts: P.river + (mods.river || 0) + spring, len: body.size, kind: 'river' };
+      river = { pts: P.river + (mods.river || 0) + spring + (cl.riverPlus || 0), len: body.size, kind: 'river' };
       if (body.mouth && !mouthBefore) river.mouthPts = P.mouth;
     } else if (body.kind === 'pond') river = { pts: P.pond + spring, len: 1, pond: true, kind: 'pond' };
     else if (body.kind === 'mountainLake') { const rocks = neighbors(q, r).filter(([a, b]) => { const n = board.get(a, b); return n && (Board.isFamily(n, 'rock') || Board.isFamily(n, 'hill')); }).length; river = { pts: P.lake + rocks + spring, len: body.size, kind: 'mountainLake' }; }
-    else river = { pts: P.lake + spring, len: body.size, kind: 'lake' };
+    else river = { pts: P.lake + spring + (cl.lakePlus || 0), len: body.size, kind: 'lake' };
     if (river.pts) { base.push({ pts: river.pts, label: KIND_LABEL[body.kind] }); total += river.pts; }
     if (river.mouthPts) { base.push({ pts: river.mouthPts, label: 'embouchure' }); total += river.mouthPts; }
     if (mods.rule === 'chaleurs') { base.push({ pts: 2, label: 'fraîcheur' }); total += 2; }
+    if (cl.waterPlaced) { base.push({ pts: cl.waterPlaced, label: 'soleil' }); total += cl.waterPlaced; }
     board.version++; board._water = null;
   }
   if (mods.wind && (Board.isFamily(placed, 'forest') || Board.isFamily(placed, 'orchard'))) { base.push({ pts: 1, label: 'vent' }); total += 1; }
@@ -169,7 +176,7 @@ export function previewFuse(board, q, r, tile, season, mods = {}) {
   const edges = []; let total = 0;
   DIRS.forEach(([dq, dr], d) => {
     const n = board.get(q + dq, r + dr); if (!n) return;
-    const after = edgePoints(fused, n, season, mods.rule || null), before = edgePoints(t, n, season, mods.rule || null);
+    const after = edgePoints(fused, n, season, mods.rule || null, mods.climate || null), before = edgePoints(t, n, season, mods.rule || null, mods.climate || null);
     const pts = after.pts - before.pts;
     if (pts !== 0) { edges.push({ d, q: q + dq, r: r + dr, pts, label: after.label }); total += pts; }
   });

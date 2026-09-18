@@ -690,6 +690,12 @@ export const STORY = {
     work: 'Ouvrages : une tuile bonus qui se pose sur une tuile posée. Bien placée, elle rapporte à chaque saison ; mal placée, elle coûte. Sa fiche dit la bonne et la mauvaise place.',
     build3: 'Niveau 3 : une tuile de niveau 2 qui a traversé une saison se bâtit encore (2 souffles). Elle prend sa signature et rapporte +1 par saison.',
   },
+  climates: {
+    temperate: { name: 'Tempéré', line: 'Le climat de référence.', plus: '', minus: '' },
+    hot: { name: 'Climat chaud', line: 'Le sable est chaud dès le matin. L’eau vaut de l’or.', plus: 'Chaque tuile d’eau posée +2, un étang +1 de plus par saison, les bords des vergers +1, l’été dure deux saisons.', minus: 'Les prés loin de l’eau sèchent dès le printemps ; pas de gel, donc pas de veillée.' },
+    humid: { name: 'Climat humide', line: 'Il pleut. Puis il pleut. Rien ne sèche.', plus: 'Les prés ne sèchent jamais, rivières et lacs +1 par tuile, orages fréquents.', minus: 'Un hameau contre un marais vaut −2 ; les sentiers ne dépassent pas deux cases.' },
+    cold: { name: 'Climat froid', line: 'La neige reste. Le silence compte double.', plus: 'La veillée vaut +1 par paire ; chaque forêt qui touche un hameau rapporte +1 chaque hiver ; l’hiver dure deux saisons.', minus: 'Les champs dorment dès l’automne ; rien ne fleurit au printemps.' },
+  },
   verdicts: {
     master: ['Coup de maître !', 'Magistral !', 'L’île applaudit !', 'Rien à redire !'],
     perfect: ['Parfait !', 'Pile là !', 'Exactement !', 'La bonne case !'],

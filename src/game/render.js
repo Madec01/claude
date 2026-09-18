@@ -63,6 +63,7 @@ export class IslandRenderer {
     this.drawShallows(ctx);
     this.drawEmptyCells(ctx);
     if (this.legacy) this.drawTiles(ctx); else this.drawLayered(ctx);
+    this.drawClimateTint(ctx);
     this.particlesWorld(ctx, 0);
     this.drawHover(ctx);
     this.drawRings(ctx);
@@ -84,7 +85,7 @@ export class IslandRenderer {
 
   drawSea(ctx, season) {
     const tr = this.transition;
-    const cols = SEA[season] || SEA.spring;
+    const cl = this.isl.climate; const cols = (cl && cl.sea) || SEA[season] || SEA.spring;
     const g = ctx.createLinearGradient(0, 0, 0, STAGE.H);
     g.addColorStop(0, cols[0]); g.addColorStop(1, cols[1]);
     ctx.fillStyle = g; ctx.fillRect(0, 0, STAGE.W, STAGE.H);
@@ -408,6 +409,15 @@ export class IslandRenderer {
     grad.addColorStop(0, 'rgba(0,0,0,0.95)'); grad.addColorStop(0.35, 'rgba(0,0,0,0.7)'); grad.addColorStop(1, 'rgba(0,0,0,0)');
     c.globalCompositeOperation = 'destination-in'; c.fillStyle = grad; c.fillRect(0, 0, W, H);
     this._lens.set(k, cv); return cv;
+  }
+
+  /** Voile de climat (multiplication d'une teinte claire sur l'île seulement) : ocre au chaud, vert d'eau à l'humide, bleu pâle au froid. */
+  drawClimateTint(ctx) {
+    const cl = this.isl.climate; if (!cl || !cl.tint) return;
+    const cam = this.cam, b = this.isl.board; ctx.save(); ctx.globalCompositeOperation = 'multiply'; ctx.fillStyle = cl.tint; ctx.beginPath();
+    for (const t of b.tiles.values()) { const w = toWorld(t.q, t.r); const c = cam.toScreen(w.x, w.y); if (c.x < -100 || c.x > STAGE.W + 100 || c.y < -100 || c.y > STAGE.H + 100) continue; const pts = corners(c.x, c.y, SIZE * cam.zoom * 1.01); ctx.moveTo(pts[0][0], pts[0][1]); for (let i = 1; i < 6; i++) ctx.lineTo(pts[i][0], pts[i][1]); ctx.closePath(); }
+    for (const h of this.decor.holes || []) { const w = toWorld(h.q, h.r); const c = cam.toScreen(w.x, w.y); const pts = corners(c.x, c.y, SIZE * cam.zoom * 1.01); ctx.moveTo(pts[0][0], pts[0][1]); for (let i = 1; i < 6; i++) ctx.lineTo(pts[i][0], pts[i][1]); ctx.closePath(); }
+    ctx.fill(); ctx.restore();
   }
 
   /** Forme arrondie légèrement irrégulière (mare). */

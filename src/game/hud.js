@@ -97,6 +97,7 @@ export class Hud {
       const s = rl ? { name: isl.rulesVariable ? `${s0.name} · ${rl.name}` : s0.name, line: rl.line, rule: rl.rule } : s0;
       const w = isl.weather; const wt = w ? (STORY.weather[w.key] || {}) : null;
       pop.innerHTML = `<b>${s.name}</b><em>${s.line}</em><span>${s.rule}</span>${wt ? `<span class="pop-weather">${wt.name}${w.phase === 'active' ? ' (en cours)' : ` dans ${Math.max(0, w.at - isl.inSeason)} pose${w.at - isl.inSeason > 1 ? 's' : ''}`} : ${wt.rule}</span>` : ''}<i>Toucher pour fermer</i>`;
+      { const cl = isl.climate && isl.climate.id !== 'temperate' ? STORY.climates[isl.climate.id] : null; if (cl) pop.insertAdjacentHTML('beforeend', `<div class="pop-climate"><b>${cl.name}</b> — <em>${cl.line}</em><br>✓ ${cl.plus}<br>✗ ${cl.minus}</div>`); }
       clearTimeout(this._popT); this._popT = setTimeout(() => this.toggleSeasonPop(false), 9000);
     }
     pop.classList.toggle('hidden', !open);

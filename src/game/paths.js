@@ -52,7 +52,7 @@ export function computeLinks(board) {
           if (!cur || cells.length < cur.cells.length) best.set(pk, { a: ra, b: rb, cells });
           continue;
         }
-        if (!isOpen(n) || d + 1 > MAX_PATH || dist.has(nk)) continue;
+        if (!isOpen(n) || d + 1 > (board.linkMax || MAX_PATH) || dist.has(nk)) continue;
         dist.set(nk, d + 1); queue.push([nk, [...path, nk]]);
       }
     }

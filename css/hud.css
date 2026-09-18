@@ -207,3 +207,4 @@ html.compact .season-pop { width: min(340px, calc(100vw - 20px)); font-size: 12p
 html.compact .hud-season::after { content: 'ⓘ'; font-size: 11px; opacity: 0.5; position: absolute; right: 6px; top: 3px; }
 
 #hud.finale, #tutorial.finale { visibility: hidden; }
+.season-pop .pop-climate { margin-top: 6px; padding-top: 6px; border-top: 1px dashed rgba(43,42,38,0.2); font-size: 12px; line-height: 1.35; }

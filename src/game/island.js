@@ -3,6 +3,7 @@
 import { Board } from './board.js';
 import { preview, apply, previewBuild, canBuild as ruleCanBuild, canFuse, previewFuse, fusedTile, evalWork, previewWork } from './rules.js';
 import { FUSION_BY_ID, WORKS, LEVEL3_SEASONAL } from '../data/tiles.js';
+import { climateOf } from '../data/climates.js';
 import { transition, nextSeason } from './seasons.js';
 import { evaluate as evalFauna, reconcile } from './fauna.js';
 import { initWishes, updateWishes } from './wishes.js';
@@ -24,6 +25,8 @@ export class Island {
   constructor(def, o = {}) {
     this.def = def;
     this.upgrades = o.upgrades || {};
+    this.climate = climateOf(def.climate);   // chaud, humide, froid ou tempéré
+    this.longSeasonDone = false;
     // bâtir : dès l'île 6 en campagne, toujours dans les modes libres et sur l'Île du jour (forçable par les options : mode test)
     this.buildOn = o.build !== undefined ? !!o.build : (!!def.infinite || !!def.garden || !!def.daily || (typeof def.id === 'number' && def.id >= 6));
     this.refunds = 0;            // tuiles rendues cette saison (au plus une)
@@ -41,6 +44,7 @@ export class Island {
     const seed = def.seed + (o.seedOffset || 0);
     this.rng = new RNG(seed * 7 + 1);
     this.board = new Board(generateMask(seed, def.cells, { roughness: def.roughness, holes: def.holes }));
+    if (this.climate.linkMax) this.board.linkMax = this.climate.linkMax;
     this.garden = !!def.garden;
     this.infinite = !!def.infinite;
     for (const [q, r] of def.ensure || []) this.board.mask.add(key(q, r));
@@ -91,13 +95,13 @@ export class Island {
   /** Modificateurs de règles (améliorations + météo active). */
   get mods() {
     const w = this.weather && this.weather.phase === 'active' ? this.weather.key : null;
-    return { river: this.baseMods.river + (w === 'storm' ? BALANCE.points.stormRiver : 0), refuge: this.baseMods.refuge, wind: w === 'wind', rule: this.rule };
+    return { river: this.baseMods.river + (w === 'storm' ? BALANCE.points.stormRiver : 0), refuge: this.baseMods.refuge, wind: w === 'wind', rule: this.rule, climate: this.climate };
   }
   weatherActive(key) { return !!this.weather && this.weather.phase === 'active' && (!key || this.weather.key === key); }
 
-  scheduleWeather(chance = 0.7) {
+  scheduleWeather(chance = null) {
     if (!this.weatherOn || this.garden) { this.weather = null; return; }
-    const key = pickWeather(this.season, () => this.rng.next(), chance);
+    const key = pickWeather(this.season, () => this.rng.next(), chance === null ? (this.climate.weatherChance || 0.7) : chance);
     this.weather = key ? { key, phase: 'announced', at: Math.max(2, Math.floor(this.seasonLength / 2)) } : null;
     if (this.weather) this.emit({ type: 'weather', kind: 'announce', key, inPlacements: this.weather.at });
   }
@@ -257,7 +261,9 @@ export class Island {
 
   advanceSeason() {
     const from = this.season;
-    this.season = nextSeason(this.season);
+    // climat : une saison longue (été au chaud, hiver au froid) revient une fois avant de passer à la suivante
+    if (this.climate.longSeason === from && !this.longSeasonDone) { this.longSeasonDone = true; this.season = from; }
+    else { this.season = nextSeason(this.season); if (this.season !== this.climate.longSeason) this.longSeasonDone = false; }
     this.seasonsPassed.push(this.season);
     this.inSeason = 0;
     this.stats.closedThisSeason = 0;
@@ -265,7 +271,7 @@ export class Island {
     this.undoUsedThisSeason = false;
     const prevRule = this.rule;
     this.rule = this.garden ? BASE_RULE[this.season] : pickRule(this.season, () => this.rng.next(), this.rulesVariable);
-    const ev = transition(this.board, this.season, this.rule);
+    const ev = transition(this.board, this.season, this.rule, this.climate);
     this.board.touch();
     let pts = 0;
     // chasse et cueillette : les animaux des forêts de la saison écoulée rapportent +2

@@ -13,21 +13,25 @@ export function nextSeason(s) { return SEASONS[(SEASONS.indexOf(s) + 1) % SEASON
  * Applique la transition vers `season`. Retourne la liste d'événements (points, changements de tuiles)
  * pour l'affichage et le score : [{ type, q, r, pts, ... }].
  */
-export function transition(board, season, rule = null) {
+export function transition(board, season, rule = null, climate = null) {
   const ev = [];
+  const cl = climate || {};
   const tiles = [...board.tiles.values()];
-  for (const body of waterBodies(board)) if (body.kind === 'pond') { const t = body.cells[0]; if (neighbors(t.q, t.r).some(([a, b]) => { const n = board.get(a, b); return n && (Board.isFamily(n, 'meadow') || Board.isFamily(n, 'marsh')); })) ev.push({ type: 'pond', q: t.q, r: t.r, pts: P.pondSeason }); }
+  for (const body of waterBodies(board)) if (body.kind === 'pond') { const t = body.cells[0]; if (neighbors(t.q, t.r).some(([a, b]) => { const n = board.get(a, b); return n && (Board.isFamily(n, 'meadow') || Board.isFamily(n, 'marsh')); })) ev.push({ type: 'pond', q: t.q, r: t.r, pts: P.pondSeason + (cl.pondSeason || 0) }); }
   if (season === 'spring') {
     for (const t of tiles) {
       if (t.frozen) { t.frozen = false; ev.push({ type: 'thaw', q: t.q, r: t.r }); }
       if (t.dry) { t.dry = false; ev.push({ type: 'green', q: t.q, r: t.r }); }
+      if (cl.noBloom) continue;   // climat froid : rien ne fleurit
       if (Board.isFamily(t, 'marsh')) { t.bloom = true; ev.push({ type: 'bloom', q: t.q, r: t.r, pts: rule === 'crue' || !rule ? P.springMarsh : 0 }); }
       else if (Board.isFamily(t, 'heath')) { t.bloom = true; ev.push({ type: 'heather', q: t.q, r: t.r, pts: rule === 'crue' || !rule ? P.springHeath : 0 }); }
     }
+    // climat chaud : les prés loin de l'eau sèchent dès le printemps
+    if (cl.dryEarly) for (const t of tiles) if (t.family === 'meadow' && !t.rare && (t.level || 1) < 3 && !neighbors(t.q, t.r).some(([a, b]) => { const n = board.get(a, b); return n && (Board.isFamily(n, 'water') || n.family === 'well' || n.family === 'fountain' || n.family === 'trough'); })) { t.dry = true; ev.push({ type: 'dry', q: t.q, r: t.r }); }
   } else if (season === 'summer') {
     for (const t of tiles) {
       if (t.bloom) t.bloom = false;
-      if (t.family === 'meadow' && !t.rare) {
+      if (t.family === 'meadow' && !t.rare && !cl.meadowNeverDries) {
         const ns = neighbors(t.q, t.r).map(([a, b]) => board.get(a, b)).filter(Boolean);
         if (rule === 'chaleurs') {
           // grandes chaleurs : rien ne sèche, sauf les prairies collées à un marais lui-même privé d'eau
@@ -63,7 +67,10 @@ export function transition(board, season, rule = null) {
       for (const t of tiles) if (Board.isFamily(t, 'marsh') && neighbors(t.q, t.r).some(([a, b]) => Board.isFamily(board.get(a, b), 'water'))) ev.push({ type: 'mild', q: t.q, r: t.r, pts: 1 });
       return ev;
     }
+    if (cl.noFreeze) return ev;   // climat chaud : pas de gel, pas de veillée
     for (const t of tiles) if (Board.isFamily(t, 'water')) { t.frozen = true; ev.push({ type: 'freeze', q: t.q, r: t.r }); }
+    // climat froid : le bois de chauffage
+    if (cl.firewood) for (const t of tiles) if (Board.isFamily(t, 'forest') && !t.rare && neighbors(t.q, t.r).some(([a, b]) => Board.isFamily(board.get(a, b), 'hamlet'))) ev.push({ type: 'firewood', q: t.q, r: t.r, pts: cl.firewood });
     if (rule === 'froid') {
       // grand froid : un hameau sans forêt voisine perd 2 ; chaque forêt qui touche un hameau rapporte +2 (le bois de chauffage)
       for (const t of tiles) {
@@ -77,7 +84,7 @@ export function transition(board, season, rule = null) {
       const hamlets = board.regionNeighbors(reg).filter((n) => Board.isFamily(n, 'hamlet'));
       const uniq = new Map(); for (const h of hamlets) uniq.set(`${h.q},${h.r}`, h);
       const hs = [...uniq.values()];
-      for (let i = 0; i < hs.length; i++) for (let j = i + 1; j < hs.length; j++) ev.push({ type: 'veillee', q: hs[i].q, r: hs[i].r, to: { q: hs[j].q, r: hs[j].r }, pts: P.winterVeillee, region: reg.id });
+      for (let i = 0; i < hs.length; i++) for (let j = i + 1; j < hs.length; j++) ev.push({ type: 'veillee', q: hs[i].q, r: hs[i].r, to: { q: hs[j].q, r: hs[j].r }, pts: P.winterVeillee + (cl.veilleePlus || 0), region: reg.id });
     }
   }
   return ev;
