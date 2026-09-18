@@ -36,6 +36,39 @@
 | 17 | **Ouvrages (tuiles bonus)** | Ruche, épouvantail, ponton, pont, nichoir, feu de camp, menhir, compost : bonne et mauvaise place, pénalité par saison tant que mal placés. Île 7. | à faire |
 | 18 | **Niveaux 3, Atelier, recalibrage** | Signatures par famille, condition « mûrir », Charpente et Semence forte, bot qui bâtit. Île 10. | à faire |
 
+## Lot 5 : climats (idée du commanditaire)
+
+> Un climat change trois choses au plus : la file, un avantage permanent, une contrainte permanente. Affiché à côté de la règle de saison et sur la carte d'intro de l'île. Recoloration par le pipeline (comme les saisons).
+
+| Climat | File | Avantage permanent | Contrainte permanente | Saisons et vie | Statut |
+|---|---|---|---|---|---|
+| Tempéré (actuel) | équilibrée | — | — | référence | fait |
+| Chaud, aride | sable et roche fréquents, eau rare | eau posée +2, étang +2 par saison, vergers +1 | prés secs dès le printemps loin de l'eau, pas de gel ni de veillée | été de deux saisons, chèvres, poules, palette ocre | à faire |
+| Humide, pluvieux | marais, eau, forêts | prés jamais secs, rivières +1, lacs +1 | hameau contre marais −2, sentiers de deux cases au plus, orages fréquents | grenouilles, canards, vert saturé, brume | à faire |
+| Froid, boréal | pins et roche, vergers rares | veillée +1, forêts près d'un hameau +1 chaque hiver, glace tôt | champs dormants deux saisons, pas de floraison | deux hivers par cycle, manchots, ours, neige persistante | à faire |
+| Venteux, côtier | îles allongées et trouées, sable | moulins +1 par saison, grand vent fréquent, tours renforcées | forêt seule −1, rivières courtes | canards, manchots l'hiver, embruns | plus tard |
+| Montagnard | roche et collines | tuile contre la roche +1, lacs de montagne +1, mines | champs −1 loin de l'eau, saisons plus courtes | chèvres, ours, brouillard | plus tard |
+| Île à deux climats, choix du climat en infini / jour | | | | | plus tard |
+
+## Lot 6 : campagne de cinquante îles (idée du commanditaire)
+
+> Les douze îles dessinées à la main restent les îles-souvenirs (récit, fragments) et ferment chaque chapitre ; les îles de passage sont générées (taille, climat, poids, vœux tirés d'une réserve, deux lignes de texte). Le bot fort calibre les étoiles de toutes les îles. Passage au chapitre suivant : la moitié des étoiles du chapitre. Une amélioration d'Atelier par chapitre. Carte d'archipels dans le menu.
+
+| Chapitre | Îles | Ce qui arrive | Taille | Statut |
+|---|---|---|---|---|
+| 1. Prise en main | 1–5 | affinités, fermeture, saisons, rivière, faune | 30–50 | à faire |
+| 2. Les habitants | 6–10 | vœux, souffles, tuiles rares | 50–60 | à faire |
+| 3. Le ciel | 11–15 | météo, règles de saison variables, colline et lande | 60–70 | à faire |
+| 4. Bâtir | 16–20 | niveaux 2, retour de tuile | 60–80 | à faire |
+| 5. Archipel du Sud | 21–25 | climat chaud, fusions et Cahier | 70–80 | à faire |
+| 6. Archipel des Pluies | 26–30 | climat humide, ouvrages | 70–90 | à faire |
+| 7. Archipel du Nord | 31–35 | climat froid, niveaux 3 | 80–90 | à faire |
+| 8. Les Vents et les Cimes | 36–40 | climats venteux et montagnard, îles à deux climats | 90–100 | à faire |
+| 9. Les grandes îles | 41–45 | tout est là, îles jumelles partageant une rivière | 100–140 | à faire |
+| 10. Cent saisons | 46–50 | l'île qui grandit, épilogue, puis génération libre | 120–160 | à faire |
+
+Ordre proposé : finir le lot 4 (grille effacée, fusions, ouvrages, niveaux 3), puis lot 5 (modèle de climat, recoloration, chaud et froid jouables sur îles générées, guide), puis lot 6 (chapitres, générateur par climat et taille, carte, textes courts, calibrage), puis lot 7 (venteux, montagnard, deux climats, jumelles).
+
 ## À planifier plus tard
 
 | Idée | Note | Statut |
