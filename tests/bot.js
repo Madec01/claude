@@ -56,7 +56,7 @@ export function playStrong(def, o = {}) {
   let guard = 0;
   while (!isl.ended && guard++ < 3000) {
     const tile = isl.current;
-    if (!tile) { isl.checkEnd(); break; }
+    if (!tile) { if (isl.shed.length && isl.fromShed(0)) continue; isl.checkEnd(); break; }   // file vide : la remise se vide avant la fin
     if (tile.work) {
       // ouvrage : la meilleure tuile d'accueil tout de suite (frais), sinon en remise, sinon défausse (gratuite)
       let bt = null, bs = -Infinity; for (const t of isl.board.tiles.values()) { if (!isl.canBuild(t.q, t.r)) continue; const pv = isl.previewBuild(t.q, t.r); if (pv && pv.total > bs) { bs = pv.total; bt = t; } }

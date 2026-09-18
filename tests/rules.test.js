@@ -126,6 +126,12 @@ check(affinity('meadow', 'water') === 0, 'prairie-eau = 0');
   const pts = [];
   for (let k = 0; k < 3; k++) { isl.advanceSeason(); const ev = isl.lastEvents.filter((e) => e.type === 'season').pop(); const w = ev.events.filter((x) => x.type === 'work' && x.q === forest.q && x.r === forest.r); pts.push(w.length ? (w[0].gone ? 'gone' : w[0].pts) : null); }
   check(pts[0] === -2 && pts[1] === -1 && pts[2] === 'gone' && !isl.board.get(forest.q, forest.r).work && isl.stats.worksGone === 1, `pénalité −2, −1 puis effacement (${pts.join(',')})`);
+  // fin d'île : la file vide n'achève pas l'île tant qu'un ouvrage en remise peut se poser ; repris puis défaussé, l'île se termine
+  isl.giveWork('menhir'); placeOne(); isl.toShed();
+  isl.queue.list.length = 0; isl.queue.total = 0; isl.checkEnd();
+  check(!isl.ended && isl.shed.length === 1, 'file vide mais remise pleine : l’île continue');
+  isl.fromShed(0); isl.discard();
+  check(isl.ended, 'remise vidée et défaussée : l’île se termine');
   BALANCE.works.everyPlacements = cadence;
 }
 
