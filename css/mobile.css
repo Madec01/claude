@@ -210,8 +210,13 @@ html.compact .season-rule { display: block; font-size: 11px; line-height: 1.2; o
 html.compact.portrait .hud-top { flex-wrap: wrap; row-gap: 4px; }
 html.compact.portrait .hud-season { order: 10; flex: 1 1 100%; overflow: visible; padding-right: 22px; }
 html.compact.portrait .season-txt b { font-size: 13px; }
-html.compact.portrait .tile-help { top: 96px; }
-html.compact.portrait .hud-wishes { top: 96px; }
+html.compact.portrait .hud-season { flex: 1 1 calc(100% - 44px); min-width: 0; }   /* la saison passe à la ligne et la partage avec le journal (ⓘ) */
+html.compact.portrait .hud-log { order: 11; }
+html.compact.portrait .tile-help { top: calc(var(--hud-top-h, 96px) + 6px); }
+html.compact.portrait .hud-wishes { top: calc(var(--hud-top-h, 96px) + 6px); }
+/* jauge de série : sur téléphone, un filet sous le compteur, sans élargir la boîte */
+html.compact .streak-pips { position: absolute; left: 8px; bottom: 1px; height: 4px; gap: 2px; margin: 0; }
+html.compact .streak-pips i { width: 8px; height: 4px; border-radius: 2px; }
 html.compact.portrait .hud-notify { top: auto; bottom: 150px; }
 html.compact.landscape .hud-season { padding-right: 22px; }
 .season-pop { z-index: 40; }

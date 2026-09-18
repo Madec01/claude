@@ -18,7 +18,7 @@ export class Hud {
     this.root = root; this.isl = island; this.mech = mechanics;
     const m = mechanics;
     root.innerHTML = `
-      <div class="hud-top">
+      <div class="hud-top" data-ref="top">
         <div class="hud-block hud-title"><div class="hud-island">${title}</div><div class="hud-arch" data-ref="arch"></div></div>
         <div class="hud-block hud-season" data-ref="seasonBox" title="Règle de la saison">
           <span class="season-icon" data-ref="seasonIcon"></span>
@@ -327,6 +327,8 @@ export class Hud {
     const target = isl.score - (this.hold || 0);   // les points en vol ne sont pas encore comptés
     if (this.shownScore !== target) { const diff = target - this.shownScore; const step = Math.max(1, Math.ceil(Math.abs(diff) * 0.12)); this.shownScore += Math.sign(diff) * Math.min(Math.abs(diff), step); }
     this.set('score', String(this.shownScore));
+    // hauteur réelle de la barre du haut (elle passe sur deux lignes en portrait) : les panneaux dessous s'y calent
+    if ((this._frame = (this._frame || 0) + 1) % 20 === 0) { const hh = this.r.top ? this.r.top.offsetHeight : 0; if (hh && hh !== this._topH) { this._topH = hh; this.root.style.setProperty('--hud-top-h', `${hh}px`); } }
     if (!this.r.scorePop.classList.contains('hidden') && this._scorePopScore !== isl.score) this.renderScorePop();
     // jauge de série : un cran par bon coup, pleine à cinq (fermeture doublée) ; elle se vide en glissant quand la série casse
     if (this.mech && this.mech.has('breath') && !isl.garden) {
