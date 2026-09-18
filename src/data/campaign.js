@@ -10,13 +10,13 @@ export const CAMPAIGN_SIZE = 50;
 
 /** Mécaniques introduites par île (cumulatives). */
 export const MECH_AT = {
-  1: ['affinity', 'close'], 2: ['river', 'season'], 4: ['fauna'],
+  1: ['affinity', 'close'], 2: ['river', 'season'], 4: ['fauna', 'semis'],
   6: ['wish'], 7: ['breath'], 8: ['rare'], 9: ['event'],
   11: ['weather'], 12: ['hill'], 13: ['rare2'], 14: ['heath'],
-  16: ['build'], 18: ['rare3'],
+  16: ['build', 'hand'], 18: ['rare3'],
   21: ['climate', 'fuse'], 26: ['work'], 31: ['build3'],
 };
-export const MECH_NAMES = { river: 'rivière', season: 'saisons', fauna: 'faune', wish: 'vœux', breath: 'souffles', rare: 'tuiles rares', event: 'tuiles d’événement', weather: 'météo', hill: 'collines', rare2: 'grenier et fontaine', heath: 'lande', build: 'bâtir', rare3: 'rares tardives', climate: 'climats', fuse: 'fusions', work: 'ouvrages', build3: 'niveau 3' };
+export const MECH_NAMES = { river: 'rivière', season: 'saisons', fauna: 'faune', semis: 'semis', wish: 'vœux', breath: 'souffles', rare: 'tuiles rares', event: 'tuiles d’événement', weather: 'météo', hill: 'collines', rare2: 'grenier et fontaine', heath: 'lande', build: 'bâtir', hand: 'main de saison', rare3: 'rares tardives', climate: 'climats', fuse: 'fusions', work: 'ouvrages', build3: 'niveau 3' };
 /** Île où une mécanique arrive (pour le Guide et l'Atelier). */
 export function mechIsland(m) { for (const [n, list] of Object.entries(MECH_AT)) if (list.includes(m)) return Number(n); return null; }
 /** Mécaniques disponibles jusqu'à l'île n (incluse). Sans argument : toutes (modes libres). */
@@ -138,5 +138,5 @@ export const CHAPTER_GATE = 6;   // étoiles nécessaires dans un chapitre pour 
 /** Options à passer à `new Island(def, …)` depuis les mécaniques de l'île (tout est ouvert dans les modes libres). */
 export function islandOptions(def) {
   const m = def.mech || campaignMechanics(99);
-  return { build: m.has('build'), fuse: m.has('fuse'), work: m.has('work'), level3: m.has('build3'), weather: m.has('weather'), rareTier: m.has('rare3') ? 3 : m.has('rare2') ? 2 : m.has('event') ? 1 : 0 };
+  return { build: m.has('build'), hand: m.has('hand'), fuse: m.has('fuse'), work: m.has('work'), level3: m.has('build3'), weather: m.has('weather'), rareTier: m.has('rare3') ? 3 : m.has('rare2') ? 2 : m.has('event') ? 1 : 0 };
 }

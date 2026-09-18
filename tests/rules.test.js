@@ -255,6 +255,35 @@ check(affinity('meadow', 'water') === 0, 'prairie-eau = 0');
   check(isl.nextCloseDouble === true, 'la prochaine fermeture est armée');
 }
 
+
+// --- main de saison : choisir librement la tuile visible, l'échange payant disparaît
+{
+  const d = campaignIsland(16); const isl = new Island(d, { ...islandOptions(d) });
+  const second = isl.queue.list[1]; check(isl.canPick(1) && !isl.canSwap(1) && isl.pick(1) && isl.current === second, 'la deuxième tuile devient la tuile courante, gratuitement');
+  const d15 = campaignIsland(15); const i15 = new Island(d15, { ...islandOptions(d15) }); check(!i15.canPick(1), 'pas de main avant l’île 16');
+}
+
+
+// --- friche : une pose négative laisse une tuile morte, sans famille ; bâtir la remet en état
+{
+  const { apply, preview, previewBuild, canBuild } = await import('../src/game/rules.js');
+  const cells = []; for (let q = -2; q <= 3; q++) for (let r = -2; r <= 2; r++) cells.push(`${q},${r}`);
+  const b = new Board(cells);
+  b.place(0, 0, { family: 'rock', variant: 1 }); b.place(1, -1, { family: 'sand', variant: 1 });
+  const pv = preview(b, 1, 0, { family: 'field', variant: 1 }, 'spring');   // champ contre roche (−1) et sable (−1)
+  check(pv.total < 0 && pv.blight, `champ contre roche et sable : pose négative, friche annoncée (${pv.total})`);
+  apply(b, 1, 0, { family: 'field', variant: 1 }, 'spring');
+  const t = b.get(1, 0); check(t.blighted && Board.familiesOf(t).length === 0 && b.regions('field').length === 0, 'la friche ne compte pour aucune famille');
+  const pv2 = preview(b, 2, -1, { family: 'field', variant: 1 }, 'spring'); check(!pv2.edges.some((e) => e.q === 1 && e.r === 0), 'un bord contre une friche ne vaut rien');
+  check(canBuild(b, 1, 0, { family: 'field', variant: 1 }), 'on peut bâtir sur la friche');
+  const pb = previewBuild(b, 1, 0, { family: 'field', variant: 1 }, 'spring'); check(pb.restore && pb.level === 1, 'bâtir sur une friche = remise en état au même niveau');
+  const d = campaignIsland(16); const isl = new Island(d, { ...islandOptions(d) }); isl.breaths = 3;
+  const rock = [...isl.board.tiles.values()].find((x) => x.family === 'rock');
+  const near = isl.board.legalCells().find((c) => neighbors(c.q, c.r).some(([a, bb]) => isl.board.get(a, bb) === rock));
+  const res = isl.place(near.q, near.r, { family: 'field', variant: 1, rare: false, id: 999 });
+  if (res.blight) { const tf = isl.board.get(near.q, near.r); isl.queue.list.unshift({ family: 'field', variant: 1, rare: false, id: 998 }); check(isl.canBuild(near.q, near.r) && isl.build(near.q, near.r) && !tf.blighted, 'remise en état par l’île : la friche recompte'); }
+}
+
 // --- campagne : cinquante définitions valides, textes présents, mécaniques cumulatives, bot fort sur les îles générées du début
 for (const w of CAMPAIGN_WISHES) check(!!STORY.wishes[w.id], `texte du vœu de campagne ${w.id}`);
 {
@@ -267,7 +296,7 @@ for (const w of CAMPAIGN_WISHES) check(!!STORY.wishes[w.id], `texte du vœu de c
     prev = d.mech.size;
     // déblocage des mécaniques : rien avant son île (bâtir 16, fusions 21, ouvrages 26, niveau 3 31, météo 11, vœux 6, collines 12, lande 14, rares 8/9/13/18)
     const isl = new Island(d, { ...islandOptions(d) });
-    const exp = { buildOn: n >= 16, fuseOn: n >= 21, workOn: n >= 26, level3On: n >= 31, weatherOn: n >= 11 };
+    const exp = { buildOn: n >= 16, handOn: n >= 16, fuseOn: n >= 21, workOn: n >= 26, level3On: n >= 31, weatherOn: n >= 11 };
     for (const [k, v] of Object.entries(exp)) check(!!isl[k] === v, `île ${n} : ${k} devrait valoir ${v}`);
     check((isl.wishes.length > 0) === (n >= 6) || (n >= 6 && isl.wishes.length === 0 && d.story === 1), `île ${n} : vœux ${n >= 6 ? 'attendus' : 'interdits'} (${isl.wishes.length})`);
     check((n >= 12 || !d.weights.hill) && (n >= 14 || !d.weights.heath), `île ${n} : pas de colline avant 12 ni de lande avant 14`);

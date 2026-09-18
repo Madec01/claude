@@ -12,6 +12,7 @@ function active(tile) { return !(tile.dry); }
 
 /** Points d'un bord entre la tuile posée et un voisin, selon la saison. */
 function edgePoints(tile, other, season, rule = null, climate = null) {
+  if (other.blighted || tile.blighted) return { pts: 0, label: 'friche' };   // une friche ne donne et ne reçoit rien
   if (!active(other) && !tile.rare) { if (Board.isFamily(other, 'meadow')) return { pts: 0, label: 'sèche' }; }
   const fa = Board.familiesOf(tile), fb = Board.familiesOf(other);
   let best = 0, bestKey = null;
@@ -46,7 +47,7 @@ function edgePoints(tile, other, season, rule = null, climate = null) {
 /** Peut-on bâtir `tile` sur la case (q, r) ? Même famille, pas de rare, niveau maximal non atteint. */
 export function canBuild(board, q, r, tile) {
   const t = board.get(q, r);
-  return !!t && !!tile && !t.rare && !tile.rare && t.family === tile.family && (t.level || 1) < BALANCE.build.maxLevel;
+  return !!t && !!tile && !t.rare && !tile.rare && t.family === tile.family && ((t.level || 1) < BALANCE.build.maxLevel || !!t.blighted);
 }
 
 /**
@@ -56,7 +57,9 @@ export function canBuild(board, q, r, tile) {
  */
 export function previewBuild(board, q, r, tile, season, mods = {}) {
   const t = board.get(q, r); if (!t) return null;
-  const up = { ...t, level: (t.level || 1) + 1 };
+  // une friche se remet en état (même niveau, elle recompte pour sa famille) ; sinon la tuile monte d'un niveau
+  const restore = !!t.blighted;
+  const up = restore ? { ...t, blighted: false } : { ...t, level: (t.level || 1) + 1 };
   const edges = []; let total = 0;
   DIRS.forEach(([dq, dr], d) => {
     const n = board.get(q + dq, r + dr); if (!n) return;
@@ -64,6 +67,14 @@ export function previewBuild(board, q, r, tile, season, mods = {}) {
     const pts = after.pts - before.pts;
     if (pts !== 0) { edges.push({ d, q: q + dq, r: r + dr, pts, label: after.label }); total += pts; }
   });
+  if (restore) {
+    // seuls les bons voisins comptent : la friche a déjà payé les mauvais ; et la tuile remise en état peut fermer des régions (simulation)
+    const good = edges.filter((e) => e.pts > 0); total = good.reduce((a, e) => a + e.pts, 0);
+    const k = key(q, r); board.tiles.set(k, up); board.version++; board._water = null;
+    const closes = closedRegionsAround(board, q, r); board.tiles.set(k, t); board.version++; board._water = null;
+    for (const c of closes) total += c.bonus;
+    return { total, edges: good, closes, river: null, base: [{ pts: 0, label: 'remise en état' }], build: true, level: up.level, restore: true };
+  }
   return { total, edges, closes: [], river: null, base: [], build: true, level: up.level };
 }
 
@@ -109,7 +120,9 @@ export function preview(board, q, r, tile, season, mods = {}) {
   const closes = closedRegionsAround(board, q, r);
   for (const c of closes) total += c.bonus;
   board.remove(q, r);
-  return { total, edges, closes, river, base };
+  // friche : une pose qui coûte des points (bords et contraintes) laisse une tuile morte, qui ne rapportera plus rien
+  const blight = total < 0 && !tile.rare;
+  return { total, edges, closes, river, base, blight };
 }
 
 /** Régions qui seraient closes après une pose en (q, r) (la tuile doit déjà être posée). */
@@ -144,7 +157,8 @@ function openCells(board, reg) {
 /** Applique une pose. Retourne le détail (identique à preview) et marque les régions closes. */
 export function apply(board, q, r, tile, season, mods = {}) {
   const res = preview(board, q, r, tile, season, mods);
-  board.place(q, r, tile);
+  const placed = board.place(q, r, tile);
+  if (res.blight) { placed.blighted = true; placed.level = 1; }
   for (const c of res.closes) board.closedRegions.add(c.id);
   return res;
 }

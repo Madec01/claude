@@ -691,6 +691,9 @@ export const STORY = {
     work: 'Ouvrages : une tuile bonus qui se pose sur une tuile posée. Bien placée, elle rapporte à chaque saison ; mal placée, elle coûte deux saisons puis s’efface. Posée tout de suite, elle est fraîche (+1 par saison). Pas de bonne place ? Mets-la en remise (R), elle y attend douze poses, ou défausse-la gratuitement.',
     paths: 'Un sentier vient de se tracer : deux villages séparés par au plus trois tuiles de terre ouverte (prairie, champ, verger, lande, colline) se relient tout seuls. Chaque sentier rapporte +1 à chaque saison ; les hameaux voisins se relient par des ruelles.',
     riverLake: 'Ta rivière s’élargit : le tronc depuis la montagne reste une rivière (+2 par tuile), la suite devient un lac dans lequel elle se jette (+1 par tuile). Un ponton posé sur la rivière y reste.',
+    blight: 'Friche : une tuile posée qui coûte des points (bords et contraintes) devient une friche, une ruine ou un lit asséché. Elle ne rapporte plus rien et ne compte plus pour sa famille. Bâtir dessus la remet en état (1 souffle).',
+    hand: 'Main de saison : la file devient une main. Clique sur n’importe quelle tuile visible pour la jouer maintenant, sans souffle. L’échange disparaît, le Regard agrandit la main.',
+    semis: 'Semis : avant chaque île, tu choisis ce que la file donnera plutôt. Terres hautes, fonds humides, pays habité ou au gré des saisons. Un choix, pas une garantie : la file reste tirée au sort.',
     build3: 'Niveau 3 : une tuile de niveau 2 qui a traversé une saison se bâtit encore (2 souffles). Elle prend sa signature et rapporte +1 par saison.',
   },
   climates: {

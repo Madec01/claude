@@ -49,9 +49,9 @@ function parseList(s) {
       await page.waitForFunction(() => window.CS.scenes.currentName === 'story' && document.querySelector('.story-actions button'), null, { timeout: 15000 });
       await page.waitForTimeout(300); await page.click('.story-actions button');
     }
+    if (!(id === 'infinite' || id === 'garden')) { await page.waitForFunction(() => window.CS.scenes.currentName === 'island' || [...document.querySelectorAll('button')].some((x) => x.textContent.includes('C’est parti')), null, { timeout: 20000 }); await page.evaluate(() => { const b = [...document.querySelectorAll('button')].find((x) => x.textContent.includes('C’est parti')); if (b) b.click(); }); }   // préparation (semis, vœux)
     await page.waitForFunction(isMine, id, { timeout: 30000 });
     await page.waitForTimeout(600);
-    await page.evaluate(() => { const b = [...document.querySelectorAll('button')].find((x) => x.textContent.includes('C’est parti')); if (b) b.click(); });   // écran des vœux
     let ticks = 0, shot = false;
     while (true) {
       const st = await page.evaluate(() => {

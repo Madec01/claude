@@ -45,7 +45,7 @@ export class Board {
   touch() { this.version = (this.version || 0) + 1; }
 
   /** Familles effectives d'une tuile (une rare compte pour plusieurs familles). */
-  static familiesOf(tile) { return tile.rare ? (RARE_AS[tile.family] || []) : [tile.family]; }
+  static familiesOf(tile) { if (tile.blighted) return []; return tile.rare ? (RARE_AS[tile.family] || []) : [tile.family]; }   // une friche ne compte pour rien
   static isFamily(tile, family) { return !!tile && Board.familiesOf(tile).includes(family); }
 
   /** Région connexe de même famille contenant (q, r). Retourne { family, cells:[tile], keys:Set, size }. */

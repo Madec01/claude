@@ -53,7 +53,7 @@ export function playStrong(def, o = {}) {
   const isl = new Island(def, { upgrades: o.upgrades || {}, seedOffset: o.seedOffset || 0, known: o.known, ...(def.mech ? islandOptions(def) : {}) });
   let seed = ((o.botSeed !== undefined ? o.botSeed : o.seedOffset) || 0) * 9973 + 17; const rng = () => { seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed / 0x7fffffff; };
   const events = {}; isl.on((e) => { events[e.type] = (events[e.type] || 0) + 1; });
-  let guard = 0;
+  let guard = 0, picked = false;   // `picked` : une seule prise dans la main par pose, pour ne jamais osciller entre deux tuiles
   while (!isl.ended && guard++ < 3000) {
     const tile = isl.current;
     if (!tile) { if (isl.shed.length && isl.fromShed(0)) continue; isl.checkEnd(); break; }   // file vide : la remise se vide avant la fin
@@ -74,6 +74,13 @@ export function playStrong(def, o = {}) {
     }
     let mv = bestMove(isl, tile, rng);
     if (!mv.cell) { isl.checkEnd(); break; }
+    // main de saison : jouer la meilleure tuile visible, gratuitement
+    if (isl.handOn && !picked && isl.queue.list.length > 1) {
+      // évaluation rapide (un coup) des autres tuiles de la main ; la meilleure candidate seule est évaluée en profondeur
+      let bi = -1, bq = -Infinity;
+      for (let i = 1; i < isl.queue.list.length; i++) { if (!isl.canPick(i) || isl.queue.list[i].work) continue; let q = -Infinity; for (const c of isl.board.legalCells()) { const sc = evalMove(isl, isl.queue.list[i], c.q, c.r, rng, false); if (sc > q) q = sc; } if (q > bq) { bq = q; bi = i; } }
+      if (bi > 0) { const m = bestMove(isl, isl.queue.list[bi], rng); if (m.cell && m.score > mv.score + 0.5 && isl.pick(bi)) { picked = true; continue; } }
+    }
     // souffles : échanger avec une meilleure tuile visible, défausser une tuile sans avenir, bourgeonner un pré entouré de forêt
     if (isl.breaths >= 1 && isl.queue.list.length > 1) {
       let bi = -1, bsc = mv.score + 1.5;
@@ -92,7 +99,7 @@ export function playStrong(def, o = {}) {
       for (const t of isl.board.tiles.values()) { if (!isl.canBuild(t.q, t.r)) continue; const pv = isl.previewBuild(t.q, t.r); if (!pv) continue; const sc = pv.total + (pv.refund && pv.refund.ok ? 3 : -1) - (pv.cost || 1) + (pv.level >= 3 ? 4 : 0) + (pv.fuse ? 3 : 0); if (sc > bbs) { bbs = sc; bb = t; } }
       if (bb && isl.build(bb.q, bb.r)) continue;
     }
-    isl.place(mv.cell.q, mv.cell.r);
+    isl.place(mv.cell.q, mv.cell.r); picked = false;
     if (o.maxPlacements && isl.placements >= o.maxPlacements) isl.finish('test');
   }
   return { result: isl.result, events, isl };

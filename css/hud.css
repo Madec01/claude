@@ -35,7 +35,8 @@
 .qtile.current .qname { font-size: 17px; }
 .qtile.next { opacity: 0.85; } .qtile.next img { width: 40px; height: 47px; }
 .qtile.rare::after { content: 'rare'; position: absolute; right: 8px; top: 6px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--gold); font-weight: 800; }
-.qtile.swappable, .qtile.pocketable, .qtile.pocketed, .qtile.shedable { cursor: pointer; }
+.qtile.swappable, .qtile.pocketable, .qtile.pocketed, .qtile.shedable, .qtile.pickable { cursor: pointer; }
+.qtile.pickable:hover { transform: translateX(3px); border-color: var(--gold); }
 .qtile.shedable { border-style: dashed; }
 .shed .qlvl.warn { color: var(--bad, #d95f4b); }
 .pw.free em { background: var(--good, #2f9e8f); }

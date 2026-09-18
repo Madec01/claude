@@ -32,6 +32,8 @@ import { buildResults } from './ui/results.js';
 import { buildWorkshop } from './ui/workshop.js';
 import { buildAchievements, celebrate } from './ui/achievements.js';
 import { buildWishesIntro } from './ui/wishes_intro.js';
+import { buildIslandPrep } from './ui/island_prep.js';
+import { applySemis } from './data/semis.js';
 import { Achievements } from './game/achievements.js';
 import { buildPause } from './ui/pause.js';
 import { h, showUI, hideUI } from './ui/dom.js';
@@ -133,11 +135,18 @@ const Game = {
   },
   startIsland(id, { skipIntro = false } = {}) {
     const def = campaignIsland(id); const cc = climateCardFor(def.id); def.introduces = [...(cc ? [cc] : []), ...(MECH_AT[def.id] || []).filter((m) => !(cc && m === 'climate'))];   // la carte de climat d'abord (elle n'attend rien), la carte générique cède la place à la carte du climat
-    if (skipIntro) { scenes.go('island', { def }); return; }
-    scenes.go('story', { screens: islandIntroScreens(def), onDone: () => scenes.go('island', { def }, { fade: 0.5 }) });
+    if (skipIntro) { this.prepIsland(def); return; }
+    scenes.go('story', { screens: islandIntroScreens(def), onDone: () => this.prepIsland(def) });
+  },
+  /** Semis et vœux avant la première pose ; sans rien à choisir ni à lire, l'île démarre directement. */
+  prepIsland(def) {
+    const semis = !!(def.mech && def.mech.has('semis')) && !def.daily;
+    const go = (semisId) => { const d2 = semisId && semisId !== 'saisons' ? { ...def, weights: applySemis(def.weights, semisId), semis: semisId } : def; hideUI(); scenes.go('island', { def: d2, skipWishes: true }, { fade: 0.5 }); };
+    if (!semis && !(def.wishes && def.wishes.length)) { go(null); return; }
+    this.showPanel(buildIslandPrep({ def, semis, onStart: (id) => { AudioSys.play('ui_confirm', { volume: 0.5 }); go(id); } }));
   },
   startInfinite() { scenes.go('story', { screens: infiniteScreens(), onDone: () => scenes.go('island', { def: INFINITE }, { fade: 0.5 }) }); },
-  startDaily() { const def = dailyDef(); scenes.go('story', { screens: dailyScreens(def), onDone: () => scenes.go('island', { def }, { fade: 0.5 }) }); },
+  startDaily() { const def = dailyDef(); scenes.go('story', { screens: dailyScreens(def), onDone: () => this.prepIsland(def) }); },
   startGarden() { scenes.go('story', { screens: gardenScreens(), onDone: () => scenes.go('island', { def: GARDEN }, { fade: 0.5 }) }); },
 
   afterIsland(result, def) {
@@ -284,6 +293,7 @@ class IslandScene {
       title: name, mechanics: mech,
       onPause: () => this.togglePause(),
       onSwap: (i) => { if (isl.swap(i)) AudioSys.play('tile_swap', { volume: 0.6 }); else AudioSys.play('ui_error', { volume: 0.4 }); },
+      onPick: (i) => { if (isl.pick(i)) { AudioSys.play('tile_swap', { volume: 0.5 }); this.tutorial.onEvent('hand'); } },
       onDiscard: () => { if (isl.discard()) AudioSys.play('tile_discard', { volume: 0.6 }); else AudioSys.play('ui_error', { volume: 0.4 }); },
       onBud: () => this.setBud(!this.budMode),
       onUndo: () => { if (isl.undo()) { AudioSys.play('tile_undo', { volume: 0.6 }); this.hud.notify('Souvenir : la dernière pose est annulée', 'info'); } else AudioSys.play('ui_error', { volume: 0.4 }); },
@@ -374,6 +384,7 @@ class IslandScene {
       for (const bs of e.result.base) { setTimeout(() => fx.floatText(w.x, w.y + 30, `+${bs.pts} ${bs.label}`, '#5aa7d6', 18, 1.2), 90 * i++); if (bs.label === 'rivière') this.tutorial.onEvent('river'); }
       if (e.result.total !== 0) setTimeout(() => fx.floatText(w.x, w.y - 40, `${e.result.total > 0 ? '+' : ''}${e.result.total}`, e.result.total > 0 ? '#2b2a26' : '#d95f4b', 26, 1.4), 90 * i + 60);
       // commentaire du coup, série et paliers de score
+      if (e.result.blight) { setTimeout(() => { this.hud.ribbon('En friche : cette tuile ne rapportera plus rien', '#d95f4b', 2200, 'bad'); AudioSys.play('point_bad', { volume: 0.5 }); }, 90 * i + 380); const seen = Save.data.seen || (Save.data.seen = {}); if (!seen.blight) { seen.blight = true; Save.save(); this.tutorial.pushCard('blight', STORY.mechCards.blight); } }
       if (e.grade && GRADES[e.grade]) {
         const g = GRADES[e.grade]; const texts = STORY.verdicts[e.grade]; const txt = texts[Math.floor(Math.random() * texts.length)];
         setTimeout(() => {
@@ -404,6 +415,9 @@ class IslandScene {
         setTimeout(() => { fx.floatText(w.x, w.y - 44, `${e.result.total >= 0 ? '+' : ''}${e.result.total}`, e.good ? '#2f9e8f' : '#d95f4b', 24, 1.6); this.hud.ribbon(`${wt} ${fam}`, e.good ? '#2f9e8f' : '#d95f4b', 1500, e.good ? 'good' : 'bad'); this.hud.bumpScore(e.result.total); if (e.good) { fx.closeBurst(w.x, w.y - 10, 3); AudioSys.play('point_8', { volume: 0.5 }); } else AudioSys.play('point_bad', { volume: 0.5 }); }, 60);
         this.hud.notify(`${fam} : ${e.good ? (e.fresh ? 'bien placé et frais, +1 par saison' : 'bien placé') : 'mal placé : pénalité cette saison, moitié la suivante, puis il s’efface'} (${e.result.total >= 0 ? '+' : ''}${e.result.total})`, e.good ? 'gold' : 'warn');
         this.tutorial.onEvent('work');
+      } else if (e.kind === 'restore') {
+        setTimeout(() => { fx.floatText(w.x, w.y - 44, `${e.result.total >= 0 ? '+' : ''}${e.result.total}`, '#2f9e8f', 24, 1.6); this.hud.ribbon(`${fam} remise en état`, '#2f9e8f', 1600, 'good'); this.hud.bumpScore(e.result.total); fx.closeBurst(w.x, w.y - 10, 4); AudioSys.play('bud', { volume: 0.6 }); }, 60);
+        this.hud.notify(`${fam} : friche remise en état, elle recompte pour sa famille`, 'good');
       } else if (e.kind === 'fuse') {
         const nm = (STORY.tiles[e.recipe] || {}).name || e.recipe; const ft = STORY.fusion.done[Math.floor(Math.random() * STORY.fusion.done.length)];
         setTimeout(() => { fx.floatText(w.x, w.y - 44, `${e.result.total >= 0 ? '+' : ''}${e.result.total}`, '#e0a33a', 26, 1.6); this.hud.ribbon(`${ft} ${nm}`, '#e0a33a', 1800, 'master'); this.hud.bumpScore(e.result.total); fx.closeBurst(w.x, w.y - 10, 6); this.shake.trigger(0.1); AudioSys.play('region_big', { volume: 0.6 }); }, 90 * i + 60);
@@ -558,8 +572,10 @@ class IslandScene {
     if (k === 'KeyM') { const m = AudioSys.toggleMute(); Save.options.muted = m; Save.save(); return; }
     if (this.paused || this.hold || !this.isl || this.isl.ended) return;
     const isl = this.isl;
-    if (k === 'Digit2' || k === 'Numpad2') this.hud.onSwap(1);
-    if (k === 'Digit3' || k === 'Numpad3') this.hud.onSwap(2);
+    if (k === 'Digit2' || k === 'Numpad2') { if (isl.handOn) this.hud.onPick(1); else this.hud.onSwap(1); }
+    if (k === 'Digit3' || k === 'Numpad3') { if (isl.handOn) this.hud.onPick(2); else this.hud.onSwap(2); }
+    if (k === 'Digit4' || k === 'Numpad4') { if (isl.handOn) this.hud.onPick(3); }
+    if (k === 'Digit5' || k === 'Numpad5') { if (isl.handOn) this.hud.onPick(4); }
     if (k === 'KeyX') { if (this.mech.has('breath')) { if (isl.discard()) AudioSys.play('tile_discard', { volume: 0.6 }); } }
     if (k === 'KeyB') this.setBud(!this.budMode);
     if (k === 'KeyJ') this.hud.toggleLog();

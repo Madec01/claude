@@ -34,6 +34,7 @@ export const WORK_DECOR = {
 
 export function groundOf(t) {
   if (!t) return null;
+  if (t.blighted) return t.family === 'water' ? 'sand' : 'dry';   // friche : sol sec ; lit asséché pour l'eau
   if (t.fusion) return FUSION_GROUND[t.family] || 'water';
   if (t.rare) return t.family === 'ruins' || t.family === 'mine' ? 'stone' : 'grass';
   if (t.family === 'meadow' && t.dry) return 'dry';
@@ -136,6 +137,16 @@ export class Decor {
       if (!t.rare) continue; const c = toWorld(t.q, t.r);
       if (t.fusion) { for (const o of FUSION_DECOR[t.family] || []) add({ x: c.x + o.dx, y: c.y + o.dy, tpl: o.tpl, cell: key(t.q, t.r), scale: o.scale || 1, alpha: o.alpha || 1, seasons: o.seasons, wave: o.wave }); continue; }
       add({ x: c.x, y: c.y + 26, tile: t, cell: key(t.q, t.r), composed: true });
+    }
+    // friches : décor mort selon la famille d'origine (ruine, bois mort, lit asséché, herbes sèches)
+    for (const t of board.tiles.values()) {
+      if (!t.blighted) continue; const c = toWorld(t.q, t.r); const ck = key(t.q, t.r); const rng = mulberry(cellSeed(this.seed, t.q, t.r, 9));
+      const push = (dx, dy, tpl, scale = 1) => add({ x: c.x + dx, y: c.y + dy, tpl, cell: ck, scale, alpha: 0.95 });
+      if (t.family === 'hamlet') { push(-8, 30, 'obj_ruinsCorner', 1.0); push(26, 22, 'obj_ruins_brick1', 0.9); }
+      else if (t.family === 'forest' || t.family === 'orchard') { push(-14, 28, 'obj_log', 1.0); push(20, 20, 'obj_logPile', 0.9); }
+      else if (t.family === 'water') { push(-18, 26, 'obj_rockBrown_small', 0.9); push(18, 30, 'obj_rockBrown_small', 0.7); }
+      else if (t.family === 'rock' || t.family === 'hill') { push(0, 34, 'obj_rockGrey_medium2', 0.9); }
+      push(-26 + rng() * 10, 36, 'obj_bushGrass_dry', 0.9); push(24 + rng() * 8, 34, 'obj_bushGrass_dry', 0.8); push(6, 20, 'obj_bushGrass_dry', 0.7);
     }
     for (const t of board.tiles.values()) { if (!t.work) continue; const c = toWorld(t.q, t.r); const list = t.work === 'bridge' || t.work === 'pier' ? this.waterWorkDecor(board, t) : (WORK_DECOR[t.work] || []); for (const o of list) add({ x: c.x + o.dx, y: c.y + o.dy, tpl: o.tpl, cell: key(t.q, t.r), scale: o.scale || 1, alpha: 1, flip: o.flip }); }
 

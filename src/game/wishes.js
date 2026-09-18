@@ -9,7 +9,7 @@ import { rivers, lakes } from './water.js';
 /** État d'un vœu : { def, status: 'open'|'done'|'failed', progress, target } */
 export function initWishes(defs) { return defs.map((def) => ({ def, status: 'open', progress: 0, target: targetOf(def) })); }
 
-function targetOf(def) {
+export function targetOf(def) {
   switch (def.type) {
     case 'region': case 'closed': return def.size;
     case 'pairs': case 'bourg': case 'irrigated': case 'bloom': case 'harvest': case 'species': case 'rivers': case 'closedInSeason': return def.count;

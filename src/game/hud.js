@@ -13,7 +13,7 @@ const icon = (name, cls = '') => `<img class="hud-icon ${cls}" src="assets/img/u
 const SEASON_ICON = { spring: 'icon_leaf', summer: 'icon_sun', autumn: 'icon_wind', winter: 'icon_snow' };
 
 export class Hud {
-  constructor(root, island, { title, onPause, onSwap, onDiscard, onBud, onUndo, onPocket, onPocketOut, onShed, onShedOut, onGardenPick, onPlace, onBudChoice, onBudCancel, onFullscreen, compact = false, mechanics }) {
+  constructor(root, island, { title, onPause, onSwap, onPick, onDiscard, onBud, onUndo, onPocket, onPocketOut, onShed, onShedOut, onGardenPick, onPlace, onBudChoice, onBudCancel, onFullscreen, compact = false, mechanics }) {
     this.root = root; this.isl = island; this.mech = mechanics;
     const m = mechanics;
     root.innerHTML = `
@@ -33,7 +33,7 @@ export class Hud {
         <button class="hud-pause hud-fs" data-ref="fs" title="Plein écran">${icon('icon_fullscreen')}</button>
       </div>
       <div class="hud-queue" data-ref="queue">
-        <div class="queue-title">À poser</div>
+        <div class="queue-title" data-ref="queueTitle">${island.handOn ? 'Main · choisis ta tuile' : 'À poser'}</div>
         <div class="queue-list" data-ref="queueList"></div>
         <div class="pocket ${this.isl.queue.pocketSize ? '' : 'hidden'}" data-ref="pocket"><div class="queue-title">Poche</div><div class="pocket-list" data-ref="pocketList"></div></div>
         <div class="pocket shed ${island.workOn ? '' : 'hidden'}" data-ref="shed" title="Remise : un ouvrage mis de côté y attend une bonne place ; il expire au bout de ${BALANCE.works.shedLife} poses"><div class="queue-title">Remise</div><div class="pocket-list" data-ref="shedList"></div></div>
@@ -71,7 +71,7 @@ export class Hud {
     this.r.budForest.addEventListener('click', (e) => { e.stopPropagation(); onBudChoice && onBudChoice('forest'); });
     this.r.budOrchard.addEventListener('click', (e) => { e.stopPropagation(); onBudChoice && onBudChoice('orchard'); });
     this.r.budCancel.addEventListener('click', (e) => { e.stopPropagation(); onBudCancel && onBudCancel(); });
-    this.onSwap = onSwap; this.onPocket = onPocket; this.onPocketOut = onPocketOut; this.onShed = onShed; this.onShedOut = onShedOut; this.onGardenPick = onGardenPick;
+    this.onSwap = onSwap; this.onPick = onPick || (() => {}); this.onPocket = onPocket; this.onPocketOut = onPocketOut; this.onShed = onShed; this.onShedOut = onShedOut; this.onGardenPick = onGardenPick;
     this.last = {};
     this.notes = [];
     const d = island.def; const ch = d.chapter ? CHAPTERS[d.chapter - 1] : null;
@@ -136,6 +136,7 @@ export class Hud {
       const qh = this.r.queueList.querySelector('.q-help'); if (qh) qh.addEventListener('click', (e) => { e.stopPropagation(); this.setTileHelp(this.helpHidden || Save.options.tileHelp === false); });
       this.r.queueList.querySelectorAll('.qtile').forEach((el, i) => {
         if (i === 0) { if (this.isl.canPocket()) { el.classList.add('pocketable'); el.addEventListener('click', (e) => { e.stopPropagation(); this.onPocket(); }); el.title += ' — clic : mettre en poche (P)'; } else if (this.isl.canShed()) { el.classList.add('shedable'); el.addEventListener('click', (e) => { e.stopPropagation(); this.onShed(); }); el.title += ' — clic : mettre en remise (R)'; } }
+        else if (this.isl.handOn) { el.classList.add('pickable'); el.addEventListener('click', (e) => { e.stopPropagation(); this.onPick(i); }); el.title += ' — clic : jouer cette tuile'; }
         else if (this.mech.has('breath')) { el.classList.add('swappable'); el.addEventListener('click', (e) => { e.stopPropagation(); this.onSwap(i); }); el.title += ` — clic : échanger (${BALANCE.breaths.swap} souffle)`; }
       });
     }

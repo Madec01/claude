@@ -35,6 +35,8 @@ export class Island {
     // fusionner : dès l'île 8 en campagne, toujours dans les modes libres et sur l'Île du jour ; `known` = recettes déjà découvertes (sauvegarde)
     this.fuseOn = o.fuse !== undefined ? !!o.fuse : (!!def.infinite || !!def.garden || !!def.daily || (typeof def.id === 'number' && def.id >= 8));
     this.known = o.known || new Set();
+    // main de saison : dès l'île 16 en campagne (et dans les modes libres), la tuile à jouer se choisit librement parmi les tuiles visibles
+    this.handOn = o.hand !== undefined ? !!o.hand : (!!def.infinite || !!def.garden || !!def.daily || (typeof def.id === 'number' && def.id >= 16));
     this.rareTier = o.rareTier;   // paliers de tuiles rares (0 : base ; 1 : événements ; 2 : grenier, fontaine ; 3 : tardives)
     // niveau 3 : ouvert par les options de campagne (île 31), toujours dans les modes libres et sur l'Île du jour
     this.level3On = o.level3 !== undefined ? !!o.level3 : (!!def.infinite || !!def.garden || !!def.daily || (typeof def.id === 'number' && def.id >= BALANCE.build.level3From));
@@ -151,6 +153,7 @@ export class Island {
     if (tile.work) { const t = this.board.get(q, r); return this.workOn && !!t && !t.rare && !t.work; }
     if (this.buildOn && ruleCanBuild(this.board, q, r, tile)) {
       const t = this.board.get(q, r); const lv = t.level || 1;
+      if (t.blighted) return this.breaths >= BALANCE.build.cost;   // remise en état d'une friche
       if (lv >= 2 && (!this.level3On || !this.isMature(t))) return false;   // niveau 3 : débloqué, et la tuile a mûri une saison
       return this.breaths >= this.buildCost(lv + 1);
     }
@@ -174,6 +177,7 @@ export class Island {
     }
     if (!ruleCanBuild(this.board, q, r, tile)) return null;
     const pv = previewBuild(this.board, q, r, tile, this.season, this.mods);
+    if (pv.restore) { pv.refund = { ok: false, reason: 'none' }; pv.cost = BALANCE.build.cost; return pv; }
     pv.refund = this.refundFor(q, r, tile.family); pv.cost = this.buildCost(pv.level); if (pv.level >= 3) pv.signature = true;
     return pv;
   }
@@ -202,6 +206,9 @@ export class Island {
       for (const c of pv.closes) { this.board.closedRegions.add(c.id); this.stats.closed++; this.stats.closedThisSeason++; this.breaths += BALANCE.breaths.close; this.stats.biggestRegion = Math.max(this.stats.biggestRegion, c.size); }
       this.breaths -= this.fusionCost(); this.stats.fusions++;
       if (pv.first) { this.known.add(pv.fuse.id); this.queue.inject(this.queue.makeTile(tile.family), false); rare = this.pickRare(); if (WORKS.includes(rare)) this.giveWork(rare); else this.queue.inject(this.queue.makeRare(rare), false); this.stats.refunds++; }
+    } else if (pv.restore) {
+      target.blighted = false; this.board.touch(); this.breaths -= BALANCE.build.cost; this.stats.restored = (this.stats.restored || 0) + 1;
+      for (const c of pv.closes) { this.board.closedRegions.add(c.id); this.stats.closed++; this.stats.closedThisSeason++; this.breaths += BALANCE.breaths.close; }
     } else {
       target.level = (target.level || 1) + 1; target.builtAt = this.seasonsPassed.length; this.board.touch();
       this.breaths -= this.buildCost(target.level); this.stats.built++; if (target.level >= 3) this.stats.level3++;
@@ -211,7 +218,7 @@ export class Island {
     this.score += pv.total;
     if (this.weather && this.weather.phase === 'announced' && this.inSeason >= this.weather.at) this.activateWeather();
     this.expireShed();
-    this.emit({ type: 'build', kind: pv.work ? 'work' : pv.fuse ? 'fuse' : 'level', work: pv.work || null, good: !!pv.good, fresh: !!pv.fresh, q, r, tile: placed, level: placed.level, result: pv, refund: pv.refund, family: tile.family, recipe: pv.fuse ? pv.fuse.id : null, first: !!pv.first, rare, milestone: Math.floor(this.score / 100) > Math.floor(scoreBefore / 100) ? Math.floor(this.score / 100) * 100 : 0 });
+    this.emit({ type: 'build', kind: pv.work ? 'work' : pv.fuse ? 'fuse' : pv.restore ? 'restore' : 'level', work: pv.work || null, good: !!pv.good, fresh: !!pv.fresh, q, r, tile: placed, level: placed.level, result: pv, refund: pv.refund, family: tile.family, recipe: pv.fuse ? pv.fuse.id : null, first: !!pv.first, rare, milestone: Math.floor(this.score / 100) > Math.floor(scoreBefore / 100) ? Math.floor(this.score / 100) * 100 : 0 });
     for (const c of pv.closes || []) this.emit({ type: 'close', ...c, breath: BALANCE.breaths.close });
     this.updateFauna(); this.checkWishes();
     if (!this.garden && this.inSeason >= this.seasonLength) this.advanceSeason();
@@ -385,7 +392,10 @@ export class Island {
 
   // ---- Souffles ----
   get undoCost() { return BALANCE.breaths.undo[this.upgrades.memory || 0]; }
-  canSwap(i) { return !this.weatherActive('blizzard') && this.breaths >= BALANCE.breaths.swap && i < this.queue.list.length; }
+  canSwap(i) { return !this.handOn && !this.weatherActive('blizzard') && this.breaths >= BALANCE.breaths.swap && i < this.queue.list.length; }
+  /** Main de saison : choisir librement la tuile à jouer parmi les tuiles visibles (gratuit). */
+  canPick(i) { return this.handOn && !this.ended && i > 0 && i < this.queue.list.length; }
+  pick(i) { if (!this.canPick(i) || !this.queue.swap(i)) return false; this.emit({ type: 'pick', i }); return true; }
   swap(i) { if (!this.canSwap(i) || !this.queue.swap(i)) return false; this.breaths -= BALANCE.breaths.swap; this.emit({ type: 'breath', kind: 'swap' }); return true; }
   /** Défausser : coûte des souffles, sauf pour un ouvrage (gratuit : on ne bloque jamais la file). */
   discardCost() { return this.current && this.current.work ? 0 : BALANCE.breaths.discard; }

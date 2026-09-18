@@ -2,7 +2,7 @@
 import { STORY } from '../data/story.js';
 import { mechIsland } from '../data/campaign.js';
 
-const MECH_STEP_IDS = new Set(['river', 'season', 'fauna', 'wish', 'breath', 'rare', 'event', 'weather', 'hill', 'rare2', 'heath', 'build', 'rare3', 'climate', 'fuse', 'work', 'build3']);
+const MECH_STEP_IDS = new Set(['river', 'season', 'fauna', 'wish', 'breath', 'rare', 'event', 'weather', 'hill', 'rare2', 'heath', 'build', 'hand', 'rare3', 'climate', 'fuse', 'work', 'build3', 'semis']);
 const RULES = {
   event:    { when: (i) => i.placements >= 2, done: () => false, info: true, timeout: 30 },
   weather:  { when: (i) => i.placements >= 2, done: (i, ev) => ev.has('weather'), info: true, timeout: 40 },
@@ -21,6 +21,8 @@ const RULES = {
   hill:     { when: (i) => i.placements >= 1, done: (i, ev) => ev.has('hill'), info: true, timeout: 35 },
   heath:    { when: (i) => i.placements >= 1, done: (i, ev) => ev.has('heath'), info: true, timeout: 35 },
   build:    { when: (i) => i.placements >= 3 && i.breaths >= 1, done: (i, ev) => ev.has('build'), info: true, timeout: 45 },
+  hand:     { when: (i) => i.placements >= 1, done: (i, ev) => ev.has('hand'), info: true, timeout: 40 },
+  semis:    { when: () => true, done: () => false, info: true, timeout: 25 },
   fuse:     { when: (i) => i.placements >= 3 && i.breaths >= 1, done: (i, ev) => ev.has('fuse'), info: true, timeout: 50 },
   work:     { when: (i) => i.queue.list.some((t) => t.work), done: (i, ev) => ev.has('work'), info: true, timeout: 50 },
   build3:   { when: (i) => [...i.board.tiles.values()].some((t) => (t.level || 1) >= 2), done: (i, ev) => ev.has('build3'), info: true, timeout: 50 },
@@ -69,9 +71,16 @@ export class Tutorial {
     if (this.doneAll) return;
     if (!this.current) {
       if (this.idx >= this.steps.length) { this.doneAll = true; return; }
-      const step = this.steps[this.idx];
-      const rule = step.done || step.when || step.info ? { when: step.when || (() => true), done: step.done || (() => false), info: !!step.info, timeout: step.timeout || 0 } : (RULES[step.id] || (step.id.startsWith('climate_') ? RULES.climate : null) || { when: () => true, done: () => false, info: true, timeout: 12 });
-      if (rule.when(this.isl)) { this.current = { step, rule }; this.show(step, rule); this.shownFor = 0; this.events.clear(); this.isl.restrict = step.target ? new Set([`${step.target[0]},${step.target[1]}`]) : null; }
+      // hors parcours guidé, la première carte dont la condition est remplie passe devant : une carte qui attend (bâtir sans souffle…) ne bloque pas les autres
+      const ruleOf = (step) => step.done || step.when || step.info ? { when: step.when || (() => true), done: step.done || (() => false), info: !!step.info, timeout: step.timeout || 0 } : (RULES[step.id] || (step.id.startsWith('climate_') ? RULES.climate : null) || { when: () => true, done: () => false, info: true, timeout: 12 });
+      const last = this.guided ? this.idx : this.steps.length - 1;
+      for (let j = this.idx; j <= last; j++) {
+        const step = this.steps[j]; const rule = ruleOf(step);
+        if (!rule.when(this.isl)) continue;
+        if (j !== this.idx) { this.steps.splice(j, 1); this.steps.splice(this.idx, 0, step); }
+        this.current = { step, rule }; this.show(step, rule); this.shownFor = 0; this.events.clear(); this.isl.restrict = step.target ? new Set([`${step.target[0]},${step.target[1]}`]) : null;
+        break;
+      }
       return;
     }
     this.shownFor += dt;
