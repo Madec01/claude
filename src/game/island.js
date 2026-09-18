@@ -272,7 +272,7 @@ export class Island {
     this.weather = null;
     for (const e of ev) { if (e.pts) pts += e.pts; if (e.type === 'harvest') this.stats.harvest++; if (e.type === 'bloom') this.stats.bloom++; }
     // faune : chaque animal présent donne des souffles et des points
-    const faunaBonus = this.fauna.size;
+    const faunaBonus = [...this.fauna.values()].filter((a) => !a.noBonus).length;
     pts += faunaBonus * (BALANCE.points.faunaSeason + this.mods.refuge);
     this.breaths += faunaBonus * BALANCE.breaths.faunaSeason;
     this.score += pts;

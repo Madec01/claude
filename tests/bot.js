@@ -49,7 +49,7 @@ function bestMove(isl, tile, rng) {
  * @param {object} o { upgrades, seedOffset, maxPlacements }
  */
 export function playStrong(def, o = {}) {
-  const isl = new Island(def, { upgrades: o.upgrades || {}, seedOffset: o.seedOffset || 0 });
+  const isl = new Island(def, { upgrades: o.upgrades || {}, seedOffset: o.seedOffset || 0, known: o.known });
   let seed = (o.seedOffset || 0) * 9973 + 17; const rng = () => { seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed / 0x7fffffff; };
   const events = {}; isl.on((e) => { events[e.type] = (events[e.type] || 0) + 1; });
   let guard = 0;

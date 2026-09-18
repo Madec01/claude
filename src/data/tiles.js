@@ -22,13 +22,13 @@ export const RARE_AS = { mill: ['field', 'hamlet'], chapel: ['hamlet'], watchtow
  * changement de saison (+pts par voisine de `family`, plafonnée à `cap`, ou +pts fixes dans la saison `season`).
  */
 export const FUSIONS = [
-  { id: 'port',   a: 'hamlet', b: 'water', seasonal: { family: 'water', pts: 1, cap: 4 } },
+  { id: 'port',   a: 'hamlet', b: 'water', seasonal: { family: 'water', pts: 1, cap: 3 } },
   { id: 'paddy',  a: 'field',  b: 'water', seasonal: { season: 'autumn', pts: 3 } },
-  { id: 'farm',   a: 'hamlet', b: 'field', seasonal: { family: 'field', pts: 1, cap: 4 } },
-  { id: 'fort',   a: 'hamlet', b: 'rock',  seasonal: { family: 'rock', pts: 1, cap: 4 } },
-  { id: 'falls',  a: 'rock',   b: 'water', seasonal: { family: 'water', pts: 1, cap: 4 } },
-  { id: 'cave',   a: 'forest', b: 'rock',  seasonal: { family: 'forest', pts: 1, cap: 4 } },
-  { id: 'lagoon', a: 'sand',   b: 'water', seasonal: { family: 'water', pts: 1, cap: 4 } },
+  { id: 'farm',   a: 'hamlet', b: 'field', seasonal: { family: 'field', pts: 1, cap: 3 } },
+  { id: 'fort',   a: 'hamlet', b: 'rock',  seasonal: { family: 'rock', pts: 1, cap: 3 } },
+  { id: 'falls',  a: 'rock',   b: 'water', seasonal: { family: 'water', pts: 1, cap: 3 } },
+  { id: 'cave',   a: 'forest', b: 'rock',  seasonal: { family: 'forest', pts: 1, cap: 3 } },
+  { id: 'lagoon', a: 'sand',   b: 'water', seasonal: { family: 'water', pts: 1, cap: 3 } },
 ];
 export const FUSION_BY_ID = Object.fromEntries(FUSIONS.map((f) => [f.id, f]));
 /** Recette pour deux familles de base (ordre indifférent), ou null. */

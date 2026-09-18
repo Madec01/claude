@@ -60,7 +60,7 @@ check(affinity('meadow', 'water') === 0, 'prairie-eau = 0');
   check(canFuse(b, 1, 0, { family: 'hamlet', variant: 1 }).id === 'farm', 'hameau sur champ = ferme');
   check(!canFuse(b, 1, 0, { family: 'sand', variant: 1 }), 'sable sur champ : pas de recette');
   const pf = previewFuse(b, 0, 0, { family: 'field', variant: 1 }, 'spring');
-  check(pf && pf.fuse.id === 'farm' && pf.total >= 3, `fusion ferme : prime +3 au moins (obtenu ${pf && pf.total})`);
+  check(pf && pf.fuse.id === 'farm' && pf.total >= 1, `fusion ferme : prime +1 au moins (obtenu ${pf && pf.total})`);
   const isl = new Island(ISLANDS[7], { build: true, fuse: true, known: new Set() }); isl.breaths = 3;
   const h = [...isl.board.tiles.values()].find((t) => !t.rare && t.family === 'hamlet');
   if (h) { isl.queue.list[0] = isl.queue.makeTile('field'); const before = isl.queue.list.length; const res = isl.build(h.q, h.r);

@@ -22,7 +22,7 @@ function anchor(reg) {
  */
 export function evaluate(board, season, rule = null) {
   const out = new Map();
-  const add = (species, reg, cell = null) => { const a = cell || anchor(reg); out.set(`${species}@${reg.id}`, { species, q: a.q, r: a.r, regionId: reg.id }); };
+  const add = (species, reg, cell = null, extra = null) => { const a = cell || anchor(reg); out.set(`${species}@${reg.id}`, { species, q: a.q, r: a.r, regionId: reg.id, ...(extra || {}) }); };
   for (const reg of board.regions('meadow')) {
     const alive = reg.cells.filter((c) => !c.dry).length;
     if (alive >= F.rabbit) add('rabbit', reg);
@@ -64,11 +64,13 @@ export function evaluate(board, season, rule = null) {
   // fusions : chaque tuile composée accueille son animal
   for (const t of board.tiles.values()) {
     if (!t.fusion) continue; const reg = { id: `${t.family}:${key(t.q, t.r)}`, cells: [t] };
-    if (t.family === 'cave') add('bear', reg, t);
-    else if (t.family === 'farm') add('chicken', reg, t);
-    else if (t.family === 'port') add('duck', reg, t);
-    else if (t.family === 'paddy') add('frog', reg, t);
-    else if (t.family === 'lagoon' && season === 'winter') add('penguin', reg, t);
+    // (ces animaux « attachés » ne donnent pas la prime de saison : la tuile composée a déjà la sienne)
+    const nb = { noBonus: true };
+    if (t.family === 'cave') add('bear', reg, t, nb);
+    else if (t.family === 'farm') add('chicken', reg, t, nb);
+    else if (t.family === 'port') add('duck', reg, t, nb);
+    else if (t.family === 'paddy') add('frog', reg, t, nb);
+    else if (t.family === 'lagoon' && season === 'winter') add('penguin', reg, t, nb);
   }
   return out;
 }

@@ -3,6 +3,8 @@
 import { ISLANDS } from '../src/data/islands.js';
 import { Island } from '../src/game/island.js';
 import { playStrong } from '../tests/bot.js';
+import { FUSIONS } from '../src/data/tiles.js';
+const KNOWN = new Set(FUSIONS.map((f) => f.id));   // régime de croisière : recettes déjà découvertes (les découvertes ne rendent des tuiles qu'une fois par campagne)
 
 const N = Number(process.argv[2] || 6);
 const range = (process.argv[3] || '1-12').split('-').map(Number);
@@ -18,7 +20,7 @@ for (const def of ISLANDS) {
   const t0 = Date.now();
   const strong = [], greedy = [], wishes = [], perCell = [];
   for (let k = 0; k < N; k++) {
-    const r = playStrong(def, { seedOffset: k }).result; strong.push(r.score); wishes.push(r.wishesTotal ? r.wishesDone / r.wishesTotal : 1); perCell.push(r.score / r.cells);
+    const r = playStrong(def, { seedOffset: k, known: new Set(KNOWN) }).result; strong.push(r.score); wishes.push(r.wishesTotal ? r.wishesDone / r.wishesTotal : 1); perCell.push(r.score / r.cells);
     greedy.push(playGreedy(def, k).score);
   }
   const m = med(strong);
