@@ -51,7 +51,7 @@ const W = {
   all:     { meadow: 14, forest: 14, field: 10, hamlet: 12, orchard: 8, water: 13, marsh: 6, rock: 8, sand: 5, hill: 8, heath: 8 },
 };
 
-// starFactors : seuils d'étoiles en points par case (55 / 80 / 100 % de la médiane du bot fort, voir tools/calibrate.js) ; la 3e étoile exige aussi tous les vœux.
+// starFactors : seuils d'étoiles en points par case (55 / 80 / 100 % de la médiane du bot fort, voir tools/calibrate.js).
 export const ISLANDS = [
   { id: 1,  arch: 1, cells: 30, starFactors: [2.5, 3.6, 4.5], seed: 1101, roughness: 0.2, holes: 0, seasonLength: 6, startSeason: 'spring', weights: W.gentle, tilesRatio: 0.95, opening: ['meadow', 'forest', 'field', 'hamlet', 'water', 'field', 'orchard', 'meadow', 'forest'], ensure: [[1, 0], [2, 0], [-1, 0], [-1, 1], [1, -1], [0, 1], [1, 1]], guided: true, start: [{ q: 0, r: 0, family: 'hamlet' }, { q: 2, r: -1, family: 'rock' }], wishes: [], mechanics: ['affinity', 'close', 'season'], music: 'spring' },
   { id: 2,  arch: 1, cells: 36, starFactors: [3.1, 4.5, 5.6], seed: 1202, roughness: 0.3, holes: 0, seasonLength: 7, startSeason: 'spring', weights: W.rivers, tilesRatio: 0.95, opening: ['water', 'meadow', 'water'], start: [{ q: 0, r: 0, family: 'hamlet' }, { q: -2, r: 1, family: 'rock' }, { q: 2, r: 1, family: 'rock' }], mechanics: ['river', 'wish'],

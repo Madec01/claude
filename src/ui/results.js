@@ -11,7 +11,7 @@ export function buildResults({ result, def, onContinue, onRetry, onMenu, newReco
   const root = h('div', { class: `panel panel-results stars-${stars}` });
   const lines = STORY.results[stars] || [''];
   const line = lines[Math.floor(Math.random() * lines.length)];
-  const starsEl = h('div', { class: 'stars', 'aria-label': `${stars} étoile(s) sur 3` }, ...[0, 1, 2].map((i) => h('span', { class: `star ${i < stars ? 'on' : ''}`, title: `${thresholds[i]} points${i === 2 && result.wishesTotal ? ' et tous les vœux' : ''}` }, icon('icon_star'))));
+  const starsEl = h('div', { class: 'stars', 'aria-label': `${stars} étoile(s) sur 3` }, ...[0, 1, 2].map((i) => h('span', { class: `star ${i < stars ? 'on' : ''}`, title: `${thresholds[i]} points` }, icon('icon_star'))));
   const row = (label, value, cls = '') => h('div', { class: `res-row ${cls}` }, h('span', {}, label), h('b', {}, String(value)));
   append(root, 
     h('div', { class: 'res-kicker' }, special ? (result.island === 'infinite' ? `Île infinie · ${result.seasons} saisons` : 'Jardin') : result.island === 'daily' ? name : `Île ${result.island} · ${name}`),

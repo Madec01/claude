@@ -78,7 +78,7 @@ const TABS = {
     h('h3', {}, icon('icon_star'), 'Les vœux et les étoiles'),
     h('p', { class: 'g-intro' }, `Dès l’île 2, les habitants formulent des vœux à échéance (un nombre de poses ou une saison). Un vœu exaucé rapporte ${B.points.wish} points, ${B.breaths.wish} souffles et une tuile rare.`),
     h('p', { class: 'g-intro' }, 'L’Île du jour (menu) est générée depuis la date, identique pour tout le monde, avec trois vœux tirés au sort et la météo. Le meilleur score du jour et les jours joués d’affilée sont conservés.'),
-    h('p', { class: 'g-intro' }, 'Les étoiles dépendent du score : chaque île a ses trois seuils, affichés sous les points pendant la partie (le prochain seuil à atteindre) et sur le bilan. Ils ont été réglés avec un joueur automatique qui anticipe ses coups : la première étoile demande un peu plus de la moitié de son score, la deuxième les quatre cinquièmes, la troisième son score entier et tous les vœux exaucés. Une étoile suffit pour débloquer l’île suivante.'),
+    h('p', { class: 'g-intro' }, 'Les étoiles dépendent du score : chaque île a ses trois seuils, affichés sous les points pendant la partie (le prochain seuil à atteindre) et sur le bilan. Ils ont été réglés avec un joueur automatique qui anticipe ses coups : la première étoile demande un peu plus de la moitié de son score, la deuxième les quatre cinquièmes, la troisième son score entier. Les vœux exaucés rapportent des points, des souffles et des graines, mais ne conditionnent pas les étoiles. Une étoile suffit pour débloquer l’île suivante.'),
   ) },
   seeds: { label: 'Graines et Atelier', build: () => h('div', {},
     h('h3', {}, icon('icon_leaf'), 'Les graines'),

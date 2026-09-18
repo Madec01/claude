@@ -247,7 +247,7 @@ export class Hud {
     if (!isl.infinite && !isl.garden) {
       const th = isl.thresholds; const reached = th.filter((t) => isl.score >= t).length;
       const line = reached >= 3 ? '★★★' : `${'★'.repeat(reached)}☆ ${th[reached]}`;
-      if (line !== this.last.starsLine) { this.last.starsLine = line; r.starsLine.textContent = line; r.starsLine.title = `Étoiles : ${th.join(' · ')} points${isl.wishes.length ? ' (la troisième exige tous les vœux)' : ''}`; }
+      if (line !== this.last.starsLine) { this.last.starsLine = line; r.starsLine.textContent = line; r.starsLine.title = `Étoiles : ${th.join(' · ')} points`; }
     }
     this.set('breaths', String(isl.breaths));
     this.set('left', isl.infinite || isl.garden ? '∞' : String(isl.queue.remaining));

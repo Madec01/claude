@@ -24,7 +24,7 @@
 | 10 | **Eau : étang / lac / rivière** | Classification par forme (une tuile = étang ; tas = lac ; ligne partant d'une roche ou d'une colline = rivière, +3 à l'embouchure ; tas contre la roche = lac de montagne). Rives qui reprennent le sol des voisines, ruban de rivière courbe, nappe continue. | **fait** |
 | 11 | **Tuiles qui évoluent** | Objets de décor filtrés par saison, règle et météo pour toutes les familles : fleurs et arbres en fleurs, nénuphars, tas de feuilles, paniers, cultures dorées, congères, bannières de foire, bois de grand froid, flaques d'orage, touffes sèches de canicule. | **fait** |
 | 12 | **Tournée finale** | À la fin d'une île : zoom arrière, régions illuminées de la plus petite à la plus grande avec libellé et faune, sentiers et rivières qui scintillent, compteur, balayage des quatre saisons, nom de l'île et étoiles ; un toucher passe au bilan. | **fait** |
-| 13 | **Recalibrage des étoiles** | Seuils mesurés avec un bot plus fort (≈ 55 / 80 / 100 % de son score ; la troisième étoile exige aussi tous les vœux), affichés dans le HUD. | **fait** |
+| 13 | **Recalibrage des étoiles** | Seuils mesurés avec un bot plus fort (≈ 55 / 80 / 100 % de son score, affichés dans le HUD. | **fait** |
 
 ## Lot 4 (idées du commanditaire : niveaux, superposition, ouvrages)
 

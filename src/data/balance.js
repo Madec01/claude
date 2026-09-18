@@ -17,7 +17,7 @@ export const BALANCE = {
   fauna: { rabbit: 3, moose: 5, duck: 3, bear: 3, frog: 1, owl: 1, penguin: 4, chicken: 2, horse: 2, cow: 2 },
   queue: { visible: [3, 4, 5], pocket: [0, 1, 2], seasonExtra: [0, 1, 2] },
   upgrades: { source: [0, 1], refuge: [0, 1, 2], almanac: [0, 1, 2] },   // bonus de l'Atelier : rivière, faune, graines
-  stars: { perCell: [4.4, 6.4, 8.0] },   // seuils par défaut (Île du jour) = cases × facteur ; les îles de campagne ont leurs `starFactors` calibrés (la 3e étoile exige aussi tous les vœux)
+  stars: { perCell: [4.4, 6.4, 8.0] },   // seuils par défaut (Île du jour) = cases × facteur ; les îles de campagne ont leurs `starFactors` calibrés
   seeds: { star: 1, wish: 1, island: 2 },
   camera: { minZoom: 0.45, maxZoom: 1.6, lerp: 6 },
   infinite: { growEvery: 1, growCells: 6, maxCells: 400 },

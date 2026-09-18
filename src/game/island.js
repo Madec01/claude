@@ -460,7 +460,6 @@ export class Island {
     let stars = 0;
     for (const t of th) if (this.score >= t) stars++;
     const wishesTotal = this.wishes.length;
-    if (stars === 3 && wishesTotal && this.stats.wishesDone < wishesTotal) stars = 2;
     const seeds = stars * BALANCE.seeds.star + this.stats.wishesDone * BALANCE.seeds.wish + (this.infinite || this.garden ? 0 : BALANCE.seeds.island);
     this.result = { island: this.def.id, score: this.score, stars: this.infinite || this.garden ? 0 : stars, thresholds: th, reason, placements: this.placements, seasons: this.seasonsPassed.length, stats: { ...this.stats }, fauna: this.fauna.size, wishesDone: this.stats.wishesDone, wishesTotal, seeds, cells, filled: this.board.placed };
     this.emit({ type: 'end', result: this.result });
