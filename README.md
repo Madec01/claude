@@ -2,7 +2,7 @@
 
 > Une île s'est éteinte : sable, roche, silence. Tu es la Saison, l'esprit qui la remet en marche. Tuile après tuile, tu redessines forêts, prés, hameaux et rivières ; les saisons passent, les animaux reviennent, et l'île se souvient.
 
-Puzzle de placement de tuiles hexagonales, contemplatif et stratégique, jouable dans un navigateur, en français. Campagne de cinquante îles en dix chapitres, Île du jour, Île infinie, Jardin (pose libre), Atelier des saisons (améliorations), sauvegarde locale. Le décor est composé par région (forêts continues, massifs, villages avec ruelles et sentiers), la météo et la vie sur les tuiles animent l'île.
+Puzzle de placement de tuiles hexagonales, contemplatif et stratégique, jouable dans un navigateur, en français. Campagne de cinquante îles en dix chapitres, Île du jour, Île infinie, Jardin (pose libre), Atelier des saisons (améliorations), sauvegarde locale et en ligne, reprise d'une partie laissée en plan. Le décor est composé par région (forêts continues, massifs, villages avec ruelles et sentiers), la météo et la vie sur les tuiles animent l'île.
 
 ## Jouer
 
@@ -135,10 +135,22 @@ elles ne l'ouvrent pas. Ce sont les règles Firestore qui protègent les donnée
 
 La progression est gardée dans le navigateur (localStorage, clé `cent-saisons.save`, JSON versionné avec migration). Elle ne quitte pas l'appareil : **Options → Sauvegarde → Télécharger ma sauvegarde** produit un fichier `cent-saisons-AAAA-MM-JJ.json` à garder (Fichiers, Drive, mail) et **Charger une sauvegarde** le relit sur n'importe quel appareil, après confirmation. Le jeu rappelle de faire une copie après cinq îles, ou une semaine, ou dès la troisième île tant qu'aucune copie n'a été faite. À chaque écriture, l'état précédent est conservé en copie de secours et relu si la sauvegarde devient illisible. Sur iPhone, ajouter le jeu à l'écran d'accueil évite l'effacement des données de site après sept jours sans visite (télécharger la sauvegarde avant, la charger dans le jeu installé après).
 
+### Reprendre une partie en cours
+
+Quitter l'application au milieu d'une île ne fait plus perdre la partie. Dès la mise en pause, quand l'onglet passe en arrière-plan
+(téléphone verrouillé, appel, application fermée) et toutes les cinq secondes en jeu, l'île en cours est rangée dans le navigateur
+(clé `cent-saisons.run`, 4 à 12 Ko). Au retour, le menu propose **« Reprendre »** avec le nom de l'île et le nombre de tuiles posées :
+le plateau, la saison, le score, les souffles, les vœux, la faune et **les tuiles à venir** sont exactement ceux qu'on avait laissés.
+Seule l'ardoise du Souvenir (annulation) repart vide. La partie gardée reste sur l'appareil : elle n'est **jamais** envoyée en ligne.
+Elle est oubliée quand l'île se termine, quand on recommence, quand on ouvre une autre île, au bout d'un mois, ou si l'île ne peut plus
+être reconstruite (l'Île du jour de la veille).
+
 ## Tests
 
 ```bash
 node tests/rules.test.js          # règles, fermetures, couverture narrative, bot glouton sur les 14 îles, bot fort sur les premières
+node tests/run.test.js            # reprise d'une partie laissée en plan (sérialisation, file de tuiles, rangement local)
+node tests/resume.js              # reprise dans un vrai navigateur (onglet caché, rechargement, bouton « Reprendre »)
 node tools/calibrate.js 4 1-50 --write   # calibrage des étoiles : bot fort (tests/bot.js) et glouton, 4 graines par île, écrit src/data/campaign_stars.js
 node tests/autoplay.js 1-12,infinite,garden   # parcours réel dans Chromium (serveur statique sur le port 8765 requis)
 node tests/mobile.js                          # émulation téléphone (iPhone 12 portrait/paysage, Pixel 7) : tactile, captures

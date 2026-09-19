@@ -106,6 +106,9 @@ html.compact .menu-sub { font-size: 13px; margin-top: 4px; }
 html.compact .menu-nav { left: 16px; right: 16px; width: auto; top: 150px; gap: 6px; }
 html.compact .menu-nav .btn { font-size: 15px; padding: 9px 14px; }
 html.compact .menu-nav .btn-big { font-size: 17px; padding: 11px 16px; }
+/* « Reprendre » : le rappel de la partie passe sous le titre, l'écran est trop étroit pour les deux de front */
+html.compact:not(.landscape) .menu-nav .btn-resume { flex-wrap: wrap; row-gap: 2px; }
+html.compact:not(.landscape) .menu-nav .btn-resume .btn-sub { margin-left: 0; width: 100%; text-align: left; font-size: 12px; }
 html.compact .menu-foot { left: 10px; right: 10px; bottom: 6px; font-size: 11px; }
 html.compact .menu-foot .foot-left { gap: 10px; }
 html.compact.landscape .menu-title { top: 4px; }
@@ -115,6 +118,9 @@ html.compact.landscape .menu-sub { display: none; }
 html.compact.landscape .menu-nav { top: 84px; display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
 html.compact.landscape .menu-nav .btn { font-size: 13px; padding: 7px 12px; }
 html.compact.landscape .menu-nav .btn-big { font-size: 14px; padding: 8px 12px; grid-column: 1 / -1; }
+/* en paysage, « Reprendre » et « Continuer » partagent la ligne : le menu tient encore dans la hauteur */
+html.compact.landscape .menu-nav .btn-resume, html.compact.landscape .menu-nav .btn-resume + .btn-big { grid-column: auto; }
+html.compact.landscape .menu-nav .btn-resume .btn-sub { font-size: 10px; }
 html.compact.landscape .menu-foot { bottom: 3px; }
 
 html.compact .panel { width: calc(100% - 16px) !important; max-height: calc(100% - 16px); padding: 12px 14px; border-radius: 12px; }

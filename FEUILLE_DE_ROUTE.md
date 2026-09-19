@@ -234,3 +234,4 @@ Tutoriel pour le commanditaire : `docs/FIREBASE_TUTO.pdf`. Règles : `firestore.
 | Docs générées depuis les données | README, tutoriel et Guide régénérés depuis `MECH_AT` et `balance.js` | plus tard (audit vers 10) |
 | Friche qui bloque la fermeture de sa région | Variante de la friche actuelle (mesure G1) | plus tard (audit vers 10) |
 | Passe de performance (60 fps sur portable modeste) | Budget de fluidité, temps de première image < 3 s | plus tard (audit vers 10) |
+| Reprendre une partie laissée en plan | Île en cours rangée dans le navigateur, bouton « Reprendre » au menu | fait (journal 57) |

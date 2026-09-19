@@ -4,6 +4,7 @@ import { Input } from './core/input.js';
 import { Assets } from './core/assets.js';
 import { AudioSys } from './core/audio.js';
 import { Save } from './core/save.js';
+import { RunSave } from './core/run.js';
 import { SceneManager, wait } from './core/scenes.js';
 import { ParticleSystem } from './core/particles.js';
 import { Shake } from './core/shake.js';
@@ -168,7 +169,7 @@ const Game = {
     }), 'panel-wrap');
   },
 
-  adoptCloud(data) { const opts = Save.data.options, cl = Save.data.cloud; Save.data = data; Save.data.options = opts; Save.data.cloud = cl; Save.save(); this.showMenu(); },
+  adoptCloud(data) { const opts = Save.data.options, cl = Save.data.cloud; Save.data = data; Save.data.options = opts; Save.data.cloud = cl; Save.save(); RunSave.clear(); this.showMenu(); },   // on prend la partie du nuage : la partie en cours de cet appareil ne s'y rattache plus
 
   /** Envoi de la sauvegarde. Appelé UNIQUEMENT à la fin d'une île et sur demande : jamais pendant une partie. */
   async pushCloud(opts = {}) {
@@ -208,7 +209,7 @@ const Game = {
   },
   setFpsVisible(v) { if (!this.fpsEl) { this.fpsEl = h('div', { class: 'fps' }); document.getElementById('app').appendChild(this.fpsEl); } this.fpsEl.style.display = v ? 'block' : 'none'; },
   setTestMode() { if (scenes.currentName === 'menu') this.showOptions(); },
-  onSaveReset() {},
+  onSaveReset() { RunSave.clear(); },   // la progression effacée emporte la partie en cours
   get testMode() { return !!Save.options.testMode; },
 
   // ----- Flux -----
@@ -237,6 +238,35 @@ const Game = {
     const go = (semisId) => { const d2 = semisId && semisId !== 'saisons' ? { ...def, weights: applySemis(def.weights, semisId), semis: semisId } : def; hideUI(); scenes.go('island', { def: d2, skipWishes: true }, { fade: 0.5 }); };
     if (!semis && !(def.wishes && def.wishes.length) && !contract) { go(null); return; }
     this.showPanel(buildIslandPrep({ def, semis, contract, onStart: (id) => { AudioSys.play('ui_confirm', { volume: 0.5 }); go(id); } }));
+  },
+  // ----- Partie en cours gardée sur l'appareil -----
+  /** De quoi retrouver l'île plus tard : le strict nécessaire pour la reconstruire à l'identique. */
+  whereOf(def) {
+    if (!def) return null;
+    if (def.garden) return { kind: 'garden' };
+    if (def.infinite) return { kind: 'infinite' };
+    if (def.daily) return { kind: 'daily', date: def.date };
+    return { kind: 'campaign', id: def.id, semis: def.semis || null };
+  },
+  /** Reconstruit la définition d'île rangée par `whereOf`. Rend null si elle n'a plus de sens (l'île du jour a changé de jour). */
+  defFromWhere(w) {
+    if (!w) return null;
+    if (w.kind === 'garden') return GARDEN;
+    if (w.kind === 'infinite') return INFINITE;
+    if (w.kind === 'daily') return w.date === dailyKey() ? dailyDef(w.date) : null;
+    if (w.kind === 'campaign') {
+      const def = campaignIsland(w.id); def.introduces = [];
+      return w.semis && w.semis !== 'saisons' ? { ...def, weights: applySemis(def.weights, w.semis), semis: w.semis } : def;
+    }
+    return null;
+  },
+  /** Reprend la partie laissée en plan. */
+  resumeRun() {
+    const d = RunSave.read();
+    const def = d && this.defFromWhere(d.where);
+    if (!def) { RunSave.clear(); this.toast('Cette partie ne peut plus être reprise.'); this.showMenu(); return; }
+    hideUI();
+    scenes.go('island', { def, skipWishes: true, resume: d.isl }, { fade: 0.5 });
   },
   startInfinite() { scenes.go('story', { screens: infiniteScreens(), onDone: () => scenes.go('island', { def: INFINITE }, { fade: 0.5 }) }); },
   startDaily() { const def = dailyDef(); scenes.go('story', { screens: dailyScreens(def), onDone: () => this.prepIsland(def) }); },
@@ -369,7 +399,7 @@ class StoryScene {
 
 // ---------- Scène de jeu ----------
 class IslandScene {
-  async enter({ def, skipWishes = false }) {
+  async enter({ def, skipWishes = false, resume = null }) {
     hideUI();
     this.def = def;
     const upgrades = Save.campaign.upgrades;
@@ -377,7 +407,12 @@ class IslandScene {
     if (Game.testMode) for (const m of ['river', 'season', 'fauna', 'wish', 'breath', 'rare', 'build', 'fuse', 'work', 'build3']) mech.add(m);
     this.mech = mech;
     const opt = islandOptions({ mech }); const isl = new Island(def, { upgrades, ...opt, known: new Set(Save.data.campaign.recipes || []) });
+    // reprise : l'île retrouve exactement l'état laissé (plateau, file de tuiles, saison, score, vœux)
+    this.resumed = !!(resume && isl.restoreRun(resume));
+    if (resume && !this.resumed) { RunSave.clear(); Game.toast('Cette partie ne peut plus être reprise : on repart du début de l’île.'); }
+    if (!this.resumed) RunSave.clear();   // une nouvelle île remplace la partie gardée
     this.isl = isl;
+    this.runDirty = false; this.runTimer = 0;
     this.cam = new Camera(); this.cam.fit(isl.board.mask, { ...uiMargins('island'), immediate: true });
     this.armed = null;   // tactile : case « armée » (aperçu affiché) en attente d'une seconde touche
     this.particles = new ParticleSystem(1500); this.fx = new Effects(this.particles); this.shake = new Shake(); this.shake.enabled = Save.options.shake !== false;
@@ -409,7 +444,7 @@ class IslandScene {
     this.tutorial = new Tutorial(document.getElementById('tutorial'), isl, def, !Save.options.skipTutorial && !def.infinite && !def.garden);
     // les vœux se présentent avant la première pose (un bouton pour commencer), sauf en reprise sans intro
     this.hold = false;
-    if (isl.wishes.length && !def.garden && !skipWishes) { this.hold = true; showUI(buildWishesIntro({ island: isl, onStart: () => { hideUI(); this.hold = false; AudioSys.play('ui_confirm', { volume: 0.5 }); } }), 'panel-wrap'); }
+    if (isl.wishes.length && !def.garden && !skipWishes && !this.resumed) { this.hold = true; showUI(buildWishesIntro({ island: isl, onStart: () => { hideUI(); this.hold = false; AudioSys.play('ui_confirm', { volume: 0.5 }); } }), 'panel-wrap'); }
     document.getElementById('tutorial').classList.add('on');
     isl.on((e) => this.onEvent(e));
     isl.on((e) => { if (!Game.testMode) Achievements.onIslandEvent(e, isl); });
@@ -429,10 +464,30 @@ class IslandScene {
       input.on('pan', (dx, dy) => { if (!this.paused) this.cam.pan(dx, dy); }),
       input.on('pinch', (f, cx, cy) => { if (!this.paused) this.cam.zoomBy(f, cx, cy); }),
     ];
+    // l'application passe en arrière-plan (onglet caché, téléphone verrouillé, appel) : on range la partie tout de suite
+    this.onHide = () => { if (document.visibilityState === 'hidden') this.saveRun(true); };
+    this.onLeave = () => this.saveRun(true);
+    document.addEventListener('visibilitychange', this.onHide);
+    window.addEventListener('pagehide', this.onLeave);
+    window.addEventListener('blur', this.onLeave);
     document.getElementById('stage').classList.add('playing');
+    if (this.resumed) { this.hud.notify('Partie reprise là où vous l’aviez laissée', 'info'); this.saveRun(true); }
+  }
+
+  /** Range la partie en cours (appareil seulement, jamais en ligne). */
+  saveRun(now = false) {
+    const isl = this.isl;
+    if (!isl || isl.ended || this.finished || this.finale || Game.testMode) return;
+    if (!now && !this.runDirty) return;
+    this.runDirty = false; this.runTimer = 0;
+    RunSave.write(Game.whereOf(this.def), isl, this.title);
   }
 
   exit() {
+    this.saveRun(true);
+    document.removeEventListener('visibilitychange', this.onHide);
+    window.removeEventListener('pagehide', this.onLeave);
+    window.removeEventListener('blur', this.onLeave);
     for (const u of this.unsubs || []) u();
     this.hud && this.hud.destroy(); document.getElementById('hud').classList.remove('on');
     this.tutorial && this.tutorial.destroy(); document.getElementById('tutorial').classList.remove('on');
@@ -473,6 +528,7 @@ class IslandScene {
   }
   onEvent(e) {
     const isl = this.isl, fx = this.fx;
+    this.runDirty = true;
     if (e.type === 'place') {
       if (!this.isl.garden) this.checkDiscoveryCards();
       const w = toWorld(e.q, e.r);
@@ -625,6 +681,7 @@ class IslandScene {
     } else if (e.type === 'grow') {
       this.cam.fit(this.isl.board.mask);
     } else if (e.type === 'end') {
+      RunSave.clear(); this.runDirty = false;   // l'île est finie : plus rien à reprendre
       fx.flushFlights(); this.hud.hold = 0;
       AudioSys.play('island_done', { volume: 0.8 });
       this.startFinale();
@@ -723,13 +780,15 @@ class IslandScene {
     document.getElementById('tutorial').classList.toggle('paused', this.paused);
     if (this.paused) {
       AudioSys.play('ui_open', { volume: 0.5 });
-      const build = () => buildPause({ title: this.title, onResume: () => this.togglePause(false), onRestart: () => scenes.go('island', { def: this.def }, { fade: 0.5 }), onOptions: () => Game.showOptions(() => showUI(build(), 'pause-wrap')), onGuide: () => Game.showGuide(() => showUI(build(), 'pause-wrap')), onFullscreen: () => { Game.toggleFullscreen(); setTimeout(() => { if (this.paused) showUI(build(), 'pause-wrap'); }, 400); }, onMenu: () => scenes.go('menu'), onPostcard: () => { try { showUI(buildPostcard({ canvas: renderPostcard(this), filename: postcardName(this), onBack: () => showUI(build(), 'pause-wrap') }), 'panel-wrap'); } catch (e) { console.warn('carte postale', e); } } });
+      this.saveRun(true);
+      const build = () => buildPause({ title: this.title, kept: !Game.testMode, onResume: () => this.togglePause(false), onRestart: () => { RunSave.clear(); scenes.go('island', { def: this.def }, { fade: 0.5 }); }, onOptions: () => Game.showOptions(() => showUI(build(), 'pause-wrap')), onGuide: () => Game.showGuide(() => showUI(build(), 'pause-wrap')), onFullscreen: () => { Game.toggleFullscreen(); setTimeout(() => { if (this.paused) showUI(build(), 'pause-wrap'); }, 400); }, onMenu: () => scenes.go('menu'), onPostcard: () => { try { showUI(buildPostcard({ canvas: renderPostcard(this), filename: postcardName(this), onBack: () => showUI(build(), 'pause-wrap') }), 'panel-wrap'); } catch (e) { console.warn('carte postale', e); } } });
       showUI(build(), 'pause-wrap');
     } else { hideUI(); AudioSys.play('ui_close', { volume: 0.5 }); }
   }
 
   update(dt) {
     const isl = this.isl; if (!isl) return;
+    if (this.runDirty) { this.runTimer += dt; if (this.runTimer > 5) this.saveRun(true); }
     if (this.paused) { input.endFrame(); return; }
     if (this.finale && !this.finale.done) { this.finale.update(dt); this.cam.update(dt); this.particles.update(dt); this.fx.update(dt); this.shake.update(dt); const b0 = this.bounds(); this.fx.ambient(dt, isl.season, b0, 1, this._sources); this.fx.life(dt, { objects: this.renderer.decor.objects, tiles: this._tiles || [], season: isl.season, weather: null, bounds: b0 }); input.endFrame(); return; }
     // déplacement de la vue

@@ -6,11 +6,14 @@ import { h, button, icon, stagger, append } from './dom.js';
 import { CHAPTERS, campaignIsland, chapterStars, gateStars, CHAPTER_GATE, CAMPAIGN_SIZE } from '../data/campaign.js';
 import { contractLine } from '../data/contracts.js';
 import { Save } from '../core/save.js';
+import { RunSave } from '../core/run.js';
 import { ISLANDS } from '../data/islands.js';
 import { STORY } from '../data/story.js';
 import { dailyKey, dailyLabel } from '../data/daily.js';
 
 export const VERSION = 'v1.0';
+
+const SEASON_FR = { spring: 'printemps', summer: 'été', autumn: 'automne', winter: 'hiver' };
 
 export function buildMenu({ game }) {
   const c = Save.campaign;
@@ -27,8 +30,12 @@ export function buildMenu({ game }) {
   const primaryLabel = c.completed ? 'Rejouer la campagne' : started ? 'Continuer' : 'Commencer';
   const primarySub = c.completed ? '' : `Île ${Math.min(c.unlockedIsland, CAMPAIGN_SIZE)}`;
   const navButton = (label, fn, o) => { const b = button(label, fn, o); if (o.sub) b.appendChild(h('span', { class: 'btn-sub' }, o.sub)); return b; };
+  // une partie laissée en plan attend sur l'appareil : elle passe devant tout le reste
+  // (sauf si l'île ne peut plus être reconstruite : l'île du jour d'hier, par exemple)
+  const run = (() => { const d = RunSave.describe(); return d && game.defFromWhere(d.where) ? d : null; })();
   append(nav, 
-    navButton(primaryLabel, () => game.startCampaign(), { cls: 'btn-primary btn-big', iconName: 'icon_play', sub: primarySub }),
+    run ? navButton('Reprendre', () => game.resumeRun(), { cls: 'btn-primary btn-big btn-resume', iconName: 'icon_return', title: `${run.title} · ${run.placements} tuile${run.placements > 1 ? 's' : ''} posée${run.placements > 1 ? 's' : ''} · ${SEASON_FR[run.season] || ''} · laissée ${run.when}`, sub: `${run.title} · ${run.placements} tuile${run.placements > 1 ? 's' : ''}` }) : null,
+    navButton(primaryLabel, () => game.startCampaign(), { cls: run ? 'btn-big' : 'btn-primary btn-big', iconName: 'icon_play', sub: primarySub }),
     navButton('Choisir une île', () => showIslands(), { iconName: 'icon_menu', disabled: !started && !testMode, sub: started || testMode ? `${Math.min(c.unlockedIsland, CAMPAIGN_SIZE)} / ${CAMPAIGN_SIZE}` : '' }),
     navButton('Île infinie', () => game.startInfinite(), { iconName: 'icon_wind', disabled: !(Save.data.infinite.unlocked || c.unlockedIsland > 10 || testMode), title: 'Se déverrouille après l’île 10', sub: Save.data.infinite.best ? `${Save.data.infinite.best} pts` : '' }),
     navButton('Île du jour', () => game.startDaily(), { iconName: 'icon_sun', disabled: !(c.unlockedIsland >= 8 || testMode), title: `Se déverrouille après l’île 7 · ${dailyLabel(dailyKey())}`, sub: (Save.data.daily && Save.data.daily.best[dailyKey()]) ? `${Save.data.daily.best[dailyKey()]} pts` : (Save.data.daily && Save.data.daily.streak ? `${Save.data.daily.streak} j` : '') }),

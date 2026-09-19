@@ -3,7 +3,7 @@ import { h, button } from './dom.js';
 
 const key = (k) => h('span', { class: 'key' }, k);
 
-export function buildPause({ onResume, onRestart, onOptions, onGuide, onFullscreen, onMenu, onPostcard = null, title, controls = true }) {
+export function buildPause({ onResume, onRestart, onOptions, onGuide, onFullscreen, onMenu, onPostcard = null, title, controls = true, kept = true }) {
   const root = h('div', { class: 'panel panel-pause' },
     h('div', { class: 'res-kicker' }, title || ''),
     h('h2', { class: 'panel-title' }, 'Pause'),
@@ -28,6 +28,7 @@ export function buildPause({ onResume, onRestart, onOptions, onGuide, onFullscre
       onFullscreen ? button(document.fullscreenElement ? 'Quitter le plein écran' : 'Plein écran', onFullscreen, { cls: 'btn-ghost', iconName: document.fullscreenElement ? 'icon_fullscreen_exit' : 'icon_fullscreen' }) : null,
       button('Quitter vers le menu', onMenu, { cls: 'btn-ghost', iconName: 'icon_home' }),
     ),
+    kept ? h('p', { class: 'pause-kept' }, 'Cette partie est gardée sur cet appareil : vous pouvez fermer le jeu et la reprendre depuis le menu.') : null,
   );
   setTimeout(() => { const b = root.querySelector('.btn-primary'); if (b) b.focus({ preventScroll: true }); }, 50);
   return root;

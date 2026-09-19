@@ -330,6 +330,41 @@ export class Island {
     return grown;
   }
 
+  /**
+   * Toute la partie en cours, en objet simple : de quoi la reprendre plus tard, à l'identique, y compris le tirage
+   * des tuiles à venir (l'état des deux générateurs est gardé). L'historique du Souvenir n'est pas gardé : reprendre
+   * une partie repart avec une ardoise d'annulation vide.
+   */
+  serialize() {
+    return {
+      v: 1, longSeasonDone: !!this.longSeasonDone, refunds: this.refunds, shed: this.shed.map((t) => ({ ...t })),
+      rngS: this.rng.s, board: this.board.snapshot(), queue: this.queue.snapshot(),
+      restrict: this.restrict ? [...this.restrict] : null, pendingOpening: [...this.pendingOpening],
+      season: this.season, inSeason: this.inSeason, placements: this.placements, seasonsPassed: [...this.seasonsPassed],
+      score: this.score, breaths: this.breaths, freeChoice: this.freeChoice,
+      wishes: this.wishes.map((w) => ({ ...w })), fauna: [...this.fauna.entries()],
+      tally: { ...this.tally }, bestMove: this.bestMove ? { ...this.bestMove } : null, stats: { ...this.stats },
+      undoUsedThisSeason: !!this.undoUsedThisSeason, nextCloseDouble: !!this.nextCloseDouble,
+      weather: this.weather ? { ...this.weather } : null, windSeason: !!this.windSeason, huntSeason: !!this.huntSeason, rule: this.rule,
+    };
+  }
+
+  /** Remet l'île dans l'état rendu par `serialize()`. L'île doit avoir été construite avec la même définition. */
+  restoreRun(s) {
+    if (!s || s.v !== 1) return false;
+    this.longSeasonDone = !!s.longSeasonDone; this.refunds = s.refunds || 0; this.shed = (s.shed || []).map((t) => ({ ...t }));
+    this.rng.s = s.rngS; this.board.restore(s.board); this.queue.restore(s.queue);
+    this.restrict = s.restrict ? new Set(s.restrict) : null; this.pendingOpening = [...(s.pendingOpening || [])];
+    this.season = s.season; this.inSeason = s.inSeason; this.placements = s.placements; this.seasonsPassed = [...(s.seasonsPassed || [])];
+    this.score = s.score; this.breaths = s.breaths; this.freeChoice = s.freeChoice || 0;
+    this.wishes = (s.wishes || []).map((w) => ({ ...w })); this.fauna = new Map(s.fauna || []);
+    this.tally = { ...this.tally, ...(s.tally || {}) }; this.bestMove = s.bestMove || null; this.stats = { ...this.stats, ...(s.stats || {}) };
+    this.undoUsedThisSeason = !!s.undoUsedThisSeason; this.nextCloseDouble = !!s.nextCloseDouble;
+    this.weather = s.weather ? { ...s.weather } : null; this.windSeason = !!s.windSeason; this.huntSeason = !!s.huntSeason; this.rule = s.rule;
+    this.history = []; this.ended = false; this.result = null;
+    return true;
+  }
+
   advanceSeason() {
     const from = this.season;
     // climat : une saison longue (été au chaud, hiver au froid) revient une fois avant de passer à la suivante
