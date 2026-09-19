@@ -192,6 +192,16 @@ Rapports : `docs/SUCCESSION_SPEC_2026-09-19.md` (spécification de l'agent et an
 | « Hâter » : un souffle pour avancer une croissance d'une saison | N'a de sens que quand les souffles sont rares | plus tard |
 | Une île à signature « qui se reboise », croissance agressive et spectaculaire | Réutilise `signatures.js` | plus tard |
 
+## Sauvegarde en ligne (faite le 19 septembre)
+
+Firebase : connexion anonyme ou Google, une fiche par joueur, écriture uniquement à la fin d'une île sous budget strict.
+Tutoriel pour le commanditaire : `docs/FIREBASE_TUTO.pdf`. Règles : `firestore.rules`.
+
+| Suite possible | Note | Statut |
+|---|---|---|
+| Classement en ligne de l'Île du jour | Le commanditaire est d'accord sur le principe. Demande un pseudonyme, une modération et une protection contre la triche ; et surtout un budget de lecture (un classement se lit beaucoup plus qu'il ne s'écrit) | à faire, lot entier |
+| Reprise par code sur un appareil sans Google | Rendu inutile par la connexion Google | écarté |
+
 ## À planifier plus tard
 
 | Idée | Note | Statut |

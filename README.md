@@ -110,6 +110,27 @@ Trente-trois succès à débloquer (écran « Succès » du menu), rangés par f
 
 Les vœux d'une île se présentent avant la première pose (donneur, demande, objectif, échéance, récompense) avec un bouton « C'est parti » ; ils restent affichés à droite pendant la partie.
 
+## Sauvegarde en ligne
+
+Au premier lancement, le jeu propose trois façons d'entrer : **Continuer avec Google** (la partie suit le joueur sur
+tous ses appareils), **Jouer sans compte** (connexion anonyme : rien n'est demandé, la partie est gardée en ligne sous
+un identifiant tiré au sort, et peut être rattachée à Google plus tard sans rien perdre) ou **Hors ligne seulement**
+(rien ne sort de l'appareil). Le choix est retenu et se change dans les Options.
+
+Quand deux parties existent, celle de l'appareil et celle en ligne, le jeu les affiche toutes les deux avec leur date,
+leurs étoiles, leurs îles et leurs graines, et le joueur choisit : rien n'est jamais écrasé sans lui.
+
+**La frugalité d'écriture est une contrainte de conception, pas un réglage.** Le palier gratuit de Firebase offre
+20 000 écritures par jour pour tous les joueurs réunis ; une base qui s'écrit à chaque geste les épuise en quelques
+minutes. Le jeu n'écrit donc qu'à la fin d'une île ou sur demande explicite, jamais pendant une partie, jamais dans la
+boucle de rendu, et refuse d'écrire si rien n'a changé, si moins de trente secondes se sont écoulées, au-delà de trente
+écritures par session ou deux cents par jour et par appareil (`src/data/firebase_config.js`). Une seule fiche par
+joueur, une seule lecture au lancement, aucun écouteur temps réel. Sans réseau, quota épuisé ou panne, le jeu
+fonctionne exactement comme avant et la sauvegarde locale fait foi. Les règles de sécurité sont dans `firestore.rules`.
+
+Les clés Firebase de `src/data/firebase_config.js` sont **publiques par conception** : elles identifient le projet,
+elles ne l'ouvrent pas. Ce sont les règles Firestore qui protègent les données.
+
 ## Sauvegarde
 
 La progression est gardée dans le navigateur (localStorage, clé `cent-saisons.save`, JSON versionné avec migration). Elle ne quitte pas l'appareil : **Options → Sauvegarde → Télécharger ma sauvegarde** produit un fichier `cent-saisons-AAAA-MM-JJ.json` à garder (Fichiers, Drive, mail) et **Charger une sauvegarde** le relit sur n'importe quel appareil, après confirmation. Le jeu rappelle de faire une copie après cinq îles, ou une semaine, ou dès la troisième île tant qu'aucune copie n'a été faite. À chaque écriture, l'état précédent est conservé en copie de secours et relu si la sauvegarde devient illisible. Sur iPhone, ajouter le jeu à l'écran d'accueil évite l'effacement des données de site après sept jours sans visite (télécharger la sauvegarde avant, la charger dans le jeu installé après).

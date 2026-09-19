@@ -161,3 +161,32 @@ html.compact .ach-name { font-size: 18px; }
 .panel-postcard { max-width: 900px; }
 .postcard-wrap { margin: 8px 0 12px; border: 1px solid rgba(43,42,38,0.14); border-radius: 8px; overflow: hidden; box-shadow: 0 10px 30px rgba(30,50,70,0.2); background: #fbf7ee; }
 .postcard-img { display: block; width: 100%; height: auto; }
+/* écran de connexion, deux parties, vie privée */
+.panel-signin, .panel-conflict, .panel-privacy { max-width: 640px; }
+.signin-list { display: flex; flex-direction: column; gap: 10px; margin: 12px 0 6px; }
+.signin-card { display: flex; align-items: center; gap: 12px; text-align: left; font: inherit; cursor: pointer; padding: 12px 14px; border-radius: 12px; border: 1px solid rgba(43,42,38,0.16); background: #fff; color: var(--ink); transition: transform 0.15s, box-shadow 0.2s, border-color 0.2s; }
+.signin-card:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(30,50,70,0.14); }
+.signin-card:disabled { opacity: 0.55; cursor: default; }
+.signin-card.primary { border-color: var(--breath, #2f9e8f); background: linear-gradient(180deg, #fbfffe, #f1faf7); }
+.signin-card.ghost { background: rgba(255,255,255,0.6); }
+.signin-card b { font-family: 'Fraunces', serif; font-size: 16px; display: block; }
+.signin-card span { font-size: 12.5px; opacity: 0.8; line-height: 1.35; display: block; margin-top: 2px; }
+.signin-card .hud-icon, .signin-card img { width: 26px; height: 26px; flex: 0 0 26px; filter: invert(0.3); }
+.signin-msg, .signin-err { text-align: center; font-size: 13px; margin: 6px 0 0; }
+.signin-err { color: var(--loss, #d95f4b); font-weight: 700; }
+.signin-msg.hidden, .signin-err.hidden { display: none; }
+.signin-foot { font-size: 12px; opacity: 0.7; text-align: center; margin: 10px 0 0; }
+.linkish { background: none; border: 0; padding: 0; font: inherit; color: var(--breath, #2f9e8f); text-decoration: underline; cursor: pointer; }
+.conflict-list { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 12px 0; }
+.conflict-card { position: relative; text-align: left; font: inherit; cursor: pointer; padding: 12px 14px; border-radius: 12px; border: 1px solid rgba(43,42,38,0.16); background: #fff; color: var(--ink); transition: transform 0.15s, box-shadow 0.2s; }
+.conflict-card:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(30,50,70,0.14); }
+.conflict-card.best { border-color: var(--gold, #e0a33a); }
+.conflict-card > b { font-family: 'Fraunces', serif; font-size: 17px; }
+.conflict-when { display: block; font-size: 12px; opacity: 0.65; margin-bottom: 6px; }
+.conflict-rows > div { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; padding: 2px 0; border-top: 1px solid rgba(43,42,38,0.08); }
+.conflict-rows i { font-style: normal; opacity: 0.75; }
+.conflict-tag { position: absolute; right: 10px; top: -9px; font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: #fff; background: var(--gold, #e0a33a); border-radius: 999px; padding: 2px 8px; }
+.priv-list { display: flex; flex-direction: column; gap: 8px; margin: 10px 0; }
+.priv-row b { font-family: 'Fraunces', serif; font-size: 15px; display: block; }
+.priv-row span { font-size: 13px; opacity: 0.85; line-height: 1.4; }
+.opt-cloud h3 { display: flex; align-items: center; gap: 6px; }

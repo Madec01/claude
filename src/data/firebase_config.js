@@ -1,0 +1,26 @@
+// Configuration Firebase du projet « cent-saisons ».
+// Ces clés sont PUBLIQUES par conception : elles identifient le projet, elles ne l'ouvrent pas. Ce qui protège les
+// données, ce sont les règles Firestore (un joueur ne lit et n'écrit que sa propre fiche). Elles ont donc leur place ici.
+export const FIREBASE_CONFIG = {
+  apiKey: 'AIzaSyBgMr5wzrBdRGU81YOlKPzd2IHHkfIN_Fs',
+  authDomain: 'cent-saisons.firebaseapp.com',
+  projectId: 'cent-saisons',
+  storageBucket: 'cent-saisons.firebasestorage.app',
+  messagingSenderId: '974090860436',
+  appId: '1:974090860436:web:e96d274c01df2f72810181',
+};
+
+/**
+ * Budget d'écriture. Le palier gratuit offre 20 000 écritures et 50 000 lectures par jour, pour TOUS les joueurs
+ * ensemble. Une base qui s'écrit à chaque geste les épuise en quelques minutes ; ces plafonds rendent la chose
+ * impossible par construction, même en cas de bogue.
+ */
+export const CLOUD = {
+  sdk: 'https://www.gstatic.com/firebasejs/10.14.1',
+  collection: 'parties',
+  minIntervalMs: 30000,   // jamais deux écritures à moins de trente secondes
+  maxPerSession: 30,      // au-delà, le nuage se tait pour la session
+  maxPerDay: 200,         // au-delà, il se tait jusqu'au lendemain (compté sur l'appareil)
+  maxBytes: 180000,       // une fiche plus grosse n'est pas envoyée (la règle Firestore refuse au-delà de 200 Ko)
+  timeoutMs: 12000,       // au-delà, on abandonne et on garde le local
+};

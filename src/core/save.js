@@ -23,6 +23,7 @@ const defaults = () => ({
     upgrades: { sight: 0, pocket: 0, breath: 0, patience: 0, rare: 0, memory: 0 },
     prologueSeen: false, completed: false, islandsPlayed: 0, memoriesRead: [],
   },
+  cloud: { choice: null, uid: null },   // sauvegarde en ligne : choix de connexion (null = pas encore demandé, 'anon', 'google', 'none')
   seen: {},   // cartes explicatives déjà vues (sentiers, rivière-lac), une seule fois par joueur
   backup: { lastAt: null, islandsSince: 0 },   // copie locale (fichier téléchargé) : date de la dernière et îles jouées depuis, pour le rappel
   infinite: { best: 0, bestSeasons: 0, unlocked: false },
@@ -54,7 +55,7 @@ export const Save = {
     return this.data;
   },
   /** Écrit la sauvegarde ; l'état précédent est gardé en copie (`.prev`), relue si la sauvegarde devient illisible. */
-  save() { try { const cur = localStorage.getItem(KEY); if (cur) localStorage.setItem(KEY + '.prev', cur); localStorage.setItem(KEY, JSON.stringify(this.data)); } catch (_) { this.available = false; } },
+  save() { this.data.savedAt = Date.now(); try { const cur = localStorage.getItem(KEY); if (cur) localStorage.setItem(KEY + '.prev', cur); localStorage.setItem(KEY, JSON.stringify(this.data)); } catch (_) { this.available = false; } },
 
   // ---- copie locale : fichier téléchargé / chargé par le joueur ----
   /** Texte du fichier de sauvegarde (JSON lisible, avec version et date). */

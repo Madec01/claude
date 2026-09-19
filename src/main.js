@@ -39,6 +39,10 @@ import { applySemis } from './data/semis.js';
 import { Achievements } from './game/achievements.js';
 import { buildPause } from './ui/pause.js';
 import { buildPostcard } from './ui/postcard.js';
+import { Cloud, moreAdvanced } from './core/cloud.js';
+import { buildSignIn } from './ui/signin.js';
+import { buildCloudConflict } from './ui/cloud_conflict.js';
+import { buildPrivacy } from './ui/privacy.js';
 import { renderPostcard, postcardName } from './game/postcard.js';
 import { h, showUI, hideUI } from './ui/dom.js';
 import { STAGE, layoutStage, uiMargins, minZoom } from './core/stage.js';
@@ -110,7 +114,73 @@ const Game = {
     this.setFpsVisible(Save.options.showFps);
     await wait(200);
     const boot = document.getElementById('boot'); boot.classList.add('off'); setTimeout(() => boot.remove(), 700);
+    await this.bootCloud();
+  },
+
+  // ---- sauvegarde en ligne ----------------------------------------------------------------
+  /** Au lancement : premier choix de connexion, ou reprise silencieuse, puis le menu. Ne bloque jamais le jeu. */
+  async bootCloud() {
+    const c = Save.data.cloud || (Save.data.cloud = { choice: null, uid: null });
+    if (!c.choice) { this.askSignIn(); return; }
+    if (c.choice === 'none') { scenes.go('menu', {}, { fade: 0 }); return; }
     scenes.go('menu', {}, { fade: 0 });
+    try { const u = await Cloud.resume(); if (u) await this.syncFromCloud(); } catch (e) { console.warn('nuage', e); }
+  },
+
+  /** Le premier écran : sans compte, avec Google, ou hors ligne. Le choix est retenu. */
+  askSignIn() {
+    const done = (choice) => { Save.data.cloud = { ...(Save.data.cloud || {}), choice, uid: Cloud.user ? Cloud.user.uid : null }; Save.save(); };
+    const panel = buildSignIn({
+      onGoogle: async () => {
+        const r = await Cloud.signInGoogle({ redirect: STAGE.touch });
+        if (r === 'redirect') { done('google'); return null; }
+        if (!r) return 'La connexion a échoué. Tu peux réessayer, ou jouer sans compte.';
+        done('google'); hideUI(); scenes.go('menu', {}, { fade: 0.3 }); await this.syncFromCloud(r && r.conflict);
+        return null;
+      },
+      onAnon: async () => {
+        const u = await Cloud.signInAnonymous();
+        if (!u) return 'La connexion a échoué. Tu peux jouer hors ligne : rien ne sera perdu.';
+        done('anon'); hideUI(); scenes.go('menu', {}, { fade: 0.3 }); await this.syncFromCloud();
+        return null;
+      },
+      onNone: async () => { done('none'); hideUI(); scenes.go('menu', {}, { fade: 0.3 }); return null; },
+      onPrivacy: () => this.showPrivacy(() => this.askSignIn()),
+    });
+    showUI(panel, 'panel-wrap');
+  },
+
+  /** Une lecture, une seule. Si les deux parties diffèrent, le joueur choisit ; sinon on garde la plus avancée. */
+  async syncFromCloud(forceAsk = false) {
+    if (!Cloud.user) return;
+    const remote = await Cloud.fetch();
+    if (!remote || !remote.data) { await this.pushCloud({ force: true }); return; }
+    const local = Save.data;
+    const diff = moreAdvanced(local, remote.data);
+    const localEmpty = (local.campaign.islandsPlayed || 0) === 0 && (local.campaign.unlockedIsland || 1) <= 1;
+    if (localEmpty && !forceAsk) { this.adoptCloud(remote.data); return; }
+    if (diff === 0 && !forceAsk) return;                       // rigoureusement la même avancée : rien à faire
+    if (diff > 0 && !forceAsk) { await this.pushCloud({ force: true }); return; }   // l'appareil est en avance : on envoie
+    showUI(buildCloudConflict({
+      local, remote: remote.data, localAt: Save.data.savedAt || (Save.data.backup && Save.data.backup.lastAt) || null, remoteAt: remote.at,
+      onKeepLocal: async () => { hideUI(); await this.pushCloud({ force: true }); this.toast('Ta partie de cet appareil est gardée.'); },
+      onKeepRemote: () => { hideUI(); this.adoptCloud(remote.data); this.toast('La partie en ligne est reprise.'); },
+    }), 'panel-wrap');
+  },
+
+  adoptCloud(data) { const opts = Save.data.options, cl = Save.data.cloud; Save.data = data; Save.data.options = opts; Save.data.cloud = cl; Save.save(); this.showMenu(); },
+
+  /** Envoi de la sauvegarde. Appelé UNIQUEMENT à la fin d'une île et sur demande : jamais pendant une partie. */
+  async pushCloud(opts = {}) {
+    if (!Cloud.enabled || !Cloud.user) return null;
+    const r = await Cloud.push(Save.data, opts);
+    if (r && r.ok && Save.data.options.testMode) this.toast(`Nuage : écriture ${Cloud._session}/${Cloud.status().budget.session}`);
+    return r;
+  },
+
+  showPrivacy(onBack) {
+    this.showPanel(buildPrivacy({ onBack: onBack || (() => this.showMenu()),
+      onWipe: Cloud.user ? async () => { const ok = await Cloud.wipe(); this.toast(ok ? 'Tes données en ligne sont effacées.' : 'Impossible d’effacer pour l’instant.'); } : null }));
   },
   showPanel(node) { showUI(node, 'panel-wrap'); },
   showMenu() { scenes.go('menu', {}, { fade: 0.25 }); },
@@ -211,6 +281,7 @@ const Game = {
       Save.noteIslandDone();
       Save.save();
       Achievements.onCampaignResult(result, def);
+      this.pushCloud();   // une écriture par île terminée, jamais pendant la partie
     }
     scenes.go('results', { result, def, newRecord, seedsGained });
   },
@@ -235,7 +306,7 @@ const Game = {
     if (result.stars >= 1) scenes.go('story', { screens: memory, onDone: next }); else next();
   },
 };
-window.CS = { Game, Save, scenes, AudioSys, ISLANDS, BALANCE, STORY, STAGE, input, campaignIsland };
+window.CS = { Game, Save, scenes, AudioSys, ISLANDS, BALANCE, STORY, STAGE, input, campaignIsland, Cloud };
 onResizeHook = () => Game.onResize();
 
 // ---------- Scène de fond : une île qui se construit toute seule ----------

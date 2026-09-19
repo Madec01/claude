@@ -2,6 +2,7 @@
 import { h, button, icon, append } from './dom.js';
 import { AudioSys } from '../core/audio.js';
 import { Save } from '../core/save.js';
+import { Cloud } from '../core/cloud.js';
 
 function slider(label, key, onChange) {
   const v = Save.options[key];
@@ -55,6 +56,30 @@ export function buildOptions({ onBack, game }) {
     });
     fileInput.value = '';
   });
+  // --- la partie en ligne : qui je suis, et les trois boutons qui rendent la main au joueur
+  const cloudStatus = h('p', { class: 'opt-note' });
+  const cloudBtns = h('div', { class: 'opt-row opt-btnrow' });
+  const refreshCloud = () => {
+    const st = Cloud.status(); const ch = (Save.data.cloud || {}).choice;
+    const who = st.user ? (st.user.anonymous ? 'Connecté sans compte' : `Connecté avec Google${st.user.name ? ` (${st.user.name})` : ''}`) : (ch === 'none' ? 'Hors ligne : rien n’est envoyé' : 'Pas connecté');
+    const extra = st.state === 'quota' ? ' · le nuage se repose jusqu’à la prochaine session' : st.state === 'error' ? ' · indisponible pour l’instant, la partie reste sur l’appareil' : '';
+    cloudStatus.textContent = who + extra + (Save.options.testMode && st.user ? ` · ${st.writes} écriture(s) cette session, ${st.writesToday} aujourd’hui, ${st.skipped} évitée(s)` : '');
+    cloudBtns.innerHTML = '';
+    if (st.user) {
+      cloudBtns.appendChild(button('Sauvegarder maintenant', async () => { const r = await game.pushCloud({ force: true }); status.textContent = r && r.ok ? 'Partie envoyée en ligne.' : 'Envoi impossible pour l’instant.'; refreshCloud(); }, { cls: 'btn-small', iconName: 'icon_save' }));
+      if (st.user.anonymous) cloudBtns.appendChild(button('Continuer avec Google', async () => { const r = await Cloud.signInGoogle({ redirect: false }); if (r) { Save.data.cloud.choice = 'google'; Save.save(); } refreshCloud(); }, { cls: 'btn-small btn-primary', iconName: 'icon_check' }));
+      cloudBtns.appendChild(button('Se déconnecter', async () => { await Cloud.signOut(); Save.data.cloud = { choice: null, uid: null }; Save.save(); refreshCloud(); }, { cls: 'btn-small btn-ghost', iconName: 'icon_exit' }));
+    } else {
+      cloudBtns.appendChild(button('Choisir une connexion', () => game.askSignIn(), { cls: 'btn-small btn-primary', iconName: 'icon_play' }));
+    }
+    cloudBtns.appendChild(button('Vie privée', () => game.showPrivacy(() => game.showOptions(onBack)), { cls: 'btn-small btn-ghost', iconName: 'icon_info' }));
+  };
+  const cloudGroup = h('div', { class: 'opt-group opt-cloud' },
+    h('h3', {}, icon('icon_cloud'), 'Partie en ligne'),
+    cloudStatus,
+    h('p', { class: 'opt-note' }, 'La partie n’est envoyée qu’à la fin d’une île, jamais pendant que tu joues. Sans réseau, le jeu fonctionne exactement pareil.'),
+    cloudBtns);
+
   const saveGroup = h('div', { class: 'opt-group opt-save' },
     h('h3', {}, icon('icon_save'), 'Sauvegarde'),
     h('p', { class: 'opt-note' }, `Île ${c.unlockedIsland} débloquée · ${c.seeds} graines · ${Object.values(c.stars || {}).reduce((a, b) => a + b, 0)} étoiles.`),
@@ -92,9 +117,10 @@ export function buildOptions({ onBack, game }) {
           h('div', { class: 'opt-row opt-btnrow' }, h('span', { class: 'opt-label' }, 'Affichage', h('small', {}, 'Le jeu s’adapte à la fenêtre ; le plein écran masque le navigateur.')), button('Plein écran', () => game.toggleFullscreen(), { iconName: 'icon_fullscreen', cls: 'btn-small' })),
         ),
       ),
-      h('div', { class: 'opt-col' }, testGroup, saveGroup),
+      h('div', { class: 'opt-col' }, testGroup, cloudGroup, saveGroup),
     ),
     h('div', { class: 'panel-actions' }, button('Retour', onBack, { iconName: 'icon_return' })),
   );
+  refreshCloud();
   return root;
 }

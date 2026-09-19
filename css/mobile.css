@@ -227,3 +227,7 @@ html.compact .panel-wishes-intro, html.compact .panel-postcard, html.compact .pa
 html.compact .panel-wishes-intro .panel-actions, html.compact .panel-postcard .panel-actions { padding-bottom: 8px; }
 /* sur ces panneaux longs, la rangée de boutons reste collée en bas de l'écran : Retour et « C'est parti » toujours sous le pouce */
 html.compact .panel-wishes-intro .panel-actions, html.compact .panel-postcard .panel-actions, html.compact .panel-achievements .panel-actions { position: sticky; bottom: -12px; margin-top: 8px; padding: 8px 0 10px; background: rgba(255,253,248,0.97); z-index: 2; box-shadow: 0 -8px 12px -8px rgba(30,50,70,0.2); }
+html.compact .panel-signin, html.compact .panel-conflict, html.compact .panel-privacy { overflow: auto; -webkit-overflow-scrolling: touch; }
+html.compact .conflict-list { grid-template-columns: 1fr; }
+html.compact .signin-card b { font-size: 15px; } html.compact .signin-card span { font-size: 12px; }
+html.compact .panel-signin .panel-actions, html.compact .panel-privacy .panel-actions { position: sticky; bottom: -12px; background: rgba(255,253,248,0.97); padding: 8px 0 10px; z-index: 2; }

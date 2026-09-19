@@ -17,7 +17,7 @@ async function boot(context, opts = {}) {
   await page.goto(URL); await page.waitForFunction(() => !document.getElementById('boot'), null, { timeout: 90000 });
   await page.evaluate((o) => {
     const s = JSON.parse(localStorage.getItem('cent-saisons.save') || '{}');
-    s.options = Object.assign(s.options || {}, { testMode: true, skipTutorial: !!o.skipTutorial, master: 0 });
+    s.cloud = { choice: 'none' }; s.options = Object.assign(s.options || {}, { testMode: true, skipTutorial: !!o.skipTutorial, master: 0 });
     s.campaign = Object.assign(s.campaign || {}, { prologueSeen: true, unlockedIsland: 7, seeds: 9 });
     localStorage.setItem('cent-saisons.save', JSON.stringify(s));
   }, opts);
