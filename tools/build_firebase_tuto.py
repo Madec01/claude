@@ -243,16 +243,24 @@ F += [step(5, "Écrire les règles de sécurité", [
         '&nbsp;&nbsp;match /databases/{database}/documents {<br/>'
         '&nbsp;&nbsp;&nbsp;&nbsp;// chaque joueur ne touche que sa propre fiche, et seulement connecte<br/>'
         '&nbsp;&nbsp;&nbsp;&nbsp;match /parties/{joueur} {<br/>'
-        '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;allow read, write: if request.auth != null<br/>'
-        '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&amp;&amp; request.auth.uid == joueur<br/>'
-        '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&amp;&amp; request.resource.size() &lt; 200000;<br/>'
+        '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;allow read:&nbsp;&nbsp;&nbsp;if request.auth != null &amp;&amp; request.auth.uid == joueur;<br/>'
+        '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;allow delete: if request.auth != null &amp;&amp; request.auth.uid == joueur;<br/>'
+        '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;allow create, update: if request.auth != null &amp;&amp; request.auth.uid == joueur<br/>'
+        '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&amp;&amp; request.resource.data.save is string<br/>'
+        '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&amp;&amp; request.resource.data.save.size() &lt; 200000;<br/>'
         '&nbsp;&nbsp;&nbsp;&nbsp;}<br/>'
         '&nbsp;&nbsp;&nbsp;&nbsp;// tout le reste est interdit<br/>'
         '&nbsp;&nbsp;&nbsp;&nbsp;match /{document=**} { allow read, write: if false; }<br/>'
         '&nbsp;&nbsp;}<br/>'
         '}', CODE)], bg=colors.HexColor('#f7f4ec')),
-    Paragraph("Ces quatre lignes disent : <b>un joueur connecté peut lire et écrire sa fiche, la sienne "
-              "seulement, et elle ne peut pas dépasser 200 Ko.</b> Tout le reste est refusé.", BODY),
+    Paragraph("Ces règles disent : <b>un joueur connecté lit, écrit et efface sa fiche, la sienne seulement, "
+              "et la sauvegarde qu'elle contient ne peut pas dépasser 200 Ko.</b> Tout le reste est refusé.", BODY),
+    Paragraph("<b>Pourquoi les trois cas sont-ils séparés ?</b> Parce que <font face=\"Courier\" size=\"9\">request.resource</font> "
+              "n'existe que pour une écriture. Sur une lecture ou un effacement il vaut <i>null</i>, et une règle qui s'appuie dessus "
+              "échoue &mdash; donc refuse tout. Écrites en une seule ligne, ces règles laissent passer l'écriture et bloquent la lecture : "
+              "la partie part en ligne mais ne revient jamais. Le dépôt contient un test "
+              "(<font face=\"Courier\" size=\"9\">tests/firestore_rules.mjs</font>) qui joue ces règles dans l'émulateur Firebase "
+              "et vérifie les seize cas, bons et mauvais.", BODY),
 ]), Spacer(1, 5*mm)]
 
 F += [step(6, "Autoriser le domaine du jeu", [

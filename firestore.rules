@@ -1,14 +1,20 @@
 // Règles de sécurité Firestore de Cent Saisons. À copier dans la console Firebase :
 // Firestore Database → onglet Règles → tout remplacer → Publier.
 // Ce sont ELLES qui protègent les sauvegardes, pas le secret des clés (qui sont publiques par conception).
+//
+// Attention au piège : `request.resource` n'existe QUE pour une création ou une modification. Sur une lecture ou un
+// effacement il vaut null, et une condition qui s'appuie dessus échoue — donc refuse tout. Les trois cas sont donc
+// écrits séparément. Vérifié par `tests/firestore_rules.mjs`, qui joue ces règles dans l'émulateur Firestore.
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // un joueur connecté lit et écrit sa fiche, la sienne seulement, et pas plus de 200 Ko
+    // la fiche d'un joueur : la sienne, et rien d'autre
     match /parties/{joueur} {
-      allow read, write: if request.auth != null
-        && request.auth.uid == joueur
-        && request.resource.size() < 200000;
+      allow read:   if request.auth != null && request.auth.uid == joueur;
+      allow delete: if request.auth != null && request.auth.uid == joueur;
+      allow create, update: if request.auth != null && request.auth.uid == joueur
+        && request.resource.data.save is string
+        && request.resource.data.save.size() < 200000;
     }
     // tout le reste est refusé
     match /{document=**} { allow read, write: if false; }

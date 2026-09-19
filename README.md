@@ -149,6 +149,13 @@ Quatre choses, dans deux endroits différents de la console — c'est la source 
 | Firestore Database | une base **nommée « (default) »** | le jeu ouvre la base par défaut ; une base portant un autre nom lui est invisible |
 | Firestore Database → Règles | le contenu de `firestore.rules`, publié | les clés étant publiques, les règles sont la **seule** chose qui protège les sauvegardes |
 
+Attention à un piège de la syntaxe Firestore : `request.resource` n'existe **que** pour une création ou une
+modification. Sur une lecture ou un effacement il vaut `null`, et une règle qui s'appuie dessus échoue — donc refuse
+tout. Écrites en une seule ligne (`allow read, write: if … && request.resource…`), ces règles laissent passer
+l'écriture et bloquent la lecture : la partie part en ligne et ne revient jamais. Les trois cas sont donc séparés dans
+`firestore.rules`, et `tests/firestore_rules.mjs` les joue dans l'émulateur Firebase — seize cas, les bons comme les
+mauvais.
+
 Le jeu écrit une fiche par joueur dans la collection `parties`, dont l'identifiant est celui du joueur : la règle
 « chacun lit et écrit la sienne, et rien d'autre » suffit donc à tout protéger. Ne pas laisser la base en « mode test » :
 ses règles expirent au bout de trente jours et tout cesse de fonctionner sans prévenir.
@@ -177,6 +184,12 @@ node tests/rules.test.js          # règles, fermetures, couverture narrative, b
 node tests/run.test.js            # reprise d'une partie laissée en plan (sérialisation, file de tuiles, rangement local)
 node tests/resume.js              # reprise dans un vrai navigateur (onglet caché, rechargement, bouton « Reprendre »)
 node tests/signin.js              # écran de connexion : pas de boucle au retour d'une connexion Google
+
+# règles de sécurité Firestore, dans l'émulateur Firebase (outillage hors du jeu, à installer une fois) :
+mkdir -p /tmp/fb && cd /tmp/fb && npm i firebase-tools@13 @firebase/rules-unit-testing@3 firebase
+cp <dépôt>/firestore.rules <dépôt>/tests/firestore_rules.mjs .
+echo '{"firestore":{"rules":"firestore.rules"},"emulators":{"firestore":{"port":8181},"ui":{"enabled":false}}}' > firebase.json
+./node_modules/.bin/firebase emulators:exec --project demo-cent-saisons "node firestore_rules.mjs"
 node tools/calibrate.js 4 1-50 --write   # calibrage des étoiles : bot fort (tests/bot.js) et glouton, 4 graines par île, écrit src/data/campaign_stars.js
 node tests/autoplay.js 1-12,infinite,garden   # parcours réel dans Chromium (serveur statique sur le port 8765 requis)
 node tests/mobile.js                          # émulation téléphone (iPhone 12 portrait/paysage, Pixel 7) : tactile, captures
