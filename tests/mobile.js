@@ -56,6 +56,18 @@ async function touchDrag(cdp, pts) {
     const st = await stageInfo(page);
     check(st.compact && st.touch, `${name} : disposition compacte (${st.inner.join('×')}, classes « ${st.html} »)`);
     await page.screenshot({ path: path.join(OUT, `mobile-${tag}-menu.png`) });
+    // menu : aucun libellé rogné, aucun bouton hors de l'écran, et le menu tient dans la hauteur
+    {
+      const m = await page.evaluate(() => {
+        const btns = [...document.querySelectorAll('.menu-nav .btn')];
+        const rogne = btns.filter((b) => [...b.querySelectorAll('span')].some((sp) => sp.scrollWidth > sp.clientWidth + 1)).map((b) => b.textContent.trim().slice(0, 18));
+        const nav = document.querySelector('.menu-nav').getBoundingClientRect();
+        return { rogne, debord: btns.filter((b) => { const r = b.getBoundingClientRect(); return r.right > innerWidth + 1 || r.left < -1; }).length, bas: Math.round(nav.bottom), h: innerHeight, n: btns.length };
+      });
+      check(m.rogne.length === 0, `${name} : les ${m.n} libellés du menu tiennent en entier${m.rogne.length ? ` (rognés : ${m.rogne.join(', ')})` : ''}`);
+      check(m.debord === 0, `${name} : aucun bouton du menu ne déborde de l’écran`);
+      check(m.bas <= m.h, `${name} : le menu tient dans la hauteur (${m.bas} ≤ ${m.h})`);
+    }
     // guide + options
     await page.evaluate(() => window.CS.Game.showGuide()); await page.waitForTimeout(600); await page.screenshot({ path: path.join(OUT, `mobile-${tag}-guide.png`) });
     {
