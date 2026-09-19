@@ -114,19 +114,30 @@ F += [Spacer(1, 4*mm),
                 "identifiant anonyme, et sa sauvegarde est rangée en ligne sous cet identifiant.</b>", BODY)]
 
 # 3
-F += [Paragraph('3. Pourquoi anonyme, et pas un vrai compte', H1),
+F += [Paragraph('3. Deux façons d’entrer : anonyme, puis Google', H1),
       Paragraph("Cent Saisons est un jeu calme, qu'on ouvre et qu'on joue. Demander une adresse et un mot de "
-                "passe avant la première tuile serait un mur. Le compte anonyme évite ce mur :", BODY)]
-F += [bullets([
-    "Le joueur arrive, joue, et sa partie est en ligne sans qu'il ait rien fait.",
-    "Aucune donnée personnelle n'est collectée : ni nom, ni adresse, ni mot de passe. Cela simplifie beaucoup la question de la vie privée.",
-    "Un vrai compte pourra être ajouté plus tard sans rien casser : Firebase sait <b>rattacher</b> un compte anonyme existant à une adresse e-mail, en gardant la sauvegarde.",
-])]
-F += [box([Paragraph("<b>La limite, à connaître.</b> Un compte anonyme est lié à l'appareil et au navigateur. "
-                     "Si le joueur change de téléphone, il ne retrouvera pas sa partie automatiquement : il lui "
-                     "faudra un moyen de se reconnaître. Je propose un <b>code de reprise</b> : une phrase de "
-                     "quelques mots que le joueur note et qu'il saisit sur son nouvel appareil. C'est la question "
+                "passe avant la première tuile serait un mur. Nous proposerons donc les deux, dans cet ordre.", BODY)]
+F += [table([
+    ["", "<b>Anonyme</b> (par défaut)", "<b>Google</b> (proposé, jamais imposé)"],
+    ["Quand", "Dès la première seconde, sans rien demander.", "Quand le joueur le veut, depuis les Options ou après une île."],
+    ["Ce que le joueur donne", "Rien.", "Son adresse Google et son prénom."],
+    ["Ce qu’il y gagne", "Sa partie est protégée du vidage du cache, sur cet appareil.", "Sa partie le suit sur tous ses appareils, pour toujours."],
+    ["Le risque", "Il perd tout s’il change de téléphone.", "Aucun : c’est le cas confortable."],
+], [26*mm, 62*mm, 77*mm])]
+F += [Spacer(1, 4*mm),
+      Paragraph("Le passage de l'un à l'autre est la partie élégante : Firebase sait <b>rattacher</b> un compte "
+                "anonyme existant à un compte Google. Le joueur a joué dix îles sans compte, il appuie sur "
+                "« Continuer avec Google », et <b>ses dix îles restent</b> — c'est le même joueur, qui a "
+                "simplement donné son nom.", BODY)]
+F += [box([Paragraph("<b>Le cas délicat, et il arrivera.</b> Un joueur a une partie anonyme sur son téléphone, "
+                     "et son compte Google porte déjà une partie faite sur l'ordinateur. Le rattachement est alors "
+                     "impossible : il y a deux parties pour un seul joueur. Le jeu affichera les deux, avec leur "
+                     "date, leurs étoiles et leur nombre d'îles, et demandera laquelle garder. C'est la question "
                      "n° 1 de la page « Décisions ».", BODY)], bg=colors.HexColor('#fdf6e6'), border=GOLD)]
+F += [Paragraph("Une précision technique qui a des conséquences visibles : sur téléphone, la fenêtre surgissante "
+                "de Google est souvent bloquée par le navigateur. J'utiliserai donc la méthode par redirection, "
+                "qui quitte brièvement le jeu et y revient. C'est normal et sans danger, mais il faut que le jeu "
+                "sache reprendre sa partie au retour : je m'en occupe.", NOTE)]
 
 # 4 coûts
 F += [Paragraph('4. Ce que cela coûte', H1),
@@ -137,7 +148,7 @@ F += [table([
     ["Écritures dans la base", "20 000", "1 écriture par île terminée, soit 5 à 15 par session", "très large"],
     ["Lectures dans la base", "50 000", "1 lecture au lancement du jeu", "très large"],
     ["Espace de stockage", "1 Go", "environ 4 Ko par joueur", "250 000 joueurs"],
-    ["Connexions anonymes", "sans limite", "1 par joueur, une fois", "—"],
+    ["Connexions (anonymes et Google)", "sans limite", "1 par joueur, puis 1 au rattachement", "—"],
 ], [45*mm, 28*mm, 62*mm, 25*mm])]
 F += [Spacer(1, 3*mm),
       Paragraph("En clair : avec quelques centaines de joueurs, vous resterez très loin des limites, et "
@@ -186,14 +197,27 @@ F += [step(2, "Déclarer le jeu comme application web", [
     Paragraph("Copiez ce bloc et gardez-le : vous me le donnerez à l'étape 7.", BODY),
 ]), Spacer(1, 5*mm)]
 
-F += [step(3, "Activer la connexion anonyme", [
+F += [step(3, "Activer les deux méthodes de connexion", [
     bullets([
-        "Dans le menu de gauche : <b>Créer</b>, puis <b>Authentication</b>.",
-        "Cliquez sur <b>Commencer</b>.",
+        "Dans le menu de gauche : <b>Créer</b>, puis <b>Authentication</b>, puis <b>Commencer</b>.",
         "Onglet <b>Sign-in method</b> (méthodes de connexion).",
-        "Dans la liste, choisissez <b>Anonyme</b>, basculez l'interrupteur sur <b>Activer</b>, puis <b>Enregistrer</b>.",
     ]),
-    Paragraph("C'est la seule méthode à activer. Laissez toutes les autres désactivées.", NOTE),
+    Paragraph("<b>a. Anonyme.</b> Dans la liste, choisissez <b>Anonyme</b>, basculez sur <b>Activer</b>, "
+              "puis <b>Enregistrer</b>.", BODY),
+    Paragraph("<b>b. Google.</b> Dans la même liste, choisissez <b>Google</b>, basculez sur <b>Activer</b>. "
+              "Firebase demande alors deux choses :", BODY),
+    bullets([
+        "<b>Nom public du projet</b> : écrivez <b>Cent Saisons</b>. C'est le nom que verra le joueur dans la "
+        "fenêtre de Google : « Cent Saisons souhaite accéder à votre compte ». Ne laissez pas le nom technique.",
+        "<b>Adresse e-mail d'assistance</b> : choisissez la vôtre dans la liste. Elle sera visible par les joueurs "
+        "sur cet écran de Google, c'est une obligation de sa part.",
+    ]),
+    Paragraph("Puis <b>Enregistrer</b>. Laissez toutes les autres méthodes désactivées.", BODY),
+    box([Paragraph("Firebase configure tout seul, en arrière-plan, ce qu'on appelle l'écran de consentement "
+                   "OAuth. Vous n'avez rien à faire dans la console Google Cloud tant que le jeu reste en "
+                   "<b>mode test</b>, ce qui suffit largement pour des centaines de joueurs. Si un jour le jeu "
+                   "grandit beaucoup, il faudra passer cet écran en « production », une formalité de quelques "
+                   "minutes que je vous signalerai.", NOTE)], bg=colors.HexColor('#f7f4ec')),
 ]), Spacer(1, 5*mm)]
 
 F += [step(4, "Créer la base de données", [
@@ -268,8 +292,12 @@ F += [table([
      "en ligne.", "Le joueur retrouve sa partie."],
     ["<b>Gérer le conflit</b> : si les deux sauvegardes diffèrent nettement, le jeu demande laquelle garder, "
      "avec la date et le nombre d'étoiles de chacune.", "Un écran, rarement."],
-    ["<b>Le code de reprise</b> (si vous le voulez) : un bouton dans les Options affiche une phrase de quatre "
-     "mots ; sur un autre appareil, saisir cette phrase récupère la partie.", "Deux boutons dans les Options."],
+    ["<b>Le bouton « Continuer avec Google »</b> dans les Options, et une proposition discrète après quelques "
+     "îles. Rattachement du compte anonyme, par redirection sur téléphone.", "Un bouton, et sa partie le suit partout."],
+    ["<b>L’écran des deux parties</b> : quand le compte Google porte déjà une sauvegarde, les deux sont "
+     "affichées avec leur date, leurs étoiles et leurs îles, et le joueur choisit.", "Un écran, rarement."],
+    ["<b>Se déconnecter</b>, et <b>effacer mes données en ligne</b> : deux boutons dans les Options, pour que "
+     "le joueur garde la main.", "Deux boutons dans les Options."],
     ["<b>Tout rendre facultatif</b> : sans réseau, ou si Firebase répond mal, le jeu fonctionne exactement "
      "comme aujourd'hui.", "Aucune panne visible."],
     ["<b>Tests</b> : un simulateur Firebase local dans la suite de tests, pour vérifier sans toucher à la vraie base.",
@@ -281,24 +309,25 @@ F += [Spacer(1, 3*mm),
 
 # 7 décisions
 F += [Paragraph('7. Trois décisions à prendre', H1),
-      Paragraph("Je ne peux pas trancher ces trois points à votre place. Répondez-moi en même temps que vous "
-                "m'enverrez la configuration.", BODY)]
+      Paragraph("Vous avez déjà tranché la première question du document précédent : ce sera <b>anonyme par "
+                "défaut, Google en option</b>. Restent ces trois points, que je ne peux pas décider à votre place.", BODY)]
 F += [box([
-    Paragraph("<b>Question 1 — Comment un joueur retrouve-t-il sa partie sur un nouveau téléphone ?</b>", H2),
+    Paragraph("<b>Question 1 — Que fait-on quand il y a deux parties pour un joueur ?</b>", H2),
+    Paragraph("Le cas : partie anonyme sur le téléphone, et partie déjà en ligne sur le compte Google.", NOTE),
     bullets([
-        "<b>Code de reprise</b> (ma recommandation) : une phrase de quatre mots à noter. Simple, sans compte, sans e-mail.",
-        "<b>Connexion Google</b> : un bouton « Continuer avec Google ». Plus confortable, mais c'est un compte, et une question de vie privée.",
-        "<b>Rien</b> : la sauvegarde en ligne ne sert alors qu'à protéger contre le vidage du cache, sur le même appareil.",
+        "<b>Demander au joueur</b> (ma recommandation) : un écran montre les deux, avec la date, les étoiles et le nombre d'îles.",
+        "<b>Garder la plus avancée</b> automatiquement, sans rien demander. Plus simple, mais un joueur peut perdre une partie qu'il voulait.",
     ]),
-    Paragraph("<b>Question 2 — Que fait-on si deux appareils ont chacun une partie ?</b>", H2),
+    Paragraph("<b>Question 2 — Quand propose-t-on la connexion Google ?</b>", H2),
     bullets([
-        "<b>Demander au joueur</b> (ma recommandation) : un écran montre les deux, avec la date et les étoiles.",
-        "<b>Garder la plus avancée</b> automatiquement, sans rien demander.",
+        "<b>Discrètement, après la troisième île</b> (ma recommandation) : un bandeau qui se referme, plus le bouton toujours présent dans les Options.",
+        "<b>Seulement dans les Options</b> : le joueur doit y penser. Plus sobre, beaucoup moins utilisé.",
+        "<b>Dès le menu d’accueil</b> : efficace, mais c’est le mur qu’on voulait éviter.",
     ]),
     Paragraph("<b>Question 3 — Voulez-vous un classement en ligne ?</b>", H2),
     bullets([
         "<b>Non pour l'instant</b> (ma recommandation) : l'Île du jour a déjà son meilleur score local, et un classement change le ton du jeu.",
-        "<b>Oui</b> : c'est faisable, mais il faudra un pseudonyme, une modération, et une protection contre la triche. Comptez un lot entier.",
+        "<b>Oui</b> : c'est faisable — avec Google, on a même déjà un prénom — mais il faudra une modération et une protection contre la triche. Comptez un lot entier.",
     ]),
 ])]
 
@@ -309,18 +338,19 @@ F += [bullets([
     "<b>Ne laissez jamais les règles en mode test.</b> Firebase propose un mode où tout est ouvert pendant trente jours. Les règles de l'étape 5 évitent ce piège.",
     "<b>Ne collez pas votre configuration dans un ticket public</b> par habitude : ce n'est pas dangereux, mais autant rester discret.",
     "<b>Le jeu doit continuer de marcher hors ligne.</b> C'est une règle que je m'impose : Firebase est un confort, jamais une dépendance.",
-    "<b>Vie privée.</b> Avec des comptes anonymes et aucune donnée personnelle, il n'y a rien à déclarer. Si vous ajoutez un jour la connexion Google, il faudra une courte page d'information.",
+    "<b>Vie privée : la connexion Google change la donne.</b> Une adresse e-mail est une donnée personnelle. Il faudra donc une courte page « Vie privée » dans le jeu, disant quoi est collecté (adresse, prénom, sauvegarde), pourquoi (retrouver sa partie), où (Google, en Europe), et comment tout effacer. Je l'écrirai et j'ajouterai le bouton « Effacer mes données en ligne ». Rien de lourd : quinze lignes et un bouton.",
+    "<b>Le nom public du projet est visible par les joueurs</b> dans la fenêtre de Google. Vérifiez qu'il dit bien « Cent Saisons » et non « cent-saisons-1234 ».",
 ])]
 
 # 9 résumé
-F += [Spacer(1, 2*mm), Paragraph('9. En résumé', H1)]
-F += [box([
+F += [Spacer(1, 2*mm), KeepTogether([Paragraph('9. En résumé', H1), box([
     Paragraph("<b>Vous :</b> vingt minutes dans la console Firebase, sept étapes, puis vous m'envoyez le bloc "
               "de configuration et vos réponses aux trois questions.", BODY),
-    Paragraph("<b>Moi :</b> je branche le tout, je teste, et le joueur retrouve sa partie sur tous ses "
-              "appareils sans jamais avoir créé de compte.", BODY),
+    Paragraph("<b>Moi :</b> je branche le tout, je teste, et j'écris la page « Vie privée ». Le joueur commence "
+              "sans rien donner, et le jour où il appuie sur « Continuer avec Google », sa partie le suit partout, "
+              "sans perdre une seule île.", BODY),
     Paragraph("<b>Le coût :</b> zéro, très largement, et sans carte bancaire.", BODY),
-], bg=colors.HexColor('#eefaf6'), border=GREEN)]
+], bg=colors.HexColor('#eefaf6'), border=GREEN)])]
 
 # ---------------------------------------------------------------- doc
 def deco(canv, doc):
