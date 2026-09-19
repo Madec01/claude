@@ -47,7 +47,7 @@ export function progressOf(w, ctx) {
     case 'lake': return Math.max(0, ...lakes(b).map((w) => w.size));
     case 'fauna': return [...ctx.fauna.values()].some((a) => a.species === d.species) ? 1 : 0;
     case 'fusion': return [...b.tiles.values()].filter((t) => t.fusion && t.family === d.recipe).length;
-    case 'level': return [...b.tiles.values()].filter((t) => !t.rare && (t.level || 1) >= 2).length;
+    case 'level': return [...b.tiles.values()].filter((t) => !t.rare && !t.grown && (t.level || 1) >= 2).length;   // le vœu demande de bâtir : ce que le temps fait seul ne compte pas
     case 'works': return [...b.tiles.values()].filter((t) => t.work && !t.workBad).length;
     case 'species': return speciesCount(ctx.fauna);
     case 'bourg': return [...b.closedRegions].filter((id) => id.startsWith('hamlet:')).length + b.regions('hamlet').filter((r) => !b.closedRegions.has(r.id) && r.cells.some((c) => (c.level || 1) >= 3 && !c.rare)).length;

@@ -178,6 +178,20 @@ Seconde réponse de l'auditeur, « que faudrait-il pour approcher 10/10 » (`doc
 | Atelier à branches exclusives | P4 | écarté | l'Atelier par chapitre vient d'être refait |
 | Assets originaux commandés, serveur | — | écarté | déconseillés par l'auditeur lui-même |
 
+## Croissance des tuiles (idée du commanditaire, 19 septembre)
+
+Une tuile bien entourée des siennes grandit d'elle-même : le hameau devient un village, la forêt s'épaissit. Livrée à
+l'île 41, chapitre 9 renommé « Ce que le temps y fait ». Étudiée d'abord comme un changement de famille (prairie →
+forêt, marais qui se comble) : six déclencheurs simulés, tous trop rares (0,5 à 3,3 tuiles par île), piste abandonnée.
+Rapports : `docs/SUCCESSION_SPEC_2026-09-19.md` (spécification de l'agent et annexe de mesures).
+
+| Suite possible | Note | Statut |
+|---|---|---|
+| Croissance vers le niveau 3 par le temps | Volontairement refusé : le temps épaissit, le joueur signe | écarté |
+| Changement de famille (succession écologique) | Mesuré trop rare pour être visible | écarté |
+| « Hâter » : un souffle pour avancer une croissance d'une saison | N'a de sens que quand les souffles sont rares | plus tard |
+| Une île à signature « qui se reboise », croissance agressive et spectaculaire | Réutilise `signatures.js` | plus tard |
+
 ## À planifier plus tard
 
 | Idée | Note | Statut |

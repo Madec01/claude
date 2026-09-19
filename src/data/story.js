@@ -652,6 +652,9 @@ export const STORY = {
     thaw: { name: 'Redoux', announce: 'Un vent tiède se lève. La glace craque déjà.', line: 'Le redoux : la glace fond, l’eau reprend sa voix et les canards reviennent.', rule: 'L’eau dégèle au milieu de l’hiver : les canards reviennent, les manchots repartent.' },
   },
 
+  /** Ce que dit l'île quand une tuile a grandi d'elle-même. */
+  grown: { hamlet: 'Le hameau est devenu un village.', forest: 'La forêt s’est épaissie.', orchard: 'Le verger s’est rempli.', field: 'Le champ s’est étendu.', meadow: 'La prairie a pris ses aises.', default: 'Le temps a fait son travail.' },
+
   closed: ['Bouclé !', 'Une région entière !', 'Tout autour !', 'Voilà qui tient.'],
 
   // commentaire de chaque coup (feedback.js) : comparé au meilleur emplacement possible pour la même tuile
@@ -702,6 +705,7 @@ export const STORY = {
     work: 'Ouvrages : une tuile bonus qui se pose sur une tuile posée. Bien placée, elle rapporte à chaque saison ; mal placée, elle coûte deux saisons puis s’efface. Posée tout de suite, elle est fraîche (+1 par saison). Pas de bonne place ? Mets-la en remise (R), elle y attend douze poses, ou défausse-la gratuitement.',
     paths: 'Un sentier vient de se tracer : deux villages séparés par au plus trois tuiles de terre ouverte (prairie, champ, verger, lande, colline) se relient tout seuls. Chaque sentier rapporte +1 à chaque saison ; les hameaux voisins se relient par des ruelles.',
     riverLake: 'Ta rivière s’élargit : le tronc depuis la montagne reste une rivière (+2 par tuile), la suite devient un lac dans lequel elle se jette (+1 par tuile). Un ponton posé sur la rivière y reste.',
+    growth: 'Croissance : une tuile entourée d’assez des siennes pendant deux saisons grandit toute seule. Le hameau devient un village, la forêt s’épaissit, le verger se remplit. Une saison avant, de jeunes pousses l’annoncent : tu peux encore l’empêcher en posant autre chose à côté. Le temps épaissit ; le niveau 3 et les signatures, eux, restent à bâtir.',
     blight: 'Friche : une tuile posée qui coûte des points (bords et contraintes) devient une friche, une ruine ou un lit asséché. Elle ne rapporte plus rien et ne compte plus pour sa famille. Bâtir dessus la remet en état (1 souffle).',
     hand: 'Main de saison : la file devient une main. Clique sur n’importe quelle tuile visible pour la jouer maintenant, sans souffle. L’échange disparaît, le Regard agrandit la main.',
     semis: 'Semis : avant chaque île, tu choisis ce que la file donnera plutôt. Terres hautes, fonds humides, pays habité ou au gré des saisons. Un choix, pas une garantie : la file reste tirée au sort.',

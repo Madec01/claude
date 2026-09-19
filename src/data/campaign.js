@@ -15,9 +15,9 @@ export const MECH_AT = {
   6: ['wish'], 7: ['breath'], 8: ['rare'], 9: ['event'],
   11: ['weather'], 12: ['hill'], 13: ['rare2'], 14: ['heath'],
   16: ['build', 'hand'], 18: ['rare3'],
-  21: ['climate', 'fuse'], 26: ['work'], 31: ['build3'],
+  21: ['climate', 'fuse'], 26: ['work'], 31: ['build3'], 41: ['growth'],
 };
-export const MECH_NAMES = { river: 'rivière', season: 'saisons', fauna: 'faune', semis: 'semis', wish: 'vœux', breath: 'souffles', rare: 'tuiles rares', event: 'tuiles d’événement', weather: 'météo', hill: 'collines', rare2: 'grenier et fontaine', heath: 'lande', build: 'bâtir', hand: 'main de saison', rare3: 'rares tardives', climate: 'climats', fuse: 'fusions', work: 'ouvrages', build3: 'niveau 3' };
+export const MECH_NAMES = { river: 'rivière', season: 'saisons', fauna: 'faune', semis: 'semis', wish: 'vœux', breath: 'souffles', rare: 'tuiles rares', event: 'tuiles d’événement', weather: 'météo', hill: 'collines', rare2: 'grenier et fontaine', heath: 'lande', build: 'bâtir', hand: 'main de saison', rare3: 'rares tardives', climate: 'climats', fuse: 'fusions', work: 'ouvrages', build3: 'niveau 3' , growth: 'croissance'};
 /** Île où une mécanique arrive (pour le Guide et l'Atelier). */
 export function mechIsland(m) { for (const [n, list] of Object.entries(MECH_AT)) if (list.includes(m)) return Number(n); return null; }
 /** Mécaniques disponibles jusqu'à l'île n (incluse). Sans argument : toutes (modes libres). */
@@ -32,7 +32,7 @@ export const CHAPTERS = [
   { id: 6, name: 'Archipel des Pluies', sub: 'Climat humide, ouvrages', climate: 'humid', islands: [{ cells: 76, w: 'rivers' }, { cells: 80, w: 'all' }, { cells: 84, w: 'rivers' }, { cells: 88, w: 'moorFarm' }, { hand: 10, memory: true }] },
   { id: 7, name: 'Archipel du Nord', sub: 'Climat froid, niveau 3', climate: 'cold', islands: [{ cells: 82, w: 'ridges' }, { cells: 86, w: 'all' }, { cells: 88, w: 'ridges' }, { cells: 90, w: 'moor' }, { hand: 11, memory: true }] },
   { id: 8, name: 'Les Quatre Climats', sub: 'Chaque île change de climat', climate: 'mixed', islands: [{ cells: 90, w: 'coastAll', climate: 'hot' }, { cells: 94, w: 'ridges', climate: 'cold' }, { cells: 96, w: 'ridges', climate: 'temperate' }, { cells: 100, w: 'rivers', climate: 'humid' }, { cells: 100, w: 'coastAll', climate: 'hot', memory: true }] },
-  { id: 9, name: 'Les grandes îles', sub: 'Tout est là', climate: 'mixed', islands: [{ cells: 104, w: 'all', climate: 'temperate' }, { cells: 112, w: 'rivers', climate: 'humid' }, { cells: 120, w: 'ridges', climate: 'cold' }, { cells: 130, w: 'all', climate: 'temperate' }, { cells: 140, w: 'moorFarm', climate: 'hot', memory: true }] },
+  { id: 9, name: 'Les grandes îles', sub: 'Ce que le temps y fait', climate: 'mixed', islands: [{ cells: 104, w: 'all', climate: 'temperate' }, { cells: 112, w: 'rivers', climate: 'humid' }, { cells: 120, w: 'ridges', climate: 'cold' }, { cells: 130, w: 'all', climate: 'temperate' }, { cells: 140, w: 'moorFarm', climate: 'hot', memory: true }] },
   { id: 10, name: 'Cent saisons', sub: 'La fin du souvenir', climate: 'temperate', islands: [{ cells: 120, w: 'all' }, { cells: 130, w: 'coastAll' }, { cells: 140, w: 'all' }, { cells: 150, w: 'all' }, { hand: 12, memory: true }] },
 ];
 
@@ -148,5 +148,5 @@ export const CHAPTER_GATE = 6;   // étoiles nécessaires dans un chapitre pour 
 /** Options à passer à `new Island(def, …)` depuis les mécaniques de l'île (tout est ouvert dans les modes libres). */
 export function islandOptions(def) {
   const m = def.mech || campaignMechanics(99);
-  return { build: m.has('build'), hand: m.has('hand'), fuse: m.has('fuse'), work: m.has('work'), level3: m.has('build3'), weather: m.has('weather'), rareTier: m.has('rare3') ? 3 : m.has('rare2') ? 2 : m.has('event') ? 1 : 0 };
+  return { build: m.has('build'), growth: m.has('growth'), hand: m.has('hand'), fuse: m.has('fuse'), work: m.has('work'), level3: m.has('build3'), weather: m.has('weather'), rareTier: m.has('rare3') ? 3 : m.has('rare2') ? 2 : m.has('event') ? 1 : 0 };
 }

@@ -7,6 +7,7 @@ import { neighbors } from '../src/game/hex.js';
 import { affinity } from '../src/data/tiles.js';
 import { preview, previewBuild, canBuild, canFuse, previewFuse } from '../src/game/rules.js';
 import { STORY } from '../src/data/story.js';
+import { progressOf } from '../src/game/wishes.js';
 import { BALANCE } from '../src/data/balance.js';
 import { playStrong } from './bot.js';
 import { campaignIsland, CAMPAIGN_SIZE, CAMPAIGN_WISHES, islandOptions, gateStars, chapterStars } from '../src/data/campaign.js';
@@ -421,6 +422,33 @@ for (const def of ISLANDS.slice(0, 4)) {
   check(campaignIsland(49).tilesRatio < 0.8 && campaignIsland(46).seasonLength === campaignIsland(48).seasonLength - 4, 'file courte, saisons brèves et longues');
   for (let n = 36; n <= 49; n++) { const d = campaignIsland(n); const i2 = new Island(d, { ...islandOptions(d) }); check(i2.board.placed === d.start.length, `île ${n} : ${d.start.length} tuiles de départ posées`); }
   check(STORY.resultsBy.hamlet[3].length > 0 && STORY.memoryVoice.water.length > 0, 'textes de voix par dominante présents');
+}
+// --- croissance : une tuile bien entourée des siennes monte au niveau 2 toute seule
+{
+  const def = campaignIsland(41); const isl = new Island(def, { ...islandOptions(def) });
+  check(isl.growOn, 'la croissance est ouverte à l’île 41');
+  check(!new Island(campaignIsland(30), { ...islandOptions(campaignIsland(30)) }).growOn, 'elle est fermée à l’île 30');
+  // un hameau entouré de trois hameaux pousse après deux saisons, pas avant
+  const b = isl.board; const c0 = b.legalCells()[0];
+  const put = (q, r, family) => { if (!b.has(q, r)) b.mask.add(`${q},${r}`); return b.place(q, r, { family, variant: 1, rare: false, id: 0 }); };
+  const t = put(20, 20, 'hamlet'); const ns = neighbors(20, 20);
+  for (let i = 0; i < 3; i++) put(ns[i][0], ns[i][1], 'hamlet');
+  let g = isl.growTiles(); check(g.length === 0 && t.ripe === 1 && t.ripening, `première saison : elle mûrit sans pousser (ripe=${t.ripe}, annonce=${t.ripening})`);
+  g = isl.growTiles(); check(g.length === 1 && t.level === 2 && t.grown && !t.ripening, `deuxième saison : elle pousse au niveau 2 (${g.length})`);
+  check(!isl.growTiles().some((x) => x.q === 20 && x.r === 20), 'une tuile déjà poussée ne pousse pas deux fois');
+  // la condition qui tombe remet le compteur à zéro
+  const t2 = put(30, 30, 'forest'); const ns2 = neighbors(30, 30);
+  for (let i = 0; i < 4; i++) put(ns2[i][0], ns2[i][1], 'forest');
+  isl.growTiles(); check(t2.ripe === 1, 'la forêt entourée de quatre forêts mûrit');
+  b.tiles.delete(`${ns2[0][0]},${ns2[0][1]}`); b.touch();
+  isl.growTiles(); check(t2.ripe === 0 && (t2.level || 1) === 1, 'une voisine en moins : le compteur repart de zéro');
+  // une tuile bâtie, rare, fusionnée ou portant un ouvrage ne pousse pas ; le marais et la roche non plus
+  const t3 = put(40, 40, 'marsh'); const ns3 = neighbors(40, 40);
+  for (let i = 0; i < 5; i++) put(ns3[i][0], ns3[i][1], 'marsh');
+  isl.growTiles(); isl.growTiles(); check((t3.level || 1) === 1, 'le marais ne pousse pas : « marais dense » ne veut rien dire');
+  // une tuile poussée par le temps ne compte ni pour le vœu « bâtir » ni pour le contrat des bâtisseurs
+  check(isl.stats.built === 0 && isl.stats.grown >= 1, `ce que le temps fait ne compte pas dans les tuiles bâties (bâties=${isl.stats.built}, poussées=${isl.stats.grown})`);
+  check(progressOf({ def: { type: 'level', count: 2 } }, { board: b }) === 0, 'le vœu « deux tuiles de niveau 2 » ignore les tuiles poussées par le temps');
 }
 console.log(failures ? `${failures} échec(s)` : 'Tous les tests passent.');
 process.exit(failures ? 1 : 0);

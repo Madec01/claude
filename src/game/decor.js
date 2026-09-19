@@ -131,6 +131,13 @@ export class Decor {
     const L3 = (cell) => (cell.level || 1) >= 3;   // niveau 3 : une pièce maîtresse au centre
     const LANDMARK = { forest: ['obj_treeRound_large_{s}', 1.9], hamlet: ['obj_church', 1.0], field: ['obj_silo1', 1.0], orchard: ['obj_treeRound_fruit_{s}', 1.8], meadow: ['obj_fence', 1.2], marsh: ['obj_bushGrass_{s}', 1.8], rock: ['obj_rockGrey_large{w}', 1.9], sand: ['obj_rockBrown_small{w}', 1.6], hill: ['obj_treePine_large_{s}', 1.4], heath: ['obj_heather_{s}', 1.8] };
     for (const t of board.tiles.values()) { if (!L3(t) || t.rare) continue; const lm = LANDMARK[t.family]; if (!lm) continue; const c = toWorld(t.q, t.r); add({ x: c.x, y: c.y + (t.family === 'hamlet' ? 34 : 30), tpl: lm[0], cell: key(t.q, t.r), scale: lm[1], alpha: 1, notSeasons: t.family === 'forest' ? ['spring'] : undefined }); if (t.family === 'forest') add({ x: c.x, y: c.y + 30, tpl: 'obj_treeRound_blossom_large', cell: key(t.q, t.r), scale: lm[1], alpha: 1, seasons: ['spring'] }); }
+    // croissance annoncée : une saison avant, la tuile porte en petit ce qu'elle va devenir (jeune pin, maisonnette, pousses)
+    const SPROUT = { forest: ['obj_treePine_small_{s}', 0.85], orchard: ['obj_treeRound_small_{s}', 0.8], hamlet: ['obj_house_small', 0.7], field: ['obj_crop_{s}', 0.75], meadow: ['obj_bushGrass_{s}', 0.85] };
+    for (const t of board.tiles.values()) {
+      if (!t.ripening || t.rare) continue; const sp = SPROUT[t.family]; if (!sp) continue;
+      const c = toWorld(t.q, t.r); const rng = mulberry(cellSeed(this.seed, t.q, t.r, 11));
+      for (let i = 0; i < 3; i++) add({ x: c.x + (i - 1) * 20 + (rng() - 0.5) * 6, y: c.y + 30 + (rng() - 0.5) * 6, tpl: sp[0], cell: key(t.q, t.r), scale: sp[1] * (0.85 + rng() * 0.3), alpha: 0.9, sprout: true });
+    }
     const degreeOf = (cell, keys) => neighbors(cell.q, cell.r).filter(([a, b]) => keys.has(key(a, b))).length;
     const rareTiles = [];
     for (const t of board.tiles.values()) {
@@ -205,7 +212,8 @@ export class Decor {
             else if (r < 0.78) push({ x: c.x + dx, y: c.y + 30 + dy }, 'obj_villa');
             else if (r < 0.9 && nearField) { push({ x: c.x + dx, y: c.y + 30 + dy }, 'obj_farm'); push({ x: c.x - 32, y: c.y + 4 }, 'obj_hay'); }
             else { push({ x: c.x + dx + 10, y: c.y + 26 + dy }, 'obj_house_small'); push({ x: c.x - 28, y: c.y + 8 }, 'obj_tinyBuilding'); }
-            if (L2(cell)) { push({ x: c.x + (dx >= 0 ? 30 : -30), y: c.y - 4 }, 'obj_house_small'); push({ x: c.x + (dx >= 0 ? -26 : 26), y: c.y - 10 }, 'obj_tinyBuilding'); }
+            // niveau 2 : le hameau devient un village, il faut que ça se voie — quatre bâtiments de plus, une clôture et un puits
+            if (L2(cell)) { push({ x: c.x + (dx >= 0 ? 30 : -30), y: c.y - 4 }, 'obj_house_small'); push({ x: c.x + (dx >= 0 ? -26 : 26), y: c.y - 10 }, 'obj_tinyBuilding'); push({ x: c.x - 4, y: c.y - 16 }, 'obj_house_small', { scale: 0.9 }); push({ x: c.x + (dx >= 0 ? -34 : 34), y: c.y + 30 }, 'obj_tinyBuilding', { scale: 0.85 }); push({ x: c.x + 18, y: c.y + 42 }, 'obj_fence'); push({ x: c.x - 24, y: c.y + 40 }, 'obj_well'); }
             if (rng() < 0.45) push({ x: c.x + (dx >= 0 ? 34 : -34), y: c.y + 36 }, 'obj_fence');
             for (const p of sample(rng, cell, keys, 2, { minDist: 18, margin: 8, placed: [] })) push(p, PICK(rng, ['obj_flowerWhite', 'obj_flowerRed', 'obj_flowerBlue']), { seasons: ['spring'] });
             push({ x: c.x + (dx >= 0 ? -36 : 36), y: c.y + 14 }, 'obj_banner', { seasons: ['summer'], notRules: ['foire'] });

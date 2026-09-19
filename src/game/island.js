@@ -31,6 +31,8 @@ export class Island {
     this.longSeasonDone = false;
     // bâtir : dès l'île 6 en campagne, toujours dans les modes libres et sur l'Île du jour (forçable par les options : mode test)
     this.buildOn = o.build !== undefined ? !!o.build : (!!def.infinite || !!def.garden || !!def.daily || (typeof def.id === 'number' && def.id >= 6));
+    // croissance : dès l'île 41 en campagne, toujours dans les modes libres — une tuile bien entourée des siennes monte au niveau 2 toute seule
+    this.growOn = o.growth !== undefined ? !!o.growth : (!!def.infinite || !!def.daily || (typeof def.id === 'number' && def.id >= 41));
     this.refunds = 0;            // tuiles rendues cette saison (au plus une)
     // fusionner : dès l'île 8 en campagne, toujours dans les modes libres et sur l'Île du jour ; `known` = recettes déjà découvertes (sauvegarde)
     this.fuseOn = o.fuse !== undefined ? !!o.fuse : (!!def.infinite || !!def.garden || !!def.daily || (typeof def.id === 'number' && def.id >= 8));
@@ -82,7 +84,7 @@ export class Island {
     // d'où viennent les points : cumul par source (le « pourquoi » du score), et le meilleur coup de la partie
     this.tally = { edges: 0, base: 0, closes: 0, seasons: 0, wishes: 0, fauna: 0, works: 0, fusions: 0, build: 0, streak: 0 };
     this.bestMove = null;
-    this.stats = { harvest: 0, bloom: 0, closedThisSeason: 0, irrigatedSummer: 0, closed: 0, rivers: 0, faunaMax: 0, wishesDone: 0, biggestRegion: 0, undo: 0, links: 0, perfect: 0, streak: 0, bestStreak: 0, built: 0, refunds: 0, fusions: 0, works: 0, worksGood: 0, worksFresh: 0, worksExpired: 0, worksGone: 0, level3: 0 };
+    this.stats = { grown: 0, harvest: 0, bloom: 0, closedThisSeason: 0, irrigatedSummer: 0, closed: 0, rivers: 0, faunaMax: 0, wishesDone: 0, biggestRegion: 0, undo: 0, links: 0, perfect: 0, streak: 0, bestStreak: 0, built: 0, refunds: 0, fusions: 0, works: 0, worksGood: 0, worksFresh: 0, worksExpired: 0, worksGone: 0, level3: 0 };
     this.history = [];         // instantanés pour le souvenir
     this.undoUsedThisSeason = false;
     this.ended = false;
@@ -290,6 +292,44 @@ export class Island {
     return res;
   }
 
+  /**
+   * Croissance : au changement de saison, une tuile entourée d'assez de voisines de sa propre famille depuis `seasons`
+   * saisons passe au niveau 2 d'elle-même. Le temps épaissit, le joueur signe : le niveau 3 reste réservé à bâtir, et une
+   * tuile poussée par le temps ne compte ni pour le vœu « bâtir » ni pour le contrat des bâtisseurs (`stats.built`).
+   * Au plus une tuile par région et `perSeason` par saison, pour ne pas payer deux fois le gros bloc d'une seule famille.
+   * @returns {Array<{q:number,r:number,family:string}>} les tuiles qui ont poussé
+   */
+  growTiles() {
+    if (!this.growOn || this.garden || this.ended) return [];
+    const G = BALANCE.growth; const ready = [], soon = [];
+    for (const t of this.board.tiles.values()) {
+      const min = G.at[t.family];
+      if (!min || t.rare || t.fusion || t.work || t.blighted || (t.level || 1) > 1) { t.ripe = 0; t.ripening = false; continue; }
+      const same = neighbors(t.q, t.r).filter(([a, b]) => Board.isFamily(this.board.get(a, b), t.family)).length;
+      if (same < min) { t.ripe = 0; t.ripening = false; continue; }   // la condition tombe : le compteur repart de zéro
+      t.ripe = (t.ripe || 0) + 1; t.ripening = false;
+      (t.ripe >= G.seasons ? ready : t.ripe === G.seasons - 1 ? soon : []).push({ t, same });
+    }
+    // une seule tuile par région et `perSeason` par saison : le gros bloc d'une seule famille n'est pas payé deux fois
+    const pick = (list) => {
+      list.sort((a, b) => b.same - a.same || a.t.q - b.t.q || a.t.r - b.t.r);
+      const regions = new Set(), out = [];
+      for (const c of list) {
+        if (out.length >= G.perSeason) break;
+        const reg = this.board.regions(c.t.family).find((r) => r.keys.has(key(c.t.q, c.t.r)));
+        const rid = reg ? reg.id : key(c.t.q, c.t.r);
+        if (regions.has(rid)) continue;
+        regions.add(rid); out.push(c.t);
+      }
+      return out;
+    };
+    const grown = [];
+    for (const t of pick(ready)) { t.level = 2; t.grown = true; t.ripe = 0; t.builtAt = this.seasonsPassed.length; grown.push({ q: t.q, r: t.r, family: t.family }); }
+    for (const t of pick(soon)) t.ripening = true;   // l'annonce ne porte que sur celles qui pousseront vraiment
+    if (grown.length) { this.board.touch(); this.stats.grown = (this.stats.grown || 0) + grown.length; }
+    return grown;
+  }
+
   advanceSeason() {
     const from = this.season;
     // climat : une saison longue (été au chaud, hiver au froid) revient une fois avant de passer à la suivante
@@ -355,7 +395,8 @@ export class Island {
     const faunaBreaths = Math.floor(faunaBonus / BALANCE.breaths.faunaPer);   // un souffle pour deux animaux : les souffles restent rares
     this.breaths += faunaBreaths;
     this.score += pts;
-    this.emit({ type: 'season', from, to: this.season, events: ev, pts, faunaBonus, faunaBreaths, links, rule: this.rule, prevRule });
+    const grown = this.growTiles();
+    this.emit({ type: 'season', from, to: this.season, events: ev, pts, faunaBonus, faunaBreaths, links, rule: this.rule, prevRule, grown });
     this.updateFauna();
     this.checkWishes();
     this.scheduleWeather();

@@ -494,6 +494,17 @@ class IslandScene {
       const cam = this.cam; const z0 = cam.tzoom; const zr = Math.max(minZoom() * 1.0, z0 * 0.9); cam.tzoom = zr;
       setTimeout(() => { if (Math.abs(cam.tzoom - zr) < 1e-6) cam.tzoom = z0; }, 1500 + flights.length * stagger + 2000);
       flights.forEach((f, i) => { const w = toWorld(f.q, f.r); fx.fly(w.x, w.y, f.pts, { color: f.pts < 0 ? '#d95f4b' : f.color, delay: 0.9 + i * stagger / 1000, cell: Number.isInteger(f.q) ? { q: f.q, r: f.r } : null, onArrive: () => { this.hud.release(f.pts); AudioSys.play(f.pts < 0 ? 'point_bad' : `point_${Math.min(8, 1 + Math.floor(i / Math.max(1, flights.length / 8)))}`, { volume: 0.35 }); } }); });
+      // croissance : chaque tuile qui a grandi s'illumine et se signale, après les étincelles
+      if (e.grown && e.grown.length) {
+        const t0 = 900 + flights.length * stagger + 300;
+        e.grown.forEach((g, i) => setTimeout(() => {
+          const w = toWorld(g.q, g.r); fx.ring([{ q: g.q, r: g.r }], '#3f9d4f'); fx.closeBurst(w.x, w.y - 10, 4);
+          this.hud.ribbon(STORY.grown[g.family] || STORY.grown.default, '#3f9d4f', 2000, 'good');
+          AudioSys.play('bud', { volume: 0.6 });
+        }, t0 + i * 900));
+        const seen = Save.data.seen || (Save.data.seen = {});
+        if (!seen.growth) { seen.growth = true; Save.save(); setTimeout(() => this.tutorial.pushCard('growth', STORY.mechCards.growth), t0 + 400); }
+      }
       const lines = seasonLines(e, isl);
       if (this.hud.recapMode === 'full') { this.hud.onTick = null; setTimeout(() => this.hud.seasonRecap({ from: e.from, to: e.to, lines, total: e.pts }), 900 + flights.length * stagger + 1900); }
       else if (e.pts) setTimeout(() => this.hud.bumpScore(e.pts), 900 + flights.length * stagger + 2000);
