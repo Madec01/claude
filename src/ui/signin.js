@@ -1,7 +1,7 @@
 // Écran de connexion, au premier lancement : sans compte, avec Google, ou hors ligne. Le choix est retenu.
 import { h, button, icon, append } from './dom.js';
 
-export function buildSignIn({ onAnon, onGoogle, onNone, onPrivacy, busy = null }) {
+export function buildSignIn({ onAnon, onGoogle, onNone, onPrivacy, busy = null, warn = null }) {
   const root = h('div', { class: 'panel panel-signin' });
   const msg = h('p', { class: 'signin-msg hidden' });
   const setBusy = (text) => { msg.textContent = text || ''; msg.classList.toggle('hidden', !text); root.querySelectorAll('button').forEach((b) => { b.disabled = !!text; }); };
@@ -25,6 +25,7 @@ export function buildSignIn({ onAnon, onGoogle, onNone, onPrivacy, busy = null }
       h('button', { class: 'linkish', type: 'button', onclick: () => onPrivacy && onPrivacy() }, 'Vie privée')),
   );
   root.setBusy = setBusy; root.fail = fail;
+  if (warn) fail(warn);   // une tentative précédente a échoué : on le dit avant que le joueur ne recommence
   if (busy) setBusy(busy);
   return root;
 }

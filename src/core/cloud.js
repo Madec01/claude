@@ -35,6 +35,22 @@ export function moreAdvanced(a, b) {
   return (x.stars - y.stars) || (x.played - y.played) || (x.seeds - y.seeds);
 }
 
+/** Erreurs qui veulent dire « la fenêtre surgissante n'a pas pu s'ouvrir » : là, et seulement là, on redirige. */
+const POPUP_FAILED = ['popup-blocked', 'operation-not-supported-in-this-environment', 'web-storage-unsupported', 'cancelled-popup-request'];
+
+/** Le code d'erreur de Firebase, dit en français. Rend null quand il n'y a rien d'utile à dire. */
+export function signInProblem(code) {
+  const c = String(code || '');
+  if (c.includes('unauthorized-domain')) return 'Ce site n’est pas encore autorisé côté Firebase (Authentication → Settings → Domaines autorisés).';
+  if (c.includes('operation-not-allowed')) return 'La connexion Google n’est pas encore activée côté Firebase (Authentication → Sign-in method).';
+  if (c.includes('popup-closed-by-user') || c.includes('user-cancelled')) return 'La fenêtre Google a été fermée avant la fin.';
+  if (c.includes('network-request-failed')) return 'Le réseau n’a pas répondu.';
+  if (c.includes('configuration-not-found') || c.includes('invalid-api-key')) return 'Le projet Firebase n’est pas encore configuré.';
+  if (c === 'sdk') return 'Les services Google n’ont pas pu être chargés (réseau coupé, ou bloqueur de contenu).';
+  if (!c || c === 'null' || c === 'undefined') return null;
+  return `Détail technique : ${c}.`;
+}
+
 export const Cloud = {
   enabled: false,       // le joueur a choisi une connexion
   state: 'off',         // off | loading | ready | error | quota
@@ -92,19 +108,25 @@ export const Cloud = {
   },
 
   /**
-   * Connexion Google. Sur téléphone la fenêtre surgissante est souvent bloquée : on redirige, et `resume()` reprend
-   * au retour. Si une partie anonyme existe déjà, on la RATTACHE au compte Google pour ne rien perdre.
+   * Connexion Google. **La fenêtre surgissante d'abord, partout** : la redirection ne revient pas toujours quand le jeu
+   * est servi depuis un autre domaine que Firebase (les navigateurs cloisonnent le stockage), et le joueur retombait
+   * alors sur l'écran de connexion, encore et encore. La redirection ne sert plus que de secours, quand la fenêtre est
+   * bloquée. `beforeRedirect` est appelé AVANT de quitter la page : c'est le seul moment où l'on peut encore écrire.
+   * Si une partie anonyme existe déjà, on la RATTACHE au compte Google pour ne rien perdre.
    */
-  async signInGoogle({ redirect = false } = {}) {
+  async signInGoogle({ redirect = false, beforeRedirect = null } = {}) {
     if (!await this.load()) return null;
     const A = this.sdk.A; const provider = new A.GoogleAuthProvider();
+    try { provider.setCustomParameters({ prompt: 'select_account' }); } catch (_) { /* double de test */ }
     const current = this.sdk.auth.currentUser;
+    const goRedirect = async () => {
+      if (beforeRedirect) { try { beforeRedirect(); } catch (_) { /* rien à faire : on part quand même */ } }
+      if (current && current.isAnonymous) await A.linkWithRedirect(current, provider);
+      else await A.signInWithRedirect(this.sdk.auth, provider);
+      return 'redirect';
+    };
+    if (redirect) { try { return await goRedirect(); } catch (e) { this.state = 'error'; this.error = String((e && e.code) || e); this.emit(); return null; } }
     try {
-      if (redirect) {
-        if (current && current.isAnonymous) await A.linkWithRedirect(current, provider);
-        else await A.signInWithRedirect(this.sdk.auth, provider);
-        return 'redirect';
-      }
       const r = current && current.isAnonymous
         ? await A.linkWithPopup(current, provider)
         : await A.signInWithPopup(this.sdk.auth, provider);
@@ -116,6 +138,8 @@ export const Cloud = {
         this.error = 'deux-parties';
         try { const cred = A.GoogleAuthProvider.credentialFromError(e); if (cred) { const r2 = await A.signInWithCredential(this.sdk.auth, cred); this._setUser(r2.user); return { conflict: true, user: this.user }; } } catch (_) { /* on retombe sur l'erreur */ }
       }
+      // fenêtre bloquée ou impossible : la redirection prend le relais
+      if (POPUP_FAILED.some((c) => code.includes(c))) { try { return await goRedirect(); } catch (e2) { this.state = 'error'; this.error = String((e2 && e2.code) || e2); this.emit(); return null; } }
       this.state = 'error'; this.error = code; this.emit(); return null;
     }
   },

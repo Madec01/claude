@@ -40,7 +40,7 @@ import { applySemis } from './data/semis.js';
 import { Achievements } from './game/achievements.js';
 import { buildPause } from './ui/pause.js';
 import { buildPostcard } from './ui/postcard.js';
-import { Cloud, moreAdvanced } from './core/cloud.js';
+import { Cloud, moreAdvanced, signInProblem } from './core/cloud.js';
 import { buildSignIn } from './ui/signin.js';
 import { buildCloudConflict } from './ui/cloud_conflict.js';
 import { buildPrivacy } from './ui/privacy.js';
@@ -122,6 +122,15 @@ const Game = {
   /** Au lancement : premier choix de connexion, ou reprise silencieuse, puis le menu. Ne bloque jamais le jeu. */
   async bootCloud() {
     const c = Save.data.cloud || (Save.data.cloud = { choice: null, uid: null });
+    // retour d'une redirection Google : c'est ICI que la connexion se termine, pas sur l'écran de choix
+    if (c.pending === 'google') {
+      c.pending = null; Save.save();
+      let u = null; try { u = await Cloud.resume(); } catch (e) { console.warn('nuage', e); }
+      if (u) { Save.data.cloud = { ...Save.data.cloud, choice: 'google', uid: u.uid, pending: null }; Save.save(); scenes.go('menu', {}, { fade: 0 }); await this.syncFromCloud(); return; }
+      // la redirection n'a rien rapporté : on le dit clairement au lieu de renvoyer le joueur dans la même boucle
+      this.askSignIn(['La connexion Google n’a pas abouti.', signInProblem(Cloud.error)].filter(Boolean).join(' ') + ' Tu peux réessayer, ou jouer sans compte : rien ne sera perdu.');
+      return;
+    }
     if (!c.choice) { this.askSignIn(); return; }
     if (c.choice === 'none') { scenes.go('menu', {}, { fade: 0 }); return; }
     scenes.go('menu', {}, { fade: 0 });
@@ -129,13 +138,15 @@ const Game = {
   },
 
   /** Le premier écran : sans compte, avec Google, ou hors ligne. Le choix est retenu. */
-  askSignIn() {
-    const done = (choice) => { Save.data.cloud = { ...(Save.data.cloud || {}), choice, uid: Cloud.user ? Cloud.user.uid : null }; Save.save(); };
+  askSignIn(warn = null) {
+    const done = (choice) => { Save.data.cloud = { ...(Save.data.cloud || {}), choice, uid: Cloud.user ? Cloud.user.uid : null, pending: null }; Save.save(); };
     const panel = buildSignIn({
+      warn,
       onGoogle: async () => {
-        const r = await Cloud.signInGoogle({ redirect: STAGE.touch });
-        if (r === 'redirect') { done('google'); return null; }
-        if (!r) return 'La connexion a échoué. Tu peux réessayer, ou jouer sans compte.';
+        // la fenêtre surgissante d'abord ; si elle est bloquée, le SDK redirige et note le choix AVANT de quitter la page
+        const r = await Cloud.signInGoogle({ beforeRedirect: () => { const c = Save.data.cloud || (Save.data.cloud = {}); c.pending = 'google'; Save.save(); } });
+        if (r === 'redirect') return null;   // la page part chez Google : la suite se passe dans bootCloud()
+        if (!r) return ['La connexion Google a échoué.', signInProblem(Cloud.error)].filter(Boolean).join(' ') + ' Tu peux réessayer, ou jouer sans compte : rien ne sera perdu.';
         done('google'); hideUI(); scenes.go('menu', {}, { fade: 0.3 }); await this.syncFromCloud(r && r.conflict);
         return null;
       },

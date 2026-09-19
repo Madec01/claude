@@ -2,7 +2,7 @@
 import { h, button, icon, append } from './dom.js';
 import { AudioSys } from '../core/audio.js';
 import { Save } from '../core/save.js';
-import { Cloud } from '../core/cloud.js';
+import { Cloud, signInProblem } from '../core/cloud.js';
 
 function slider(label, key, onChange) {
   const v = Save.options[key];
@@ -67,8 +67,15 @@ export function buildOptions({ onBack, game }) {
     cloudBtns.innerHTML = '';
     if (st.user) {
       cloudBtns.appendChild(button('Sauvegarder maintenant', async () => { const r = await game.pushCloud({ force: true }); status.textContent = r && r.ok ? 'Partie envoyée en ligne.' : 'Envoi impossible pour l’instant.'; refreshCloud(); }, { cls: 'btn-small', iconName: 'icon_save' }));
-      if (st.user.anonymous) cloudBtns.appendChild(button('Continuer avec Google', async () => { const r = await Cloud.signInGoogle({ redirect: false }); if (r) { Save.data.cloud.choice = 'google'; Save.save(); } refreshCloud(); }, { cls: 'btn-small btn-primary', iconName: 'icon_check' }));
-      cloudBtns.appendChild(button('Se déconnecter', async () => { await Cloud.signOut(); Save.data.cloud = { choice: null, uid: null }; Save.save(); refreshCloud(); }, { cls: 'btn-small btn-ghost', iconName: 'icon_exit' }));
+      // rattacher Google : la fenêtre surgissante d'abord ; si elle est bloquée, le SDK redirige et le retour est repris au lancement
+      if (st.user.anonymous) cloudBtns.appendChild(button('Continuer avec Google', async () => {
+        const r = await Cloud.signInGoogle({ beforeRedirect: () => { Save.data.cloud.pending = 'google'; Save.save(); } });
+        if (r === 'redirect') return;
+        if (r) { Save.data.cloud.choice = 'google'; Save.data.cloud.pending = null; Save.save(); status.textContent = 'Compte Google rattaché : ta partie te suit.'; }
+        else status.textContent = ['La connexion Google a échoué.', signInProblem(Cloud.error)].filter(Boolean).join(' ');
+        refreshCloud();
+      }, { cls: 'btn-small btn-primary', iconName: 'icon_check' }));
+      cloudBtns.appendChild(button('Se déconnecter', async () => { await Cloud.signOut(); Save.data.cloud = { choice: null, uid: null, pending: null }; Save.save(); refreshCloud(); }, { cls: 'btn-small btn-ghost', iconName: 'icon_exit' }));
     } else {
       cloudBtns.appendChild(button('Choisir une connexion', () => game.askSignIn(), { cls: 'btn-small btn-primary', iconName: 'icon_play' }));
     }

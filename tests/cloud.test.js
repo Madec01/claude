@@ -1,6 +1,6 @@
 // Tests de la sauvegarde en ligne, avec un faux SDK : aucune connexion réseau, aucune écriture dans la vraie base.
 // Ce qui est vérifié ici, c'est la frugalité : quand le jeu écrit, et surtout quand il refuse d'écrire.
-import { Cloud, hashOf, summarize, moreAdvanced } from '../src/core/cloud.js';
+import { Cloud, hashOf, summarize, moreAdvanced, signInProblem } from '../src/core/cloud.js';
 import { CLOUD } from '../src/data/firebase_config.js';
 
 let failures = 0;
@@ -14,15 +14,17 @@ Object.defineProperty(globalThis, 'navigator', { value: { get onLine() { return 
 
 // --- faux SDK
 function fakeSdk() {
-  const docs = new Map(); const calls = { set: 0, get: 0, del: 0 };
+  const docs = new Map(); const calls = { set: 0, get: 0, del: 0, redirect: 0, popup: 0 };
   const auth = { currentUser: null };   // le vrai SDK tient l'utilisateur courant : le double aussi
   const sdk = {
     docs, calls, auth, db: {},
     A: {
       signInAnonymously: async () => { auth.currentUser = { uid: 'anon-1', isAnonymous: true, displayName: null }; return { user: auth.currentUser }; },
       GoogleAuthProvider: class { static credentialFromError() { return null; } },
-      signInWithPopup: async () => { auth.currentUser = { uid: 'g-1', isAnonymous: false, displayName: 'Martin' }; return { user: auth.currentUser }; },
-      linkWithPopup: async (u) => { auth.currentUser = { uid: u.uid, isAnonymous: false, displayName: 'Martin' }; return { user: auth.currentUser }; },
+      signInWithPopup: async () => { calls.popup++; auth.currentUser = { uid: 'g-1', isAnonymous: false, displayName: 'Martin' }; return { user: auth.currentUser }; },
+      linkWithPopup: async (u) => { calls.popup++; auth.currentUser = { uid: u.uid, isAnonymous: false, displayName: 'Martin' }; return { user: auth.currentUser }; },
+      signInWithRedirect: async () => { calls.redirect++; },
+      linkWithRedirect: async () => { calls.redirect++; },
       signOut: async () => { auth.currentUser = null; },
       onAuthStateChanged: (a, fn) => { fn(null); return () => {}; },
       getRedirectResult: async () => null,
@@ -52,6 +54,27 @@ const save = (n) => ({ version: 2, campaign: { stars: { 1: n }, gold: {}, unlock
   check(u && u.uid === 'anon-1' && u.anonymous && Cloud.enabled, 'connexion sans compte');
   u = await Cloud.signInGoogle();
   check(u && u.name === 'Martin' && !u.anonymous && u.uid === 'anon-1', 'Google rattache la partie anonyme : même identifiant, la partie est gardée');
+  check(sdk.calls.popup === 1 && sdk.calls.redirect === 0, 'Google passe par la fenêtre surgissante, pas par une redirection');
+
+  // --- fenêtre bloquée : la redirection prend le relais, et le choix est noté AVANT de quitter la page
+  // (le bogue : la page partait chez Google avant que le choix ne soit écrit, et le joueur retombait sur l'écran de connexion en boucle)
+  sdk = fakeSdk(); reset(sdk);
+  sdk.A.signInWithPopup = async () => { const e = new Error('blocked'); e.code = 'auth/popup-blocked'; throw e; };
+  let order = [];
+  sdk.A.signInWithRedirect = async () => { order.push('redirection'); sdk.calls.redirect++; };
+  let r0 = await Cloud.signInGoogle({ beforeRedirect: () => order.push('choix noté') });
+  check(r0 === 'redirect', 'fenêtre bloquée : on redirige');
+  check(order.join(' → ') === 'choix noté → redirection', `le choix est noté avant de quitter la page (${order.join(' → ')})`);
+
+  // --- fenêtre fermée par le joueur : on ne redirige PAS, on le dit
+  sdk = fakeSdk(); reset(sdk);
+  sdk.A.signInWithPopup = async () => { const e = new Error('closed'); e.code = 'auth/popup-closed-by-user'; throw e; };
+  sdk.A.signInWithRedirect = async () => { sdk.calls.redirect++; };
+  check(await Cloud.signInGoogle() === null && sdk.calls.redirect === 0, 'fenêtre fermée par le joueur : pas de redirection dans son dos');
+  check(signInProblem(Cloud.error) === 'La fenêtre Google a été fermée avant la fin.', 'l’erreur est dite en français');
+  check(/Domaines autorisés/.test(signInProblem('auth/unauthorized-domain')), 'le domaine non autorisé est expliqué');
+  check(/Sign-in method/.test(signInProblem('auth/operation-not-allowed')), 'la connexion Google non activée est expliquée');
+  check(signInProblem(null) === null, 'sans code d’erreur, rien à dire');
 
   // --- la première écriture passe, la deuxième est refusée (trop tôt, et rien n'a changé)
   sdk = fakeSdk(); reset(sdk); await Cloud.signInAnonymous();

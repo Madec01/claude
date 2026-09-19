@@ -120,6 +120,13 @@ un identifiant tiré au sort, et peut être rattachée à Google plus tard sans 
 Quand deux parties existent, celle de l'appareil et celle en ligne, le jeu les affiche toutes les deux avec leur date,
 leurs étoiles, leurs îles et leurs graines, et le joueur choisit : rien n'est jamais écrasé sans lui.
 
+La connexion Google passe par une **fenêtre surgissante**, sur ordinateur comme sur téléphone. La redirection ne sert
+que de secours, quand le navigateur bloque la fenêtre : elle ne revient pas de façon fiable lorsque le jeu est servi
+depuis un autre domaine que Firebase (GitHub Pages), les navigateurs cloisonnant désormais le stockage entre sites.
+Dans ce cas de secours, le choix est écrit **avant** de quitter la page et la connexion se termine au retour, au
+lancement suivant. Si elle échoue, le jeu le dit en clair (domaine pas encore autorisé côté Firebase, connexion Google
+pas activée, réseau, fenêtre fermée) et laisse toujours le choix de jouer sans compte ou hors ligne.
+
 **La frugalité d'écriture est une contrainte de conception, pas un réglage.** Le palier gratuit de Firebase offre
 20 000 écritures par jour pour tous les joueurs réunis ; une base qui s'écrit à chaque geste les épuise en quelques
 minutes. Le jeu n'écrit donc qu'à la fin d'une île ou sur demande explicite, jamais pendant une partie, jamais dans la
@@ -151,6 +158,7 @@ Elle est oubliée quand l'île se termine, quand on recommence, quand on ouvre u
 node tests/rules.test.js          # règles, fermetures, couverture narrative, bot glouton sur les 14 îles, bot fort sur les premières
 node tests/run.test.js            # reprise d'une partie laissée en plan (sérialisation, file de tuiles, rangement local)
 node tests/resume.js              # reprise dans un vrai navigateur (onglet caché, rechargement, bouton « Reprendre »)
+node tests/signin.js              # écran de connexion : pas de boucle au retour d'une connexion Google
 node tools/calibrate.js 4 1-50 --write   # calibrage des étoiles : bot fort (tests/bot.js) et glouton, 4 graines par île, écrit src/data/campaign_stars.js
 node tests/autoplay.js 1-12,infinite,garden   # parcours réel dans Chromium (serveur statique sur le port 8765 requis)
 node tests/mobile.js                          # émulation téléphone (iPhone 12 portrait/paysage, Pixel 7) : tactile, captures

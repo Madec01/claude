@@ -23,7 +23,7 @@ const defaults = () => ({
     upgrades: { sight: 0, pocket: 0, breath: 0, patience: 0, rare: 0, memory: 0 },
     prologueSeen: false, completed: false, islandsPlayed: 0, memoriesRead: [],
   },
-  cloud: { choice: null, uid: null },   // sauvegarde en ligne : choix de connexion (null = pas encore demandé, 'anon', 'google', 'none')
+  cloud: { choice: null, uid: null, pending: null },   // sauvegarde en ligne : choix de connexion (null = pas encore demandé, 'anon', 'google', 'none') ; `pending` = redirection Google en cours
   seen: {},   // cartes explicatives déjà vues (sentiers, rivière-lac), une seule fois par joueur
   backup: { lastAt: null, islandsSince: 0 },   // copie locale (fichier téléchargé) : date de la dernière et îles jouées depuis, pour le rappel
   infinite: { best: 0, bestSeasons: 0, unlocked: false },
