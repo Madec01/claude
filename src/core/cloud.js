@@ -51,6 +51,17 @@ export function signInProblem(code) {
   return `Détail technique : ${c}.`;
 }
 
+/** Ce que dit un refus de Firestore, en clair : c'est presque toujours l'une de ces quatre choses. */
+export function firestoreProblem(code) {
+  const c = String(code || '');
+  if (c.includes('permission-denied')) return 'La base refuse l’accès : les règles de sécurité ne sont pas celles de firestore.rules, ou elles n’ont pas été publiées.';
+  if (c.includes('not-found') || c.includes('NOT_FOUND')) return 'Aucune base Firestore trouvée dans ce projet, ou elle ne s’appelle pas « (default) » (une base nommée autrement n’est pas vue par le jeu).';
+  if (c.includes('failed-precondition')) return 'La base Firestore n’est pas encore créée (Firestore Database → Créer une base de données).';
+  if (c.includes('resource-exhausted')) return 'Le quota du jour est épuisé : la base se repose jusqu’à demain.';
+  if (c.includes('unavailable')) return 'La base n’a pas répondu (réseau).';
+  return `Détail technique : ${c}.`;
+}
+
 export const Cloud = {
   enabled: false,       // le joueur a choisi une connexion
   state: 'off',         // off | loading | ready | error | quota
@@ -206,6 +217,36 @@ export const Cloud = {
       this.error = code; this.state = code.includes('resource-exhausted') ? 'quota' : 'error'; this.emit();
       return { ok: false, reason: code };
     }
+  },
+
+  /**
+   * Vérification, point par point, de ce qui doit être en place côté Firebase. Une seule lecture, sur sa propre fiche :
+   * les règles donnant lecture et écriture ensemble, une lecture qui passe prouve que l'écriture passera aussi.
+   * Rend une liste de { label, ok, detail } à afficher telle quelle.
+   */
+  async diagnose() {
+    const steps = []; const add = (label, ok, detail = null) => { steps.push({ label, ok, detail }); return ok; };
+    if (!this.online()) { add('Réseau', false, 'L’appareil est hors ligne.'); return steps; }
+    add('Réseau', true);
+
+    if (!await this.load()) { add('Services Google (SDK Firebase)', false, 'Non chargés : bloqueur de contenu, réseau filtré, ou CDN injoignable.'); return steps; }
+    add('Services Google (SDK Firebase)', true, `version ${CLOUD.sdk.split('/').pop()}`);
+    add('Projet Firebase', true, `${FIREBASE_CONFIG.projectId} · ${FIREBASE_CONFIG.authDomain}`);
+
+    if (!this.user) {
+      add('Connexion', false, this.error ? (signInProblem(this.error) || String(this.error)) : 'Pas encore connecté : choisis une connexion, puis relance la vérification.');
+      return steps;
+    }
+    add('Connexion', true, this.user.anonymous ? 'sans compte (anonyme)' : `Google${this.user.name ? ` · ${this.user.name}` : ''}`);
+
+    try {
+      this._reads++;
+      const snap = await this.sdk.S.getDoc(this._doc());
+      add('Base Firestore et règles', true, snap.exists() ? 'ta fiche est bien là' : 'aucune fiche pour l’instant : elle sera écrite à la fin de ta prochaine île');
+    } catch (e) {
+      add('Base Firestore et règles', false, firestoreProblem(String((e && e.code) || e)));
+    }
+    return steps;
   },
 
   /** Efface la fiche en ligne (bouton « Effacer mes données en ligne »). */

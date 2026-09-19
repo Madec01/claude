@@ -1,6 +1,6 @@
 // Tests de la sauvegarde en ligne, avec un faux SDK : aucune connexion réseau, aucune écriture dans la vraie base.
 // Ce qui est vérifié ici, c'est la frugalité : quand le jeu écrit, et surtout quand il refuse d'écrire.
-import { Cloud, hashOf, summarize, moreAdvanced, signInProblem } from '../src/core/cloud.js';
+import { Cloud, hashOf, summarize, moreAdvanced, signInProblem, firestoreProblem } from '../src/core/cloud.js';
 import { CLOUD } from '../src/data/firebase_config.js';
 
 let failures = 0;
@@ -76,7 +76,25 @@ const save = (n) => ({ version: 2, campaign: { stars: { 1: n }, gold: {}, unlock
   check(/Sign-in method/.test(signInProblem('auth/operation-not-allowed')), 'la connexion Google non activée est expliquée');
   check(signInProblem(null) === null, 'sans code d’erreur, rien à dire');
 
-  // --- la première écriture passe, la deuxième est refusée (trop tôt, et rien n'a changé)
+  // --- vérification point par point : elle doit nommer ce qui manque
+  sdk = fakeSdk(); reset(sdk); await Cloud.signInAnonymous();
+  let diag = await Cloud.diagnose();
+  check(diag.every((d) => d.ok), 'tout en place : la vérification est verte de bout en bout');
+  check(diag.some((d) => d.label === 'Base Firestore et règles' && d.ok), 'la base et les règles sont vérifiées');
+
+  sdk = fakeSdk(); reset(sdk); await Cloud.signInAnonymous();
+  sdk.S.getDoc = async () => { const e = new Error('nope'); e.code = 'permission-denied'; throw e; };
+  diag = await Cloud.diagnose();
+  const bad = diag.find((d) => !d.ok);
+  check(bad && bad.label === 'Base Firestore et règles' && /règles/.test(bad.detail), `des règles qui refusent sont nommées telles quelles (${bad && bad.detail})`);
+  check(/\(default\)/.test(firestoreProblem('not-found')), 'une base absente ou nommée autrement est expliquée');
+  check(/pas encore créée/.test(firestoreProblem('failed-precondition')), 'une base non créée est expliquée');
+
+  sdk = fakeSdk(); reset(sdk);
+  diag = await Cloud.diagnose();
+  check(diag.find((d) => d.label === 'Connexion' && !d.ok), 'sans connexion, la vérification s’arrête là et le dit');
+
+    // --- la première écriture passe, la deuxième est refusée (trop tôt, et rien n'a changé)
   sdk = fakeSdk(); reset(sdk); await Cloud.signInAnonymous();
   let r = await Cloud.push(save(1));
   check(r.ok && sdk.calls.set === 1, `une écriture au premier envoi (${sdk.calls.set})`);

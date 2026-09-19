@@ -58,6 +58,7 @@ export function buildOptions({ onBack, game }) {
   });
   // --- la partie en ligne : qui je suis, et les trois boutons qui rendent la main au joueur
   const cloudStatus = h('p', { class: 'opt-note' });
+  const cloudDiag = h('div', { class: 'opt-diag' });
   const cloudBtns = h('div', { class: 'opt-row opt-btnrow' });
   const refreshCloud = () => {
     const st = Cloud.status(); const ch = (Save.data.cloud || {}).choice;
@@ -79,11 +80,21 @@ export function buildOptions({ onBack, game }) {
     } else {
       cloudBtns.appendChild(button('Choisir une connexion', () => game.askSignIn(), { cls: 'btn-small btn-primary', iconName: 'icon_play' }));
     }
+    // vérification point par point : dit exactement ce qui manque côté Firebase, au lieu d'échouer en silence
+    cloudBtns.appendChild(button('Vérifier la connexion', async () => {
+      cloudDiag.innerHTML = ''; cloudDiag.appendChild(h('div', { class: 'diag-line' }, 'Vérification en cours…'));
+      const steps = await Cloud.diagnose();
+      cloudDiag.innerHTML = '';
+      for (const st of steps) cloudDiag.appendChild(h('div', { class: `diag-line ${st.ok ? 'ok' : 'ko'}` }, h('b', {}, `${st.ok ? '✓' : '✗'} ${st.label}`), st.detail ? h('span', {}, ` — ${st.detail}`) : null));
+      if (steps.every((st) => st.ok)) cloudDiag.appendChild(h('div', { class: 'diag-line ok' }, h('b', {}, 'Tout est en place.')));
+      refreshCloud();
+    }, { cls: 'btn-small', iconName: 'icon_question' }));
     cloudBtns.appendChild(button('Vie privée', () => game.showPrivacy(() => game.showOptions(onBack)), { cls: 'btn-small btn-ghost', iconName: 'icon_info' }));
   };
   const cloudGroup = h('div', { class: 'opt-group opt-cloud' },
     h('h3', {}, icon('icon_cloud'), 'Partie en ligne'),
     cloudStatus,
+    cloudDiag,
     h('p', { class: 'opt-note' }, 'La partie n’est envoyée qu’à la fin d’une île, jamais pendant que tu joues. Sans réseau, le jeu fonctionne exactement pareil.'),
     cloudBtns);
 

@@ -138,6 +138,24 @@ fonctionne exactement comme avant et la sauvegarde locale fait foi. Les règles 
 Les clés Firebase de `src/data/firebase_config.js` sont **publiques par conception** : elles identifient le projet,
 elles ne l'ouvrent pas. Ce sont les règles Firestore qui protègent les données.
 
+### Ce qu'il faut avoir mis en place côté Firebase
+
+Quatre choses, dans deux endroits différents de la console — c'est la source de confusion habituelle :
+
+| Où | Quoi | Pourquoi |
+|---|---|---|
+| Authentication → Sign-in method | **Google** et **Anonyme** activés | sans ça, aucune connexion n'aboutit |
+| Authentication → Settings → Authorized domains | le domaine du jeu (`…github.io`) | Google refuse de signer pour un site inconnu |
+| Firestore Database | une base **nommée « (default) »** | le jeu ouvre la base par défaut ; une base portant un autre nom lui est invisible |
+| Firestore Database → Règles | le contenu de `firestore.rules`, publié | les clés étant publiques, les règles sont la **seule** chose qui protège les sauvegardes |
+
+Le jeu écrit une fiche par joueur dans la collection `parties`, dont l'identifiant est celui du joueur : la règle
+« chacun lit et écrit la sienne, et rien d'autre » suffit donc à tout protéger. Ne pas laisser la base en « mode test » :
+ses règles expirent au bout de trente jours et tout cesse de fonctionner sans prévenir.
+
+En cas de doute, **Options → Partie en ligne → Vérifier la connexion** contrôle les cinq points d'affilée (réseau, SDK,
+projet, connexion, base et règles) et nomme celui qui coince.
+
 ## Sauvegarde
 
 La progression est gardée dans le navigateur (localStorage, clé `cent-saisons.save`, JSON versionné avec migration). Elle ne quitte pas l'appareil : **Options → Sauvegarde → Télécharger ma sauvegarde** produit un fichier `cent-saisons-AAAA-MM-JJ.json` à garder (Fichiers, Drive, mail) et **Charger une sauvegarde** le relit sur n'importe quel appareil, après confirmation. Le jeu rappelle de faire une copie après cinq îles, ou une semaine, ou dès la troisième île tant qu'aucune copie n'a été faite. À chaque écriture, l'état précédent est conservé en copie de secours et relu si la sauvegarde devient illisible. Sur iPhone, ajouter le jeu à l'écran d'accueil évite l'effacement des données de site après sept jours sans visite (télécharger la sauvegarde avant, la charger dans le jeu installé après).
