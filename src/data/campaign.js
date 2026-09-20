@@ -145,6 +145,22 @@ export function chapterStars(stars, k) { let s = 0; for (let n = (k - 1) * 5 + 1
 export function gateStars(campaign, k) { const ct = campaign.contracts && campaign.contracts[k]; return chapterStars(campaign.stars, k) + (ct && ct.done ? 2 : 0); }
 export const CHAPTER_GATE = 6;   // étoiles nécessaires dans un chapitre pour entrer dans le suivant (sur 15) ; 8 jugé trop haut par l'audit
 
+/**
+ * Jusqu'où la campagne est ouverte, **déduite des étoiles gagnées** plutôt que notée au passage.
+ * Recalculée après chaque île et au lancement : décrocher sur une île déjà jouée l'étoile qui manquait à la porte
+ * d'un chapitre ouvre la suite immédiatement, sans avoir à rejouer l'île de bout de chapitre.
+ */
+export function unlockedUpTo(campaign) {
+  const stars = (campaign && campaign.stars) || {};
+  let n = 1;
+  while (n < CAMPAIGN_SIZE) {
+    if ((stars[n] || 0) < 1) break;                                        // île pas encore réussie : la suite attend
+    if (n % 5 === 0 && gateStars(campaign, n / 5) < CHAPTER_GATE) break;   // porte de chapitre encore fermée
+    n++;
+  }
+  return n;
+}
+
 /** Options à passer à `new Island(def, …)` depuis les mécaniques de l'île (tout est ouvert dans les modes libres). */
 export function islandOptions(def) {
   const m = def.mech || campaignMechanics(99);

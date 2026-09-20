@@ -80,7 +80,8 @@ export function buildMenu({ game }) {
         card.addEventListener('click', () => game.startIsland(n, { fromSelect: true }));
         row.appendChild(card);
       }
-      if (ch.id < CHAPTERS.length && gateStars(c, ch.id) < CHAPTER_GATE && c.unlockedIsland <= first + 4) row.appendChild(h('div', { class: 'act-gate' }, `${CHAPTER_GATE} étoiles dans ce chapitre ouvrent le suivant${ch.id >= 2 ? ' (le contrat d’archipel en vaut deux)' : ''}`));
+      // la porte : on montre où en est le compte, et qu'une île déjà jouée peut être refaite pour l'atteindre
+      if (ch.id < CHAPTERS.length && gateStars(c, ch.id) < CHAPTER_GATE && c.unlockedIsland <= first + 4) row.appendChild(h('div', { class: 'act-gate' }, `${gateStars(c, ch.id)} / ${CHAPTER_GATE} étoiles pour ouvrir le chapitre suivant — rejouer une île déjà faite compte aussi${ch.id >= 2 ? ', et le contrat d’archipel vaut deux étoiles' : ''}`));
       rows.appendChild(row);
     }
     game.showPanel(h('div', { class: 'panel panel-nights' }, h('h2', { class: 'panel-title' }, 'Choisir une île'), rows,

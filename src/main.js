@@ -24,7 +24,7 @@ import { buildCredits, loadCredits } from './ui/credits.js';
 import { buildGuide } from './ui/guide.js';
 import { dailyDef, dailyKey, yesterdayKey } from './data/daily.js';
 import { Finale } from './game/finale.js';
-import { campaignIsland, campaignMechanics, islandOptions, CAMPAIGN_SIZE, MECH_AT, chapterStars, gateStars, CHAPTER_GATE, climateCardFor } from './data/campaign.js';
+import { campaignIsland, campaignMechanics, islandOptions, CAMPAIGN_SIZE, MECH_AT, chapterStars, gateStars, CHAPTER_GATE, climateCardFor, unlockedUpTo } from './data/campaign.js';
 import { GRADES, streakMilestone } from './game/feedback.js';
 import { computeLinks } from './game/paths.js';
 import { waterBodies } from './game/water.js';
@@ -103,6 +103,9 @@ const Game = {
     const fill = document.getElementById('boot-fill'), status = document.getElementById('boot-status');
     const setP = (p, txt) => { fill.style.width = `${Math.round(p * 100)}%`; if (txt) status.textContent = txt; };
     Save.load();
+    // rattrapage des sauvegardes déjà en cours : un joueur qui avait les étoiles de la porte sans avoir rejoué
+    // l'île de bout de chapitre restait bloqué. Le déblocage se recalcule ici, une fois, au lancement.
+    { const c = Save.data.campaign; const up = unlockedUpTo(c); if (up > c.unlockedIsland) { c.unlockedIsland = up; Save.save(); } }
     Achievements.init(Save); Achievements.testMode = () => !!Save.options.testMode; Achievements.onUnlock((a) => celebrate(a, { sound: () => AudioSys.play('achievement', { volume: 0.85 }) }));
     AudioSys.volumes = { master: Save.options.master, music: Save.options.music, ambience: Save.options.ambience, sfx: Save.options.sfx };
     AudioSys.muted = !!Save.options.muted;
@@ -316,7 +319,9 @@ const Game = {
       const firstTime = !c.memoriesRead.includes(def.id);
       seedsGained = Math.max(0, result.stars - prevStars) * (BALANCE.seeds.star + (c.upgrades.evening || 0)) + (result.gold && !prevGold ? 1 : 0) + (firstTime ? result.wishesDone * BALANCE.seeds.wish + BALANCE.seeds.island : 0) + (BALANCE.upgrades.almanac[c.upgrades.almanac || 0] || 0);
       c.seeds += seedsGained; c.seedsTotal += seedsGained;
-      if (result.stars >= 1 && def.id >= c.unlockedIsland && def.id < CAMPAIGN_SIZE) { const gated = def.id % 5 === 0 && gateStars(c, def.id / 5) < CHAPTER_GATE; if (!gated) c.unlockedIsland = def.id + 1; }
+      // déblocage recalculé depuis les étoiles : l'étoile qui manquait à la porte compte même si on l'a décrochée
+      // sur une île déjà jouée. `Math.max` pour ne jamais retirer ce qui était ouvert (mode test, anciennes sauvegardes).
+      c.unlockedIsland = Math.max(c.unlockedIsland, unlockedUpTo(c));
       if (def.id === CAMPAIGN_SIZE && result.stars >= 1) { c.completed = true; Save.data.infinite.unlocked = true; }
       if (def.id >= 10) Save.data.infinite.unlocked = true;
       Save.noteIslandDone();

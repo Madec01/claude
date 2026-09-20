@@ -184,6 +184,7 @@ node tests/rules.test.js          # règles, fermetures, couverture narrative, b
 node tests/run.test.js            # reprise d'une partie laissée en plan (sérialisation, file de tuiles, rangement local)
 node tests/resume.js              # reprise dans un vrai navigateur (onglet caché, rechargement, bouton « Reprendre »)
 node tests/signin.js              # écran de connexion : pas de boucle au retour d'une connexion Google
+node tests/gate.js                # portes de chapitre : le déblocage suit les étoiles, même gagnées en rejouant
 
 # règles de sécurité Firestore, dans l'émulateur Firebase (outillage hors du jeu, à installer une fois) :
 mkdir -p /tmp/fb && cd /tmp/fb && npm i firebase-tools@13 @firebase/rules-unit-testing@3 firebase

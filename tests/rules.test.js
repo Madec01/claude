@@ -10,7 +10,7 @@ import { STORY } from '../src/data/story.js';
 import { progressOf } from '../src/game/wishes.js';
 import { BALANCE } from '../src/data/balance.js';
 import { playStrong } from './bot.js';
-import { campaignIsland, CAMPAIGN_SIZE, CAMPAIGN_WISHES, islandOptions, gateStars, chapterStars } from '../src/data/campaign.js';
+import { campaignIsland, CAMPAIGN_SIZE, CAMPAIGN_WISHES, islandOptions, gateStars, chapterStars, unlockedUpTo, CHAPTER_GATE } from '../src/data/campaign.js';
 import { contractOffers, chooseContract, noteContractResult, contractLine, contractNeeded, CONTRACTS } from '../src/data/contracts.js';
 import { gradeMove } from '../src/game/feedback.js';
 
@@ -405,6 +405,25 @@ for (const def of ISLANDS.slice(0, 4)) {
   for (const n of [7, 8]) noteContractResult(camp, n, { stats: {}, fauna: 0, wishesDone: 1 });
   check(gateStars(camp, 2) === 4 && chapterStars(camp.stars, 2) === 4, 'porte sans contrat rempli : les étoiles seules');
   const r3 = noteContractResult(camp, 9, { stats: {}, fauna: 0, wishesDone: 3 }); check(r3.done && r3.justDone && gateStars(camp, 2) === 6, `contrat rempli : +2 pour la porte (${r3.after}/${r3.target}, porte ${gateStars(camp, 2)})`);
+
+// --- portes de chapitre : le déblocage se déduit des étoiles, pas du moment où on les gagne
+// (retour joueur : bloqué à l'île 5 alors que le compte y était, parce que l'étoile manquante avait été décrochée
+//  en refaisant une île précédente et que rien ne rejugeait la porte.)
+{
+  const camp = (stars, contracts = {}) => ({ stars, contracts });
+  check(unlockedUpTo(camp({})) === 1, 'rien de joué : on commence à l’île 1');
+  check(unlockedUpTo(camp({ 1: 2 })) === 2, 'une île réussie ouvre la suivante');
+  check(unlockedUpTo(camp({ 1: 2, 3: 3 })) === 2, 'un trou dans la série arrête le déblocage');
+  check(unlockedUpTo(camp({ 1: 1, 2: 1, 3: 1, 4: 1, 5: 1 })) === 5, `cinq étoiles au chapitre 1 : la porte tient (il en faut ${CHAPTER_GATE})`);
+  check(unlockedUpTo(camp({ 1: 1, 2: 2, 3: 1, 4: 1, 5: 1 })) === 6, 'la sixième étoile décrochée en REFAISANT l’île 2 ouvre le chapitre 2');
+  check(unlockedUpTo(camp({ 1: 1, 2: 1, 3: 1, 4: 1, 5: 2 })) === 6, 'six étoiles gagnées sur l’île de bout de chapitre : pareil');
+  check(unlockedUpTo(camp({ 1: 3, 2: 3, 3: 0, 4: 0, 5: 0 })) === 3, 'six étoiles mais l’île 3 jamais réussie : on s’arrête à l’île 3');
+  check(unlockedUpTo(camp({ 1: 1, 2: 1, 3: 1, 4: 1, 5: 1 }, { 1: { done: true } })) === 6, 'le contrat d’archipel rempli vaut deux étoiles pour la porte');
+  const plein = {}; for (let n = 1; n <= CAMPAIGN_SIZE; n++) plein[n] = 3;
+  check(unlockedUpTo(camp(plein)) === CAMPAIGN_SIZE, 'campagne parfaite : tout est ouvert jusqu’à la dernière île');
+  // la règle ne retire jamais rien : `Math.max` côté jeu, vérifié ici sur le principe
+  check(unlockedUpTo(camp({ 1: 1, 2: 1, 3: 1, 4: 1, 5: 1, 6: 3, 7: 3 })) === 5, 'des étoiles au-delà d’une porte fermée n’ouvrent pas la porte');
+}
   check(contractLine(camp, 2).done && /rempli/.test(contractLine(camp, 2).text), 'ligne de rappel : rempli');
 }
 // --- le pourquoi des points : le cumul par source vaut le score ; signatures des îles 36 à 49 ; voix selon la dominante
