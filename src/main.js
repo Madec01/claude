@@ -5,6 +5,7 @@ import { Assets } from './core/assets.js';
 import { AudioSys } from './core/audio.js';
 import { Save } from './core/save.js';
 import { RunSave } from './core/run.js';
+import { Haptics } from './core/haptics.js';
 import { SceneManager, wait } from './core/scenes.js';
 import { ParticleSystem } from './core/particles.js';
 import { Shake } from './core/shake.js';
@@ -551,13 +552,16 @@ class IslandScene {
       fx.drop(key(e.q, e.r));
       fx.placeBurst(w.x, w.y, e.result.total > 0);
       this._closeN = 0;
-      AudioSys.play(`tile_place_${1 + Math.floor(Math.random() * 4)}`, { volume: 0.7 });
+      AudioSys.play(`tile_place_${1 + Math.floor(Math.random() * 4)}`, { volume: 0.7, rate: 0.96 + Math.random() * 0.08 });   // jamais deux fois la même hauteur
       setTimeout(() => AudioSys.play('tile_bounce', { volume: 0.25 }), 90);   // la tuile tombe, puis se cale
       let i = 0;
       for (const ed of e.result.edges) { const nw = toWorld(ed.q, ed.r); const mx = (w.x + nw.x) / 2, my = (w.y + nw.y) / 2; setTimeout(() => fx.floatText(mx, my, `${ed.pts > 0 ? '+' : ''}${ed.pts}`, ed.pts > 0 ? '#2f9e8f' : '#d95f4b', 18, 1.1), 90 * i); i++; }
       // le son du coup : une note par point marqué, sur une gamme qui monte avec la série ; une note grave si le coup coûte
-      { const total = e.result.total; const base = Math.min(3, Math.max(0, (e.streak || 0) - 1)); const n = Math.min(8, total);
-        for (let j = 0; j < n; j++) setTimeout(() => AudioSys.play(`point_${Math.min(8, base + j + 1)}`, { volume: 0.42 }), 70 * j);
+      // sobres (par défaut sur téléphone) : trois notes au plus, quatre sur un beau coup, volume décroissant — une pose ne dure plus une seconde de musique
+      { const total = e.result.total; const base = Math.min(3, Math.max(0, (e.streak || 0) - 1));
+        const mode = Save.options.notes || 'auto'; const sober = mode === 'sober' || (mode === 'auto' && STAGE.compact);
+        const n = sober ? Math.min(e.grade === 'master' || e.grade === 'good' ? 4 : 3, Math.ceil(Math.max(0, total) / 3)) : Math.min(8, total);
+        for (let j = 0; j < n; j++) setTimeout(() => AudioSys.play(`point_${Math.min(8, base + j + 1)}`, { volume: sober ? 0.42 - j * 0.06 : 0.42 }), 70 * j);
         if (total < 0) AudioSys.play('point_bad', { volume: 0.45 }); }
       for (const bs of e.result.base) { setTimeout(() => fx.floatText(w.x, w.y + 30, `+${bs.pts} ${bs.label}`, '#5aa7d6', 18, 1.2), 90 * i++); if (bs.label === 'rivière') this.tutorial.onEvent('river'); }
       if (e.result.total !== 0) setTimeout(() => fx.floatText(w.x, w.y - 40, `${e.result.total > 0 ? '+' : ''}${e.result.total}`, e.result.total > 0 ? '#2b2a26' : '#d95f4b', 26, 1.4), 90 * i + 60);
@@ -569,7 +573,7 @@ class IslandScene {
           // les mots vont dans le ruban sous la saison ; seuls les chiffres restent sur la case
           this.hud.ribbon(e.grade === 'meh' && e.best > e.result.total ? `${txt} (+${e.best} possible)` : txt, g.color, e.grade === 'master' ? 1900 : 1400, e.grade);
           if (g.burst) fx.closeBurst(w.x, w.y - 20, g.burst);
-          if (e.grade === 'master') { AudioSys.play('star_1', { volume: 0.6 }); this.shake.trigger(0.12); }
+          if (e.grade === 'master') { AudioSys.play('star_1', { volume: 0.6 }); this.shake.trigger(0.12); Haptics.tap([10, 30, 10]); }
           if (g.streak && streakMilestone(e.streak)) { const st = STORY.verdicts.streak; setTimeout(() => { this.hud.ribbon((st[e.streak] || st.default).replace('{n}', e.streak), '#e0a33a', 1800, 'streak'); AudioSys.play('region_close', { volume: 0.5 }); fx.closeBurst(w.x, w.y - 60, 5); }, 250); }
         }, 90 * i + 380);
         this.hud.bumpScore(e.result.total);
@@ -585,7 +589,7 @@ class IslandScene {
       const w = toWorld(e.q, e.r);
       fx.drop(key(e.q, e.r)); fx.placeBurst(w.x, w.y, true); fx.closeBurst(w.x, w.y - 10, 4);
       this._closeN = 0;
-      AudioSys.play(`tile_place_${1 + Math.floor(Math.random() * 4)}`, { volume: 0.7 }); setTimeout(() => AudioSys.play('tile_bounce', { volume: 0.25 }), 90); AudioSys.play('region_close', { volume: 0.45 });
+      AudioSys.play(`tile_place_${1 + Math.floor(Math.random() * 4)}`, { volume: 0.7, rate: 0.96 + Math.random() * 0.08 }); setTimeout(() => AudioSys.play('tile_bounce', { volume: 0.25 }), 90); AudioSys.play('region_close', { volume: 0.45 });
       let i = 0;
       for (const ed of e.result.edges) { const nw = toWorld(ed.q, ed.r); const mx = (w.x + nw.x) / 2, my = (w.y + nw.y) / 2; setTimeout(() => { fx.floatText(mx, my, `${ed.pts > 0 ? '+' : ''}${ed.pts}`, ed.pts > 0 ? '#2f9e8f' : '#d95f4b', 18, 1.1); if (ed.pts > 0) AudioSys.play(`point_${Math.min(8, i + 1)}`, { volume: 0.45 }); }, 90 * i); i++; }
       const fam = (STORY.tiles[e.family] || {}).name || e.family;
@@ -624,6 +628,7 @@ class IslandScene {
         const word = nth > 0 ? (STORY.closedMulti[Math.min(nth, STORY.closedMulti.length) - 1]) : STORY.closed[Math.floor(Math.random() * STORY.closed.length)];
         fx.floatText(cx, cy - 20, `${word} +${e.bonus}`, '#e0a33a', 24, 1.8);
         AudioSys.play(nth > 0 ? 'combo' : e.size >= 6 ? 'region_big' : 'region_close', { volume: 0.8 });
+        Haptics.tap(nth > 0 ? [12, 40, 16] : e.size >= 6 ? 26 : 18);
         if (e.breath && this.mech.has('breath')) setTimeout(() => fx.floatText(cx, cy + 18, `+${e.breath} souffle`, '#3a9c8a', 18, 1.5), 350);
         if (e.size >= 6 || nth > 0) this.shake.trigger(nth > 0 ? 0.18 : 0.25);
       }, 350 + Math.min(nth, 2) * 450);

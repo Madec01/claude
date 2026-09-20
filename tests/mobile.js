@@ -93,6 +93,7 @@ async function touchDrag(cdp, pts) {
       await cdpG.detach();
     }
     await page.evaluate(() => window.CS.Game.showOptions()); await page.waitForTimeout(500); await page.screenshot({ path: path.join(OUT, `mobile-${tag}-options.png`) });
+    check(await page.evaluate(() => !!document.querySelector('select[aria-label="Notes du coup"]') && [...document.querySelectorAll('.opt-row')].some((r) => /Vibrations/.test(r.textContent))), `${name} : Options → « Notes du coup » et « Vibrations » présents`);
     // île 3 : pose tactile
     await startIsland(page, 7);   // île 7 de la campagne : vœux et souffles ouverts
     const cdp = await context.newCDPSession(page);

@@ -16,6 +16,8 @@
 .hud-breaths b { color: var(--breath); }
 .hud-score { position: relative; }
 .hud-stars { display: block; font-size: 11px; font-weight: 700; color: var(--gold); letter-spacing: 0.04em; line-height: 1; margin-top: -2px; white-space: nowrap; }
+.hud-stars.pop { animation: starPop 0.7s var(--ease-out); transform-origin: left center; }
+@keyframes starPop { 0% { transform: scale(1); filter: brightness(1); } 35% { transform: scale(1.7); filter: brightness(1.6); } 100% { transform: scale(1); filter: brightness(1); } }
 .hud-label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; opacity: 0.6; font-weight: 700; }
 .hud-icon { width: 20px; height: 20px; vertical-align: middle; }
 .hud-pause { pointer-events: all; margin-left: auto; background: #fff; border: 1px solid rgba(43,42,38,0.14); border-radius: 50%; width: 44px; height: 44px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 14px rgba(30,50,70,0.12); align-self: center; transition: transform 0.15s; }

@@ -8,6 +8,7 @@ import { FAMILY_COLORS, FAMILIES, affinity, RARE_AS } from '../data/tiles.js';
 import { Save } from '../core/save.js';
 import { deadlineLabel } from './wishes.js';
 import { Assets } from '../core/assets.js';
+import { AudioSys } from '../core/audio.js';
 import { WORK_DECOR, spriteKey } from './decor.js';
 
 const icon = (name, cls = '') => `<img class="hud-icon ${cls}" src="assets/img/ui/${name}.png" alt="">`;
@@ -224,6 +225,12 @@ export class Hud {
 
   /** Retient `n` points hors du compteur (ils sont en vol) ; `release` les y verse un à un, avec un battement du compteur. */
   holdScore(n) { this.hold = (this.hold || 0) + n; }
+  /** Le seuil d'une étoile vient d'être passé : l'icône enfle, la note sonne, un mot passe dans le ruban. */
+  starReached(n) {
+    const el = this.r.starsLine; el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop');
+    AudioSys.play(`star_${Math.min(3, n)}`, { volume: 0.55 });
+    const words = STORY.starReached || []; if (words[n - 1]) this.ribbon(words[n - 1], '#e0a33a', 1600, 'gold');
+  }
   release(pts) { this.hold = Math.max(0, (this.hold || 0) - pts); if (this.hold === 0) this.shownScore = this.isl.score; const b = this.r.score; b.classList.remove('hit'); void b.offsetWidth; b.classList.add('hit'); }
   /** Position écran (repère de la scène) du compteur de points : cible des étincelles. */
   scoreTarget() { const st = document.getElementById('stage'); const sr = st ? st.getBoundingClientRect() : { left: 0, top: 0 }; const r = this.r.score.getBoundingClientRect(); return { x: (r.left + r.width / 2 - sr.left) / STAGE.scale, y: (r.top + r.height / 2 - sr.top) / STAGE.scale }; }
@@ -345,6 +352,10 @@ export class Hud {
       const th = isl.thresholds; const reached = th.filter((t) => isl.score >= t).length; const gold = isl.goldThreshold;
       const line = reached >= 3 ? (isl.score >= gold ? '★★★✦' : `★★★ ✦ ${gold}`) : `${'★'.repeat(reached)}☆ ${th[reached]}`;
       if (line !== this.last.starsLine) { this.last.starsLine = line; r.starsLine.textContent = line; r.starsLine.title = `Étoiles : ${th.join(' · ')} points · étoile d'or : ${gold}`; }
+      // l'étoile franchie : jugée sur le compteur AFFICHÉ, donc après l'arrivée des points en vol ; jamais au premier rendu ni en reprise
+      const shownReached = th.filter((t) => this.shownScore >= t).length;
+      if (this.last.reached === undefined) this.last.reached = shownReached;
+      else if (shownReached > this.last.reached) { this.last.reached = shownReached; this.starReached(shownReached); }
     }
     // Faucille : le bouton n'apparaît que dans la fenêtre autorisée
     { const can = isl.canCloseSeason && isl.canCloseSeason(); const left = isl.seasonLength - isl.inSeason; const txt = can ? `Clore la saison · ${left} pose${left > 1 ? 's' : ''} restante${left > 1 ? 's' : ''}` : ''; if (txt !== this.last.closeTxt) { this.last.closeTxt = txt; r.seasonClose.classList.toggle('hidden', !can); if (can) r.seasonClose.textContent = txt; } }

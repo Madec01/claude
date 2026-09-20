@@ -185,6 +185,7 @@ node tests/run.test.js            # reprise d'une partie laissée en plan (séri
 node tests/resume.js              # reprise dans un vrai navigateur (onglet caché, rechargement, bouton « Reprendre »)
 node tests/signin.js              # écran de connexion : pas de boucle au retour d'une connexion Google
 node tests/gate.js                # portes de chapitre : le déblocage suit les étoiles, même gagnées en rejouant
+node tests/feel.js                # retours sensoriels : notes sobres sur téléphone, étoile franchie, vibrations
 
 # règles de sécurité Firestore, dans l'émulateur Firebase (outillage hors du jeu, à installer une fois) :
 mkdir -p /tmp/fb && cd /tmp/fb && npm i firebase-tools@13 @firebase/rules-unit-testing@3 firebase

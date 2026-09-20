@@ -656,7 +656,8 @@ export const STORY = {
   grown: { hamlet: 'Le hameau est devenu un village.', forest: 'La forêt s’est épaissie.', orchard: 'Le verger s’est rempli.', field: 'Le champ s’est étendu.', meadow: 'La prairie a pris ses aises.', default: 'Le temps a fait son travail.' },
 
   closed: ['Bouclé !', 'Une région entière !', 'Tout autour !', 'Voilà qui tient.'],
-  closedMulti: ['Double fermeture !', 'Triple fermeture !'],   // une même pose ferme deux, trois régions
+  closedMulti: ['Double fermeture !', 'Triple fermeture !'],
+  starReached: ['Première étoile', 'Deuxième étoile', 'Trois étoiles !'],   // le seuil vient d'être franchi   // une même pose ferme deux, trois régions
 
   // commentaire de chaque coup (feedback.js) : comparé au meilleur emplacement possible pour la même tuile
   build: {
