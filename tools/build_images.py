@@ -1054,8 +1054,9 @@ class Builder:
             pr = prov[cfg["model"]]
             note = (f"{cfg['fr'].capitalize()} — profil rendu depuis le modèle 3D ({frames} image(s)"
                     + (f", cycle « {cfg['clip']} »" if cfg["clip"] else ", modèle fixe") + f", orientation {best}°).")
+            cycle = "walk" if (cfg["clip"] and "walk" in cfg["clip"].lower()) else ("idle" if cfg["clip"] else None)
             self.emit(f"fauna_{sp}_side", "fauna", sheet, "animaux3d", pr["source"], note,
-                      frames=frames, frame_w=cw, frame_h=ch, licence=pr["licence"])
+                      frames=frames, frame_w=cw, frame_h=ch, cycle=cycle, licence=pr["licence"])
 
     # --- B bis. la mer autour de l'île : un voilier vu de dessus (Pirate Pack) et une baleine (Animal Pack Redux)
     def build_sea(self):

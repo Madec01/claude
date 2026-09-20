@@ -77,7 +77,26 @@ const errors = []; const check = (ok, m) => { if (!ok) errors.push(m); console.l
     check(still === 0, `${a.sp} : à l’arrêt, le cycle ne tourne pas (${still} px)`);
   }
 
-  // --- 3. le HUD montre toujours les têtes rondes
+  // --- 3. l'ombre reste au sol : seul l'animal se soulève
+  const geo = await page.evaluate(() => {
+    const R = window.CS.scenes.current.renderer;
+    const calls = { ell: [], img: [] };
+    const ctx = {
+      globalAlpha: 1, fillStyle: '',
+      save() {}, restore() {}, beginPath() {}, fill() {}, translate() {}, scale() {},
+      ellipse(x, y, rx, ry) { calls.ell.push({ x, y, rx, ry }); },
+      drawImage(...a) { calls.img.push(a.length > 5 ? { x: a[5], y: a[6], w: a[7], h: a[8] } : { x: a[1], y: a[2], w: a[3], h: a[4] }); },
+    };
+    const take = (lift) => { calls.ell.length = 0; calls.img.length = 0; R.drawAnimal(ctx, 'cow', { walked: 0, left: false }, 100, 200, lift, 1, 1); return { ell: calls.ell[0], img: calls.img[0] }; };
+    return { pose: take(0), saut: take(30) };
+  });
+  check(!!geo.pose.ell && Math.abs(geo.pose.ell.y - 200) < 0.01, `l’ombre est posée au point au sol (y = ${geo.pose.ell && geo.pose.ell.y})`);
+  check(!!geo.saut.ell && Math.abs(geo.saut.ell.y - 200) < 0.01, `elle y reste quand l’animal saute (y = ${geo.saut.ell && geo.saut.ell.y})`);
+  check(!!geo.pose.img && Math.abs((geo.pose.img.y + geo.pose.img.h) - 200) < 0.01, `posé, l’animal touche le sol (pieds à ${geo.pose.img && (geo.pose.img.y + geo.pose.img.h)})`);
+  check(!!geo.saut.img && Math.abs(geo.saut.img.y - (geo.pose.img.y - 30)) < 0.01, 'en sautant, l’animal se soulève d’autant');
+  check(geo.saut.ell.rx < geo.pose.ell.rx, `l’ombre rétrécit un peu pendant le saut (${geo.pose.ell.rx.toFixed(1)} → ${geo.saut.ell.rx.toFixed(1)})`);
+
+  // --- 4. le HUD montre toujours les têtes rondes
   const chips = await page.evaluate(() => [...document.querySelectorAll('.fauna-chip img')].map((i) => i.getAttribute('src')));
   if (chips.length) check(chips.every((s) => /fauna_[a-z]+\.png$/.test(s)), `les pastilles du HUD utilisent les têtes rondes (${chips.length})`);
   else console.log('—   aucune pastille de faune affichée pendant l’essai');

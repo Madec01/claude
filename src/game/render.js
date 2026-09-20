@@ -11,6 +11,7 @@ import { Decor, groundOf, groundKey, GROUND_COLORS, spriteKey } from './decor.js
 import { computeLinks } from './paths.js';
 // arête i (sommet i → i+1 de corners()) → indice dans DIRS du voisin de l'autre côté ; mesuré, pas deviné
 const EDGE_DIR = [1, 0, 5, 4, 3, 2];
+const FAUNA_GROUND = 10;   // un animal se tient un peu en avant du centre de sa tuile, comme le décor
 const SEA = { spring: ['#8fc8e6', '#5f9fc8'], summer: ['#7fc0e4', '#4f93c2'], autumn: ['#8cb9d3', '#5d8fb3'], winter: ['#a9c7db', '#7aa2bf'] };
 const WATER = { spring: { fill: '#5aa7d6', edge: '#3f86b6', foam: 'rgba(255,255,255,0.55)' }, summer: { fill: '#4f9ed2', edge: '#397fb0', foam: 'rgba(255,255,255,0.5)' }, autumn: { fill: '#5b95bd', edge: '#41769a', foam: 'rgba(255,255,255,0.45)' }, winter: { fill: '#6f9fc0', edge: '#4f7f9f', foam: 'rgba(255,255,255,0.4)' } };
 const ICE = { fill: '#dbe9f4', edge: '#b9cfe0', foam: 'rgba(255,255,255,0.8)' };
@@ -729,31 +730,32 @@ export class IslandRenderer {
   }
 
   /**
-   * Un animal posé au sol : la bande de profil rendue en 3D (`fauna_<espèce>_side`), l'image du
-   * cycle choisie par la distance parcourue — la marche est ainsi calée sur le déplacement réel,
-   * jamais sur l'horloge — et retournée selon le sens de marche. Repli sur la tête ronde si la
-   * bande manque. `s` met à l'échelle (arrivée), `dy` soulève (départ).
+   * Un animal posé au sol. `gx, gy` est le point **au sol** en pixels écran : l'ombre s'y pose et
+   * n'en bouge jamais, seul l'animal se soulève de `lift` (le petit saut de la marche, l'envol du
+   * départ) — c'est ce qui l'empêche de paraître voler. L'image vient de la bande de profil
+   * (`fauna_<espèce>_side`), choisie par la distance parcourue et retournée selon le sens de
+   * marche ; repli sur la tête ronde si la bande manque.
    */
-  drawAnimal(ctx, species, st, cx, cy, s, alpha, dy = 0) {
+  drawAnimal(ctx, species, st, gx, gy, lift, s, alpha) {
     const cam = this.cam;
     const sheet = Assets.img(`fauna_${species}_side`);
     const m = sheet ? (Assets.manifest().images || {})[`fauna_${species}_side`] : null;
-    const shadow = (w) => { ctx.fillStyle = 'rgba(0,0,0,0.18)'; ctx.beginPath(); ctx.ellipse(cx, cy + 14 * cam.zoom, w * 0.34, w * 0.13, 0, 0, TAU); ctx.fill(); };
+    const w = m ? (m.frame_w / 2) * cam.zoom * s : 44 * cam.zoom * s;
+    const k = 1 - Math.min(0.3, Math.abs(lift) / Math.max(1, 70 * cam.zoom));   // l'ombre rétrécit un peu quand il se soulève
+    ctx.save();
+    ctx.globalAlpha = alpha * 0.85;
+    ctx.fillStyle = 'rgba(0,0,0,0.20)';
+    ctx.beginPath(); ctx.ellipse(gx, gy, w * 0.30 * k, w * 0.11 * k, 0, 0, TAU); ctx.fill();
+    ctx.globalAlpha = alpha;
+    if (st && st.left) { ctx.translate(gx, 0); ctx.scale(-1, 1); ctx.translate(-gx, 0); }
     if (sheet && m && m.frames) {
-      const w = (m.frame_w / 2) * cam.zoom * s, h = (m.frame_h / 2) * cam.zoom * s;
+      const h = (m.frame_h / 2) * cam.zoom * s;
       const f = m.frames > 1 ? Math.floor(((st && st.walked) || 0) / 14) % m.frames : 0;
-      ctx.save(); ctx.globalAlpha = alpha;
-      shadow(w);
-      if (st && st.left) { ctx.translate(cx, 0); ctx.scale(-1, 1); ctx.translate(-cx, 0); }
-      ctx.drawImage(sheet, f * m.frame_w, 0, m.frame_w, m.frame_h, cx - w / 2, cy - h + dy, w, h);
-      ctx.restore();
-      return;
+      ctx.drawImage(sheet, f * m.frame_w, 0, m.frame_w, m.frame_h, gx - w / 2, gy - h - lift, w, h);
+    } else {
+      const img = Assets.img(`fauna_${species}`);
+      if (img) ctx.drawImage(img, gx - w / 2, gy - w - lift, w, w * (img.height / img.width));
     }
-    const img = Assets.img(`fauna_${species}`);
-    const size = 44 * cam.zoom * s;
-    ctx.save(); ctx.globalAlpha = alpha;
-    shadow(size);
-    if (img) ctx.drawImage(img, cx - size / 2, cy - size + dy, size, size * (img.height / img.width));
     ctx.restore();
   }
 
@@ -762,20 +764,25 @@ export class IslandRenderer {
     for (const [k, a] of this.isl.fauna) {
       const st = this.wanderPos(k, a, dt);
       const moving = Math.hypot(st.tx - st.x, st.ty - st.y) > 1;
-      const c = cam.toScreen(st.x, st.y - 10 - (moving ? Math.abs(Math.sin(st.hop)) * 6 : 0));
+      const g = cam.toScreen(st.x, st.y + FAUNA_GROUND);
       let s = 1, alpha = 1;
       const an = this.fx.faunaAnim.get(k);
       if (an) { const t = Math.min(1, an.t / 0.8); s = an.kind === 'arrive' ? 0.3 + 0.7 * easeOutCubic(t) * (1 + 0.25 * Math.sin(t * Math.PI)) : 1 - t; alpha = an.kind === 'arrive' ? 1 : 1 - t; }
-      const bob = Math.sin(this.time * 2.2 + a.q * 1.7 + a.r) * 2 * cam.zoom;
-      this.drawAnimal(ctx, a.species, st, c.x, c.y + bob, s, alpha);
+      // une espèce qui a un vrai cycle de marche porte déjà son mouvement : on ne la fait pas sauter
+      // en plus (ses sabots resteraient en l'air). Les autres avancent par petits bonds.
+      const sheet = (Assets.manifest().images || {})[`fauna_${a.species}_side`];
+      const walks = !!(sheet && sheet.cycle === 'walk');
+      const lift = moving && !walks ? Math.abs(Math.sin(st.hop)) * 5 * cam.zoom
+        : (walks ? 0 : (Math.sin(this.time * 2.2 + a.q * 1.7 + a.r) + 1) * 0.8 * cam.zoom);
+      this.drawAnimal(ctx, a.species, st, g.x, g.y, lift, s, alpha);
     }
     // départs en cours
     for (const [k, an] of this.fx.faunaAnim) {
       if (an.kind !== 'leave' || this.isl.fauna.has(k)) continue;
       const info = an.info; if (!info) continue;
-      const w = toWorld(info.q, info.r); const c = cam.toScreen(w.x, w.y - 10);
+      const w = toWorld(info.q, info.r); const g = cam.toScreen(w.x, w.y + FAUNA_GROUND);
       const t = Math.min(1, an.t / 0.8);
-      this.drawAnimal(ctx, info.species, null, c.x, c.y, 1, 1 - t, -t * 40 * cam.zoom);
+      this.drawAnimal(ctx, info.species, null, g.x, g.y, t * 40 * cam.zoom, 1, 1 - t);
     }
   }
 

@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-20T20:30:25+00:00",
+ "generated": "2026-09-20T20:38:08+00:00",
  "generator": "tools/build_images.py",
  "conventions": {
   "hex": {
@@ -4340,6 +4340,7 @@
    "frames": 8,
    "frame_w": 92,
    "frame_h": 102,
+   "cycle": "walk",
    "licence": "CC0"
   },
   "fauna_frog_side": {
@@ -4353,6 +4354,7 @@
    "frames": 4,
    "frame_w": 42,
    "frame_h": 24,
+   "cycle": "idle",
    "licence": "CC0"
   },
   "fauna_duck_side": {
@@ -4457,6 +4459,7 @@
    "frames": 8,
    "frame_w": 100,
    "frame_h": 105,
+   "cycle": "walk",
    "licence": "CC0"
   },
   "fauna_cow_side": {
@@ -4470,6 +4473,7 @@
    "frames": 8,
    "frame_w": 100,
    "frame_h": 76,
+   "cycle": "walk",
    "licence": "CC0"
   },
   "sea_boat_1": {
