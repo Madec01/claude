@@ -53,6 +53,7 @@ export function buildResults({ result, def, onContinue, onRetry, onMenu, onPostc
   const reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   setTimeout(() => {
     stagger(root, '.res-row', reduced ? 0 : 80);
+    if (seedsGained) setTimeout(() => AudioSys.play('seed', { volume: 0.6 }), reduced ? 0 : 500 + starsEl.querySelectorAll('.star.on').length * 380 + 260);   // les graines tintent après les étoiles
     starsEl.querySelectorAll('.star.on').forEach((s, i) => setTimeout(() => { s.classList.add('pop'); AudioSys.play(s.classList.contains('gold-star') ? 'achievement' : `star_${Math.min(3, i + 1)}`, { volume: 0.7 }); }, reduced ? 0 : 500 + i * 380));
   }, 200);
   return root;

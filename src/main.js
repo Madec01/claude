@@ -244,7 +244,7 @@ const Game = {
     // contrat d'archipel : à l'entrée d'un chapitre (dès le deuxième), avant le semis et les vœux
     if (!def.daily && typeof def.id === 'number' && contractNeeded(Save.campaign, def.id)) {
       const ch = chapterOf(def.id);
-      this.showPanel(buildContractPick({ chapter: ch, onPick: (id) => { chooseContract(Save.campaign, ch, id); Save.save(); AudioSys.play('ui_confirm', { volume: 0.5 }); this.prepIsland(def); } }));
+      this.showPanel(buildContractPick({ chapter: ch, onPick: (id) => { chooseContract(Save.campaign, ch, id); Save.save(); AudioSys.play('chalk', { volume: 0.55 }); AudioSys.play('ui_confirm', { volume: 0.35 }); this.prepIsland(def); } }));
       return;
     }
     const contract = !def.daily && typeof def.id === 'number' ? contractLine(Save.campaign, chapterOf(def.id)) : null;
@@ -550,7 +550,9 @@ class IslandScene {
       const w = toWorld(e.q, e.r);
       fx.drop(key(e.q, e.r));
       fx.placeBurst(w.x, w.y, e.result.total > 0);
+      this._closeN = 0;
       AudioSys.play(`tile_place_${1 + Math.floor(Math.random() * 4)}`, { volume: 0.7 });
+      setTimeout(() => AudioSys.play('tile_bounce', { volume: 0.25 }), 90);   // la tuile tombe, puis se cale
       let i = 0;
       for (const ed of e.result.edges) { const nw = toWorld(ed.q, ed.r); const mx = (w.x + nw.x) / 2, my = (w.y + nw.y) / 2; setTimeout(() => fx.floatText(mx, my, `${ed.pts > 0 ? '+' : ''}${ed.pts}`, ed.pts > 0 ? '#2f9e8f' : '#d95f4b', 18, 1.1), 90 * i); i++; }
       // le son du coup : une note par point marqué, sur une gamme qui monte avec la série ; une note grave si le coup coûte
@@ -582,7 +584,8 @@ class IslandScene {
     } else if (e.type === 'build') {
       const w = toWorld(e.q, e.r);
       fx.drop(key(e.q, e.r)); fx.placeBurst(w.x, w.y, true); fx.closeBurst(w.x, w.y - 10, 4);
-      AudioSys.play(`tile_place_${1 + Math.floor(Math.random() * 4)}`, { volume: 0.7 }); AudioSys.play('region_close', { volume: 0.45 });
+      this._closeN = 0;
+      AudioSys.play(`tile_place_${1 + Math.floor(Math.random() * 4)}`, { volume: 0.7 }); setTimeout(() => AudioSys.play('tile_bounce', { volume: 0.25 }), 90); AudioSys.play('region_close', { volume: 0.45 });
       let i = 0;
       for (const ed of e.result.edges) { const nw = toWorld(ed.q, ed.r); const mx = (w.x + nw.x) / 2, my = (w.y + nw.y) / 2; setTimeout(() => { fx.floatText(mx, my, `${ed.pts > 0 ? '+' : ''}${ed.pts}`, ed.pts > 0 ? '#2f9e8f' : '#d95f4b', 18, 1.1); if (ed.pts > 0) AudioSys.play(`point_${Math.min(8, i + 1)}`, { volume: 0.45 }); }, 90 * i); i++; }
       const fam = (STORY.tiles[e.family] || {}).name || e.family;
@@ -605,7 +608,7 @@ class IslandScene {
         const sig = e.level >= 3 && STORY.level3[e.tile.family];
         const bt = sig ? `${sig.name} !` : STORY.build.done[Math.floor(Math.random() * STORY.build.done.length)];
         setTimeout(() => { fx.floatText(w.x, w.y - 44, `${e.result.total >= 0 ? '+' : ''}${e.result.total}`, '#e0a33a', 24, 1.6); this.hud.ribbon(bt, '#e0a33a', sig ? 2000 : 1400, sig ? 'master' : 'good'); this.hud.bumpScore(e.result.total); if (sig) { fx.closeBurst(w.x, w.y - 10, 7); this.shake.trigger(0.12); AudioSys.play('region_big', { volume: 0.6 }); this.tutorial.onEvent('build3'); } }, 90 * i + 60);
-        if (e.refund && e.refund.ok) setTimeout(() => { this.hud.ribbon((STORY.build.refund[e.refund.reason] || '').replace('{f}', fam.toLowerCase()), '#2f9e8f', 20, 1.8); AudioSys.play('point_8', { volume: 0.5 }); }, 90 * i + 500);
+        if (e.refund && e.refund.ok) setTimeout(() => { this.hud.ribbon((STORY.build.refund[e.refund.reason] || '').replace('{f}', fam.toLowerCase()), '#2f9e8f', 1800, 'good'); AudioSys.play('point_8', { volume: 0.5 }); }, 90 * i + 500);
         this.hud.notify(`Bâti : ${fam} niveau ${e.level} (${e.result.total >= 0 ? '+' : ''}${e.result.total})${e.refund && e.refund.ok ? ` · une ${fam.toLowerCase()} revient dans la file` : ''}`, 'gold');
       }
       if (e.milestone) setTimeout(() => { this.hud.notify(STORY.verdicts.milestone.replace('{n}', e.milestone), 'gold'); AudioSys.play('star_2', { volume: 0.5 }); }, 90 * i + 700);
@@ -613,13 +616,17 @@ class IslandScene {
       this.updateAmbience();
     } else if (e.type === 'close') {
       const cx = e.cells.reduce((s, c) => s + toWorld(c.q, c.r).x, 0) / e.cells.length, cy = e.cells.reduce((s, c) => s + toWorld(c.q, c.r).y, 0) / e.cells.length;
+      // une pose peut fermer deux régions (trois, rarement) : les fermetures arrivent à la suite, on les décale
+      // au lieu de les superposer — la deuxième a son propre arpège et son propre mot
+      const nth = this._closeN++;
       setTimeout(() => {
         fx.ring(e.cells, '#e0a33a'); fx.closeBurst(cx, cy, e.size);
-        fx.floatText(cx, cy - 20, `${STORY.closed[Math.floor(Math.random() * STORY.closed.length)]} +${e.bonus}`, '#e0a33a', 24, 1.8);
-        AudioSys.play(e.size >= 6 ? 'region_big' : 'region_close', { volume: 0.8 });
+        const word = nth > 0 ? (STORY.closedMulti[Math.min(nth, STORY.closedMulti.length) - 1]) : STORY.closed[Math.floor(Math.random() * STORY.closed.length)];
+        fx.floatText(cx, cy - 20, `${word} +${e.bonus}`, '#e0a33a', 24, 1.8);
+        AudioSys.play(nth > 0 ? 'combo' : e.size >= 6 ? 'region_big' : 'region_close', { volume: 0.8 });
         if (e.breath && this.mech.has('breath')) setTimeout(() => fx.floatText(cx, cy + 18, `+${e.breath} souffle`, '#3a9c8a', 18, 1.5), 350);
-        if (e.size >= 6) this.shake.trigger(0.25);
-      }, 350);
+        if (e.size >= 6 || nth > 0) this.shake.trigger(nth > 0 ? 0.18 : 0.25);
+      }, 350 + Math.min(nth, 2) * 450);
     } else if (e.type === 'season') {
       // la saison en plan : aucune bulle ; la caméra recule d'un cran, l'île change d'aspect, la règle s'écrit une fois dans le bandeau,
       // puis les points volent depuis les tuiles concernées vers le compteur, qui ne monte qu'à leur arrivée
