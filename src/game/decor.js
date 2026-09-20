@@ -54,6 +54,12 @@ const PICK = (rng, list) => list[Math.floor(rng() * list.length)];
 const ROOFS = ['_jaune', '_jaune', '_vert', ''];
 const roof = (rng) => ROOFS[Math.floor(rng() * ROOFS.length)];
 
+/** Un arbre n'est jamais deux fois le même : trois silhouettes, une taille tirée au sort et un
+ *  miroir une fois sur deux. Tout vient du hasard de la case, donc la forêt ne bouge pas d'une
+ *  partie à l'autre — elle est seulement moins alignée. */
+const VAR = (rng) => ['', '2', '3'][Math.floor(rng() * 3)];
+const wild = (rng, lo = 0.82, hi = 1.18) => ({ scale: lo + rng() * (hi - lo), flip: rng() < 0.5 });
+
 export class Decor {
   constructor(seed = 1) { this.seed = seed; this.version = -1; this.objects = []; }
 
@@ -134,10 +140,10 @@ export class Decor {
     };
     const L2 = (cell) => (cell.level || 1) >= 2;   // tuile bâtie : décor nettement plus dense
     const L3 = (cell) => (cell.level || 1) >= 3;   // niveau 3 : une pièce maîtresse au centre
-    const LANDMARK = { forest: ['obj_treeRound_large_{s}', 1.9], hamlet: ['obj_church', 1.0], field: ['obj_silo1', 1.0], orchard: ['obj_treeRound_fruit_{s}', 1.8], meadow: ['obj_fence', 1.2], marsh: ['obj_bushGrass_{s}', 1.8], rock: ['obj_rockGrey_large{w}', 1.9], sand: ['obj_rockBrown_small{w}', 1.6], hill: ['obj_treePine_large_{s}', 1.4], heath: ['obj_heather_{s}', 1.8] };
-    for (const t of board.tiles.values()) { if (!L3(t) || t.rare) continue; const lm = LANDMARK[t.family]; if (!lm) continue; const c = toWorld(t.q, t.r); add({ x: c.x, y: c.y + (t.family === 'hamlet' ? 34 : 30), tpl: lm[0], cell: key(t.q, t.r), scale: lm[1], alpha: 1, notSeasons: t.family === 'forest' ? ['spring'] : undefined }); if (t.family === 'forest') add({ x: c.x, y: c.y + 30, tpl: 'obj_treeRound_blossom_large', cell: key(t.q, t.r), scale: lm[1], alpha: 1, seasons: ['spring'] }); }
+    const LANDMARK = { forest: ['obj_treeRound_large2_{s}', 1.9], hamlet: ['obj_church', 1.0], field: ['obj_silo1', 1.0], orchard: ['obj_treeRound_fruit_{s}', 1.8], meadow: ['obj_fence', 1.2], marsh: ['obj_bushGrass_{s}', 1.8], rock: ['obj_rockGrey_large{w}', 1.9], sand: ['obj_rockBrown_small{w}', 1.6], hill: ['obj_treePine_large_{s}', 1.4], heath: ['obj_heather_{s}', 1.8] };
+    for (const t of board.tiles.values()) { if (!L3(t) || t.rare) continue; const lm = LANDMARK[t.family]; if (!lm) continue; const c = toWorld(t.q, t.r); add({ x: c.x, y: c.y + (t.family === 'hamlet' ? 34 : 30), tpl: lm[0], cell: key(t.q, t.r), scale: lm[1], alpha: 1, notSeasons: t.family === 'forest' ? ['spring'] : undefined }); if (t.family === 'forest') add({ x: c.x, y: c.y + 30, tpl: 'obj_treeRound_blossom_large2', cell: key(t.q, t.r), scale: lm[1], alpha: 1, seasons: ['spring'] }); }
     // croissance annoncée : une saison avant, la tuile porte en petit ce qu'elle va devenir (jeune pin, maisonnette, pousses)
-    const SPROUT = { forest: ['obj_treePine_small_{s}', 0.85], orchard: ['obj_treeRound_small_{s}', 0.8], hamlet: ['obj_house_small_jaune', 0.7], field: ['obj_crop_{s}', 0.75], meadow: ['obj_bushGrass_{s}', 0.85] };
+    const SPROUT = { forest: ['obj_treePine_small_{s}', 0.85], orchard: ['obj_treeRound_small2_{s}', 0.8], hamlet: ['obj_house_small_jaune', 0.7], field: ['obj_crop_{s}', 0.75], meadow: ['obj_bushGrass_{s}', 0.85] };
     for (const t of board.tiles.values()) {
       if (!t.ripening || t.rare) continue; const sp = SPROUT[t.family]; if (!sp) continue;
       const c = toWorld(t.q, t.r); const rng = mulberry(cellSeed(this.seed, t.q, t.r, 11));
@@ -178,11 +184,14 @@ export class Decor {
           if (family === 'forest') {
             const n = Math.round((16 + deg * 2.2) * (L2(cell) ? 1.7 : 1));
             for (const p of sample(rng, cell, keys, n, { minDist: L2(cell) ? 7 : 9, margin: 4, radius: 1.0, placed, tries: 30 })) {
-              placed.push(p); const r = rng();
-              if (r < 0.34) push(p, 'obj_treePine_large_{s}'); else if (r < 0.58) push(p, 'obj_treePine_small_{s}');
-              else if (r < 0.8) { push(p, 'obj_treeRound_large_{s}', { notSeasons: rng() < 0.5 ? ['spring'] : null, tag: 'rl' }); if (out[out.length - 1].notSeasons) push(p, 'obj_treeRound_blossom_large', { seasons: ['spring'] }); }
-              else { const bl = rng() < 0.6; push(p, 'obj_treeRound_small_{s}', { notSeasons: bl ? ['spring'] : null }); if (bl) push(p, 'obj_treeRound_blossom', { seasons: ['spring'] }); }
+              placed.push(p); const r = rng(); const w = wild(rng); const v = VAR(rng);
+              if (r < 0.28) push(p, `obj_treePine_large${v === '3' ? '2' : ''}_{s}`, w);
+              else if (r < 0.52) push(p, `obj_treePine_small${v === '3' ? '2' : ''}_{s}`, w);
+              else if (r < 0.78) { const bl = rng() < 0.3; push(p, `obj_treeRound_large${v}_{s}`, Object.assign({ notSeasons: bl ? ['spring'] : null, tag: 'rl' }, w)); if (bl) push(p, `obj_treeRound_blossom_large${v}`, Object.assign({ seasons: ['spring'] }, w)); }
+              else { const bl = rng() < 0.35; push(p, `obj_treeRound_small${v}_{s}`, Object.assign({ notSeasons: bl ? ['spring'] : null }, w)); if (bl) push(p, `obj_treeRound_blossom${v}`, Object.assign({ seasons: ['spring'] }, w)); }
             }
+            // sous-bois : ce sont les buissons entre les troncs qui font qu'une forêt respire
+            for (const p of sample(rng, cell, keys, L2(cell) ? 5 : 3, { minDist: 14, margin: 6, placed: [] })) push(p, rng() < 0.5 ? 'obj_bush_{s}' : 'obj_bush2_{s}', wild(rng, 0.75, 1.25));
             for (const p of sample(rng, cell, keys, 2, { minDist: 20, margin: 8, placed: [] })) push(p, 'obj_leafpile', { seasons: ['autumn'], alpha: 0.95 });
             for (const p of sample(rng, cell, keys, 1, { minDist: 20, margin: 8, placed: [] })) push(p, 'obj_snowdrift', { seasons: ['winter'] });
           } else if (family === 'meadow') {
@@ -232,7 +241,10 @@ export class Decor {
             for (let y = y0; y < c.y + 80; y += sy) for (let x = x0 + ((Math.round((y - oy) / sy) % 2) ? sx / 2 : 0); x < c.x + 70; x += sx) {
               const p = { x: x + (rng() - 0.5) * 6, y: y + (rng() - 0.5) * 6 };
               if (inRegion(p, keys) !== ck || !edgeOk(p, ck, keys, 9)) continue;
-              push(p, 'obj_treeRound_fruit_{s}', { notSeasons: ['spring'] }); push(p, 'obj_treeRound_blossom', { seasons: ['spring'] });
+              // au printemps, tous les arbres ne fleurissent pas en même temps : deux sur trois
+              const w = wild(rng, 0.9, 1.1); const fleurit = rng() < 0.66;
+              push(p, 'obj_treeRound_fruit_{s}', Object.assign({ notSeasons: fleurit ? ['spring'] : null }, w));
+              if (fleurit) push(p, `obj_treeRound_blossom${VAR(rng)}`, Object.assign({ seasons: ['spring'] }, w));
             }
             for (const p of sample(rng, cell, keys, 1, { minDist: 26, margin: 12, placed: [] })) push(p, 'obj_basket', { seasons: ['autumn'] });
             for (const p of sample(rng, cell, keys, 1, { minDist: 26, margin: 12, placed: [] })) push(p, 'obj_leafpile', { seasons: ['autumn'], alpha: 0.9 });

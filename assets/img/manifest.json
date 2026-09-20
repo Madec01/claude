@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-20T21:43:40+00:00",
+ "generated": "2026-09-20T22:00:08+00:00",
  "generator": "tools/build_images.py",
  "conventions": {
   "hex": {
@@ -3088,6 +3088,86 @@
    "note": "treeRound_large : feuillu 3D du pack Forest, palette de winter (arbre nu).",
    "anchor": "bottom"
   },
+  "obj_treeRound_large2_spring": {
+   "file": "deco/obj_treeRound_large2_spring.png",
+   "w": 62,
+   "h": 92,
+   "bytes": 7299,
+   "source": "kaykit",
+   "original": "forest/Color1/Tree_5_B_Color1.gltf",
+   "note": "treeRound_large2 : feuillu 3D du pack Forest, palette de spring.",
+   "anchor": "bottom"
+  },
+  "obj_treeRound_large2_summer": {
+   "file": "deco/obj_treeRound_large2_summer.png",
+   "w": 62,
+   "h": 92,
+   "bytes": 6848,
+   "source": "kaykit",
+   "original": "forest/Color2/Tree_5_B_Color2.gltf",
+   "note": "treeRound_large2 : feuillu 3D du pack Forest, palette de summer.",
+   "anchor": "bottom"
+  },
+  "obj_treeRound_large2_autumn": {
+   "file": "deco/obj_treeRound_large2_autumn.png",
+   "w": 62,
+   "h": 92,
+   "bytes": 7094,
+   "source": "kaykit",
+   "original": "forest/Color7/Tree_5_B_Color7.gltf",
+   "note": "treeRound_large2 : feuillu 3D du pack Forest, palette de autumn.",
+   "anchor": "bottom"
+  },
+  "obj_treeRound_large2_winter": {
+   "file": "deco/obj_treeRound_large2_winter.png",
+   "w": 36,
+   "h": 92,
+   "bytes": 4711,
+   "source": "kaykit",
+   "original": "forest/Color2/Tree_Bare_1_A_Color2.gltf",
+   "note": "treeRound_large2 : feuillu 3D du pack Forest, palette de winter (arbre nu).",
+   "anchor": "bottom"
+  },
+  "obj_treeRound_large3_spring": {
+   "file": "deco/obj_treeRound_large3_spring.png",
+   "w": 35,
+   "h": 78,
+   "bytes": 4491,
+   "source": "kaykit",
+   "original": "forest/Color3/Tree_5_F_Color3.gltf",
+   "note": "treeRound_large3 : feuillu 3D du pack Forest, palette de spring.",
+   "anchor": "bottom"
+  },
+  "obj_treeRound_large3_summer": {
+   "file": "deco/obj_treeRound_large3_summer.png",
+   "w": 35,
+   "h": 78,
+   "bytes": 4496,
+   "source": "kaykit",
+   "original": "forest/Color1/Tree_5_F_Color1.gltf",
+   "note": "treeRound_large3 : feuillu 3D du pack Forest, palette de summer.",
+   "anchor": "bottom"
+  },
+  "obj_treeRound_large3_autumn": {
+   "file": "deco/obj_treeRound_large3_autumn.png",
+   "w": 35,
+   "h": 78,
+   "bytes": 4550,
+   "source": "kaykit",
+   "original": "forest/Color5/Tree_5_F_Color5.gltf",
+   "note": "treeRound_large3 : feuillu 3D du pack Forest, palette de autumn.",
+   "anchor": "bottom"
+  },
+  "obj_treeRound_large3_winter": {
+   "file": "deco/obj_treeRound_large3_winter.png",
+   "w": 34,
+   "h": 78,
+   "bytes": 3932,
+   "source": "kaykit",
+   "original": "forest/Color1/Tree_Bare_1_B_Color1.gltf",
+   "note": "treeRound_large3 : feuillu 3D du pack Forest, palette de winter (arbre nu).",
+   "anchor": "bottom"
+  },
   "obj_treeRound_small_spring": {
    "file": "deco/obj_treeRound_small_spring.png",
    "w": 29,
@@ -3126,6 +3206,246 @@
    "source": "kaykit",
    "original": "forest/Color2/Tree_Bare_2_B_Color2.gltf",
    "note": "treeRound_small : feuillu 3D du pack Forest, palette de winter (arbre nu).",
+   "anchor": "bottom"
+  },
+  "obj_treeRound_small2_spring": {
+   "file": "deco/obj_treeRound_small2_spring.png",
+   "w": 32,
+   "h": 66,
+   "bytes": 3193,
+   "source": "kaykit",
+   "original": "forest/Color1/Tree_5_D_Color1.gltf",
+   "note": "treeRound_small2 : feuillu 3D du pack Forest, palette de spring.",
+   "anchor": "bottom"
+  },
+  "obj_treeRound_small2_summer": {
+   "file": "deco/obj_treeRound_small2_summer.png",
+   "w": 32,
+   "h": 66,
+   "bytes": 3075,
+   "source": "kaykit",
+   "original": "forest/Color2/Tree_5_D_Color2.gltf",
+   "note": "treeRound_small2 : feuillu 3D du pack Forest, palette de summer.",
+   "anchor": "bottom"
+  },
+  "obj_treeRound_small2_autumn": {
+   "file": "deco/obj_treeRound_small2_autumn.png",
+   "w": 32,
+   "h": 66,
+   "bytes": 3195,
+   "source": "kaykit",
+   "original": "forest/Color6/Tree_5_D_Color6.gltf",
+   "note": "treeRound_small2 : feuillu 3D du pack Forest, palette de autumn.",
+   "anchor": "bottom"
+  },
+  "obj_treeRound_small2_winter": {
+   "file": "deco/obj_treeRound_small2_winter.png",
+   "w": 17,
+   "h": 66,
+   "bytes": 2165,
+   "source": "kaykit",
+   "original": "forest/Color2/Tree_Bare_2_A_Color2.gltf",
+   "note": "treeRound_small2 : feuillu 3D du pack Forest, palette de winter (arbre nu).",
+   "anchor": "bottom"
+  },
+  "obj_treeRound_small3_spring": {
+   "file": "deco/obj_treeRound_small3_spring.png",
+   "w": 38,
+   "h": 54,
+   "bytes": 3014,
+   "source": "kaykit",
+   "original": "forest/Color3/Tree_2_B_Color3.gltf",
+   "note": "treeRound_small3 : feuillu 3D du pack Forest, palette de spring.",
+   "anchor": "bottom"
+  },
+  "obj_treeRound_small3_summer": {
+   "file": "deco/obj_treeRound_small3_summer.png",
+   "w": 38,
+   "h": 54,
+   "bytes": 2941,
+   "source": "kaykit",
+   "original": "forest/Color1/Tree_2_B_Color1.gltf",
+   "note": "treeRound_small3 : feuillu 3D du pack Forest, palette de summer.",
+   "anchor": "bottom"
+  },
+  "obj_treeRound_small3_autumn": {
+   "file": "deco/obj_treeRound_small3_autumn.png",
+   "w": 38,
+   "h": 54,
+   "bytes": 2891,
+   "source": "kaykit",
+   "original": "forest/Color7/Tree_2_B_Color7.gltf",
+   "note": "treeRound_small3 : feuillu 3D du pack Forest, palette de autumn.",
+   "anchor": "bottom"
+  },
+  "obj_treeRound_small3_winter": {
+   "file": "deco/obj_treeRound_small3_winter.png",
+   "w": 10,
+   "h": 54,
+   "bytes": 1283,
+   "source": "kaykit",
+   "original": "forest/Color1/Tree_Bare_2_C_Color1.gltf",
+   "note": "treeRound_small3 : feuillu 3D du pack Forest, palette de winter (arbre nu).",
+   "anchor": "bottom"
+  },
+  "obj_treePine_large2_spring": {
+   "file": "deco/obj_treePine_large2_spring.png",
+   "w": 57,
+   "h": 86,
+   "bytes": 6427,
+   "source": "kaykit",
+   "original": "forest/Color3/Tree_5_A_Color3.gltf",
+   "note": "Sapin du pack Forest, palette de spring : deuxième silhouette pour les forêts.",
+   "anchor": "bottom"
+  },
+  "obj_treePine_small2_spring": {
+   "file": "deco/obj_treePine_small2_spring.png",
+   "w": 39,
+   "h": 58,
+   "bytes": 3765,
+   "source": "kaykit",
+   "original": "forest/Color3/Tree_5_A_Color3.gltf",
+   "note": "Petit sapin du pack Forest (spring).",
+   "anchor": "bottom"
+  },
+  "obj_bush_spring": {
+   "file": "deco/obj_bush_spring.png",
+   "w": 41,
+   "h": 26,
+   "bytes": 2088,
+   "source": "kaykit",
+   "original": "forest/Color3/Bush_3_A_Color3.gltf",
+   "note": "Buisson du pack Forest (spring) : sous-bois.",
+   "anchor": "bottom"
+  },
+  "obj_bush2_spring": {
+   "file": "deco/obj_bush2_spring.png",
+   "w": 25,
+   "h": 20,
+   "bytes": 1233,
+   "source": "kaykit",
+   "original": "forest/Color1/Bush_4_A_Color1.gltf",
+   "note": "Buisson bas du pack Forest (spring).",
+   "anchor": "bottom"
+  },
+  "obj_treePine_large2_summer": {
+   "file": "deco/obj_treePine_large2_summer.png",
+   "w": 57,
+   "h": 86,
+   "bytes": 6016,
+   "source": "kaykit",
+   "original": "forest/Color2/Tree_5_A_Color2.gltf",
+   "note": "Sapin du pack Forest, palette de summer : deuxième silhouette pour les forêts.",
+   "anchor": "bottom"
+  },
+  "obj_treePine_small2_summer": {
+   "file": "deco/obj_treePine_small2_summer.png",
+   "w": 39,
+   "h": 58,
+   "bytes": 3645,
+   "source": "kaykit",
+   "original": "forest/Color2/Tree_5_A_Color2.gltf",
+   "note": "Petit sapin du pack Forest (summer).",
+   "anchor": "bottom"
+  },
+  "obj_bush_summer": {
+   "file": "deco/obj_bush_summer.png",
+   "w": 41,
+   "h": 26,
+   "bytes": 2070,
+   "source": "kaykit",
+   "original": "forest/Color1/Bush_3_A_Color1.gltf",
+   "note": "Buisson du pack Forest (summer) : sous-bois.",
+   "anchor": "bottom"
+  },
+  "obj_bush2_summer": {
+   "file": "deco/obj_bush2_summer.png",
+   "w": 25,
+   "h": 20,
+   "bytes": 1181,
+   "source": "kaykit",
+   "original": "forest/Color2/Bush_4_A_Color2.gltf",
+   "note": "Buisson bas du pack Forest (summer).",
+   "anchor": "bottom"
+  },
+  "obj_treePine_large2_autumn": {
+   "file": "deco/obj_treePine_large2_autumn.png",
+   "w": 57,
+   "h": 86,
+   "bytes": 6183,
+   "source": "kaykit",
+   "original": "forest/Color6/Tree_5_A_Color6.gltf",
+   "note": "Sapin du pack Forest, palette de autumn : deuxième silhouette pour les forêts.",
+   "anchor": "bottom"
+  },
+  "obj_treePine_small2_autumn": {
+   "file": "deco/obj_treePine_small2_autumn.png",
+   "w": 39,
+   "h": 58,
+   "bytes": 3705,
+   "source": "kaykit",
+   "original": "forest/Color6/Tree_5_A_Color6.gltf",
+   "note": "Petit sapin du pack Forest (autumn).",
+   "anchor": "bottom"
+  },
+  "obj_bush_autumn": {
+   "file": "deco/obj_bush_autumn.png",
+   "w": 41,
+   "h": 26,
+   "bytes": 1970,
+   "source": "kaykit",
+   "original": "forest/Color6/Bush_3_A_Color6.gltf",
+   "note": "Buisson du pack Forest (autumn) : sous-bois.",
+   "anchor": "bottom"
+  },
+  "obj_bush2_autumn": {
+   "file": "deco/obj_bush2_autumn.png",
+   "w": 25,
+   "h": 20,
+   "bytes": 1252,
+   "source": "kaykit",
+   "original": "forest/Color5/Bush_4_A_Color5.gltf",
+   "note": "Buisson bas du pack Forest (autumn).",
+   "anchor": "bottom"
+  },
+  "obj_treePine_large2_winter": {
+   "file": "deco/obj_treePine_large2_winter.png",
+   "w": 57,
+   "h": 86,
+   "bytes": 6035,
+   "source": "kaykit",
+   "original": "forest/Color4/Tree_5_A_Color4.gltf",
+   "note": "Sapin du pack Forest, palette de winter : deuxième silhouette pour les forêts.",
+   "anchor": "bottom"
+  },
+  "obj_treePine_small2_winter": {
+   "file": "deco/obj_treePine_small2_winter.png",
+   "w": 39,
+   "h": 58,
+   "bytes": 3649,
+   "source": "kaykit",
+   "original": "forest/Color4/Tree_5_A_Color4.gltf",
+   "note": "Petit sapin du pack Forest (winter).",
+   "anchor": "bottom"
+  },
+  "obj_bush_winter": {
+   "file": "deco/obj_bush_winter.png",
+   "w": 24,
+   "h": 26,
+   "bytes": 1347,
+   "source": "kaykit",
+   "original": "forest/Color2/Bush_2_A_Color2.gltf",
+   "note": "Buisson du pack Forest (winter) : sous-bois.",
+   "anchor": "bottom"
+  },
+  "obj_bush2_winter": {
+   "file": "deco/obj_bush2_winter.png",
+   "w": 18,
+   "h": 20,
+   "bytes": 904,
+   "source": "kaykit",
+   "original": "forest/Color2/Bush_1_A_Color2.gltf",
+   "note": "Buisson bas du pack Forest (winter).",
    "anchor": "bottom"
   },
   "obj_treeRound_fruit_spring": {
@@ -3428,6 +3748,26 @@
    "note": "Arbre en fleurs : la palette « fleurs » du pack Forest (forêts et vergers au printemps).",
    "anchor": "bottom"
   },
+  "obj_treeRound_blossom2": {
+   "file": "deco/obj_treeRound_blossom2.png",
+   "w": 32,
+   "h": 66,
+   "bytes": 3265,
+   "source": "kaykit",
+   "original": "forest/Color8/Tree_5_D_Color8.gltf",
+   "note": "Arbre en fleurs : la palette « fleurs » du pack Forest (forêts et vergers au printemps).",
+   "anchor": "bottom"
+  },
+  "obj_treeRound_blossom3": {
+   "file": "deco/obj_treeRound_blossom3.png",
+   "w": 38,
+   "h": 54,
+   "bytes": 3031,
+   "source": "kaykit",
+   "original": "forest/Color8/Tree_2_B_Color8.gltf",
+   "note": "Arbre en fleurs : la palette « fleurs » du pack Forest (forêts et vergers au printemps).",
+   "anchor": "bottom"
+  },
   "obj_treeRound_blossom_large": {
    "file": "deco/obj_treeRound_blossom_large.png",
    "w": 54,
@@ -3435,6 +3775,26 @@
    "bytes": 6679,
    "source": "kaykit",
    "original": "forest/Color8/Tree_5_C_Color8.gltf",
+   "note": "Grand arbre en fleurs (printemps).",
+   "anchor": "bottom"
+  },
+  "obj_treeRound_blossom_large2": {
+   "file": "deco/obj_treeRound_blossom_large2.png",
+   "w": 62,
+   "h": 92,
+   "bytes": 7331,
+   "source": "kaykit",
+   "original": "forest/Color8/Tree_5_B_Color8.gltf",
+   "note": "Grand arbre en fleurs (printemps).",
+   "anchor": "bottom"
+  },
+  "obj_treeRound_blossom_large3": {
+   "file": "deco/obj_treeRound_blossom_large3.png",
+   "w": 35,
+   "h": 78,
+   "bytes": 4534,
+   "source": "kaykit",
+   "original": "forest/Color8/Tree_5_F_Color8.gltf",
    "note": "Grand arbre en fleurs (printemps).",
    "anchor": "bottom"
   },

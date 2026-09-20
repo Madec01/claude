@@ -77,16 +77,52 @@ FOREST = dict(pack="KayKit : Forest Nature Pack (1.0)", author="Kay Lousberg",
 KAY_MODELS = {
     # --- pack Forest : les feuillus existent en huit palettes, dont les couleurs de saison ;
     # on ne les recolore donc pas, on prend directement la bonne. L'hiver est un arbre nu.
+    # Trois silhouettes par rôle, chacune dans sa propre nuance : une forêt de clones n'est pas une
+    # forêt. Le décor en tire une au hasard de la case, et la mélange encore par la taille et le miroir.
     "feuillu_spring": "forest/Color3/Tree_5_C_Color3",
     "feuillu_summer": "forest/Color1/Tree_5_C_Color1",
     "feuillu_autumn": "forest/Color7/Tree_5_C_Color7",
     "feuillu_winter": "forest/Color2/Tree_Bare_1_C_Color2",
     "feuillu_fleurs": "forest/Color8/Tree_5_C_Color8",
+    "feuillu2_spring": "forest/Color1/Tree_5_B_Color1",
+    "feuillu2_summer": "forest/Color2/Tree_5_B_Color2",
+    "feuillu2_autumn": "forest/Color7/Tree_5_B_Color7",
+    "feuillu2_winter": "forest/Color2/Tree_Bare_1_A_Color2",
+    "feuillu2_fleurs": "forest/Color8/Tree_5_B_Color8",
+    "feuillu3_spring": "forest/Color3/Tree_5_F_Color3",
+    "feuillu3_summer": "forest/Color1/Tree_5_F_Color1",
+    "feuillu3_autumn": "forest/Color5/Tree_5_F_Color5",
+    "feuillu3_winter": "forest/Color1/Tree_Bare_1_B_Color1",
+    "feuillu3_fleurs": "forest/Color8/Tree_5_F_Color8",
     "feuillu_petit_spring": "forest/Color3/Tree_5_E_Color3",
     "feuillu_petit_summer": "forest/Color1/Tree_5_E_Color1",
     "feuillu_petit_autumn": "forest/Color7/Tree_5_E_Color7",
     "feuillu_petit_winter": "forest/Color2/Tree_Bare_2_B_Color2",
     "feuillu_petit_fleurs": "forest/Color8/Tree_5_E_Color8",
+    "feuillu_petit2_spring": "forest/Color1/Tree_5_D_Color1",
+    "feuillu_petit2_summer": "forest/Color2/Tree_5_D_Color2",
+    "feuillu_petit2_autumn": "forest/Color6/Tree_5_D_Color6",
+    "feuillu_petit2_winter": "forest/Color2/Tree_Bare_2_A_Color2",
+    "feuillu_petit2_fleurs": "forest/Color8/Tree_5_D_Color8",
+    "feuillu_petit3_spring": "forest/Color3/Tree_2_B_Color3",
+    "feuillu_petit3_summer": "forest/Color1/Tree_2_B_Color1",
+    "feuillu_petit3_autumn": "forest/Color7/Tree_2_B_Color7",
+    "feuillu_petit3_winter": "forest/Color1/Tree_Bare_2_C_Color1",
+    "feuillu_petit3_fleurs": "forest/Color8/Tree_2_B_Color8",
+    # sapins : une deuxième silhouette, prise dans le pack Forest, pour casser l'alignement
+    "sapin2_spring": "forest/Color3/Tree_5_A_Color3",
+    "sapin2_summer": "forest/Color2/Tree_5_A_Color2",
+    "sapin2_autumn": "forest/Color6/Tree_5_A_Color6",
+    "sapin2_winter": "forest/Color4/Tree_5_A_Color4",
+    # sous-bois : buissons et touffes, ce qui manque le plus pour que ça respire
+    "buisson_spring": "forest/Color3/Bush_3_A_Color3",
+    "buisson_summer": "forest/Color1/Bush_3_A_Color1",
+    "buisson_autumn": "forest/Color6/Bush_3_A_Color6",
+    "buisson_winter": "forest/Color2/Bush_2_A_Color2",
+    "buisson2_spring": "forest/Color1/Bush_4_A_Color1",
+    "buisson2_summer": "forest/Color2/Bush_4_A_Color2",
+    "buisson2_autumn": "forest/Color5/Bush_4_A_Color5",
+    "buisson2_winter": "forest/Color2/Bush_1_A_Color2",
     # le pommier du verger : en fleurs au printemps, chargé en été, cuivré en automne, nu en hiver
     "pommier_spring": "forest/Color8/Tree_2_A_Color8",
     "pommier_summer": "forest/Color1/Tree_2_A_Color1",
@@ -102,7 +138,6 @@ KAY_MODELS = {
     "bloc_petit3": "forest/Color1/Rock_5_C_Color1",
     "bloc_petit4": "forest/Color1/Rock_3_C_Color1",
     "bloc_brun": "forest/Color5/Rock_5_C_Color5",
-    "buisson": "forest/Color1/Bush_3_A_Color1",
     "home_A": "buildings/red/building_home_A_red",
     "home_A_jaune": "buildings/yellow/building_home_A_yellow",
     "home_A_vert": "buildings/green/building_home_A_green",
@@ -1006,11 +1041,23 @@ class Builder:
                 kobj(f"obj_{name}_{season}", model, season, w, "foliage", f"{name} : sapin 3D KayKit recoloré ({season}).")
         # feuillus : le pack Forest livre ses propres couleurs de saison (et un arbre nu pour l'hiver),
         # bien plus justes qu'une recoloration — on ne recolore donc pas ces calques.
-        for name, base, h in (("treeRound_large", "feuillu", 84), ("treeRound_small", "feuillu_petit", 60)):
+        for name, base, h in (("treeRound_large", "feuillu", 84), ("treeRound_large2", "feuillu2", 92),
+                              ("treeRound_large3", "feuillu3", 78), ("treeRound_small", "feuillu_petit", 60),
+                              ("treeRound_small2", "feuillu_petit2", 66), ("treeRound_small3", "feuillu_petit3", 54)):
             for season in SEASONS:
                 kobj(f"obj_{name}_{season}", f"{base}_{season}", season, None, "static",
                      f"{name} : feuillu 3D du pack Forest, palette de {season}" + (" (arbre nu)" if season == "winter" else "") + ".",
                      target_h=h)
+        # une deuxième silhouette de sapin, et le sous-bois
+        for season in SEASONS:
+            kobj(f"obj_treePine_large2_{season}", f"sapin2_{season}", season, None, "static",
+                 f"Sapin du pack Forest, palette de {season} : deuxième silhouette pour les forêts.", target_h=86)
+            kobj(f"obj_treePine_small2_{season}", f"sapin2_{season}", season, None, "static",
+                 f"Petit sapin du pack Forest ({season}).", target_h=58)
+            kobj(f"obj_bush_{season}", f"buisson_{season}", season, None, "static",
+                 f"Buisson du pack Forest ({season}) : sous-bois.", target_h=26)
+            kobj(f"obj_bush2_{season}", f"buisson2_{season}", season, None, "static",
+                 f"Buisson bas du pack Forest ({season}).", target_h=20)
         for season in SEASONS:
             kobj(f"obj_treeRound_fruit_{season}", f"pommier_{season}", season, None, "static",
                  f"Fruitier ({season}) : feuillu du pack Forest dans sa palette de saison, fruits dessinés en été et en automne.",
@@ -1023,8 +1070,11 @@ class Builder:
                 obj(f"obj_{name}_{season}", L(f"obj:{name}", 0, 0, "field"), season, f"Parcelle {name} ({season}).")
         obj("obj_bushGrass_dry", L("ht:bushGrass:2.4", 0, 0, "dry"), "summer", "Touffe sèche.", pack=HT)
         # objets saisonniers : fleurs de printemps sur les arbres, tas de feuilles, congères, mousse, fleurs bleues, nénuphars, paniers
-        kobj("obj_treeRound_blossom", "feuillu_petit_fleurs", "spring", None, "static", "Arbre en fleurs : la palette « fleurs » du pack Forest (forêts et vergers au printemps).", target_h=60)
-        kobj("obj_treeRound_blossom_large", "feuillu_fleurs", "spring", None, "static", "Grand arbre en fleurs (printemps).", target_h=84)
+        for suffix, model, h in (("", "feuillu_petit_fleurs", 60), ("2", "feuillu_petit2_fleurs", 66), ("3", "feuillu_petit3_fleurs", 54)):
+            kobj(f"obj_treeRound_blossom{suffix}", model, "spring", None, "static",
+                 "Arbre en fleurs : la palette « fleurs » du pack Forest (forêts et vergers au printemps).", target_h=h)
+        for suffix, model, h in (("", "feuillu_fleurs", 84), ("2", "feuillu2_fleurs", 92), ("3", "feuillu3_fleurs", 78)):
+            kobj(f"obj_treeRound_blossom_large{suffix}", model, "spring", None, "static", "Grand arbre en fleurs (printemps).", target_h=h)
         obj("obj_leafpile", L("ht:bushAutumn:2.2", 0, 0), "autumn", "Tas de feuilles mortes (bushAutumn ×2.2) : forêts et vergers en automne.", pack=HT)
         obj("obj_snowdrift", L("ht:bushSnow:2.4", 0, 0), "winter", "Congère (bushSnow ×2.4) : hiver et bourrasque.", pack=HT)
         obj("obj_moss", L("ht:rockStone_moss1:1.6", 0, 0), "spring", "Petit rocher moussu (rockStone_moss1 ×1.6) : roches au printemps.", pack=HT)
