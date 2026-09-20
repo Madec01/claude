@@ -21,7 +21,9 @@ const { execFileSync } = require('child_process');
 const ROOT = path.resolve(__dirname, '..');
 const CACHE = path.join(ROOT, 'tools', 'cache');
 const THREE_VERSION = '0.169.0';
-const EL = 30, AZ = -30, PPU = 120, CANVAS = 480;
+// Le canevas doit contenir le plus grand modèle des deux packs : les arbres du pack Forest
+// montent à près de cinq unités, soit 600 px de haut à 120 px/unité.
+const EL = 30, AZ = -30, PPU = 120, CANVAS = 1280;
 
 function arg(name, def) { const i = process.argv.indexOf(name); return i > 0 ? process.argv[i + 1] : def; }
 
@@ -54,8 +56,7 @@ const fill = new THREE.DirectionalLight(0xffffff, 0.5); fill.position.set(4, 2, 
 const half = ${CANVAS} / 2 / ${PPU};
 const cam = new THREE.OrthographicCamera(-half, half, half, -half, 0.01, 400);
 const e = ${EL} * Math.PI / 180, a = ${AZ} * Math.PI / 180, d = 200;
-cam.position.set(d * Math.cos(e) * Math.sin(a), d * Math.sin(e), d * Math.cos(e) * Math.cos(a));
-cam.up.set(0, 1, 0); cam.lookAt(0, 0, 0); cam.updateProjectionMatrix();
+cam.up.set(0, 1, 0); cam.updateProjectionMatrix();
 const loader = new GLTFLoader();
 let current = null;
 window.__shot = (url) => new Promise((res, rej) => {
@@ -63,8 +64,14 @@ window.__shot = (url) => new Promise((res, rej) => {
     if (current) scene.remove(current);
     current = g.scene; scene.add(current);
     const b = new THREE.Box3().setFromObject(current);
+    // La caméra vise le milieu de la hauteur du modèle : un grand arbre tient alors dans le cadre
+    // sans qu'on ait à agrandir le canevas. On rend en échange la position exacte de l'origine du
+    // modèle sur l'image, puisqu'elle n'est plus au centre : c'est par elle que le pipeline ancre.
+    const cy = (b.min.y + b.max.y) / 2;
+    cam.position.set(d * Math.cos(e) * Math.sin(a), cy + d * Math.sin(e), d * Math.cos(e) * Math.cos(a));
+    cam.lookAt(0, cy, 0);
     renderer.render(scene, cam);
-    res({ min: b.min.toArray(), max: b.max.toArray() });
+    res({ min: b.min.toArray(), max: b.max.toArray(), origin: [${CANVAS} / 2, ${CANVAS} / 2 + cy * Math.cos(e) * ${PPU}] });
   }, undefined, (err) => rej(new Error(String((err && err.message) || err))));
 });
 window.__ready = true;
@@ -72,14 +79,15 @@ window.__ready = true;
 
 const MIME = { '.gltf': 'model/gltf+json', '.bin': 'application/octet-stream', '.png': 'image/png', '.js': 'text/javascript' };
 
-function serve(kayRoot, threeDir) {
+function serve(kayRoot, forestRoot, threeDir) {
   const srv = http.createServer((req, res) => {
     const url = decodeURIComponent(req.url.split('?')[0]);
     if (url === '/render.html') { res.writeHead(200, { 'Content-Type': 'text/html' }); res.end(PAGE); return; }
-    let file = null;
-    if (url.startsWith('/three/')) file = path.join(threeDir, url.slice(7));
-    else if (url.startsWith('/kk/')) file = path.join(kayRoot, url.slice(4));
-    if (!file || !path.resolve(file).startsWith(path.resolve(url.startsWith('/three/') ? threeDir : kayRoot)) || !fs.existsSync(file)) {
+    let file = null, base = null;
+    if (url.startsWith('/three/')) { base = threeDir; file = path.join(threeDir, url.slice(7)); }
+    else if (url.startsWith('/kk/forest/')) { base = forestRoot; file = path.join(forestRoot, url.slice(11)); }
+    else if (url.startsWith('/kk/')) { base = kayRoot; file = path.join(kayRoot, url.slice(4)); }
+    if (!file || !path.resolve(file).startsWith(path.resolve(base)) || !fs.existsSync(file)) {
       res.writeHead(404); res.end('non'); return;
     }
     res.writeHead(200, { 'Content-Type': MIME[path.extname(file)] || 'application/octet-stream' });
@@ -92,10 +100,12 @@ function serve(kayRoot, threeDir) {
   const models = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
   const kayRoot = path.join(arg('--src', '/home/user/kaykit/KayKit-Medieval-Hexagon-Pack-1.0'),
     'addons', 'kaykit_medieval_hexagon_pack', 'Assets', 'gltf');
+  // second pack : la forêt. Un chemin de modèle qui commence par « forest/ » y est cherché.
+  const forestRoot = path.join(arg('--forest', '/home/user/kaykit/KayKit-Forest-Nature-Pack-1.0'), 'gltf');
   const out = arg('--out', path.join(CACHE, 'kaykit'));
   fs.mkdirSync(out, { recursive: true });
   const threeDir = ensureThree();
-  const srv = await serve(kayRoot, threeDir);
+  const srv = await serve(kayRoot, forestRoot, threeDir);
   const port = srv.address().port;
   const b = await chromium.launch({ args: ['--use-gl=swiftshader', '--enable-unsafe-swiftshader'] });
   const page = await b.newPage();
@@ -107,14 +117,15 @@ function serve(kayRoot, threeDir) {
   const errors = [];
   for (const [name, rel] of Object.entries(models)) {
     const url = `/kk/${rel}.gltf`;
-    if (!fs.existsSync(path.join(kayRoot, `${rel}.gltf`))) { errors.push(`${name} : modèle absent (${rel}.gltf)`); continue; }
+    const disk = rel.startsWith('forest/') ? path.join(forestRoot, `${rel.slice(7)}.gltf`) : path.join(kayRoot, `${rel}.gltf`);
+    if (!fs.existsSync(disk)) { errors.push(`${name} : modèle absent (${rel}.gltf)`); continue; }
     let box;
     try { box = await page.evaluate((u) => window.__shot(u), url); }
     catch (e) { errors.push(`${name} : ${e.message}`); continue; }
     const buf = await page.locator('#c').screenshot({ omitBackground: true });
     const tmp = path.join(out, `${name}.raw.png`);
     fs.writeFileSync(tmp, buf);
-    meta[name] = { model: rel, box: { min: box.min.map((x) => +x.toFixed(4)), max: box.max.map((x) => +x.toFixed(4)) } };
+    meta[name] = { model: rel, box: { min: box.min.map((x) => +x.toFixed(4)), max: box.max.map((x) => +x.toFixed(4)) }, origin: box.origin.map((x) => +x.toFixed(2)) };
   }
   await b.close();
   srv.close();

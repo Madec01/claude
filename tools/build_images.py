@@ -69,7 +69,40 @@ KAYKIT = dict(pack="KayKit : Medieval Hexagon Pack (1.0)", author="Kay Lousberg"
 
 # Alias de modèle → chemin sous Assets/gltf/ du pack. Le rouge est la couleur d'équipe
 # dont les toits sont les plus proches de notre terre cuite.
+FOREST = dict(pack="KayKit : Forest Nature Pack (1.0)", author="Kay Lousberg",
+              url="https://kaylousberg.itch.io/forest-nature-pack",
+              mirror="fourni par le commanditaire (téléchargement direct)",
+              license_file="License.txt")
+
 KAY_MODELS = {
+    # --- pack Forest : les feuillus existent en huit palettes, dont les couleurs de saison ;
+    # on ne les recolore donc pas, on prend directement la bonne. L'hiver est un arbre nu.
+    "feuillu_spring": "forest/Color3/Tree_5_C_Color3",
+    "feuillu_summer": "forest/Color1/Tree_5_C_Color1",
+    "feuillu_autumn": "forest/Color7/Tree_5_C_Color7",
+    "feuillu_winter": "forest/Color2/Tree_Bare_1_C_Color2",
+    "feuillu_fleurs": "forest/Color8/Tree_5_C_Color8",
+    "feuillu_petit_spring": "forest/Color3/Tree_5_E_Color3",
+    "feuillu_petit_summer": "forest/Color1/Tree_5_E_Color1",
+    "feuillu_petit_autumn": "forest/Color7/Tree_5_E_Color7",
+    "feuillu_petit_winter": "forest/Color2/Tree_Bare_2_B_Color2",
+    "feuillu_petit_fleurs": "forest/Color8/Tree_5_E_Color8",
+    # le pommier du verger : en fleurs au printemps, chargé en été, cuivré en automne, nu en hiver
+    "pommier_spring": "forest/Color8/Tree_2_A_Color8",
+    "pommier_summer": "forest/Color1/Tree_2_A_Color1",
+    "pommier_autumn": "forest/Color7/Tree_2_A_Color7",
+    "pommier_winter": "forest/Color2/Tree_Bare_2_B_Color2",
+    # --- pack Forest : de vrais blocs de rocher
+    "bloc_grand": "forest/Color1/Rock_3_D_Color1",
+    "bloc_double": "forest/Color1/Rock_1_A_Color1",
+    "bloc_moyen": "forest/Color1/Rock_3_A_Color1",
+    "bloc_moyen2": "forest/Color1/Rock_3_B_Color1",
+    "bloc_petit": "forest/Color1/Rock_2_B_Color1",
+    "bloc_petit2": "forest/Color1/Rock_5_B_Color1",
+    "bloc_petit3": "forest/Color1/Rock_5_C_Color1",
+    "bloc_petit4": "forest/Color1/Rock_3_C_Color1",
+    "bloc_brun": "forest/Color5/Rock_5_C_Color5",
+    "buisson": "forest/Color1/Bush_3_A_Color1",
     "home_A": "buildings/red/building_home_A_red",
     "home_A_jaune": "buildings/yellow/building_home_A_yellow",
     "home_A_vert": "buildings/green/building_home_A_green",
@@ -319,10 +352,11 @@ def fit(im, box):
 class Sources:
     """Accès aux sprites : Hexagon Pack en 2× (cache SVG ou Lanczos), autres packs natifs."""
 
-    def __init__(self, src_root, kay_root=None, animals_root=None):
+    def __init__(self, src_root, kay_root=None, animals_root=None, forest_root=None):
         self.src = src_root
         self.kay_root = kay_root
         self.animals_root = animals_root
+        self.forest_root = forest_root
         self.hp_png = src_root / HP / "PNG"
         self.tiles2x = CACHE / "hex2x_tiles"
         self.objs2x = CACHE / "hex2x_objects"
@@ -391,7 +425,12 @@ class Sources:
         jobs.write_text(json.dumps(KAY_MODELS, indent=1), encoding="utf-8")
         print(f"rendu des {len(KAY_MODELS)} modèles KayKit (Chromium + three.js)…")
         subprocess.run(["node", str(ROOT / "tools" / "render_kaykit.js"), str(jobs),
-                        "--src", str(self.kay_root), "--out", str(self.kay2x)], check=True)
+                        "--src", str(self.kay_root), "--forest", str(self.forest_root), "--out", str(self.kay2x)], check=True)
+
+    def kay_meta(self):
+        if not getattr(self, "_kay_meta", None):
+            self._kay_meta = json.loads((self.kay2x / "meta.json").read_text(encoding="utf-8"))
+        return self._kay_meta
 
     def kay(self, name, scale=1.0):
         """Modèle KayKit rendu : (image rognée, origine x, origine y dans l'image).
@@ -408,14 +447,15 @@ class Sources:
         if not p.exists():
             raise FileNotFoundError(f"Rendu KayKit manquant : {p} (relancer avec --rebuild-cache)")
         im = Image.open(p).convert("RGBA")
-        canvas = im.width
         box = im.getbbox()
         if box is None:
             raise ValueError(f"Rendu KayKit vide : {name}")
         if box[0] <= 0 or box[1] <= 0 or box[2] >= im.width or box[3] >= im.height:
             raise ValueError(f"Rendu KayKit rogné par le canevas : {name} {box}")
         im = im.crop(box)
-        ox, oy = canvas / 2 - box[0], canvas / 2 - box[1]
+        # l'origine du modèle est donnée par le rendu (la caméra vise le milieu du modèle, pas l'origine)
+        org = self.kay_meta()["models"][name].get("origin") or [p and 0, 0]
+        ox, oy = org[0] - box[0], org[1] - box[1]
         if scale != 1.0:
             im = im.resize((max(1, round(im.width * scale)), max(1, round(im.height * scale))), Image.LANCZOS)
             ox, oy = ox * scale, oy * scale
@@ -469,6 +509,11 @@ class Sources:
 #   rock     rochers (neige sur les faces claires en hiver)
 #   static   inchangé (maisons, clôtures, puits, tentes…)
 #   flower   fleurs (uniquement aux saisons listées)
+def kay_model(sprite, season):
+    """Nom du modèle KayKit d'un calque : « kay:x » vaut x, « kays:x » vaut x_<saison>."""
+    return f"{sprite[5:]}_{season}" if sprite.startswith("kays:") else sprite[4:]
+
+
 def L(sprite, x, y, kind="static", seasons=None, mirror=False, scale=1.0, order=None, **extra):
     return dict(sprite=sprite, x=x, y=y, kind=kind, seasons=seasons, mirror=mirror, scale=scale, order=order, **extra)
 
@@ -479,7 +524,9 @@ def T(family, base, layers=(), base_kind="grass", base_mirror=False, base_rot=0,
 
 
 PINE, PINE_S, ROUND, ROUND_S = "obj:treePine_large", "obj:treePine_small", "obj:treeRound_large", "obj:treeRound_small"
-KPINE, KROUND = "kay:pine_big", "kay:round_big"   # arbres 3D KayKit isolés (feuillage recoloré par saison)
+KPINE = "kay:pine_big"                 # sapin 3D KayKit (feuillage recoloré par saison)
+KROUND, KROUND_S = "kays:feuillu", "kays:feuillu_petit"   # feuillus du pack Forest : la couleur suit la saison
+KPOMMIER = "kays:pommier"              # verger : fleurs au printemps, feuilles en été, cuivre en automne, nu en hiver
 FLOWERS_SPRING = [L("ht:flowerWhite:2.8", 34, 92, "flower", ("spring",)), L("ht:flowerYellow:2.8", 90, 60, "flower", ("spring",)),
                   L("ht:flowerWhite:2.8", 72, 112, "flower", ("spring",))]
 FLOWERS_SUMMER = [L("ht:flowerYellow:2.8", 34, 92, "flower", ("summer",)), L("ht:flowerRed:2.8", 90, 60, "flower", ("summer",))]
@@ -489,21 +536,21 @@ TILES = {
     "meadow_1": T("meadow", "grass_05", [L("ht:bushGrass:2.4", 84, 100, "reed"), L("ht:bushGrass:2.2", 36, 66, "reed", mirror=True)], note="Herbe unie (grass_05) + deux touffes."),
     "meadow_2": T("meadow", "grass_05", FLOWERS_SPRING + FLOWERS_SUMMER, base_mirror=True,
                   note="Herbe unie en miroir + fleurs (Hexagon Tiles ×2.8) au printemps et en été."),
-    "meadow_3": T("meadow", "grass_05", [L("obj:rockGrey_small3", 84, 96, "rock"), L("ht:bushGrass:2.6", 32, 74, "reed")],
+    "meadow_3": T("meadow", "grass_05", [L("kay:bloc_petit2", 84, 96, "rock", width=42), L("ht:bushGrass:2.6", 32, 74, "reed")],
                   base_rot=180, note="Herbe unie tournée de 180° + petit rocher + touffe (Hexagon Tiles ×2.6)."),
     # --- forêts : trois densités (5, 7 et 9 arbres)
     "forest_1": T("forest", "grass_05", [L(KPINE, 44, 80, "foliage", scale=0.55), L(KPINE, 74, 74, "foliage", scale=0.5), L(KPINE, 62, 96, "foliage", scale=0.6)], note="Forêt clairsemée : trois sapins KayKit isolés."),
     "forest_2": T("forest", "grass_05", [L("kay:pines_small", 60, 88, "foliage", scale=1.05)], note="Forêt moyenne : bosquet de sapins (KayKit trees_A_small)."),
     "forest_3": T("forest", "grass_05", [L("kay:pines_large", 60, 90, "foliage", scale=1.05)], note="Forêt dense : futaie de sapins (KayKit trees_A_large)."),
     # --- vergers : deux rangs de feuillus + clôture / haie, fruits en été et en automne
-    "orchard_1": T("orchard", "grass_05", [L(KROUND, 38, 72, "foliage", scale=0.42, fruits=True), L(KROUND, 61, 68, "foliage", scale=0.42, fruits=True),
-                                           L(KROUND, 84, 72, "foliage", scale=0.42, fruits=True), L(KROUND, 49, 92, "foliage", scale=0.42, fruits=True),
-                                           L(KROUND, 72, 92, "foliage", scale=0.42, fruits=True), L("kay:fence_wood", 46, 104, scale=0.45), L("kay:fence_wood", 76, 104, scale=0.45)],
-                  note="Verger : 5 arbres ronds KayKit en deux rangs + 2 clôtures ; fruits dessinés en été/automne."),
-    "orchard_2": T("orchard", "grass_05", [L(KROUND, 42, 68, "foliage", scale=0.4, fruits=True), L(KROUND, 78, 68, "foliage", scale=0.4, fruits=True),
-                                           L(KROUND, 33, 90, "foliage", scale=0.4, fruits=True), L(KROUND, 60, 84, "foliage", scale=0.4, fruits=True),
-                                           L(KROUND, 87, 90, "foliage", scale=0.4, fruits=True), L(KROUND, 60, 108, "foliage", scale=0.4, fruits=True)],
-                  note="Verger : 6 arbres ronds KayKit ; fruits dessinés en été/automne."),
+    "orchard_1": T("orchard", "grass_05", [L(KPOMMIER, 38, 72, height=64, fruits=True), L(KPOMMIER, 61, 68, height=64, fruits=True),
+                                           L(KPOMMIER, 84, 72, height=64, fruits=True), L(KPOMMIER, 49, 92, height=64, fruits=True),
+                                           L(KPOMMIER, 72, 92, height=64, fruits=True), L("kay:fence_wood", 46, 104, scale=0.45), L("kay:fence_wood", 76, 104, scale=0.45)],
+                  note="Verger : 5 feuillus du pack Forest en deux rangs (fleurs au printemps, arbres nus en hiver) + 2 clôtures ; fruits dessinés en été/automne."),
+    "orchard_2": T("orchard", "grass_05", [L(KPOMMIER, 42, 68, height=58, fruits=True), L(KPOMMIER, 78, 68, height=58, fruits=True),
+                                           L(KPOMMIER, 33, 90, height=58, fruits=True), L(KPOMMIER, 60, 84, height=58, fruits=True),
+                                           L(KPOMMIER, 87, 90, height=58, fruits=True), L(KPOMMIER, 60, 108, height=58, fruits=True)],
+                  note="Verger : 6 feuillus du pack Forest ; fruits dessinés en été/automne."),
     # --- champs : parcelles en quinconce + foin + clôture
     "field_1": T("field", "dirt_06", [L("ht:bushGrass:1.9", x, y, "crop") for (x, y) in
                                       [(34, 68), (52, 68), (70, 68), (88, 68), (26, 84), (44, 84), (62, 84), (80, 84), (98, 84), (34, 100), (52, 100), (70, 100), (88, 100), (44, 116), (62, 116), (80, 116)]]
@@ -536,16 +583,16 @@ TILES = {
                                       L("ht:flowerYellow:2.8", 58, 56, "flower", ("spring",)), L("ht:flowerWhite:2.8", 86, 112, "flower", ("spring",))],
                  base_kind="dirt", base_mirror=True, note="Terre en miroir + 2 flaques + 3 roseaux ; fleurs au printemps."),
     # --- roches : pierre + rochers gris (neige sur les sommets en hiver)
-    "rock_1": T("rock", "stone_07", [L("kay:mountain_A", 60, 96, "rock", scale=0.62), L("kay:rock_C", 28, 100, "rock", scale=1.4),
-                                     L("kay:rock_A", 94, 86, "rock", scale=1.3)], base_kind="stone", note="Massif KayKit + deux blocs."),
-    "rock_2": T("rock", "stone_07", [L("kay:mountain_B", 46, 88, "rock", scale=0.45), L("kay:mountain_C", 80, 100, "rock", scale=0.42),
-                                     L("kay:rock_A", 32, 106, "rock", scale=1.2)], base_kind="stone", note="Deux massifs KayKit + un bloc."),
-    "rock_3": T("rock", "stone_07", [L("kay:rock_C", 38, 74, "rock", scale=1.6), L("kay:rock_B", 76, 68, "rock", scale=1.5),
-                                     L("kay:rock_A", 56, 98, "rock", scale=1.4), L("kay:rock_D", 86, 104, "rock", scale=1.5)],
-                base_kind="stone", base_mirror=True, note="Éboulis : quatre blocs KayKit."),
+    "rock_1": T("rock", "stone_07", [L("kay:bloc_grand", 60, 98, "rock", width=118), L("kay:bloc_petit", 28, 100, "rock", width=52),
+                                     L("kay:bloc_petit2", 94, 86, "rock", width=44)], base_kind="stone", note="Gros bloc du pack Forest + deux petits."),
+    "rock_2": T("rock", "stone_07", [L("kay:bloc_double", 46, 90, "rock", width=80), L("kay:bloc_moyen", 82, 100, "rock", width=76),
+                                     L("kay:bloc_petit2", 30, 108, "rock", width=40)], base_kind="stone", note="Deux blocs moyens du pack Forest + un petit."),
+    "rock_3": T("rock", "stone_07", [L("kay:bloc_petit", 38, 76, "rock", width=50), L("kay:bloc_petit3", 76, 70, "rock", width=46),
+                                     L("kay:bloc_petit2", 56, 98, "rock", width=42), L("kay:bloc_moyen2", 84, 100, "rock", width=52)],
+                base_kind="stone", base_mirror=True, note="Éboulis : quatre blocs du pack Forest."),
     # --- sable (pas de saison)
     "sand_1": T("sand", "sand_07", base_kind="sand", note="Sable uni (sand_07)."),
-    "sand_2": T("sand", "sand_07", [L("obj:rockBrown_small", 84, 98, "rock")], base_kind="sand", base_mirror=True, base_rot=180,
+    "sand_2": T("sand", "sand_07", [L("kay:bloc_brun", 84, 98, "rock", width=40)], base_kind="sand", base_mirror=True, base_rot=180,
                 note="Sable uni tourné + petit rocher brun."),
     # --- tuiles rares
     "mill": T("rare", "grass_05", [L("kay:windmill", 60, 88, scale=0.85), L("kay:sack", 28, 104, scale=1.6), L("kay:fence_wood", 94, 100, scale=0.8)],
@@ -561,16 +608,16 @@ TILES = {
     "ruins": T("rare", "stone_07", [L("kay:ruin", 58, 92, scale=0.85), L("kay:lumber", 32, 100, scale=0.95)],
                base_kind="stone", note="Ruines KayKit (bâtiment effondré) sur pierre."),
     # --- collines (dès l'île 7) : hillGrass des Hexagon Tiles, recolorée comme l'herbe
-    "hill_1": T("hill", "grass_17", [L(KROUND, 42, 74, "foliage", scale=0.5), L(KPINE, 82, 68, "foliage", scale=0.5), L("ht:bushGrass:2.2", 62, 92, "reed")],
+    "hill_1": T("hill", "grass_17", [L(KROUND_S, 42, 74, height=58), L(KPINE, 82, 68, "foliage", scale=0.5), L("ht:bushGrass:2.2", 62, 92, "reed")],
                 note="Colline : tuile surélevée grass_17 recolorée par saison + un feuillu et un sapin KayKit + touffe."),
-    "hill_2": T("hill", "grass_17", [L(KPINE, 36, 78, "foliage", scale=0.5), L("obj:rockGrey_small3", 88, 74, "rock"), L(KROUND, 66, 88, "foliage", scale=0.45), L("ht:bushGrass:2.2", 96, 96, "reed")],
+    "hill_2": T("hill", "grass_17", [L(KPINE, 36, 78, "foliage", scale=0.5), L("kay:bloc_petit2", 88, 74, "rock", width=40), L(KROUND_S, 66, 88, height=54), L("ht:bushGrass:2.2", 96, 96, "reed")],
                 base_mirror=True, note="Colline en miroir + sapin et feuillu KayKit, petit rocher et touffe."),
     # --- landes (dès l'île 9) : sol ocre + bruyère (bushGrass recolorées en violet)
     "heath_1": T("heath", "grass_05", [L("ht:bushGrass:2.5", 36, 82, "heather"), L("ht:bushGrass:2.5", 78, 70, "heather"), L("ht:bushGrass:2.5", 60, 108, "heather"),
-                                       L("ht:bushGrass:2.3", 94, 104, "heather"), L("obj:rockGrey_small3", 28, 106, "rock")],
+                                       L("ht:bushGrass:2.3", 94, 104, "heather"), L("kay:bloc_petit2", 28, 104, "rock", width=40)],
                  base_kind="heath", note="Lande : sol ocre (grass_05 recolorée) + quatre touffes de bruyère + petit rocher."),
     "heath_2": T("heath", "grass_05", [L("ht:bushGrass:2.5", 44, 72, "heather"), L("ht:bushGrass:2.5", 88, 84, "heather"), L("ht:bushGrass:2.5", 52, 110, "heather"),
-                                       L(KPINE, 94, 112, "foliage", scale=0.42), L("obj:rockGrey_small4", 24, 96, "rock")],
+                                       L(KPINE, 94, 112, "foliage", scale=0.42), L("kay:bloc_petit4", 26, 98, "rock", width=44)],
                  base_kind="heath", base_mirror=True, note="Lande en miroir : trois touffes de bruyère + pin nain + rocher."),
     # --- rares tardives
     "granary": T("rare", "grass_05", [L("kay:lumbermill", 60, 92, scale=0.68), L("kay:sack", 32, 100, scale=2.6), L("kay:sack", 86, 104, scale=2.6)],
@@ -652,6 +699,13 @@ class Composer:
         return im
 
     # --- calques
+    def kay_scale(self, layer, season):
+        """Échelle d'un calque KayKit : `height` puis `width` (px 2× voulus) l'emportent sur `scale`."""
+        if layer.get("width") or layer.get("height"):
+            nat = self.src.kay(kay_model(layer["sprite"], season), 1.0)[0]
+            return layer["height"] / nat.height if layer.get("height") else layer["width"] / nat.width
+        return layer["scale"]
+
     def layer_image(self, layer, season, index):
         sp = layer["sprite"]
         kind = layer["kind"]
@@ -662,11 +716,11 @@ class Composer:
         elif sp.startswith("ht:"):
             _, name, sc = sp.split(":")
             im = self.src.ht(name, float(sc))
-        elif sp.startswith("kay:"):
-            im = self.src.kay(sp[4:], layer["scale"])[0]   # l'échelle est déjà appliquée (l'origine la suit)
+        elif sp.startswith("kay:") or sp.startswith("kays:"):
+            im = self.src.kay(kay_model(sp, season), self.kay_scale(layer, season))[0]   # l'échelle est déjà appliquée (l'origine la suit)
         else:
             raise ValueError(sp)
-        if layer["scale"] != 1.0 and not sp.startswith("kay:"):
+        if layer["scale"] != 1.0 and not sp.startswith("kay"):
             im = im.resize((max(1, round(im.width * layer["scale"])), max(1, round(im.height * layer["scale"]))), Image.LANCZOS)
         if layer["mirror"]:
             im = im.transpose(Image.FLIP_LEFT_RIGHT)
@@ -677,8 +731,6 @@ class Composer:
                 im = recolor(im, COLORS["foliage"]["autumn"][index % 2])
             else:
                 im = recolor(im, COLORS["foliage"][season])
-            if layer.get("fruits") and season in COLORS["fruit"]:
-                im = self.draw_fruits(im, COLORS["fruit"][season], index)
         elif kind == "field":
             im = snowify(im, mask="brownfield") if season == "winter" else recolor(im, COLORS["field"][season], mask="brownfield")
         elif kind == "reed":
@@ -697,6 +749,8 @@ class Composer:
             im = blend_toward(im, "#f4f8fb", 0.85, mask="light")
         elif kind == "wave":
             im = tint(silhouette(im, "#ffffff"), "#ffffff", 0.8)
+        if layer.get("fruits") and season in COLORS["fruit"]:
+            im = self.draw_fruits(im, COLORS["fruit"][season], index)
         return im
 
     @staticmethod
@@ -735,9 +789,9 @@ class Composer:
                 self.draw_puddle(canvas, layer, season)
                 continue
             im = self.layer_image(layer, season, i)
-            if layer["sprite"].startswith("kay:"):
+            if layer["sprite"].startswith("kay"):
                 # modèle 3D : ancré par l'origine du modèle (le centre de son pied), pas par le bas de l'image
-                ox, oy = self.src.kay(layer["sprite"][4:], layer["scale"])[1:]
+                ox, oy = self.src.kay(kay_model(layer["sprite"], season), self.kay_scale(layer, season))[1:]
                 if layer["mirror"]:
                     ox = im.width - ox
                 x = round(layer["x"] * SCALE - ox)
@@ -820,8 +874,8 @@ def draw_wind(size=100):
 # Construction
 # ===========================================================================
 class Builder:
-    def __init__(self, src_root, repo, sheets=False, kay_root=None, animals_root=None):
-        self.src = Sources(src_root, kay_root, animals_root)
+    def __init__(self, src_root, repo, sheets=False, kay_root=None, animals_root=None, forest_root=None):
+        self.src = Sources(src_root, kay_root, animals_root, forest_root)
         self.animals_root = animals_root
         self.repo = repo
         self.img_root = repo / "assets" / "img"
@@ -929,10 +983,16 @@ class Builder:
                 im = im.crop((bb[0], 0, bb[2], im.height))
             self.emit(keyname, "deco", im, pack, original or (self.src.hp_original(layer["sprite"][4:]) if layer["sprite"].startswith("obj:") else "Tiles/" + layer["sprite"].split(":")[1] + ".png"),
                       note, anchor="bottom")
-        def kobj(keyname, model, season, target_w, kind="static", note="", **extra):
-            """Objet de décor rendu depuis un modèle 3D KayKit, mis à la largeur voulue (en px 2×)."""
+        def kobj(keyname, model, season, target_w, kind="static", note="", target_h=None, **extra):
+            """Objet de décor rendu depuis un modèle 3D KayKit, mis à la taille voulue (en px 2×).
+
+            On vise la **hauteur** pour les arbres : d'une saison à l'autre le modèle change de forme
+            (l'arbre nu de l'hiver est bien plus étroit que le feuillu d'été) et seule la hauteur
+            garde alors une taille cohérente.
+            """
             nat = self.src.kay(model, 1.0)[0]
-            layer = L(f"kay:{model}", 0, 0, kind, scale=target_w / nat.width, **extra)
+            sc = target_h / nat.height if target_h else target_w / nat.width
+            layer = L(f"kay:{model}", 0, 0, kind, scale=sc, **extra)
             im = comp.layer_image(layer, season, 0)
             bb = im.split()[3].getbbox()
             if bb:
@@ -941,12 +1001,20 @@ class Builder:
 
         # arbres : modèles 3D KayKit, feuillage recoloré par saison (les largeurs reprennent celles des sprites plats
         # qu'ils remplacent, pour que le décor composé garde ses proportions)
-        for name, model, w in (("treePine_large", "pine_big", 56), ("treePine_small", "pine_big", 40),
-                               ("treeRound_large", "round_big", 52), ("treeRound_small", "round_big", 34)):
+        for name, model, w in (("treePine_large", "pine_big", 56), ("treePine_small", "pine_big", 40)):
             for season in SEASONS:
-                kobj(f"obj_{name}_{season}", model, season, w, "foliage", f"{name} : modèle 3D KayKit recoloré ({season}).")
+                kobj(f"obj_{name}_{season}", model, season, w, "foliage", f"{name} : sapin 3D KayKit recoloré ({season}).")
+        # feuillus : le pack Forest livre ses propres couleurs de saison (et un arbre nu pour l'hiver),
+        # bien plus justes qu'une recoloration — on ne recolore donc pas ces calques.
+        for name, base, h in (("treeRound_large", "feuillu", 84), ("treeRound_small", "feuillu_petit", 60)):
+            for season in SEASONS:
+                kobj(f"obj_{name}_{season}", f"{base}_{season}", season, None, "static",
+                     f"{name} : feuillu 3D du pack Forest, palette de {season}" + (" (arbre nu)" if season == "winter" else "") + ".",
+                     target_h=h)
         for season in SEASONS:
-            kobj(f"obj_treeRound_fruit_{season}", "round_big", season, 40, "foliage", f"Fruitier ({season}) : arbre KayKit + fruits dessinés en été et en automne.", fruits=True)
+            kobj(f"obj_treeRound_fruit_{season}", f"pommier_{season}", season, None, "static",
+                 f"Fruitier ({season}) : feuillu du pack Forest dans sa palette de saison, fruits dessinés en été et en automne.",
+                 target_h=64, fruits=True)
             obj(f"obj_hedge_{season}", L("obj:hedge", 0, 0, "foliage", scale=0.45), season, f"Haie ×0.45 ({season}).")
             obj(f"obj_bushGrass_{season}", L("ht:bushGrass:2.4", 0, 0, "reed"), season, f"Touffe d'herbe / roseau ({season}).", pack=HT)
             obj(f"obj_heather_{season}", L("ht:bushGrass:2.4", 0, 0, "heather"), season, f"Bruyère ({season}).", pack=HT)
@@ -955,8 +1023,8 @@ class Builder:
                 obj(f"obj_{name}_{season}", L(f"obj:{name}", 0, 0, "field"), season, f"Parcelle {name} ({season}).")
         obj("obj_bushGrass_dry", L("ht:bushGrass:2.4", 0, 0, "dry"), "summer", "Touffe sèche.", pack=HT)
         # objets saisonniers : fleurs de printemps sur les arbres, tas de feuilles, congères, mousse, fleurs bleues, nénuphars, paniers
-        kobj("obj_treeRound_blossom", "round_big", "spring", 34, "blossom", "Arbre en fleurs (feuillage recoloré rose pâle) : forêts et vergers au printemps.")
-        kobj("obj_treeRound_blossom_large", "round_big", "spring", 52, "blossom", "Grand arbre en fleurs (printemps).")
+        kobj("obj_treeRound_blossom", "feuillu_petit_fleurs", "spring", None, "static", "Arbre en fleurs : la palette « fleurs » du pack Forest (forêts et vergers au printemps).", target_h=60)
+        kobj("obj_treeRound_blossom_large", "feuillu_fleurs", "spring", None, "static", "Grand arbre en fleurs (printemps).", target_h=84)
         obj("obj_leafpile", L("ht:bushAutumn:2.2", 0, 0), "autumn", "Tas de feuilles mortes (bushAutumn ×2.2) : forêts et vergers en automne.", pack=HT)
         obj("obj_snowdrift", L("ht:bushSnow:2.4", 0, 0), "winter", "Congère (bushSnow ×2.4) : hiver et bourrasque.", pack=HT)
         obj("obj_moss", L("ht:rockStone_moss1:1.6", 0, 0), "spring", "Petit rocher moussu (rockStone_moss1 ×1.6) : roches au printemps.", pack=HT)
@@ -964,13 +1032,13 @@ class Builder:
         obj("obj_lily", L("ht:flowerGreen:2.0", 0, 0), "summer", "Nénuphar (flowerGreen ×2.0) : lacs et étangs en été.", pack=HT)
         obj("obj_basket", L("obj:box1", 0, 0), "autumn", "Caisse de récolte (box1) : vergers en automne, cueillette.")
         # rochers : blocs 3D KayKit (les largeurs reprennent celles des sprites plats remplacés)
-        for name, model, w in (("rockGrey_large", "mountain_A", 150), ("rockGrey_medium1", "mountain_B", 96),
-                               ("rockGrey_medium2", "mountain_C", 92), ("rockGrey_medium3", "mountain_B", 112),
-                               ("rockGrey_small1", "rock_C", 62), ("rockGrey_small2", "rock_B", 58),
-                               ("rockGrey_small3", "rock_A", 42), ("rockGrey_small4", "rock_D", 52),
-                               ("rockBrown_small", "rock_E", 42)):
-            kobj(f"obj_{name}", model, "summer", w, "rock", f"Rocher {name} : bloc 3D KayKit.")
-            kobj(f"obj_{name}_winter", model, "winter", w, "rock", f"Rocher {name} enneigé : bloc 3D KayKit.")
+        for name, model, w in (("rockGrey_large", "bloc_grand", 130), ("rockGrey_medium1", "bloc_double", 86),
+                               ("rockGrey_medium2", "bloc_moyen", 82), ("rockGrey_medium3", "bloc_moyen2", 98),
+                               ("rockGrey_small1", "bloc_petit", 58), ("rockGrey_small2", "bloc_petit3", 54),
+                               ("rockGrey_small3", "bloc_petit2", 40), ("rockGrey_small4", "bloc_petit4", 48),
+                               ("rockBrown_small", "bloc_brun", 40)):
+            kobj(f"obj_{name}", model, "summer", w, "rock", f"Rocher {name} : bloc 3D du pack Forest.")
+            kobj(f"obj_{name}_winter", model, "winter", w, "rock", f"Rocher {name} enneigé : bloc 3D du pack Forest.")
         # Bâtiments du décor composé : modèles 3D KayKit. Les largeurs de la table sont celles des
         # sprites plats qu'ils remplacent ; BUILD_SCALE les ramène à l'échelle voulue, car un modèle
         # KayKit est bien plus dense à l'œil qu'un sprite Kenney de même largeur (retour du
@@ -1317,13 +1385,17 @@ class Builder:
                 "licenseFile": f"{MIRROR}/blob/main/{meta['license_text_path']}",
                 "files": sorted(self.per_pack[pid]),
             })
-        if self.src.kay_used:
+        for meta, prefix in ((KAYKIT, False), (FOREST, True)):
+            used = sorted(n for n in self.src.kay_used if KAY_MODELS[n].startswith("forest/") == prefix)
+            if not used:
+                continue
             credits.append({
-                "pack": KAYKIT["pack"], "author": KAYKIT["author"], "license": "CC0 1.0", "licenseUrl": CC0_URL,
-                "url": KAYKIT["url"], "mirror": KAYKIT["mirror"], "mirrorPath": "addons/kaykit_medieval_hexagon_pack/Assets/gltf",
-                "licenseFile": f"{KAYKIT['mirror']}/blob/main/{KAYKIT['license_file']}",
+                "pack": meta["pack"], "author": meta["author"], "license": "CC0 1.0", "licenseUrl": CC0_URL,
+                "url": meta["url"], "mirror": meta["mirror"],
+                "mirrorPath": "gltf" if prefix else "addons/kaykit_medieval_hexagon_pack/Assets/gltf",
+                "licenseFile": meta["mirror"] if prefix else f"{meta['mirror']}/blob/main/{meta['license_file']}",
                 "note": "modèles 3D rendus en PNG isométriques par tools/render_kaykit.js (élévation 30°, azimut −30°, 120 px/unité)",
-                "files": sorted(f"{KAY_MODELS[n]}.gltf" for n in self.src.kay_used),
+                "files": sorted(KAY_MODELS[n].replace("forest/", "") + ".gltf" for n in used),
             })
         if self.per_pack["animaux3d"]:
             prov = json.loads((self.animals_root / "PROVENANCE.json").read_text(encoding="utf-8"))
@@ -1382,6 +1454,16 @@ def check_kaykit_license(kay_root):
     KAYKIT["license_text_path"] = KAYKIT["license_file"]
 
 
+def check_forest_license(forest_root):
+    p = forest_root / FOREST["license_file"]
+    if not p.exists():
+        raise RuntimeError(f"Pack Forest introuvable : {p}")
+    txt = p.read_text(encoding="utf-8", errors="replace")
+    if "creativecommons.org/publicdomain/zero/1.0" not in txt:
+        raise RuntimeError(f"Licence CC0 introuvable dans {p}")
+    FOREST["license_text_path"] = FOREST["license_file"]
+
+
 def check_animals_licenses(animals_root):
     """Chaque modèle d'animal doit porter une licence libre non virale (CC0 ou CC-BY)."""
     p = animals_root / "PROVENANCE.json"
@@ -1404,6 +1486,7 @@ def main():
     ap.add_argument("--src", default=os.environ.get("KENNEY_ROOT", "/home/user/etdofresh/kenney.nl"))
     ap.add_argument("--kaykit", default=os.environ.get("KAYKIT_ROOT", "/home/user/kaykit/KayKit-Medieval-Hexagon-Pack-1.0"))
     ap.add_argument("--animaux", default=os.environ.get("ANIMAUX3D_ROOT", "/home/user/animaux3d"))
+    ap.add_argument("--forest", default=os.environ.get("FOREST_ROOT", "/home/user/kaykit/KayKit-Forest-Nature-Pack-1.0"))
     ap.add_argument("--out", default=str(ROOT))
     ap.add_argument("--rebuild-cache", action="store_true", help="re-rasterise les SVG et ré-extrait les sprites 2×")
     ap.add_argument("--sheets", action="store_true", help="écrit des planches-contact par saison dans tools/cache/sheets/")
@@ -1412,8 +1495,9 @@ def main():
     animals_root = Path(args.animaux)
     check_licenses(src_root)
     check_kaykit_license(kay_root)
+    check_forest_license(Path(args.forest))
     check_animals_licenses(animals_root)
-    b = Builder(src_root, repo, sheets=args.sheets, kay_root=kay_root, animals_root=animals_root)
+    b = Builder(src_root, repo, sheets=args.sheets, kay_root=kay_root, animals_root=animals_root, forest_root=Path(args.forest))
     b.src.prepare(rebuild=args.rebuild_cache)
     b.build_tiles()
     b.build_deco()
