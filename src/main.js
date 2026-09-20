@@ -834,6 +834,9 @@ class IslandScene {
     const b = (() => { const tl = this.cam.toWorldPoint(0, 0), br = this.cam.toWorldPoint(STAGE.W, STAGE.H); return { minX: tl.x, maxX: br.x, minY: tl.y, maxY: br.y }; })();
     const wkey = isl.weather && isl.weather.phase === 'active' ? isl.weather.key : null;
     if (this.renderer.weather !== wkey) this.renderer.weather = wkey;
+    // quand les i/s baissent (téléphone modeste), la mer renonce à sa profondeur et à son écume large ; avec un peu
+    // d'hystérésis pour ne pas clignoter autour du seuil
+    if (loop.fps < 42) this.renderer.lowFx = true; else if (loop.fps > 52) this.renderer.lowFx = false;
     const objs = this.renderer.decor.objects;
     if (this._srcV !== isl.board.version) { this._srcV = isl.board.version; this._sources = objs.filter((o) => o.tpl && (o.tpl.startsWith('obj_tree'))).map((o) => ({ x: o.x, y: o.y })); this._tiles = [...isl.board.tiles.values()].map((t) => { const w = toWorld(t.q, t.r); return { family: t.family, frozen: t.frozen, rare: t.rare, wx: w.x, wy: w.y }; }); }
     this.fx.ambient(dt, isl.season, b, 1, this._sources);

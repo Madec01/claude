@@ -9,6 +9,8 @@ import { STAGE } from '../core/stage.js';
 import { Save } from '../core/save.js';
 import { Decor, groundOf, groundKey, GROUND_COLORS, spriteKey } from './decor.js';
 import { computeLinks } from './paths.js';
+// arête i (sommet i → i+1 de corners()) → indice dans DIRS du voisin de l'autre côté ; mesuré, pas deviné
+const EDGE_DIR = [1, 0, 5, 4, 3, 2];
 const SEA = { spring: ['#8fc8e6', '#5f9fc8'], summer: ['#7fc0e4', '#4f93c2'], autumn: ['#8cb9d3', '#5d8fb3'], winter: ['#a9c7db', '#7aa2bf'] };
 const WATER = { spring: { fill: '#5aa7d6', edge: '#3f86b6', foam: 'rgba(255,255,255,0.55)' }, summer: { fill: '#4f9ed2', edge: '#397fb0', foam: 'rgba(255,255,255,0.5)' }, autumn: { fill: '#5b95bd', edge: '#41769a', foam: 'rgba(255,255,255,0.45)' }, winter: { fill: '#6f9fc0', edge: '#4f7f9f', foam: 'rgba(255,255,255,0.4)' } };
 const ICE = { fill: '#dbe9f4', edge: '#b9cfe0', foam: 'rgba(255,255,255,0.8)' };
@@ -23,8 +25,9 @@ export class IslandRenderer {
     this.waveImgs = Assets.keysStarting('sea_wave_').map((k) => Assets.img(k));
     this.faunaImgs = {};
     this.hexMask = Assets.img('hex_mask'); this.hexOutline = Assets.img('hex_outline'); this.hexShadow = Assets.img('hex_shadow');
-    this.waves = [];
-    for (let i = 0; i < 40; i++) this.waves.push({ x: rnd(-1400, 1400), y: rnd(-900, 900), t: rnd(0, 10), s: rnd(0.6, 1.1) });
+    this.lowFx = false;         // posé par la scène quand les i/s baissent : on coupe la profondeur et l'écume large
+    this._sea = null;           // géométrie de la mer (centre, rayon, côte, vagues), recalculée si l'île change de forme
+    this._life = null;          // le voilier et la baleine
     this.faunaPos = new Map();  // clé -> { x, y, bob }
     this.decor = new Decor((island.def && island.def.seed) || 1);
     this.weather = null; this.flash = 0; this.rain = [];
@@ -59,7 +62,7 @@ export class IslandRenderer {
     if (this.transition) { this.transition.t += dt * (this.transitionSpeed || 1); if (this.transition.t > 1.9) { this.transition = null; this.transitionSpeed = 1; } }
     const isl = this.isl, cam = this.cam;
     const season = isl.season;
-    this.drawSea(ctx, season);
+    this.drawSea(ctx, season, dt);
     this.drawShallows(ctx);
     this.drawEmptyCells(ctx);
     if (this.legacy) this.drawTiles(ctx); else this.drawLayered(ctx);
@@ -84,40 +87,146 @@ export class IslandRenderer {
     ctx.restore();
   }
 
-  drawSea(ctx, season) {
-    const tr = this.transition;
+  /**
+   * Géométrie de la mer : centre et rayon de l'île, arêtes de côte (celles qui donnent sur l'eau, sans aucune arête
+   * intérieure) et vagues réparties en couronne, plus serrées près du rivage. Recalculée seulement si l'île change de
+   * forme (Île infinie). Rien d'hexagonal n'est dessiné dans l'eau : seule la forme de l'île se lit.
+   */
+  seaGeometry() {
+    const mask = this.isl.board.mask; const ver = mask.size;
+    if (this._sea && this._sea.ver === ver) return this._sea;
+    let sx = 0, sy = 0, n = 0; const pts = [];
+    for (const k of mask) { const [q, r] = parse(k); const w = toWorld(q, r); sx += w.x; sy += w.y; n++; pts.push(w); }
+    const cx = n ? sx / n : 0, cy = n ? sy / n : 0; let R = SIZE; for (const w of pts) R = Math.max(R, Math.hypot(w.x - cx, w.y - cy) + SIZE);
+    const segs = [];
+    for (const k of mask) {
+      const [q, r] = parse(k); const w = toWorld(q, r); const c = corners(w.x, w.y, SIZE * 1.08);
+      for (let i = 0; i < 6; i++) { const [dq, dr] = DIRS[EDGE_DIR[i]]; if (mask.has(key(q + dq, r + dr))) continue; const a = c[i], d = c[(i + 1) % 6]; segs.push([a[0], a[1], d[0], d[1]]); }   // arêtes de côte (à 1,08 rayon : l'écume lèche le pied des tuiles sans se confondre avec leur bord)
+    }
+    // vagues : les deux tiers longent la côte (depuis une arête, poussées vers le large), le reste peuple le large
+    const count = STAGE.compact ? 34 : 60; const waves = [];
+    for (let i = 0; i < count; i++) {
+      let x, y;
+      if (segs.length && i % 3 !== 2) { const sg = segs[Math.floor(rnd(0, segs.length))]; const mx = (sg[0] + sg[2]) / 2, my = (sg[1] + sg[3]) / 2; const dx = mx - cx, dy = my - cy; const dn = Math.hypot(dx, dy) || 1; const d = 40 + Math.pow(rnd(0, 1), 1.6) * 260; x = mx + dx / dn * d + rnd(-30, 30); y = my + dy / dn * d + rnd(-20, 20); }
+      else { const a = rnd(0, TAU); const rr = R * rnd(1.4, 3.2); x = cx + Math.cos(a) * rr; y = cy + Math.sin(a) * rr; }
+      waves.push({ x, y, t: rnd(0, 10), s: rnd(0.75, 1.25), ph: rnd(0, TAU) });
+    }
+    this._sea = { ver, cx, cy, R, segs, waves };
+    return this._sea;
+  }
+
+  /** Transformation caméra : ce qui suit se dessine en coordonnées monde. */
+  worldSpace(ctx) { const cam = this.cam; ctx.translate(STAGE.W / 2 + cam.offsetX, STAGE.H / 2 + cam.offsetY); ctx.scale(cam.zoom, cam.zoom); ctx.translate(-cam.x, -cam.y); }
+
+  drawSea(ctx, season, dt = 0.016) {
     const cl = this.isl.climate; const cols = (cl && cl.sea) || SEA[season] || SEA.spring;
     const g = ctx.createLinearGradient(0, 0, 0, STAGE.H);
     g.addColorStop(0, cols[0]); g.addColorStop(1, cols[1]);
     ctx.fillStyle = g; ctx.fillRect(0, 0, STAGE.W, STAGE.H);
-    // vagues discrètes
-    ctx.save();
-    for (const w of this.waves) {
-      w.t += 0.016;
-      const p = this.cam.toScreen(w.x + Math.sin(w.t * 0.5) * 10, w.y);
-      if (p.x < -60 || p.x > STAGE.W + 60 || p.y < -30 || p.y > STAGE.H + 30) continue;
-      const img = this.waveImgs[Math.floor(w.t * 0.7) % Math.max(1, this.waveImgs.length)];
-      const a = 0.25 + 0.2 * Math.sin(w.t * 1.3);
-      ctx.globalAlpha = a;
-      if (img) ctx.drawImage(img, p.x - 18 * w.s * this.cam.zoom, p.y - 5 * w.s * this.cam.zoom, 36 * w.s * this.cam.zoom, 10 * w.s * this.cam.zoom);
-      else { ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(p.x - 12 * w.s, p.y); ctx.quadraticCurveTo(p.x, p.y - 4 * w.s, p.x + 12 * w.s, p.y); ctx.stroke(); }
+    const sea = this.seaGeometry(); const cam = this.cam; const z = cam.zoom;
+    const storm = this.weather === 'storm', winter = season === 'winter';
+    // profondeur : la mer s'assombrit en s'éloignant de l'île
+    if (!this.lowFx) {
+      const c = cam.toScreen(sea.cx, sea.cy); const r0 = sea.R * z;
+      const rg = ctx.createRadialGradient(c.x, c.y, r0 * 1.05, c.x, c.y, r0 * 3.0);
+      rg.addColorStop(0, 'rgba(16,48,92,0)'); rg.addColorStop(1, `rgba(16,48,92,${storm ? 0.42 : 0.30})`);
+      ctx.fillStyle = rg; ctx.fillRect(0, 0, STAGE.W, STAGE.H);
     }
+    // vagues : grandes et franches, serrées près du rivage ; rares et pâles en hiver ; agitées par l'orage
+    ctx.save();
+    const aBase = winter ? 0.22 : storm ? 0.55 : 0.44, aAmp = winter ? 0.12 : 0.24, sz = (storm ? 1.35 : 1) * 74, speed = storm ? 1.8 : 1;
+    let i = 0;
+    for (const w of sea.waves) {
+      if (winter && (++i & 1)) continue;   // une vague sur deux en hiver
+      w.t += dt * speed;
+      const p = cam.toScreen(w.x + Math.sin(w.t * 0.5) * 12, w.y + Math.sin(w.t * 0.35 + w.ph) * 4);
+      const ww = sz * w.s * z, hh = ww / 3.6;
+      if (p.x < -ww || p.x > STAGE.W + ww || p.y < -hh || p.y > STAGE.H + hh) continue;
+      const img = this.waveImgs[Math.floor(w.t * 0.7) % Math.max(1, this.waveImgs.length)];
+      ctx.globalAlpha = clamp(aBase + aAmp * Math.sin(w.t * 1.3 + w.ph), 0.05, 0.85);
+      if (img) ctx.drawImage(img, p.x - ww / 2, p.y - hh / 2, ww, hh);
+      else { ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(p.x - ww / 3, p.y); ctx.quadraticCurveTo(p.x, p.y - hh / 2, p.x + ww / 3, p.y); ctx.stroke(); }
+    }
+    ctx.restore();
+    this.drawSeaLife(ctx, dt);
+  }
+
+  /** Le rivage : un haut-fond très léger, puis l'écume qui suit la côte et respire lentement. */
+  drawShallows(ctx) {
+    const sea = this.seaGeometry(); const mask = this.isl.board.mask;
+    const winter = this.isl.season === 'winter', storm = this.weather === 'storm';
+    ctx.save(); this.worldSpace(ctx);
+    ctx.fillStyle = 'rgba(255,255,255,0.10)'; ctx.beginPath();
+    for (const k of mask) { const [q, r] = parse(k); const w = toWorld(q, r); const pts = corners(w.x, w.y, SIZE * 1.22); ctx.moveTo(pts[0][0], pts[0][1]); for (let i = 1; i < 6; i++) ctx.lineTo(pts[i][0], pts[i][1]); ctx.closePath(); }
+    ctx.fill();
+    const breath = 0.5 + 0.5 * Math.sin(this.time * (storm ? 2.2 : 0.9));
+    ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+    const coast = (lw, a) => { ctx.lineWidth = lw; ctx.strokeStyle = `rgba(255,255,255,${a.toFixed(3)})`; ctx.beginPath(); for (const [x1, y1, x2, y2] of sea.segs) { ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); } ctx.stroke(); };
+    if (!this.lowFx) coast(15, (winter ? 0.12 : 0.20) + 0.10 * breath);   // large et douce
+    coast(4.5, (winter ? 0.40 : 0.52) + 0.18 * breath);                   // fine
     ctx.restore();
   }
 
-  /** Halo de haut-fond autour de l'île (union d'hexagones élargis). */
-  drawShallows(ctx) {
-    const cam = this.cam;
-    ctx.save();
-    ctx.fillStyle = 'rgba(255,255,255,0.16)';
-    ctx.beginPath();
-    for (const k of this.isl.board.mask) {
-      const [q, r] = parse(k); const w = toWorld(q, r); const c = cam.toScreen(w.x, w.y);
-      const pts = corners(c.x, c.y, SIZE * cam.zoom * 1.28);
-      ctx.moveTo(pts[0][0], pts[0][1]); for (let i = 1; i < 6; i++) ctx.lineTo(pts[i][0], pts[i][1]); ctx.closePath();
+  /** La vie au large : un voilier passe une fois par saison, une baleine fait surface de loin en loin. */
+  drawSeaLife(ctx, dt) {
+    const sea = this.seaGeometry(); const cam = this.cam, z = cam.zoom; const storm = this.weather === 'storm';
+    const life = this._life || (this._life = { boat: null, whale: null, nextBoat: rnd(5, 18), nextWhale: rnd(45, 100), season: this.isl.season });
+    if (life.season !== this.isl.season) { life.season = this.isl.season; life.nextBoat = Math.min(life.nextBoat, rnd(4, 14)); }   // à chaque saison, un bateau ne tarde pas
+    // --- le voilier : une ligne tangente à l'île, au large, d'un bord du champ à l'autre
+    if (!life.boat) {
+      life.nextBoat -= dt;
+      if (life.nextBoat <= 0 && !storm) {
+        // le point de tangence est tiré parmi ceux qui sont à l'écran : un bateau qu'on ne voit pas ne sert à rien
+        let a = rnd(0, TAU), rr = sea.R * 1.5, px = 0, py = 0;
+        for (let k = 0; k < 12; k++) { a = rnd(0, TAU); rr = sea.R * rnd(1.3, 1.9); px = sea.cx + Math.cos(a) * rr; py = sea.cy + Math.sin(a) * rr; const p = cam.toScreen(px, py); if (p.x > 40 && p.x < STAGE.W - 40 && p.y > 60 && p.y < STAGE.H - 60) break; }
+        const dir = a + Math.PI / 2 + (Math.random() < 0.5 ? 0 : Math.PI); const len = sea.R * 2.6;
+        life.boat = { x: px - Math.cos(dir) * len / 2, y: py - Math.sin(dir) * len / 2, dir, dist: 0, len, speed: rnd(20, 30), img: Math.random() < 0.5 ? 'sea_boat_1' : 'sea_boat_2', t: 0 };
+        life.nextBoat = rnd(90, 200);
+      }
+    } else {
+      const bt = life.boat; bt.t += dt; const sp = bt.speed * (storm ? 2 : 1);
+      bt.x += Math.cos(bt.dir) * sp * dt; bt.y += Math.sin(bt.dir) * sp * dt; bt.dist += sp * dt;
+      if (bt.dist > bt.len) life.boat = null;
+      else {
+        const img = Assets.img(bt.img);
+        if (img) {
+          const p = cam.toScreen(bt.x, bt.y); const s = 0.42 * z; const w = img.width * s, h = img.height * s;
+          if (p.x > -w && p.x < STAGE.W + w && p.y > -h && p.y < STAGE.H + h) {
+            ctx.save(); ctx.translate(p.x, p.y + Math.sin(bt.t * 1.4) * 1.5 * z); ctx.rotate(bt.dir + Math.PI / 2 + Math.sin(bt.t * 0.9) * 0.03);   // le sprite pointe vers le haut
+            const wv = this.waveImgs[0]; if (wv) { ctx.globalAlpha = 0.28; ctx.drawImage(wv, -w * 0.55, h * 0.5, w * 1.1, h * 0.28); }   // sillage
+            ctx.globalAlpha = 0.95; ctx.drawImage(img, -w / 2, -h / 2, w, h); ctx.restore();
+          }
+        }
+      }
     }
-    ctx.fill();
-    ctx.restore();
+    // --- la baleine : au large mais dans le champ ; elle monte, souffle, reste un peu, replonge
+    if (!life.whale) {
+      life.nextWhale -= dt;
+      if (life.nextWhale <= 0) {
+        let pt = null;
+        for (let k = 0; k < 12 && !pt; k++) { const a = rnd(0, TAU); const rr = sea.R * rnd(1.25, 1.9); const x = sea.cx + Math.cos(a) * rr, y = sea.cy + Math.sin(a) * rr; const p = cam.toScreen(x, y); if (p.x > 60 && p.x < STAGE.W - 60 && p.y > 90 && p.y < STAGE.H - 90) pt = { x, y }; }
+        if (pt) life.whale = { ...pt, t: 0, life: rnd(4.5, 7), flip: Math.random() < 0.5, spouted: false };
+        life.nextWhale = rnd(70, 150);
+      }
+    } else {
+      const wh = life.whale; wh.t += dt;
+      if (wh.t > wh.life) life.whale = null;
+      else {
+        const img = Assets.img('sea_whale');
+        if (img) {
+          const u = wh.t / wh.life; const rise = u < 0.22 ? u / 0.22 : u > 0.78 ? (1 - u) / 0.22 : 1;
+          const p = cam.toScreen(wh.x, wh.y); const s = 0.34 * z; const w = img.width * s, h = img.height * s;
+          ctx.save(); ctx.translate(p.x, p.y + Math.sin(wh.t * 2) * 1.5 * z); if (wh.flip) ctx.scale(-1, 1);
+          const wv = this.waveImgs[1]; if (wv) { ctx.globalAlpha = 0.22 * rise; ctx.drawImage(wv, -w * 0.7, h * 0.05, w * 1.4, h * 0.3); }   // le remous
+          ctx.beginPath(); ctx.rect(-w, -h, 2 * w, h * 1.25); ctx.clip();   // seule la partie émergée : le reste est sous la ligne d'eau
+          ctx.globalAlpha = 0.95; ctx.drawImage(img, -w / 2, -h / 2 + (1 - rise) * h * 0.8, w, h); ctx.restore();
+          if (rise >= 1 && !wh.spouted) {   // le souffle, une fois, en particules monde
+            wh.spouted = true; const c = this.fx.img('circle_');
+            for (let k = 0; k < 7; k++) this.p.emit({ x: wh.x + (wh.flip ? -1 : 1) * 18 + rnd(-6, 6), y: wh.y - 26, vx: rnd(-12, 12), vy: rnd(-55, -35), life: rnd(0.7, 1.1), size: rnd(5, 9), sizeEnd: 0, img: c, color: '#fff', alpha: 0.75, alphaEnd: 0, layer: 0 });
+          }
+        }
+      }
+    }
   }
 
   drawEmptyCells(ctx) {
