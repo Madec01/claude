@@ -79,6 +79,12 @@ Toutes les œuvres ci-dessous appartiennent à leurs auteurs et sont utilisées 
   - Fichiers : sea/sea_boat_1.png, sea/sea_boat_2.png
 - **KayKit : Medieval Hexagon Pack (1.0)** — Kay Lousberg — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://kaylousberg.itch.io/kaykit-medieval-hexagon) — [miroir utilisé](https://github.com/KayKit-Game-Assets/KayKit-Medieval-Hexagon-Pack-1.0)
   - Fichiers : 42
+- **Animaux 3D (attribution)** — Baby chick by Poly by Google, Bear by Poly by Google, Duck by Poly by Google, Goat by Poly by Google, Great horned owl by Poly by Google, Hen by Poly by Google, Penguin by Poly by Google — licence CC BY 3.0 ([texte](https://creativecommons.org/licenses/by/3.0/)) — [source](https://poly.pizza/) — [miroir utilisé](https://github.com/i3w-learn/3DVR_PIPELINE)
+  - Fichiers : 7
+- **Animaux 3D (attribution)** — Rabbit by Poly by Google — licence CC BY 3.0 ([texte](https://creativecommons.org/licenses/by/3.0/)) — [source](https://poly.pizza/) — [miroir utilisé](https://github.com/tedgoddard/google_poly)
+  - Fichiers : rabbit.glb — Poly Pizza — "Rabbit" by Poly by Google
+- **Animaux 3D (domaine public)** — Cow by Quaternius, Deer by Quaternius, Frog by Quaternius, Horse by Quaternius — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://poly.pizza/) — [miroir utilisé](https://github.com/i3w-learn/3DVR_PIPELINE)
+  - Fichiers : cow.glb — Poly Pizza — "Cow" by Quaternius, deer.glb — Poly Pizza — "Deer" by Quaternius, frog.glb — Poly Pizza — "Frog" by Quaternius, horse.glb — Poly Pizza — "Horse" by Quaternius
 - **Lora** — Cyreal (Olga Karpushina, Alexei Vanyashin) — licence SIL Open Font License 1.1 ([texte](https://openfontlicense.org/open-font-license-official-text/)) — [source](https://fonts.google.com/specimen/Lora) — [miroir utilisé](https://fonts.gstatic.com)
   - Fichiers : assets/fonts/lora-italic-400-latin-ext.woff2, assets/fonts/lora-italic-400-latin.woff2, assets/fonts/lora-normal-400-600-latin-ext.woff2, assets/fonts/lora-normal-400-600-latin.woff2
 - **Quicksand** — Andrew Paglinawan — licence SIL Open Font License 1.1 ([texte](https://openfontlicense.org/open-font-license-official-text/)) — [source](https://fonts.google.com/specimen/Quicksand) — [miroir utilisé](https://fonts.gstatic.com)

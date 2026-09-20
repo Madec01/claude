@@ -705,7 +705,7 @@ export class IslandRenderer {
     const HAB = { rabbit: 'meadow', cow: 'meadow', moose: 'forest', bear: 'forest', owl: 'forest', duck: 'water', penguin: 'water', frog: 'marsh', chicken: 'hamlet', horse: 'hill' };
     const home = toWorld(a.q, a.r);
     let st = this.wander.get(k);
-    if (!st) { st = { x: home.x, y: home.y, tx: home.x, ty: home.y, wait: 1 + Math.random() * 3, hop: 0 }; this.wander.set(k, st); }
+    if (!st) { st = { x: home.x, y: home.y, tx: home.x, ty: home.y, wait: 1 + Math.random() * 3, hop: 0, walked: Math.random() * 100, left: Math.random() < 0.5 }; this.wander.set(k, st); }
     st.wait -= dt;
     const fam = HAB[a.species];
     if (st.wait <= 0 && fam) {
@@ -718,38 +718,64 @@ export class IslandRenderer {
     }
     const dx = st.tx - st.x, dy = st.ty - st.y; const d = Math.hypot(dx, dy);
     const speed = a.species === 'duck' || a.species === 'penguin' ? 22 : a.species === 'horse' ? 40 : 30;
-    if (d > 1) { const step = Math.min(d, speed * dt); st.x += (dx / d) * step; st.y += (dy / d) * step; st.hop += dt * (a.species === 'duck' ? 3 : 9); }
+    if (d > 1) {
+      const step = Math.min(d, speed * dt);
+      st.x += (dx / d) * step; st.y += (dy / d) * step;
+      st.hop += dt * (a.species === 'duck' ? 3 : 9);
+      st.walked = (st.walked || 0) + step;             // le cycle de marche avance avec le chemin parcouru
+      if (Math.abs(dx) > 2) st.left = dx < 0;          // les bandes regardent à droite ; on retourne pour l'autre sens
+    }
     return st;
+  }
+
+  /**
+   * Un animal posé au sol : la bande de profil rendue en 3D (`fauna_<espèce>_side`), l'image du
+   * cycle choisie par la distance parcourue — la marche est ainsi calée sur le déplacement réel,
+   * jamais sur l'horloge — et retournée selon le sens de marche. Repli sur la tête ronde si la
+   * bande manque. `s` met à l'échelle (arrivée), `dy` soulève (départ).
+   */
+  drawAnimal(ctx, species, st, cx, cy, s, alpha, dy = 0) {
+    const cam = this.cam;
+    const sheet = Assets.img(`fauna_${species}_side`);
+    const m = sheet ? (Assets.manifest().images || {})[`fauna_${species}_side`] : null;
+    const shadow = (w) => { ctx.fillStyle = 'rgba(0,0,0,0.18)'; ctx.beginPath(); ctx.ellipse(cx, cy + 14 * cam.zoom, w * 0.34, w * 0.13, 0, 0, TAU); ctx.fill(); };
+    if (sheet && m && m.frames) {
+      const w = (m.frame_w / 2) * cam.zoom * s, h = (m.frame_h / 2) * cam.zoom * s;
+      const f = m.frames > 1 ? Math.floor(((st && st.walked) || 0) / 14) % m.frames : 0;
+      ctx.save(); ctx.globalAlpha = alpha;
+      shadow(w);
+      if (st && st.left) { ctx.translate(cx, 0); ctx.scale(-1, 1); ctx.translate(-cx, 0); }
+      ctx.drawImage(sheet, f * m.frame_w, 0, m.frame_w, m.frame_h, cx - w / 2, cy - h + dy, w, h);
+      ctx.restore();
+      return;
+    }
+    const img = Assets.img(`fauna_${species}`);
+    const size = 44 * cam.zoom * s;
+    ctx.save(); ctx.globalAlpha = alpha;
+    shadow(size);
+    if (img) ctx.drawImage(img, cx - size / 2, cy - size + dy, size, size * (img.height / img.width));
+    ctx.restore();
   }
 
   drawFauna(ctx, dt) {
     const cam = this.cam;
     for (const [k, a] of this.isl.fauna) {
-      const img = Assets.img(`fauna_${a.species}`);
       const st = this.wanderPos(k, a, dt);
       const moving = Math.hypot(st.tx - st.x, st.ty - st.y) > 1;
-      const c = cam.toScreen(st.x, st.y - 26 - (moving ? Math.abs(Math.sin(st.hop)) * 6 : 0));
+      const c = cam.toScreen(st.x, st.y - 10 - (moving ? Math.abs(Math.sin(st.hop)) * 6 : 0));
       let s = 1, alpha = 1;
       const an = this.fx.faunaAnim.get(k);
       if (an) { const t = Math.min(1, an.t / 0.8); s = an.kind === 'arrive' ? 0.3 + 0.7 * easeOutCubic(t) * (1 + 0.25 * Math.sin(t * Math.PI)) : 1 - t; alpha = an.kind === 'arrive' ? 1 : 1 - t; }
-      const bob = Math.sin(this.time * 2.2 + a.q * 1.7 + a.r) * 3 * cam.zoom;
-      const size = 44 * cam.zoom * s;
-      ctx.save(); ctx.globalAlpha = alpha;
-      ctx.fillStyle = 'rgba(0,0,0,0.18)'; ctx.beginPath(); ctx.ellipse(c.x, c.y + 20 * cam.zoom, size * 0.4, size * 0.16, 0, 0, TAU); ctx.fill();
-      if (img) ctx.drawImage(img, c.x - size / 2, c.y - size / 2 + bob, size, size * (img.height / img.width));
-      else { ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(c.x, c.y + bob, size / 3, 0, TAU); ctx.fill(); }
-      ctx.restore();
+      const bob = Math.sin(this.time * 2.2 + a.q * 1.7 + a.r) * 2 * cam.zoom;
+      this.drawAnimal(ctx, a.species, st, c.x, c.y + bob, s, alpha);
     }
     // départs en cours
     for (const [k, an] of this.fx.faunaAnim) {
       if (an.kind !== 'leave' || this.isl.fauna.has(k)) continue;
       const info = an.info; if (!info) continue;
-      const img = Assets.img(`fauna_${info.species}`);
-      const w = toWorld(info.q, info.r); const c = cam.toScreen(w.x, w.y - 26);
-      const t = Math.min(1, an.t / 0.8); const size = 44 * cam.zoom;
-      ctx.save(); ctx.globalAlpha = 1 - t;
-      if (img) ctx.drawImage(img, c.x - size / 2, c.y - size / 2 - t * 40 * cam.zoom, size, size * (img.height / img.width));
-      ctx.restore();
+      const w = toWorld(info.q, info.r); const c = cam.toScreen(w.x, w.y - 10);
+      const t = Math.min(1, an.t / 0.8);
+      this.drawAnimal(ctx, info.species, null, c.x, c.y, 1, 1 - t, -t * 40 * cam.zoom);
     }
   }
 

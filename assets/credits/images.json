@@ -714,6 +714,57 @@
   ]
  },
  {
+  "pack": "Animaux 3D (attribution)",
+  "author": "Baby chick by Poly by Google, Bear by Poly by Google, Duck by Poly by Google, Goat by Poly by Google, Great horned owl by Poly by Google, Hen by Poly by Google, Penguin by Poly by Google",
+  "license": "CC BY 3.0",
+  "licenseUrl": "https://creativecommons.org/licenses/by/3.0/",
+  "url": "https://poly.pizza/",
+  "mirror": "https://github.com/i3w-learn/3DVR_PIPELINE",
+  "mirrorPath": "models",
+  "licenseFile": "https://github.com/i3w-learn/3DVR_PIPELINE",
+  "note": "modèles glTF rendus de profil en bandes d'images par tools/render_animals.js (élévation 30°, azimut −30°)",
+  "files": [
+   "bear.glb — Poly Pizza — \"Bear\" by Poly by Google",
+   "chick.glb — Poly Pizza — \"Baby chick\" by Poly by Google",
+   "duck.glb — Poly Pizza — \"Duck\" by Poly by Google",
+   "goat.glb — Poly Pizza — \"Goat\" by Poly by Google",
+   "hen.glb — Poly Pizza — \"Hen\" by Poly by Google",
+   "owl.glb — Poly Pizza — \"Great horned owl\" by Poly by Google",
+   "penguin.glb — Poly Pizza — \"Penguin\" by Poly by Google"
+  ]
+ },
+ {
+  "pack": "Animaux 3D (attribution)",
+  "author": "Rabbit by Poly by Google",
+  "license": "CC BY 3.0",
+  "licenseUrl": "https://creativecommons.org/licenses/by/3.0/",
+  "url": "https://poly.pizza/",
+  "mirror": "https://github.com/tedgoddard/google_poly",
+  "mirrorPath": "models",
+  "licenseFile": "https://github.com/tedgoddard/google_poly",
+  "note": "modèles glTF rendus de profil en bandes d'images par tools/render_animals.js (élévation 30°, azimut −30°)",
+  "files": [
+   "rabbit.glb — Poly Pizza — \"Rabbit\" by Poly by Google"
+  ]
+ },
+ {
+  "pack": "Animaux 3D (domaine public)",
+  "author": "Cow by Quaternius, Deer by Quaternius, Frog by Quaternius, Horse by Quaternius",
+  "license": "CC0 1.0",
+  "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "url": "https://poly.pizza/",
+  "mirror": "https://github.com/i3w-learn/3DVR_PIPELINE",
+  "mirrorPath": "models",
+  "licenseFile": "https://github.com/i3w-learn/3DVR_PIPELINE",
+  "note": "modèles glTF rendus de profil en bandes d'images par tools/render_animals.js (élévation 30°, azimut −30°)",
+  "files": [
+   "cow.glb — Poly Pizza — \"Cow\" by Quaternius",
+   "deer.glb — Poly Pizza — \"Deer\" by Quaternius",
+   "frog.glb — Poly Pizza — \"Frog\" by Quaternius",
+   "horse.glb — Poly Pizza — \"Horse\" by Quaternius"
+  ]
+ },
+ {
   "pack": "Lora",
   "type": "font",
   "author": "Cyreal (Olga Karpushina, Alexei Vanyashin)",

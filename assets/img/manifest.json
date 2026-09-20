@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-20T19:43:14+00:00",
+ "generated": "2026-09-20T20:30:25+00:00",
  "generator": "tools/build_images.py",
  "conventions": {
   "hex": {
@@ -4215,7 +4215,7 @@
    "bytes": 7284,
    "source": "kenney_animalpackredux",
    "original": "PNG/Round/rabbit.png",
-   "note": "Lapin — tête ronde, taille native (dossier Round)."
+   "note": "Lapin — tête ronde, taille native (dossier Round) : portrait (vœux, guide, succès)."
   },
   "fauna_moose": {
    "file": "fauna/fauna_moose.png",
@@ -4224,7 +4224,7 @@
    "bytes": 11810,
    "source": "kenney_animalpackredux",
    "original": "PNG/Round/moose.png",
-   "note": "Élan — tête ronde, taille native (dossier Round)."
+   "note": "Élan — tête ronde, taille native (dossier Round) : portrait (vœux, guide, succès)."
   },
   "fauna_frog": {
    "file": "fauna/fauna_frog.png",
@@ -4233,7 +4233,7 @@
    "bytes": 5430,
    "source": "kenney_animalpackredux",
    "original": "PNG/Round/frog.png",
-   "note": "Grenouille — tête ronde, taille native (dossier Round)."
+   "note": "Grenouille — tête ronde, taille native (dossier Round) : portrait (vœux, guide, succès)."
   },
   "fauna_duck": {
    "file": "fauna/fauna_duck.png",
@@ -4242,7 +4242,7 @@
    "bytes": 6313,
    "source": "kenney_animalpackredux",
    "original": "PNG/Round/duck.png",
-   "note": "Canard — tête ronde, taille native (dossier Round)."
+   "note": "Canard — tête ronde, taille native (dossier Round) : portrait (vœux, guide, succès)."
   },
   "fauna_bear": {
    "file": "fauna/fauna_bear.png",
@@ -4251,7 +4251,7 @@
    "bytes": 7634,
    "source": "kenney_animalpackredux",
    "original": "PNG/Round/bear.png",
-   "note": "Ours — tête ronde, taille native (dossier Round)."
+   "note": "Ours — tête ronde, taille native (dossier Round) : portrait (vœux, guide, succès)."
   },
   "fauna_owl": {
    "file": "fauna/fauna_owl.png",
@@ -4260,7 +4260,7 @@
    "bytes": 7835,
    "source": "kenney_animalpackredux",
    "original": "PNG/Round/owl.png",
-   "note": "Hibou — tête ronde, taille native (dossier Round)."
+   "note": "Hibou — tête ronde, taille native (dossier Round) : portrait (vœux, guide, succès)."
   },
   "fauna_penguin": {
    "file": "fauna/fauna_penguin.png",
@@ -4269,7 +4269,7 @@
    "bytes": 6545,
    "source": "kenney_animalpackredux",
    "original": "PNG/Round/penguin.png",
-   "note": "Manchot — tête ronde, taille native (dossier Round)."
+   "note": "Manchot — tête ronde, taille native (dossier Round) : portrait (vœux, guide, succès)."
   },
   "fauna_chick": {
    "file": "fauna/fauna_chick.png",
@@ -4278,7 +4278,7 @@
    "bytes": 5133,
    "source": "kenney_animalpackredux",
    "original": "PNG/Round/chick.png",
-   "note": "Poussin (bonus) — tête ronde, taille native (dossier Round)."
+   "note": "Poussin (bonus) — tête ronde, taille native (dossier Round) : portrait (vœux, guide, succès)."
   },
   "fauna_horse": {
    "file": "fauna/fauna_horse.png",
@@ -4287,7 +4287,7 @@
    "bytes": 7839,
    "source": "kenney_animalpackredux",
    "original": "PNG/Round/horse.png",
-   "note": "Cheval — tête ronde, taille native (dossier Round)."
+   "note": "Cheval — tête ronde, taille native (dossier Round) : portrait (vœux, guide, succès)."
   },
   "fauna_goat": {
    "file": "fauna/fauna_goat.png",
@@ -4296,7 +4296,7 @@
    "bytes": 10131,
    "source": "kenney_animalpackredux",
    "original": "PNG/Round/goat.png",
-   "note": "Chèvre — tête ronde, taille native (dossier Round)."
+   "note": "Chèvre — tête ronde, taille native (dossier Round) : portrait (vœux, guide, succès)."
   },
   "fauna_chicken": {
    "file": "fauna/fauna_chicken.png",
@@ -4305,7 +4305,7 @@
    "bytes": 5996,
    "source": "kenney_animalpackredux",
    "original": "PNG/Round/chicken.png",
-   "note": "Poule — tête ronde, taille native (dossier Round)."
+   "note": "Poule — tête ronde, taille native (dossier Round) : portrait (vœux, guide, succès)."
   },
   "fauna_cow": {
    "file": "fauna/fauna_cow.png",
@@ -4314,7 +4314,163 @@
    "bytes": 6835,
    "source": "kenney_animalpackredux",
    "original": "PNG/Round/cow.png",
-   "note": "Vache — tête ronde, taille native (dossier Round)."
+   "note": "Vache — tête ronde, taille native (dossier Round) : portrait (vœux, guide, succès)."
+  },
+  "fauna_rabbit_side": {
+   "file": "fauna/fauna_rabbit_side.png",
+   "w": 56,
+   "h": 55,
+   "bytes": 5092,
+   "source": "animaux3d",
+   "original": "Poly Pizza — \"Rabbit\" by Poly by Google",
+   "note": "Lapin — profil rendu depuis le modèle 3D (1 image(s), modèle fixe, orientation 90°).",
+   "frames": 1,
+   "frame_w": 56,
+   "frame_h": 55,
+   "licence": "CC-BY"
+  },
+  "fauna_moose_side": {
+   "file": "fauna/fauna_moose_side.png",
+   "w": 736,
+   "h": 102,
+   "bytes": 62471,
+   "source": "animaux3d",
+   "original": "Poly Pizza — \"Deer\" by Quaternius",
+   "note": "Élan — profil rendu depuis le modèle 3D (8 image(s), cycle « Walk », orientation 90°).",
+   "frames": 8,
+   "frame_w": 92,
+   "frame_h": 102,
+   "licence": "CC0"
+  },
+  "fauna_frog_side": {
+   "file": "fauna/fauna_frog_side.png",
+   "w": 168,
+   "h": 24,
+   "bytes": 7184,
+   "source": "animaux3d",
+   "original": "Poly Pizza — \"Frog\" by Quaternius",
+   "note": "Grenouille — profil rendu depuis le modèle 3D (4 image(s), cycle « FrogArmature|Frog_Idle », orientation 0°).",
+   "frames": 4,
+   "frame_w": 42,
+   "frame_h": 24,
+   "licence": "CC0"
+  },
+  "fauna_duck_side": {
+   "file": "fauna/fauna_duck_side.png",
+   "w": 54,
+   "h": 57,
+   "bytes": 3712,
+   "source": "animaux3d",
+   "original": "Poly Pizza — \"Duck\" by Poly by Google",
+   "note": "Canard — profil rendu depuis le modèle 3D (1 image(s), modèle fixe, orientation 90°).",
+   "frames": 1,
+   "frame_w": 54,
+   "frame_h": 57,
+   "licence": "CC-BY"
+  },
+  "fauna_bear_side": {
+   "file": "fauna/fauna_bear_side.png",
+   "w": 88,
+   "h": 79,
+   "bytes": 7321,
+   "source": "animaux3d",
+   "original": "Poly Pizza — \"Bear\" by Poly by Google",
+   "note": "Ours — profil rendu depuis le modèle 3D (1 image(s), modèle fixe, orientation 90°).",
+   "frames": 1,
+   "frame_w": 88,
+   "frame_h": 79,
+   "licence": "CC-BY"
+  },
+  "fauna_owl_side": {
+   "file": "fauna/fauna_owl_side.png",
+   "w": 52,
+   "h": 48,
+   "bytes": 3353,
+   "source": "animaux3d",
+   "original": "Poly Pizza — \"Great horned owl\" by Poly by Google",
+   "note": "Hibou — profil rendu depuis le modèle 3D (1 image(s), modèle fixe, orientation 0°).",
+   "frames": 1,
+   "frame_w": 52,
+   "frame_h": 48,
+   "licence": "CC-BY"
+  },
+  "fauna_penguin_side": {
+   "file": "fauna/fauna_penguin_side.png",
+   "w": 54,
+   "h": 106,
+   "bytes": 5996,
+   "source": "animaux3d",
+   "original": "Poly Pizza — \"Penguin\" by Poly by Google",
+   "note": "Manchot — profil rendu depuis le modèle 3D (1 image(s), modèle fixe, orientation 90°).",
+   "frames": 1,
+   "frame_w": 54,
+   "frame_h": 106,
+   "licence": "CC-BY"
+  },
+  "fauna_goat_side": {
+   "file": "fauna/fauna_goat_side.png",
+   "w": 74,
+   "h": 77,
+   "bytes": 6179,
+   "source": "animaux3d",
+   "original": "Poly Pizza — \"Goat\" by Poly by Google",
+   "note": "Chèvre — profil rendu depuis le modèle 3D (1 image(s), modèle fixe, orientation 90°).",
+   "frames": 1,
+   "frame_w": 74,
+   "frame_h": 77,
+   "licence": "CC-BY"
+  },
+  "fauna_chicken_side": {
+   "file": "fauna/fauna_chicken_side.png",
+   "w": 54,
+   "h": 73,
+   "bytes": 4589,
+   "source": "animaux3d",
+   "original": "Poly Pizza — \"Hen\" by Poly by Google",
+   "note": "Poule — profil rendu depuis le modèle 3D (1 image(s), modèle fixe, orientation 90°).",
+   "frames": 1,
+   "frame_w": 54,
+   "frame_h": 73,
+   "licence": "CC-BY"
+  },
+  "fauna_chick_side": {
+   "file": "fauna/fauna_chick_side.png",
+   "w": 34,
+   "h": 36,
+   "bytes": 2338,
+   "source": "animaux3d",
+   "original": "Poly Pizza — \"Baby chick\" by Poly by Google",
+   "note": "Poussin — profil rendu depuis le modèle 3D (1 image(s), modèle fixe, orientation 90°).",
+   "frames": 1,
+   "frame_w": 34,
+   "frame_h": 36,
+   "licence": "CC-BY"
+  },
+  "fauna_horse_side": {
+   "file": "fauna/fauna_horse_side.png",
+   "w": 800,
+   "h": 105,
+   "bytes": 66716,
+   "source": "animaux3d",
+   "original": "Poly Pizza — \"Horse\" by Quaternius",
+   "note": "Cheval — profil rendu depuis le modèle 3D (8 image(s), cycle « Walk », orientation 90°).",
+   "frames": 8,
+   "frame_w": 100,
+   "frame_h": 105,
+   "licence": "CC0"
+  },
+  "fauna_cow_side": {
+   "file": "fauna/fauna_cow_side.png",
+   "w": 800,
+   "h": 76,
+   "bytes": 46035,
+   "source": "animaux3d",
+   "original": "Poly Pizza — \"Cow\" by Quaternius",
+   "note": "Vache — profil rendu depuis le modèle 3D (8 image(s), cycle « Armature|Walk », orientation 90°).",
+   "frames": 8,
+   "frame_w": 100,
+   "frame_h": 76,
+   "licence": "CC0"
   },
   "sea_boat_1": {
    "file": "sea/sea_boat_1.png",

@@ -120,6 +120,25 @@ KAY_MODELS = {
     "flag_green": "decoration/props/flag_green",
 }
 
+# Animaux 3D : un modèle glTF par espèce, rendu de profil par tools/render_animals.js.
+# `clip` = cycle de marche quand le modèle en a un ; `largeur` = largeur voulue du sprite en px 2×
+# (la faune est dessinée à la moitié, à l'échelle monde) ; `face` = sens du modèle rendu
+# (« droite » ou « gauche »), relevé à l'œil une fois : le jeu retourne l'image pour l'autre sens.
+ANIMALS = {
+    "rabbit":  dict(model="rabbit",  clip=None,                          frames=1, width=56, face="gauche", fr="lapin"),
+    "moose":   dict(model="deer",    clip="Walk",                        frames=8, width=92, face="droite", fr="élan"),
+    "frog":    dict(model="frog",    clip="FrogArmature|Frog_Idle",      frames=4, width=42, face="droite", fr="grenouille"),
+    "duck":    dict(model="duck",    clip=None,                          frames=1, width=54, face="droite", fr="canard"),
+    "bear":    dict(model="bear",    clip=None,                          frames=1, width=88, face="gauche", fr="ours"),
+    "owl":     dict(model="owl",     clip=None,                          frames=1, width=52, face="droite", fr="hibou"),
+    "penguin": dict(model="penguin", clip=None,                          frames=1, width=54, face="gauche", fr="manchot"),
+    "goat":    dict(model="goat",    clip=None,                          frames=1, width=74, face="droite", fr="chèvre"),
+    "chicken": dict(model="hen",     clip=None,                          frames=1, width=54, face="gauche", fr="poule"),
+    "chick":   dict(model="chick",   clip=None,                          frames=1, width=34, face="gauche", fr="poussin"),
+    "horse":   dict(model="horse",   clip="Walk",                        frames=8, width=100, face="droite", fr="cheval"),
+    "cow":     dict(model="cow",     clip="Armature|Walk",               frames=8, width=100, face="droite", fr="vache"),
+}
+
 NK = "kenney_natureKit_2.1"
 PP = "kenney_piratepack"
 HP, HT, AN, PA, SM, FO, GI, GIE, UI = ("hexagon-pack", "hexagontiles", "kenney_animalpackredux", "particlePack_1.1",
@@ -286,9 +305,10 @@ def fit(im, box):
 class Sources:
     """Accès aux sprites : Hexagon Pack en 2× (cache SVG ou Lanczos), autres packs natifs."""
 
-    def __init__(self, src_root, kay_root=None):
+    def __init__(self, src_root, kay_root=None, animals_root=None):
         self.src = src_root
         self.kay_root = kay_root
+        self.animals_root = animals_root
         self.hp_png = src_root / HP / "PNG"
         self.tiles2x = CACHE / "hex2x_tiles"
         self.objs2x = CACHE / "hex2x_objects"
@@ -297,6 +317,7 @@ class Sources:
         self.cache = {}
         self.kay_cache = {}
         self.kay_used = set()
+        self.anim3d = CACHE / "animaux"
 
     def prepare(self, rebuild=False):
         """Rasterise les SVG (Chromium) et extrait les sprites 2× si le cache manque."""
@@ -323,6 +344,27 @@ class Sources:
             res, missing = extract(svg_dir / "objects_1x.png", svg_dir / f"objects_{SCALE}x.png", SCALE, pngs, self.objs2x)
             (self.objs2x / "_index.json").write_text(json.dumps({"matched": res, "missing": missing}, indent=1))
         self.prepare_kaykit(rebuild)
+        self.prepare_animals(rebuild)
+
+    def prepare_animals(self, rebuild=False):
+        """Rend les animaux 3D (Chromium + three.js) si le cache manque."""
+        self.anim3d.mkdir(parents=True, exist_ok=True)
+        need = rebuild or not (self.anim3d / "meta.json").exists()
+        if not need:
+            meta = json.loads((self.anim3d / "meta.json").read_text(encoding="utf-8"))["species"]
+            need = any(sp not in meta for sp in ANIMALS)
+        if not need:
+            return
+        prov = json.loads((self.animals_root / "PROVENANCE.json").read_text(encoding="utf-8"))["models"]
+        jobs = {sp: {"file": prov[c["model"]]["file"], "clip": c["clip"], "frames": c["frames"]} for sp, c in ANIMALS.items()}
+        path = CACHE / "animaux_jobs.json"
+        path.write_text(json.dumps(jobs, ensure_ascii=False, indent=1), encoding="utf-8")
+        print(f"rendu des {len(jobs)} animaux 3D (Chromium + three.js)…")
+        subprocess.run(["node", str(ROOT / "tools" / "render_animals.js"), str(path),
+                        "--src", str(self.animals_root), "--out", str(self.anim3d)], check=True)
+
+    def animals_dir(self):
+        return self.anim3d
 
     def prepare_kaykit(self, rebuild=False):
         """Rend les modèles 3D KayKit en PNG isométriques (Chromium + three.js) si le cache manque."""
@@ -764,13 +806,15 @@ def draw_wind(size=100):
 # Construction
 # ===========================================================================
 class Builder:
-    def __init__(self, src_root, repo, sheets=False, kay_root=None):
-        self.src = Sources(src_root, kay_root)
+    def __init__(self, src_root, repo, sheets=False, kay_root=None, animals_root=None):
+        self.src = Sources(src_root, kay_root, animals_root)
+        self.animals_root = animals_root
         self.repo = repo
         self.img_root = repo / "assets" / "img"
         self.manifest = {}
         self.per_pack = {pid: set() for pid in PACKS}
         self.per_pack["kaykit"] = set()
+        self.per_pack["animaux3d"] = set()
         self.sheets = sheets
         self.tiles_by_season = {s: [] for s in SEASONS}
 
@@ -960,13 +1004,58 @@ class Builder:
 
     # --- B. faune
     def build_fauna(self):
+        # 1. les têtes rondes de Kenney restent les portraits : file des vœux, guide, succès
         animals = {"rabbit": "lapin", "moose": "élan", "frog": "grenouille", "duck": "canard", "bear": "ours", "owl": "hibou",
                    "penguin": "manchot", "chick": "poussin (bonus)", "horse": "cheval", "goat": "chèvre", "chicken": "poule", "cow": "vache"}
         for name, fr in animals.items():
             im = Image.open(self.src.path(AN, f"PNG/Round/{name}.png")).convert("RGBA")
             bb = im.split()[3].getbbox()
             im = im.crop(bb)
-            self.emit(f"fauna_{name}", "fauna", im, AN, f"PNG/Round/{name}.png", f"{fr.capitalize()} — tête ronde, taille native (dossier Round).")
+            self.emit(f"fauna_{name}", "fauna", im, AN, f"PNG/Round/{name}.png", f"{fr.capitalize()} — tête ronde, taille native (dossier Round) : portrait (vœux, guide, succès).")
+        # 2. les animaux du plateau : bandes rendues depuis les modèles 3D
+        self.build_fauna_sheets()
+
+    def build_fauna_sheets(self):
+        """Une bande par espèce : le profil rendu en 3D, N images du cycle côte à côte.
+
+        Les images d'une espèce sont rognées sur une **boîte commune** : sans cela, l'animal
+        tressauterait d'une image à l'autre au lieu de marcher. L'orientation retenue est celle
+        des quatre rendus dont la silhouette est la plus large, c'est-à-dire le profil.
+        """
+        src = self.src.animals_dir()
+        meta = json.loads((src / "meta.json").read_text(encoding="utf-8"))["species"]
+        prov = json.loads((self.animals_root / "PROVENANCE.json").read_text(encoding="utf-8"))["models"]
+        for sp, cfg in ANIMALS.items():
+            info = meta[sp]
+            yaws, frames = info["yaws"], info["frames"]
+            # profil = l'orientation la plus large
+            best, bestw = yaws[0], -1
+            for y in yaws:
+                w = 0
+                for f in range(frames):
+                    bb = Image.open(src / f"{sp}_{y}_{f}.png").split()[3].getbbox()
+                    if bb:
+                        w = max(w, bb[2] - bb[0])
+                if w > bestw:
+                    best, bestw = y, w
+            boxes = [Image.open(src / f"{sp}_{best}_{f}.png").split()[3].getbbox() for f in range(frames)]
+            boxes = [b for b in boxes if b]
+            if not boxes:
+                raise RuntimeError(f"{sp} : rendus vides")
+            box = (min(b[0] for b in boxes), min(b[1] for b in boxes), max(b[2] for b in boxes), max(b[3] for b in boxes))
+            scale = cfg["width"] / (box[2] - box[0])
+            cw, ch = max(1, round((box[2] - box[0]) * scale)), max(1, round((box[3] - box[1]) * scale))
+            sheet = Image.new("RGBA", (cw * frames, ch), (0, 0, 0, 0))
+            for f in range(frames):
+                im = Image.open(src / f"{sp}_{best}_{f}.png").convert("RGBA").crop(box).resize((cw, ch), Image.LANCZOS)
+                if cfg["face"] == "gauche":   # toutes les bandes regardent à droite ; le jeu retourne pour l'autre sens
+                    im = im.transpose(Image.FLIP_LEFT_RIGHT)
+                sheet.alpha_composite(im, (f * cw, 0))
+            pr = prov[cfg["model"]]
+            note = (f"{cfg['fr'].capitalize()} — profil rendu depuis le modèle 3D ({frames} image(s)"
+                    + (f", cycle « {cfg['clip']} »" if cfg["clip"] else ", modèle fixe") + f", orientation {best}°).")
+            self.emit(f"fauna_{sp}_side", "fauna", sheet, "animaux3d", pr["source"], note,
+                      frames=frames, frame_w=cw, frame_h=ch, licence=pr["licence"])
 
     # --- B bis. la mer autour de l'île : un voilier vu de dessus (Pirate Pack) et une baleine (Animal Pack Redux)
     def build_sea(self):
@@ -1211,6 +1300,24 @@ class Builder:
                 "note": "modèles 3D rendus en PNG isométriques par tools/render_kaykit.js (élévation 30°, azimut −30°, 120 px/unité)",
                 "files": sorted(f"{KAY_MODELS[n]}.gltf" for n in self.src.kay_used),
             })
+        if self.per_pack["animaux3d"]:
+            prov = json.loads((self.animals_root / "PROVENANCE.json").read_text(encoding="utf-8"))
+            used = {c["model"] for c in ANIMALS.values()}
+            groups = {}
+            for m in used:
+                pm = prov["models"][m]
+                groups.setdefault((pm["licence"], pm.get("mirror", prov["mirror"])), []).append(m)
+            for (lic, mirror), mods in sorted(groups.items()):
+                label, url = ("CC0 1.0", CC0_URL) if lic == "CC0" else ("CC BY 3.0", "https://creativecommons.org/licenses/by/3.0/")
+                credits.append({
+                    "pack": "Animaux 3D" + (" (domaine public)" if lic == "CC0" else " (attribution)"),
+                    "author": ", ".join(sorted({prov["models"][m]["source"].split("—")[-1].strip().replace('"', "") for m in mods})),
+                    "license": label, "licenseUrl": url,
+                    "url": "https://poly.pizza/", "mirror": mirror, "mirrorPath": "models",
+                    "licenseFile": mirror,
+                    "note": "modèles glTF rendus de profil en bandes d'images par tools/render_animals.js (élévation 30°, azimut −30°)",
+                    "files": sorted(f"{m}.glb — {prov['models'][m]['source']}" for m in sorted(mods)),
+                })
         fonts_credits_path = self.repo / "assets" / "credits" / "fonts.json"
         if fonts_credits_path.exists():
             credits.extend(json.loads(fonts_credits_path.read_text(encoding="utf-8")))
@@ -1250,18 +1357,38 @@ def check_kaykit_license(kay_root):
     KAYKIT["license_text_path"] = KAYKIT["license_file"]
 
 
+def check_animals_licenses(animals_root):
+    """Chaque modèle d'animal doit porter une licence libre non virale (CC0 ou CC-BY)."""
+    p = animals_root / "PROVENANCE.json"
+    if not p.exists():
+        raise RuntimeError(f"Provenance des animaux 3D introuvable : {p}")
+    prov = json.loads(p.read_text(encoding="utf-8"))["models"]
+    for sp, cfg in ANIMALS.items():
+        m = cfg["model"]
+        if m not in prov:
+            raise RuntimeError(f"{sp} : modèle « {m} » absent de PROVENANCE.json")
+        lic = prov[m]["licence"]
+        if lic not in ("CC0", "CC-BY"):
+            raise RuntimeError(f"{sp} : licence « {lic} » non admise (CC0 ou CC-BY attendues)")
+        if not (animals_root / prov[m]["file"]).exists():
+            raise RuntimeError(f"{sp} : fichier absent ({prov[m]['file']})")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--src", default=os.environ.get("KENNEY_ROOT", "/home/user/etdofresh/kenney.nl"))
     ap.add_argument("--kaykit", default=os.environ.get("KAYKIT_ROOT", "/home/user/kaykit/KayKit-Medieval-Hexagon-Pack-1.0"))
+    ap.add_argument("--animaux", default=os.environ.get("ANIMAUX3D_ROOT", "/home/user/animaux3d"))
     ap.add_argument("--out", default=str(ROOT))
     ap.add_argument("--rebuild-cache", action="store_true", help="re-rasterise les SVG et ré-extrait les sprites 2×")
     ap.add_argument("--sheets", action="store_true", help="écrit des planches-contact par saison dans tools/cache/sheets/")
     args = ap.parse_args()
     src_root, repo, kay_root = Path(args.src), Path(args.out), Path(args.kaykit)
+    animals_root = Path(args.animaux)
     check_licenses(src_root)
     check_kaykit_license(kay_root)
-    b = Builder(src_root, repo, sheets=args.sheets, kay_root=kay_root)
+    check_animals_licenses(animals_root)
+    b = Builder(src_root, repo, sheets=args.sheets, kay_root=kay_root, animals_root=animals_root)
     b.src.prepare(rebuild=args.rebuild_cache)
     b.build_tiles()
     b.build_deco()
