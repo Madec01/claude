@@ -71,12 +71,20 @@ KAYKIT = dict(pack="KayKit : Medieval Hexagon Pack (1.0)", author="Kay Lousberg"
 # dont les toits sont les plus proches de notre terre cuite.
 KAY_MODELS = {
     "home_A": "buildings/red/building_home_A_red",
+    "home_A_jaune": "buildings/yellow/building_home_A_yellow",
+    "home_A_vert": "buildings/green/building_home_A_green",
     "home_B": "buildings/red/building_home_B_red",
+    "home_B_jaune": "buildings/yellow/building_home_B_yellow",
+    "home_B_vert": "buildings/green/building_home_B_green",
     "church": "buildings/red/building_church_red",
     "windmill": "buildings/red/building_windmill_red",
     "watermill": "buildings/red/building_watermill_red",
     "market": "buildings/red/building_market_red",
     "tavern": "buildings/red/building_tavern_red",
+    "tavern_jaune": "buildings/yellow/building_tavern_yellow",
+    "tavern_vert": "buildings/green/building_tavern_green",
+    "lumbermill_jaune": "buildings/yellow/building_lumbermill_yellow",
+    "lumbermill_vert": "buildings/green/building_lumbermill_green",
     "well": "buildings/red/building_well_red",
     "mine": "buildings/red/building_mine_red",
     "tower": "buildings/red/building_tower_A_red",
@@ -138,6 +146,12 @@ ANIMALS = {
     "horse":   dict(model="horse",   clip="Walk",                        frames=8, width=100, face="droite", fr="cheval"),
     "cow":     dict(model="cow",     clip="Armature|Walk",               frames=8, width=100, face="droite", fr="vache"),
 }
+
+# Les bâtiments KayKit sont plus denses que les sprites plats qu'ils remplacent : à largeur égale
+# ils écrasent le paysage. Un quart de moins remet l'île au premier plan (décision du commanditaire).
+BUILD_SCALE = 0.75
+# Et les tuiles rares, dont le bâtiment est le sujet, ne perdent que 15 %.
+RARE_SCALE = 0.85
 
 NK = "kenney_natureKit_2.1"
 PP = "kenney_piratepack"
@@ -498,11 +512,11 @@ TILES = {
                                       [(44, 66), (62, 66), (80, 66), (34, 82), (52, 82), (70, 82), (88, 82), (26, 98), (44, 98), (62, 98), (80, 98), (98, 98), (52, 114), (70, 114)]]
                  + [L("obj:hay", 30, 116), L("obj:fence", 96, 118)], base_kind="dirt", base_mirror=True, note="Champ : terre nue en miroir + rangs de culture + foin + clôture."),
     # --- hameaux (bâtiments inchangés par la saison)
-    "hamlet_1": T("hamlet", "grass_05", [L("kay:home_A", 58, 90, scale=1.1), L("kay:barrel", 90, 98, scale=1.2), L("kay:fence_wood", 40, 94, scale=0.45)],
+    "hamlet_1": T("hamlet", "grass_05", [L("kay:home_A_jaune", 58, 90, scale=0.94), L("kay:barrel", 90, 98, scale=1.2), L("kay:fence_wood", 40, 94, scale=0.45)],
                   note="Hameau : maison KayKit + tonneau + clôture."),
-    "hamlet_2": T("hamlet", "grass_05", [L("kay:home_B", 60, 98, scale=0.95), L("kay:sack", 30, 102, scale=1.6), L("kay:wheelbarrow", 88, 98, scale=1.2)],
+    "hamlet_2": T("hamlet", "grass_05", [L("kay:home_B", 60, 98, scale=0.81), L("kay:sack", 30, 102, scale=1.6), L("kay:wheelbarrow", 88, 98, scale=1.2)],
                   note="Village : maison à étage KayKit + sac de grain + brouette."),
-    "hamlet_3": T("hamlet", "grass_05", [L("kay:home_B", 50, 94, scale=0.82), L("kay:home_A", 86, 106, scale=0.78),
+    "hamlet_3": T("hamlet", "grass_05", [L("kay:home_B_vert", 50, 94, scale=0.70), L("kay:home_A_jaune", 86, 106, scale=0.66),
                                          L("kay:crate", 30, 100, scale=1.3), L("kay:fence_wood", 92, 78, scale=0.6)],
                   note="Bourg : deux maisons KayKit + caisse + clôture."),
     # --- eau (base hexagonale pleine, vagues Hexagon Tiles ×3.7) — identique aux 4 saisons
@@ -534,17 +548,17 @@ TILES = {
     "sand_2": T("sand", "sand_07", [L("obj:rockBrown_small", 84, 98, "rock")], base_kind="sand", base_mirror=True, base_rot=180,
                 note="Sable uni tourné + petit rocher brun."),
     # --- tuiles rares
-    "mill": T("rare", "grass_05", [L("kay:windmill", 60, 88, scale=1.0), L("kay:sack", 28, 104, scale=1.6), L("kay:fence_wood", 94, 100, scale=0.8)],
+    "mill": T("rare", "grass_05", [L("kay:windmill", 60, 88, scale=0.85), L("kay:sack", 28, 104, scale=1.6), L("kay:fence_wood", 94, 100, scale=0.8)],
               note="Moulin à vent KayKit + sac de grain + clôture."),
-    "chapel": T("rare", "grass_05", [L("kay:church", 60, 92, scale=0.95), L("kay:fence_stone", 26, 102, scale=0.9), L(KPINE, 98, 78, "foliage", scale=0.5)],
+    "chapel": T("rare", "grass_05", [L("kay:church", 60, 92, scale=0.81), L("kay:fence_stone", 26, 102, scale=0.9), L(KPINE, 98, 78, "foliage", scale=0.5)],
                 note="Église KayKit + muret de pierre + sapin."),
-    "watchtower": T("rare", "grass_05", [L("kay:tower", 60, 96, scale=0.78), L("kay:wall", 32, 96, scale=0.55), L(KPINE, 96, 80, "foliage", scale=0.45)],
+    "watchtower": T("rare", "grass_05", [L("kay:tower", 60, 96, scale=0.66), L("kay:wall", 32, 96, scale=0.55), L(KPINE, 96, 80, "foliage", scale=0.45)],
                     note="Tour de guet KayKit + pan de muraille + sapin."),
-    "well": T("rare", "grass_05", [L("kay:well", 60, 88, scale=1.3), L("kay:fence_wood", 40, 94, scale=0.45), L("kay:fence_wood", 82, 94, scale=0.45)] + FLOWERS_SPRING + FLOWERS_SUMMER,
+    "well": T("rare", "grass_05", [L("kay:well", 60, 88, scale=1.1), L("kay:fence_wood", 40, 94, scale=0.45), L("kay:fence_wood", 82, 94, scale=0.45)] + FLOWERS_SPRING + FLOWERS_SUMMER,
               note="Puits KayKit + 2 clôtures + fleurs (printemps, été)."),
     "camp": T("rare", "grass_05", [L("obj:campingTent", 44, 86), L("obj:fire", 82, 92), L("kay:lumber", 84, 108, scale=0.9), L(KPINE, 30, 100, "foliage", scale=0.45)],
               note="Campement : tente et feu Kenney + rondins et sapin KayKit."),
-    "ruins": T("rare", "stone_07", [L("kay:ruin", 58, 92, scale=1.0), L("kay:lumber", 32, 100, scale=0.95)],
+    "ruins": T("rare", "stone_07", [L("kay:ruin", 58, 92, scale=0.85), L("kay:lumber", 32, 100, scale=0.95)],
                base_kind="stone", note="Ruines KayKit (bâtiment effondré) sur pierre."),
     # --- collines (dès l'île 7) : hillGrass des Hexagon Tiles, recolorée comme l'herbe
     "hill_1": T("hill", "grass_17", [L(KROUND, 42, 74, "foliage", scale=0.5), L(KPINE, 82, 68, "foliage", scale=0.5), L("ht:bushGrass:2.2", 62, 92, "reed")],
@@ -559,27 +573,27 @@ TILES = {
                                        L(KPINE, 94, 112, "foliage", scale=0.42), L("obj:rockGrey_small4", 24, 96, "rock")],
                  base_kind="heath", base_mirror=True, note="Lande en miroir : trois touffes de bruyère + pin nain + rocher."),
     # --- rares tardives
-    "granary": T("rare", "grass_05", [L("kay:lumbermill", 60, 92, scale=0.8), L("kay:sack", 32, 100, scale=2.6), L("kay:sack", 86, 104, scale=2.6)],
+    "granary": T("rare", "grass_05", [L("kay:lumbermill", 60, 92, scale=0.68), L("kay:sack", 32, 100, scale=2.6), L("kay:sack", 86, 104, scale=2.6)],
                  note="Grenier : bâtiment de bois KayKit + deux sacs de grain."),
     "fountain": T("rare", "grass_05", [L("obj:fountain", 60, 94), L("kay:fence_stone", 40, 94, scale=0.5), L("kay:fence_stone", 82, 94, scale=0.5)] + FLOWERS_SPRING + FLOWERS_SUMMER,
                   note="Fontaine + clôtures + fleurs au printemps et en été."),
     # --- tuiles d'événement (dès l'île 5) et rares tardives (dès l'île 8)
-    "market": T("rare", "grass_05", [L("kay:market", 60, 90, scale=0.9), L("kay:crate_open", 26, 104, scale=1.3)],
+    "market": T("rare", "grass_05", [L("kay:market", 60, 90, scale=0.77), L("kay:crate_open", 26, 104, scale=1.3)],
                 note="Marché KayKit (étal, auvent, cageots) + caisse ouverte."),
     "fete": T("rare", "grass_05", [L("kay:table", 46, 90, scale=1.0), L("kay:table", 72, 100, scale=1.0), L("kay:barrel", 60, 78, scale=1.1),
                                        L("kay:crate_open", 88, 104, scale=1.1), L("kay:flag", 30, 100, scale=2.6), L("kay:flag_green", 90, 84, scale=2.6)] + FLOWERS_SPRING + FLOWERS_SUMMER,
               note="Fête : deux tablées KayKit, un tonneau, deux oriflammes, des fleurs."),
-    "restore": T("rare", "grass_05", [L("kay:scaffolding", 60, 92, scale=0.85), L("kay:pallet", 26, 106, scale=1.3)],
+    "restore": T("rare", "grass_05", [L("kay:scaffolding", 60, 92, scale=0.72), L("kay:pallet", 26, 106, scale=1.3)],
                  note="Chantier KayKit : échafaudage et palette (devient la famille majoritaire autour d'elle)."),
-    "tavern": T("rare", "grass_05", [L("kay:tavern", 60, 90, scale=0.95), L("kay:barrel", 26, 102, scale=1.4), L("kay:barrel", 94, 106, scale=1.2)],
+    "tavern": T("rare", "grass_05", [L("kay:tavern", 60, 90, scale=0.81), L("kay:barrel", 26, 102, scale=1.4), L("kay:barrel", 94, 106, scale=1.2)],
                 note="Taverne KayKit + deux tonneaux."),
     "trough": T("rare", "grass_05", [L("obj:horseTrough", 60, 94), L("kay:fence_wood", 40, 94, scale=0.45), L("kay:fence_wood", 82, 94, scale=0.45), L("kay:bucket", 92, 104, scale=1.4)] + FLOWERS_SPRING,
                 note="Abreuvoir + clôtures KayKit + seau + fleurs au printemps."),
-    "archway": T("rare", "grass_05", [L("kay:gate", 60, 94, scale=0.8), L("kay:wall", 28, 96, scale=0.5), L("kay:wall", 92, 96, scale=0.5)],
+    "archway": T("rare", "grass_05", [L("kay:gate", 60, 94, scale=0.68), L("kay:wall", 28, 96, scale=0.5), L("kay:wall", 92, 96, scale=0.5)],
                  note="Porte fortifiée KayKit + deux pans de muraille."),
-    "mine": T("rare", "stone_07", [L("kay:mine", 60, 92, scale=0.85), L("kay:lumber", 32, 100, scale=1.0)], base_kind="stone",
+    "mine": T("rare", "stone_07", [L("kay:mine", 60, 92, scale=0.72), L("kay:lumber", 32, 100, scale=1.0)], base_kind="stone",
              note="Mine KayKit creusée dans la roche + rondins."),
-    "oven": T("rare", "grass_05", [L("kay:blacksmith", 60, 90, scale=1.0), L("kay:lumber", 32, 100, scale=1.0)],
+    "oven": T("rare", "grass_05", [L("kay:blacksmith", 60, 90, scale=0.85), L("kay:lumber", 32, 100, scale=1.0)],
              note="Forge KayKit (four et cheminée) + rondins."),
     "dry_meadow": T("rare", "grass_05", [L("ht:bushGrass:2.6", 36, 96, "dry"), L("ht:bushGrass:2.6", 88, 66, "dry")], base_kind="dry",
                     note="Prairie sèche d'été (herbe paille #cdbb6a), identique aux 4 saisons."),
@@ -957,7 +971,10 @@ class Builder:
                                ("rockBrown_small", "rock_E", 42)):
             kobj(f"obj_{name}", model, "summer", w, "rock", f"Rocher {name} : bloc 3D KayKit.")
             kobj(f"obj_{name}_winter", model, "winter", w, "rock", f"Rocher {name} enneigé : bloc 3D KayKit.")
-        # bâtiments du décor composé : modèles 3D KayKit, aux largeurs des sprites qu'ils remplacent
+        # Bâtiments du décor composé : modèles 3D KayKit. Les largeurs de la table sont celles des
+        # sprites plats qu'ils remplacent ; BUILD_SCALE les ramène à l'échelle voulue, car un modèle
+        # KayKit est bien plus dense à l'œil qu'un sprite Kenney de même largeur (retour du
+        # commanditaire : « trop gros par rapport à la map »).
         for keyname, model, w, note in (
                 ("obj_house", "home_B", 168, "Maison à étage (colombages, perron)."),
                 ("obj_house_small", "home_A", 116, "Maisonnette."),
@@ -985,7 +1002,14 @@ class Builder:
                 ("obj_crate", "crate", 34, "Caisse."),
                 ("obj_scaffolding", "scaffolding", 150, "Échafaudage de chantier."),
                 ("obj_ruin_building", "ruin", 140, "Bâtiment effondré.")):
-            kobj(keyname, model, "summer", w, "static", f"{note} Modèle 3D KayKit.")
+            kobj(keyname, model, "summer", round(w * BUILD_SCALE), "static", f"{note} Modèle 3D KayKit.")
+        # les maisons existent en trois couleurs de toit : le décor en choisit une par case
+        for keyname, model, w in (("obj_house", "home_B", 168), ("obj_house_small", "home_A", 116),
+                                  ("obj_villa", "tavern", 150), ("obj_tinyBuilding", "home_A", 66),
+                                  ("obj_farm", "lumbermill", 128)):
+            for suffix, colour in (("_jaune", "ambre"), ("_vert", "vert")):
+                kobj(keyname + suffix, model + suffix, "summer", round(w * BUILD_SCALE), "static",
+                     f"Même bâtiment, toit {colour} (modèle 3D KayKit).")
         for name in ("hay", "fountain", "campingTent", "fire", "tombstone1", "towerRuin", "ruinsCorner", "ruins_brick1",
                      "lightpost", "horseTrough", "banner", "medieval_doorway", "pole", "box2"):
             obj(f"obj_{name}", L(f"obj:{name}", 0, 0), "summer", f"Objet {name} (Hexagon Pack).")
