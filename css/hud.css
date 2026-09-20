@@ -285,3 +285,8 @@ html.compact.portrait .hud-ribbon { top: 118px; } html.compact.portrait .hud-rec
 .res-why h3 { font-family: var(--font-title); font-weight: 500; font-size: 18px; margin: 0 0 6px; }
 .res-why .why-row { grid-template-columns: 1fr 120px 54px; }
 .why-best { font-style: italic; opacity: 0.85; margin: 6px 0 0; font-family: var(--font-title); }
+
+/* Mode repos : après quelques secondes sans geste, les panneaux périphériques s'effacent à 35 % (la file, le score et la
+   saison restent) ; la remontée est rapide, l'effacement lent. */
+.hud-wishes, .hud-fauna, .powers, .pocket, .hud-log, .tile-help, .hud-arch { transition: opacity 0.35s ease; }
+#hud.resting .hud-wishes, #hud.resting .hud-fauna, #hud.resting .powers, #hud.resting .pocket, #hud.resting .hud-log, #hud.resting .tile-help, #hud.resting .hud-arch { opacity: 0.35; transition: opacity 1.6s ease; }

@@ -686,9 +686,16 @@ export class IslandRenderer {
   drawRings(ctx) {
     const cam = this.cam;
     for (const r of this.fx.rings) {
-      const t = r.t / 1.3, e = easeOutCubic(Math.min(1, t));
-      ctx.save(); ctx.globalAlpha = (1 - t) * 0.9; ctx.strokeStyle = r.color; ctx.lineWidth = 4 * cam.zoom * (1 - t) + 1;
-      for (const cell of r.cells) { const w = toWorld(cell.q, cell.r); const c = cam.toScreen(w.x, w.y); const pts = corners(c.x, c.y, SIZE * cam.zoom * (0.9 + e * 0.25)); ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]); for (let i = 1; i < 6; i++) ctx.lineTo(pts[i][0], pts[i][1]); ctx.closePath(); ctx.stroke(); }
+      ctx.save(); ctx.strokeStyle = r.color; ctx.fillStyle = r.color;
+      for (const cell of r.cells) {
+        const t = (r.t - (cell.d || 0)) / 1.3; if (t < 0 || t > 1) continue;   // chaque cellule vit sa propre onde, décalée
+        const e = easeOutCubic(t);
+        const w = toWorld(cell.q, cell.r); const c = cam.toScreen(w.x, w.y);
+        const pts = corners(c.x, c.y, SIZE * cam.zoom * (0.9 + e * 0.25));
+        ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]); for (let k = 1; k < 6; k++) ctx.lineTo(pts[k][0], pts[k][1]); ctx.closePath();
+        if (t < 0.45) { ctx.globalAlpha = (1 - t / 0.45) * 0.28; ctx.fill(); }   // l'éclat : la case s'allume, puis l'anneau part
+        ctx.globalAlpha = (1 - t) * 0.9; ctx.lineWidth = 4 * cam.zoom * (1 - t) + 1; ctx.stroke();
+      }
       ctx.restore();
     }
   }

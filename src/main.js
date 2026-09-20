@@ -15,7 +15,7 @@ import { Camera } from './game/camera.js';
 import { Effects } from './game/effects.js';
 import { Hud } from './game/hud.js';
 import { Tutorial } from './game/tutorial.js';
-import { fromWorld, toWorld, key } from './game/hex.js';
+import { fromWorld, toWorld, key, DIRS } from './game/hex.js';
 import { ISLANDS, INFINITE, GARDEN, getIsland, mechanicsUpTo } from './data/islands.js';
 import { STORY } from './data/story.js';
 import { BALANCE } from './data/balance.js';
@@ -551,7 +551,7 @@ class IslandScene {
       const w = toWorld(e.q, e.r);
       fx.drop(key(e.q, e.r));
       fx.placeBurst(w.x, w.y, e.result.total > 0);
-      this._closeN = 0;
+      this._closeN = 0; this._lastPlaced = { q: e.q, r: e.r };
       AudioSys.play(`tile_place_${1 + Math.floor(Math.random() * 4)}`, { volume: 0.7, rate: 0.96 + Math.random() * 0.08 });   // jamais deux fois la même hauteur
       setTimeout(() => AudioSys.play('tile_bounce', { volume: 0.25 }), 90);   // la tuile tombe, puis se cale
       let i = 0;
@@ -588,7 +588,7 @@ class IslandScene {
     } else if (e.type === 'build') {
       const w = toWorld(e.q, e.r);
       fx.drop(key(e.q, e.r)); fx.placeBurst(w.x, w.y, true); fx.closeBurst(w.x, w.y - 10, 4);
-      this._closeN = 0;
+      this._closeN = 0; this._lastPlaced = { q: e.q, r: e.r };
       AudioSys.play(`tile_place_${1 + Math.floor(Math.random() * 4)}`, { volume: 0.7, rate: 0.96 + Math.random() * 0.08 }); setTimeout(() => AudioSys.play('tile_bounce', { volume: 0.25 }), 90); AudioSys.play('region_close', { volume: 0.45 });
       let i = 0;
       for (const ed of e.result.edges) { const nw = toWorld(ed.q, ed.r); const mx = (w.x + nw.x) / 2, my = (w.y + nw.y) / 2; setTimeout(() => { fx.floatText(mx, my, `${ed.pts > 0 ? '+' : ''}${ed.pts}`, ed.pts > 0 ? '#2f9e8f' : '#d95f4b', 18, 1.1); if (ed.pts > 0) AudioSys.play(`point_${Math.min(8, i + 1)}`, { volume: 0.45 }); }, 90 * i); i++; }
@@ -623,8 +623,15 @@ class IslandScene {
       // une pose peut fermer deux régions (trois, rarement) : les fermetures arrivent à la suite, on les décale
       // au lieu de les superposer — la deuxième a son propre arpège et son propre mot
       const nth = this._closeN++;
+      // la vague : les cases s'allument de proche en proche depuis la tuile posée (parcours en largeur dans la région),
+      // 55 ms par rang, huit rangs au plus — au-delà, tout le reste part ensemble
+      const cells = (() => { const inSet = new Map(e.cells.map((c) => [key(c.q, c.r), { q: c.q, r: c.r, d: 0 }])); const from = this._lastPlaced && inSet.has(key(this._lastPlaced.q, this._lastPlaced.r)) ? this._lastPlaced : e.cells[0];
+        const depth = new Map([[key(from.q, from.r), 0]]); const queue = [from];
+        while (queue.length) { const c = queue.shift(); const dc = depth.get(key(c.q, c.r)); for (const [a, b] of DIRS.map(([dq, dr]) => [c.q + dq, c.r + dr])) { const kk = key(a, b); if (!inSet.has(kk) || depth.has(kk)) continue; depth.set(kk, dc + 1); queue.push({ q: a, r: b }); } }
+        for (const [kk, cell] of inSet) cell.d = Math.min(8, depth.has(kk) ? depth.get(kk) : 8) * 0.055; return [...inSet.values()]; })();
+      const wave = cells.reduce((m, c) => Math.max(m, c.d), 0);
       setTimeout(() => {
-        fx.ring(e.cells, '#e0a33a'); fx.closeBurst(cx, cy, e.size);
+        fx.ring(cells, '#e0a33a'); setTimeout(() => fx.closeBurst(cx, cy, e.size), wave * 1000 * 0.7);
         const word = nth > 0 ? (STORY.closedMulti[Math.min(nth, STORY.closedMulti.length) - 1]) : STORY.closed[Math.floor(Math.random() * STORY.closed.length)];
         fx.floatText(cx, cy - 20, `${word} +${e.bonus}`, '#e0a33a', 24, 1.8);
         AudioSys.play(nth > 0 ? 'combo' : e.size >= 6 ? 'region_big' : 'region_close', { volume: 0.8 });
@@ -842,6 +849,9 @@ class IslandScene {
     // quand les i/s baissent (téléphone modeste), la mer renonce à sa profondeur et à son écume large ; avec un peu
     // d'hystérésis pour ne pas clignoter autour du seuil
     if (loop.fps < 42) this.renderer.lowFx = true; else if (loop.fps > 52) this.renderer.lowFx = false;
+    // mode repos : après huit secondes sans geste, l'interface s'efface et la vue respire ; tout geste rétablit
+    const resting = Save.options.rest !== false && input.idleSeconds > 8 && !this.armed && !this.budMode && !this.finale && !isl.ended;
+    this.hud.setResting(resting); this.cam.breathe(resting ? 1 : 0, dt);
     const objs = this.renderer.decor.objects;
     if (this._srcV !== isl.board.version) { this._srcV = isl.board.version; this._sources = objs.filter((o) => o.tpl && (o.tpl.startsWith('obj_tree'))).map((o) => ({ x: o.x, y: o.y })); this._tiles = [...isl.board.tiles.values()].map((t) => { const w = toWorld(t.q, t.r); return { family: t.family, frozen: t.frozen, rare: t.rare, wx: w.x, wy: w.y }; }); }
     this.fx.ambient(dt, isl.season, b, 1, this._sources);

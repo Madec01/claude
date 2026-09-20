@@ -294,6 +294,8 @@ export class Hud {
     list.innerHTML = this.log.length ? this.log.slice().reverse().map((n) => `<div class="log-item ${n.kind}"><span class="log-when">${n.when}</span><span class="log-text">${n.text}</span></div>`).join('') : '<div class="log-empty">Rien encore. Les événements de l’île s’inscriront ici.</div>';
   }
 
+  /** Mode repos : les panneaux périphériques s'estompent (jamais la file, le score ni la saison). */
+  setResting(on) { if (this._resting === on) return; this._resting = on; this.root.classList.toggle('resting', !!on); }
   setBudMode(on, hasTarget = false) {
     this.r.budHint.classList.toggle('hidden', !on); this.r.pwBud.classList.toggle('active', on);
     this.r.budText.textContent = hasTarget ? 'Cette prairie devient :' : 'Choisis une prairie à transformer';

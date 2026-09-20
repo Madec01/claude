@@ -2,7 +2,7 @@
 
 > Une île s'est éteinte : sable, roche, silence. Tu es la Saison, l'esprit qui la remet en marche. Tuile après tuile, tu redessines forêts, prés, hameaux et rivières ; les saisons passent, les animaux reviennent, et l'île se souvient.
 
-Puzzle de placement de tuiles hexagonales, contemplatif et stratégique, jouable dans un navigateur, en français. Campagne de cinquante îles en dix chapitres, Île du jour, Île infinie, Jardin (pose libre), Atelier des saisons (améliorations), sauvegarde locale et en ligne, reprise d'une partie laissée en plan. Le décor est composé par région (forêts continues, massifs, villages avec ruelles et sentiers), la météo et la vie sur les tuiles animent l'île. Autour, la mer : profondeur au large, écume qui suit la côte, vagues qui changent avec la saison et l'orage, un voilier qui passe et une baleine qui fait surface.
+Puzzle de placement de tuiles hexagonales, contemplatif et stratégique, jouable dans un navigateur, en français. Campagne de cinquante îles en dix chapitres, Île du jour, Île infinie, Jardin (pose libre), Atelier des saisons (améliorations), sauvegarde locale et en ligne, reprise d'une partie laissée en plan. Le décor est composé par région (forêts continues, massifs, villages avec ruelles et sentiers), la météo et la vie sur les tuiles animent l'île. Autour, la mer : profondeur au large, écume qui suit la côte, vagues qui changent avec la saison et l'orage, un voilier qui passe et une baleine qui fait surface. Sans geste pendant huit secondes, l'interface s'efface et la vue respire.
 
 ## Jouer
 
@@ -186,6 +186,7 @@ node tests/resume.js              # reprise dans un vrai navigateur (onglet cach
 node tests/signin.js              # écran de connexion : pas de boucle au retour d'une connexion Google
 node tests/gate.js                # portes de chapitre : le déblocage suit les étoiles, même gagnées en rejouant
 node tests/feel.js                # retours sensoriels : notes sobres sur téléphone, étoile franchie, vibrations
+node tests/calm.js                # mode repos (interface qui s'efface, vue qui respire) et vague de fermeture
 
 # règles de sécurité Firestore, dans l'émulateur Firebase (outillage hors du jeu, à installer une fois) :
 mkdir -p /tmp/fb && cd /tmp/fb && npm i firebase-tools@13 @firebase/rules-unit-testing@3 firebase

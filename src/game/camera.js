@@ -10,6 +10,7 @@ export class Camera {
     this.tx = 0; this.ty = 0; this.tzoom = 1;
     this.offsetX = 0; this.offsetY = 0;   // marge UI (px écran) : décale le centre du cadrage
     this.dragging = false; this.dragStart = null;
+    this.bAmp = 0; this.bt = 0; this.bx = 0; this.by = 0; this.bz = 0;   // respiration au repos : dérive lente et zoom d'un pour cent
   }
 
   /** Cadre l'ensemble des cases (masque) avec une marge. */
@@ -30,8 +31,22 @@ export class Camera {
     this.x += (this.tx - this.x) * k; this.y += (this.ty - this.y) * k; this.zoom += (this.tzoom - this.zoom) * k;
   }
 
-  toScreen(wx, wy) { return { x: (wx - this.x) * this.zoom + STAGE.W / 2 + this.offsetX, y: (wy - this.y) * this.zoom + STAGE.H / 2 + this.offsetY }; }
-  toWorldPoint(sx, sy) { return { x: (sx - STAGE.W / 2 - this.offsetX) / this.zoom + this.x, y: (sy - STAGE.H / 2 - this.offsetY) / this.zoom + this.y }; }
+  /**
+   * Respiration au repos : la vue dérive de quelques pixels sur deux sinusoïdes lentes et le zoom respire d'un pour cent.
+   * `target` vaut 1 au repos, 0 sinon ; la montée prend plusieurs secondes, la descente est immédiate (un geste = la
+   * vue se pose). L'offset s'ajoute à part, jamais aux cibles : `fit` et `pan` ne le voient pas.
+   */
+  breathe(target, dt) {
+    this.bAmp += (target - this.bAmp) * Math.min(1, dt * (target ? 0.22 : 8));
+    if (this.bAmp < 0.001) { this.bAmp = 0; this.bx = 0; this.by = 0; this.bz = 0; return; }
+    this.bt += dt;
+    this.bx = Math.sin(this.bt * 0.33) * 7 * this.bAmp; this.by = Math.sin(this.bt * 0.21 + 1.3) * 5 * this.bAmp;
+    this.bz = 1 + Math.sin(this.bt * 0.17) * 0.01 * this.bAmp;
+  }
+  get z() { return this.zoom * (this.bz || 1); }
+
+  toScreen(wx, wy) { const z = this.z; return { x: (wx - this.x - this.bx) * z + STAGE.W / 2 + this.offsetX, y: (wy - this.y - this.by) * z + STAGE.H / 2 + this.offsetY }; }
+  toWorldPoint(sx, sy) { const z = this.z; return { x: (sx - STAGE.W / 2 - this.offsetX) / z + this.x + this.bx, y: (sy - STAGE.H / 2 - this.offsetY) / z + this.y + this.by }; }
 
   zoomBy(f, sx, sy) {
     const before = this.toWorldPoint(sx, sy);

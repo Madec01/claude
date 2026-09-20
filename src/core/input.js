@@ -1,6 +1,8 @@
 // Gestion des entrées souris / clavier / tactile en coordonnées logiques (taille de scène dynamique).
 
 export class Input {
+  /** Secondes écoulées depuis le dernier geste. */
+  get idleSeconds() { return (performance.now() - this.lastActivity) / 1000; }
   constructor(canvas, logicalW, logicalH) {
     this.canvas = canvas;
     this.W = logicalW; this.H = logicalH;
@@ -10,6 +12,7 @@ export class Input {
     this.listeners = { mousedown: [], mouseup: [], keydown: [], wheel: [], tap: [], pan: [], pinch: [], touchstart: [] };
     this.enabled = true;
     this.lastPointer = 'mouse';   // 'mouse' | 'touch' : le dernier périphérique utilisé
+    this.lastActivity = performance.now();   // dernier geste (souris, touche, doigt, molette) : le mode repos s'en sert
 
     const toLogical = (e) => {
       const r = canvas.getBoundingClientRect();
@@ -22,6 +25,7 @@ export class Input {
 
     // On écoute sur window pour suivre la souris même au-dessus des overlays DOM.
     window.addEventListener('mousemove', (e) => {
+      this.lastActivity = performance.now();
       const p = toLogical(e);
       this.mouse.moved += Math.hypot(p.x - this.mouse.x, p.y - this.mouse.y);
       this.mouse.x = p.x; this.mouse.y = p.y;
@@ -29,6 +33,7 @@ export class Input {
       this.lastPointer = 'mouse';
     });
     window.addEventListener('mousedown', (e) => {
+      this.lastActivity = performance.now();
       if (!this.enabled) return;
       if (e.target.closest && e.target.closest('#ui, #hud button, #hud .hud-queue, #hud .hud-wishes, #hud .hud-fauna, #hud .hud-bud-hint, #tutorial')) return; // clics sur l'UI DOM
       const p = toLogical(e);
@@ -50,6 +55,7 @@ export class Input {
     document.getElementById('stage')?.addEventListener('contextmenu', (e) => e.preventDefault());
 
     window.addEventListener('keydown', (e) => {
+      this.lastActivity = performance.now();
       if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
       const k = e.code;
       if (!this.keys.has(k)) this._just.keys.add(k);
@@ -58,7 +64,7 @@ export class Input {
       for (const fn of this.listeners.keydown) fn(k, e);
     });
     window.addEventListener('keyup', (e) => this.keys.delete(e.code));
-    window.addEventListener('wheel', (e) => { for (const fn of this.listeners.wheel) fn(e.deltaY); }, { passive: true });
+    window.addEventListener('wheel', (e) => { this.lastActivity = performance.now(); for (const fn of this.listeners.wheel) fn(e.deltaY); }, { passive: true });
     this._bindTouch(canvas);
   }
 
@@ -74,6 +80,7 @@ export class Input {
     const pt = (t) => this._toLogical(t);
     const slop = () => { const r = canvas.getBoundingClientRect(); return 10 * (this.W / Math.max(1, r.width)); };
     canvas.addEventListener('touchstart', (e) => {
+      this.lastActivity = performance.now();
       if (!this.enabled) return;
       e.preventDefault();
       this.lastPointer = 'touch';
@@ -89,6 +96,7 @@ export class Input {
       }
     }, { passive: false });
     canvas.addEventListener('touchmove', (e) => {
+      this.lastActivity = performance.now();
       if (!this.enabled) return;
       e.preventDefault();
       if (e.touches.length >= 2 && T.pinch) {
