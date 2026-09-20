@@ -209,6 +209,9 @@ Tutoriel pour le commanditaire : `docs/FIREBASE_TUTO.pdf`. Règles : `firestore.
 | Îles par taille libre (30 à 200 cases, climat, graine) | Générateur déjà prêt ; écran « Nouvelle île » | plus tard (audit vers 10) |
 | Mode Contemplation (zen, sans score, saisons au sablier) | Différent du Jardin par saisons et faune vivantes | à faire |
 | Retours sensoriels et calme (notes sobres, étoile franchie, vibrations, mode repos, vague de fermeture) | Lots « respiration » et « calme » issus des listes apaisement / satisfaction | fait (journal 64 à 67) |
+| Direction artistique : bâtiments, arbres et rochers en modèles 3D KayKit (CC0) | Rendus isométriques à notre projection par `tools/render_kaykit.js` | fait (journal 68) |
+| Fontaine, abreuvoir, campement, botte de foin | Pas d'équivalent dans le pack KayKit : sujets Kenney conservés, à trancher | à décider |
+| Animaux animés (Quaternius) vus en petit sur les tuiles | Chaîne de rendu prouvée (glTF animé → bandes de PNG) ; choix du pack validé par le commanditaire | en cours |
 | Mode Cent saisons (endurance sur une île qui grandit) | Fatigue par saison, fin quand plus aucune pose | à faire |
 | Défis à règle tordue (douze défis écrits à la main) | « été permanent », « eau et roche seulement », file à l'envers | plus tard (audit vers 10) |
 | Archipel 4 : îles jumelles partageant une rivière | Remplacé par les archipels du Livre II | écarté |

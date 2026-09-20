@@ -1,0 +1,127 @@
+#!/usr/bin/env node
+// Rendus isométriques des modèles 3D KayKit (CC0) à la projection exacte de nos tuiles.
+//
+//   node tools/render_kaykit.js <models.json> [--src <racine KayKit>] [--out <dossier>]
+//
+// models.json : { "nom": "chemin/relatif/sans/extension", … } — chemins relatifs à
+// Assets/gltf du pack. Chaque modèle est rendu en PNG transparent, rogné à son
+// contenu, et meta.json note où tombe l'origine du modèle (le centre de son pied)
+// dans l'image rognée : c'est par ce point que build_images.py l'ancre sur la tuile.
+//
+// Projection : élévation 30°, azimut −30°, orthographique, 120 px par unité monde.
+// L'hexagone KayKit mesure 2 unités de large ; nos tuiles 2× en font 240 px : un
+// modèle posé sur un hexagone KayKit garde donc sa taille relative chez nous.
+// L'éclairage reprend celui des rendus du Hexagon Pack (clé haute au nord-ouest).
+const { chromium } = require('/opt/node22/lib/node_modules/playwright');
+const fs = require('fs');
+const http = require('http');
+const path = require('path');
+const { execFileSync } = require('child_process');
+
+const ROOT = path.resolve(__dirname, '..');
+const CACHE = path.join(ROOT, 'tools', 'cache');
+const THREE_VERSION = '0.169.0';
+const EL = 30, AZ = -30, PPU = 120, CANVAS = 480;
+
+function arg(name, def) { const i = process.argv.indexOf(name); return i > 0 ? process.argv[i + 1] : def; }
+
+/** three.js n'est pas dans le dépôt : on le récupère depuis npm dans tools/cache/ (ignoré par git). */
+function ensureThree() {
+  const dir = path.join(CACHE, 'three');
+  if (fs.existsSync(path.join(dir, 'build', 'three.module.js'))) return dir;
+  fs.mkdirSync(CACHE, { recursive: true });
+  console.log(`three.js ${THREE_VERSION} absent : récupération depuis npm…`);
+  const tgz = execFileSync('npm', ['pack', `three@${THREE_VERSION}`, '--pack-destination', CACHE], { encoding: 'utf8' }).trim().split('\n').pop();
+  fs.mkdirSync(dir, { recursive: true });
+  execFileSync('tar', ['xzf', path.join(CACHE, tgz), '-C', dir, '--strip-components=1']);
+  fs.unlinkSync(path.join(CACHE, tgz));
+  return dir;
+}
+
+const PAGE = `<!doctype html><meta charset="utf-8"><body style="margin:0;background:#0000">
+<canvas id="c" width="${CANVAS}" height="${CANVAS}"></canvas>
+<script type="importmap">{"imports":{"three":"/three/build/three.module.js","three/addons/":"/three/examples/jsm/"}}</script>
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('c'), alpha: true, antialias: true });
+renderer.setClearColor(0x000000, 0);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+const scene = new THREE.Scene();
+scene.add(new THREE.HemisphereLight(0xffffff, 0x9aa7b0, 2.0));
+const key = new THREE.DirectionalLight(0xffffff, 2.1); key.position.set(-4, 7, 3); scene.add(key);
+const fill = new THREE.DirectionalLight(0xffffff, 0.5); fill.position.set(4, 2, -3); scene.add(fill);
+const half = ${CANVAS} / 2 / ${PPU};
+const cam = new THREE.OrthographicCamera(-half, half, half, -half, 0.01, 400);
+const e = ${EL} * Math.PI / 180, a = ${AZ} * Math.PI / 180, d = 200;
+cam.position.set(d * Math.cos(e) * Math.sin(a), d * Math.sin(e), d * Math.cos(e) * Math.cos(a));
+cam.up.set(0, 1, 0); cam.lookAt(0, 0, 0); cam.updateProjectionMatrix();
+const loader = new GLTFLoader();
+let current = null;
+window.__shot = (url) => new Promise((res, rej) => {
+  loader.load(url, (g) => {
+    if (current) scene.remove(current);
+    current = g.scene; scene.add(current);
+    const b = new THREE.Box3().setFromObject(current);
+    renderer.render(scene, cam);
+    res({ min: b.min.toArray(), max: b.max.toArray() });
+  }, undefined, (err) => rej(new Error(String((err && err.message) || err))));
+});
+window.__ready = true;
+</script></body>`;
+
+const MIME = { '.gltf': 'model/gltf+json', '.bin': 'application/octet-stream', '.png': 'image/png', '.js': 'text/javascript' };
+
+function serve(kayRoot, threeDir) {
+  const srv = http.createServer((req, res) => {
+    const url = decodeURIComponent(req.url.split('?')[0]);
+    if (url === '/render.html') { res.writeHead(200, { 'Content-Type': 'text/html' }); res.end(PAGE); return; }
+    let file = null;
+    if (url.startsWith('/three/')) file = path.join(threeDir, url.slice(7));
+    else if (url.startsWith('/kk/')) file = path.join(kayRoot, url.slice(4));
+    if (!file || !path.resolve(file).startsWith(path.resolve(url.startsWith('/three/') ? threeDir : kayRoot)) || !fs.existsSync(file)) {
+      res.writeHead(404); res.end('non'); return;
+    }
+    res.writeHead(200, { 'Content-Type': MIME[path.extname(file)] || 'application/octet-stream' });
+    fs.createReadStream(file).pipe(res);
+  });
+  return new Promise((ok) => srv.listen(0, '127.0.0.1', () => ok(srv)));
+}
+
+(async () => {
+  const models = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
+  const kayRoot = path.join(arg('--src', '/home/user/kaykit/KayKit-Medieval-Hexagon-Pack-1.0'),
+    'addons', 'kaykit_medieval_hexagon_pack', 'Assets', 'gltf');
+  const out = arg('--out', path.join(CACHE, 'kaykit'));
+  fs.mkdirSync(out, { recursive: true });
+  const threeDir = ensureThree();
+  const srv = await serve(kayRoot, threeDir);
+  const port = srv.address().port;
+  const b = await chromium.launch({ args: ['--use-gl=swiftshader', '--enable-unsafe-swiftshader'] });
+  const page = await b.newPage();
+  page.on('pageerror', (e) => console.log('[page]', e.message));
+  await page.goto(`http://127.0.0.1:${port}/render.html`);
+  await page.waitForFunction(() => window.__ready, null, { timeout: 60000 });
+
+  const meta = {};
+  const errors = [];
+  for (const [name, rel] of Object.entries(models)) {
+    const url = `/kk/${rel}.gltf`;
+    if (!fs.existsSync(path.join(kayRoot, `${rel}.gltf`))) { errors.push(`${name} : modèle absent (${rel}.gltf)`); continue; }
+    let box;
+    try { box = await page.evaluate((u) => window.__shot(u), url); }
+    catch (e) { errors.push(`${name} : ${e.message}`); continue; }
+    const buf = await page.locator('#c').screenshot({ omitBackground: true });
+    const tmp = path.join(out, `${name}.raw.png`);
+    fs.writeFileSync(tmp, buf);
+    meta[name] = { model: rel, box: { min: box.min.map((x) => +x.toFixed(4)), max: box.max.map((x) => +x.toFixed(4)) } };
+  }
+  await b.close();
+  srv.close();
+  fs.writeFileSync(path.join(out, 'meta.json'), JSON.stringify({
+    projection: { elevation: EL, azimuth: AZ, pixelsPerUnit: PPU, canvas: CANVAS },
+    models: meta,
+  }, null, 1));
+  if (errors.length) { console.error(`${errors.length} modèle(s) en échec :\n` + errors.join('\n')); process.exit(1); }
+  console.log(`${Object.keys(meta).length} modèles rendus dans ${out}`);
+})();

@@ -98,7 +98,7 @@ assets/img/           tuiles (2×, quatre saisons), faune, effets, icônes + man
 assets/audio/         musiques, ambiances, effets (OGG) + manifest.json
 assets/fonts/         Lora et Quicksand (WOFF2, SIL OFL)
 assets/credits/       sources et licences (JSON) lues par l'écran des crédits
-tools/                pipelines d'assets (images, audio, polices, crédits)
+tools/                pipelines d'assets (images, audio, polices, crédits, rendus 3D KayKit)
 tests/                tests du modèle (Node) et bot de parcours (Playwright)
 JOURNAL_DE_BORD.md    document de référence du projet (vision, GDD, DA, décisions, journal)
 CREDITS.md            crédits complets générés
@@ -200,4 +200,4 @@ node tests/mobile.js                          # émulation téléphone (iPhone 1
 
 ## Assets et licences
 
-Tous les graphismes, sons et musiques proviennent de banques libres (Kenney CC0, Kevin MacLeod CC BY 4.0, Freesound CC0, OpenGameArt CC0, FluidR3_GM CC BY 3.0, Google Fonts SIL OFL). Chaque œuvre est listée avec son auteur, sa licence et sa source dans `CREDITS.md` et dans l'écran Crédits du jeu. Le code est publié sous licence MIT (`LICENSE`).
+Tous les graphismes, sons et musiques proviennent de banques libres (Kenney CC0, KayKit / Kay Lousberg CC0, Kevin MacLeod CC BY 4.0, Freesound CC0, OpenGameArt CC0, FluidR3_GM CC BY 3.0, Google Fonts SIL OFL). Les bâtiments, les arbres et les rochers du plateau sont des **modèles 3D KayKit rendus en PNG isométriques** à la projection exacte de nos tuiles (`tools/render_kaykit.js`). Chaque œuvre est listée avec son auteur, sa licence et sa source dans `CREDITS.md` et dans l'écran Crédits du jeu. Le code est publié sous licence MIT (`LICENSE`).

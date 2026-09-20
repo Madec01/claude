@@ -60,6 +60,66 @@ PACKS = {
     "kenney_natureKit_2.1": dict(pack="Nature Kit", url="https://kenney.nl/assets/nature-kit", license_file="License.txt"),
     "kenney_piratepack": dict(pack="Pirate Pack", url="https://kenney.nl/assets/pirate-pack", license_file="License.txt"),
 }
+# Pack 3D KayKit (CC0 également) : les modèles sont rendus en PNG isométriques par
+# tools/render_kaykit.js, à la projection exacte de nos tuiles (30°, 120 px/unité).
+KAYKIT = dict(pack="KayKit : Medieval Hexagon Pack (1.0)", author="Kay Lousberg",
+              url="https://kaylousberg.itch.io/kaykit-medieval-hexagon",
+              mirror="https://github.com/KayKit-Game-Assets/KayKit-Medieval-Hexagon-Pack-1.0",
+              license_file="LICENSE.txt")
+
+# Alias de modèle → chemin sous Assets/gltf/ du pack. Le rouge est la couleur d'équipe
+# dont les toits sont les plus proches de notre terre cuite.
+KAY_MODELS = {
+    "home_A": "buildings/red/building_home_A_red",
+    "home_B": "buildings/red/building_home_B_red",
+    "church": "buildings/red/building_church_red",
+    "windmill": "buildings/red/building_windmill_red",
+    "watermill": "buildings/red/building_watermill_red",
+    "market": "buildings/red/building_market_red",
+    "tavern": "buildings/red/building_tavern_red",
+    "well": "buildings/red/building_well_red",
+    "mine": "buildings/red/building_mine_red",
+    "tower": "buildings/red/building_tower_A_red",
+    "tower_base": "buildings/red/building_tower_base_red",
+    "barracks": "buildings/red/building_barracks_red",
+    "blacksmith": "buildings/red/building_blacksmith_red",
+    "lumbermill": "buildings/red/building_lumbermill_red",
+    "gate": "buildings/neutral/wall_straight_gate",
+    "wall": "buildings/neutral/wall_straight",
+    "ruin": "buildings/neutral/building_destroyed",
+    "scaffolding": "buildings/neutral/building_scaffolding",
+    "stage": "buildings/neutral/building_stage_C",
+    "fence_wood": "buildings/neutral/fence_wood_straight",
+    "fence_stone": "buildings/neutral/fence_stone_straight",
+    "mountain_A": "decoration/nature/mountain_A",
+    "mountain_B": "decoration/nature/mountain_B",
+    "mountain_C": "decoration/nature/mountain_C",
+    "rock_A": "decoration/nature/rock_single_A",
+    "rock_B": "decoration/nature/rock_single_B",
+    "rock_C": "decoration/nature/rock_single_C",
+    "rock_D": "decoration/nature/rock_single_D",
+    "rock_E": "decoration/nature/rock_single_E",
+    "pine_big": "decoration/nature/tree_single_A",
+    "pines_large": "decoration/nature/trees_A_large",
+    "pines_medium": "decoration/nature/trees_A_medium",
+    "pines_small": "decoration/nature/trees_A_small",
+    "round_large": "decoration/nature/trees_B_large",
+    "round_medium": "decoration/nature/trees_B_medium",
+    "round_small": "decoration/nature/trees_B_small",
+    "round_big": "decoration/nature/tree_single_B",
+    "table": "decoration/props/tent",
+    "barrel": "decoration/props/barrel",
+    "crate": "decoration/props/crate_A_big",
+    "crate_open": "decoration/props/crate_open",
+    "sack": "decoration/props/sack",
+    "lumber": "decoration/props/resource_lumber",
+    "wheelbarrow": "decoration/props/wheelbarrow",
+    "bucket": "decoration/props/bucket_water",
+    "pallet": "decoration/props/pallet",
+    "flag": "decoration/props/flag_red",
+    "flag_green": "decoration/props/flag_green",
+}
+
 NK = "kenney_natureKit_2.1"
 PP = "kenney_piratepack"
 HP, HT, AN, PA, SM, FO, GI, GIE, UI = ("hexagon-pack", "hexagontiles", "kenney_animalpackredux", "particlePack_1.1",
@@ -226,13 +286,17 @@ def fit(im, box):
 class Sources:
     """Accès aux sprites : Hexagon Pack en 2× (cache SVG ou Lanczos), autres packs natifs."""
 
-    def __init__(self, src_root):
+    def __init__(self, src_root, kay_root=None):
         self.src = src_root
+        self.kay_root = kay_root
         self.hp_png = src_root / HP / "PNG"
         self.tiles2x = CACHE / "hex2x_tiles"
         self.objs2x = CACHE / "hex2x_objects"
+        self.kay2x = CACHE / "kaykit"
         self.methods = {}   # nom de sprite Hexagon Pack → "svg2x" | "lanczos"
         self.cache = {}
+        self.kay_cache = {}
+        self.kay_used = set()
 
     def prepare(self, rebuild=False):
         """Rasterise les SVG (Chromium) et extrait les sprites 2× si le cache manque."""
@@ -258,6 +322,50 @@ class Sources:
             pngs = {p.stem: p for p in sorted((self.hp_png / "Objects").glob("*.png"))}
             res, missing = extract(svg_dir / "objects_1x.png", svg_dir / f"objects_{SCALE}x.png", SCALE, pngs, self.objs2x)
             (self.objs2x / "_index.json").write_text(json.dumps({"matched": res, "missing": missing}, indent=1))
+        self.prepare_kaykit(rebuild)
+
+    def prepare_kaykit(self, rebuild=False):
+        """Rend les modèles 3D KayKit en PNG isométriques (Chromium + three.js) si le cache manque."""
+        self.kay2x.mkdir(parents=True, exist_ok=True)
+        todo = rebuild or not (self.kay2x / "meta.json").exists() or any(
+            not (self.kay2x / f"{n}.raw.png").exists() for n in KAY_MODELS)
+        if not todo:
+            return
+        jobs = CACHE / "kaykit_models.json"
+        jobs.write_text(json.dumps(KAY_MODELS, indent=1), encoding="utf-8")
+        print(f"rendu des {len(KAY_MODELS)} modèles KayKit (Chromium + three.js)…")
+        subprocess.run(["node", str(ROOT / "tools" / "render_kaykit.js"), str(jobs),
+                        "--src", str(self.kay_root), "--out", str(self.kay2x)], check=True)
+
+    def kay(self, name, scale=1.0):
+        """Modèle KayKit rendu : (image rognée, origine x, origine y dans l'image).
+
+        L'origine du modèle — le centre de son pied — est au centre du canevas de rendu ;
+        après rognage on sait donc exactement par quel point l'ancrer sur la tuile.
+        """
+        k = (name, scale)
+        if k in self.kay_cache:
+            return self.kay_cache[k]
+        if name not in KAY_MODELS:
+            raise KeyError(f"Modèle KayKit inconnu : {name}")
+        p = self.kay2x / f"{name}.raw.png"
+        if not p.exists():
+            raise FileNotFoundError(f"Rendu KayKit manquant : {p} (relancer avec --rebuild-cache)")
+        im = Image.open(p).convert("RGBA")
+        canvas = im.width
+        box = im.getbbox()
+        if box is None:
+            raise ValueError(f"Rendu KayKit vide : {name}")
+        if box[0] <= 0 or box[1] <= 0 or box[2] >= im.width or box[3] >= im.height:
+            raise ValueError(f"Rendu KayKit rogné par le canevas : {name} {box}")
+        im = im.crop(box)
+        ox, oy = canvas / 2 - box[0], canvas / 2 - box[1]
+        if scale != 1.0:
+            im = im.resize((max(1, round(im.width * scale)), max(1, round(im.height * scale))), Image.LANCZOS)
+            ox, oy = ox * scale, oy * scale
+        self.kay_used.add(name)
+        self.kay_cache[k] = (im, ox, oy)
+        return self.kay_cache[k]
 
     def hp(self, name):
         """Sprite du Hexagon Pack en 2× (tuile de terrain, tuile médiévale ou objet)."""
@@ -315,6 +423,7 @@ def T(family, base, layers=(), base_kind="grass", base_mirror=False, base_rot=0,
 
 
 PINE, PINE_S, ROUND, ROUND_S = "obj:treePine_large", "obj:treePine_small", "obj:treeRound_large", "obj:treeRound_small"
+KPINE, KROUND = "kay:pine_big", "kay:round_big"   # arbres 3D KayKit isolés (feuillage recoloré par saison)
 FLOWERS_SPRING = [L("ht:flowerWhite:2.8", 34, 92, "flower", ("spring",)), L("ht:flowerYellow:2.8", 90, 60, "flower", ("spring",)),
                   L("ht:flowerWhite:2.8", 72, 112, "flower", ("spring",))]
 FLOWERS_SUMMER = [L("ht:flowerYellow:2.8", 34, 92, "flower", ("summer",)), L("ht:flowerRed:2.8", 90, 60, "flower", ("summer",))]
@@ -327,23 +436,18 @@ TILES = {
     "meadow_3": T("meadow", "grass_05", [L("obj:rockGrey_small3", 84, 96, "rock"), L("ht:bushGrass:2.6", 32, 74, "reed")],
                   base_rot=180, note="Herbe unie tournée de 180° + petit rocher + touffe (Hexagon Tiles ×2.6)."),
     # --- forêts : trois densités (5, 7 et 9 arbres)
-    "forest_1": T("forest", "grass_05", [L(PINE, 44, 72, "foliage"), L(ROUND_S, 78, 66, "foliage"), L(PINE_S, 30, 104, "foliage"),
-                                         L(PINE_S, 62, 98, "foliage"), L(ROUND_S, 92, 104, "foliage")], note="Forêt clairsemée : 5 arbres (2 pins, 2 pins nains, 1 feuillu)."),
-    "forest_2": T("forest", "grass_05", [L(PINE, 36, 68, "foliage"), L(ROUND, 70, 58, "foliage"), L(PINE_S, 96, 88, "foliage"),
-                                         L(ROUND_S, 50, 100, "foliage"), L(PINE, 82, 108, "foliage"), L(PINE_S, 26, 96, "foliage"),
-                                         L(ROUND_S, 64, 118, "foliage")], note="Forêt moyenne : 7 arbres."),
-    "forest_3": T("forest", "grass_05", [L(PINE, 30, 74, "foliage"), L(ROUND, 58, 54, "foliage"), L(PINE, 88, 72, "foliage"),
-                                         L(ROUND_S, 44, 102, "foliage"), L(PINE_S, 76, 106, "foliage"), L(PINE_S, 62, 86, "foliage"),
-                                         L(ROUND_S, 100, 96, "foliage"), L(PINE_S, 24, 100, "foliage"), L(ROUND_S, 60, 122, "foliage")], note="Forêt dense : 9 arbres."),
+    "forest_1": T("forest", "grass_05", [L(KPINE, 44, 80, "foliage", scale=0.55), L(KPINE, 74, 74, "foliage", scale=0.5), L(KPINE, 62, 96, "foliage", scale=0.6)], note="Forêt clairsemée : trois sapins KayKit isolés."),
+    "forest_2": T("forest", "grass_05", [L("kay:pines_small", 60, 88, "foliage", scale=1.05)], note="Forêt moyenne : bosquet de sapins (KayKit trees_A_small)."),
+    "forest_3": T("forest", "grass_05", [L("kay:pines_large", 60, 90, "foliage", scale=1.05)], note="Forêt dense : futaie de sapins (KayKit trees_A_large)."),
     # --- vergers : deux rangs de feuillus + clôture / haie, fruits en été et en automne
-    "orchard_1": T("orchard", "grass_05", [L(ROUND_S, 34, 66, "foliage", fruits=True), L(ROUND_S, 60, 60, "foliage", fruits=True), L(ROUND_S, 86, 66, "foliage", fruits=True),
-                                           L(ROUND_S, 46, 92, "foliage", fruits=True), L(ROUND_S, 74, 92, "foliage", fruits=True),
-                                           L("obj:fence", 34, 112), L("obj:fence", 86, 112)],
-                  note="Verger : 5 treeRound_small en deux rangs + 2 clôtures ; fruits dessinés en été/automne."),
-    "orchard_2": T("orchard", "grass_05", [L(ROUND_S, 38, 62, "foliage", fruits=True), L(ROUND_S, 82, 62, "foliage", fruits=True),
-                                           L(ROUND_S, 30, 90, "foliage", fruits=True), L(ROUND_S, 60, 84, "foliage", fruits=True), L(ROUND_S, 90, 90, "foliage", fruits=True),
-                                           L(ROUND_S, 60, 110, "foliage", fruits=True), L("obj:hedge", 60, 126, "foliage", scale=0.45)],
-                  note="Verger : 6 treeRound_small + haie (hedge ×0.45) ; fruits dessinés en été/automne."),
+    "orchard_1": T("orchard", "grass_05", [L(KROUND, 38, 72, "foliage", scale=0.42, fruits=True), L(KROUND, 61, 68, "foliage", scale=0.42, fruits=True),
+                                           L(KROUND, 84, 72, "foliage", scale=0.42, fruits=True), L(KROUND, 49, 92, "foliage", scale=0.42, fruits=True),
+                                           L(KROUND, 72, 92, "foliage", scale=0.42, fruits=True), L("kay:fence_wood", 46, 104, scale=0.45), L("kay:fence_wood", 76, 104, scale=0.45)],
+                  note="Verger : 5 arbres ronds KayKit en deux rangs + 2 clôtures ; fruits dessinés en été/automne."),
+    "orchard_2": T("orchard", "grass_05", [L(KROUND, 42, 68, "foliage", scale=0.4, fruits=True), L(KROUND, 78, 68, "foliage", scale=0.4, fruits=True),
+                                           L(KROUND, 33, 90, "foliage", scale=0.4, fruits=True), L(KROUND, 60, 84, "foliage", scale=0.4, fruits=True),
+                                           L(KROUND, 87, 90, "foliage", scale=0.4, fruits=True), L(KROUND, 60, 108, "foliage", scale=0.4, fruits=True)],
+                  note="Verger : 6 arbres ronds KayKit ; fruits dessinés en été/automne."),
     # --- champs : parcelles en quinconce + foin + clôture
     "field_1": T("field", "dirt_06", [L("ht:bushGrass:1.9", x, y, "crop") for (x, y) in
                                       [(34, 68), (52, 68), (70, 68), (88, 68), (26, 84), (44, 84), (62, 84), (80, 84), (98, 84), (34, 100), (52, 100), (70, 100), (88, 100), (44, 116), (62, 116), (80, 116)]]
@@ -352,13 +456,13 @@ TILES = {
                                       [(44, 66), (62, 66), (80, 66), (34, 82), (52, 82), (70, 82), (88, 82), (26, 98), (44, 98), (62, 98), (80, 98), (98, 98), (52, 114), (70, 114)]]
                  + [L("obj:hay", 30, 116), L("obj:fence", 96, 118)], base_kind="dirt", base_mirror=True, note="Champ : terre nue en miroir + rangs de culture + foin + clôture."),
     # --- hameaux (bâtiments inchangés par la saison)
-    "hamlet_1": T("hamlet", "grass_05", [L("obj:house", 62, 100), L("obj:house_small", 38, 80), L("obj:well", 98, 80), L("obj:fence", 92, 114)],
-                  note="Grande maison (house) + maisonnette + puits + clôture."),
-    "hamlet_2": T("hamlet", "grass_05", [L("obj:house_small", 40, 82), L("obj:tinyBuilding", 104, 72), L("obj:farm", 72, 108),
-                                         L("obj:hay", 28, 108), L("obj:fence", 104, 116)], note="Maisonnette + remise + ferme + foin + clôture."),
-    "hamlet_3": T("hamlet", "grass_05", [L("obj:villa", 64, 94), L("obj:tinyBuilding", 26, 80), L("obj:house_small", 96, 108, scale=0.85),
-                                         L("obj:logPile", 34, 108), L("obj:fence", 100, 68)],
-                  note="Villa + remise + maisonnette + tas de bûches + clôture."),
+    "hamlet_1": T("hamlet", "grass_05", [L("kay:home_A", 58, 90, scale=1.1), L("kay:barrel", 90, 98, scale=1.2), L("kay:fence_wood", 40, 94, scale=0.45)],
+                  note="Hameau : maison KayKit + tonneau + clôture."),
+    "hamlet_2": T("hamlet", "grass_05", [L("kay:home_B", 60, 98, scale=0.95), L("kay:sack", 30, 102, scale=1.6), L("kay:wheelbarrow", 88, 98, scale=1.2)],
+                  note="Village : maison à étage KayKit + sac de grain + brouette."),
+    "hamlet_3": T("hamlet", "grass_05", [L("kay:home_B", 50, 94, scale=0.82), L("kay:home_A", 86, 106, scale=0.78),
+                                         L("kay:crate", 30, 100, scale=1.3), L("kay:fence_wood", 92, 78, scale=0.6)],
+                  note="Bourg : deux maisons KayKit + caisse + clôture."),
     # --- eau (base hexagonale pleine, vagues Hexagon Tiles ×3.7) — identique aux 4 saisons
     "water_1": T("water", "water", [L("ht:waveWater:3.7", 40, 60, "wave"), L("ht:waveWater:3.7", 78, 90, "wave"),
                                     L("ht:waveWater:3.7", 50, 116, "wave")], base_kind="water",
@@ -376,58 +480,65 @@ TILES = {
                                       L("ht:flowerYellow:2.8", 58, 56, "flower", ("spring",)), L("ht:flowerWhite:2.8", 86, 112, "flower", ("spring",))],
                  base_kind="dirt", base_mirror=True, note="Terre en miroir + 2 flaques + 3 roseaux ; fleurs au printemps."),
     # --- roches : pierre + rochers gris (neige sur les sommets en hiver)
-    "rock_1": T("rock", "stone_07", [L("obj:rockGrey_large", 60, 108, "rock"), L("obj:rockGrey_small1", 26, 92, "rock"), L("obj:rockGrey_small4", 96, 80, "rock"),
-                                     L("obj:rockGrey_small2", 92, 116, "rock")], base_kind="stone", note="Grand rocher + trois petits."),
-    "rock_2": T("rock", "stone_07", [L("obj:rockGrey_medium1", 42, 82, "rock"), L("obj:rockGrey_medium3", 82, 102, "rock"),
-                                     L("obj:rockGrey_small3", 32, 108, "rock")], base_kind="stone", note="Deux rochers moyens + un petit."),
-    "rock_3": T("rock", "stone_07", [L("obj:rockGrey_small1", 36, 70, "rock"), L("obj:rockGrey_small2", 78, 62, "rock"),
-                                     L("obj:rockGrey_small3", 56, 100, "rock"), L("obj:rockGrey_medium2", 88, 106, "rock")],
-                base_kind="stone", base_mirror=True, note="Éboulis : trois petits rochers + un moyen."),
+    "rock_1": T("rock", "stone_07", [L("kay:mountain_A", 60, 96, "rock", scale=0.62), L("kay:rock_C", 28, 100, "rock", scale=1.4),
+                                     L("kay:rock_A", 94, 86, "rock", scale=1.3)], base_kind="stone", note="Massif KayKit + deux blocs."),
+    "rock_2": T("rock", "stone_07", [L("kay:mountain_B", 46, 88, "rock", scale=0.45), L("kay:mountain_C", 80, 100, "rock", scale=0.42),
+                                     L("kay:rock_A", 32, 106, "rock", scale=1.2)], base_kind="stone", note="Deux massifs KayKit + un bloc."),
+    "rock_3": T("rock", "stone_07", [L("kay:rock_C", 38, 74, "rock", scale=1.6), L("kay:rock_B", 76, 68, "rock", scale=1.5),
+                                     L("kay:rock_A", 56, 98, "rock", scale=1.4), L("kay:rock_D", 86, 104, "rock", scale=1.5)],
+                base_kind="stone", base_mirror=True, note="Éboulis : quatre blocs KayKit."),
     # --- sable (pas de saison)
     "sand_1": T("sand", "sand_07", base_kind="sand", note="Sable uni (sand_07)."),
     "sand_2": T("sand", "sand_07", [L("obj:rockBrown_small", 84, 98, "rock")], base_kind="sand", base_mirror=True, base_rot=180,
                 note="Sable uni tourné + petit rocher brun."),
     # --- tuiles rares
-    "mill": T("rare", "grass_05", [L("obj:windmill_complete", 60, 90), L("obj:hay", 26, 104), L("obj:fence", 96, 104)],
-              note="Moulin (windmill_complete) + foin + clôture."),
-    "chapel": T("rare", "grass_05", [L("obj:church", 60, 100), L("obj:tombstone1", 20, 96), L(PINE_S, 102, 72, "foliage")],
-                note="Chapelle (church) + stèle + pin."),
-    "watchtower": T("rare", "grass_05", [L("obj:tower", 60, 106), L("obj:rockGrey_small1", 24, 96, "rock"), L(PINE_S, 96, 72, "foliage")],
-                    note="Tour de guet (tower) + rocher + pin."),
-    "well": T("rare", "grass_05", [L("obj:well", 60, 82), L("obj:fence", 30, 100), L("obj:fence", 90, 100)] + FLOWERS_SPRING + FLOWERS_SUMMER,
-              note="Puits + 2 clôtures + fleurs (printemps, été)."),
-    "camp": T("rare", "grass_05", [L("obj:campingTent", 44, 86), L("obj:fire", 82, 92), L("obj:log", 84, 110), L(PINE_S, 30, 108, "foliage")],
-              note="Campement : tente + feu (fire, Lanczos) + bûche + pin."),
-    "ruins": T("rare", "stone_07", [L("obj:towerRuin", 48, 80, "rock"), L("obj:ruinsCorner", 82, 106, "rock"), L("obj:ruins_brick1", 26, 104, "rock")],
-               base_kind="stone", note="Ruines (towerRuin + ruinsCorner + brique) sur pierre."),
+    "mill": T("rare", "grass_05", [L("kay:windmill", 60, 88, scale=1.0), L("kay:sack", 28, 104, scale=1.6), L("kay:fence_wood", 94, 100, scale=0.8)],
+              note="Moulin à vent KayKit + sac de grain + clôture."),
+    "chapel": T("rare", "grass_05", [L("kay:church", 60, 92, scale=0.95), L("kay:fence_stone", 26, 102, scale=0.9), L(KPINE, 98, 78, "foliage", scale=0.5)],
+                note="Église KayKit + muret de pierre + sapin."),
+    "watchtower": T("rare", "grass_05", [L("kay:tower", 60, 96, scale=0.78), L("kay:wall", 32, 96, scale=0.55), L(KPINE, 96, 80, "foliage", scale=0.45)],
+                    note="Tour de guet KayKit + pan de muraille + sapin."),
+    "well": T("rare", "grass_05", [L("kay:well", 60, 88, scale=1.3), L("kay:fence_wood", 40, 94, scale=0.45), L("kay:fence_wood", 82, 94, scale=0.45)] + FLOWERS_SPRING + FLOWERS_SUMMER,
+              note="Puits KayKit + 2 clôtures + fleurs (printemps, été)."),
+    "camp": T("rare", "grass_05", [L("obj:campingTent", 44, 86), L("obj:fire", 82, 92), L("kay:lumber", 84, 108, scale=0.9), L(KPINE, 30, 100, "foliage", scale=0.45)],
+              note="Campement : tente et feu Kenney + rondins et sapin KayKit."),
+    "ruins": T("rare", "stone_07", [L("kay:ruin", 58, 92, scale=1.0), L("kay:lumber", 32, 100, scale=0.95)],
+               base_kind="stone", note="Ruines KayKit (bâtiment effondré) sur pierre."),
     # --- collines (dès l'île 7) : hillGrass des Hexagon Tiles, recolorée comme l'herbe
-    "hill_1": T("hill", "grass_17", [L(ROUND_S, 40, 72, "foliage"), L(PINE_S, 84, 66, "foliage"), L("ht:bushGrass:2.2", 62, 92, "reed")],
-                note="Colline : tuile surélevée grass_17 (plateau et talus) recolorée par saison + feuillu, pin nain et touffe."),
-    "hill_2": T("hill", "grass_17", [L(PINE_S, 34, 76, "foliage"), L("obj:rockGrey_small3", 88, 74, "rock"), L(ROUND_S, 66, 88, "foliage"), L("ht:bushGrass:2.2", 96, 96, "reed")],
-                base_mirror=True, note="Colline en miroir + pin nain, feuillu, petit rocher et touffe."),
+    "hill_1": T("hill", "grass_17", [L(KROUND, 42, 74, "foliage", scale=0.5), L(KPINE, 82, 68, "foliage", scale=0.5), L("ht:bushGrass:2.2", 62, 92, "reed")],
+                note="Colline : tuile surélevée grass_17 recolorée par saison + un feuillu et un sapin KayKit + touffe."),
+    "hill_2": T("hill", "grass_17", [L(KPINE, 36, 78, "foliage", scale=0.5), L("obj:rockGrey_small3", 88, 74, "rock"), L(KROUND, 66, 88, "foliage", scale=0.45), L("ht:bushGrass:2.2", 96, 96, "reed")],
+                base_mirror=True, note="Colline en miroir + sapin et feuillu KayKit, petit rocher et touffe."),
     # --- landes (dès l'île 9) : sol ocre + bruyère (bushGrass recolorées en violet)
     "heath_1": T("heath", "grass_05", [L("ht:bushGrass:2.5", 36, 82, "heather"), L("ht:bushGrass:2.5", 78, 70, "heather"), L("ht:bushGrass:2.5", 60, 108, "heather"),
                                        L("ht:bushGrass:2.3", 94, 104, "heather"), L("obj:rockGrey_small3", 28, 106, "rock")],
                  base_kind="heath", note="Lande : sol ocre (grass_05 recolorée) + quatre touffes de bruyère + petit rocher."),
     "heath_2": T("heath", "grass_05", [L("ht:bushGrass:2.5", 44, 72, "heather"), L("ht:bushGrass:2.5", 88, 84, "heather"), L("ht:bushGrass:2.5", 52, 110, "heather"),
-                                       L(PINE_S, 96, 116, "foliage"), L("obj:rockGrey_small4", 24, 96, "rock")],
+                                       L(KPINE, 94, 112, "foliage", scale=0.42), L("obj:rockGrey_small4", 24, 96, "rock")],
                  base_kind="heath", base_mirror=True, note="Lande en miroir : trois touffes de bruyère + pin nain + rocher."),
     # --- rares tardives
-    "granary": T("rare", "grass_05", [L("obj:silo1", 60, 96), L("obj:hay", 26, 104), L("obj:hay", 94, 108), L("obj:fence", 92, 70)],
-                 note="Grenier (silo1) + foin + clôture."),
-    "fountain": T("rare", "grass_05", [L("obj:fountain", 60, 94), L("obj:fence", 26, 100), L("obj:fence", 94, 100)] + FLOWERS_SPRING + FLOWERS_SUMMER,
+    "granary": T("rare", "grass_05", [L("kay:lumbermill", 60, 92, scale=0.8), L("kay:sack", 32, 100, scale=2.6), L("kay:sack", 86, 104, scale=2.6)],
+                 note="Grenier : bâtiment de bois KayKit + deux sacs de grain."),
+    "fountain": T("rare", "grass_05", [L("obj:fountain", 60, 94), L("kay:fence_stone", 40, 94, scale=0.5), L("kay:fence_stone", 82, 94, scale=0.5)] + FLOWERS_SPRING + FLOWERS_SUMMER,
                   note="Fontaine + clôtures + fleurs au printemps et en été."),
     # --- tuiles d'événement (dès l'île 5) et rares tardives (dès l'île 8)
-    "market": T("rare", "grass_05", [L("obj:shop", 60, 98), L("obj:hay", 22, 104), L("obj:banner", 98, 74)], note="Marché : échoppe + foin + bannière."),
-    "fete": T("rare", "grass_05", [L("obj:banner", 38, 96), L("obj:banner", 82, 96), L("obj:log", 60, 112), L("obj:hay", 60, 74)] + FLOWERS_SPRING + FLOWERS_SUMMER,
-              note="Fête : deux bannières, un tronc pour s'asseoir, du foin, des fleurs."),
-    "restore": T("rare", "grass_05", [L("obj:ruinsCorner", 62, 100, "rock"), L("obj:ruins_brick1", 28, 104, "rock"), L("obj:ruins_brick1", 94, 84, "rock")],
-                 note="Ruine à restaurer : pans de mur sur l'herbe (devient la famille majoritaire autour d'elle)."),
-    "tavern": T("rare", "grass_05", [L("obj:tavern", 60, 98), L("obj:fence", 98, 110), L("obj:logPile", 22, 104)], note="Auberge + clôture + bûches."),
-    "trough": T("rare", "grass_05", [L("obj:horseTrough", 60, 94), L("obj:fence", 26, 104), L("obj:fence", 94, 104)] + FLOWERS_SPRING, note="Abreuvoir + clôtures + fleurs au printemps."),
-    "archway": T("rare", "grass_05", [L("obj:archway", 60, 100), L("obj:wall_small", 24, 104), L("obj:wall_small", 96, 104)], note="Porche + murets."),
-    "mine": T("rare", "stone_07", [L("obj:mine", 60, 98), L("obj:rockGrey_small1", 24, 100, "rock"), L("obj:log", 96, 108)], base_kind="stone", note="Mine sur pierre + rocher + bûche."),
-    "oven": T("rare", "grass_05", [L("obj:oven", 60, 96), L("obj:hay", 94, 106), L("obj:logPile", 26, 100)], note="Four à pain + foin + bûches."),
+    "market": T("rare", "grass_05", [L("kay:market", 60, 90, scale=0.9), L("kay:crate_open", 26, 104, scale=1.3)],
+                note="Marché KayKit (étal, auvent, cageots) + caisse ouverte."),
+    "fete": T("rare", "grass_05", [L("kay:table", 46, 90, scale=1.0), L("kay:table", 72, 100, scale=1.0), L("kay:barrel", 60, 78, scale=1.1),
+                                       L("kay:crate_open", 88, 104, scale=1.1), L("kay:flag", 30, 100, scale=2.6), L("kay:flag_green", 90, 84, scale=2.6)] + FLOWERS_SPRING + FLOWERS_SUMMER,
+              note="Fête : deux tablées KayKit, un tonneau, deux oriflammes, des fleurs."),
+    "restore": T("rare", "grass_05", [L("kay:scaffolding", 60, 92, scale=0.85), L("kay:pallet", 26, 106, scale=1.3)],
+                 note="Chantier KayKit : échafaudage et palette (devient la famille majoritaire autour d'elle)."),
+    "tavern": T("rare", "grass_05", [L("kay:tavern", 60, 90, scale=0.95), L("kay:barrel", 26, 102, scale=1.4), L("kay:barrel", 94, 106, scale=1.2)],
+                note="Taverne KayKit + deux tonneaux."),
+    "trough": T("rare", "grass_05", [L("obj:horseTrough", 60, 94), L("kay:fence_wood", 40, 94, scale=0.45), L("kay:fence_wood", 82, 94, scale=0.45), L("kay:bucket", 92, 104, scale=1.4)] + FLOWERS_SPRING,
+                note="Abreuvoir + clôtures KayKit + seau + fleurs au printemps."),
+    "archway": T("rare", "grass_05", [L("kay:gate", 60, 94, scale=0.8), L("kay:wall", 28, 96, scale=0.5), L("kay:wall", 92, 96, scale=0.5)],
+                 note="Porte fortifiée KayKit + deux pans de muraille."),
+    "mine": T("rare", "stone_07", [L("kay:mine", 60, 92, scale=0.85), L("kay:lumber", 32, 100, scale=1.0)], base_kind="stone",
+             note="Mine KayKit creusée dans la roche + rondins."),
+    "oven": T("rare", "grass_05", [L("kay:blacksmith", 60, 90, scale=1.0), L("kay:lumber", 32, 100, scale=1.0)],
+             note="Forge KayKit (four et cheminée) + rondins."),
     "dry_meadow": T("rare", "grass_05", [L("ht:bushGrass:2.6", 36, 96, "dry"), L("ht:bushGrass:2.6", 88, 66, "dry")], base_kind="dry",
                     note="Prairie sèche d'été (herbe paille #cdbb6a), identique aux 4 saisons."),
 }
@@ -495,9 +606,11 @@ class Composer:
         elif sp.startswith("ht:"):
             _, name, sc = sp.split(":")
             im = self.src.ht(name, float(sc))
+        elif sp.startswith("kay:"):
+            im = self.src.kay(sp[4:], layer["scale"])[0]   # l'échelle est déjà appliquée (l'origine la suit)
         else:
             raise ValueError(sp)
-        if layer["scale"] != 1.0:
+        if layer["scale"] != 1.0 and not sp.startswith("kay:"):
             im = im.resize((max(1, round(im.width * layer["scale"])), max(1, round(im.height * layer["scale"]))), Image.LANCZOS)
         if layer["mirror"]:
             im = im.transpose(Image.FLIP_LEFT_RIGHT)
@@ -566,8 +679,16 @@ class Composer:
                 self.draw_puddle(canvas, layer, season)
                 continue
             im = self.layer_image(layer, season, i)
-            x = layer["x"] * SCALE - im.width // 2
-            y = layer["y"] * SCALE - im.height
+            if layer["sprite"].startswith("kay:"):
+                # modèle 3D : ancré par l'origine du modèle (le centre de son pied), pas par le bas de l'image
+                ox, oy = self.src.kay(layer["sprite"][4:], layer["scale"])[1:]
+                if layer["mirror"]:
+                    ox = im.width - ox
+                x = round(layer["x"] * SCALE - ox)
+                y = round(layer["y"] * SCALE - oy)
+            else:
+                x = layer["x"] * SCALE - im.width // 2
+                y = layer["y"] * SCALE - im.height
             # vérification : rien ne dépasse de l'hexagone
             probe = Image.new("L", (TILE_W, TILE_H), 0)
             probe.paste(im.split()[3], (x, y))
@@ -643,12 +764,13 @@ def draw_wind(size=100):
 # Construction
 # ===========================================================================
 class Builder:
-    def __init__(self, src_root, repo, sheets=False):
-        self.src = Sources(src_root)
+    def __init__(self, src_root, repo, sheets=False, kay_root=None):
+        self.src = Sources(src_root, kay_root)
         self.repo = repo
         self.img_root = repo / "assets" / "img"
         self.manifest = {}
         self.per_pack = {pid: set() for pid in PACKS}
+        self.per_pack["kaykit"] = set()
         self.sheets = sheets
         self.tiles_by_season = {s: [] for s in SEASONS}
 
@@ -749,11 +871,24 @@ class Builder:
                 im = im.crop((bb[0], 0, bb[2], im.height))
             self.emit(keyname, "deco", im, pack, original or (self.src.hp_original(layer["sprite"][4:]) if layer["sprite"].startswith("obj:") else "Tiles/" + layer["sprite"].split(":")[1] + ".png"),
                       note, anchor="bottom")
-        for name in ("treePine_large", "treePine_small", "treeRound_large", "treeRound_small"):
+        def kobj(keyname, model, season, target_w, kind="static", note="", **extra):
+            """Objet de décor rendu depuis un modèle 3D KayKit, mis à la largeur voulue (en px 2×)."""
+            nat = self.src.kay(model, 1.0)[0]
+            layer = L(f"kay:{model}", 0, 0, kind, scale=target_w / nat.width, **extra)
+            im = comp.layer_image(layer, season, 0)
+            bb = im.split()[3].getbbox()
+            if bb:
+                im = im.crop((bb[0], bb[1], bb[2], im.height))
+            self.emit(keyname, "deco", im, "kaykit", f"{KAY_MODELS[model]}.gltf", note, anchor="bottom")
+
+        # arbres : modèles 3D KayKit, feuillage recoloré par saison (les largeurs reprennent celles des sprites plats
+        # qu'ils remplacent, pour que le décor composé garde ses proportions)
+        for name, model, w in (("treePine_large", "pine_big", 56), ("treePine_small", "pine_big", 40),
+                               ("treeRound_large", "round_big", 52), ("treeRound_small", "round_big", 34)):
             for season in SEASONS:
-                obj(f"obj_{name}_{season}", L(f"obj:{name}", 0, 0, "foliage"), season, f"{name} recoloré ({season}).")
+                kobj(f"obj_{name}_{season}", model, season, w, "foliage", f"{name} : modèle 3D KayKit recoloré ({season}).")
         for season in SEASONS:
-            obj(f"obj_treeRound_fruit_{season}", L(ROUND_S, 0, 0, "foliage", fruits=True), season, f"Fruitier ({season}) : feuillu + fruits dessinés en été et en automne.")
+            kobj(f"obj_treeRound_fruit_{season}", "round_big", season, 40, "foliage", f"Fruitier ({season}) : arbre KayKit + fruits dessinés en été et en automne.", fruits=True)
             obj(f"obj_hedge_{season}", L("obj:hedge", 0, 0, "foliage", scale=0.45), season, f"Haie ×0.45 ({season}).")
             obj(f"obj_bushGrass_{season}", L("ht:bushGrass:2.4", 0, 0, "reed"), season, f"Touffe d'herbe / roseau ({season}).", pack=HT)
             obj(f"obj_heather_{season}", L("ht:bushGrass:2.4", 0, 0, "heather"), season, f"Bruyère ({season}).", pack=HT)
@@ -762,20 +897,53 @@ class Builder:
                 obj(f"obj_{name}_{season}", L(f"obj:{name}", 0, 0, "field"), season, f"Parcelle {name} ({season}).")
         obj("obj_bushGrass_dry", L("ht:bushGrass:2.4", 0, 0, "dry"), "summer", "Touffe sèche.", pack=HT)
         # objets saisonniers : fleurs de printemps sur les arbres, tas de feuilles, congères, mousse, fleurs bleues, nénuphars, paniers
-        obj("obj_treeRound_blossom", L(ROUND_S, 0, 0, "blossom"), "spring", "Feuillu en fleurs (feuillage recoloré rose pâle) : forêts et vergers au printemps.")
-        obj("obj_treeRound_blossom_large", L(ROUND, 0, 0, "blossom"), "spring", "Grand feuillu en fleurs (printemps).")
+        kobj("obj_treeRound_blossom", "round_big", "spring", 34, "blossom", "Arbre en fleurs (feuillage recoloré rose pâle) : forêts et vergers au printemps.")
+        kobj("obj_treeRound_blossom_large", "round_big", "spring", 52, "blossom", "Grand arbre en fleurs (printemps).")
         obj("obj_leafpile", L("ht:bushAutumn:2.2", 0, 0), "autumn", "Tas de feuilles mortes (bushAutumn ×2.2) : forêts et vergers en automne.", pack=HT)
         obj("obj_snowdrift", L("ht:bushSnow:2.4", 0, 0), "winter", "Congère (bushSnow ×2.4) : hiver et bourrasque.", pack=HT)
         obj("obj_moss", L("ht:rockStone_moss1:1.6", 0, 0), "spring", "Petit rocher moussu (rockStone_moss1 ×1.6) : roches au printemps.", pack=HT)
         obj("obj_flowerBlue", L("ht:flowerBlue:2.8", 0, 0), "spring", "Fleur bleue (Hexagon Tiles ×2.8).", pack=HT)
         obj("obj_lily", L("ht:flowerGreen:2.0", 0, 0), "summer", "Nénuphar (flowerGreen ×2.0) : lacs et étangs en été.", pack=HT)
         obj("obj_basket", L("obj:box1", 0, 0), "autumn", "Caisse de récolte (box1) : vergers en automne, cueillette.")
-        for name in ("rockGrey_large", "rockGrey_medium1", "rockGrey_medium2", "rockGrey_medium3", "rockGrey_small1", "rockGrey_small2", "rockGrey_small3", "rockGrey_small4", "rockBrown_small"):
-            obj(f"obj_{name}", L(f"obj:{name}", 0, 0, "rock"), "summer", f"Rocher {name}.")
-            obj(f"obj_{name}_winter", L(f"obj:{name}", 0, 0, "rock"), "winter", f"Rocher {name} enneigé.")
-        for name in ("house", "house_small", "villa", "tinyBuilding", "farm", "well", "fence", "hay", "logPile", "log", "fountain", "silo1", "campingTent", "fire",
-                     "windmill_complete", "church", "tower", "tombstone1", "towerRuin", "ruinsCorner", "ruins_brick1", "wall_small", "wall", "lightpost", "tavern",
-                     "oven", "archway", "horseTrough", "mine", "banner", "shop", "castle_small", "medieval_doorway", "pole", "box2"):
+        # rochers : blocs 3D KayKit (les largeurs reprennent celles des sprites plats remplacés)
+        for name, model, w in (("rockGrey_large", "mountain_A", 150), ("rockGrey_medium1", "mountain_B", 96),
+                               ("rockGrey_medium2", "mountain_C", 92), ("rockGrey_medium3", "mountain_B", 112),
+                               ("rockGrey_small1", "rock_C", 62), ("rockGrey_small2", "rock_B", 58),
+                               ("rockGrey_small3", "rock_A", 42), ("rockGrey_small4", "rock_D", 52),
+                               ("rockBrown_small", "rock_E", 42)):
+            kobj(f"obj_{name}", model, "summer", w, "rock", f"Rocher {name} : bloc 3D KayKit.")
+            kobj(f"obj_{name}_winter", model, "winter", w, "rock", f"Rocher {name} enneigé : bloc 3D KayKit.")
+        # bâtiments du décor composé : modèles 3D KayKit, aux largeurs des sprites qu'ils remplacent
+        for keyname, model, w, note in (
+                ("obj_house", "home_B", 168, "Maison à étage (colombages, perron)."),
+                ("obj_house_small", "home_A", 116, "Maisonnette."),
+                ("obj_villa", "tavern", 150, "Grande bâtisse (taverne)."),
+                ("obj_tinyBuilding", "home_A", 66, "Petite remise (maisonnette réduite)."),
+                ("obj_farm", "lumbermill", 128, "Ferme / atelier de bois."),
+                ("obj_well", "well", 56, "Puits."),
+                ("obj_church", "church", 150, "Église."),
+                ("obj_silo1", "tower_base", 84, "Silo (fût de pierre)."),
+                ("obj_windmill_complete", "windmill", 120, "Moulin à vent."),
+                ("obj_tower", "tower", 104, "Tour de guet."),
+                ("obj_tavern", "tavern", 164, "Taverne."),
+                ("obj_shop", "market", 148, "Étal de marché."),
+                ("obj_mine", "mine", 130, "Mine."),
+                ("obj_oven", "blacksmith", 120, "Forge (four et cheminée)."),
+                ("obj_archway", "gate", 150, "Porte fortifiée."),
+                ("obj_castle_small", "barracks", 200, "Petite forteresse."),
+                ("obj_wall_small", "wall", 140, "Pan de muraille."),
+                ("obj_wall", "wall", 180, "Muraille."),
+                ("obj_fence", "fence_wood", 52, "Clôture de bois."),
+                ("obj_logPile", "lumber", 74, "Tas de rondins."),
+                ("obj_log", "lumber", 56, "Rondin."),
+                ("obj_barrel", "barrel", 34, "Tonneau."),
+                ("obj_sack", "sack", 30, "Sac de grain."),
+                ("obj_crate", "crate", 34, "Caisse."),
+                ("obj_scaffolding", "scaffolding", 150, "Échafaudage de chantier."),
+                ("obj_ruin_building", "ruin", 140, "Bâtiment effondré.")):
+            kobj(keyname, model, "summer", w, "static", f"{note} Modèle 3D KayKit.")
+        for name in ("hay", "fountain", "campingTent", "fire", "tombstone1", "towerRuin", "ruinsCorner", "ruins_brick1",
+                     "lightpost", "horseTrough", "banner", "medieval_doorway", "pole", "box2"):
             obj(f"obj_{name}", L(f"obj:{name}", 0, 0), "summer", f"Objet {name} (Hexagon Pack).")
         for name in ("flowerWhite", "flowerYellow", "flowerRed"):
             obj(f"obj_{name}", L(f"ht:{name}:2.8", 0, 0), "summer", f"Fleur {name} (Hexagon Tiles ×2.8).", pack=HT)
@@ -1035,6 +1203,14 @@ class Builder:
                 "licenseFile": f"{MIRROR}/blob/main/{meta['license_text_path']}",
                 "files": sorted(self.per_pack[pid]),
             })
+        if self.src.kay_used:
+            credits.append({
+                "pack": KAYKIT["pack"], "author": KAYKIT["author"], "license": "CC0 1.0", "licenseUrl": CC0_URL,
+                "url": KAYKIT["url"], "mirror": KAYKIT["mirror"], "mirrorPath": "addons/kaykit_medieval_hexagon_pack/Assets/gltf",
+                "licenseFile": f"{KAYKIT['mirror']}/blob/main/{KAYKIT['license_file']}",
+                "note": "modèles 3D rendus en PNG isométriques par tools/render_kaykit.js (élévation 30°, azimut −30°, 120 px/unité)",
+                "files": sorted(f"{KAY_MODELS[n]}.gltf" for n in self.src.kay_used),
+            })
         fonts_credits_path = self.repo / "assets" / "credits" / "fonts.json"
         if fonts_credits_path.exists():
             credits.extend(json.loads(fonts_credits_path.read_text(encoding="utf-8")))
@@ -1064,16 +1240,28 @@ def check_licenses(src_root):
         meta["license_text_path"] = str(p.relative_to(src_root))
 
 
+def check_kaykit_license(kay_root):
+    p = kay_root / KAYKIT["license_file"]
+    if not p.exists():
+        raise RuntimeError(f"Pack KayKit introuvable : {p}")
+    txt = p.read_text(encoding="utf-8", errors="replace")
+    if "creativecommons.org/publicdomain/zero/1.0" not in txt:
+        raise RuntimeError(f"Licence CC0 introuvable dans {p}")
+    KAYKIT["license_text_path"] = KAYKIT["license_file"]
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--src", default=os.environ.get("KENNEY_ROOT", "/home/user/etdofresh/kenney.nl"))
+    ap.add_argument("--kaykit", default=os.environ.get("KAYKIT_ROOT", "/home/user/kaykit/KayKit-Medieval-Hexagon-Pack-1.0"))
     ap.add_argument("--out", default=str(ROOT))
     ap.add_argument("--rebuild-cache", action="store_true", help="re-rasterise les SVG et ré-extrait les sprites 2×")
     ap.add_argument("--sheets", action="store_true", help="écrit des planches-contact par saison dans tools/cache/sheets/")
     args = ap.parse_args()
-    src_root, repo = Path(args.src), Path(args.out)
+    src_root, repo, kay_root = Path(args.src), Path(args.out), Path(args.kaykit)
     check_licenses(src_root)
-    b = Builder(src_root, repo, sheets=args.sheets)
+    check_kaykit_license(kay_root)
+    b = Builder(src_root, repo, sheets=args.sheets, kay_root=kay_root)
     b.src.prepare(rebuild=args.rebuild_cache)
     b.build_tiles()
     b.build_deco()

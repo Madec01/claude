@@ -56,7 +56,7 @@ Toutes les œuvres ci-dessous appartiennent à leurs auteurs et sont utilisées 
 ## Graphismes
 
 - **Hexagon Pack** — Kenney (kenney.nl) — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://kenney.nl/assets/hexagon-pack) — [miroir utilisé](https://github.com/ETdoFresh/kenney.nl)
-  - Fichiers : 338
+  - Fichiers : 277
 - **Hexagon Tiles** — Kenney (kenney.nl) — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://kenney.nl/assets/hexagon-tiles) — [miroir utilisé](https://github.com/ETdoFresh/kenney.nl)
   - Fichiers : 102
 - **Animal Pack Redux** — Kenney (kenney.nl) — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://kenney.nl/assets/animal-pack-redux) — [miroir utilisé](https://github.com/ETdoFresh/kenney.nl)
@@ -77,6 +77,8 @@ Toutes les œuvres ci-dessous appartiennent à leurs auteurs et sont utilisées 
   - Fichiers : 8
 - **Pirate Pack** — Kenney (kenney.nl) — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://kenney.nl/assets/pirate-pack) — [miroir utilisé](https://github.com/ETdoFresh/kenney.nl)
   - Fichiers : sea/sea_boat_1.png, sea/sea_boat_2.png
+- **KayKit : Medieval Hexagon Pack (1.0)** — Kay Lousberg — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://kaylousberg.itch.io/kaykit-medieval-hexagon) — [miroir utilisé](https://github.com/KayKit-Game-Assets/KayKit-Medieval-Hexagon-Pack-1.0)
+  - Fichiers : 42
 - **Lora** — Cyreal (Olga Karpushina, Alexei Vanyashin) — licence SIL Open Font License 1.1 ([texte](https://openfontlicense.org/open-font-license-official-text/)) — [source](https://fonts.google.com/specimen/Lora) — [miroir utilisé](https://fonts.gstatic.com)
   - Fichiers : assets/fonts/lora-italic-400-latin-ext.woff2, assets/fonts/lora-italic-400-latin.woff2, assets/fonts/lora-normal-400-600-latin-ext.woff2, assets/fonts/lora-normal-400-600-latin.woff2
 - **Quicksand** — Andrew Paglinawan — licence SIL Open Font License 1.1 ([texte](https://openfontlicense.org/open-font-license-official-text/)) — [source](https://fonts.google.com/specimen/Quicksand) — [miroir utilisé](https://fonts.gstatic.com)
