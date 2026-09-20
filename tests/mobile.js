@@ -18,7 +18,8 @@ async function boot(context, opts = {}) {
   await page.evaluate((o) => {
     const s = JSON.parse(localStorage.getItem('cent-saisons.save') || '{}');
     s.cloud = { choice: 'none' }; s.options = Object.assign(s.options || {}, { testMode: true, skipTutorial: !!o.skipTutorial, master: 0 });
-    s.campaign = Object.assign(s.campaign || {}, { prologueSeen: true, unlockedIsland: 7, seeds: 9 });
+    // longue-vue et poche : la file est alors au plus long, c'est là que le HUD est le plus serré
+    s.campaign = Object.assign(s.campaign || {}, { prologueSeen: true, unlockedIsland: 7, seeds: 9, upgrades: Object.assign(s.campaign && s.campaign.upgrades || {}, { sight: 2, pocket: 2 }) });
     s.version = 2;   // sans numéro de version, la sauvegarde passerait par la migration v1 → v2 qui remappe les îles
     localStorage.setItem('cent-saisons.save', JSON.stringify(s));
   }, opts);
@@ -54,6 +55,13 @@ async function touchDrag(cdp, pts) {
     const tag = name.replace(/\s+/g, '-').toLowerCase();
     const context = await browser.newContext({ ...devices[name], locale: 'fr-FR' });
     const page = await boot(context);
+    // les souffles étaient poussés hors de l'écran par une file trop longue (retour joueur) : plus jamais
+    const hudDehors = async () => page.evaluate(() => {
+      const el = [...document.querySelectorAll('.pw, .hud-place:not(.hidden), .hud-pause, .q-help')];
+      return el.filter((b) => { const r = b.getBoundingClientRect(); return r.width > 0 && (r.right > innerWidth + 1 || r.left < -1 || r.bottom > innerHeight + 1 || r.top < -1); })
+        .map((b) => { const r = b.getBoundingClientRect(); const bords = [r.right > innerWidth + 1 ? `droite ${Math.round(r.right)}>${innerWidth}` : null, r.left < -1 ? `gauche ${Math.round(r.left)}` : null, r.bottom > innerHeight + 1 ? `bas ${Math.round(r.bottom)}>${innerHeight}` : null, r.top < -1 ? `haut ${Math.round(r.top)}` : null].filter(Boolean);
+          return `${(b.textContent || b.className).trim().slice(0, 12)} [${bords.join(', ')}]`; });
+    });
     const st = await stageInfo(page);
     check(st.compact && st.touch, `${name} : disposition compacte (${st.inner.join('×')}, classes « ${st.html} »)`);
     await page.screenshot({ path: path.join(OUT, `mobile-${tag}-menu.png`) });
@@ -122,6 +130,7 @@ async function touchDrag(cdp, pts) {
     // vœux dépliés
     await page.tap('.wish-toggle'); await page.waitForTimeout(300); await page.screenshot({ path: path.join(OUT, `mobile-${tag}-wishes.png`) }); await page.tap('.wish-toggle');
     // pause
+    { const d = await hudDehors(); check(d.length === 0, `${name} : les souffles et les boutons du jeu restent dans l’écran${d.length ? ` (dehors : ${d.join(', ')})` : ''}`); }
     await page.tap('.hud-log'); await page.waitForTimeout(400); await page.screenshot({ path: path.join(OUT, `mobile-${tag}-log.png`) }); check(await page.evaluate(() => document.querySelectorAll('.log-item').length > 0), `${name} : journal des événements ouvert avec des entrées`); await page.tap('.log-close'); await page.waitForTimeout(200);
     await page.tap('[data-ref="pause"]'); await page.waitForTimeout(500); await page.screenshot({ path: path.join(OUT, `mobile-${tag}-pause.png`) });
     check(await page.$('.panel-pause'), `${name} : pause ouverte au toucher`);

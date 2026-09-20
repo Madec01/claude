@@ -22,7 +22,7 @@ export function targetOf(def) {
   }
 }
 
-/** Compte les paires de bords entre deux familles. */
+/** Compte les paires de bords entre deux familles (un champ entre deux hameaux fait deux bords). */
 export function countPairs(board, a, b) {
   let n = 0;
   for (const t of board.tiles.values()) {
@@ -30,6 +30,20 @@ export function countPairs(board, a, b) {
     for (const [x, y] of neighbors(t.q, t.r)) { const o = board.get(x, y); if (o && Board.isFamily(o, b)) n++; }
   }
   return a === b ? n / 2 : n;
+}
+
+/**
+ * Compte les tuiles de la famille `a` qui touchent au moins une tuile de la famille `b`.
+ * C'est ce que promettent les vœux : « deux champs collés à un hameau », ce sont bien DEUX CHAMPS.
+ * Compter les bords laissait un seul champ posé entre deux hameaux exaucer le vœu (retour joueur).
+ */
+export function countTouching(board, a, b) {
+  let n = 0;
+  for (const t of board.tiles.values()) {
+    if (!Board.isFamily(t, a)) continue;
+    if (neighbors(t.q, t.r).some(([x, y]) => { const o = board.get(x, y); return o && o !== t && Board.isFamily(o, b); })) n++;
+  }
+  return n;
 }
 
 /**
@@ -41,7 +55,7 @@ export function progressOf(w, ctx) {
   switch (d.type) {
     case 'region': return Math.max(0, ...b.regions(d.family).map((r) => r.size));
     case 'closed': { let best = 0; for (const id of b.closedRegions) { if (d.family && !id.startsWith(d.family + ':')) continue; const [fam, k] = id.split(':'); const [q, r] = k.split(',').map(Number); const reg = b.region(q, r, fam); if (reg) best = Math.max(best, reg.size); } return best; }
-    case 'pairs': return countPairs(b, d.a, d.b);
+    case 'pairs': return countTouching(b, d.a, d.b);   // « deux champs collés à un hameau » : deux champs, pas deux bords
     case 'river': return Math.max(0, ...rivers(b).filter((w) => !d.mouth || w.mouth).map((w) => w.size));
     case 'rivers': return rivers(b).filter((w) => w.mouth).length;
     case 'lake': return Math.max(0, ...lakes(b).map((w) => w.size));

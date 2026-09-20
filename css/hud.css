@@ -40,6 +40,11 @@
 .qtile.shedable { border-style: dashed; }
 .shed .qlvl.warn { color: var(--bad, #d95f4b); }
 .pw.free em { background: var(--good, #2f9e8f); }
+/* « poche » / « remise » : la tuile du moment se range d'une touche, et la pastille le dit (sans souris, rien ne le signalait) */
+.q-stash { position: absolute; right: 6px; top: 6px; font-style: normal; font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 800; color: #fff; background: var(--breath); border-radius: 999px; padding: 2px 7px; box-shadow: 0 2px 6px rgba(30,50,70,0.2); pointer-events: none; }
+.qtile.rare .q-stash { top: 22px; }   /* sous l'étiquette « rare », qui occupe déjà le coin */
+html.compact .q-stash { font-size: 9px; padding: 1px 5px; right: 4px; top: 4px; }
+html.compact .qtile.rare .q-stash { top: 18px; }
 .q-help { position: absolute; left: 6px; top: 6px; width: 22px; height: 22px; border-radius: 50%; border: 1px solid rgba(43,42,38,0.18); background: rgba(255,253,248,0.95); color: var(--ink-2); font-family: inherit; font-weight: 800; font-size: 13px; line-height: 20px; padding: 0; cursor: pointer; box-shadow: 0 2px 6px rgba(30,50,70,0.15); }
 .q-help.on { background: var(--breath); color: #fff; border-color: var(--breath); }
 html.compact .q-help { width: 20px; height: 20px; font-size: 12px; line-height: 18px; left: 4px; top: 4px; }

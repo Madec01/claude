@@ -152,7 +152,8 @@ export class Hud {
       this.r.queueList.innerHTML = html || '<div class="qempty">Plus de tuiles</div>';
       const qh = this.r.queueList.querySelector('.q-help'); if (qh) qh.addEventListener('click', (e) => { e.stopPropagation(); this.setTileHelp(this.helpHidden || Save.options.tileHelp === false); });
       this.r.queueList.querySelectorAll('.qtile').forEach((el, i) => {
-        if (i === 0) { if (this.isl.canPocket()) { el.classList.add('pocketable'); el.addEventListener('click', (e) => { e.stopPropagation(); this.onPocket(); }); el.title += ' — clic : mettre en poche (P)'; } else if (this.isl.canShed()) { el.classList.add('shedable'); el.addEventListener('click', (e) => { e.stopPropagation(); this.onShed(); }); el.title += ' — clic : mettre en remise (R)'; } }
+        // la tuile du moment se range d'une touche ; sans souris, rien ne le disait : une pastille le montre maintenant
+        if (i === 0) { if (this.isl.canPocket()) { el.classList.add('pocketable'); el.insertAdjacentHTML('beforeend', '<i class="q-stash">poche</i>'); el.addEventListener('click', (e) => { e.stopPropagation(); this.onPocket(); }); el.title += ' — clic : mettre en poche (P)'; } else if (this.isl.canShed()) { el.classList.add('shedable'); el.insertAdjacentHTML('beforeend', '<i class="q-stash">remise</i>'); el.addEventListener('click', (e) => { e.stopPropagation(); this.onShed(); }); el.title += ' — clic : mettre en remise (R)'; } }
         else if (this.isl.handOn) { el.classList.add('pickable'); el.addEventListener('click', (e) => { e.stopPropagation(); this.onPick(i); }); el.title += ' — clic : jouer cette tuile'; }
         else if (this.mech.has('breath')) { el.classList.add('swappable'); el.addEventListener('click', (e) => { e.stopPropagation(); this.onSwap(i); }); el.title += ` — clic : échanger (${BALANCE.breaths.swap} souffle)`; }
       });
