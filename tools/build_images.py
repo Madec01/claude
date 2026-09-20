@@ -58,8 +58,10 @@ PACKS = {
     "gameicons-expansion": dict(pack="Game Icons Expansion", url="https://kenney.nl/assets/game-icons-expansion", license_file="license.txt"),
     "uipack_fixed": dict(pack="UI Pack", url="https://kenney.nl/assets/ui-pack", license_file="license.txt"),
     "kenney_natureKit_2.1": dict(pack="Nature Kit", url="https://kenney.nl/assets/nature-kit", license_file="License.txt"),
+    "kenney_piratepack": dict(pack="Pirate Pack", url="https://kenney.nl/assets/pirate-pack", license_file="License.txt"),
 }
 NK = "kenney_natureKit_2.1"
+PP = "kenney_piratepack"
 HP, HT, AN, PA, SM, FO, GI, GIE, UI = ("hexagon-pack", "hexagontiles", "kenney_animalpackredux", "particlePack_1.1",
                                        "smokeparticleassets", "kenney_foliagesprites", "gameicons",
                                        "gameicons-expansion", "uipack_fixed")
@@ -798,6 +800,16 @@ class Builder:
             im = im.crop(bb)
             self.emit(f"fauna_{name}", "fauna", im, AN, f"PNG/Round/{name}.png", f"{fr.capitalize()} — tête ronde, taille native (dossier Round).")
 
+    # --- B bis. la mer autour de l'île : un voilier vu de dessus (Pirate Pack) et une baleine (Animal Pack Redux)
+    def build_sea(self):
+        for i, (n, note) in enumerate([("ship (1)", "voile blanche, coque brune"), ("ship (7)", "voile crème, coque claire")], 1):
+            im = Image.open(self.src.path(PP, f"PNG/Default size/Ships/{n}.png")).convert("RGBA")
+            im = im.crop(im.split()[3].getbbox())
+            self.emit(f"sea_boat_{i}", "sea", im, PP, f"PNG/Default size/Ships/{n}.png", f"Voilier vu de dessus, {note} (Pirate Pack, taille native) : passe au large de l'île.")
+        im = Image.open(self.src.path(AN, "PNG/Round/whale.png")).convert("RGBA")
+        im = im.crop(im.split()[3].getbbox())
+        self.emit("sea_whale", "sea", im, AN, "PNG/Round/whale.png", "Baleine — tête ronde, taille native (dossier Round) : fait surface au large, de loin en loin.")
+
     # --- C. effets
     def build_fx(self):
         pad = "PNG (Transparent)"
@@ -1066,6 +1078,7 @@ def main():
     b.build_tiles()
     b.build_deco()
     b.build_fauna()
+    b.build_sea()
     b.build_fx()
     b.build_ui()
     b.build_badges()

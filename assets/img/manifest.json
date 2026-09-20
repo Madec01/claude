@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-18T11:47:22+00:00",
+ "generated": "2026-09-20T17:44:34+00:00",
  "generator": "tools/build_images.py",
  "conventions": {
   "hex": {
@@ -4265,6 +4265,33 @@
    "source": "kenney_animalpackredux",
    "original": "PNG/Round/cow.png",
    "note": "Vache — tête ronde, taille native (dossier Round)."
+  },
+  "sea_boat_1": {
+   "file": "sea/sea_boat_1.png",
+   "w": 66,
+   "h": 113,
+   "bytes": 4396,
+   "source": "kenney_piratepack",
+   "original": "PNG/Default size/Ships/ship (1).png",
+   "note": "Voilier vu de dessus, voile blanche, coque brune (Pirate Pack, taille native) : passe au large de l'île."
+  },
+  "sea_boat_2": {
+   "file": "sea/sea_boat_2.png",
+   "w": 66,
+   "h": 113,
+   "bytes": 5178,
+   "source": "kenney_piratepack",
+   "original": "PNG/Default size/Ships/ship (7).png",
+   "note": "Voilier vu de dessus, voile crème, coque claire (Pirate Pack, taille native) : passe au large de l'île."
+  },
+  "sea_whale": {
+   "file": "sea/sea_whale.png",
+   "w": 138,
+   "h": 154,
+   "bytes": 7724,
+   "source": "kenney_animalpackredux",
+   "original": "PNG/Round/whale.png",
+   "note": "Baleine — tête ronde, taille native (dossier Round) : fait surface au large, de loin en loin."
   },
   "smoke_01": {
    "file": "fx/smoke_01.png",

@@ -485,6 +485,7 @@
    "fauna/fauna_owl.png",
    "fauna/fauna_penguin.png",
    "fauna/fauna_rabbit.png",
+   "sea/sea_whale.png",
    "succes/compagnie.png",
    "succes/l-ours.png",
    "succes/les-manchots.png",
@@ -702,6 +703,20 @@
    "deco/obj_bridge_wood_NW.png",
    "deco/obj_bridge_wood_SE.png",
    "deco/obj_bridge_wood_SW.png"
+  ]
+ },
+ {
+  "pack": "Pirate Pack",
+  "author": "Kenney (kenney.nl)",
+  "license": "CC0 1.0",
+  "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "url": "https://kenney.nl/assets/pirate-pack",
+  "mirror": "https://github.com/ETdoFresh/kenney.nl",
+  "mirrorPath": "kenney_piratepack",
+  "licenseFile": "https://github.com/ETdoFresh/kenney.nl/blob/main/kenney_piratepack/License.txt",
+  "files": [
+   "sea/sea_boat_1.png",
+   "sea/sea_boat_2.png"
   ]
  },
  {
