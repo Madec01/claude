@@ -1,4 +1,5 @@
 // Calibrage des étoiles : fait jouer le bot fort (tests/bot.js) et le bot glouton sur chaque île avec plusieurs graines.
+// Les seuils valent 45 / 65 / 85 % de la médiane du bot fort, et l'étoile d'or 100 % (voir plus bas).
 // Usage : node tools/calibrate.js [nbEssais=6] [îles=1-50] [--write : écrit src/data/campaign_stars.js]
 // L'île est toujours jouée avec sa graine (celle du joueur) ; les essais ne font varier que le hasard du bot.
 import { campaignIsland, CAMPAIGN_SIZE, islandOptions } from '../src/data/campaign.js';
@@ -30,7 +31,10 @@ for (let n = range[0]; n <= (range[1] ?? range[0]); n++) {
     strong.push(r.score); wishes.push(r.wishesTotal ? r.wishesDone / r.wishesTotal : 1); perCell.push(r.score / r.cells);
     greedy.push(playGreedy(def, 0).score);
   }
-  const m = med(strong); out[n] = [0.55, 0.8, 0.9, 1.0].map((f) => Math.round((m / def.cells) * f * 10) / 10);   // trois étoiles à 55 / 80 / 90 %, étoile d'or à 100 %
+  // Échelle mesurée sur quatre niveaux de jeu (cinquante îles, trois parties chacun) rapportés à cette médiane :
+  // jeu au hasard 0,43 · joueur tranquille 0,66 · joueur appliqué 0,70 · meilleur coup immédiat 0,73.
+  // D'où 45 % (« tu as joué, pas posé au hasard »), 65 % (« bonne partie »), 85 % (« très bonne »), 100 % pour l'or.
+  const m = med(strong); out[n] = [0.45, 0.65, 0.85, 1.0].map((f) => Math.round((m / def.cells) * f * 10) / 10);
   rows.push({ île: def.id, cases: def.cells, glouton: Math.round(med(greedy)), fort_med: Math.round(m), fort_min: Math.min(...strong), fort_max: Math.max(...strong), par_case: (m / def.cells).toFixed(2), vœux: (wishes.reduce((a, b) => a + b, 0) / N).toFixed(2), seuils_actuels: (def.starFactors || [2.8, 5.2, 7.8]).map((f) => Math.round(def.cells * f)).join('/'), nouveaux: out[n].join('/'), s: ((Date.now() - t0) / 1000).toFixed(1) });
   console.error(`île ${def.id} : ${rows[rows.length - 1].s} s`);
 }

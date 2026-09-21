@@ -124,13 +124,15 @@ export class Decor {
       }
       return true;
     };
-    const sample = (rng, cell, keys, n, { minDist = 18, margin = 6, radius = 0.92, tries = 40, placed = [], yMax = Infinity } = {}) => {
+    // `yMin` / `yMax` : bornes verticales par rapport au centre de la case. yMin sert à garnir l'avant-plan —
+    // un objet est dessiné AU-DESSUS de son point d'ancrage, donc sans lui le bas de l'hexagone reste nu.
+    const sample = (rng, cell, keys, n, { minDist = 18, margin = 6, radius = 0.92, tries = 40, placed = [], yMax = Infinity, yMin = -Infinity } = {}) => {
       const c = toWorld(cell.q, cell.r); const pts = [];
       for (let i = 0; i < n; i++) {
         for (let t = 0; t < tries; t++) {
           const a = rng() * Math.PI * 2, rr = Math.sqrt(rng()) * SIZE * radius;
           const p = { x: c.x + Math.cos(a) * rr, y: c.y + Math.sin(a) * rr * 0.9 };
-          if (p.y - c.y > yMax) continue;
+          if (p.y - c.y > yMax || p.y - c.y < yMin) continue;
           const k = inRegion(p, keys); if (!k || !edgeOk(p, k, keys, margin)) continue;
           if (placed.some((o) => Math.hypot(o.x - p.x, o.y - p.y) < minDist) || pts.some((o) => Math.hypot(o.x - p.x, o.y - p.y) < minDist)) continue;
           pts.push(p); break;
@@ -260,14 +262,27 @@ export class Decor {
             for (const p of sample(rng, cell, keys, 2, { minDist: 18, margin: 8, placed })) { placed.push(p); push(p, PICK(rng, ['obj_flowerWhite', 'obj_flowerBlue']), { seasons: ['spring'] }); }
             for (const p of sample(rng, cell, keys, 2, { minDist: 18, margin: 8, placed: [] })) push(p, 'obj_bushGrass_dry', { weathers: ['heat'] });
           } else if (family === 'rock') {
-            if (cells.length === 1) { push({ x: c.x - 6, y: c.y + 36 }, 'obj_rockGrey_large{w}', { scale: L2(cell) ? 1.3 : 0.9 }); push({ x: c.x + 34, y: c.y + 18 }, 'obj_rockGrey_small2{w}'); push({ x: c.x - 34, y: c.y + 24 }, 'obj_rockGrey_small4{w}'); }
-            else {
-              // massif : les crêtes sont posées à cheval sur les arêtes communes, les gros sommets sur les cellules intérieures
-              const dc = Math.hypot(c.x - cen.x, c.y - cen.y);
-              const peak = deg >= 3 || dc < 40;
-              push({ x: c.x + (rng() - 0.5) * 12, y: c.y + 44 }, peak ? `obj_rockGrey_large${VAR(rng)}{w}` : PICK(rng, ['obj_rockGrey_medium1{w}', 'obj_rockGrey_medium2{w}', 'obj_rockGrey_medium3{w}']), Object.assign(wild(rng, 0.9, 1.1), { scale: (peak ? 1.35 + Math.min(0.5, cells.length * 0.06) : 1.15) + (L2(cell) ? 0.35 : 0) }));
-              for (let d = 0; d < 6; d++) { const nk = key(cell.q + DIRS[d][0], cell.r + DIRS[d][1]); if (!keys.has(nk) || d >= 3) continue; const m = edgeMid(c.x, c.y, d); push({ x: m.x + (rng() - 0.5) * 10, y: m.y + 26 }, PICK(rng, ['obj_rockGrey_medium2{w}', 'obj_rockGrey_medium3{w}', `obj_rockGrey_large${VAR(rng)}{w}`]), Object.assign(wild(rng, 0.9, 1.15), { scale: 1.05 })); }
-              for (const p of sample(rng, cell, keys, 2, { minDist: 22, margin: 6, placed })) { placed.push(p); push(p, PICK(rng, ['obj_rockGrey_small1{w}', 'obj_rockGrey_small2{w}', 'obj_rockGrey_small3{w}', 'obj_rockGrey_small4{w}']), wild(rng, 0.8, 1.2)); }
+            // Un massif, c'est de la pierre partout, pas un caillou au milieu d'un hexagone vide (retour du commanditaire).
+            // Trois couches : le sommet qui donne la silhouette, les crêtes à cheval sur les arêtes communes pour que
+            // la montagne ne s'arrête pas au bord de la case, et l'éboulis qui remplit le reste jusqu'aux bords.
+            const dc = Math.hypot(c.x - cen.x, c.y - cen.y);
+            const seul = cells.length === 1;
+            const peak = !seul && (deg >= 3 || dc < 40);
+            push({ x: c.x + (rng() - 0.5) * 12, y: c.y + (seul ? 38 : 44) }, peak || seul ? `obj_rockGrey_large${VAR(rng)}{w}` : PICK(rng, ['obj_rockGrey_medium1{w}', 'obj_rockGrey_medium2{w}', 'obj_rockGrey_medium3{w}']),
+              Object.assign(wild(rng, 0.9, 1.1), { scale: (seul ? 1.0 : peak ? 1.35 + Math.min(0.5, cells.length * 0.06) : 1.15) + (L2(cell) ? 0.35 : 0) }));
+            if (!seul) for (let d = 0; d < 6; d++) { const nk = key(cell.q + DIRS[d][0], cell.r + DIRS[d][1]); if (!keys.has(nk) || d >= 3) continue; const m = edgeMid(c.x, c.y, d); push({ x: m.x + (rng() - 0.5) * 10, y: m.y + 26 }, PICK(rng, ['obj_rockGrey_medium2{w}', 'obj_rockGrey_medium3{w}', `obj_rockGrey_large${VAR(rng)}{w}`]), Object.assign(wild(rng, 0.9, 1.15), { scale: 1.05 })); }
+            // éboulis : deux passes, les blocs moyens d'abord (espacés), puis les pierres qui comblent les creux
+            const blocs = Math.round((seul ? 5 : 5 + deg * 0.5) * (L2(cell) ? 1.5 : 1));
+            for (const p of sample(rng, cell, keys, blocs, { minDist: 24, margin: 5, radius: 1.0, tries: 40, placed })) {
+              placed.push(p); push(p, PICK(rng, ['obj_rockGrey_medium1{w}', 'obj_rockGrey_medium2{w}', 'obj_rockGrey_medium3{w}']), Object.assign(wild(rng, 0.8, 1.15), { scale: 0.92 }));
+            }
+            const pierres = Math.round((seul ? 12 : 11 + deg * 1.2) * (L2(cell) ? 1.4 : 1));
+            for (const p of sample(rng, cell, keys, pierres, { minDist: 12, margin: 3, radius: 1.0, tries: 40, placed: [] })) {
+              push(p, PICK(rng, ['obj_rockGrey_small1{w}', 'obj_rockGrey_small2{w}', 'obj_rockGrey_small3{w}', 'obj_rockGrey_small4{w}']), wild(rng, 0.8, 1.35));
+            }
+            // l'avant-plan : sans ça, le bas de l'hexagone reste vide, les pierres étant dessinées vers le haut
+            for (const p of sample(rng, cell, keys, seul ? 4 : 3, { minDist: 14, margin: 3, radius: 1.0, tries: 40, yMin: 8, placed: [] })) {
+              push(p, PICK(rng, ['obj_rockGrey_small1{w}', 'obj_rockGrey_small2{w}', 'obj_rockGrey_small3{w}', 'obj_rockGrey_small4{w}']), wild(rng, 0.85, 1.35));
             }
             for (const p of sample(rng, cell, keys, 1, { minDist: 22, margin: 8, placed: [] })) push(p, 'obj_moss', { seasons: ['spring'] });
           } else if (family === 'sand') {

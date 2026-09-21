@@ -2,7 +2,7 @@
 // leur chapitre ; les trente-huit autres sont générées ici (masque, file, vœux tirés d'une réserve, textes courts).
 // Chaque mécanique arrive à une île précise (MECH_AT) ; les climats arrivent avec les archipels (chapitres 5 à 8).
 // Une carte de tutoriel propre au climat s'affiche à chaque île dont le climat diffère de la précédente (climateCardFor).
-import { ISLANDS, WEIGHTS } from './islands.js';
+import { ISLANDS, WEIGHTS, generateMask } from './islands.js';
 import { CAMPAIGN_TEXTS } from './campaign_texts.js';
 import { CAMPAIGN_STARS } from './campaign_stars.js';
 import { SIGNATURE_OF, applySignature } from './signatures.js';
@@ -187,6 +187,46 @@ export function unlockedUpTo(campaign) {
     n++;
   }
   return n;
+}
+
+/**
+ * Nombre de cases réel d'une île, sans jouer la partie : le masque tiré de la graine, plus les cases forcées.
+ * C'est lui qui multiplie les facteurs d'étoiles (`Island.thresholds`) — il peut différer de `def.cells` d'une
+ * case ou deux, le masque s'arrêtant quand sa frontière est épuisée.
+ */
+const cellsCache = new Map();
+export function islandCells(def) {
+  if (cellsCache.has(def.id)) return cellsCache.get(def.id);
+  const mask = generateMask(def.seed, def.cells, { roughness: def.roughness, holes: def.holes });
+  for (const [q, r] of def.ensure || []) mask.add(`${q},${r}`);
+  for (const t of def.start || []) mask.add(`${t.q},${t.r}`);
+  cellsCache.set(def.id, mask.size);
+  return mask.size;
+}
+
+/** Les seuils d'étoiles d'une île, en points (les trois étoiles, puis l'or). */
+export function islandThresholds(def) {
+  const f = def.starFactors || []; const cells = islandCells(def);
+  return f.map((x) => Math.round(cells * x));
+}
+
+/**
+ * Réattribue les étoiles des îles déjà jouées à partir du meilleur score gardé en sauvegarde.
+ * Une échelle d'étoiles revue ne doit pas laisser le joueur avec l'ancienne note : son score, lui, n'a pas bougé.
+ * Ne retire jamais rien (`Math.max`), donc rejouer moins bien ne coûte rien. Rend true si la sauvegarde a changé.
+ */
+export function restarFromBest(campaign) {
+  const c = campaign || {}; const best = c.best || {}; let changed = false;
+  for (const [k, score] of Object.entries(best)) {
+    const n = Number(k);
+    if (!(n >= 1 && n <= CAMPAIGN_SIZE) || !(score > 0)) continue;
+    const th = islandThresholds(campaignIsland(n));
+    if (!th.length) continue;
+    let st = 0; for (let i = 0; i < 3; i++) if (th[i] !== undefined && score >= th[i]) st++;
+    if (st > ((c.stars && c.stars[n]) || 0)) { c.stars = c.stars || {}; c.stars[n] = st; changed = true; }
+    if (th[3] !== undefined && score >= th[3] && !(c.gold && c.gold[n])) { c.gold = c.gold || {}; c.gold[n] = true; changed = true; }
+  }
+  return changed;
 }
 
 /** Ce qui manque pour ouvrir la porte du chapitre k, en une phrase pour le joueur (null si elle est ouverte). */

@@ -10,7 +10,7 @@ import { STORY } from '../src/data/story.js';
 import { progressOf } from '../src/game/wishes.js';
 import { BALANCE } from '../src/data/balance.js';
 import { playStrong } from './bot.js';
-import { campaignIsland, CAMPAIGN_SIZE, CAMPAIGN_WISHES, islandOptions, gateStars, chapterStars, unlockedUpTo, CHAPTER_GATE, CHAPTER_PATIENCE, islandDone, chapterPlays, gateOpen, gateText } from '../src/data/campaign.js';
+import { campaignIsland, CAMPAIGN_SIZE, CAMPAIGN_WISHES, islandOptions, gateStars, chapterStars, unlockedUpTo, CHAPTER_GATE, CHAPTER_PATIENCE, islandDone, chapterPlays, gateOpen, gateText, islandCells, islandThresholds, restarFromBest } from '../src/data/campaign.js';
 import { contractOffers, chooseContract, noteContractResult, contractLine, contractNeeded, CONTRACTS } from '../src/data/contracts.js';
 import { gradeMove } from '../src/game/feedback.js';
 
@@ -441,6 +441,41 @@ for (const def of ISLANDS.slice(0, 4)) {
   check(!gateOpen({ stars: {}, contracts: {}, plays: { 1: 9 } }, 1), 'rejouer neuf fois la même île n’ouvre rien : les cinq îles restent à terminer');
   check(gateText({ stars: cinq, contracts: {} }, 1).includes(`5 / ${CHAPTER_GATE}`) && gateText({ stars: cinq, contracts: {} }, 1).includes(`5 / ${CHAPTER_PATIENCE}`), 'le joueur voit les deux comptes');
   check(gateText({ stars: { 1: 3, 2: 3 }, contracts: {} }, 1) === null, 'porte ouverte : plus rien à afficher');
+}
+
+// --- l'échelle des étoiles : 45 / 65 / 85 % de la médiane du bot fort, l'or à 100 %
+// (mesuré sur quatre niveaux de jeu, cinquante îles : hasard 0,43 · tranquille 0,66 · meilleur coup immédiat 0,73
+//  de cette médiane. À 55 % la première étoile valait le jeu au hasard et un joueur ordinaire plafonnait à
+//  cinq étoiles par chapitre, une de moins que la porte.)
+{
+  let ordre = 0, bornes = 0, cases = 0;
+  for (let n = 1; n <= CAMPAIGN_SIZE; n++) {
+    const def = campaignIsland(n); const f = def.starFactors;
+    if (f.length === 4 && f[0] < f[1] && f[1] < f[2] && f[2] < f[3]) ordre++;
+    // les trois seuils tombent bien à 45 / 65 / 85 % de l'étoile d'or (les quatre colonnes sont arrondies au
+    // dixième, d'où une marge de 0,1 : l'étoile d'or elle-même n'est la médiane qu'à l'arrondi près)
+    if ([0.45, 0.65, 0.85].every((x, i) => Math.abs(f[i] - f[3] * x) <= 0.1)) bornes++;
+    if (islandCells(def) > 0 && islandThresholds(def).length === 4) cases++;
+  }
+  check(ordre === CAMPAIGN_SIZE, `les quatre seuils montent sur les ${CAMPAIGN_SIZE} îles (${ordre})`);
+  check(bornes === CAMPAIGN_SIZE, `et valent 45 / 65 / 85 % de l’étoile d’or (${bornes})`);
+  check(cases === CAMPAIGN_SIZE, `le nombre de cases se calcule sans jouer la partie (${cases})`);
+  // Island.thresholds doit donner exactement la même chose : c'est ce qui rend le rattrapage juste
+  const def7 = campaignIsland(7); const isl7 = new Island(def7, islandOptions(def7));
+  check(JSON.stringify(islandThresholds(def7).slice(0, 3)) === JSON.stringify(isl7.thresholds) && islandCells(def7) === isl7.board.cells,
+    `même compte de cases et mêmes seuils que la partie (${isl7.board.cells} cases, ${isl7.thresholds.join('/')})`);
+
+  // --- rattrapage : une échelle revue vaut pour les parties déjà jouées
+  const th7 = islandThresholds(def7);
+  const camp = { stars: { 7: 0 }, gold: {}, best: { 7: th7[1] } };   // score qui vaut deux étoiles aujourd'hui
+  check(restarFromBest(camp) && camp.stars[7] === 2, `le meilleur score déjà gardé redonne ses étoiles (${camp.stars[7]})`);
+  check(!restarFromBest(camp), 'une seconde passe ne change plus rien');
+  const camp2 = { stars: { 7: 3 }, gold: {}, best: { 7: th7[0] } };
+  restarFromBest(camp2); check(camp2.stars[7] === 3, 'le rattrapage ne retire jamais une étoile déjà gagnée');
+  const camp3 = { stars: {}, gold: {}, best: { 7: th7[3] } };
+  restarFromBest(camp3); check(camp3.stars[7] === 3 && camp3.gold[7] === true, 'un score d’or rend aussi l’étoile d’or');
+  const camp4 = { stars: {}, gold: {}, best: { 7: 0, 99: 9999 } };
+  check(!restarFromBest(camp4), 'un score nul ou une île hors campagne ne donnent rien');
 }
   check(contractLine(camp, 2).done && /rempli/.test(contractLine(camp, 2).text), 'ligne de rappel : rempli');
 }

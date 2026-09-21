@@ -25,7 +25,7 @@ import { buildCredits, loadCredits } from './ui/credits.js';
 import { buildGuide } from './ui/guide.js';
 import { dailyDef, dailyKey, yesterdayKey } from './data/daily.js';
 import { Finale } from './game/finale.js';
-import { campaignIsland, campaignMechanics, islandOptions, CAMPAIGN_SIZE, MECH_AT, climateCardFor, unlockedUpTo, gateText } from './data/campaign.js';
+import { campaignIsland, campaignMechanics, islandOptions, CAMPAIGN_SIZE, MECH_AT, climateCardFor, unlockedUpTo, gateText, restarFromBest } from './data/campaign.js';
 import { GRADES, streakMilestone } from './game/feedback.js';
 import { computeLinks } from './game/paths.js';
 import { waterBodies } from './game/water.js';
@@ -104,9 +104,10 @@ const Game = {
     const fill = document.getElementById('boot-fill'), status = document.getElementById('boot-status');
     const setP = (p, txt) => { fill.style.width = `${Math.round(p * 100)}%`; if (txt) status.textContent = txt; };
     Save.load();
-    // rattrapage des sauvegardes déjà en cours : un joueur qui avait les étoiles de la porte sans avoir rejoué
-    // l'île de bout de chapitre restait bloqué. Le déblocage se recalcule ici, une fois, au lancement.
-    { const c = Save.data.campaign; const up = unlockedUpTo(c); if (up > c.unlockedIsland) { c.unlockedIsland = up; Save.save(); } }
+    // rattrapage des sauvegardes déjà en cours, une fois, au lancement : les étoiles sont d'abord réattribuées
+    // depuis les meilleurs scores gardés (une échelle revue vaut pour les parties déjà jouées), puis le déblocage
+    // est recalculé — un joueur coincé derrière une règle ou une échelle plus ancienne repart tout seul.
+    { const c = Save.data.campaign; const restar = restarFromBest(c); const up = unlockedUpTo(c); const avance = up > c.unlockedIsland; if (avance) c.unlockedIsland = up; if (restar || avance) Save.save(); }
     Achievements.init(Save); Achievements.testMode = () => !!Save.options.testMode; Achievements.onUnlock((a) => celebrate(a, { sound: () => AudioSys.play('achievement', { volume: 0.85 }) }));
     AudioSys.volumes = { master: Save.options.master, music: Save.options.music, ambience: Save.options.ambience, sfx: Save.options.sfx };
     AudioSys.muted = !!Save.options.muted;

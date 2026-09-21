@@ -85,6 +85,20 @@ const boot = (p) => p.waitForFunction(() => !document.getElementById('boot'), nu
   const up11 = await page.evaluate(() => window.CS.Save.campaign.unlockedIsland);
   check(up11 === 11, `porte ouverte à la patience, sans une seule étoile au chapitre (ouverte = ${up11})`);
 
+  // --- une échelle d'étoiles revue vaut pour les parties déjà jouées : le meilleur score rendu en étoiles au lancement
+  const seuils = await page.evaluate(async () => { const m = await import('/src/data/campaign.js'); return m.islandThresholds(m.campaignIsland(7)); });
+  await page.evaluate((th) => {
+    const s = JSON.parse(localStorage.getItem('cent-saisons.save'));
+    s.campaign.unlockedIsland = 8; s.campaign.stars = { 1: 2, 2: 2, 3: 2, 4: 2, 5: 2, 6: 1, 7: 0 };
+    s.campaign.best = { 7: th[1] };   // un score qui vaut deux étoiles sur l'échelle d'aujourd'hui
+    s.campaign.plays = { 1: 1, 2: 1, 3: 1, 4: 1, 5: 1, 6: 1, 7: 1 }; s.campaign.gold = {};
+    s.version = 2; localStorage.setItem('cent-saisons.save', JSON.stringify(s));
+  }, seuils);
+  await page.reload(); await boot(page); await page.waitForTimeout(900);
+  const rat = await page.evaluate(() => ({ st: window.CS.Save.campaign.stars[7], ecrit: JSON.parse(localStorage.getItem('cent-saisons.save')).campaign.stars[7] }));
+  check(rat.st === 2, `le meilleur score de l’île 7 lui rend ses étoiles au lancement (${rat.st})`);
+  check(rat.ecrit === 2, 'et c’est écrit dans la sauvegarde');
+
   // --- en jeu : une île finie sans étoile compte quand même, et ne se relance plus toute seule
   await page.evaluate(() => {
     const s = JSON.parse(localStorage.getItem('cent-saisons.save'));
