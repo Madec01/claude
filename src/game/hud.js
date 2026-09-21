@@ -69,6 +69,9 @@ export class Hud {
     this.r.fs.addEventListener('click', (e) => { e.stopPropagation(); onFullscreen && onFullscreen(); });
     this.log = []; this.unread = 0;
     this.r.thClose.addEventListener('click', (e) => { e.stopPropagation(); this.setTileHelp(false); });
+    // Sur téléphone la fiche est repliée à deux lignes : un appui la déplie en entier (les tuiles bavardes — l'eau, la
+    // lande — disent leurs effets passifs en cinq lignes). Le choix tient jusqu'à la fin de l'île, pas au-delà.
+    this.r.tileHelp.addEventListener('click', (e) => { e.stopPropagation(); this.helpOpen = !this.helpOpen; this.r.tileHelp.classList.toggle('open', this.helpOpen); });
     this.r.logBtn.addEventListener('click', (e) => { e.stopPropagation(); this.toggleLog(); });
     this.r.logClose.addEventListener('click', (e) => { e.stopPropagation(); this.toggleLog(false); });
     this.r.placeBtn.addEventListener('click', (e) => { e.stopPropagation(); onPlace && onPlace(); });
@@ -135,6 +138,7 @@ export class Hud {
     const id = on ? `${t.family}:${t.id}` : 'off';
     if (id === this.last.helpId) return; this.last.helpId = id;
     this.r.tileHelp.classList.toggle('hidden', !on);
+    this.r.tileHelp.classList.toggle('open', !!this.helpOpen);
     if (!on) return;
     const st = STORY.tiles[t.family] || { name: t.family, blurb: '' };
     this.r.thName.textContent = st.name + (t.rare ? ' (rare)' : t.work ? ' (ouvrage)' : ''); this.r.thBlurb.textContent = st.blurb || '';
