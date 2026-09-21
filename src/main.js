@@ -194,7 +194,7 @@ const Game = {
     }), 'panel-wrap');
   },
 
-  adoptCloud(data) { const opts = Save.data.options, cl = Save.data.cloud; Save.data = data; Save.data.options = opts; Save.data.cloud = cl; Save.save(); RunSave.clear(); this.showMenu(); },   // on prend la partie du nuage : la partie en cours de cet appareil ne s'y rattache plus
+  adoptCloud(data) { const opts = Save.data.options, cl = Save.data.cloud; Save.data = data; Save.data.options = opts; Save.data.cloud = cl; Save.save(); RunSave.clear(); RunSave.forget(); this.showMenu(); },   // on prend la partie du nuage : la partie en cours de cet appareil, et les dernières jouées, ne s'y rattachent plus
 
   /** Envoi de la sauvegarde. Appelé UNIQUEMENT à la fin d'une île et sur demande : jamais pendant une partie. */
   async pushCloud(opts = {}) {
@@ -254,7 +254,7 @@ const Game = {
   },
   setFpsVisible(v) { if (!this.fpsEl) { this.fpsEl = h('div', { class: 'fps' }); document.getElementById('app').appendChild(this.fpsEl); } this.fpsEl.style.display = v ? 'block' : 'none'; },
   setTestMode() { if (scenes.currentName === 'menu') this.showOptions(); },
-  onSaveReset() { RunSave.clear(); },   // la progression effacée emporte la partie en cours
+  onSaveReset() { RunSave.clear(); RunSave.forget(); },   // la progression effacée emporte la partie en cours et les dernières jouées
   get testMode() { return !!Save.options.testMode; },
 
   // ----- Flux -----
@@ -487,7 +487,7 @@ class IslandScene {
     // reprise : l'île retrouve exactement l'état laissé (plateau, file de tuiles, saison, score, vœux)
     this.resumed = !!(resume && isl.restoreRun(resume));
     if (resume && !this.resumed) { RunSave.clear(); Game.toast('Cette partie ne peut plus être reprise : on repart du début de l’île.'); }
-    if (!this.resumed) RunSave.clear();   // une nouvelle île remplace la partie gardée
+    if (!this.resumed) { RunSave.archiveKept(); RunSave.clear(); }   // une nouvelle île remplace la partie gardée : celle qu'on laisse passe dans l'historique, pour pouvoir l'illustrer plus tard
     this.isl = isl;
     this.runDirty = false; this.runTimer = 0;
     this.cam = new Camera(); this.cam.fit(isl.board.mask, { ...uiMargins('island'), immediate: true });
@@ -776,6 +776,7 @@ class IslandScene {
     } else if (e.type === 'grow') {
       this.cam.fit(this.isl.board.mask);
     } else if (e.type === 'end') {
+      if (!Game.testMode) RunSave.archive(Game.whereOf(this.def), this.isl, this.title);   // finie, elle ne se reprend plus — mais elle s'illustre dans un pépin
       RunSave.clear(); this.runDirty = false;   // l'île est finie : plus rien à reprendre
       fx.flushFlights(); this.hud.hold = 0;
       AudioSys.play('island_done', { volume: 0.8 });

@@ -11,7 +11,7 @@ import { h, button, icon, append } from './dom.js';
 import { AudioSys } from '../core/audio.js';
 import { BlackBox } from '../core/blackbox.js';
 import { TREE, RACCOURCIS, nodeAt, labelOf, questionsFor, search } from '../data/bug_tree.js';
-import { buildReport, captureImage, envoyerRapport, raisonTexte } from '../core/report.js';
+import { buildReport, captureImage, imageFichier, partiesPossibles, envoyerRapport, raisonTexte } from '../core/report.js';
 
 const MAX_TUILES = 4;
 
@@ -31,6 +31,8 @@ export function buildReportPanel({ onBack, scene = null, sceneName = null, mode 
     avecImage: false,
     avecPartie: true,
     avecErreur: false,
+    fichier: null,         // l'image apportée par le joueur, s'il en a choisi une
+    partieId: null,        // laquelle des parties joindre
     envoye: false,
   };
 
@@ -223,10 +225,36 @@ export function buildReportPanel({ onBack, scene = null, sceneName = null, mode 
 
   // ---- l'image, repliée : jamais imposée
   const imgCoche = h('input', { type: 'checkbox', class: 'toggle' });
-  imgCoche.addEventListener('change', () => { state.avecImage = imgCoche.checked; });
   const blocImage = h('label', { class: 'rep-check rep-image' }, imgCoche,
     h('span', {}, h('b', {}, 'Ajouter une image de l’écran'),
       h('small', {}, 'Utile si le pépin se voit. Inutile sinon : elle alourdit le rapport pour rien.')));
+
+  // ---- l'image apportée : le jeu ne sait photographier que son canvas, le HUD est par-dessus et n'y paraît
+  // jamais. Pour un pépin d'interface, la capture du téléphone montre ce que le jeu ne peut pas montrer.
+  const champFichier = h('input', { type: 'file', accept: 'image/*', class: 'hidden', 'aria-label': 'Choisir une image' });
+  const nomFichier = h('span', { class: 'rep-file-name' });
+  const retirerFichier = h('button', { class: 'rep-link hidden', type: 'button' }, 'retirer');
+  const blocFichier = h('div', { class: 'rep-file' },
+    button('Choisir une image…', () => champFichier.click(), { cls: 'btn-small', iconName: 'icon_plus' }),
+    nomFichier, retirerFichier, champFichier);
+  const majFichier = () => {
+    nomFichier.textContent = state.fichier ? state.fichier.name : '';
+    retirerFichier.classList.toggle('hidden', !state.fichier);
+  };
+  // une seule image part avec un rapport : la capture et la photo ne cohabitent pas, et on le dit
+  imgCoche.addEventListener('change', () => {
+    state.avecImage = imgCoche.checked;
+    if (imgCoche.checked && state.fichier) { state.fichier = null; champFichier.value = ''; majFichier(); dire('Une seule image part avec le rapport : ton image a été retirée.'); }
+  });
+  champFichier.addEventListener('change', () => {
+    const f = champFichier.files && champFichier.files[0];
+    if (!f) return;
+    if (!/^image\//.test(f.type || '')) { champFichier.value = ''; dire('Il faut une image : une capture d’écran, ou une photo.'); return; }
+    state.fichier = f;
+    if (imgCoche.checked) { imgCoche.checked = false; state.avecImage = false; }
+    majFichier(); dire('');
+  });
+  retirerFichier.addEventListener('click', () => { state.fichier = null; champFichier.value = ''; majFichier(); });
 
   // ---- la partie rejouable : cochée par défaut, et on montre ce qui part
   const partCoche = h('input', { type: 'checkbox', class: 'toggle' }); partCoche.checked = true;
@@ -235,15 +263,27 @@ export function buildReportPanel({ onBack, scene = null, sceneName = null, mode 
     h('span', {}, h('b', {}, 'Joindre la partie, pour la rejouer'),
       h('small', {}, 'Ton île telle qu’elle est : c’est ce qui permet de retrouver le pépin. Rien qui dise qui tu es.')));
 
+  // ---- laquelle ? Un pépin se raconte souvent une fois l'île finie : la partie du moment est alors vide, et
+  // celle qu'il faut montrer est la précédente.
+  const parties = partiesPossibles(scene);
+  state.partieId = parties.length ? parties[0].id : null;
+  const choixPartie = h('select', { class: 'opt-select rep-select', 'aria-label': 'Quelle partie joindre' },
+    ...parties.map((p) => h('option', { value: p.id }, p.label)));
+  choixPartie.addEventListener('change', () => { state.partieId = choixPartie.value; });
+  const blocChoix = h('div', { class: `rep-choice ${parties.length > 1 ? '' : 'hidden'}` },
+    h('span', { class: 'rep-choice-lab' }, 'Laquelle ?'), choixPartie);
+  if (!parties.length) blocPartie.classList.add('hidden');   // rien à joindre : on ne le promet pas
+
   const pli = h('details', { class: 'rep-details' },
     h('summary', {}, 'Ce qui part avec'),
     h('ul', { class: 'rep-what' },
       h('li', {}, 'Ta phrase et les tuiles choisies'),
       h('li', {}, 'L’île en cours, et ce que tu venais de faire'),
       h('li', {}, 'L’erreur, s’il y en a eu une'),
+      h('li', {}, 'L’image que tu ajoutes, si tu en ajoutes une'),
       h('li', {}, 'Ton téléphone, tes réglages et la version du jeu')),
     h('p', { class: 'rep-privacy' }, 'Aucune adresse, aucun nom : rien de tout cela ne dit qui tu es.'),
-    blocPartie, blocImage);
+    blocPartie, blocChoix, blocImage, blocFichier);
 
   // ---- l'envoi
   const etat = h('p', { class: 'opt-note rep-state' });
@@ -251,13 +291,20 @@ export function buildReportPanel({ onBack, scene = null, sceneName = null, mode 
     if (state.envoye) return;
     envoyer.disabled = true; etat.textContent = 'Envoi…';
     try {
+      const choisie = parties.find((p) => p.id === state.partieId);
       const rapport = buildReport({
         mode: state.mode, tuiles: state.sujet, raccourci: state.raccourci,
         mot: zone.value, scene, sceneName,
         avecPartie: state.avecPartie && state.mode === 'pepin',
+        partie: choisie ? choisie.partie : null,
       });
       if (state.mode === 'pepin' && !state.avecErreur) delete rapport.erreurs;
-      const image = state.avecImage ? captureImage({ mot: zone.value, code: rapport.code, rapport }) : null;
+      let image = null;
+      if (state.fichier) {
+        image = await imageFichier(state.fichier, { mot: zone.value, code: rapport.code, rapport });
+        // illisible : on ne part pas en silence sans l'image qu'il a choisie, on lui rend la main
+        if (!image) { etat.textContent = 'Ton image n’a pas pu être lue. Choisis-en une autre, ou retire-la pour envoyer sans.'; envoyer.disabled = false; return; }
+      } else if (state.avecImage) image = captureImage({ mot: zone.value, code: rapport.code, rapport });
       const r = await envoyerRapport(rapport, image);
       state.envoye = true;
       if (r.voie === 'nuage') BlackBox.clear();
@@ -300,7 +347,8 @@ export function buildReportPanel({ onBack, scene = null, sceneName = null, mode 
     state.raccourci = null;
     accroche.textContent = ACCROCHE[m];
     zone.placeholder = m === 'idee' ? 'Raconte…' : 'Qu’est-ce qui s’est passé ?';
-    blocPartie.classList.toggle('hidden', m === 'idee');
+    blocPartie.classList.toggle('hidden', m === 'idee' || !parties.length);
+    blocChoix.classList.toggle('hidden', m === 'idee' || parties.length < 2);
     renderErreur(); renderRaccourcis(); renderSujet();
     if (state.sujet.length) poserQuestions(questionsFor(state.sujet, m));
   };
@@ -310,7 +358,8 @@ export function buildReportPanel({ onBack, scene = null, sceneName = null, mode 
   append(root, h('h2', { class: 'panel-title' }, 'Pépins et idées'), onglets, corps, actions);
   ongletPepin.classList.toggle('on', state.mode === 'pepin');
   ongletIdee.classList.toggle('on', state.mode === 'idee');
-  blocPartie.classList.toggle('hidden', state.mode === 'idee');
+  blocPartie.classList.toggle('hidden', state.mode === 'idee' || !parties.length);
+  blocChoix.classList.toggle('hidden', state.mode === 'idee' || parties.length < 2);
   renderErreur(); renderRaccourcis(); renderArbre(); renderSujet();
   // le clavier ne doit pas monter tout seul sur téléphone : il mangerait la moitié de l'écran avant qu'il ait lu
   if (!document.documentElement.classList.contains('touch')) setTimeout(() => zone.focus({ preventScroll: true }), 80);

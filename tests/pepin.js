@@ -10,8 +10,17 @@ const URL = 'http://127.0.0.1:8765/index.html';
 const errors = [];
 const check = (ok, msg) => { if (!ok) errors.push(msg); console.log(`${ok ? 'OK ' : 'KO '} ${msg}`); };
 
+/** Deux parties déjà jouées, posées sur l'appareil avant le lancement : de quoi tester le choix de la partie. */
+const PARTIES_JOUEES = [
+  { v: 1, at: Date.now() - 20 * 60000, where: { kind: 'campaign', id: 3 }, title: 'Partie de test B', finie: true, isl: { placements: 34, season: 'summer', score: 120 } },
+  { v: 1, at: Date.now() - 3 * 3600000, where: { kind: 'campaign', id: 2 }, title: 'Partie de test A', finie: false, isl: { placements: 12, season: 'winter', score: 40 } },
+];
+
 /** Ouvre le jeu hors ligne (rien ne doit partir pendant un test) et arrive à la section. */
 async function openSection(page) {
+  await page.addInitScript((list) => {
+    try { localStorage.setItem('cent-saisons.runs', JSON.stringify({ v: 1, list })); } catch (_) { /* sans importance */ }
+  }, PARTIES_JOUEES);
   await page.goto(URL);
   await page.waitForSelector('.panel-signin, .menu', { timeout: 30000 });
   if (await page.$('.panel-signin')) { await page.click('.signin-card.ghost'); await page.waitForTimeout(900); }
@@ -142,9 +151,45 @@ async function openSection(page) {
   });
   check(envoiVisible, 'le bouton « Envoyer » reste posé en bas, sans avoir à défiler');
 
-  // --- hors ligne : le rapport est téléchargé, jamais d'échec muet
+  // --- la partie à joindre : un pépin se raconte souvent l'île finie, et c'est la partie d'AVANT qu'il faut montrer
   await page.click('.rep-tab:has-text("Un pépin")');
   await page.waitForTimeout(150);
+  await page.click('.rep-details > summary');
+  await page.waitForTimeout(150);
+  const choix = await page.$$eval('.rep-select option', (a) => a.map((o) => o.textContent));
+  check(choix.length === 2, `les parties déjà jouées sont proposées (${choix.length})`);
+  check(/Partie de test B/.test(choix[0] || '') && /34 tuiles/.test(choix[0] || ''), `la plus récente vient en tête, avec de quoi la reconnaître (${choix[0]})`);
+  const jointe = await page.evaluate(async () => {
+    const m = await import('/src/core/report.js');
+    const liste = m.partiesPossibles();
+    const r = m.buildReport({ mode: 'pepin', tuiles: [], mot: 'test', partie: liste[1].partie });
+    return r.partie && r.partie.title;
+  });
+  check(jointe === 'Partie de test A', `la partie choisie est bien celle qui part (${jointe})`);
+
+  // --- l'image apportée : le jeu ne sait photographier que son canvas, le HUD est du DOM par-dessus et n'y
+  // paraît jamais. Pour un pépin d'interface, la capture du téléphone montre ce que le jeu ne peut pas montrer.
+  await page.click('.rep-image .toggle');
+  await page.waitForTimeout(100);
+  const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64');
+  await page.setInputFiles('.rep-file input[type=file]', { name: 'ecran.png', mimeType: 'image/png', buffer: PNG });
+  await page.waitForTimeout(200);
+  check(await page.$eval('.rep-file-name', (e) => e.textContent) === 'ecran.png', 'l’image choisie est nommée à l’écran');
+  check(!(await page.$eval('.rep-image .toggle', (e) => e.checked)), 'une seule image part : la capture de l’écran se décoche d’elle-même');
+  const jpeg = await page.evaluate(async () => {
+    const m = await import('/src/core/report.js');
+    const cvs = document.createElement('canvas'); cvs.width = 40; cvs.height = 30;
+    const blob = await new Promise((r) => cvs.toBlob(r, 'image/png'));
+    const data = await m.imageFichier(new File([blob], 'x.png', { type: 'image/png' }), { mot: 'test', code: 'TEST' });
+    return (data || '').slice(0, 22);
+  });
+  check(jpeg === 'data:image/jpeg;base64', `l’image apportée est rendue au format du rapport (${jpeg})`);
+  await page.click('.rep-file .rep-link');
+  await page.waitForTimeout(150);
+  check(await page.$eval('.rep-file .rep-link', (e) => e.classList.contains('hidden')), 'on peut la retirer');
+
+  // --- hors ligne : le rapport est téléchargé, jamais d'échec muet
+  await page.waitForTimeout(100);
   const dl = page.waitForEvent('download', { timeout: 15000 });
   await page.click('.panel-report .btn-primary:has-text("Envoyer")');
   const fichier = await dl.catch(() => null);
