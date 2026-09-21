@@ -100,6 +100,28 @@ async function openSection(page) {
   const petits = await page.$$eval('.rep-tile, .rep-chip, .rep-tab', (a) => a.filter((e) => e.getBoundingClientRect().height < 40).length);
   check(petits === 0, `toutes les tuiles font au moins 40 px de haut (${petits} trop petites)`);
 
+  // --- on doit pouvoir défiler : le panneau compact est une colonne à overflow caché (css/mobile.css), il lui
+  // faut UN enfant défilant. Sans ça, rien ne bougeait — c'est le premier pépin qu'on m'a signalé sur la section.
+  const defile = await page.evaluate(() => {
+    const p = document.querySelector('.panel-report'), b = document.querySelector('.rep-body'), g = document.querySelector('.rep-grid');
+    const boite = (e) => ({ h: e.scrollHeight, c: e.clientHeight, o: getComputedStyle(e).overflowY });
+    p.scrollTop = 0; b.scrollTop = 0;
+    b.scrollTop = 400;                                   // un défileur réel accepte qu'on le pousse
+    const bouge = b.scrollTop > 0 || (p.scrollTop = 400, p.scrollTop > 0);
+    p.scrollTop = 0; b.scrollTop = 0;
+    return { panneau: boite(p), corps: boite(b), grille: boite(g), bouge };
+  });
+  check(defile.corps.h > defile.corps.c + 2 || defile.panneau.h > defile.panneau.c + 2, 'le contenu dépasse la fenêtre : il y a bien de quoi défiler');
+  check(defile.bouge, 'le panneau défile vraiment (un enfant porte overflow, il n’est pas juste caché)');
+  check(defile.grille.o === 'visible', 'la grille n’est PAS un second défileur : un seul, pour que le doigt ne se batte pas');
+  await page.evaluate(() => { document.querySelector('.rep-body').scrollTop = 0; });
+  const envoiVisible = await page.evaluate(() => {
+    const b = [...document.querySelectorAll('.panel-report .btn')].find((x) => x.textContent.includes('Envoyer'));
+    const r = b.getBoundingClientRect();
+    return r.bottom <= innerHeight + 1 && r.top >= -1;
+  });
+  check(envoiVisible, 'le bouton « Envoyer » reste posé en bas, sans avoir à défiler');
+
   // --- hors ligne : le rapport est téléchargé, jamais d'échec muet
   await page.click('.rep-tab:has-text("Un pépin")');
   await page.waitForTimeout(150);
