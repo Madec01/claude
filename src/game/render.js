@@ -22,12 +22,12 @@ const SEA = { spring: ['#8fc8e6', '#5f9fc8'], summer: ['#7fc0e4', '#4f93c2'], au
 // est creusée dans le terrain au lieu d'être peinte dessus. `shoal` : les bas-fonds, un anneau clair au
 // contact de la terre. `deep` : le fond, vers lequel le dégradé descend. Une seule famille de teintes.
 const WATER = {
-  spring: { fill: '#5aa7d6', deep: '#3d87b8', shoal: '#86c4e4', edge: '#3f86b6', bank: 'rgba(38,70,92,0.34)', foam: 'rgba(255,255,255,0.55)' },
-  summer: { fill: '#4f9ed2', deep: '#347fb2', shoal: '#7cbde2', edge: '#397fb0', bank: 'rgba(34,64,86,0.34)', foam: 'rgba(255,255,255,0.5)' },
-  autumn: { fill: '#5b95bd', deep: '#40769c', shoal: '#8bb6d2', edge: '#41769a', bank: 'rgba(40,62,78,0.32)', foam: 'rgba(255,255,255,0.45)' },
-  winter: { fill: '#6f9fc0', deep: '#517f9f', shoal: '#9cc0d8', edge: '#4f7f9f', bank: 'rgba(46,66,80,0.3)', foam: 'rgba(255,255,255,0.4)' },
+  spring: { fill: '#5aa7d6', deep: '#4e99c8', shoal: '#74bade', edge: '#448cba', foam: 'rgba(255,255,255,0.55)' },
+  summer: { fill: '#4f9ed2', deep: '#4390c4', shoal: '#6bb3dc', edge: '#3d85b4', foam: 'rgba(255,255,255,0.5)' },
+  autumn: { fill: '#5b95bd', deep: '#4f87ae', shoal: '#7dadc9', edge: '#457a9e', foam: 'rgba(255,255,255,0.45)' },
+  winter: { fill: '#6f9fc0', deep: '#6291b3', shoal: '#8db5cf', edge: '#5483a3', foam: 'rgba(255,255,255,0.4)' },
 };
-const ICE = { fill: '#dbe9f4', deep: '#c3d8e8', shoal: '#eaf4fb', edge: '#b9cfe0', bank: 'rgba(90,110,126,0.22)', foam: 'rgba(255,255,255,0.8)' };
+const ICE = { fill: '#dbe9f4', deep: '#cfe0ee', shoal: '#e8f2fa', edge: '#bdd2e2', foam: 'rgba(255,255,255,0.8)' };
 
 export class IslandRenderer {
   constructor(island, camera, effects, particles) {
@@ -461,7 +461,7 @@ export class IslandRenderer {
       const rr = SIZE * 0.7 * z;
       ctx.fillStyle = pal.edge; this.blob(ctx, c.x, c.y, rr * 1.03, c0); ctx.fill();
       ctx.fillStyle = pal.deep; this.blob(ctx, c.x, c.y, rr, c0); ctx.fill();
-      ctx.fillStyle = pal.shoal; this.blob(ctx, c.x, c.y + 7 * z, rr * 0.82, c0); ctx.fill();
+      ctx.fillStyle = pal.shoal; this.blob(ctx, c.x, c.y + 3.5 * z, rr * 0.92, c0); ctx.fill();
       if (!frozen) { ctx.strokeStyle = pal.foam; ctx.lineWidth = 1.5 * z; ctx.beginPath(); ctx.ellipse(c.x - rr * 0.2, c.y - rr * 0.25, rr * 0.35, rr * 0.16, -0.4, 0, TAU); ctx.stroke(); }
       else this.drawCracks(ctx, [c], z);
     }
@@ -488,7 +488,7 @@ export class IslandRenderer {
         // le lit est creusé : bord sombre, fond à l'ombre, puis le filet d'eau clair décalé vers le bas
         tapered(sp, wAt, 1.12, pal.edge);
         tapered(sp, wAt, 1, pal.deep);
-        ctx.save(); ctx.translate(0, 4 * z); tapered(sp, wAt, 0.78, pal.shoal); ctx.restore();
+        ctx.save(); ctx.translate(0, 2.5 * z); tapered(sp, wAt, 0.88, pal.shoal); ctx.restore();
         if (mouth) { const m = S(mouth); ctx.fillStyle = pal.fill; ctx.beginPath(); ctx.ellipse(m.x, m.y, 26 * z, 16 * z, 0, 0, TAU); ctx.fill(); }
         if (!frozen) { ctx.strokeStyle = pal.foam; ctx.lineWidth = (this.finale ? 3 : 1.5) * z; ctx.setLineDash([8 * z, 22 * z]); ctx.lineDashOffset = -this.time * (this.finale ? 120 : 40) * z; trace(sp); ctx.stroke(); ctx.setLineDash([]); }
         else this.drawCracks(ctx, sp, z);
@@ -497,7 +497,7 @@ export class IslandRenderer {
         const rr = SIZE * 0.66 * z;
         ctx.fillStyle = pal.edge; this.blob(ctx, c.x, c.y, rr * 1.03, c0); ctx.fill();
         ctx.fillStyle = pal.deep; this.blob(ctx, c.x, c.y, rr, c0); ctx.fill();
-        ctx.fillStyle = pal.shoal; this.blob(ctx, c.x, c.y + 7 * z, rr * 0.82, c0); ctx.fill();
+        ctx.fillStyle = pal.shoal; this.blob(ctx, c.x, c.y + 3.5 * z, rr * 0.92, c0); ctx.fill();
         if (!frozen) { ctx.strokeStyle = pal.foam; ctx.lineWidth = 1.5 * z; ctx.beginPath(); ctx.ellipse(c.x - rr * 0.2, c.y - rr * 0.25, rr * 0.35, rr * 0.16, -0.4, 0, TAU); ctx.stroke(); }
       } else {
         // lac : union de mares arrondies (une par case, forme irrégulière) reliées par des ponts arrondis entre cases voisines ;
@@ -518,10 +518,10 @@ export class IslandRenderer {
         let grad = null;
         { let y0 = Infinity, y1 = -Infinity; for (const c of cs) { y0 = Math.min(y0, c.s.y); y1 = Math.max(y1, c.s.y); }
           grad = ctx.createLinearGradient(0, y0 - SIZE * 0.6 * z, 0, y1 + SIZE * z);
-          grad.addColorStop(0, pal.fill); grad.addColorStop(0.7, pal.shoal); grad.addColorStop(1, pal.shoal); }
+          grad.addColorStop(0, pal.fill); grad.addColorStop(0.75, pal.shoal); grad.addColorStop(1, pal.shoal); }
         nappe(pal.edge, 2);            // la lèvre : un liseré sombre au contact de la terre, sans débord
         nappe(pal.deep, 0);            // le fond, à l'ombre
-        nappe(grad, -9, 8 * z);        // le plan d'eau, rétréci et descendu : croissant d'ombre en haut
+        nappe(grad, -4, 4 * z);        // le plan d'eau, un peu rétréci et descendu : ombre fine sous la lèvre
         if (!frozen) {
           // la rive scintille : un liseré clair qui court le long du contour, et qui BOUGE — sans
           // l'animation ce n'est qu'un trait peint, et c'est ce mouvement qui fait lire « de l'eau »
