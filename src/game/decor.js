@@ -24,6 +24,37 @@ export const FUSION_DECOR = {
   lagoon: [{ tpl: 'obj_rockBrown_small{w}', dx: -30, dy: 32 }, { tpl: 'sea_wave_2', dx: 8, dy: 6, wave: true }, { tpl: 'obj_bushGrass_dry', dx: 30, dy: 30 }],
 };
 
+/**
+ * Décor des tuiles rares. Elles étaient jusqu'ici PRÉ-COMPOSÉES : une image de tuile complète, avec son
+ * sol cuit dedans (`T("rare", "grass_05", …)` dans build_images.py) — un sol unique, sans variante de
+ * saison. En hiver le marché gardait donc son herbe d'été au milieu de la neige, et son hexagone ne se
+ * fondait avec aucune voisine. Les rares se dessinent maintenant comme tout le reste : le sol partagé,
+ * qui suit la saison et déborde en fondu, plus leurs objets posés dessus.
+ * Coordonnées en unités monde depuis le centre de la case.
+ */
+export const RARE_DECOR = {
+  mill:       [{ tpl: 'obj_windmill_complete', dx: 0, dy: 22, scale: 0.85 }, { tpl: 'obj_sack', dx: -30, dy: 34, scale: 1.6 }, { tpl: 'obj_fence', dx: 34, dy: 30, scale: 0.8 }],
+  chapel:     [{ tpl: 'obj_church', dx: 0, dy: 24, scale: 0.8 }, { tpl: 'obj_fence', dx: -34, dy: 32, scale: 0.75 }, { tpl: 'obj_treePine_small_{s}', dx: 36, dy: 12, scale: 0.75 }],
+  watchtower: [{ tpl: 'obj_tower', dx: 0, dy: 26, scale: 0.75 }, { tpl: 'obj_wall_small', dx: -30, dy: 28, scale: 0.6 }, { tpl: 'obj_treePine_small_{s}', dx: 34, dy: 12, scale: 0.7 }],
+  well:       [{ tpl: 'obj_well', dx: 0, dy: 20, scale: 1.3 }, { tpl: 'obj_fence', dx: -26, dy: 26, scale: 0.6 }, { tpl: 'obj_fence', dx: 26, dy: 26, scale: 0.6 }, { tpl: 'obj_bushGrass_{s}', dx: 32, dy: 8, scale: 0.8 }],
+  camp:       [{ tpl: 'obj_campingTent', dx: -12, dy: 20 }, { tpl: 'obj_fire', dx: 24, dy: 24 }, { tpl: 'obj_logPile', dx: 26, dy: 38, scale: 0.9 }, { tpl: 'obj_treePine_small_{s}', dx: -32, dy: 34, scale: 0.7 }],
+  ruins:      [{ tpl: 'obj_towerRuin', dx: -2, dy: 24, scale: 0.9 }, { tpl: 'obj_logPile', dx: -28, dy: 32, scale: 0.95 }, { tpl: 'obj_ruins_brick1', dx: 28, dy: 30, scale: 0.9 }],
+  granary:    [{ tpl: 'obj_farm', dx: 0, dy: 26, scale: 0.85 }, { tpl: 'obj_silo1', dx: -32, dy: 20, scale: 0.9 }, { tpl: 'obj_sack', dx: 26, dy: 34, scale: 2.2 }, { tpl: 'obj_hay', dx: 32, dy: 14, scale: 0.8 }],
+  fountain:   [{ tpl: 'obj_fountain', dx: 0, dy: 24 }, { tpl: 'obj_fence', dx: -30, dy: 26, scale: 0.6 }, { tpl: 'obj_fence', dx: 30, dy: 26, scale: 0.6 }],
+  market:     [{ tpl: 'obj_shop', dx: 0, dy: 22 }, { tpl: 'obj_cart', dx: 30, dy: 36, scale: 0.8 }, { tpl: 'obj_crate', dx: -32, dy: 34, scale: 1.2 }, { tpl: 'obj_barrel', dx: -24, dy: 16, scale: 1.1 }],
+  fete:       [{ tpl: 'obj_stage', dx: 0, dy: 24, scale: 0.8 }, { tpl: 'obj_barrel', dx: -30, dy: 32, scale: 1.2 }, { tpl: 'obj_barrel', dx: 30, dy: 34, scale: 1.1 }, { tpl: 'obj_banner', dx: -34, dy: 10, scale: 0.9 }],
+  restore:    [{ tpl: 'obj_scaffolding', dx: 0, dy: 26, scale: 0.9 }, { tpl: 'obj_ladder', dx: 30, dy: 30, scale: 0.9 }, { tpl: 'obj_crate', dx: -32, dy: 34, scale: 1.2 }],
+  tavern:     [{ tpl: 'obj_tavern', dx: 0, dy: 24, scale: 0.75 }, { tpl: 'obj_barrel', dx: -32, dy: 32, scale: 1.3 }, { tpl: 'obj_barrel', dx: 34, dy: 36, scale: 1.1 }],
+  trough:     [{ tpl: 'obj_horseTrough', dx: 0, dy: 24, scale: 1.4 }, { tpl: 'obj_fence', dx: -30, dy: 26, scale: 0.6 }, { tpl: 'obj_fence', dx: 30, dy: 26, scale: 0.6 }, { tpl: 'obj_bushGrass_{s}', dx: 30, dy: 8, scale: 0.8 }],
+  archway:    [{ tpl: 'obj_archway', dx: 0, dy: 24, scale: 0.95 }, { tpl: 'obj_wall_small', dx: -32, dy: 26, scale: 0.55 }, { tpl: 'obj_wall_small', dx: 32, dy: 26, scale: 0.55, flip: true }],
+  mine:       [{ tpl: 'obj_mine', dx: 0, dy: 24 }, { tpl: 'obj_logPile', dx: -30, dy: 32 }, { tpl: 'obj_rockGrey_small2{w}', dx: 32, dy: 28, scale: 0.8 }],
+  oven:       [{ tpl: 'obj_oven', dx: 0, dy: 24 }, { tpl: 'obj_logPile', dx: -30, dy: 32 }, { tpl: 'obj_sack', dx: 30, dy: 30, scale: 1.6 }],
+};
+/** Les rares qui portent un massif de fleurs au printemps et en été (les points d'eau du village). */
+const RARE_FLEURIES = new Set(['well', 'fountain', 'trough']);
+/** Un massif est toujours d'UNE SEULE couleur : une fleur isolée se lit comme une pastille d'interface. */
+const FLEURS = ['obj_flowerWhite', 'obj_flowerRed', 'obj_flowerBlue', 'obj_flowerYellow'];
+
 /** Décor des ouvrages posés sur une tuile. */
 export const WORK_DECOR = {
   hive:      [{ tpl: 'obj_box2', dx: 18, dy: 20, scale: 0.7 }, { tpl: 'obj_flowerYellow', dx: 32, dy: 30 }, { tpl: 'obj_flowerWhite', dx: 6, dy: 30 }],
@@ -213,7 +244,17 @@ export class Decor {
     for (const t of board.tiles.values()) {
       if (!t.rare) continue; const c = toWorld(t.q, t.r);
       if (t.fusion) { for (const o of FUSION_DECOR[t.family] || []) add({ x: c.x + o.dx, y: c.y + o.dy, tpl: o.tpl, cell: key(t.q, t.r), scale: o.scale || 1, alpha: o.alpha || 1, seasons: o.seasons, wave: o.wave }); continue; }
-      add({ x: c.x, y: c.y + 26, tile: t, cell: key(t.q, t.r), composed: true });
+      const ck = key(t.q, t.r); const liste = RARE_DECOR[t.family];
+      if (!liste) { add({ x: c.x, y: c.y + 26, tile: t, cell: ck, composed: true }); continue; }   // repli (pré sec)
+      const rng = mulberry(cellSeed(this.seed, t.q, t.r, 23));
+      for (const o of liste) add({ x: c.x + o.dx, y: c.y + o.dy, tpl: o.tpl, cell: ck, scale: (o.scale || 1) * (0.94 + rng() * 0.12), alpha: 1, flip: o.flip !== undefined ? o.flip : rng() < 0.35 });
+      if (RARE_FLEURIES.has(t.family)) {
+        for (let m = 0; m < 2; m++) {
+          const tpl = PICK(rng, FLEURS), a = rng() * Math.PI * 2, rr = 26 + rng() * 14;
+          const px = c.x + Math.cos(a) * rr, py = c.y + Math.sin(a) * rr * 0.7 + 16;
+          for (let i = 0; i < 3; i++) add({ x: px + (rng() - 0.5) * 18, y: py + (rng() - 0.5) * 10, tpl, cell: ck, scale: 0.5 + rng() * 0.18, alpha: 1, seasons: ['spring', 'summer'], flip: rng() < 0.5 });
+        }
+      }
     }
     // friches : décor mort selon la famille d'origine (ruine, bois mort, lit asséché, herbes sèches)
     for (const t of board.tiles.values()) {
@@ -266,7 +307,6 @@ export class Decor {
      * serrées et d'UNE SEULE couleur — une fleur isolée, ou un mélange de couleurs, se lit comme une
      * pastille d'interface ; c'est le bouquet qui fait le jardin.
      */
-    const FLEURS = ['obj_flowerWhite', 'obj_flowerRed', 'obj_flowerBlue', 'obj_flowerYellow'];
     const fleurir = (p, ck, rng, n) => {
       const tpl = PICK(rng, FLEURS);
       for (let i = 0; i < n; i++) add({ x: p.x + (rng() - 0.5) * 19, y: p.y + (rng() - 0.5) * 11 + 4, tpl, cell: ck, scale: 0.5 + rng() * 0.18, alpha: 1, seasons: ['spring', 'summer'], flip: rng() < 0.5 });
