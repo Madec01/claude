@@ -13,7 +13,7 @@ import { RunSave } from './run.js';
 import { STAGE } from './stage.js';
 import { BlackBox } from './blackbox.js';
 import { CLOUD } from '../data/firebase_config.js';
-import { questionsFor } from '../data/bug_tree.js';
+import { questionsFor, pistesFor } from '../data/bug_tree.js';
 
 const PAPER = '#fbf7ee', INK = '#2b2a26';
 const JOURNAL_LINES = 30;      // au-delà, le rapport grossit sans rien apprendre
@@ -97,6 +97,10 @@ export function buildReport({ mode = 'pepin', tuiles = [], raccourci = null, mot
     mot: (mot || '').trim() || '(sans commentaire)',
     tuiles: [...tuiles], raccourci,
     questions: questionsFor(tuiles, mode),
+    // Où regarder dans le code, déduit des tuiles touchées. Le joueur ne voit jamais ce champ : c'est du
+    // renseignement pour celui qui corrigera, et c'est ce qui lui fait gagner le plus de temps — savoir OÙ
+    // chercher avant d'avoir à le chercher. Le relevé en fait la section « Où regarder » de l'issue.
+    pistes: pistesFor(tuiles),
     jeu: VERSION_JEU(),
     ...ctx,
   };

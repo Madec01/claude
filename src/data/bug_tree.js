@@ -571,6 +571,99 @@ export const MOTS = {
   textes: ['faute', 'orthographe', 'traduction', 'mot', 'phrase', 'ecriture', 'coupe', 'deborde'],
 };
 
+/**
+ * Où regarder dans le code, par chemin de tuile. **Le joueur ne voit jamais ça** : c'est du renseignement pour
+ * celui qui corrigera. Une tuile « graphisme/sprites/foret » ne dit rien à un correcteur qui découvre le projet ;
+ * `src/game/decor.js` lui fait gagner la demi-heure qu'il aurait passée à chercher.
+ *
+ * Les pistes d'une branche valent pour toutes ses feuilles, et s'ajoutent à celles de la feuille. On reste au
+ * niveau du rameau quand les feuilles partagent le même fichier : une piste par feuille vieillirait plus vite
+ * qu'elle ne servirait.
+ */
+export const CODE = {
+  graphisme: ['src/game/render.js'],
+  'graphisme/sprites': ['src/game/decor.js', 'assets/img/manifest.json', 'tools/render_kaykit.js'],
+  'graphisme/sprites/foret': ['src/game/decor.js (FOREST, les silhouettes et les palettes de saison)'],
+  'graphisme/sprites/hameau': ['src/game/decor.js (village, BUILD_SCALE, les couleurs de toit)'],
+  'graphisme/sprites/roche': ['src/game/decor.js (massif : sommet, crêtes, éboulis, avant-plan)'],
+  'graphisme/sprites/champ': ['src/game/decor.js (rangs de culture, alignés par région)'],
+  'graphisme/sprites/bati': ['src/game/decor.js', 'src/data/signatures.js'],
+  'graphisme/sprites/ouvrage': ['src/game/decor.js', 'src/data/balance.js (works)'],
+  'graphisme/sprites/fusion': ['src/game/decor.js', 'src/data/balance.js (fusions)'],
+  'graphisme/sprites/friche': ['src/game/decor.js (blight)', 'src/game/rules.js (friche)'],
+  'graphisme/sol': ['src/game/render.js (drawLayered, les fondus de bord)', 'src/data/tiles.js'],
+  'graphisme/eau': ['src/game/water.js', 'src/game/render.js (mer, écume, vagues)'],
+  'graphisme/faune': ['src/game/fauna.js', 'tools/render_animals.js'],
+  'graphisme/chemins': ['src/game/paths.js', 'src/game/render.js (sentiers et ruelles)'],
+  'graphisme/effets': ['src/game/effects.js', 'src/core/particles.js', 'src/game/finale.js'],
+  'graphisme/hud': ['src/game/hud.js', 'css/hud.css', 'css/mobile.css'],
+  'graphisme/camera': ['src/game/camera.js', 'src/core/stage.js (uiMargins, minZoom)'],
+  'graphisme/postcard': ['src/game/postcard.js', 'src/ui/postcard.js'],
+
+  son: ['src/core/audio.js', 'assets/audio/manifest.json'],
+  'son/ambiance': ['src/main.js (le paysage sonore, recalculé selon la composition de l’île)'],
+  'son/vibrations': ['src/core/haptics.js'],
+
+  regles: ['src/game/rules.js', 'src/data/balance.js'],
+  'regles/pose': ['src/game/rules.js (preview, apply)', 'src/game/feedback.js (les mots et la série)'],
+  'regles/regions': ['src/game/board.js (régions connexes)', 'src/game/rules.js (fermeture et primes)'],
+  'regles/eau': ['src/game/water.js (étang, lac, rivière, fourche, embouchure)'],
+  'regles/saisons': ['src/game/seasons.js', 'src/game/seasonrules.js (les douze règles)'],
+  'regles/climat': ['src/data/climates.js', 'src/game/seasons.js (météo et événements)'],
+  'regles/faune': ['src/game/fauna.js (habitats, arrivées et départs)'],
+  'regles/voeux': ['src/game/wishes.js', 'src/data/story.js (les textes des vœux)'],
+  'regles/souffles': ['src/game/queue.js', 'src/game/island.js (les pouvoirs)'],
+  'regles/file': ['src/game/queue.js (tirage, main, poche, remise)'],
+  'regles/batir': ['src/game/rules.js (bâtir, fusionner, ouvrages)', 'src/data/signatures.js', 'src/data/balance.js'],
+  'regles/rares': ['src/data/tiles.js (rares et tuiles d’événement)', 'src/game/rules.js'],
+  'regles/etoiles': ['src/data/campaign_stars.js', 'src/data/upgrades.js', 'tools/calibrate.js'],
+  'regles/campagne': ['src/data/campaign.js (déblocage, portes)', 'src/data/contracts.js', 'src/data/semis.js', 'src/data/islands.js'],
+  'regles/bilan': ['src/game/island.js (fin d’île, tally)', 'src/ui/results.js', 'src/game/finale.js'],
+  'regles/succes': ['src/data/achievements.js', 'src/game/achievements.js'],
+
+  interface: ['src/core/input.js', 'src/game/hud.js'],
+  'interface/poser': ['src/main.js (IslandScene : placeArmed, armed)', 'src/core/input.js'],
+  'interface/vue': ['src/core/input.js (tactile, pincement)', 'src/game/camera.js'],
+  'interface/clavier': ['src/main.js (les raccourcis)', 'src/core/input.js'],
+  'interface/hud': ['src/game/hud.js', 'css/hud.css'],
+  'interface/ecran': ['src/core/stage.js', 'css/mobile.css'],
+  'interface/tutoriel': ['src/game/tutorial.js', 'src/data/story.js (mechCards)'],
+
+  ecrans: ['src/ui/', 'src/main.js (les scènes)'],
+  'ecrans/menu': ['src/ui/menu.js', 'css/menu.css'],
+  'ecrans/pause': ['src/ui/pause.js'],
+  'ecrans/options': ['src/ui/options.js', 'src/core/save.js (les options)'],
+  'ecrans/guide': ['src/ui/guide.js'],
+  'ecrans/apres': ['src/ui/results.js', 'src/ui/workshop.js', 'src/ui/achievements.js', 'src/ui/credits.js'],
+  'ecrans/depart': ['src/ui/island_prep.js', 'src/ui/contract.js', 'src/ui/wishes_intro.js'],
+  'ecrans/recit': ['src/ui/story.js', 'src/data/story.js'],
+  'ecrans/bannieres': ['src/ui/achievements.js (celebrate, celebrateThing)', 'src/main.js (toast)'],
+
+  sauvegarde: ['src/core/save.js'],
+  'sauvegarde/reprise': ['src/core/run.js', 'src/game/island.js (serialize, restoreRun)'],
+  'sauvegarde/fichier': ['src/core/save.js (exportText, inspect, importText)', 'src/ui/options.js'],
+  'sauvegarde/nuage': ['src/core/cloud.js', 'src/data/firebase_config.js', 'firestore.rules', 'src/ui/signin.js'],
+
+  technique: ['src/main.js', 'src/core/loop.js'],
+  'technique/lancement': ['src/core/assets.js', 'index.html', 'src/main.js (boot)'],
+  'technique/lenteur': ['src/game/render.js (lowFx)', 'src/core/particles.js', 'src/core/loop.js'],
+  'technique/plantage': ['src/core/blackbox.js (l’erreur relevée est dans le rapport)'],
+
+  textes: ['src/data/story.js', 'src/data/campaign_texts.js'],
+};
+
+/** Les pistes de code d'une liste de chemins : celles du nœud et de tous ses parents, sans doublon. */
+export function pistesFor(paths) {
+  const out = [];
+  for (const chemin of paths || []) {
+    const parts = String(chemin).split('/');
+    for (let i = 1; i <= parts.length; i++) {
+      for (const f of CODE[parts.slice(0, i).join('/')] || []) if (!out.includes(f)) out.push(f);
+    }
+  }
+  return out;
+}
+
 const norm = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
   .replace(/[\u2019']/g, ' ').replace(/[^a-z0-9]+/g, ' ').trim();
 

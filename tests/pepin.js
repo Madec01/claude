@@ -17,6 +17,18 @@ const PARTIES_JOUEES = [
 ];
 
 /** Ouvre le jeu hors ligne (rien ne doit partir pendant un test) et arrive à la section. */
+// ---- les pistes de code, vérifiées côté Node : chaque fichier cité doit exister pour de bon.
+// Une piste morte est pire que pas de piste — elle envoie le correcteur sur une fausse route, et il la suit
+// d'autant plus volontiers qu'elle a l'air d'un renseignement sûr.
+{
+  const src = fs.readFileSync(path.join(__dirname, '..', 'src/data/bug_tree.js'), 'utf8');
+  const bloc = src.slice(src.indexOf('export const CODE = {'), src.indexOf('/** Les pistes de code'));
+  const fichiers = [...bloc.matchAll(/'([^']*?\.(?:js|json|css|rules|html))(?: \([^)]*\))?'/g)].map((m) => m[1]);
+  const morts = [...new Set(fichiers)].filter((f) => !fs.existsSync(path.join(__dirname, '..', f)));
+  check(fichiers.length > 40, `les pistes de code sont renseignées (${fichiers.length} fichiers cités)`);
+  check(morts.length === 0, `toutes les pistes pointent un fichier qui existe${morts.length ? ` — introuvables : ${morts.join(', ')}` : ''}`);
+}
+
 async function openSection(page) {
   await page.addInitScript((list) => {
     try { localStorage.setItem('cent-saisons.runs', JSON.stringify({ v: 1, list })); } catch (_) { /* sans importance */ }

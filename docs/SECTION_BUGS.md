@@ -172,6 +172,7 @@ Un objet JSON, `version: 1`. Champ par champ :
 | `reglages` | `Save.options` | `Save.options` | « Chez moi le relevé de saison ne s'affiche pas » : la réponse est souvent là. |
 | `progression` | `{ ile_debloquee, etoiles, graines, ameliorations, contrats }` | résumé de `Save.campaign` | Un pépin de déblocage se lit ici. **Résumé, pas la sauvegarde entière.** |
 | `partie` | le `RunSave` complet (`{ where, title, isl }`) | la partie du moment (`RunSave.read()`, ou `isl.serialize()` en direct), **ou l'une des trois dernières jouées** (`RunSave.history()`) | **La pièce qui permet de rejouer.** Décochable, et choisie dans une liste dès qu'il y en a plusieurs : un pépin se raconte souvent l'île finie, quand la partie du moment est vide. |
+| `pistes` | les fichiers où regarder, déduits des tuiles choisies (`CODE` de `bug_tree.js`) | `pistesFor(tuiles)` | **Jamais montré au joueur.** C'est du renseignement pour qui corrigera : le relevé en fait la section « Où regarder » de l'issue, et ça fait gagner la demi-heure passée à chercher le bon fichier. |
 | `nuage` | `{ mode, etat }` : `google` / `anon` / `none`, et `ready` / `quota` / `error` | `Cloud.status()` | Comprendre un pépin de sauvegarde, sans identifiant. |
 
 **Ce qui n'y est jamais :** aucune adresse e-mail, aucun nom Google, aucun `uid` Firebase, aucune position, aucun

@@ -61,6 +61,11 @@ function corps(r, urlImage) {
   L.push(`| Nuage | ${r.nuage?.mode || '—'} (${r.nuage?.etat || '—'}) |`);
   L.push('');
   if (urlImage) L.push(`[Voir l'écran au moment du pépin](${urlImage})`, '');
+  // Les pistes de code : déduites des tuiles que le joueur a touchées, et invisibles pour lui. C'est le
+  // renseignement qui fait gagner le plus de temps — savoir OÙ regarder avant d'avoir à le chercher.
+  if (r.pistes && r.pistes.length) {
+    L.push('**Où regarder** — d’après les tuiles choisies :', '', ...r.pistes.map((f) => `- \`${f}\``), '');
+  }
   if (r.questions && r.questions.length) L.push('<details><summary>Questions posées</summary>', '', ...r.questions.map((q) => `- ${q}`), '', '</details>', '');
   if (r.erreurs && r.erreurs.length) {
     L.push('### Erreurs relevées par le jeu', '');
