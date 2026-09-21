@@ -11,6 +11,10 @@ import { Decor, groundOf, groundKey, GROUND_COLORS, spriteKey } from './decor.js
 import { pathShapes } from './paths.js';
 // arête i (sommet i → i+1 de corners()) → indice dans DIRS du voisin de l'autre côté ; mesuré, pas deviné
 const EDGE_DIR = [1, 0, 5, 4, 3, 2];
+/** Sols en relief : falaise (roche) et talus (colline). */
+const RELIEF = new Set(['stone', 'hill']);
+/** Deux sols qui se touchent par une arête franche plutôt que par un fondu. */
+const areteFranche = (a, b) => (RELIEF.has(a) || RELIEF.has(b)) && (a === 'grass' || b === 'grass' || (RELIEF.has(a) && RELIEF.has(b)));
 const FAUNA_GROUND = 10;   // un animal se tient un peu en avant du centre de sa tuile, comme le décor
 const SEA = { spring: ['#8fc8e6', '#5f9fc8'], summer: ['#7fc0e4', '#4f93c2'], autumn: ['#8cb9d3', '#5d8fb3'], winter: ['#a9c7db', '#7aa2bf'] };
 const WATER = { spring: { fill: '#5aa7d6', edge: '#3f86b6', foam: 'rgba(255,255,255,0.55)' }, summer: { fill: '#4f9ed2', edge: '#397fb0', foam: 'rgba(255,255,255,0.5)' }, autumn: { fill: '#5b95bd', edge: '#41769a', foam: 'rgba(255,255,255,0.45)' }, winter: { fill: '#6f9fc0', edge: '#4f7f9f', foam: 'rgba(255,255,255,0.4)' } };
@@ -331,12 +335,15 @@ export class IslandRenderer {
       const zz = z * d.s, cy = c.y + d.dy * z;
       if (img) ctx.drawImage(img, c.x - TILE_W * zz / 2, cy - TILE_H * zz / 2, TILE_W * zz, TILE_H * zz);
       else this.drawTileAt(ctx, t, c.x, cy, d.s, 1);
-      // la grille s'efface : le sol de chaque voisine de terre déborde en fondu le long du bord partagé
-      // (la roche et la colline gardent une arête nette : falaise et talus ; l'eau compose déjà ses rives)
-      if (!this.noLens && t.family !== 'water' && g !== 'stone' && g !== 'hill' && d.s === 1 && d.dy === 0) {
+      // la grille s'efface : le sol de chaque voisine de terre déborde en fondu le long du bord partagé.
+      // La roche et la colline sont des reliefs : elles gardent une arête franche contre l'herbe, où la
+      // falaise et le talus se lisent, mais se fondent contre un champ, une lande, du sable ou de la terre.
+      // (Tout leur refuser alignait leurs six arêtes d'une case à l'autre et redessinait la grille ;
+      // l'eau, elle, compose déjà ses rives.)
+      if (!this.noLens && t.family !== 'water' && d.s === 1 && d.dy === 0) {
         for (let dir = 0; dir < 6; dir++) {
           const n = b.get(t.q + DIRS[dir][0], t.r + DIRS[dir][1]); if (!n || n.family === 'water') continue;
-          const gn = this.decor.groundFor(n); if (gn === g || gn === 'stone' || gn === 'hill') continue;
+          const gn = this.decor.groundFor(n); if (gn === g || areteFranche(g, gn)) continue;
           const lens = this.groundLens(gn, season, dir); if (lens) ctx.drawImage(lens, c.x - TILE_W * z / 2, c.y - TILE_H * z / 2, TILE_W * z, TILE_H * z);
         }
       }

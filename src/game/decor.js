@@ -81,6 +81,7 @@ const roof = (rng) => ROOFS[Math.floor(rng() * ROOFS.length)];
  *  miroir une fois sur deux. Tout vient du hasard de la case, donc la forêt ne bouge pas d'une
  *  partie à l'autre — elle est seulement moins alignée. */
 const VAR = (rng) => ['', '2', '3'][Math.floor(rng() * 3)];
+const VAR3 = (rng) => ['1', '2', '3'][Math.floor(rng() * 3)];
 const wild = (rng, lo = 0.82, hi = 1.18) => ({ scale: lo + rng() * (hi - lo), flip: rng() < 0.5 });
 
 export class Decor {
@@ -179,6 +180,20 @@ export class Decor {
       const c = toWorld(t.q, t.r); const rng = mulberry(cellSeed(this.seed, t.q, t.r, 11));
       for (let i = 0; i < 3; i++) add({ x: c.x + (i - 1) * 20 + (rng() - 0.5) * 6, y: c.y + 30 + (rng() - 0.5) * 6, tpl: sp[0], cell: key(t.q, t.r), scale: sp[1] * (0.85 + rng() * 0.3), alpha: 0.9, sprout: true });
     }
+    /**
+     * Distance d'un point au bord EXTÉRIEUR de sa région (Infinity s'il n'en longe aucun). Sert à faire
+     * varier la densité dans une même région : un pré uniformément peuplé reste plat ; dense sur les
+     * lisières et clair au milieu, on lit une clairière.
+     */
+    const distBord = (p, k, keys) => {
+      const [q, r] = parse(k); const c = toWorld(q, r); let d = Infinity;
+      for (let i = 0; i < 6; i++) {
+        const nk = key(q + DIRS[i][0], r + DIRS[i][1]); if (keys.has(nk)) continue;
+        const m = edgeMid(c.x, c.y, i); const nx = m.x - c.x, ny = m.y - c.y; const len = Math.hypot(nx, ny) || 1;
+        d = Math.min(d, ((m.x - p.x) * nx + (m.y - p.y) * ny) / len);
+      }
+      return d;
+    };
     const degreeOf = (cell, keys) => neighbors(cell.q, cell.r).filter(([a, b]) => keys.has(key(a, b))).length;
     const rareTiles = [];
     for (const t of board.tiles.values()) {
@@ -366,13 +381,26 @@ export class Decor {
             for (const p of sample(rng, cell, keys, 2, { minDist: 20, margin: 8, placed: [] })) push(p, 'obj_leafpile', { seasons: ['autumn'], alpha: 0.95 });
             for (const p of sample(rng, cell, keys, 1, { minDist: 20, margin: 8, placed: [] })) push(p, 'obj_snowdrift', { seasons: ['winter'] });
           } else if (family === 'meadow') {
-            if (cell.dry) { for (const p of sample(rng, cell, keys, 2, { minDist: 26, margin: 8, placed })) { placed.push(p); push(p, 'obj_bushGrass_dry'); } continue; }
-            for (const p of sample(rng, cell, keys, (deg >= 3 ? 1 : 2) + (L2(cell) ? 2 : 0), { minDist: L2(cell) ? 18 : 26, margin: 8, placed })) { placed.push(p); push(p, 'obj_bushGrass_{s}'); }
-            for (const p of sample(rng, cell, keys, L2(cell) ? 5 : 2, { minDist: L2(cell) ? 16 : 22, margin: 10, placed })) { placed.push(p); push(p, PICK(rng, ['obj_flowerWhite', 'obj_flowerYellow']), { seasons: ['spring'] }); }
-            for (const p of sample(rng, cell, keys, L2(cell) ? 4 : 1, { minDist: L2(cell) ? 16 : 22, margin: 10, placed })) { placed.push(p); push(p, PICK(rng, ['obj_flowerYellow', 'obj_flowerRed']), { seasons: ['summer'] }); }
-            for (const p of sample(rng, cell, keys, 2, { minDist: 22, margin: 10, placed })) { placed.push(p); push(p, PICK(rng, ['obj_flowerBlue', 'obj_flowerWhite']), { seasons: ['spring'] }); }
+            if (cell.dry) { for (const p of sample(rng, cell, keys, 4, { minDist: 22, margin: 8, placed })) { placed.push(p); push(p, 'obj_bushGrass_dry', wild(rng, 0.8, 1.15)); } continue; }
+            // Un pré portait deux touffes et une fleur : un hexagone vert et plat, à côté d'une forêt
+            // qui en porte trente. On le peuple vraiment — mais avec des choses BASSES, et surtout avec
+            // une densité qui varie dans la région : dense sur les lisières, clair au milieu (cf. distBord).
+            for (const p of sample(rng, cell, keys, L2(cell) ? 22 : 16, { minDist: 15, margin: 5, placed, radius: 1.0, tries: 26 })) {
+              const d = distBord(p, ck, keys);
+              if (rng() > Math.max(0.3, Math.min(0.92, 0.95 - d / 110))) continue;
+              placed.push(p); const r2 = rng(); const w = wild(rng, 0.85, 1.15);
+              if (r2 < 0.40) push(p, 'obj_bushGrass_{s}', w);
+              else if (r2 < 0.56) push(p, rng() < 0.5 ? 'obj_bush_{s}' : 'obj_bush2_{s}', Object.assign({ scale: (w.scale || 1) * 0.8 }, { flip: w.flip }));
+              else if (r2 < 0.74) fleurir(p, ck, rng, 3);
+              else if (r2 < 0.83) push(p, `obj_rockGrey_small${VAR3(rng)}{w}`, Object.assign({ scale: (w.scale || 1) * 0.45 }, { flip: w.flip }));
+              else if (r2 < 0.89) push(p, 'obj_log', Object.assign({ scale: (w.scale || 1) * 0.8 }, { flip: w.flip }));
+              // haie et arbre isolé : seulement en lisière, là où un pré s'arrête vraiment
+              else if (d < 26) push(p, rng() < 0.55 ? 'obj_hedge_{s}' : 'obj_treeRound_small_{s}', { scale: (w.scale || 1) * 0.62, flip: w.flip });
+              else push(p, 'obj_bushGrass_{s}', Object.assign({ scale: (w.scale || 1) * 0.8 }, { flip: w.flip }));
+            }
             if (rng() < 0.5) for (const p of sample(rng, cell, keys, 1, { minDist: 28, margin: 12, placed })) { placed.push(p); push(p, 'obj_hay', { seasons: ['autumn'] }); }
-            for (const p of sample(rng, cell, keys, 1, { minDist: 26, margin: 10, placed: [] })) push(p, 'obj_snowdrift', { seasons: ['winter'] });
+            for (const p of sample(rng, cell, keys, 2, { minDist: 24, margin: 10, placed: [] })) push(p, 'obj_leafpile', { seasons: ['autumn'], alpha: 0.9 });
+            for (const p of sample(rng, cell, keys, 2, { minDist: 26, margin: 10, placed: [] })) push(p, 'obj_snowdrift', { seasons: ['winter'] });
             for (const p of sample(rng, cell, keys, 1, { minDist: 26, margin: 12, placed: [] })) push(p, 'obj_puddle', { weathers: ['storm'] });
           } else if (family === 'field') {
             // rangs de culture alignés sur une grille commune à la région (les sillons se prolongent d'une tuile à l'autre)
@@ -446,9 +474,19 @@ export class Decor {
             for (const p of sample(rng, cell, keys, 2, { minDist: 22, margin: 12, placed: [], yMax: 8, radius: 0.7 })) push(p, PICK(rng, ['obj_flowerYellow', 'obj_flowerBlue']), { seasons: ['spring'] });
             for (const p of sample(rng, cell, keys, 1, { minDist: 26, margin: 12, placed: [], yMax: 8, radius: 0.7 })) push(p, 'obj_snowdrift', { seasons: ['winter'] });
           } else if (family === 'heath') {
-            for (const p of sample(rng, cell, keys, L2(cell) ? 7 : 3, { minDist: L2(cell) ? 12 : 17, margin: 5, placed })) { placed.push(p); push(p, 'obj_heather_{s}'); }
-            if (rng() < 0.4) for (const p of sample(rng, cell, keys, 1, { minDist: 22, margin: 10, placed })) { placed.push(p); push(p, 'obj_rockGrey_small3{w}'); }
-            for (const p of sample(rng, cell, keys, 1, { minDist: 26, margin: 10, placed: [] })) push(p, 'obj_snowdrift', { seasons: ['winter'] });
+            // La bruyère poussait en solitaires régulièrement espacées : on la met en TOUFFES, et on
+            // sème entre elles ce qui fait une lande — cailloux affleurants, ajoncs, herbe rase.
+            for (const p of sample(rng, cell, keys, L2(cell) ? 18 : 13, { minDist: 15, margin: 5, placed, radius: 1.0, tries: 26 })) {
+              const d = distBord(p, ck, keys);
+              if (rng() > Math.max(0.35, Math.min(0.95, 1 - d / 120))) continue;
+              placed.push(p); const r2 = rng(); const w = wild(rng, 0.85, 1.15);
+              if (r2 < 0.56) { const n = 1 + Math.floor(rng() * 3); for (let i = 0; i < n; i++) push({ x: p.x + (rng() - 0.5) * 22, y: p.y + (rng() - 0.5) * 13 }, 'obj_heather_{s}', wild(rng, 0.8, 1.1)); }
+              else if (r2 < 0.72) push(p, `obj_rockGrey_small${VAR3(rng)}{w}`, Object.assign({ scale: (w.scale || 1) * 0.55 }, { flip: w.flip }));
+              else if (r2 < 0.86) push(p, rng() < 0.5 ? 'obj_bush_{s}' : 'obj_bush2_{s}', Object.assign({ scale: (w.scale || 1) * 0.78 }, { flip: w.flip }));
+              else if (d < 26) push(p, 'obj_rockGrey_medium2{w}', { scale: (w.scale || 1) * 0.6, flip: w.flip });
+              else push(p, 'obj_bushGrass_{s}', Object.assign({ scale: (w.scale || 1) * 0.75 }, { flip: w.flip }));
+            }
+            for (const p of sample(rng, cell, keys, 2, { minDist: 26, margin: 10, placed: [] })) push(p, 'obj_snowdrift', { seasons: ['winter'] });
           }
           // bourrasque : congères sur toutes les tuiles de terre
           if (family !== 'water') for (const p of sample(rng, cell, keys, 1, { minDist: 30, margin: 12, placed: [] })) push(p, 'obj_snowdrift', { weathers: ['blizzard'] });
