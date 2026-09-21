@@ -197,6 +197,17 @@ export class Decor {
       }
       return d;
     };
+    // Une rivière qui ne rejoint ni la mer ni un lac s'arrêtait sur un bout rond en pleine plaine :
+    // c'est le défaut qui trahit le plus vite que les cases ne se parlent pas. Elle passe maintenant
+    // SOUS une roche — un ruisseau qui s'enfonce, ça se comprend sans un mot.
+    for (const body of (this.water && this.water.bodies) || []) {
+      if (body.kind !== 'river' || body.mouth || body.intoLake || !body.chain.length) continue;
+      const k = body.chain[body.chain.length - 1]; const [q, r] = parse(k); const c = toWorld(q, r);
+      const rng = mulberry(cellSeed(this.seed, q, r, 59));
+      add({ x: c.x + (rng() - 0.5) * 12, y: c.y + 34, tpl: 'obj_rockGrey_large{w}', cell: k, scale: 1.15, alpha: 1, flip: rng() < 0.5 });
+      add({ x: c.x - 26 + rng() * 8, y: c.y + 26, tpl: 'obj_rockGrey_medium2{w}', cell: k, scale: 0.8, alpha: 1 });
+      add({ x: c.x + 24, y: c.y + 20, tpl: 'obj_bushGrass_{s}', cell: k, scale: 0.8, alpha: 1 });
+    }
     const degreeOf = (cell, keys) => neighbors(cell.q, cell.r).filter(([a, b]) => keys.has(key(a, b))).length;
     const rareTiles = [];
     for (const t of board.tiles.values()) {

@@ -18,8 +18,16 @@ const RELIEF = new Set(['stone', 'hill']);
 const areteFranche = (a, b) => (RELIEF.has(a) || RELIEF.has(b)) && (a === 'grass' || b === 'grass' || (RELIEF.has(a) && RELIEF.has(b)));
 const FAUNA_GROUND = 10;   // un animal se tient un peu en avant du centre de sa tuile, comme le décor
 const SEA = { spring: ['#8fc8e6', '#5f9fc8'], summer: ['#7fc0e4', '#4f93c2'], autumn: ['#8cb9d3', '#5d8fb3'], winter: ['#a9c7db', '#7aa2bf'] };
-const WATER = { spring: { fill: '#5aa7d6', edge: '#3f86b6', foam: 'rgba(255,255,255,0.55)' }, summer: { fill: '#4f9ed2', edge: '#397fb0', foam: 'rgba(255,255,255,0.5)' }, autumn: { fill: '#5b95bd', edge: '#41769a', foam: 'rgba(255,255,255,0.45)' }, winter: { fill: '#6f9fc0', edge: '#4f7f9f', foam: 'rgba(255,255,255,0.4)' } };
-const ICE = { fill: '#dbe9f4', edge: '#b9cfe0', foam: 'rgba(255,255,255,0.8)' };
+// `bank` : l'ombre de la berge, posée SOUS l'eau et débordant vers le bas — c'est elle qui fait que l'eau
+// est creusée dans le terrain au lieu d'être peinte dessus. `shoal` : les bas-fonds, un anneau clair au
+// contact de la terre. `deep` : le fond, vers lequel le dégradé descend. Une seule famille de teintes.
+const WATER = {
+  spring: { fill: '#5aa7d6', deep: '#3d87b8', shoal: '#86c4e4', edge: '#3f86b6', bank: 'rgba(38,70,92,0.34)', foam: 'rgba(255,255,255,0.55)' },
+  summer: { fill: '#4f9ed2', deep: '#347fb2', shoal: '#7cbde2', edge: '#397fb0', bank: 'rgba(34,64,86,0.34)', foam: 'rgba(255,255,255,0.5)' },
+  autumn: { fill: '#5b95bd', deep: '#40769c', shoal: '#8bb6d2', edge: '#41769a', bank: 'rgba(40,62,78,0.32)', foam: 'rgba(255,255,255,0.45)' },
+  winter: { fill: '#6f9fc0', deep: '#517f9f', shoal: '#9cc0d8', edge: '#4f7f9f', bank: 'rgba(46,66,80,0.3)', foam: 'rgba(255,255,255,0.4)' },
+};
+const ICE = { fill: '#dbe9f4', deep: '#c3d8e8', shoal: '#eaf4fb', edge: '#b9cfe0', bank: 'rgba(90,110,126,0.22)', foam: 'rgba(255,255,255,0.8)' };
 
 export class IslandRenderer {
   constructor(island, camera, effects, particles) {
@@ -450,8 +458,10 @@ export class IslandRenderer {
       // lagune : une mare comme un étang, gelée en hiver
       const c0 = toWorld(h.q, h.r); const c = S(c0); if (!vis(c)) continue;
       const frozen = this.isl.season === 'winter'; const pal = frozen ? ICE : (WATER[this.seasonFor(c0.x)] || WATER.spring);
-      const rr = SIZE * 0.7 * z; ctx.fillStyle = pal.edge; this.blob(ctx, c.x, c.y + 2 * z, rr, c0); ctx.fill();
-      ctx.fillStyle = pal.fill; this.blob(ctx, c.x, c.y, rr * 0.9, c0); ctx.fill();
+      const rr = SIZE * 0.7 * z;
+      ctx.fillStyle = pal.bank; this.blob(ctx, c.x, c.y + 5 * z, rr * 1.08, c0); ctx.fill();
+      ctx.fillStyle = pal.shoal; this.blob(ctx, c.x, c.y, rr, c0); ctx.fill();
+      ctx.fillStyle = pal.fill; this.blob(ctx, c.x, c.y, rr * 0.88, c0); ctx.fill();
       if (!frozen) { ctx.strokeStyle = pal.foam; ctx.lineWidth = 1.5 * z; ctx.beginPath(); ctx.ellipse(c.x - rr * 0.2, c.y - rr * 0.25, rr * 0.35, rr * 0.16, -0.4, 0, TAU); ctx.stroke(); }
       else this.drawCracks(ctx, [c], z);
     }
@@ -475,14 +485,17 @@ export class IslandRenderer {
         // filet qui s'élargit de la source à l'embouchure : chaque tronçon lissé a sa propre largeur (bouts ronds : pas de joint visible)
         const wAt = (i) => { const t = i / Math.max(1, sp.length - 1); return (16 + 12 * t + 3 * Math.sin(i * 2.3)) * z; };
         ctx.globalAlpha = 1;
-        tapered(sp, wAt, 1.45, pal.edge); tapered(sp, wAt, 1, pal.fill);
+        ctx.save(); ctx.translate(0, 5 * z); tapered(sp, wAt, 1.5, pal.bank); ctx.restore();
+        tapered(sp, wAt, 1.22, pal.shoal); tapered(sp, wAt, 1, pal.fill);
         if (mouth) { const m = S(mouth); ctx.fillStyle = pal.fill; ctx.beginPath(); ctx.ellipse(m.x, m.y, 26 * z, 16 * z, 0, 0, TAU); ctx.fill(); }
         if (!frozen) { ctx.strokeStyle = pal.foam; ctx.lineWidth = (this.finale ? 3 : 1.5) * z; ctx.setLineDash([8 * z, 22 * z]); ctx.lineDashOffset = -this.time * (this.finale ? 120 : 40) * z; trace(sp); ctx.stroke(); ctx.setLineDash([]); }
         else this.drawCracks(ctx, sp, z);
       } else if (body.kind === 'pond') {
         const c = S(c0); if (!vis(c)) continue;
-        const rr = SIZE * 0.66 * z; ctx.fillStyle = pal.edge; this.blob(ctx, c.x, c.y + 2 * z, rr, c0); ctx.fill();
-        ctx.fillStyle = pal.fill; this.blob(ctx, c.x, c.y, rr * 0.9, c0); ctx.fill();
+        const rr = SIZE * 0.66 * z;
+        ctx.fillStyle = pal.bank; this.blob(ctx, c.x, c.y + 5 * z, rr * 1.08, c0); ctx.fill();
+        ctx.fillStyle = pal.shoal; this.blob(ctx, c.x, c.y, rr, c0); ctx.fill();
+        ctx.fillStyle = pal.fill; this.blob(ctx, c.x, c.y, rr * 0.88, c0); ctx.fill();
         if (!frozen) { ctx.strokeStyle = pal.foam; ctx.lineWidth = 1.5 * z; ctx.beginPath(); ctx.ellipse(c.x - rr * 0.2, c.y - rr * 0.25, rr * 0.35, rr * 0.16, -0.4, 0, TAU); ctx.stroke(); }
       } else {
         // lac : union de mares arrondies (une par case, forme irrégulière) reliées par des ponts arrondis entre cases voisines ;
@@ -490,13 +503,27 @@ export class IslandRenderer {
         const cs = body.cells.map((cell) => { const w = toWorld(cell.q, cell.r); return { w, s: S(w), cell }; });
         if (!cs.some((c) => vis(c.s))) continue;
         const bridges = []; for (const a of cs) for (let d = 0; d < 3; d++) { const nk = key(a.cell.q + DIRS[d][0], a.cell.r + DIRS[d][1]); if (!body.keys.has(nk)) continue; const o = cs.find((c) => key(c.cell.q, c.cell.r) === nk); if (o) bridges.push([a, o]); }
-        const nappe = (color, grow) => {
+        const nappe = (color, grow, dy = 0) => {
           ctx.fillStyle = color; ctx.strokeStyle = color;
-          for (const c of cs) { this.blob(ctx, c.s.x, c.s.y, (SIZE * 0.86 + grow) * z, c.w); ctx.fill(); }
-          ctx.lineWidth = (SIZE * 1.05 + grow * 2) * z; ctx.beginPath(); for (const [a, o] of bridges) { ctx.moveTo(a.s.x, a.s.y); ctx.lineTo(o.s.x, o.s.y); } ctx.stroke();
+          for (const c of cs) { this.blob(ctx, c.s.x, c.s.y + dy, (SIZE * 0.92 + grow) * z, c.w); ctx.fill(); }
+          ctx.lineWidth = (SIZE * 1.11 + grow * 2) * z; ctx.beginPath(); for (const [a, o] of bridges) { ctx.moveTo(a.s.x, a.s.y + dy); ctx.lineTo(o.s.x, o.s.y + dy); } ctx.stroke();
         };
-        nappe(pal.edge, 7); nappe(pal.fill, 0);
+        // l'eau est CREUSÉE, pas peinte : une ombre de berge débordant vers le bas, puis les bas-fonds
+        // au contact de la terre, puis le plan d'eau lui-même en dégradé vers le fond.
+        nappe(pal.bank, 9, 5 * z);
+        nappe(pal.shoal, 4);
+        let grad = null;
+        { let y0 = Infinity, y1 = -Infinity; for (const c of cs) { y0 = Math.min(y0, c.s.y); y1 = Math.max(y1, c.s.y); }
+          grad = ctx.createLinearGradient(0, y0 - SIZE * z, 0, y1 + SIZE * z);
+          grad.addColorStop(0, pal.deep); grad.addColorStop(0.55, pal.fill); grad.addColorStop(1, pal.fill); }
+        nappe(grad, 0);
         if (!frozen) {
+          // la rive scintille : un liseré clair qui court le long du contour, et qui BOUGE — sans
+          // l'animation ce n'est qu'un trait peint, et c'est ce mouvement qui fait lire « de l'eau »
+          ctx.save(); ctx.strokeStyle = pal.foam; ctx.lineWidth = 2.2 * z;
+          ctx.setLineDash([10 * z, 26 * z]); ctx.lineDashOffset = -this.time * 12 * z;
+          for (const c of cs) { this.blob(ctx, c.s.x, c.s.y, SIZE * 0.9 * z, c.w); ctx.stroke(); }
+          ctx.restore();
           // reflets : une ride par case, placée de façon déterministe
           ctx.strokeStyle = pal.foam; ctx.lineWidth = 1.5 * z; ctx.beginPath();
           for (const c of cs) { const j = jit(c.w, { x: 1, y: 1 }); const rr = SIZE * 0.86 * z; ctx.moveTo(c.s.x - rr * 0.3 + j * rr * 0.4, c.s.y - rr * 0.2 + j * rr * 0.3); ctx.bezierCurveTo(c.s.x - rr * 0.1, c.s.y - rr * 0.35 + j * rr * 0.3, c.s.x + rr * 0.1, c.s.y - rr * 0.05 + j * rr * 0.3, c.s.x + rr * 0.3, c.s.y - rr * 0.2 + j * rr * 0.3); }
