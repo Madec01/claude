@@ -32,7 +32,8 @@ import { waterBodies } from './game/water.js';
 import { buildStory, islandIntroScreens, islandMemoryScreens, prologueScreens, endingScreens, infiniteScreens, gardenScreens, dailyScreens } from './ui/story.js';
 import { buildResults } from './ui/results.js';
 import { buildWorkshop } from './ui/workshop.js';
-import { buildAchievements, celebrate } from './ui/achievements.js';
+import { buildAchievements, celebrate, celebrateThing } from './ui/achievements.js';
+import { UPGRADES, playerChapter } from './data/upgrades.js';
 import { buildWishesIntro } from './ui/wishes_intro.js';
 import { buildIslandPrep } from './ui/island_prep.js';
 import { buildContractPick } from './ui/contract.js';
@@ -284,9 +285,35 @@ const Game = {
     hideUI();
     scenes.go('island', { def, skipWishes: true, resume: d.isl }, { fade: 0.5 });
   },
-  startInfinite() { scenes.go('story', { screens: infiniteScreens(), onDone: () => scenes.go('island', { def: INFINITE }, { fade: 0.5 }) }); },
-  startDaily() { const def = dailyDef(); scenes.go('story', { screens: dailyScreens(def), onDone: () => this.prepIsland(def) }); },
-  startGarden() { scenes.go('story', { screens: gardenScreens(), onDone: () => scenes.go('island', { def: GARDEN }, { fade: 0.5 }) }); },
+  /** Un mode essayé cesse d'être « nouveau » au menu. */
+  noteMode(k) { Save.data.seen = Save.data.seen || {}; if (!Save.data.seen[k]) { Save.data.seen[k] = true; Save.save(); } },
+  startInfinite() { this.noteMode('mode_infinite'); scenes.go('story', { screens: infiniteScreens(), onDone: () => scenes.go('island', { def: INFINITE }, { fade: 0.5 }) }); },
+  startDaily() { this.noteMode('mode_daily'); const def = dailyDef(); scenes.go('story', { screens: dailyScreens(def), onDone: () => this.prepIsland(def) }); },
+  startGarden() { this.noteMode('mode_garden'); scenes.go('story', { screens: gardenScreens(), onDone: () => scenes.go('island', { def: GARDEN }, { fade: 0.5 }) }); },
+
+  /**
+   * Ce qui vient de s'ouvrir, dit à voix haute. Les modes de jeu ne se signalaient que par un bouton du menu qui
+   * cessait d'être grisé : invisible au téléphone. Chaque annonce ne passe qu'une fois (`campaign.announced`).
+   */
+  announceUnlocks() {
+    const c = Save.campaign; c.announced = c.announced || [];
+    const jingle = () => AudioSys.play('achievement', { volume: 0.7 });
+    const say = (id, o) => { if (c.announced.includes(id)) return false; c.announced.push(id); celebrateThing(o, { sound: jingle }); return true; };
+    let n = 0;
+    if (c.islandsPlayed >= 1) n += say('mode_garden', { kicker: 'Mode ouvert', name: 'Jardin', desc: 'Poser sans score ni saison, pour le plaisir. Depuis le menu.', iconName: 'icon_leaf' }) ? 1 : 0;
+    if (c.unlockedIsland >= 8) n += say('mode_daily', { kicker: 'Mode ouvert', name: 'Île du jour', desc: 'La même île pour tout le monde, une par jour. Depuis le menu.', iconName: 'icon_sun' }) ? 1 : 0;
+    if (Save.data.infinite.unlocked || c.unlockedIsland > 10) n += say('mode_infinite', { kicker: 'Mode ouvert', name: 'Île infinie', desc: 'Une île qui ne finit jamais : jusqu’où tiendras-tu ?', iconName: 'icon_wind' }) ? 1 : 0;
+    if (c.islandsPlayed >= 1) n += say('postcard', { kicker: 'Bon à savoir', name: 'La carte postale', desc: 'Au bilan et en pause : ton île en grand, à garder ou à partager.', iconName: 'icon_save' }) ? 1 : 0;
+    if ((c.recipes || []).length >= 1) n += say('cahier', { kicker: 'Bon à savoir', name: 'Le Cahier des recettes', desc: 'Les fusions trouvées se rangent dans le Guide, onglet Cahier.', iconName: 'icon_question' }) ? 1 : 0;
+    // l'Atelier ouvre trois ou quatre améliorations à chaque chapitre, au milieu des autres : on le dit
+    const chap = playerChapter(c.unlockedIsland);
+    if (chap >= 2) {
+      const neuves = UPGRADES.filter((u) => u.chapter === chap);
+      if (neuves.length) n += say(`atelier_ch${chap}`, { kicker: 'Atelier des saisons', name: `Chapitre ${chap}`, desc: `${neuves.length} nouvelle${neuves.length > 1 ? 's' : ''} amélioration${neuves.length > 1 ? 's' : ''} : ${neuves.map((u) => u.name).join(', ')}.`, iconName: 'icon_gear' }) ? 1 : 0;
+    }
+    if (n) Save.save();
+    return n;
+  },
 
   afterIsland(result, def) {
     const c = Save.campaign, test = this.testMode;
@@ -330,6 +357,7 @@ const Game = {
       if (def.id >= 10) Save.data.infinite.unlocked = true;
       Save.noteIslandDone();
       Save.save();
+      this.announceUnlocks();
       Achievements.onCampaignResult(result, def);
       this.pushCloud();   // une écriture par île terminée, jamais pendant la partie
     }

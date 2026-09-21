@@ -17,7 +17,7 @@ export const BALANCE = {
   // une tuile bien bâtie (région close, en saison, ou bien entourée) revient dans la file, au plus une fois par saison
   works: { from: 26, everyPlacements: 16, wishChance: 0.35, shedLife: 12, freshWindow: 4, freshBonus: 1, badSeasons: 2 },   // ouvrages : une tuile bonus toutes les 16 poses et parfois en récompense de vœu ; remise (poche spéciale) où il expire au bout de 12 poses ; posé tout de suite ou dans les 4 poses après la mise en remise, il est « frais » (+1 par saison) ; mal placé, il coûte 2 saisons puis s'efface
   fusion: { cost: 1, bonus: 1 },   // fusion : même geste que bâtir ; +1 point à la fusion (le gain vient des bords, des fermetures et des primes de saison), une découverte rend une tuile et une rare
-  build: { maxLevel: 3, level3From: 10, cost: 1, cost3: 2, matureSeasons: 1, level3Season: 1, neighborsForRefund: 4, refundsPerSeason: 1, season: { meadow: 'spring', marsh: 'spring', heath: 'spring', field: 'summer', sand: 'summer', forest: 'autumn', orchard: 'autumn', hill: 'autumn', hamlet: 'winter', water: 'winter', rock: 'winter' } },
+  build: { maxLevel: 3, level3From: 31, cost: 1, cost3: 2, matureSeasons: 1, level3Season: 1, neighborsForRefund: 4, refundsPerSeason: 1, season: { meadow: 'spring', marsh: 'spring', heath: 'spring', field: 'summer', sand: 'summer', forest: 'autumn', orchard: 'autumn', hill: 'autumn', hamlet: 'winter', water: 'winter', rock: 'winter' } },
   fauna: { rabbit: 3, moose: 5, duck: 3, bear: 3, frog: 1, owl: 1, penguin: 4, chicken: 2, horse: 2, cow: 2 },
   queue: { visible: [3, 4, 5], pocket: [0, 1, 2], seasonExtra: [0, 1, 2] },
   upgrades: { source: [0, 1], refuge: [0, 1, 2], almanac: [0, 1, 2] },   // bonus de l'Atelier : rivière, faune, graines

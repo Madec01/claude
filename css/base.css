@@ -48,6 +48,9 @@ button { font-family: inherit; }
 .btn-small { font-size: 15px; padding: 6px 12px; border-radius: 9px; }
 .btn .btn-sub { margin-left: auto; font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.6; font-weight: 700; }
 .btn-resume .btn-sub { text-transform: none; letter-spacing: 0.01em; font-weight: 600; opacity: 0.75; text-align: right; }
+/* un bouton fermé dit sous quelle condition il s'ouvre, un mode jamais essayé se signale : au téléphone, il n'y a pas d'infobulle */
+.btn .btn-sub.btn-locked-sub { text-transform: none; letter-spacing: 0.01em; font-weight: 600; opacity: 0.85; text-align: right; font-size: 12px; max-width: 58%; line-height: 1.25; }
+.btn .btn-sub.btn-new { color: #8a4a1f; background: rgba(224,163,58,0.18); border-radius: 999px; padding: 2px 9px; opacity: 1; }
 .pause-kept { margin: 18px 0 0; text-align: center; font-size: 14px; opacity: 0.6; }
 .key { display: inline-block; min-width: 26px; padding: 1px 7px; border: 1px solid rgba(43,42,38,0.25); border-bottom-width: 2px; border-radius: 6px; font-size: 13px; font-weight: 700; background: #fff; margin-right: 8px; text-align: center; }
 

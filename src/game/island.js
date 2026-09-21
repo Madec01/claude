@@ -159,6 +159,28 @@ export class Island {
   canPlace(q, r) { return !this.ended && !!this.current && !this.current.work && this.board.canPlace(q, r) && (!this.restrict || this.restrict.has(key(q, r))); }
 
   // ---- Bâtir : poser une tuile sur une tuile de même famille ----
+  /**
+   * Les tuiles DÉJÀ POSÉES où la tuile courante peut aller : bâtir (même famille), fusionner (recette),
+   * poser un ouvrage, remettre une friche en état. Rien dans le jeu ne le montrait — ni la file, ni le plateau —
+   * et une mécanique entière passait inaperçue (retour du commanditaire).
+   * @returns {Array<{q:number,r:number,kind:'build'|'fuse'|'work'|'restore',total:number}>}
+   */
+  buildTargets(tile = this.current) {
+    if (this.ended || this.restrict || !tile) return [];
+    // le rendu et le bandeau le demandent à chaque image : on garde le résultat tant que rien n'a bougé
+    const cle = `${this.board.version}|${tile.family}:${tile.level || 1}:${tile.rare ? 1 : 0}:${tile.work ? 1 : 0}|${this.breaths}|${this.season}|${this.placements}`;
+    if (this._btKey === cle) return this._bt;
+    const out = [];
+    for (const t of this.board.tiles.values()) {
+      if (!this.canBuild(t.q, t.r, tile)) continue;
+      const pv = this.previewBuild(t.q, t.r, tile);
+      if (!pv) continue;
+      out.push({ q: t.q, r: t.r, kind: pv.work ? 'work' : pv.fuse ? 'fuse' : pv.restore ? 'restore' : 'build', total: pv.total || 0 });
+    }
+    this._btKey = cle; this._bt = out;
+    return out;
+  }
+
   canBuild(q, r, tile = this.current) {
     if (this.ended || this.restrict || !tile) return false;
     if (tile.work) { const t = this.board.get(q, r); return this.workOn && !!t && !t.rare && !t.work; }

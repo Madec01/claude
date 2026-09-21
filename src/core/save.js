@@ -22,6 +22,7 @@ const defaults = () => ({
     contracts: {},
     upgrades: { sight: 0, pocket: 0, breath: 0, patience: 0, rare: 0, memory: 0 },
     prologueSeen: false, completed: false, islandsPlayed: 0, memoriesRead: [],
+    announced: [],   // déblocages déjà annoncés par une bannière (modes de jeu, chapitre d'Atelier) : chacun ne passe qu'une fois
   },
   cloud: { choice: null, uid: null, pending: null },   // sauvegarde en ligne : choix de connexion (null = pas encore demandé, 'anon', 'google', 'none') ; `pending` = redirection Google en cours
   seen: {},   // cartes explicatives déjà vues (sentiers, rivière-lac), une seule fois par joueur

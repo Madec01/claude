@@ -12,14 +12,14 @@ export function buildResults({ result, def, onContinue, onRetry, onMenu, onPostc
   const by = result.dominant && STORY.resultsBy && STORY.resultsBy[result.dominant.family] && STORY.resultsBy[result.dominant.family][stars];
   const lines = by || STORY.results[stars] || [''];
   const line = lines[Math.floor(Math.random() * lines.length)];
-  const starsEl = h('div', { class: `stars ${result.gold ? 'gold' : ''}`, 'aria-label': `${stars} étoile(s) sur 3${result.gold ? ', étoile d’or' : ''}` }, ...[0, 1, 2].map((i) => h('span', { class: `star ${i < stars ? 'on' : ''}`, title: `${thresholds[i]} points` }, icon('icon_star'))), result.goldThreshold && stars >= 3 ? h('span', { class: `star gold-star ${result.gold ? 'on' : ''}`, title: `Étoile d’or : ${result.goldThreshold} points` }, icon('icon_star')) : null);   // l'étoile d'or n'apparaît qu'avec les trois étoiles
+  const starsEl = h('div', { class: `stars ${result.gold ? 'gold' : ''}`, 'aria-label': `${stars} étoile(s) sur 3${result.gold ? ', étoile d’or' : ''}` }, ...[0, 1, 2].map((i) => h('span', { class: `star ${i < stars ? 'on' : ''}`, title: `${thresholds[i]} points` }, icon('icon_star'))), result.goldThreshold && stars >= 2 ? h('span', { class: `star gold-star ${result.gold ? 'on' : ''}`, title: `Étoile d’or : ${result.goldThreshold} points` }, icon('icon_star')) : null);   // dès deux étoiles, pour qu'on sache qu'elle existe
   const row = (label, value, cls = '') => h('div', { class: `res-row ${cls}` }, h('span', {}, label), h('b', {}, String(value)));
   append(root, 
     h('div', { class: 'res-kicker' }, special ? (result.island === 'infinite' ? `Île infinie · ${result.seasons} saisons` : 'Jardin') : result.island === 'daily' ? name : `Île ${result.island} · ${name}`),
     h('h2', { class: 'panel-title' }, special ? 'L’île se repose' : stars === 0 ? 'L’île attend encore' : 'L’île se souvient'),
     special ? null : starsEl,
     h('p', { class: 'res-line' }, line),
-    !special && result.goldThreshold && stars >= 3 ? h('p', { class: 'res-gold' }, result.gold ? 'Étoile d’or : la mémoire de l’île est complète.' : `L’étoile d’or attend ${result.goldThreshold} points.`) : null,
+    !special && result.goldThreshold && stars >= 2 ? h('p', { class: 'res-gold' }, result.gold ? 'Étoile d’or : la mémoire de l’île est complète.' : stars >= 3 ? `L’étoile d’or attend ${result.goldThreshold} points.` : `Au-delà des trois étoiles il en existe une quatrième : l’étoile d’or, à ${result.goldThreshold} points. Elle vaut une graine et fait briller l’île sur la carte.`) : null,
     h('div', { class: 'res-grid' },
       row('Points', fmtInt(score), 'score'),
       special ? null : row('Seuils', thresholds.join(' · ')),

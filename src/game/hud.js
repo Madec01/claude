@@ -147,13 +147,24 @@ export class Hud {
 
   renderQueue() {
     const q = this.isl.queue;
+    // « sur une tuile » : la tuile du moment peut aussi se poser SUR une tuile déjà posée (bâtir, fusionner,
+    // un ouvrage, réparer une friche). Rien ne le disait, et la mécanique passait inaperçue.
+    const cibles = this.isl.buildTargets ? this.isl.buildTargets() : [];
+    const rang = { fuse: 3, work: 2, restore: 1, build: 0 };
+    const genre = cibles.length ? cibles.reduce((a, c) => (rang[c.kind] > rang[a] ? c.kind : a), 'build') : null;
+    const ONTO = { build: ['bâtir', 'Peut se poser sur une tuile de la même famille : elle monte de niveau (touche : viser la tuile)'], fuse: ['fusion', 'Peut se poser sur une tuile d’une autre famille : une recette existe'], work: ['ouvrage', 'Se pose sur une tuile déjà posée'], restore: ['réparer', 'Peut remettre une friche en état'] };
     const html = q.list.map((t, i) => this.tileHtml(t, i === 0 ? 'current' : 'next')).join('');
-    if (html !== this.last.queue) {
-      this.last.queue = html;
+    const cle = `${html}|${genre || ''}|${cibles.length}`;   // la pastille dépend du plateau, pas seulement de la file
+    if (cle !== this.last.queue) {
+      this.last.queue = cle;
       this.r.queueList.innerHTML = html || '<div class="qempty">Plus de tuiles</div>';
       const qh = this.r.queueList.querySelector('.q-help'); if (qh) qh.addEventListener('click', (e) => { e.stopPropagation(); this.setTileHelp(this.helpHidden || Save.options.tileHelp === false); });
       this.r.queueList.querySelectorAll('.qtile').forEach((el, i) => {
         // la tuile du moment se range d'une touche ; sans souris, rien ne le disait : une pastille le montre maintenant
+        if (i === 0 && genre && ONTO[genre]) {
+          el.classList.add('onto', `onto-${genre}`);
+          el.insertAdjacentHTML('beforeend', `<i class="q-onto" title="${ONTO[genre][1]}">${ONTO[genre][0]} · ${cibles.length}</i>`);
+        }
         if (i === 0) { if (this.isl.canPocket()) { el.classList.add('pocketable'); el.insertAdjacentHTML('beforeend', '<i class="q-stash">poche</i>'); el.addEventListener('click', (e) => { e.stopPropagation(); this.onPocket(); }); el.title += ' — clic : mettre en poche (P)'; } else if (this.isl.canShed()) { el.classList.add('shedable'); el.insertAdjacentHTML('beforeend', '<i class="q-stash">remise</i>'); el.addEventListener('click', (e) => { e.stopPropagation(); this.onShed(); }); el.title += ' — clic : mettre en remise (R)'; } }
         else if (this.isl.handOn) { el.classList.add('pickable'); el.addEventListener('click', (e) => { e.stopPropagation(); this.onPick(i); }); el.title += ' — clic : jouer cette tuile'; }
         else if (this.mech.has('breath')) { el.classList.add('swappable'); el.addEventListener('click', (e) => { e.stopPropagation(); this.onSwap(i); }); el.title += ` — clic : échanger (${BALANCE.breaths.swap} souffle)`; }

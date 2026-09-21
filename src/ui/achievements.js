@@ -47,14 +47,26 @@ const queue = []; let showing = false;
 export function celebrate(a, { sound } = {}) {
   queue.push({ a, sound }); if (!showing) next();
 }
+/**
+ * La même bannière, pour autre chose qu'un succès : un mode de jeu qui s'ouvre, une chose du jeu qu'on n'aurait
+ * pas vue autrement. Sans elle, ces déblocages n'étaient qu'un bouton du menu qui cessait d'être grisé — invisible
+ * sur téléphone, où il n'y a pas d'infobulle.
+ */
+export function celebrateThing({ kicker = 'Débloqué', name, desc, iconName = 'icon_star' }, { sound } = {}) {
+  queue.push({ thing: { kicker, name, desc, iconName }, sound }); if (!showing) next();
+}
 function next() {
   const item = queue.shift(); if (!item) { showing = false; return; }
   showing = true;
   const host = document.getElementById('app') || document.body;
+  const t = item.thing;
   const el = h('div', { class: 'ach-banner', role: 'status' },
     h('div', { class: 'ach-glow' }),
-    badgeImg(item.a, 'ach-banner-img'),
-    h('div', { class: 'ach-banner-text' }, h('div', { class: 'ach-kicker' }, 'Succès débloqué'), h('div', { class: 'ach-name' }, item.a.name), h('div', { class: 'ach-desc' }, `${item.a.desc} · +${ACHIEVEMENT_SEED} graine`)),
+    t ? h('span', { class: 'ach-img ach-fallback ach-banner-img' }, icon(t.iconName)) : badgeImg(item.a, 'ach-banner-img'),
+    h('div', { class: 'ach-banner-text' },
+      h('div', { class: 'ach-kicker' }, t ? t.kicker : 'Succès débloqué'),
+      h('div', { class: 'ach-name' }, t ? t.name : item.a.name),
+      h('div', { class: 'ach-desc' }, t ? t.desc : `${item.a.desc} · +${ACHIEVEMENT_SEED} graine`)),
     h('div', { class: 'ach-sparks' }, ...Array.from({ length: 12 }, (_, i) => h('i', { style: `--i:${i}` }))),
   );
   host.appendChild(el);

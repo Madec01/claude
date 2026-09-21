@@ -68,6 +68,7 @@ export class IslandRenderer {
     this.drawEmptyCells(ctx);
     if (this.legacy) this.drawTiles(ctx); else this.drawLayered(ctx);
     this.drawClimateTint(ctx);
+    this.drawBuildTargets(ctx);
     this.particlesWorld(ctx, 0);
     this.drawHover(ctx);
     this.drawRings(ctx);
@@ -228,6 +229,31 @@ export class IslandRenderer {
         }
       }
     }
+  }
+
+  /**
+   * Les tuiles déjà posées qui peuvent recevoir la tuile du moment : liseré doré sur le contour, plus discret
+   * que la case vide (qui, elle, est l'action ordinaire). Sans ce repère, bâtir et fusionner ne s'apprenaient
+   * qu'en survolant une tuile au hasard — impossible au doigt.
+   */
+  drawBuildTargets(ctx) {
+    const isl = this.isl;
+    if (this.finale || isl.ended || isl.garden) return;
+    const list = isl.buildTargets();   // gardé en cache côté île : recalculé seulement quand le plateau ou la tuile change
+    if (!list.length) return;
+    const cam = this.cam;
+    const puls = 0.55 + 0.25 * Math.sin(this.time * 2.4);
+    ctx.save();
+    for (const c of list) {
+      const w = toWorld(c.q, c.r); const p = cam.toScreen(w.x, w.y);
+      if (p.x < -100 || p.x > STAGE.W + 100 || p.y < -100 || p.y > STAGE.H + 100) continue;
+      const pts = corners(p.x, p.y, SIZE * cam.zoom * 0.9);
+      ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]); for (let i = 1; i < 6; i++) ctx.lineTo(pts[i][0], pts[i][1]); ctx.closePath();
+      ctx.strokeStyle = c.kind === 'fuse' ? `rgba(138,111,181,${puls})` : c.kind === 'work' ? `rgba(47,158,143,${puls})` : `rgba(224,163,58,${puls})`;
+      ctx.lineWidth = Math.max(1.5, 2.4 * cam.zoom); ctx.setLineDash([7 * cam.zoom, 5 * cam.zoom]);
+      ctx.stroke();
+    }
+    ctx.restore();
   }
 
   drawEmptyCells(ctx) {

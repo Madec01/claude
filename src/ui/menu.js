@@ -29,7 +29,14 @@ export function buildMenu({ game }) {
   const nav = h('nav', { class: 'menu-nav', 'aria-label': 'Menu principal' });
   const primaryLabel = c.completed ? 'Rejouer la campagne' : started ? 'Continuer' : 'Commencer';
   const primarySub = c.completed ? '' : `Île ${Math.min(c.unlockedIsland, CAMPAIGN_SIZE)}`;
-  const navButton = (label, fn, o) => { const b = button(label, fn, o); if (o.sub) b.appendChild(h('span', { class: 'btn-sub' }, o.sub)); return b; };
+  const navButton = (label, fn, o) => { const b = button(label, fn, o); if (o.sub) b.appendChild(h('span', { class: `btn-sub ${o.subClass || ''}` }, o.sub)); return b; };
+  // Le jeu se joue surtout au téléphone : il n'y a pas d'infobulle. Un bouton fermé doit donc DIRE sous quelle
+  // condition il s'ouvre, et un mode ouvert qu'on n'a jamais essayé doit se signaler. Sans ça, trois modes de jeu
+  // s'ouvraient en silence, et l'on ne voyait qu'un bouton gris (retour du commanditaire).
+  const vu = (k) => !!(Save.data.seen && Save.data.seen[k]);
+  const mode = (ouvert, quand, sub) => ouvert
+    ? (vu(quand.key) ? { sub } : { sub: 'nouveau', subClass: 'btn-new' })
+    : { sub: quand.text, subClass: 'btn-locked-sub' };
   // une partie laissée en plan attend sur l'appareil : elle passe devant tout le reste
   // (sauf si l'île ne peut plus être reconstruite : l'île du jour d'hier, par exemple)
   const run = (() => { const d = RunSave.describe(); return d && game.defFromWhere(d.where) ? d : null; })();
@@ -37,9 +44,12 @@ export function buildMenu({ game }) {
     run ? navButton('Reprendre', () => game.resumeRun(), { cls: 'btn-primary btn-big btn-resume', iconName: 'icon_return', title: `${run.title} · ${run.placements} tuile${run.placements > 1 ? 's' : ''} posée${run.placements > 1 ? 's' : ''} · ${SEASON_FR[run.season] || ''} · laissée ${run.when}`, sub: `${run.title} · ${run.placements} tuile${run.placements > 1 ? 's' : ''}` }) : null,
     navButton(primaryLabel, () => game.startCampaign(), { cls: run ? 'btn-big' : 'btn-primary btn-big', iconName: 'icon_play', sub: primarySub }),
     navButton('Choisir une île', () => showIslands(), { iconName: 'icon_menu', disabled: !started && !testMode, sub: started || testMode ? `${Math.min(c.unlockedIsland, CAMPAIGN_SIZE)} / ${CAMPAIGN_SIZE}` : '' }),
-    navButton('Île infinie', () => game.startInfinite(), { iconName: 'icon_wind', disabled: !(Save.data.infinite.unlocked || c.unlockedIsland > 10 || testMode), title: 'Se déverrouille après l’île 10', sub: Save.data.infinite.best ? `${Save.data.infinite.best} pts` : '' }),
-    navButton('Île du jour', () => game.startDaily(), { iconName: 'icon_sun', disabled: !(c.unlockedIsland >= 8 || testMode), title: `Se déverrouille après l’île 7 · ${dailyLabel(dailyKey())}`, sub: (Save.data.daily && Save.data.daily.best[dailyKey()]) ? `${Save.data.daily.best[dailyKey()]} pts` : (Save.data.daily && Save.data.daily.streak ? `${Save.data.daily.streak} j` : '') }),
-    navButton('Jardin', () => game.startGarden(), { iconName: 'icon_leaf', disabled: !(started || testMode), title: 'Pose libre, sans score' }),
+    navButton('Île infinie', () => game.startInfinite(), Object.assign({ iconName: 'icon_wind', disabled: !(Save.data.infinite.unlocked || c.unlockedIsland > 10 || testMode), title: 'Se déverrouille après l’île 10' },
+      mode(Save.data.infinite.unlocked || c.unlockedIsland > 10 || testMode, { key: 'mode_infinite', text: 's’ouvre après l’île 10' }, Save.data.infinite.best ? `${Save.data.infinite.best} pts` : ''))),
+    navButton('Île du jour', () => game.startDaily(), Object.assign({ iconName: 'icon_sun', disabled: !(c.unlockedIsland >= 8 || testMode), title: `Se déverrouille après l’île 7 · ${dailyLabel(dailyKey())}` },
+      mode(c.unlockedIsland >= 8 || testMode, { key: 'mode_daily', text: 's’ouvre après l’île 7' }, (Save.data.daily && Save.data.daily.best[dailyKey()]) ? `${Save.data.daily.best[dailyKey()]} pts` : (Save.data.daily && Save.data.daily.streak ? `${Save.data.daily.streak} j` : '')))),
+    navButton('Jardin', () => game.startGarden(), Object.assign({ iconName: 'icon_leaf', disabled: !(started || testMode), title: 'Pose libre, sans score' },
+      mode(started || testMode, { key: 'mode_garden', text: 's’ouvre à la première île finie' }, 'pose libre, sans score'))),
     h('div', { class: 'menu-row' },
       navButton('Guide', () => game.showGuide(), { iconName: 'icon_question', title: 'Tuiles, saisons, faune, souffles, graines' }),
       navButton('Options', () => game.showOptions(), { iconName: 'icon_gear' }),

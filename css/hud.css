@@ -47,6 +47,15 @@
 .qtile.rare .q-stash { top: 22px; }   /* sous l'étiquette « rare », qui occupe déjà le coin */
 html.compact .q-stash { font-size: 9px; padding: 1px 5px; right: 4px; top: 4px; }
 html.compact .qtile.rare .q-stash { top: 18px; }
+/* « sur une tuile » : la tuile du moment peut aussi se poser sur une tuile déjà posée. En bas, pour ne pas
+   se cogner à « poche » / « remise » qui occupent le haut. */
+.q-onto { position: absolute; left: 6px; bottom: 6px; font-style: normal; font-size: 10px; text-transform: uppercase; letter-spacing: 0.07em; font-weight: 800; color: #fff; background: var(--gold); border-radius: 999px; padding: 2px 7px; box-shadow: 0 2px 6px rgba(30,50,70,0.2); pointer-events: none; }
+.qtile.onto-fuse .q-onto { background: var(--wish); }
+.qtile.onto-work .q-onto { background: var(--breath); }
+.qtile.onto { box-shadow: inset 0 0 0 2px rgba(224,163,58,0.55); }
+.qtile.onto-fuse { box-shadow: inset 0 0 0 2px rgba(138,111,181,0.6); }
+.qtile.onto-work { box-shadow: inset 0 0 0 2px rgba(47,158,143,0.6); }
+html.compact .q-onto { font-size: 9px; padding: 1px 5px; left: 4px; bottom: 4px; }
 .q-help { position: absolute; left: 6px; top: 6px; width: 22px; height: 22px; border-radius: 50%; border: 1px solid rgba(43,42,38,0.18); background: rgba(255,253,248,0.95); color: var(--ink-2); font-family: inherit; font-weight: 800; font-size: 13px; line-height: 20px; padding: 0; cursor: pointer; box-shadow: 0 2px 6px rgba(30,50,70,0.15); }
 .q-help.on { background: var(--breath); color: #fff; border-color: var(--breath); }
 html.compact .q-help { width: 20px; height: 20px; font-size: 12px; line-height: 18px; left: 4px; top: 4px; }
@@ -143,6 +152,10 @@ html.compact .q-help { width: 20px; height: 20px; font-size: 12px; line-height: 
 .ws-card.can { border-color: var(--breath); box-shadow: 0 0 0 2px rgba(47,158,143,0.15); }
 .ws-card.maxed { opacity: 0.7; }
 .ws-card.locked { opacity: 0.6; }
+/* ce que le chapitre vient d'ouvrir, dit en toutes lettres puis marqué sur les cartes concernées */
+.ws-chap { margin: 2px 0 10px; font-size: 14px; line-height: 1.45; color: #8a4a1f; background: rgba(224,163,58,0.13); border-left: 3px solid var(--gold, #e0a33a); padding: 7px 11px; border-radius: 6px; }
+.ws-card.ws-new { border-color: rgba(224,163,58,0.75); box-shadow: 0 0 0 2px rgba(224,163,58,0.18); }
+.ws-badge { margin-left: auto; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #8a4a1f; background: rgba(224,163,58,0.2); border-radius: 999px; padding: 2px 8px; }
 .ws-card.shake { animation: shake 0.4s; }
 @keyframes shake { 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
 .ws-head { display: flex; align-items: center; gap: 8px; }
