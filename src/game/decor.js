@@ -232,6 +232,17 @@ export class Decor {
         reste = (reste - len) % 22; if (reste < 0) reste += 22;
       }
     }
+    /**
+     * Un massif de fleurs : printemps et été, elles ne passent pas l'automne. Toujours plusieurs têtes
+     * serrées et d'UNE SEULE couleur — une fleur isolée, ou un mélange de couleurs, se lit comme une
+     * pastille d'interface ; c'est le bouquet qui fait le jardin.
+     */
+    const FLEURS = ['obj_flowerWhite', 'obj_flowerRed', 'obj_flowerBlue', 'obj_flowerYellow'];
+    const fleurir = (p, ck, rng, n) => {
+      const tpl = PICK(rng, FLEURS);
+      for (let i = 0; i < n; i++) add({ x: p.x + (rng() - 0.5) * 19, y: p.y + (rng() - 0.5) * 11 + 4, tpl, cell: ck, scale: 0.5 + rng() * 0.18, alpha: 1, seasons: ['spring', 'summer'], flip: rng() < 0.5 });
+    };
+
     // -------------------------------------------------------------------------
     // Les bourgs. Un village ne se compose pas case par case : tant que chaque tuile
     // plaçait ses maisons dans son coin, on lisait des fermes isolées, avec des paquets
@@ -286,12 +297,12 @@ export class Decor {
           if (closed) add({ x: p.x - 26, y: p.y - 2, tpl: 'obj_lightpost', cell: ck, scale: 0.8, alpha: 1 });
           continue;
         }
-        if (r < 0.86) pave();
+        if (r < 0.82) pave();
         if (r < 0.44) met(`obj_tinyBuilding${roof(rng)}`, 1);
         else if (r < 0.66) met(`obj_house_small${roof(rng)}`, 0.78);
         else if (r < 0.74) met(gros ? `obj_house${roof(rng)}` : `obj_house_small${roof(rng)}`, gros ? 0.62 : 0.86);
         else if (r < 0.80) met(rng() < 0.5 ? 'obj_workshop' : `obj_villa${roof(rng)}`, 0.7);
-        else if (r < 0.86) {
+        else if (r < 0.82) {
           // les annexes : ce sont elles qui font la cour, pas la façade
           const q = rng();
           if (q < 0.26) met('obj_logPile', 0.8);
@@ -302,9 +313,27 @@ export class Decor {
           else met('obj_fence', 0.85);
           if (rng() < 0.4) add({ x: p.x + 12, y: p.y + 6, tpl: 'obj_logPile', cell: ck, scale: 0.7, alpha: 1, rules: ['froid'] });
         } else {
-          // les jardins : ce sont les trouées vertes qui empêchent le bourg de faire bloc
-          if (rng() < 0.45) met('obj_treeRound_small_{s}', 0.8);
-          else { met('obj_bush_{s}', 0.85); add({ x: p.x + 10, y: p.y + 4, tpl: PICK(rng, ['obj_flowerWhite', 'obj_flowerRed', 'obj_flowerBlue']), cell: ck, scale: 0.8, alpha: 1, seasons: ['spring'] }); }
+          // Les jardins : ce sont les trouées vertes qui empêchent le bourg de faire bloc. Un arbre de
+          // village n'est pas un arbre de forêt — il est plus petit, et un sur quatre est un fruitier.
+          const j = rng();
+          if (j < 0.30) { const bl = rng() < 0.4; met('obj_treeRound_small_{s}', 0.8, { notSeasons: bl ? ['spring'] : null }); if (bl) met(`obj_treeRound_blossom${VAR(rng)}`, 0.8, { seasons: ['spring'] }); }
+          else if (j < 0.48) met('obj_treeRound_small2_{s}', 0.78);
+          else if (j < 0.62) met('obj_treeRound_fruit_{s}', 0.72);
+          else if (j < 0.72) met('obj_treePine_small_{s}', 0.7);
+          else { met('obj_bush_{s}', 0.85); fleurir(p, ck, rng, 4); }
+        }
+      }
+      // Fleurs et touffes entre les maisons, semées À PART de la trame : sur la trame elles se
+      // rangeraient sagement comme les bâtiments, alors qu'un jardin déborde. Elles évitent le bâti
+      // (qui leur sert d'obstacle) et la rue.
+      const poses = bati.map((b) => b.p);
+      for (const cell of reg.cells) {
+        if (cell.rare || cell.blighted) continue;
+        const ck = key(cell.q, cell.r); const rng = mulberry(cellSeed(this.seed, cell.q, cell.r, 47));
+        for (const g of sample(rng, cell, keys, 3 + Math.floor(rng() * 3), { minDist: 22, margin: 12, radius: 0.9, placed: poses })) {
+          if (surChemin(g, 13)) continue;
+          if (rng() < 0.5) fleurir(g, ck, rng, 3 + Math.floor(rng() * 3));
+          else add({ x: g.x, y: g.y, tpl: 'obj_bushGrass_{s}', cell: ck, scale: 0.55 + rng() * 0.2, alpha: 1, flip: rng() < 0.5 });
         }
       }
     }
