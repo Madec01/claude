@@ -567,15 +567,17 @@ export class IslandRenderer {
           ctx.strokeStyle = pal.foam; ctx.lineWidth = 1.5 * z; ctx.beginPath();
           for (const c of cs) { const j = jit(c.w, { x: 1, y: 1 }); const rr = SIZE * 0.86 * z; ctx.moveTo(c.s.x - rr * 0.3 + j * rr * 0.4, c.s.y - rr * 0.2 + j * rr * 0.3); ctx.bezierCurveTo(c.s.x - rr * 0.1, c.s.y - rr * 0.35 + j * rr * 0.3, c.s.x + rr * 0.1, c.s.y - rr * 0.05 + j * rr * 0.3, c.s.x + rr * 0.3, c.s.y - rr * 0.2 + j * rr * 0.3); }
           ctx.stroke();
+        } else this.drawCracks(ctx, cs.map((c) => c.s), z);
         // Bras de mer : une nappe qui touche le bord de l'île n'est pas un lac fermé, c'est une
         // échancrure. Dessiné EN DERNIER, après l'écume et les rides : sinon le liseré du lac se
-        // prolongeait dans la mer et redessinait la lèvre qu'on venait d'ouvrir.
+        // prolongeait dans la mer et redessinait la lèvre qu'on venait d'ouvrir. Mais HORS du
+        // `if (!frozen)` : un lac gelé touche la mer tout autant, et sans ce bras sa lèvre restait
+        // nue au contact du large tout l'hiver.
         for (const c of cs) for (let d = 0; d < 6; d++) {
           const nq = c.cell.q + DIRS[d][0], nr = c.cell.r + DIRS[d][1];
           if (!b.isSea(nq, nr)) continue;
           this.bras(ctx, c.w, d, mer, z, S, c.cell, pal);
         }
-        } else this.drawCracks(ctx, cs.map((c) => c.s), z);
       }
     }
     ctx.restore();
