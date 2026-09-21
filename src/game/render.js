@@ -554,8 +554,8 @@ export class IslandRenderer {
     const cv = document.createElement('canvas'); cv.width = D; cv.height = D; const c = cv.getContext('2d');
     c.drawImage(img, D / 2 - img.width * ech / 2, D / 2 - img.height * ech / 2, img.width * ech, img.height * ech);
     const grad = c.createRadialGradient(D / 2, D / 2, 0, D / 2, D / 2, D / 2);
-    grad.addColorStop(0, 'rgba(0,0,0,1)'); grad.addColorStop(0.62, 'rgba(0,0,0,1)');
-    grad.addColorStop(0.84, 'rgba(0,0,0,0.6)'); grad.addColorStop(1, 'rgba(0,0,0,0)');
+    grad.addColorStop(0, 'rgba(0,0,0,0.95)'); grad.addColorStop(0.45, 'rgba(0,0,0,0.8)');
+    grad.addColorStop(0.75, 'rgba(0,0,0,0.42)'); grad.addColorStop(1, 'rgba(0,0,0,0)');
     c.globalCompositeOperation = 'destination-in'; c.fillStyle = grad; c.fillRect(0, 0, D, D);
     this._court.set(k, cv); return cv;
   }

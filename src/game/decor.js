@@ -5,7 +5,7 @@ import { toWorld, fromWorld, key, parse, neighbors, edgeMid, DIRS, SIZE, TILE_H 
 import { Board } from './board.js';
 import { RARE_AS } from '../data/tiles.js';
 import { classifyWater } from './water.js';
-import { pathPoints } from './paths.js';
+import { pathShapes, pathPoints } from './paths.js';
 
 /** Type de sol d'une tuile (image `ground_<type>_<saison>`). */
 /** Sol des tuiles composées (les fusions d'eau prennent la rive de leurs voisines, l'eau est dessinée par plan). */
@@ -51,20 +51,14 @@ export const groundKey = (g, season) => (g === 'dry' ? 'ground_dry' : g === 'ice
  * et non les cases — un hameau devenu village vaut deux.
  *
  * Ce n'est PAS le sol de la tuile : remplir l'hexagone donnait une grande dalle grise vide, avec une
- * couture franche contre l'herbe. C'est une COUR, un disque posé autour du groupe de maisons et fondu
- * sur son pourtour. Le pavé est donc là où il doit être — entre les maisons — et nulle part ailleurs.
+ * couture franche contre l'herbe. C'est une COUR, un disque fondu sous CHAQUE bâtiment ; les disques
+ * voisins se recouvrent, si bien que le pavé est exactement là où il doit être — entre les maisons.
  */
 const BOURG = [null, null, 'dirt', 'stone'];
 export const bourgGround = (poids) => BOURG[Math.min(Math.max(poids, 0), 3)];
 
-/** Rayon de la cour, en unités monde (l'apothème vaut 60) : la terre battue serre plus que le pavé. */
-const COUR = { dirt: 48, stone: 58 };
-
-/** De combien le bâti d'une case est tiré vers le cœur de son village (voir la branche « hamlet »). */
-export function villageShift(cen, c, n) {
-  const pull = n >= 2 ? 0.34 : 0;
-  return { dx: Math.max(-30, Math.min(30, (cen.x - c.x) * pull)), dy: Math.max(-22, Math.min(22, (cen.y - c.y) * pull * 0.8)) };
-}
+/** Pas de la trame du bâti des bourgs et rayon de la cour sous chaque bâtiment, en unités monde. */
+const PAS = 34, COUR = 46;
 export const GROUND_COLORS = { dry: '#cdbb6a', ice: '#dbe9f4' };
 
 function mulberry(seed) { let s = seed >>> 0 || 7; return () => { s += 0x6D2B79F5; let t = Math.imul(s ^ (s >>> 15), 1 | s); t ^= t + Math.imul(t ^ (t >>> 7), 61 | t); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
@@ -92,7 +86,7 @@ export class Decor {
     this.version = board.version;
     this.water = classifyWater(board);
     this.bank = this.computeBanks(board);
-    this.courts = this.computeCourts(board);
+    this.courts = [];                       // rempli par generate : les cours suivent le bâti des bourgs
     this.objects = this.generate(board);
   }
 
@@ -127,29 +121,6 @@ export class Decor {
     const o = axis === 2 ? 'NW' : 'NE';
     const m = edgeMid(0, 0, d);   // vers la rive du hameau
     return [{ tpl: `obj_bridge_side_wood_${o}`, dx: m.x * 0.4, dy: 34 + m.y * 0.4, scale: 1.15 }, { tpl: 'obj_pole', dx: -m.x * 0.3, dy: 30 - m.y * 0.3, scale: 0.9 }, { tpl: 'obj_basket', dx: m.x * 0.62, dy: 32 + m.y * 0.62, scale: 0.75 }];
-  }
-
-  /**
-   * Les cours des bourgs : un disque de terre battue (village) ou de pavé (petite ville) par case,
-   * centré sur le groupe de maisons de cette case, pas sur la case. Comme les maisons sont tirées vers
-   * le cœur du village, les disques voisins se recouvrent et forment une place continue au milieu du
-   * bourg, qui s'efface vers l'extérieur. C'est le rendu qui les dessine (`drawCourts`).
-   */
-  computeCourts(board) {
-    const out = [];
-    for (const reg of board.regions('hamlet')) {
-      let poids = 0; for (const c of reg.cells) poids += c.level || 1;
-      const g = bourgGround(poids); if (!g) continue;
-      let cx = 0, cy = 0; for (const c of reg.cells) { const w = toWorld(c.q, c.r); cx += w.x; cy += w.y; }
-      const cen = { x: cx / reg.cells.length, y: cy / reg.cells.length };
-      for (const cell of reg.cells) {
-        if (cell.blighted) continue;
-        const c = toWorld(cell.q, cell.r); const sh = villageShift(cen, c, reg.cells.length);
-        const rng = mulberry(cellSeed(this.seed, cell.q, cell.r, 17));
-        out.push({ x: c.x + sh.dx, y: c.y + sh.dy + 22, r: COUR[g] * (0.9 + rng() * 0.2), g, cell: key(cell.q, cell.r) });
-      }
-    }
-    return out;
   }
 
   /** Sol à dessiner pour une tuile (rive pour l'eau). */
@@ -193,8 +164,8 @@ export class Decor {
     };
     const L2 = (cell) => (cell.level || 1) >= 2;   // tuile bâtie : décor nettement plus dense
     const L3 = (cell) => (cell.level || 1) >= 3;   // niveau 3 : une pièce maîtresse au centre
-    const LANDMARK = { forest: ['obj_treeRound_large2_{s}', 1.9], hamlet: ['obj_townhall', 1.0], field: ['obj_silo1', 1.0], orchard: ['obj_treeRound_fruit_{s}', 1.8], meadow: ['obj_fence', 1.2], marsh: ['obj_bushGrass_{s}', 1.8], rock: ['obj_rockGrey_large{w}', 1.6], sand: ['obj_rockBrown_small{w}', 1.6], hill: ['obj_treePine_large_{s}', 1.4], heath: ['obj_heather_{s}', 1.8] };
-    for (const t of board.tiles.values()) { if (!L3(t) || t.rare) continue; const lm = LANDMARK[t.family]; if (!lm) continue; const c = toWorld(t.q, t.r); add({ x: c.x, y: c.y + (t.family === 'hamlet' ? 34 : 30), tpl: lm[0], cell: key(t.q, t.r), scale: lm[1], alpha: 1, notSeasons: t.family === 'forest' ? ['spring'] : undefined }); if (t.family === 'forest') add({ x: c.x, y: c.y + 30, tpl: 'obj_treeRound_blossom_large2', cell: key(t.q, t.r), scale: lm[1], alpha: 1, seasons: ['spring'] }); }
+    const LANDMARK = { forest: ['obj_treeRound_large2_{s}', 1.9], field: ['obj_silo1', 1.0], orchard: ['obj_treeRound_fruit_{s}', 1.8], meadow: ['obj_fence', 1.2], marsh: ['obj_bushGrass_{s}', 1.8], rock: ['obj_rockGrey_large{w}', 1.6], sand: ['obj_rockBrown_small{w}', 1.6], hill: ['obj_treePine_large_{s}', 1.4], heath: ['obj_heather_{s}', 1.8] };
+    for (const t of board.tiles.values()) { if (!L3(t) || t.rare) continue; const lm = LANDMARK[t.family]; if (!lm) continue; const c = toWorld(t.q, t.r); add({ x: c.x, y: c.y + 30, tpl: lm[0], cell: key(t.q, t.r), scale: lm[1], alpha: 1, notSeasons: t.family === 'forest' ? ['spring'] : undefined }); if (t.family === 'forest') add({ x: c.x, y: c.y + 30, tpl: 'obj_treeRound_blossom_large2', cell: key(t.q, t.r), scale: lm[1], alpha: 1, seasons: ['spring'] }); }
     // croissance annoncée : une saison avant, la tuile porte en petit ce qu'elle va devenir (jeune pin, maisonnette, pousses)
     const SPROUT = { forest: ['obj_treePine_small_{s}', 0.85], orchard: ['obj_treeRound_small2_{s}', 0.8], hamlet: ['obj_house_small_jaune', 0.7], field: ['obj_crop_{s}', 0.75], meadow: ['obj_bushGrass_{s}', 0.85] };
     for (const t of board.tiles.values()) {
@@ -221,7 +192,117 @@ export class Decor {
     }
     for (const t of board.tiles.values()) { if (!t.work) continue; const c = toWorld(t.q, t.r); const list = t.work === 'bridge' || t.work === 'pier' ? this.waterWorkDecor(board, t) : (WORK_DECOR[t.work] || []); for (const o of list) add({ x: c.x + o.dx, y: c.y + o.dy, tpl: o.tpl, cell: key(t.q, t.r), scale: o.scale || 1, alpha: 1, flip: o.flip }); }
 
-    for (const family of ['forest', 'meadow', 'field', 'hamlet', 'orchard', 'water', 'marsh', 'rock', 'sand', 'hill', 'heath']) {
+    // -------------------------------------------------------------------------
+    // Les bords de chemin. Un caillou, une touffe, une flaque : rien qui ait de DIRECTION,
+    // et c'est le point. Une barrière est un panneau dessiné sous un seul angle : elle tombe
+    // en travers dès que le sentier tourne, et ces sprites sont des rendus 3D à lumière cuite,
+    // qu'on ne peut pas faire pivoter. Un caillou, lui, se lit pareil de partout.
+    // Tout petits (6 à 10 unités monde, soit 12 à 20 px à l'écran) et clairsemés : c'est une
+    // accroche du regard le long du tracé, pas un décor de plus.
+    // -------------------------------------------------------------------------
+    const BORD = [
+      { tpl: 'obj_rockGrey_small1{w}', sc: 0.3 }, { tpl: 'obj_rockGrey_small2{w}', sc: 0.28 },
+      { tpl: 'obj_rockBrown_small{w}', sc: 0.36 }, { tpl: 'obj_bushGrass_{s}', sc: 0.42 },
+      { tpl: 'obj_bush_{s}', sc: 0.3 }, { tpl: 'obj_flowerWhite', sc: 0.42, seasons: ['spring'] },
+      { tpl: 'obj_flowerYellow', sc: 0.42, seasons: ['spring'] }, { tpl: 'obj_leafpile', sc: 0.34, seasons: ['autumn'] },
+      { tpl: 'obj_snowdrift', sc: 0.34, seasons: ['winter'] },
+    ];
+    for (const sh of pathShapes(board)) {
+      let reste = 12;
+      for (let i = 0; i < sh.pts.length - 1; i++) {
+        const a = sh.pts[i], b2 = sh.pts[i + 1];
+        const vx = b2.x - a.x, vy = b2.y - a.y, len = Math.hypot(vx, vy); if (len < 0.001) continue;
+        const ux = vx / len, uy = vy / len, nx = -uy, ny = ux;
+        for (let d = reste; d < len; d += 22) {
+          const rng = mulberry(cellSeed(this.seed, Math.round(a.x + ux * d), Math.round(a.y + uy * d), 53));
+          if (rng() > 0.5) continue;
+          const cote = rng() < 0.5 ? -1 : 1, ecart = 13 + rng() * 9;
+          const p = { x: a.x + ux * d + nx * ecart * cote, y: a.y + uy * d + ny * ecart * cote + 3 };
+          const c = fromWorld(p.x, p.y); const t = board.get(c.q, c.r);
+          if (!t || Board.isFamily(t, 'water')) continue;     // pas de caillou sur l'eau
+          const o = BORD[Math.floor(rng() * BORD.length)];
+          add({ x: p.x, y: p.y, tpl: o.tpl, cell: key(c.q, c.r), scale: o.sc * (0.85 + rng() * 0.3), alpha: 1, seasons: o.seasons, flip: rng() < 0.5 });
+        }
+        reste = (reste - len) % 22; if (reste < 0) reste += 22;
+      }
+    }
+    // -------------------------------------------------------------------------
+    // Les bourgs. Un village ne se compose pas case par case : tant que chaque tuile
+    // plaçait ses maisons dans son coin, on lisait des fermes isolées, avec des paquets
+    // d'un côté et des trous de l'autre. Le bâti se sème donc sur une TRAME GLOBALE,
+    // la même pour toute l'île : un bourg, ce sont les points de la trame qui tombent
+    // dedans. Poser un hameau de plus ne déplace rien, il ajoute des points ; fusionner
+    // deux villages non plus. Le seuil de garde monte avec la taille du bourg, donc un
+    // village qui devient une ville se DENSIFIE au lieu de se réorganiser.
+    // Les bâtiments sont volontairement petits : la maisonnette (25 × 29 unités monde)
+    // est l'ordinaire, la grande maison (63 × 91) l'exception — sinon trois maisons
+    // remplissent l'hexagone et l'œil ne lit plus qu'un tas.
+    // Tout ceci est du DESSIN : pour les règles, ce sont toujours N tuiles distinctes.
+    // -------------------------------------------------------------------------
+    for (const reg of board.regions('hamlet')) {
+      const keys = reg.keys;
+      let poids = 0; for (const c of reg.cells) poids += c.level || 1;
+      const sol = bourgGround(poids);
+      const garde = poids <= 1 ? 0.30 : poids <= 3 ? 0.52 : 0.72;
+      const cen = centroidOf(reg);
+      const closed = board.regionPaid(reg);
+      const hasRare = reg.cells.some((c) => c.rare && (c.family === 'fountain' || c.family === 'chapel' || c.family === 'well'));
+      let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+      for (const c of reg.cells) { const w = toWorld(c.q, c.r); x0 = Math.min(x0, w.x); x1 = Math.max(x1, w.x); y0 = Math.min(y0, w.y); y1 = Math.max(y1, w.y); }
+      const bati = [];
+      for (let i = Math.floor((x0 - SIZE) / PAS); i <= Math.ceil((x1 + SIZE) / PAS); i++) {
+        for (let j = Math.floor((y0 - SIZE) / PAS); j <= Math.ceil((y1 + SIZE) / PAS); j++) {
+          const rng = mulberry(cellSeed(this.seed, i, j, 41));
+          const p = { x: i * PAS + (rng() - 0.5) * PAS * 0.6, y: j * PAS + (rng() - 0.5) * PAS * 0.6 };
+          const ck = inRegion(p, keys); if (!ck) continue;
+          const [cq, cr] = parse(ck); const cell = board.get(cq, cr);
+          if (!cell || cell.rare || cell.blighted) continue;
+          if (!edgeOk(p, ck, keys, 9)) continue;      // rien ne déborde sur le champ d'à côté
+          if (surChemin(p, 15)) continue;             // la rue reste libre
+          const gros = (cell.level || 1) >= 2;
+          if (rng() > garde + (gros ? 0.14 : 0)) continue;
+          bati.push({ p, ck, rng, gros });
+        }
+      }
+      // la pièce maîtresse : le point le plus proche du cœur du bourg (le seul qui bouge quand il grandit)
+      let coeur = null, bd = Infinity;
+      for (const b of bati) { const d = Math.hypot(b.p.x - cen.x, b.p.y - cen.y); if (d < bd) { bd = d; coeur = b; } }
+      for (const b of bati) {
+        const { p, ck, rng, gros } = b; const r = rng(); const w = wild(rng, 0.9, 1.06);
+        const met = (tpl, sc, extra) => add(Object.assign({ x: p.x, y: p.y, tpl, cell: ck, scale: (w.scale || 1) * sc, alpha: 1, flip: w.flip }, extra));
+        // la cour ne se met que sous ce qui est bâti : un jardin reste sur l'herbe, c'est lui qui aère le bourg
+        const pave = () => { if (sol) this.courts.push({ x: p.x, y: p.y - 4, r: COUR * (0.9 + rng() * 0.25), g: sol, cell: ck }); };
+        if (b === coeur && !hasRare) {
+          pave();
+          if (poids >= 3) met('obj_townhall', 0.85); else met('obj_well', 1);
+          add({ x: p.x + 24, y: p.y - 4, tpl: 'obj_banner', cell: ck, scale: 0.78, alpha: 1, seasons: ['summer'], notRules: ['foire'] });
+          add({ x: p.x + 24, y: p.y - 4, tpl: 'obj_banner', cell: ck, scale: 0.78, alpha: 1, rules: ['foire'] });
+          if (closed) add({ x: p.x - 26, y: p.y - 2, tpl: 'obj_lightpost', cell: ck, scale: 0.8, alpha: 1 });
+          continue;
+        }
+        if (r < 0.86) pave();
+        if (r < 0.44) met(`obj_tinyBuilding${roof(rng)}`, 1);
+        else if (r < 0.66) met(`obj_house_small${roof(rng)}`, 0.78);
+        else if (r < 0.74) met(gros ? `obj_house${roof(rng)}` : `obj_house_small${roof(rng)}`, gros ? 0.62 : 0.86);
+        else if (r < 0.80) met(rng() < 0.5 ? 'obj_workshop' : `obj_villa${roof(rng)}`, 0.7);
+        else if (r < 0.86) {
+          // les annexes : ce sont elles qui font la cour, pas la façade
+          const q = rng();
+          if (q < 0.26) met('obj_logPile', 0.8);
+          else if (q < 0.46) met('obj_hay', 0.7);
+          else if (q < 0.62) met('obj_basket', 0.8);
+          else if (q < 0.78) met('obj_cart', 0.7);
+          else if (q < 0.9) met('obj_well', 0.8);
+          else met('obj_fence', 0.85);
+          if (rng() < 0.4) add({ x: p.x + 12, y: p.y + 6, tpl: 'obj_logPile', cell: ck, scale: 0.7, alpha: 1, rules: ['froid'] });
+        } else {
+          // les jardins : ce sont les trouées vertes qui empêchent le bourg de faire bloc
+          if (rng() < 0.45) met('obj_treeRound_small_{s}', 0.8);
+          else { met('obj_bush_{s}', 0.85); add({ x: p.x + 10, y: p.y + 4, tpl: PICK(rng, ['obj_flowerWhite', 'obj_flowerRed', 'obj_flowerBlue']), cell: ck, scale: 0.8, alpha: 1, seasons: ['spring'] }); }
+        }
+      }
+    }
+    for (const family of ['forest', 'meadow', 'field', 'orchard', 'water', 'marsh', 'rock', 'sand', 'hill', 'heath']) {
       for (const reg of board.regions(family)) {
         const keys = reg.keys; const cen = centroidOf(reg);
         // la route occupe la place : on la verse dans les obstacles avant de semer quoi que ce soit
@@ -273,33 +354,6 @@ export class Decor {
             if (rng() < 0.45) for (const p of sample(rng, cell, keys, 1, { minDist: 30, margin: 12, placed, radius: 0.7 })) { placed.push(p); push(p, botte(), wild(rng, 0.9, 1.1)); }
             for (const p of sample(rng, cell, keys, L2(cell) ? 2 : 1, { minDist: 30, margin: 12, placed, radius: 0.75 })) { placed.push(p); push(p, botte(), Object.assign({ seasons: ['autumn'] }, wild(rng, 0.9, 1.1))); }
             for (const p of sample(rng, cell, keys, 1, { minDist: 26, margin: 12, placed: [] })) push(p, 'obj_puddle', { weathers: ['storm'] });
-          } else if (family === 'hamlet') {
-            const isCenter = cells.length >= 3 && cell === center && !hasRareCenter;
-            // Un village, ce sont des maisons SERRÉES. Tant qu'elles restaient chacune au centre de leur case,
-            // on lisait six fermes isolées et non un bourg : chaque case tire donc tout son bâti vers le cœur
-            // du village (jusqu'à un demi-rayon), ce qui rapproche deux maisons voisines de 120 à ~60 px.
-            const { dx, dy } = villageShift(cen, c, reg.cells.length);
-            const vers = dx >= 0 ? 1 : -1;   // le côté « vers le village » : les annexes se rangent de l'autre bord
-            const hp = (p, tpl, extra = {}) => push({ x: p.x + dx, y: p.y + dy }, tpl, extra);
-            const nearField = neighbors(cell.q, cell.r).some(([a, b]) => Board.isFamily(board.get(a, b), 'field'));
-            const r = rng();
-            if (isCenter) { hp({ x: c.x + (vers > 0 ? 4 : -4), y: c.y + 22 }, 'obj_well'); hp({ x: c.x + (vers > 0 ? -30 : 30), y: c.y + 30 }, `obj_house_small${roof(rng)}`); }
-            else if (r < 0.34) hp({ x: c.x, y: c.y + 30 }, `obj_house${roof(rng)}`);
-            else if (r < 0.52) { hp({ x: c.x - 8, y: c.y + 28 }, `obj_house_small${roof(rng)}`); hp({ x: c.x + 30, y: c.y + 12 }, rng() < 0.5 ? 'obj_hay' : 'obj_logPile'); }
-            // l'atelier de charpente : une troisième silhouette d'artisan, le pack ne donnait que la scierie
-            else if (r < 0.62) { hp({ x: c.x, y: c.y + 30 }, 'obj_workshop'); hp({ x: c.x + (vers > 0 ? -30 : 30), y: c.y + 10 }, 'obj_logPile', { scale: 0.85 }); }
-            else if (r < 0.78) hp({ x: c.x, y: c.y + 30 }, `obj_villa${roof(rng)}`);
-            else if (r < 0.9 && nearField) { hp({ x: c.x, y: c.y + 30 }, `obj_farm${roof(rng)}`); hp({ x: c.x - 32, y: c.y + 4 }, rng() < 0.5 ? 'obj_hay' : 'obj_haybale'); }
-            else { hp({ x: c.x + 10, y: c.y + 26 }, `obj_house_small${roof(rng)}`); hp({ x: c.x - 28, y: c.y + 8 }, `obj_tinyBuilding${roof(rng)}`); }
-            // niveau 2 : le hameau devient un village, il faut que ça se voie — quatre bâtiments de plus, une clôture et un puits
-            if (L2(cell)) { hp({ x: c.x + (vers > 0 ? 30 : -30), y: c.y - 4 }, `obj_house_small${roof(rng)}`); hp({ x: c.x + (vers > 0 ? -26 : 26), y: c.y - 10 }, `obj_tinyBuilding${roof(rng)}`); hp({ x: c.x - 4, y: c.y - 16 }, `obj_house_small${roof(rng)}`, { scale: 0.9 }); hp({ x: c.x + (vers > 0 ? -34 : 34), y: c.y + 30 }, `obj_tinyBuilding${roof(rng)}`, { scale: 0.85 }); hp({ x: c.x + 18, y: c.y + 42 }, 'obj_fence'); hp({ x: c.x - 24, y: c.y + 40 }, 'obj_well'); }
-            if (rng() < 0.45) hp({ x: c.x + (vers > 0 ? 34 : -34), y: c.y + 36 }, 'obj_fence');
-            for (const p of sample(rng, cell, keys, 2, { minDist: 18, margin: 8, placed: [] })) push(p, PICK(rng, ['obj_flowerWhite', 'obj_flowerRed', 'obj_flowerBlue']), { seasons: ['spring'] });
-            hp({ x: c.x + (vers > 0 ? -36 : 36), y: c.y + 14 }, 'obj_banner', { seasons: ['summer'], notRules: ['foire'] });
-            hp({ x: c.x + (vers > 0 ? -36 : 36), y: c.y + 14 }, 'obj_banner', { rules: ['foire'] });
-            if (rng() < 0.6) hp({ x: c.x + (vers > 0 ? 30 : -30), y: c.y + 8 }, 'obj_logPile', { seasons: ['autumn', 'winter'] });
-            hp({ x: c.x + (vers > 0 ? -30 : 30), y: c.y + 40 }, 'obj_logPile', { rules: ['froid'] });
-            if (closed && isCenter) hp({ x: c.x + 26, y: c.y + 6 }, 'obj_lightpost');
           } else if (family === 'orchard') {
             const sx = L2(cell) ? 27 : 36, sy = L2(cell) ? 25 : 33, ox = (reg.id.length * 7) % sx, oy = (reg.id.length * 11) % sy;
             const x0 = Math.floor((c.x - 70 - ox) / sx) * sx + ox, y0 = Math.floor((c.y - 80 - oy) / sy) * sy + oy;
