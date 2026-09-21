@@ -20,6 +20,11 @@ const JOURNAL_LINES = 30;      // au-delà, le rapport grossit sans rien apprend
 const IMG_W = 900;             // l'image réduite : 80 Ko environ en JPEG, au lieu de 400 à 800
 const IMG_Q = 0.6;
 const MAX_PAR_JOUR = 5;
+// Les règles Firestore refusent un rapport de 120 000 et une image de 300 000. On s'arrête nettement en dessous :
+// `length` compte des caractères JavaScript, la règle compte à sa façon, et un texte français plein d'accents pèse
+// plus d'octets que de caractères. Se coller à la limite, c'est se faire refuser au bord.
+const MAX_RAPPORT = 90000;
+const MAX_IMAGE = 280000;
 const DAY_KEY = 'cent-saisons.pepin.jour';
 
 /** Quatre caractères qu'on peut dicter : ni I, ni O, ni 0, ni 1. */
@@ -191,7 +196,13 @@ export async function envoyerRapport(rapport, image) {
   if (envoyesAujourdhui() >= MAX_PAR_JOUR) return refuser('plafond');
   if ((Save.data.cloud || {}).choice === 'none') return refuser('hors-ligne');
   if (!Cloud.online()) return refuser('reseau');
-  if (texte.length > 120000) { delete rapport.partie; return envoyerRapport(rapport, image); }
+  // trop gros : la partie rejouable est ce qui pèse, on la retire et on retente UNE fois. Sans ce garde-fou, un
+  // rapport encore trop gros sans elle se rappelait lui-même sans fin — un gel de l'onglet, dans l'écran même qui
+  // sert à signaler les gels.
+  if (texte.length > MAX_RAPPORT) {
+    if (rapport.partie) { delete rapport.partie; return envoyerRapport(rapport, image); }
+    return refuser('trop-gros');
+  }
 
   try {
     if (!await Cloud.load()) return refuser('sdk');
@@ -200,7 +211,7 @@ export async function envoyerRapport(rapport, image) {
     const doc = { code: rapport.code, at: Date.now(), rapport: texte };
     // l'image est facultative : si elle fait grossir le document au-delà de la règle, le rapport part sans elle —
     // la partie rejouable vaut mieux qu'une photo
-    if (image) { const b64 = image.split(',')[1] || ''; if (b64.length < 300000) doc.image = b64; }
+    if (image) { const b64 = image.split(',')[1] || ''; if (b64.length < MAX_IMAGE) doc.image = b64; }
     await S.setDoc(S.doc(db, CLOUD.pepinsCollection, `${Date.now().toString(36)}-${rapport.code}`), doc);
     envoyesAujourdhui(1);
     return { ok: true, voie: 'nuage' };
@@ -218,5 +229,6 @@ export const RAISONS = {
   connexion: 'La connexion n’a pas abouti. Les deux fichiers viennent d’être téléchargés : rien n’est perdu.',
   sdk: 'Les services en ligne n’ont pas répondu. Les deux fichiers viennent d’être téléchargés : rien n’est perdu.',
   coupe: 'L’envoi est coupé pour l’instant. Les deux fichiers viennent d’être téléchargés : rien n’est perdu.',
+  'trop-gros': 'Ce rapport est trop lourd pour partir tout seul. Les deux fichiers viennent d’être téléchargés : rien n’est perdu.',
 };
 export const raisonTexte = (r) => RAISONS[r] || 'Le nuage n’a pas voulu. Les deux fichiers viennent d’être téléchargés : rien n’est perdu.';

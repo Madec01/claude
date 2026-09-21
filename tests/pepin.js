@@ -168,6 +168,25 @@ async function openSection(page) {
   const fuite = brut.match(/"uid"|"displayName"|[\w.+-]+@[\w-]+\.[a-z]{2,}/i);
   check(!fuite, `aucun identifiant ni adresse dans le rapport${fuite ? ` (trouvé : ${fuite[0]})` : ''}`);
 
+  // --- le garde-fou de taille : un rapport encore trop gros après retrait de la partie doit RENDRE LA MAIN,
+  // pas se rappeler sans fin. Sans ce contrôle, l'écran qui sert à signaler les gels gelait l'onglet.
+  const trop = await page.evaluate(async () => {
+    const m = await import('/src/core/report.js');
+    const { Save } = await import('/src/core/save.js');
+    // sans ça, l'envoi s'arrête sur « hors ligne » AVANT le contrôle de taille, et le test passerait sans rien
+    // prouver. On se place donc juste après les refus qui précèdent, pour atteindre le contrôle visé.
+    const avant = (Save.data.cloud || {}).choice;
+    Save.data.cloud = { ...(Save.data.cloud || {}), choice: 'anon' };
+    const gros = { version: 1, mode: 'pepin', code: 'TEST', at: '', mot: 'x'.repeat(200000), tuiles: [], questions: [] };
+    const fini = await Promise.race([
+      m.envoyerRapport(gros, null).then((r) => r.raison || 'sans-raison'),
+      new Promise((res) => setTimeout(() => res('BOUCLE'), 5000)),
+    ]);
+    Save.data.cloud = { ...(Save.data.cloud || {}), choice: avant };
+    return fini;
+  });
+  check(trop === 'trop-gros', `un rapport trop gros rend la main au lieu de boucler, et dit pourquoi (${trop})`);
+
   // --- la boîte noire attrape une erreur sans gêner le jeu
   const bb = await page.evaluate(async () => {
     const m = await import('/src/core/blackbox.js');
