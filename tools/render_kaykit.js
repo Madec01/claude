@@ -55,11 +55,14 @@ const key = new THREE.DirectionalLight(0xffffff, 2.1); key.position.set(-4, 7, 3
 const fill = new THREE.DirectionalLight(0xffffff, 0.5); fill.position.set(4, 2, -3); scene.add(fill);
 const half = ${CANVAS} / 2 / ${PPU};
 const cam = new THREE.OrthographicCamera(-half, half, half, -half, 0.01, 400);
-const e = ${EL} * Math.PI / 180, a = ${AZ} * Math.PI / 180, d = 200;
+const d = 200;
 cam.up.set(0, 1, 0); cam.updateProjectionMatrix();
 const loader = new GLTFLoader();
 let current = null;
-window.__shot = (url) => new Promise((res, rej) => {
+// el / az : angles de prise de vue, par défaut ceux des tuiles. Une dalle posée à plat se rend à la
+// verticale (el = 90), sans quoi son hexagone, écrasé par la perspective, ne recouvre pas le nôtre.
+window.__shot = (url, el, az) => new Promise((res, rej) => {
+  const e = (el === undefined ? ${EL} : el) * Math.PI / 180, a = (az === undefined ? ${AZ} : az) * Math.PI / 180;
   loader.load(url, (g) => {
     if (current) scene.remove(current);
     current = g.scene; scene.add(current);
@@ -79,13 +82,14 @@ window.__ready = true;
 
 const MIME = { '.gltf': 'model/gltf+json', '.bin': 'application/octet-stream', '.png': 'image/png', '.js': 'text/javascript' };
 
-function serve(kayRoot, forestRoot, threeDir) {
+function serve(kayRoot, forestRoot, extraRoot, threeDir) {
   const srv = http.createServer((req, res) => {
     const url = decodeURIComponent(req.url.split('?')[0]);
     if (url === '/render.html') { res.writeHead(200, { 'Content-Type': 'text/html' }); res.end(PAGE); return; }
     let file = null, base = null;
     if (url.startsWith('/three/')) { base = threeDir; file = path.join(threeDir, url.slice(7)); }
     else if (url.startsWith('/kk/forest/')) { base = forestRoot; file = path.join(forestRoot, url.slice(11)); }
+    else if (url.startsWith('/kk/extra/')) { base = extraRoot; file = path.join(extraRoot, url.slice(10)); }
     else if (url.startsWith('/kk/')) { base = kayRoot; file = path.join(kayRoot, url.slice(4)); }
     if (!file || !path.resolve(file).startsWith(path.resolve(base)) || !fs.existsSync(file)) {
       res.writeHead(404); res.end('non'); return;
@@ -97,15 +101,21 @@ function serve(kayRoot, forestRoot, threeDir) {
 }
 
 (async () => {
-  const models = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
+  // Chaque entrée vaut « alias: "chemin" », ou « alias: { model, el, az } » pour une prise de vue à part.
+  const models = Object.fromEntries(Object.entries(JSON.parse(fs.readFileSync(process.argv[2], 'utf8')))
+    .map(([k, v]) => [k, typeof v === 'string' ? { model: v } : v]));
   const kayRoot = path.join(arg('--src', '/home/user/kaykit/KayKit-Medieval-Hexagon-Pack-1.0'),
     'addons', 'kaykit_medieval_hexagon_pack', 'Assets', 'gltf');
   // second pack : la forêt. Un chemin de modèle qui commence par « forest/ » y est cherché.
   const forestRoot = path.join(arg('--forest', '/home/user/kaykit/KayKit-Forest-Nature-Pack-1.0'), 'gltf');
+  // troisième pack : l'EXTRA du Hexagon Pack, préfixe « extra/ ». Il contient les 221 modèles du pack de base
+  // (à deux près, un moulin bleu et un pont, que nous n'employons pas) plus 183 autres : on le garde à part
+  // plutôt que d'y basculer la racine, pour qu'aucun des modèles déjà en place ne change sans qu'on le veuille.
+  const extraRoot = path.join(arg('--extra', '/home/user/kaykit/extra/Asset4'), 'gltf');
   const out = arg('--out', path.join(CACHE, 'kaykit'));
   fs.mkdirSync(out, { recursive: true });
   const threeDir = ensureThree();
-  const srv = await serve(kayRoot, forestRoot, threeDir);
+  const srv = await serve(kayRoot, forestRoot, extraRoot, threeDir);
   const port = srv.address().port;
   const b = await chromium.launch({ args: ['--use-gl=swiftshader', '--enable-unsafe-swiftshader'] });
   const page = await b.newPage();
@@ -115,17 +125,20 @@ function serve(kayRoot, forestRoot, threeDir) {
 
   const meta = {};
   const errors = [];
-  for (const [name, rel] of Object.entries(models)) {
+  for (const [name, spec] of Object.entries(models)) {
+    const rel = spec.model;
     const url = `/kk/${rel}.gltf`;
-    const disk = rel.startsWith('forest/') ? path.join(forestRoot, `${rel.slice(7)}.gltf`) : path.join(kayRoot, `${rel}.gltf`);
+    const disk = rel.startsWith('forest/') ? path.join(forestRoot, `${rel.slice(7)}.gltf`)
+      : rel.startsWith('extra/') ? path.join(extraRoot, `${rel.slice(6)}.gltf`)
+        : path.join(kayRoot, `${rel}.gltf`);
     if (!fs.existsSync(disk)) { errors.push(`${name} : modèle absent (${rel}.gltf)`); continue; }
     let box;
-    try { box = await page.evaluate((u) => window.__shot(u), url); }
+    try { box = await page.evaluate(([u, el, az]) => window.__shot(u, el, az), [url, spec.el, spec.az]); }
     catch (e) { errors.push(`${name} : ${e.message}`); continue; }
     const buf = await page.locator('#c').screenshot({ omitBackground: true });
     const tmp = path.join(out, `${name}.raw.png`);
     fs.writeFileSync(tmp, buf);
-    meta[name] = { model: rel, box: { min: box.min.map((x) => +x.toFixed(4)), max: box.max.map((x) => +x.toFixed(4)) }, origin: box.origin.map((x) => +x.toFixed(2)) };
+    meta[name] = { model: rel, el: spec.el, az: spec.az, box: { min: box.min.map((x) => +x.toFixed(4)), max: box.max.map((x) => +x.toFixed(4)) }, origin: box.origin.map((x) => +x.toFixed(2)) };
   }
   await b.close();
   srv.close();

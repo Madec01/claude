@@ -667,7 +667,7 @@
   "mirror": "https://github.com/KayKit-Game-Assets/KayKit-Medieval-Hexagon-Pack-1.0",
   "mirrorPath": "addons/kaykit_medieval_hexagon_pack/Assets/gltf",
   "licenseFile": "https://github.com/KayKit-Game-Assets/KayKit-Medieval-Hexagon-Pack-1.0/blob/main/LICENSE.txt",
-  "note": "modèles 3D rendus en PNG isométriques par tools/render_kaykit.js (élévation 30°, azimut −30°, 120 px/unité)",
+  "note": "modèles 3D rendus en PNG par tools/render_kaykit.js (élévation 30°, azimut −30°, 120 px/unité ; les dalles plates à la verticale)",
   "files": [
    "buildings/green/building_home_A_green.gltf",
    "buildings/green/building_home_B_green.gltf",
@@ -728,7 +728,7 @@
   "mirror": "fourni par le commanditaire (téléchargement direct)",
   "mirrorPath": "gltf",
   "licenseFile": "fourni par le commanditaire (téléchargement direct)",
-  "note": "modèles 3D rendus en PNG isométriques par tools/render_kaykit.js (élévation 30°, azimut −30°, 120 px/unité)",
+  "note": "modèles 3D rendus en PNG par tools/render_kaykit.js (élévation 30°, azimut −30°, 120 px/unité ; les dalles plates à la verticale)",
   "files": [
    "Color1/Bush_3_A_Color1.gltf",
    "Color1/Bush_4_A_Color1.gltf",
@@ -778,6 +778,21 @@
    "Color8/Tree_5_D_Color8.gltf",
    "Color8/Tree_5_E_Color8.gltf",
    "Color8/Tree_5_F_Color8.gltf"
+  ]
+ },
+ {
+  "pack": "KayKit : Medieval Hexagon Pack EXTRA (1.0)",
+  "author": "Kay Lousberg",
+  "license": "CC0 1.0",
+  "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "url": "https://kaylousberg.itch.io/kaykit-medieval-hexagon",
+  "mirror": "fourni par le commanditaire (téléchargement direct)",
+  "mirrorPath": "Asset4/gltf",
+  "licenseFile": "fourni par le commanditaire (téléchargement direct)",
+  "note": "modèles 3D rendus en PNG par tools/render_kaykit.js (élévation 30°, azimut −30°, 120 px/unité ; les dalles plates à la verticale)",
+  "files": [
+   "buildings/neutral/building_dirt.gltf",
+   "buildings/neutral/building_grain.gltf"
   ]
  },
  {

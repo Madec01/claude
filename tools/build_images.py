@@ -69,10 +69,23 @@ KAYKIT = dict(pack="KayKit : Medieval Hexagon Pack (1.0)", author="Kay Lousberg"
 
 # Alias de modèle → chemin sous Assets/gltf/ du pack. Le rouge est la couleur d'équipe
 # dont les toits sont les plus proches de notre terre cuite.
+# Étirement vertical des dalles plates, une fois rendues à la verticale (KAY_VIEWS). Nos tuiles sont des
+# hexagones réguliers de 240 × 280 (rapport 1,167) ; l'hexagone KayKit vu de dessus donne 1,115. Le reste
+# de l'écart se rattrape ici — c'est peu, et invisible sur une texture de sol.
+FLAT_STRETCH = 1.047
+
 FOREST = dict(pack="KayKit : Forest Nature Pack (1.0)", author="Kay Lousberg",
               url="https://kaylousberg.itch.io/forest-nature-pack",
               mirror="fourni par le commanditaire (téléchargement direct)",
               license_file="License.txt")
+
+# Pack EXTRA du Hexagon Pack, fourni par le commanditaire. Il reprend les 221 modèles du pack de base (à deux
+# près — un moulin bleu et un pont — que nous n'employons pas) et en ajoute 183. On le garde comme troisième
+# racine, préfixe « extra/ », plutôt que d'y basculer : aucun modèle déjà en place ne change sans qu'on le veuille.
+EXTRA = dict(pack="KayKit : Medieval Hexagon Pack EXTRA (1.0)", author="Kay Lousberg",
+             url="https://kaylousberg.itch.io/kaykit-medieval-hexagon",
+             mirror="fourni par le commanditaire (téléchargement direct)",
+             license_file="License.txt")
 
 KAY_MODELS = {
     # --- pack Forest : les feuillus existent en huit palettes, dont les couleurs de saison ;
@@ -135,6 +148,10 @@ KAY_MODELS = {
     "massif_B": "decoration/nature/mountain_B",
     "massif_C": "decoration/nature/mountain_A",
     "bloc_grand": "forest/Color1/Rock_2_C_Color1",
+    # --- pack EXTRA : les deux dalles hexagonales. Elles se rendent à la VERTICALE (voir KAY_VIEWS) :
+    # nos tuiles sont des hexagones réguliers vus de dessus (240 × 280), pas des dalles en perspective.
+    "ble": "extra/buildings/neutral/building_grain",
+    "terre": "extra/buildings/neutral/building_dirt",
     "caillou_A": "decoration/nature/rock_single_A",
     "caillou_B": "decoration/nature/rock_single_B",
     "caillou_C": "decoration/nature/rock_single_C",
@@ -256,7 +273,9 @@ COLORS = {
     "stone_winter": "#e3eaf0", "dirt_winter": "#e6ebf0",
     "heath_ground": {"spring": "#a9b26a", "summer": "#b0a45a", "autumn": "#b58c55", "winter": SNOW},
     "heather": {"spring": "#b98ccc", "summer": "#a67bb8", "autumn": "#8f6a9e", "winter": "#d9d0e2"},
-    "crop": {"spring": "#8fca5c", "summer": "#a9c24a", "autumn": "#e2b44b", "winter": "#e8edf1"},
+    # les rangs de culture se posent désormais sur une dalle de blé, plus sur de la terre nue : il leur faut
+    # une nuance un cran plus soutenue que le sol de la saison, sinon ils s'y fondent et les sillons disparaissent
+    "crop": {"spring": "#8fca5c", "summer": "#86a637", "autumn": "#c08c26", "winter": "#cfe0ec"},
     "blossom": "#f2d3de",
 }
 
@@ -390,11 +409,12 @@ def fit(im, box):
 class Sources:
     """Accès aux sprites : Hexagon Pack en 2× (cache SVG ou Lanczos), autres packs natifs."""
 
-    def __init__(self, src_root, kay_root=None, animals_root=None, forest_root=None):
+    def __init__(self, src_root, kay_root=None, animals_root=None, forest_root=None, extra_root=None):
         self.src = src_root
         self.kay_root = kay_root
         self.animals_root = animals_root
         self.forest_root = forest_root
+        self.extra_root = extra_root
         self.hp_png = src_root / HP / "PNG"
         self.tiles2x = CACHE / "hex2x_tiles"
         self.objs2x = CACHE / "hex2x_objects"
@@ -457,26 +477,37 @@ class Sources:
         self.kay2x.mkdir(parents=True, exist_ok=True)
         todo = rebuild or not (self.kay2x / "meta.json").exists() or any(
             not (self.kay2x / f"{n}.raw.png").exists() for n in KAY_MODELS)
+        if not todo and (self.kay2x / "meta.json").exists():
+            # une prise de vue modifiée (KAY_VIEWS) ne change pas le nom du fichier : on la compare au cache
+            m = json.loads((self.kay2x / "meta.json").read_text(encoding="utf-8"))["models"]
+            todo = any((m.get(n) or {}).get("el") != KAY_VIEWS.get(n, {}).get("el")
+                       or (m.get(n) or {}).get("az") != KAY_VIEWS.get(n, {}).get("az") for n in KAY_MODELS)
         if not todo:
             return
         jobs = CACHE / "kaykit_models.json"
-        jobs.write_text(json.dumps(KAY_MODELS, indent=1), encoding="utf-8")
+        spec = {n: (dict(model=p, **KAY_VIEWS[n]) if n in KAY_VIEWS else p) for n, p in KAY_MODELS.items()}
+        jobs.write_text(json.dumps(spec, indent=1), encoding="utf-8")
         print(f"rendu des {len(KAY_MODELS)} modèles KayKit (Chromium + three.js)…")
         subprocess.run(["node", str(ROOT / "tools" / "render_kaykit.js"), str(jobs),
-                        "--src", str(self.kay_root), "--forest", str(self.forest_root), "--out", str(self.kay2x)], check=True)
+                        "--src", str(self.kay_root), "--forest", str(self.forest_root), "--extra", str(self.extra_root), "--out", str(self.kay2x)], check=True)
 
     def kay_meta(self):
         if not getattr(self, "_kay_meta", None):
             self._kay_meta = json.loads((self.kay2x / "meta.json").read_text(encoding="utf-8"))
         return self._kay_meta
 
-    def kay(self, name, scale=1.0):
+    def kay(self, name, scale=1.0, sy=1.0):
         """Modèle KayKit rendu : (image rognée, origine x, origine y dans l'image).
 
         L'origine du modèle — le centre de son pied — est au centre du canevas de rendu ;
         après rognage on sait donc exactement par quel point l'ancrer sur la tuile.
+
+        `sy` étire l'image en hauteur seulement. Il ne sert qu'aux pièces **plates** posées au sol :
+        nos tuiles sont dessinées à une élévation plus haute (face du dessus : 137 px pour 240 de large)
+        que celle des rendus 3D (108 px), écart invisible sur un objet debout mais qui saute aux yeux
+        sur une dalle. Voir FLAT_STRETCH.
         """
-        k = (name, scale)
+        k = (name, scale, sy)
         if k in self.kay_cache:
             return self.kay_cache[k]
         if name not in KAY_MODELS:
@@ -494,9 +525,9 @@ class Sources:
         # l'origine du modèle est donnée par le rendu (la caméra vise le milieu du modèle, pas l'origine)
         org = self.kay_meta()["models"][name].get("origin") or [p and 0, 0]
         ox, oy = org[0] - box[0], org[1] - box[1]
-        if scale != 1.0:
-            im = im.resize((max(1, round(im.width * scale)), max(1, round(im.height * scale))), Image.LANCZOS)
-            ox, oy = ox * scale, oy * scale
+        if scale != 1.0 or sy != 1.0:
+            im = im.resize((max(1, round(im.width * scale)), max(1, round(im.height * scale * sy))), Image.LANCZOS)
+            ox, oy = ox * scale, oy * scale * sy
         self.kay_used.add(name)
         self.kay_cache[k] = (im, ox, oy)
         return self.kay_cache[k]
@@ -552,6 +583,15 @@ def kay_model(sprite, season):
     return f"{sprite[5:]}_{season}" if sprite.startswith("kays:") else sprite[4:]
 
 
+# Prise de vue particulière de certains modèles. Par défaut tout se rend à 30° d'élévation et −30° d'azimut,
+# comme les objets posés sur les tuiles. Une **dalle plate** doit au contraire se rendre à la verticale :
+# à 30°, son hexagone est écrasé (240 × 108) et ne peut pas recouvrir le nôtre (240 × 280).
+KAY_VIEWS = {
+    "ble": {"el": 90, "az": 0},
+    "terre": {"el": 90, "az": 0},
+}
+
+
 def L(sprite, x, y, kind="static", seasons=None, mirror=False, scale=1.0, order=None, **extra):
     return dict(sprite=sprite, x=x, y=y, kind=kind, seasons=seasons, mirror=mirror, scale=scale, order=order, **extra)
 
@@ -590,12 +630,18 @@ TILES = {
                                            L(KPOMMIER, 87, 90, height=58, fruits=True), L(KPOMMIER, 60, 108, height=58, fruits=True)],
                   note="Verger : 6 feuillus du pack Forest ; fruits dessinés en été/automne."),
     # --- champs : parcelles en quinconce + foin + clôture
-    "field_1": T("field", "dirt_06", [L("ht:bushGrass:1.9", x, y, "crop") for (x, y) in
-                                      [(34, 68), (52, 68), (70, 68), (88, 68), (26, 84), (44, 84), (62, 84), (80, 84), (98, 84), (34, 100), (52, 100), (70, 100), (88, 100), (44, 116), (62, 116), (80, 116)]]
-                 + [L("obj:hay", 96, 110)], base_kind="dirt", note="Champ : terre nue + rangs de culture (touffes recolorées par saison) + botte de foin."),
-    "field_2": T("field", "dirt_06", [L("ht:bushGrass:1.9", x, y, "crop") for (x, y) in
-                                      [(44, 66), (62, 66), (80, 66), (34, 82), (52, 82), (70, 82), (88, 82), (26, 98), (44, 98), (62, 98), (80, 98), (98, 98), (52, 114), (70, 114)]]
-                 + [L("obj:hay", 30, 116), L("obj:fence", 96, 118)], base_kind="dirt", base_mirror=True, note="Champ : terre nue en miroir + rangs de culture + foin + clôture."),
+    "field_1": T("field", "dirt_06", [L("kay:terre", 60, 70, "field", width=236, flat=True, seasons=["spring"]),
+                                      L("kay:ble", 60, 70, "field", width=240, flat=True, seasons=["summer", "autumn", "winter"])]
+                 + [L("ht:bushGrass:1.9", x, y, "crop") for (x, y) in
+                    [(34, 68), (70, 68), (26, 84), (62, 84), (98, 84), (44, 100), (80, 100), (62, 116)]]
+                 + [L("obj:hay", 96, 110)],
+                 base_kind="dirt", note="Champ : la parcelle de blé du pack EXTRA (dalle hexagonale rendue à la verticale, recolorée par saison), quelques rangs de culture et une botte de foin."),
+    "field_2": T("field", "dirt_06", [L("kay:terre", 60, 70, "field", width=236, flat=True, mirror=True, seasons=["spring"]),
+                                      L("kay:ble", 60, 70, "field", width=240, flat=True, mirror=True, seasons=["summer", "autumn", "winter"])]
+                 + [L("ht:bushGrass:1.9", x, y, "crop") for (x, y) in
+                    [(44, 66), (80, 66), (34, 82), (70, 82), (26, 98), (62, 98), (98, 98), (52, 114)]]
+                 + [L("obj:hay", 30, 116), L("obj:fence", 96, 118)],
+                 base_kind="dirt", base_mirror=True, note="Champ : la même parcelle en miroir, rangs de culture, foin et clôture."),
     # --- hameaux (bâtiments inchangés par la saison)
     "hamlet_1": T("hamlet", "grass_05", [L("kay:home_A_jaune", 58, 90, scale=0.94), L("kay:barrel", 90, 98, scale=1.2), L("kay:fence_wood", 40, 94, scale=0.45)],
                   note="Hameau : maison KayKit + tonneau + clôture."),
@@ -744,6 +790,11 @@ class Composer:
             return layer["height"] / nat.height if layer.get("height") else layer["width"] / nat.width
         return layer["scale"]
 
+    @staticmethod
+    def kay_sy(layer):
+        """Étirement vertical du calque : `flat=True` pour une dalle posée au sol, sinon rien."""
+        return FLAT_STRETCH if layer.get("flat") else float(layer.get("stretch", 1.0))
+
     def layer_image(self, layer, season, index):
         sp = layer["sprite"]
         kind = layer["kind"]
@@ -755,7 +806,7 @@ class Composer:
             _, name, sc = sp.split(":")
             im = self.src.ht(name, float(sc))
         elif sp.startswith("kay:") or sp.startswith("kays:"):
-            im = self.src.kay(kay_model(sp, season), self.kay_scale(layer, season))[0]   # l'échelle est déjà appliquée (l'origine la suit)
+            im = self.src.kay(kay_model(sp, season), self.kay_scale(layer, season), self.kay_sy(layer))[0]   # l'échelle est déjà appliquée (l'origine la suit)
         else:
             raise ValueError(sp)
         if layer["scale"] != 1.0 and not sp.startswith("kay"):
@@ -829,7 +880,7 @@ class Composer:
             im = self.layer_image(layer, season, i)
             if layer["sprite"].startswith("kay"):
                 # modèle 3D : ancré par l'origine du modèle (le centre de son pied), pas par le bas de l'image
-                ox, oy = self.src.kay(kay_model(layer["sprite"], season), self.kay_scale(layer, season))[1:]
+                ox, oy = self.src.kay(kay_model(layer["sprite"], season), self.kay_scale(layer, season), self.kay_sy(layer))[1:]
                 if layer["mirror"]:
                     ox = im.width - ox
                 x = round(layer["x"] * SCALE - ox)
@@ -912,8 +963,8 @@ def draw_wind(size=100):
 # Construction
 # ===========================================================================
 class Builder:
-    def __init__(self, src_root, repo, sheets=False, kay_root=None, animals_root=None, forest_root=None):
-        self.src = Sources(src_root, kay_root, animals_root, forest_root)
+    def __init__(self, src_root, repo, sheets=False, kay_root=None, animals_root=None, forest_root=None, extra_root=None):
+        self.src = Sources(src_root, kay_root, animals_root, forest_root, extra_root)
         self.animals_root = animals_root
         self.repo = repo
         self.img_root = repo / "assets" / "img"
@@ -1005,11 +1056,20 @@ class Builder:
                 col = "#%02x%02x%02x" % tuple(int(v) for v in arr)
                 self.emit(f"ground_{kind}_{season}", "tiles", im, HP, self.src.hp_original(base), f"Sol « {kind} » ({season}) pour le décor composé par région.",
                           ground=kind, season=season, ground_color=col)
-        # sol de champ : terre nue (dirt_06) ; les rangs de culture sont des objets posés par région (obj_crop_*)
+        # Sol de champ : les deux dalles hexagonales du pack EXTRA, rendues à la verticale, recolorées par saison —
+        # le labour au printemps, le blé le reste de l'année. Les rangs de culture restent posés par région
+        # (obj_crop_*) : ils donnent les sillons, la dalle donne la terre et les épis.
         for season in SEASONS:
-            base = comp.base_for(T("field", "dirt_06", [], base_kind="dirt"), season)
+            # la dalle de terre est plus étroite que celle de blé : à largeur égale elle dépasserait en hauteur
+            spec = T("field", "dirt_06", [L("kay:terre" if season == "spring" else "kay:ble", 60, 70, "field",
+                                            width=236 if season == "spring" else 240, flat=True,
+                                            mirror=(season == "autumn"))], base_kind="dirt")
+            base = comp.compose(f"ground_field_{season}", spec, season)
             arr = np.asarray(base)[120:170, 95:145, :3].reshape(-1, 3).mean(0)
-            self.emit(f"ground_field_{season}", "tiles", base, HP, self.src.hp_original("dirt_06"), f"Sol de champ ({season}) : terre nue, les rangs de culture sont ajoutés par région.",
+            quoi = "terre labourée" if season == "spring" else "blé"
+            # le pack déclaré est celui du fond (dirt_06) ; la dalle KayKit est créditée d'elle-même (kay_used)
+            self.emit(f"ground_field_{season}", "tiles", base, HP, self.src.hp_original("dirt_06"),
+                      f"Sol de champ ({season}) : {quoi} (dalle hexagonale du pack EXTRA, rendue à la verticale) ; les rangs de culture sont ajoutés par région.",
                       ground="field", season=season, ground_color="#%02x%02x%02x" % tuple(int(v) for v in arr))
         im = comp.base_for(T("dry", "grass_05", [], base_kind="dry"), "summer")
         arr = np.asarray(im)[120:170, 95:145, :3].reshape(-1, 3).mean(0)
@@ -1439,17 +1499,20 @@ class Builder:
                 "licenseFile": f"{MIRROR}/blob/main/{meta['license_text_path']}",
                 "files": sorted(self.per_pack[pid]),
             })
-        for meta, prefix in ((KAYKIT, False), (FOREST, True)):
-            used = sorted(n for n in self.src.kay_used if KAY_MODELS[n].startswith("forest/") == prefix)
+        for meta, pref in ((KAYKIT, ""), (FOREST, "forest/"), (EXTRA, "extra/")):
+            def group(n, pref=pref):
+                p = KAY_MODELS[n]
+                return (p.startswith(pref) if pref else not (p.startswith("forest/") or p.startswith("extra/")))
+            used = sorted(n for n in self.src.kay_used if group(n))
             if not used:
                 continue
             credits.append({
                 "pack": meta["pack"], "author": meta["author"], "license": "CC0 1.0", "licenseUrl": CC0_URL,
                 "url": meta["url"], "mirror": meta["mirror"],
-                "mirrorPath": "gltf" if prefix else "addons/kaykit_medieval_hexagon_pack/Assets/gltf",
-                "licenseFile": meta["mirror"] if prefix else f"{meta['mirror']}/blob/main/{meta['license_file']}",
-                "note": "modèles 3D rendus en PNG isométriques par tools/render_kaykit.js (élévation 30°, azimut −30°, 120 px/unité)",
-                "files": sorted(KAY_MODELS[n].replace("forest/", "") + ".gltf" for n in used),
+                "mirrorPath": "gltf" if pref == "forest/" else "Asset4/gltf" if pref == "extra/" else "addons/kaykit_medieval_hexagon_pack/Assets/gltf",
+                "licenseFile": meta["mirror"] if pref else f"{meta['mirror']}/blob/main/{meta['license_file']}",
+                "note": "modèles 3D rendus en PNG par tools/render_kaykit.js (élévation 30°, azimut −30°, 120 px/unité ; les dalles plates à la verticale)",
+                "files": sorted(KAY_MODELS[n][len(pref):] + ".gltf" for n in used),
             })
         if self.per_pack["animaux3d"]:
             prov = json.loads((self.animals_root / "PROVENANCE.json").read_text(encoding="utf-8"))
@@ -1518,6 +1581,16 @@ def check_forest_license(forest_root):
     FOREST["license_text_path"] = FOREST["license_file"]
 
 
+def check_extra_license(extra_root):
+    p = extra_root / EXTRA["license_file"]
+    if not p.exists():
+        raise RuntimeError(f"Pack EXTRA introuvable : {p}")
+    txt = p.read_text(encoding="utf-8", errors="replace")
+    if "creativecommons.org/publicdomain/zero/1.0" not in txt:
+        raise RuntimeError(f"Licence CC0 introuvable dans {p}")
+    EXTRA["license_text_path"] = EXTRA["license_file"]
+
+
 def check_animals_licenses(animals_root):
     """Chaque modèle d'animal doit porter une licence libre non virale (CC0 ou CC-BY)."""
     p = animals_root / "PROVENANCE.json"
@@ -1541,6 +1614,7 @@ def main():
     ap.add_argument("--kaykit", default=os.environ.get("KAYKIT_ROOT", "/home/user/kaykit/KayKit-Medieval-Hexagon-Pack-1.0"))
     ap.add_argument("--animaux", default=os.environ.get("ANIMAUX3D_ROOT", "/home/user/animaux3d"))
     ap.add_argument("--forest", default=os.environ.get("FOREST_ROOT", "/home/user/kaykit/KayKit-Forest-Nature-Pack-1.0"))
+    ap.add_argument("--extra", default=os.environ.get("EXTRA_ROOT", "/home/user/kaykit/extra"))
     ap.add_argument("--out", default=str(ROOT))
     ap.add_argument("--rebuild-cache", action="store_true", help="re-rasterise les SVG et ré-extrait les sprites 2×")
     ap.add_argument("--sheets", action="store_true", help="écrit des planches-contact par saison dans tools/cache/sheets/")
@@ -1550,8 +1624,10 @@ def main():
     check_licenses(src_root)
     check_kaykit_license(kay_root)
     check_forest_license(Path(args.forest))
+    check_extra_license(Path(args.extra))
     check_animals_licenses(animals_root)
-    b = Builder(src_root, repo, sheets=args.sheets, kay_root=kay_root, animals_root=animals_root, forest_root=Path(args.forest))
+    b = Builder(src_root, repo, sheets=args.sheets, kay_root=kay_root, animals_root=animals_root,
+                forest_root=Path(args.forest), extra_root=Path(args.extra) / "Asset4")
     b.src.prepare(rebuild=args.rebuild_cache)
     b.build_tiles()
     b.build_deco()

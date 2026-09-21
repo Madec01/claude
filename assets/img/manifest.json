@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-21T04:43:08+00:00",
+ "generated": "2026-09-21T07:31:52+00:00",
  "generator": "tools/build_images.py",
  "conventions": {
   "hex": {
@@ -513,13 +513,13 @@
    "file": "tiles/field_1_spring.png",
    "w": 240,
    "h": 280,
-   "bytes": 13822,
+   "bytes": 39342,
    "source": [
     "hexagon-pack",
     "hexagontiles"
    ],
    "original": "PNG/Objects/hay.png + PNG/Tiles/Terrain/Dirt/dirt_06.png + hexagontiles/Tiles/bushGrass.png",
-   "note": "Champ : terre nue + rangs de culture (touffes recolorées par saison) + botte de foin. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
+   "note": "Champ : la parcelle de blé du pack EXTRA (dalle hexagonale rendue à la verticale, recolorée par saison), quelques rangs de culture et une botte de foin. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
    "season": "spring",
    "family": "field",
    "tile": "field_1",
@@ -529,13 +529,13 @@
    "file": "tiles/field_1_summer.png",
    "w": 240,
    "h": 280,
-   "bytes": 14002,
+   "bytes": 22657,
    "source": [
     "hexagon-pack",
     "hexagontiles"
    ],
    "original": "PNG/Objects/hay.png + PNG/Tiles/Terrain/Dirt/dirt_06.png + hexagontiles/Tiles/bushGrass.png",
-   "note": "Champ : terre nue + rangs de culture (touffes recolorées par saison) + botte de foin. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
+   "note": "Champ : la parcelle de blé du pack EXTRA (dalle hexagonale rendue à la verticale, recolorée par saison), quelques rangs de culture et une botte de foin. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
    "season": "summer",
    "family": "field",
    "tile": "field_1",
@@ -545,13 +545,13 @@
    "file": "tiles/field_1_autumn.png",
    "w": 240,
    "h": 280,
-   "bytes": 13978,
+   "bytes": 22460,
    "source": [
     "hexagon-pack",
     "hexagontiles"
    ],
    "original": "PNG/Objects/hay.png + PNG/Tiles/Terrain/Dirt/dirt_06.png + hexagontiles/Tiles/bushGrass.png",
-   "note": "Champ : terre nue + rangs de culture (touffes recolorées par saison) + botte de foin. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
+   "note": "Champ : la parcelle de blé du pack EXTRA (dalle hexagonale rendue à la verticale, recolorée par saison), quelques rangs de culture et une botte de foin. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
    "season": "autumn",
    "family": "field",
    "tile": "field_1",
@@ -561,13 +561,13 @@
    "file": "tiles/field_1_winter.png",
    "w": 240,
    "h": 280,
-   "bytes": 13791,
+   "bytes": 24160,
    "source": [
     "hexagon-pack",
     "hexagontiles"
    ],
    "original": "PNG/Objects/hay.png + PNG/Tiles/Terrain/Dirt/dirt_06.png + hexagontiles/Tiles/bushGrass.png",
-   "note": "Champ : terre nue + rangs de culture (touffes recolorées par saison) + botte de foin. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
+   "note": "Champ : la parcelle de blé du pack EXTRA (dalle hexagonale rendue à la verticale, recolorée par saison), quelques rangs de culture et une botte de foin. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
    "season": "winter",
    "family": "field",
    "tile": "field_1",
@@ -577,13 +577,13 @@
    "file": "tiles/field_2_spring.png",
    "w": 240,
    "h": 280,
-   "bytes": 17849,
+   "bytes": 39717,
    "source": [
     "hexagon-pack",
     "hexagontiles"
    ],
    "original": "PNG/Objects/fence.png + PNG/Objects/hay.png + PNG/Tiles/Terrain/Dirt/dirt_06.png + hexagontiles/Tiles/bushGrass.png",
-   "note": "Champ : terre nue en miroir + rangs de culture + foin + clôture. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
+   "note": "Champ : la même parcelle en miroir, rangs de culture, foin et clôture. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
    "season": "spring",
    "family": "field",
    "tile": "field_2",
@@ -593,13 +593,13 @@
    "file": "tiles/field_2_summer.png",
    "w": 240,
    "h": 280,
-   "bytes": 17502,
+   "bytes": 25784,
    "source": [
     "hexagon-pack",
     "hexagontiles"
    ],
    "original": "PNG/Objects/fence.png + PNG/Objects/hay.png + PNG/Tiles/Terrain/Dirt/dirt_06.png + hexagontiles/Tiles/bushGrass.png",
-   "note": "Champ : terre nue en miroir + rangs de culture + foin + clôture. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
+   "note": "Champ : la même parcelle en miroir, rangs de culture, foin et clôture. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
    "season": "summer",
    "family": "field",
    "tile": "field_2",
@@ -609,13 +609,13 @@
    "file": "tiles/field_2_autumn.png",
    "w": 240,
    "h": 280,
-   "bytes": 17446,
+   "bytes": 25453,
    "source": [
     "hexagon-pack",
     "hexagontiles"
    ],
    "original": "PNG/Objects/fence.png + PNG/Objects/hay.png + PNG/Tiles/Terrain/Dirt/dirt_06.png + hexagontiles/Tiles/bushGrass.png",
-   "note": "Champ : terre nue en miroir + rangs de culture + foin + clôture. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
+   "note": "Champ : la même parcelle en miroir, rangs de culture, foin et clôture. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
    "season": "autumn",
    "family": "field",
    "tile": "field_2",
@@ -625,13 +625,13 @@
    "file": "tiles/field_2_winter.png",
    "w": 240,
    "h": 280,
-   "bytes": 17675,
+   "bytes": 27691,
    "source": [
     "hexagon-pack",
     "hexagontiles"
    ],
    "original": "PNG/Objects/fence.png + PNG/Objects/hay.png + PNG/Tiles/Terrain/Dirt/dirt_06.png + hexagontiles/Tiles/bushGrass.png",
-   "note": "Champ : terre nue en miroir + rangs de culture + foin + clôture. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
+   "note": "Champ : la même parcelle en miroir, rangs de culture, foin et clôture. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
    "season": "winter",
    "family": "field",
    "tile": "field_2",
@@ -2913,49 +2913,49 @@
    "file": "tiles/ground_field_spring.png",
    "w": 240,
    "h": 280,
-   "bytes": 6964,
+   "bytes": 30922,
    "source": "hexagon-pack",
    "original": "PNG/Tiles/Terrain/Dirt/dirt_06.png",
-   "note": "Sol de champ (spring) : terre nue, les rangs de culture sont ajoutés par région.",
+   "note": "Sol de champ (spring) : terre labourée (dalle hexagonale du pack EXTRA, rendue à la verticale) ; les rangs de culture sont ajoutés par région.",
    "ground": "field",
    "season": "spring",
-   "ground_color": "#bb8044"
+   "ground_color": "#ac6955"
   },
   "ground_field_summer": {
    "file": "tiles/ground_field_summer.png",
    "w": 240,
    "h": 280,
-   "bytes": 6964,
+   "bytes": 15699,
    "source": "hexagon-pack",
    "original": "PNG/Tiles/Terrain/Dirt/dirt_06.png",
-   "note": "Sol de champ (summer) : terre nue, les rangs de culture sont ajoutés par région.",
+   "note": "Sol de champ (summer) : blé (dalle hexagonale du pack EXTRA, rendue à la verticale) ; les rangs de culture sont ajoutés par région.",
    "ground": "field",
    "season": "summer",
-   "ground_color": "#bb8044"
+   "ground_color": "#a9c24a"
   },
   "ground_field_autumn": {
    "file": "tiles/ground_field_autumn.png",
    "w": 240,
    "h": 280,
-   "bytes": 6964,
+   "bytes": 15242,
    "source": "hexagon-pack",
    "original": "PNG/Tiles/Terrain/Dirt/dirt_06.png",
-   "note": "Sol de champ (autumn) : terre nue, les rangs de culture sont ajoutés par région.",
+   "note": "Sol de champ (autumn) : blé (dalle hexagonale du pack EXTRA, rendue à la verticale) ; les rangs de culture sont ajoutés par région.",
    "ground": "field",
    "season": "autumn",
-   "ground_color": "#bb8044"
+   "ground_color": "#d8a43f"
   },
   "ground_field_winter": {
    "file": "tiles/ground_field_winter.png",
    "w": 240,
    "h": 280,
-   "bytes": 6309,
+   "bytes": 16560,
    "source": "hexagon-pack",
    "original": "PNG/Tiles/Terrain/Dirt/dirt_06.png",
-   "note": "Sol de champ (winter) : terre nue, les rangs de culture sont ajoutés par région.",
+   "note": "Sol de champ (winter) : blé (dalle hexagonale du pack EXTRA, rendue à la verticale) ; les rangs de culture sont ajoutés par région.",
    "ground": "field",
    "season": "winter",
-   "ground_color": "#d3bba3"
+   "ground_color": "#eef2f6"
   },
   "ground_dry": {
    "file": "tiles/ground_dry.png",
@@ -3562,7 +3562,7 @@
    "file": "deco/obj_crop_summer.png",
    "w": 30,
    "h": 40,
-   "bytes": 2290,
+   "bytes": 2279,
    "source": "hexagontiles",
    "original": "Tiles/bushGrass.png",
    "note": "Rang de culture (summer) : touffe recolorée (pousses, blé vert, blé mûr, chaume sous la neige).",
@@ -3632,7 +3632,7 @@
    "file": "deco/obj_crop_autumn.png",
    "w": 32,
    "h": 42,
-   "bytes": 2375,
+   "bytes": 2347,
    "source": "hexagontiles",
    "original": "Tiles/bushGrass.png",
    "note": "Rang de culture (autumn) : touffe recolorée (pousses, blé vert, blé mûr, chaume sous la neige).",
@@ -3702,7 +3702,7 @@
    "file": "deco/obj_crop_winter.png",
    "w": 20,
    "h": 26,
-   "bytes": 1210,
+   "bytes": 1221,
    "source": "hexagontiles",
    "original": "Tiles/bushGrass.png",
    "note": "Rang de culture (winter) : touffe recolorée (pousses, blé vert, blé mûr, chaume sous la neige).",
@@ -6338,7 +6338,7 @@
    "file": "succes/charpentier.png",
    "w": 240,
    "h": 280,
-   "bytes": 18157,
+   "bytes": 27315,
    "source": [
     "hexagon-pack",
     "kaykit"
