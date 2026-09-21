@@ -62,7 +62,7 @@ check(affinity('meadow', 'water') === 0, 'prairie-eau = 0');
 {
   const b = new Board(['0,0', '1,0', '0,1', '-1,1', '-1,0', '0,-1', '1,-1']);
   b.place(0, 0, { family: 'hamlet', variant: 1 }); b.place(1, 0, { family: 'field', variant: 1 });
-  check(canFuse(b, 0, 0, { family: 'water', variant: 1 }).id === 'port', 'eau sur hameau = port');
+  check(!canFuse(b, 0, 0, { family: 'water', variant: 1 }), 'eau sur hameau : plus de recette (le port attend le Livre II)');
   check(canFuse(b, 1, 0, { family: 'hamlet', variant: 1 }).id === 'farm', 'hameau sur champ = ferme');
   check(!canFuse(b, 1, 0, { family: 'sand', variant: 1 }), 'sable sur champ : pas de recette');
   const pf = previewFuse(b, 0, 0, { family: 'field', variant: 1 }, 'spring');

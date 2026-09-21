@@ -12,7 +12,6 @@ import { pathShapes, pathPoints } from './paths.js';
 const FUSION_GROUND = { farm: 'field', fort: 'stone', cave: 'stone' };
 /** Décor des tuiles composées : objets posés autour du centre (dx, dy en unités monde). */
 export const FUSION_DECOR = {
-  port:   [{ tpl: 'obj_house_small', dx: -26, dy: 20 }, { tpl: 'obj_ship', dx: 20, dy: 4 }, { tpl: 'obj_boat', dx: -6, dy: 42 }, { tpl: 'obj_boatrack', dx: 34, dy: 40 }, { tpl: 'obj_anchor', dx: -34, dy: 44 }, { tpl: 'obj_pole', dx: 6, dy: 32 }],
   paddy:  [{ tpl: 'obj_crop_{s}', dx: -20, dy: 10 }, { tpl: 'obj_crop_{s}', dx: 0, dy: 20 }, { tpl: 'obj_crop_{s}', dx: 20, dy: 10 }, { tpl: 'obj_crop_{s}', dx: -10, dy: 34 }, { tpl: 'obj_crop_{s}', dx: 12, dy: 36 }, { tpl: 'obj_lily', dx: -26, dy: 30, seasons: ['summer'] }],
   farm:   [{ tpl: 'obj_farm', dx: 0, dy: 30 }, { tpl: 'obj_silo1', dx: -34, dy: 22 }, { tpl: 'obj_fence', dx: 32, dy: 40 }, { tpl: 'obj_haybale', dx: 30, dy: 12 }, { tpl: 'obj_hay', dx: 8, dy: 46 }, { tpl: 'obj_crop_{s}', dx: -28, dy: 44 }],
   // le château faisait 75 × 84 sur un hexagone large de 120 : il mangeait sa case et débordait, et le
