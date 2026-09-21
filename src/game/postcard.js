@@ -81,8 +81,8 @@ export function renderPostcard(scene, { w = 1600, h = 1000 } = {}) {
   const W0 = STAGE.W, H0 = STAGE.H; STAGE.W = w; STAGE.H = h;
   // le zoom maximal de jeu ne s'applique pas à la carte : l'île remplit le cadre
   const cam = new Camera(); const zmax = BALANCE.camera.maxZoom; BALANCE.camera.maxZoom = 3; try { cam.fit(isl.board.mask, { uiLeft: g.frame, uiRight: g.frame, uiTop: g.top, uiBottom: g.bottom, padding: 70 * g.k, immediate: true }); } finally { BALANCE.camera.maxZoom = zmax; }
-  const saved = { cam: r.cam, transition: r.transition, weather: r.weather, hover: r.hover, flash: r.flash, nu: r.nu, _nu0: r._nu0, nuit: r.nuit };
-  r.cam = cam; r.transition = null; r.weather = null; r.hover = null; r.flash = 0; r.nuit = 0;
+  const saved = { cam: r.cam, transition: r.transition, weather: r.weather, hover: r.hover, flash: r.flash, nu: r.nu, _nu0: r._nu0, cadran: r.cadran };
+  r.cam = cam; r.transition = null; r.weather = null; r.hover = null; r.flash = 0; r.cadran = null;
   // L'île nue : ni grille des cases jamais posées, ni écume contournant le vide. La carte est une
   // image fixe, donc pas de fondu à attendre — on antidate son départ pour qu'elle soit nue d'emblée.
   r.nu = true; r._nu0 = r.time - 10;

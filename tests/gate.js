@@ -3,6 +3,8 @@
 // étoile dessus — et vérifie que les sauvegardes déjà coincées se rattrapent au lancement.
 // Usage : node tests/gate.js   (serveur statique sur http://127.0.0.1:8765/)
 const { chromium } = require('/opt/node22/lib/node_modules/playwright');
+// La carte postale de fin attend un geste (pas de minuterie) : on clique « Voir le récapitulatif » quand elle est là.
+const passerLaCarte = async (page, t = 50000) => { try { await page.waitForFunction(() => window.CS.scenes.currentName === 'results' || document.querySelector('.carte-actions .btn-primary'), null, { timeout: t }); await page.evaluate(() => { const b = document.querySelector('.carte-actions .btn-primary'); if (b) b.click(); }); } catch (_) { /* pas de carte : on laisse l'attente suivante le dire */ } };
 const URL = 'http://127.0.0.1:8765/index.html';
 const errors = []; const check = (ok, m) => { if (!ok) errors.push(m); console.log(`${ok ? 'OK ' : 'KO '} ${m}`); };
 const boot = (p) => p.waitForFunction(() => !document.getElementById('boot'), null, { timeout: 90000 });
@@ -118,6 +120,7 @@ const boot = (p) => p.waitForFunction(() => !document.getElementById('boot'), nu
   await page.evaluate(() => { const x = [...document.querySelectorAll('button')].find((y) => y.textContent.includes('C’est parti')); if (x) x.click(); });
   await page.waitForFunction(() => window.CS.scenes.currentName === 'island', null, { timeout: 20000 });
   await page.evaluate(() => { const isl = window.CS.scenes.current.isl; for (let k = 0; k < 400 && !isl.ended; k++) { if (isl.current && isl.current.work) { isl.toShed(); continue; } let best = null, bs = -Infinity; for (const c of isl.board.legalCells()) { const pv = isl.preview(c.q, c.r); if (pv && pv.total > bs) { bs = pv.total; best = c; } } if (!best || !isl.place(best.q, best.r)) { isl.checkEnd(); break; } } });
+  await passerLaCarte(page);
   await page.waitForFunction(() => document.querySelector('.panel-results'), null, { timeout: 40000 });
   const apres = await page.evaluate(() => ({ up: window.CS.Save.campaign.unlockedIsland, plays: window.CS.Save.campaign.plays[9] || 0, etoiles: window.CS.Save.campaign.stars[9] || 0, note: !!document.body.textContent.includes('la suivante s’ouvre quand même') }));
   check(apres.etoiles === 0, `l’île 9 a bien fini sans étoile (${apres.etoiles})`);

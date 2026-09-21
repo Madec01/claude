@@ -846,7 +846,7 @@ class IslandScene {
     if (this.isl.canPlace(q, r)) { this.isl.place(q, r); this.renderer.hover = null; }
   }
   onKey(k) {
-    if (this.finale && !this.finale.done) { if (k !== 'KeyM') this.finale.skip(); return; }
+    if (this.finale && !this.finale.done) { if (k !== 'KeyM') this.finale.skip(k); return; }
     if (k === 'Escape') { if (this.budMode) { this.setBud(false); return; } this.togglePause(); return; }
     if (k === 'KeyM') { const m = AudioSys.toggleMute(); Save.options.muted = m; Save.save(); return; }
     if (this.paused || this.hold || !this.isl || this.isl.ended) return;
