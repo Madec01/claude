@@ -13,6 +13,28 @@ import { pathShapes } from './paths.js';
 // arête i (sommet i → i+1 de corners()) → indice dans DIRS du voisin de l'autre côté ; mesuré, pas deviné
 const EDGE_DIR = [1, 0, 5, 4, 3, 2];
 /** Décors déjà posés à plat sur le sol : ils ne reçoivent pas d'ombre de contact. */
+/**
+ * Bruit de vallée fractal (fBM), écrit à la main : trois octaves d'un bruit de valeur lissé.
+ *
+ * On ne peut pas prendre `simplex-noise.js` — le dépôt n'a ni paquet ni outil de construction, il
+ * doit rester servable tel quel. Mais un bruit de valeur à interpolation douce, empilé sur trois
+ * octaves, donne exactement ce qu'on lui demande ici : une côte irrégulière à plusieurs échelles,
+ * de l'anse large jusqu'à l'érosion du rivage. Il rend une valeur entre 0 et 1, déterministe.
+ *
+ * Les fréquences sont en unités monde (un hexagone fait 120 de large) : 1/150 pour les anses,
+ * 1/55 puis 1/22 pour le détail.
+ */
+const hash2 = (i, j) => { let h = Math.imul(i | 0, 374761393) ^ Math.imul(j | 0, 668265263); h = Math.imul(h ^ (h >>> 13), 1274126177); return ((h ^ (h >>> 16)) >>> 0) / 4294967296; };
+const lisse = (t) => t * t * (3 - 2 * t);
+function valeur(x, y) {
+  const i = Math.floor(x), j = Math.floor(y), fx = lisse(x - i), fy = lisse(y - j);
+  const a = hash2(i, j), b = hash2(i + 1, j), c = hash2(i, j + 1), d = hash2(i + 1, j + 1);
+  return (a + (b - a) * fx) + ((c + (d - c) * fx) - (a + (b - a) * fx)) * fy;
+}
+function fbm(x, y) {
+  return 0.55 * valeur(x / 150, y / 150) + 0.30 * valeur(x / 55 + 31.7, y / 55 - 12.3) + 0.15 * valeur(x / 22 - 7.1, y / 22 + 4.9);
+}
+
 const PLAT = new Set(['obj_puddle1', 'obj_puddle2', 'obj_puddle3', 'obj_leafpile', 'obj_snowdrift',
   'obj_moss', 'obj_lily', 'obj_flowerWhite', 'obj_flowerRed', 'obj_flowerBlue', 'obj_flowerYellow']);
 /**
@@ -823,20 +845,25 @@ export class IslandRenderer {
    * sont cachés par les tuiles voisines, seul le pourtour se voit, et il ondule.
    */
   lobeHex(ctx, cx, cy, r, seed, suite) {
-    const pts = [];
-    for (let i = 0; i < 12; i++) {
-      const a = -Math.PI / 2 + (i / 12) * TAU;
-      const base = i % 2 === 0 ? r : r * 0.866;   // sommet, puis milieu d'arête (apothème = R·√3/2)
-      // Le bruit ne pousse que VERS L'EXTÉRIEUR. S'il pouvait rentrer, le lobe passerait par moments
-      // sous les sommets de l'hexagone, qui ressortiraient — et il suffit de six pointes pour que
-      // l'œil retrouve la grille. En restant toujours au-delà du rayon, le lobe contient la tuile.
-      const j = 1 + 0.16 * (0.5 + 0.5 * Math.sin(seed.x * 0.031 + seed.y * 0.019 + i * 2.13))
-                  + 0.06 * (0.5 + 0.5 * Math.cos(seed.x * 0.011 - seed.y * 0.027 + i * 3.7));
+    const N = 30, pts = [];
+    for (let i = 0; i < N; i++) {
+      const a = -Math.PI / 2 + (i / N) * TAU;
+      // rayon de l'hexagone à cet angle : R au sommet, R·√3/2 (l'apothème) au milieu de l'arête
+      const t = ((a + Math.PI / 2) % (Math.PI / 3)) / (Math.PI / 3);
+      const base = r * 0.866 / Math.cos((t - 0.5) * Math.PI / 3);
+      // Le bruit est échantillonné AU POINT, en coordonnées monde, et non d'après le numéro du
+      // sommet : deux tuiles voisines lisent donc la même valeur là où leurs contours se touchent,
+      // et la côte cesse d'avoir un rythme d'une bosse par case. Trois octaves, la plus large pour
+      // les anses, la plus fine pour l'érosion du rivage.
+      const px = cx + Math.cos(a) * base, py = cy + Math.sin(a) * base;
+      // Il ne pousse que VERS L'EXTÉRIEUR. S'il pouvait rentrer, le contour passerait sous les
+      // sommets de l'hexagone, qui ressortiraient — et six pointes suffisent à ramener la grille.
+      const j = 1 + 0.30 * fbm(px, py);
       pts.push([cx + Math.cos(a) * base * j, cy + Math.sin(a) * base * j]);
     }
     if (!suite) ctx.beginPath();
-    ctx.moveTo((pts[0][0] + pts[11][0]) / 2, (pts[0][1] + pts[11][1]) / 2);
-    for (let i = 0; i < 12; i++) { const p = pts[i], q = pts[(i + 1) % 12]; ctx.quadraticCurveTo(p[0], p[1], (p[0] + q[0]) / 2, (p[1] + q[1]) / 2); }
+    ctx.moveTo((pts[0][0] + pts[N - 1][0]) / 2, (pts[0][1] + pts[N - 1][1]) / 2);
+    for (let i = 0; i < N; i++) { const p = pts[i], q = pts[(i + 1) % N]; ctx.quadraticCurveTo(p[0], p[1], (p[0] + q[0]) / 2, (p[1] + q[1]) / 2); }
     ctx.closePath();
   }
 

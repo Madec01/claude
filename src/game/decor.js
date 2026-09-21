@@ -183,6 +183,41 @@ export class Decor {
     const L3 = (cell) => (cell.level || 1) >= 3;   // niveau 3 : une pièce maîtresse au centre
     const LANDMARK = { forest: ['obj_treeRound_large2_{s}', 1.9], field: ['obj_silo1', 1.0], orchard: ['obj_treeRound_fruit_{s}', 1.8], meadow: ['obj_treeRound_small_{s}', 1.5], marsh: ['obj_bushGrass_{s}', 1.8], rock: ['obj_rockGrey_large{w}', 1.6], sand: ['obj_rockBrown_small{w}', 1.6], hill: ['obj_treePine_large_{s}', 1.4], heath: ['obj_heather_{s}', 1.8] };
     for (const t of board.tiles.values()) { if (!L3(t) || t.rare) continue; const lm = LANDMARK[t.family]; if (!lm) continue; const c = toWorld(t.q, t.r); add({ x: c.x, y: c.y + 30, tpl: lm[0], cell: key(t.q, t.r), scale: lm[1], alpha: 1, notSeasons: t.family === 'forest' ? ['spring'] : undefined }); if (t.family === 'forest') add({ x: c.x, y: c.y + 30, tpl: 'obj_treeRound_blossom_large2', cell: key(t.q, t.r), scale: lm[1], alpha: 1, seasons: ['spring'] }); }
+    // -------------------------------------------------------------------------
+    // Les écueils. Une côte, ce n'est pas un trait : c'est une frange. Quelques rochers émergés
+    // devant le rivage cassent la silhouette bien mieux qu'un contour, parce qu'ils mettent de la
+    // PROFONDEUR entre la terre et le large — et ce sont de vraies images, pas du dessin.
+    // Ils se posent au-delà de l'arête partagée avec la mer, jamais sur une case du masque, et sont
+    // tirés de la graine de la case : la même île donne toujours les mêmes écueils.
+    // -------------------------------------------------------------------------
+    for (const t of board.tiles.values()) {
+      const k0 = key(t.q, t.r);
+      const rng = mulberry(cellSeed(this.seed, t.q, t.r, 57));
+      const w = toWorld(t.q, t.r);
+      for (let d = 0; d < 6; d++) {
+        const [dq, dr] = DIRS[d]; if (!board.isSea(t.q + dq, t.r + dr)) continue;
+        if (rng() > 0.45) continue;                       // un peu moins d'une arête de côte sur deux
+        const m = edgeMid(w.x, w.y, d);
+        const ux = (m.x - w.x), uy = (m.y - w.y); const len = Math.hypot(ux, uy) || 1;
+        const tx = -uy / len, ty = ux / len;              // le long de l'arête
+        const n = 1 + (rng() < 0.3 ? 1 : 0);
+        for (let i = 0; i < n; i++) {
+          // Au large de l'arête. L'arête est à 60 unités du centre (l'apothème) et le pied lobé de
+          // l'île monte jusqu'à ~92 : en deçà de 1,45 le rocher serait posé sur le rivage, au-delà
+          // de 1,95 il empiéterait sur la case de mer suivante (dont le centre est à 120).
+          const av = 1.45 + rng() * 0.50;
+          const de = (rng() - 0.5) * SIZE * 0.85;         // décalé le long de l'arête
+          const p = { x: w.x + ux * av + tx * de, y: w.y + uy * av + ty * de };
+          const cc = fromWorld(p.x, p.y);
+          if (board.mask.has(key(cc.q, cc.r))) continue;   // jamais sur une case de l'île, même pas posée
+          // Gris de préférence : le brun disparaît sur le bleu, et un écueil de dix unités monde se
+          // lit comme une miette. Vingt à trente, c'est un rocher qui sort de l'eau.
+          const gris = rng() < 0.78;
+          add({ x: p.x, y: p.y, tpl: gris ? `obj_rockGrey_small${VAR3(rng)}{w}` : 'obj_rockBrown_small{w}',
+                cell: k0, scale: (gris ? 0.95 : 1.15) * (0.75 + rng() * 0.5), alpha: 1, flip: rng() < 0.5 });
+        }
+      }
+    }
     // croissance annoncée : une saison avant, la tuile porte en petit ce qu'elle va devenir (jeune pin, maisonnette, pousses)
     const SPROUT = { forest: ['obj_treePine_small_{s}', 0.85], orchard: ['obj_treeRound_small2_{s}', 0.8], hamlet: ['obj_house_small_jaune', 0.7], field: ['obj_crop_{s}', 0.75], meadow: ['obj_bushGrass_{s}', 0.85] };
     for (const t of board.tiles.values()) {
