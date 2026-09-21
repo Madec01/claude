@@ -98,6 +98,14 @@ export function buildOptions({ onBack, game }) {
     h('p', { class: 'opt-note' }, 'La partie n’est envoyée qu’à la fin d’une île, jamais pendant que tu joues. Sans réseau, le jeu fonctionne exactement pareil.'),
     cloudBtns);
 
+  // la porte des pépins hors partie : depuis l'accueil comme depuis la pause, les Options mènent ici
+  const reportGroup = h('div', { class: 'opt-group' },
+    h('h3', {}, icon('icon_info'), 'Pépins et idées'),
+    h('p', { class: 'opt-note' }, 'Quelque chose ne va pas, ou tu as une idée ? Dis-le en deux touchers : le jeu joint tout seul l’île, ce que tu venais de faire et l’erreur s’il y en a eu une.'),
+    h('div', { class: 'opt-row opt-btnrow' },
+      h('span', { class: 'opt-label' }, 'Nous le raconter', h('small', {}, 'Rien ne part sans toi, et rien ne dit qui tu es.')),
+      button('Ouvrir', () => game.showReport(() => game.showOptions(onBack)), { cls: 'btn-primary btn-small', iconName: 'icon_info' })));
+
   const saveGroup = h('div', { class: 'opt-group opt-save' },
     h('h3', {}, icon('icon_save'), 'Sauvegarde'),
     h('p', { class: 'opt-note' }, `Île ${c.unlockedIsland} débloquée · ${c.seeds} graines · ${Object.values(c.stars || {}).reduce((a, b) => a + b, 0)} étoiles.`),
@@ -138,7 +146,7 @@ export function buildOptions({ onBack, game }) {
           h('div', { class: 'opt-row opt-btnrow' }, h('span', { class: 'opt-label' }, 'Affichage', h('small', {}, 'Le jeu s’adapte à la fenêtre ; le plein écran masque le navigateur.')), button('Plein écran', () => game.toggleFullscreen(), { iconName: 'icon_fullscreen', cls: 'btn-small' })),
         ),
       ),
-      h('div', { class: 'opt-col' }, testGroup, cloudGroup, saveGroup),
+      h('div', { class: 'opt-col' }, reportGroup, testGroup, cloudGroup, saveGroup),
     ),
     h('div', { class: 'panel-actions' }, button('Retour', onBack, { iconName: 'icon_return' })),
   );

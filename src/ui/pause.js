@@ -3,7 +3,7 @@ import { h, button } from './dom.js';
 
 const key = (k) => h('span', { class: 'key' }, k);
 
-export function buildPause({ onResume, onRestart, onOptions, onGuide, onFullscreen, onMenu, onPostcard = null, title, controls = true, kept = true }) {
+export function buildPause({ onResume, onRestart, onOptions, onGuide, onFullscreen, onMenu, onPostcard = null, onReport = null, title, controls = true, kept = true }) {
   const root = h('div', { class: 'panel panel-pause' },
     h('div', { class: 'res-kicker' }, title || ''),
     h('h2', { class: 'panel-title' }, 'Pause'),
@@ -25,6 +25,7 @@ export function buildPause({ onResume, onRestart, onOptions, onGuide, onFullscre
       button('Reprendre', onResume, { cls: 'btn-primary', iconName: 'icon_play' }),
       button('Recommencer l’île', onRestart, { iconName: 'icon_return' }),
       h('div', { class: 'pause-row' }, button('Guide', onGuide, { iconName: 'icon_question' }), button('Options', onOptions, { iconName: 'icon_gear' }), onPostcard ? button('Carte postale', onPostcard, { iconName: 'icon_save' }) : null),
+      onReport ? button('Pépins et idées', onReport, { cls: 'btn-ghost', iconName: 'icon_info' }) : null,
       onFullscreen ? button(document.fullscreenElement ? 'Quitter le plein écran' : 'Plein écran', onFullscreen, { cls: 'btn-ghost', iconName: document.fullscreenElement ? 'icon_fullscreen_exit' : 'icon_fullscreen' }) : null,
       button('Quitter vers le menu', onMenu, { cls: 'btn-ghost', iconName: 'icon_home' }),
     ),

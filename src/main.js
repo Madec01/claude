@@ -46,6 +46,10 @@ import { Cloud, moreAdvanced, signInProblem } from './core/cloud.js';
 import { buildSignIn } from './ui/signin.js';
 import { buildCloudConflict } from './ui/cloud_conflict.js';
 import { buildPrivacy } from './ui/privacy.js';
+import { buildReportPanel } from './ui/report.js';
+import { BlackBox } from './core/blackbox.js';
+import { setVersion } from './core/report.js';
+import { VERSION } from './ui/menu.js';
 import { renderPostcard, postcardName } from './game/postcard.js';
 import { h, showUI, hideUI } from './ui/dom.js';
 import { STAGE, layoutStage, uiMargins, minZoom } from './core/stage.js';
@@ -104,6 +108,9 @@ const Game = {
   async boot() {
     const fill = document.getElementById('boot-fill'), status = document.getElementById('boot-status');
     const setP = (p, txt) => { fill.style.width = `${Math.round(p * 100)}%`; if (txt) status.textContent = txt; };
+    // la boîte noire au plus tôt : une erreur de chargement compte autant qu'une erreur en jeu
+    BlackBox.install({ sceneName: () => scenes.currentName });
+    setVersion(VERSION);
     Save.load();
     // rattrapage des sauvegardes déjà en cours, une fois, au lancement : les étoiles sont d'abord réattribuées
     // depuis les meilleurs scores gardés (une échelle revue vaut pour les parties déjà jouées), puis le déblocage
@@ -122,6 +129,7 @@ const Game = {
     await wait(200);
     const boot = document.getElementById('boot'); boot.classList.add('off'); setTimeout(() => boot.remove(), 700);
     await this.bootCloud();
+    this.proposeReport();
   },
 
   // ---- sauvegarde en ligne ----------------------------------------------------------------
@@ -199,6 +207,26 @@ const Game = {
   showPrivacy(onBack) {
     this.showPanel(buildPrivacy({ onBack: onBack || (() => this.showMenu()),
       onWipe: Cloud.user ? async () => { const ok = await Cloud.wipe(); this.toast(ok ? 'Tes données en ligne sont effacées.' : 'Impossible d’effacer pour l’instant.'); } : null }));
+  },
+  /** L'écran « Pépins et idées ». `scenes.current` donne l'île en cours, quand il y en a une. */
+  showReport(onBack, mode = 'pepin') {
+    this.showPanel(buildReportPanel({
+      onBack: onBack || (() => this.showMenu()),
+      scene: scenes.current, sceneName: scenes.currentName, mode,
+    }));
+  },
+  /**
+   * Une erreur laissée par la session précédente : le jeu la propose UNE fois, sobrement. Sans ça, un plantage qui
+   * tue l'onglet ne se signale jamais — la page est morte, il n'y a plus d'écran à ouvrir.
+   */
+  proposeReport() {
+    if (!BlackBox.fromLastTime()) return;
+    BlackBox.noteShown();
+    setTimeout(() => celebrateThing({
+      kicker: 'Nous avons trébuché', name: 'La dernière fois, quelque chose s’est cassé',
+      desc: 'Touche ici pour nous raconter — nous avons gardé ce qu’il faut.', iconName: 'icon_info',
+      onClick: () => this.showReport(),
+    }), 1400);
   },
   showPanel(node) { showUI(node, 'panel-wrap'); },
   showMenu() { scenes.go('menu', {}, { fade: 0.25 }); },
@@ -848,7 +876,7 @@ class IslandScene {
     if (this.paused) {
       AudioSys.play('ui_open', { volume: 0.5 });
       this.saveRun(true);
-      const build = () => buildPause({ title: this.title, kept: !Game.testMode, onResume: () => this.togglePause(false), onRestart: () => { RunSave.clear(); scenes.go('island', { def: this.def }, { fade: 0.5 }); }, onOptions: () => Game.showOptions(() => showUI(build(), 'pause-wrap')), onGuide: () => Game.showGuide(() => showUI(build(), 'pause-wrap')), onFullscreen: () => { Game.toggleFullscreen(); setTimeout(() => { if (this.paused) showUI(build(), 'pause-wrap'); }, 400); }, onMenu: () => scenes.go('menu'), onPostcard: () => { try { showUI(buildPostcard({ canvas: renderPostcard(this), filename: postcardName(this), onBack: () => showUI(build(), 'pause-wrap') }), 'panel-wrap'); } catch (e) { console.warn('carte postale', e); } } });
+      const build = () => buildPause({ title: this.title, kept: !Game.testMode, onResume: () => this.togglePause(false), onRestart: () => { RunSave.clear(); scenes.go('island', { def: this.def }, { fade: 0.5 }); }, onOptions: () => Game.showOptions(() => showUI(build(), 'pause-wrap')), onGuide: () => Game.showGuide(() => showUI(build(), 'pause-wrap')), onFullscreen: () => { Game.toggleFullscreen(); setTimeout(() => { if (this.paused) showUI(build(), 'pause-wrap'); }, 400); }, onMenu: () => scenes.go('menu'), onPostcard: () => { try { showUI(buildPostcard({ canvas: renderPostcard(this), filename: postcardName(this), onBack: () => showUI(build(), 'pause-wrap') }), 'panel-wrap'); } catch (e) { console.warn('carte postale', e); } }, onReport: () => Game.showReport(() => showUI(build(), 'pause-wrap')) });
       showUI(build(), 'pause-wrap');
     } else { hideUI(); AudioSys.play('ui_close', { volume: 0.5 }); }
   }
