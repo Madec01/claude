@@ -459,9 +459,9 @@ export class IslandRenderer {
       const c0 = toWorld(h.q, h.r); const c = S(c0); if (!vis(c)) continue;
       const frozen = this.isl.season === 'winter'; const pal = frozen ? ICE : (WATER[this.seasonFor(c0.x)] || WATER.spring);
       const rr = SIZE * 0.7 * z;
-      ctx.fillStyle = pal.bank; this.blob(ctx, c.x, c.y + 5 * z, rr * 1.08, c0); ctx.fill();
-      ctx.fillStyle = pal.shoal; this.blob(ctx, c.x, c.y, rr, c0); ctx.fill();
-      ctx.fillStyle = pal.fill; this.blob(ctx, c.x, c.y, rr * 0.88, c0); ctx.fill();
+      ctx.fillStyle = pal.edge; this.blob(ctx, c.x, c.y, rr * 1.03, c0); ctx.fill();
+      ctx.fillStyle = pal.deep; this.blob(ctx, c.x, c.y, rr, c0); ctx.fill();
+      ctx.fillStyle = pal.shoal; this.blob(ctx, c.x, c.y + 7 * z, rr * 0.82, c0); ctx.fill();
       if (!frozen) { ctx.strokeStyle = pal.foam; ctx.lineWidth = 1.5 * z; ctx.beginPath(); ctx.ellipse(c.x - rr * 0.2, c.y - rr * 0.25, rr * 0.35, rr * 0.16, -0.4, 0, TAU); ctx.stroke(); }
       else this.drawCracks(ctx, [c], z);
     }
@@ -485,17 +485,19 @@ export class IslandRenderer {
         // filet qui s'élargit de la source à l'embouchure : chaque tronçon lissé a sa propre largeur (bouts ronds : pas de joint visible)
         const wAt = (i) => { const t = i / Math.max(1, sp.length - 1); return (16 + 12 * t + 3 * Math.sin(i * 2.3)) * z; };
         ctx.globalAlpha = 1;
-        ctx.save(); ctx.translate(0, 5 * z); tapered(sp, wAt, 1.5, pal.bank); ctx.restore();
-        tapered(sp, wAt, 1.22, pal.shoal); tapered(sp, wAt, 1, pal.fill);
+        // le lit est creusé : bord sombre, fond à l'ombre, puis le filet d'eau clair décalé vers le bas
+        tapered(sp, wAt, 1.12, pal.edge);
+        tapered(sp, wAt, 1, pal.deep);
+        ctx.save(); ctx.translate(0, 4 * z); tapered(sp, wAt, 0.78, pal.shoal); ctx.restore();
         if (mouth) { const m = S(mouth); ctx.fillStyle = pal.fill; ctx.beginPath(); ctx.ellipse(m.x, m.y, 26 * z, 16 * z, 0, 0, TAU); ctx.fill(); }
         if (!frozen) { ctx.strokeStyle = pal.foam; ctx.lineWidth = (this.finale ? 3 : 1.5) * z; ctx.setLineDash([8 * z, 22 * z]); ctx.lineDashOffset = -this.time * (this.finale ? 120 : 40) * z; trace(sp); ctx.stroke(); ctx.setLineDash([]); }
         else this.drawCracks(ctx, sp, z);
       } else if (body.kind === 'pond') {
         const c = S(c0); if (!vis(c)) continue;
         const rr = SIZE * 0.66 * z;
-        ctx.fillStyle = pal.bank; this.blob(ctx, c.x, c.y + 5 * z, rr * 1.08, c0); ctx.fill();
-        ctx.fillStyle = pal.shoal; this.blob(ctx, c.x, c.y, rr, c0); ctx.fill();
-        ctx.fillStyle = pal.fill; this.blob(ctx, c.x, c.y, rr * 0.88, c0); ctx.fill();
+        ctx.fillStyle = pal.edge; this.blob(ctx, c.x, c.y, rr * 1.03, c0); ctx.fill();
+        ctx.fillStyle = pal.deep; this.blob(ctx, c.x, c.y, rr, c0); ctx.fill();
+        ctx.fillStyle = pal.shoal; this.blob(ctx, c.x, c.y + 7 * z, rr * 0.82, c0); ctx.fill();
         if (!frozen) { ctx.strokeStyle = pal.foam; ctx.lineWidth = 1.5 * z; ctx.beginPath(); ctx.ellipse(c.x - rr * 0.2, c.y - rr * 0.25, rr * 0.35, rr * 0.16, -0.4, 0, TAU); ctx.stroke(); }
       } else {
         // lac : union de mares arrondies (une par case, forme irrégulière) reliées par des ponts arrondis entre cases voisines ;
@@ -508,15 +510,18 @@ export class IslandRenderer {
           for (const c of cs) { this.blob(ctx, c.s.x, c.s.y + dy, (SIZE * 0.92 + grow) * z, c.w); ctx.fill(); }
           ctx.lineWidth = (SIZE * 1.11 + grow * 2) * z; ctx.beginPath(); for (const [a, o] of bridges) { ctx.moveTo(a.s.x, a.s.y + dy); ctx.lineTo(o.s.x, o.s.y + dy); } ctx.stroke();
         };
-        // l'eau est CREUSÉE, pas peinte : une ombre de berge débordant vers le bas, puis les bas-fonds
-        // au contact de la terre, puis le plan d'eau lui-même en dégradé vers le fond.
-        nappe(pal.bank, 9, 5 * z);
-        nappe(pal.shoal, 4);
+        // Une CUVETTE, pas un monticule. Une ombre portée à l'extérieur et vers le bas est la signature
+        // d'un objet posé SUR le sol : c'est exactement l'inverse de ce qu'on veut. L'ombre va donc
+        // DEDANS, en croissant sous la lèvre proche (le bord haut), et le fond s'éclaircit en
+        // s'éloignant. On l'obtient sans découpe : la nappe entière au ton le plus sombre, puis la même
+        // forme rétrécie et descendue par-dessus — ce qui reste à découvert est le croissant du haut.
         let grad = null;
         { let y0 = Infinity, y1 = -Infinity; for (const c of cs) { y0 = Math.min(y0, c.s.y); y1 = Math.max(y1, c.s.y); }
-          grad = ctx.createLinearGradient(0, y0 - SIZE * z, 0, y1 + SIZE * z);
-          grad.addColorStop(0, pal.deep); grad.addColorStop(0.55, pal.fill); grad.addColorStop(1, pal.fill); }
-        nappe(grad, 0);
+          grad = ctx.createLinearGradient(0, y0 - SIZE * 0.6 * z, 0, y1 + SIZE * z);
+          grad.addColorStop(0, pal.fill); grad.addColorStop(0.7, pal.shoal); grad.addColorStop(1, pal.shoal); }
+        nappe(pal.edge, 2);            // la lèvre : un liseré sombre au contact de la terre, sans débord
+        nappe(pal.deep, 0);            // le fond, à l'ombre
+        nappe(grad, -9, 8 * z);        // le plan d'eau, rétréci et descendu : croissant d'ombre en haut
         if (!frozen) {
           // la rive scintille : un liseré clair qui court le long du contour, et qui BOUGE — sans
           // l'animation ce n'est qu'un trait peint, et c'est ce mouvement qui fait lire « de l'eau »
