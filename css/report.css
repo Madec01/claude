@@ -1,5 +1,5 @@
 /* Écran « Pépins et idées ». Téléphone d'abord : tuiles de 44 px au moins, deux par ligne en portrait,
-   sujet collé en bas et toujours visible pendant qu'on fouille l'arbre. */
+   et UN seul défileur — le corps — pour que le doigt ne se batte jamais avec une liste imbriquée. */
 
 .panel-report { width: 640px; }
 .rep-body { display: flex; flex-direction: column; gap: 10px; }
@@ -33,7 +33,7 @@
 .rep-crumb:last-of-type { color: var(--ink); cursor: default; }
 .rep-sep { opacity: 0.4; }
 
-.rep-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; max-height: 260px; overflow-y: auto; padding: 2px; }
+.rep-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 2px; }
 .rep-tile { display: flex; align-items: center; justify-content: space-between; gap: 6px; text-align: left; min-height: 44px; padding: 8px 12px; border-radius: 10px; border: 1px solid var(--line); background: #fff; font-family: inherit; font-size: 15px; font-weight: 600; color: var(--ink); cursor: pointer; line-height: 1.2; transition: background 0.16s, border-color 0.16s; }
 .rep-tile:hover { border-color: var(--breath); background: #fffdf8; }
 .rep-tile.on { background: rgba(47,158,143,0.14); border-color: var(--breath); }
@@ -72,14 +72,38 @@
 .rep-thanks p { font-size: 16px; line-height: 1.5; max-width: 420px; margin: 0 auto; }
 
 /* ---- téléphone ---- */
+/* En compact, css/mobile.css fait de tout .panel une colonne flex à `overflow: hidden` et attend UN enfant
+   défilant (comme .acts ou .res-grid ailleurs). C'est le corps qui joue ce rôle ici : le titre, le sélecteur de
+   mode et le bouton d'envoi restent posés, et seule la liste défile. */
 html.compact .panel-report { width: calc(100% - 16px) !important; }
+html.compact .panel-report > .rep-tabs, html.compact .panel-report > .panel-title, html.compact .panel-report > .panel-actions { flex: 0 0 auto; }
+html.compact .panel-report > .rep-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; padding-right: 2px; }
 html.compact .rep-tabs { margin-bottom: 10px; }
 html.compact .rep-body { gap: 8px; }
-html.compact .rep-grid { max-height: 200px; grid-template-columns: 1fr 1fr; gap: 6px; }
+html.compact .rep-grid { grid-template-columns: 1fr 1fr; gap: 6px; }
 html.compact .rep-tile { font-size: 14px; padding: 8px 10px; }
 html.compact .rep-chip { font-size: 14px; padding: 8px 12px; }
 html.compact .rep-text { min-height: 84px; font-size: 16px; }  /* 16 px : en dessous, iOS zoome à la saisie */
 html.compact .rep-code { font-size: 28px; }
 
-html.compact.landscape .rep-grid { max-height: 140px; grid-template-columns: 1fr 1fr 1fr; }
+/* en paysage la fenêtre est basse : l'accroche cède sa place à la liste, qui est ce qu'on vient chercher */
+html.compact.landscape .panel-report .ws-intro { display: none; }
+html.compact.landscape .rep-grid { grid-template-columns: 1fr 1fr 1fr; }
 html.compact.landscape .rep-text { min-height: 64px; }
+
+/* ---- la recherche : un mot pour couper dans 240 feuilles ---- */
+.rep-search { position: relative; display: flex; }
+.rep-search-input { flex: 1 1 auto; min-height: 44px; box-sizing: border-box; padding: 10px 38px 10px 14px; border-radius: 10px; border: 1px solid var(--line); background: #fff; font-family: inherit; font-size: 16px; color: var(--ink); }
+.rep-search-input::placeholder { opacity: 0.55; font-style: italic; }
+.rep-search-input:focus { outline: 2px solid var(--breath); outline-offset: 1px; }
+.rep-search-input::-webkit-search-cancel-button { display: none; }   /* on a le nôtre, assez gros pour un pouce */
+.rep-search-x { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); width: 34px; height: 34px; border: 0; border-radius: 50%; background: rgba(43,42,38,0.08); color: var(--ink-2); font-size: 13px; cursor: pointer; }
+.rep-search-x.hidden { display: none; }
+.rep-crumbs.hidden { display: none; }
+
+.rep-result { grid-column: 1 / -1; align-items: flex-start; }
+.rep-result-txt { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.rep-result-txt b { font-weight: 700; }
+.rep-result-txt small { font-size: 12px; font-weight: 500; opacity: 0.6; }
+.rep-noresult { grid-column: 1 / -1; padding: 14px 12px; border-radius: 10px; background: rgba(43,42,38,0.04); font-size: 14px; line-height: 1.4; }
+.rep-noresult b { display: block; margin-bottom: 4px; font-size: 15px; }

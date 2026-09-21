@@ -10,7 +10,7 @@
 import { h, button, icon, append } from './dom.js';
 import { AudioSys } from '../core/audio.js';
 import { BlackBox } from '../core/blackbox.js';
-import { TREE, RACCOURCIS, nodeAt, labelOf, questionsFor } from '../data/bug_tree.js';
+import { TREE, RACCOURCIS, nodeAt, labelOf, questionsFor, search } from '../data/bug_tree.js';
 import { buildReport, captureImage, envoyerRapport, raisonTexte } from '../core/report.js';
 
 const MAX_TUILES = 4;
@@ -26,6 +26,7 @@ export function buildReportPanel({ onBack, scene = null, sceneName = null, mode 
     chemin: [],            // la descente en cours : ['graphisme', 'sprites']
     sujet: [],             // les chemins choisis
     raccourci: null,
+    q: '',                 // la recherche en cours
     posees: new Set(),     // les questions déjà déposées dans le commentaire
     avecImage: false,
     avecPartie: true,
@@ -78,6 +79,17 @@ export function buildReportPanel({ onBack, scene = null, sceneName = null, mode 
     }
   };
 
+  // ---- la recherche : 240 feuilles, c'est beaucoup à parcourir au pouce. Un mot suffit pour y couper.
+  const champ = h('input', {
+    class: 'rep-search-input', type: 'search', inputmode: 'search', enterkeyhint: 'search',
+    autocomplete: 'off', autocorrect: 'off', spellcheck: 'false',
+    placeholder: 'Chercher un mot : forêt, score, lenteur…', 'aria-label': 'Chercher une tuile',
+  });
+  const effacer = h('button', { class: 'rep-search-x hidden', type: 'button', 'aria-label': 'effacer la recherche' }, '✕');
+  const recherche = h('div', { class: 'rep-search' }, champ, effacer);
+  champ.addEventListener('input', () => { state.q = champ.value; effacer.classList.toggle('hidden', !state.q); renderArbre(); });
+  effacer.addEventListener('click', () => { champ.value = ''; state.q = ''; effacer.classList.add('hidden'); renderArbre(); champ.focus(); });
+
   // ---- l'arbre
   const filAriane = h('div', { class: 'rep-crumbs' });
   const grille = h('div', { class: 'rep-grid' });
@@ -90,6 +102,9 @@ export function buildReportPanel({ onBack, scene = null, sceneName = null, mode 
   const cheminDe = (id) => [...state.chemin, id].join('/');
 
   const renderArbre = () => {
+    // tant qu'on cherche, les résultats remplacent l'arbre : on ne fouille pas deux choses à la fois
+    if (state.q.trim().length >= 2) return renderResultats();
+    filAriane.classList.remove('hidden');
     // fil d'Ariane : un toucher pour remonter
     filAriane.innerHTML = '';
     const racine = h('button', { class: 'rep-crumb', type: 'button' }, 'Tout');
@@ -122,6 +137,39 @@ export function buildReportPanel({ onBack, scene = null, sceneName = null, mode 
       }
     }
   };
+
+  /**
+   * Les résultats d'une recherche : une liste à plat, chacun avec le chemin qui y mène — sans quoi « Rivière »
+   * ne dirait pas s'il s'agit du dessin ou du calcul, et il y en a un de chaque.
+   * Toucher une feuille l'embarque ; toucher une branche y descend, et la recherche s'efface.
+   */
+  function renderResultats() {
+    filAriane.classList.add('hidden');
+    grille.innerHTML = '';
+    const res = search(state.q, 24);
+    if (!res.length) {
+      grille.appendChild(h('div', { class: 'rep-noresult' },
+        h('b', {}, 'Rien sous ce mot-là.'),
+        h('span', {}, 'Essaie un autre mot, ou parcours la liste — et si tu ne trouves toujours pas, écris-le simplement en dessous : ça vaut largement une tuile.')));
+      return;
+    }
+    for (const r of res) {
+      const pris = state.sujet.includes(r.path);
+      const parent = r.label.split(' · ').slice(0, -1).join(' › ');
+      const b = h('button', { class: `rep-tile rep-result ${pris ? 'on' : ''}`, type: 'button' },
+        h('span', { class: 'rep-result-txt' },
+          h('b', {}, r.nom),
+          parent ? h('small', {}, parent) : null),
+        pris ? h('span', { class: 'rep-check-mark' }, '✓') : r.feuille ? null : h('span', { class: 'rep-arrow' }, '›'));
+      b.addEventListener('click', () => {
+        if (r.feuille) { basculer(r.path); return; }
+        AudioSys.play('ui_click', { volume: 0.35 });
+        state.chemin = r.path.split('/'); state.q = ''; champ.value = ''; effacer.classList.add('hidden');
+        renderArbre();
+      });
+      grille.appendChild(b);
+    }
+  }
 
   /** Une tuile qu'on embarque (feuille, ou branche entière). Le toucher suffit ; le glisser est un bonus souris. */
   function tuile(nom, chemin, cls = '') {
@@ -226,8 +274,8 @@ export function buildReportPanel({ onBack, scene = null, sceneName = null, mode 
 
   const corps = h('div', { class: 'rep-body' },
     accroche, carteErreur, barreRaccourcis,
-    h('div', { class: 'rep-or' }, 'ou cherche dans la liste'),
-    filAriane, grille, sujetBloc, zone, pli, etat);
+    h('div', { class: 'rep-or' }, 'ou cherche'),
+    recherche, filAriane, grille, sujetBloc, zone, pli, etat);
 
   function montrerMerci(code, r) {
     corps.innerHTML = '';
