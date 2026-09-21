@@ -23,6 +23,7 @@ export class Finale {
     this.cam.fit(this.isl.board.mask, { uiLeft: 20, uiRight: 20, uiTop: 90, uiBottom: 60, padding: 60 });
     this.center = { x: this.cam.tx, y: this.cam.ty, z: this.cam.tzoom };
     this.r.finale = true; this.r.hover = null;
+    this.r.nu = true;   // la grille des cases vides et le contour autour du vide s'effacent
   }
 
   /** Étapes de la tournée : régions de deux tuiles ou plus (au plus douze, les plus grandes), du plus petit au plus grand, puis les plans d'eau. */
@@ -41,7 +42,7 @@ export class Finale {
   }
 
   skip() { this.finish(); }
-  finish() { if (this.done) return; this.done = true; this.isl.season = this.season0; this.r.transition = null; this.r.finale = false; this.sc.onFinaleDone(); }
+  finish() { if (this.done) return; this.done = true; this.isl.season = this.season0; this.r.transition = null; this.r.finale = false; this.r.nu = false; this.sc.onFinaleDone(); }
 
   update(dt) {
     if (this.done) return;

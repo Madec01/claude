@@ -230,7 +230,7 @@ Tutoriel pour le commanditaire : `docs/FIREBASE_TUTO.pdf`. Règles : `firestore.
 | Ambiance spatialisée selon la caméra | | à faire |
 | Cloche des saisons et carillon propre à chaque habitant | | à faire |
 | Cycle jour / nuit lent (fenêtres allumées en hiver) | | à faire |
-| Carte postale (export image de l'île finie) | | fait (journal 50) |
+| Carte postale (export image de l'île finie) | Rendue « nue » : ni grille des cases vides, ni contour hexagonal | fait (journal 50, affiné depuis) |
 | Mode cadre dans le Jardin (interface masquée, export) | | à faire |
 | Rejouer la construction en accéléré au bilan | | à faire |
 | Accessibilité (motifs pour daltoniens, taille de texte, pose en un toucher) | | à faire |

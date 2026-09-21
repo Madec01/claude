@@ -151,9 +151,19 @@ export class IslandRenderer {
    * intérieure) et vagues réparties en couronne, plus serrées près du rivage. Recalculée seulement si l'île change de
    * forme (Île infinie). Rien d'hexagonal n'est dessiné dans l'eau : seule la forme de l'île se lit.
    */
-  seaGeometry() {
-    const mask = this.isl.board.mask; const ver = mask.size;
-    if (this._sea && this._sea.ver === ver) return this._sea;
+  /**
+   * Géométrie de la mer : centre, rayon, arêtes de côte et vagues.
+   *
+   * `nues` fait suivre la côte à ce qui est RÉELLEMENT BÂTI plutôt qu'au masque de l'île. Pendant la
+   * partie c'est le masque qu'il faut : le joueur doit voir la forme entière de son île. Mais à la
+   * tournée finale et sur la carte postale, l'île n'est plus une promesse, c'est ce qu'on en a fait —
+   * un liseré d'écume qui contourne des cases restées vides dessine un hexagone autour de rien.
+   */
+  seaGeometry(nues = false) {
+    const b = this.isl.board; const mask = nues ? new Set(b.tiles.keys()) : b.mask;
+    const ver = `${b.mask.size}:${b.tiles.size}`;
+    const cache = nues ? '_seaNu' : '_sea';
+    if (this[cache] && this[cache].ver === ver) return this[cache];
     let sx = 0, sy = 0, n = 0; const pts = [];
     for (const k of mask) { const [q, r] = parse(k); const w = toWorld(q, r); sx += w.x; sy += w.y; n++; pts.push(w); }
     const cx = n ? sx / n : 0, cy = n ? sy / n : 0; let R = SIZE; for (const w of pts) R = Math.max(R, Math.hypot(w.x - cx, w.y - cy) + SIZE);
@@ -170,8 +180,19 @@ export class IslandRenderer {
       else { const a = rnd(0, TAU); const rr = R * rnd(1.4, 3.2); x = cx + Math.cos(a) * rr; y = cy + Math.sin(a) * rr; }
       waves.push({ x, y, t: rnd(0, 10), s: rnd(0.75, 1.25), ph: rnd(0, TAU) });
     }
-    this._sea = { ver, cx, cy, R, segs, waves };
-    return this._sea;
+    this[cache] = { ver, cx, cy, R, segs, waves };
+    return this[cache];
+  }
+
+  /**
+   * « L'île nue » : ni grille des cases jamais posées, ni contour d'écume autour du vide. Renvoie
+   * l'avancement du fondu (0 = île complète, 1 = seulement ce qui est bâti). La carte postale, qui
+   * n'est qu'une image fixe, force `_nu0` loin dans le passé pour être nue d'emblée.
+   */
+  nuAvance() {
+    if (!this.nu) { this._nu0 = null; return 0; }
+    if (this._nu0 == null) this._nu0 = this.time;
+    return Math.min(1, (this.time - this._nu0) / 0.7);
   }
 
   /** Transformation caméra : ce qui suit se dessine en coordonnées monde. */
@@ -212,17 +233,31 @@ export class IslandRenderer {
 
   /** Le rivage : un haut-fond très léger, puis l'écume qui suit la côte et respire lentement. */
   drawShallows(ctx) {
-    const sea = this.seaGeometry(); const mask = this.isl.board.mask;
+    const b = this.isl.board, nu = this.nuAvance();
+    const sea = this.seaGeometry(nu > 0);
+    const vieux = nu > 0 && nu < 1 ? this.seaGeometry(false) : null;   // l'ancienne côte s'efface pendant que la nouvelle paraît
     const winter = this.isl.season === 'winter', storm = this.weather === 'storm';
     ctx.save(); this.worldSpace(ctx);
-    ctx.fillStyle = 'rgba(255,255,255,0.10)'; ctx.beginPath();
-    for (const k of mask) { const [q, r] = parse(k); const w = toWorld(q, r); const pts = corners(w.x, w.y, SIZE * 1.22); ctx.moveTo(pts[0][0], pts[0][1]); for (let i = 1; i < 6; i++) ctx.lineTo(pts[i][0], pts[i][1]); ctx.closePath(); }
-    ctx.fill();
+    const halo = (keys, a) => {
+      ctx.fillStyle = `rgba(255,255,255,${a.toFixed(3)})`; ctx.beginPath();
+      for (const k of keys) { const [q, r] = parse(k); const w = toWorld(q, r); const pts = corners(w.x, w.y, SIZE * 1.22); ctx.moveTo(pts[0][0], pts[0][1]); for (let i = 1; i < 6; i++) ctx.lineTo(pts[i][0], pts[i][1]); ctx.closePath(); }
+      ctx.fill();
+    };
+    halo(nu > 0 ? b.tiles.keys() : b.mask, 0.10);
+    // le halo des cases jamais posées se retire à part : deux passes plutôt qu'un fondu, pour qu'il
+    // ne se double pas là où les deux emprises se recouvrent (c'est-à-dire presque partout)
+    if (nu > 0 && nu < 1) halo([...b.mask].filter((k) => !b.tiles.has(k)), 0.10 * (1 - nu));
     const breath = 0.5 + 0.5 * Math.sin(this.time * (storm ? 2.2 : 0.9));
     ctx.lineJoin = 'round'; ctx.lineCap = 'round';
-    const coast = (lw, a) => { ctx.lineWidth = lw; ctx.strokeStyle = `rgba(255,255,255,${a.toFixed(3)})`; ctx.beginPath(); for (const [x1, y1, x2, y2] of sea.segs) { ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); } ctx.stroke(); };
-    if (!this.lowFx) coast(15, (winter ? 0.12 : 0.20) + 0.10 * breath);   // large et douce
-    coast(4.5, (winter ? 0.40 : 0.52) + 0.18 * breath);                   // fine
+    const coast = (segs, lw, a) => { if (a <= 0.002) return; ctx.lineWidth = lw; ctx.strokeStyle = `rgba(255,255,255,${a.toFixed(3)})`; ctx.beginPath(); for (const [x1, y1, x2, y2] of segs) { ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); } ctx.stroke(); };
+    const large = (winter ? 0.12 : 0.20) + 0.10 * breath, fine = (winter ? 0.40 : 0.52) + 0.18 * breath;
+    const k = vieux ? nu : 1;
+    if (vieux) { if (!this.lowFx) coast(vieux.segs, 15, large * (1 - nu)); coast(vieux.segs, 4.5, fine * (1 - nu)); }
+    if (!this.lowFx) coast(sea.segs, 15, large * k);   // large et douce : l'écume, qui respire
+    // Le liseré FIN ne paraît pas sur l'île nue. C'est lui qui trace l'hexagone : il suit les arêtes
+    // des tuiles, et sur une image fixe l'œil ne lit plus une côte mais un contour dessiné. Il s'éteint
+    // avec l'ancienne côte, en sept dixièmes de seconde, et le rivage n'est plus qu'un halo pâle.
+    if (!this.nu) coast(sea.segs, 4.5, fine * k);
     ctx.restore();
   }
 
@@ -315,6 +350,10 @@ export class IslandRenderer {
 
   drawEmptyCells(ctx) {
     const cam = this.cam, b = this.isl.board;
+    // À la tournée finale et sur la carte postale, l'île n'est plus une promesse : la grille des cases
+    // jamais posées s'efface en sept dixièmes de seconde, et ne revient pas.
+    const nu = this.nuAvance();
+    if (nu >= 1) return;
     const legal = new Set(b.legalCells().map((c) => key(c.q, c.r)));
     ctx.save();
     for (const k of b.mask) {
@@ -323,7 +362,7 @@ export class IslandRenderer {
       if (c.x < -100 || c.x > STAGE.W + 100 || c.y < -100 || c.y > STAGE.H + 100) continue;
       const pts = corners(c.x, c.y, SIZE * cam.zoom * 0.96);
       ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]); for (let i = 1; i < 6; i++) ctx.lineTo(pts[i][0], pts[i][1]); ctx.closePath();
-      if (this.finale) { ctx.fillStyle = 'rgba(244,239,230,0.14)'; ctx.fill(); continue; }
+      if (this.finale || nu > 0) { ctx.fillStyle = `rgba(244,239,230,${(0.14 * (1 - nu)).toFixed(3)})`; ctx.fill(); continue; }
       ctx.fillStyle = legal.has(k) ? 'rgba(244,239,230,0.55)' : 'rgba(244,239,230,0.28)';
       ctx.fill();
       ctx.strokeStyle = legal.has(k) ? 'rgba(255,255,255,0.8)' : 'rgba(255,255,255,0.35)';
