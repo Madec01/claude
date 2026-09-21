@@ -210,11 +210,11 @@ Tutoriel pour le commanditaire : `docs/FIREBASE_TUTO.pdf`. Règles : `firestore.
 | Mode Contemplation (zen, sans score, saisons au sablier) | Différent du Jardin par saisons et faune vivantes | à faire |
 | Retours sensoriels et calme (notes sobres, étoile franchie, vibrations, mode repos, vague de fermeture) | Lots « respiration » et « calme » issus des listes apaisement / satisfaction | fait (journal 64 à 67) |
 | Direction artistique : bâtiments, arbres et rochers en modèles 3D KayKit (CC0) | Rendus isométriques à notre projection par `tools/render_kaykit.js` | fait (journal 68) |
-| Fontaine, abreuvoir, campement, botte de foin | Pas d'équivalent dans le pack KayKit : sujets Kenney conservés, à trancher | à décider |
+| Fontaine, abreuvoir, campement, botte de foin | Abreuvoir, campement et botte passés en volume (KayKit). La **fontaine** n'a aucun équivalent dans les packs : réduite et assombrie, elle reste le dernier aplat Kenney du décor | fait, sauf la fontaine |
 | Pack KayKit Forest fourni par le commanditaire | Feuillus, arbres nus d'hiver, blocs de rocher, palettes de saison | fait (journal 72) |
-| Pack KayKit Medieval Hexagon EXTRA fourni par le commanditaire | Villageois, charrettes, navires, hexagones de côte, atlas de textures d'automne et d'été | à exploiter |
+| Pack KayKit Medieval Hexagon EXTRA fourni par le commanditaire | Villageois, charrettes, navires, hexagones de côte, atlas de textures. Reste inemployés : archerie, guet, chantier naval, tours à machines — ils attendent le Livre II | largement exploité |
 | Buissons du pack Forest en sous-bois | Trois silhouettes, trois nuances, tailles et miroirs tirés au sort | fait (journal 73) |
-| Herbes hautes du pack Forest dans les prairies | Deux familles encore inutilisées | à faire |
+| Herbes hautes du pack Forest dans les prairies | `Grass_2` au pré, `Grass_1_C` à la lande ; les variantes `_A` et `_B` sont des brins isolés, écartées | fait (journal) |
 | Animaux animés vus en petit sur les tuiles | Douze espèces rendues depuis des modèles 3D ; cinq cycles de marche | fait (journal 69) |
 | Cycles de marche pour les oiseaux et le lapin | Aucun pack libre accessible n'en fournit pour l'instant | à surveiller |
 | Mode Cent saisons (endurance sur une île qui grandit) | Fatigue par saison, fin quand plus aucune pose | à faire |
@@ -245,4 +245,6 @@ Tutoriel pour le commanditaire : `docs/FIREBASE_TUTO.pdf`. Règles : `firestore.
 | Passe de performance (60 fps sur portable modeste) | Budget de fluidité, temps de première image < 3 s | plus tard (audit vers 10) |
 | Reprendre une partie laissée en plan | Île en cours rangée dans le navigateur, bouton « Reprendre » au menu | fait (journal 57) |
 | La mer visible autour de l'île | Profondeur, écume de côte, vagues selon saison et météo, voilier, baleine — sans hexagone dans l'eau | fait (journal 65) |
+| Le vieux sprite `obj_bushGrass` (Kenney, plat) domine encore les prés | Une fois les herbes hautes posées à côté, sa silhouette en flamme paraît plate. 65 poses par île. À remplacer par une troisième famille du pack Forest | à faire |
+| Une fontaine en volume | Aucun des trois packs KayKit n'en contient. Il faudrait une autre banque libre, ou composer un bassin à partir de pièces existantes | à décider |
 | Lisière qui s'éteint (n'éclairer que les cases près du doigt) | Proposée par l'agent ; **refusée** par le commanditaire : la forme de l'île lisible dès le début est ce qui fait la lisibilité du jeu | écarté |

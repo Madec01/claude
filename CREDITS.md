@@ -56,7 +56,7 @@ Toutes les œuvres ci-dessous appartiennent à leurs auteurs et sont utilisées 
 ## Graphismes
 
 - **Hexagon Pack** — Kenney (kenney.nl) — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://kenney.nl/assets/hexagon-pack) — [miroir utilisé](https://github.com/ETdoFresh/kenney.nl)
-  - Fichiers : 275
+  - Fichiers : 272
 - **Hexagon Tiles** — Kenney (kenney.nl) — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://kenney.nl/assets/hexagon-tiles) — [miroir utilisé](https://github.com/ETdoFresh/kenney.nl)
   - Fichiers : 100
 - **Animal Pack Redux** — Kenney (kenney.nl) — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://kenney.nl/assets/animal-pack-redux) — [miroir utilisé](https://github.com/ETdoFresh/kenney.nl)
@@ -80,9 +80,9 @@ Toutes les œuvres ci-dessous appartiennent à leurs auteurs et sont utilisées 
 - **KayKit : Medieval Hexagon Pack (1.0)** — Kay Lousberg — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://kaylousberg.itch.io/kaykit-medieval-hexagon) — [miroir utilisé](https://github.com/KayKit-Game-Assets/KayKit-Medieval-Hexagon-Pack-1.0)
   - Fichiers : 54
 - **KayKit : Forest Nature Pack (1.0)** — Kay Lousberg — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://kaylousberg.itch.io/forest-nature-pack) — [miroir utilisé](fourni par le commanditaire (téléchargement direct))
-  - Fichiers : 48
+  - Fichiers : 51
 - **KayKit : Medieval Hexagon Pack EXTRA (1.0)** — Kay Lousberg — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://kaylousberg.itch.io/kaykit-medieval-hexagon) — [miroir utilisé](fourni par le commanditaire (téléchargement direct))
-  - Fichiers : 14
+  - Fichiers : 16
 - **Animaux 3D (attribution)** — Baby chick by Poly by Google, Bear by Poly by Google, Duck by Poly by Google, Goat by Poly by Google, Great horned owl by Poly by Google, Hen by Poly by Google, Penguin by Poly by Google — licence CC BY 3.0 ([texte](https://creativecommons.org/licenses/by/3.0/)) — [source](https://poly.pizza/) — [miroir utilisé](https://github.com/i3w-learn/3DVR_PIPELINE)
   - Fichiers : 7
 - **Animaux 3D (attribution)** — Rabbit by Poly by Google — licence CC BY 3.0 ([texte](https://creativecommons.org/licenses/by/3.0/)) — [source](https://poly.pizza/) — [miroir utilisé](https://github.com/tedgoddard/google_poly)

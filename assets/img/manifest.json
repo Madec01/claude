@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-21T08:21:31+00:00",
+ "generated": "2026-09-21T14:36:38+00:00",
  "generator": "tools/build_images.py",
  "conventions": {
   "hex": {
@@ -513,13 +513,13 @@
    "file": "tiles/field_1_spring.png",
    "w": 240,
    "h": 280,
-   "bytes": 39342,
+   "bytes": 38188,
    "source": [
     "hexagon-pack",
     "hexagontiles"
    ],
-   "original": "PNG/Objects/hay.png + PNG/Tiles/Terrain/Dirt/dirt_06.png + hexagontiles/Tiles/bushGrass.png",
-   "note": "Champ : la parcelle de blé du pack EXTRA (dalle hexagonale rendue à la verticale, recolorée par saison), quelques rangs de culture et une botte de foin. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
+   "original": "PNG/Tiles/Terrain/Dirt/dirt_06.png + hexagontiles/Tiles/bushGrass.png",
+   "note": "Champ : la parcelle de blé du pack EXTRA (dalle hexagonale rendue à la verticale, recolorée par saison), quelques rangs de culture et une botte ronde en volume. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
    "season": "spring",
    "family": "field",
    "tile": "field_1",
@@ -529,13 +529,13 @@
    "file": "tiles/field_1_summer.png",
    "w": 240,
    "h": 280,
-   "bytes": 22657,
+   "bytes": 20814,
    "source": [
     "hexagon-pack",
     "hexagontiles"
    ],
-   "original": "PNG/Objects/hay.png + PNG/Tiles/Terrain/Dirt/dirt_06.png + hexagontiles/Tiles/bushGrass.png",
-   "note": "Champ : la parcelle de blé du pack EXTRA (dalle hexagonale rendue à la verticale, recolorée par saison), quelques rangs de culture et une botte de foin. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
+   "original": "PNG/Tiles/Terrain/Dirt/dirt_06.png + hexagontiles/Tiles/bushGrass.png",
+   "note": "Champ : la parcelle de blé du pack EXTRA (dalle hexagonale rendue à la verticale, recolorée par saison), quelques rangs de culture et une botte ronde en volume. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
    "season": "summer",
    "family": "field",
    "tile": "field_1",
@@ -545,13 +545,13 @@
    "file": "tiles/field_1_autumn.png",
    "w": 240,
    "h": 280,
-   "bytes": 22460,
+   "bytes": 20455,
    "source": [
     "hexagon-pack",
     "hexagontiles"
    ],
-   "original": "PNG/Objects/hay.png + PNG/Tiles/Terrain/Dirt/dirt_06.png + hexagontiles/Tiles/bushGrass.png",
-   "note": "Champ : la parcelle de blé du pack EXTRA (dalle hexagonale rendue à la verticale, recolorée par saison), quelques rangs de culture et une botte de foin. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
+   "original": "PNG/Tiles/Terrain/Dirt/dirt_06.png + hexagontiles/Tiles/bushGrass.png",
+   "note": "Champ : la parcelle de blé du pack EXTRA (dalle hexagonale rendue à la verticale, recolorée par saison), quelques rangs de culture et une botte ronde en volume. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
    "season": "autumn",
    "family": "field",
    "tile": "field_1",
@@ -561,13 +561,13 @@
    "file": "tiles/field_1_winter.png",
    "w": 240,
    "h": 280,
-   "bytes": 24160,
+   "bytes": 21811,
    "source": [
     "hexagon-pack",
     "hexagontiles"
    ],
-   "original": "PNG/Objects/hay.png + PNG/Tiles/Terrain/Dirt/dirt_06.png + hexagontiles/Tiles/bushGrass.png",
-   "note": "Champ : la parcelle de blé du pack EXTRA (dalle hexagonale rendue à la verticale, recolorée par saison), quelques rangs de culture et une botte de foin. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
+   "original": "PNG/Tiles/Terrain/Dirt/dirt_06.png + hexagontiles/Tiles/bushGrass.png",
+   "note": "Champ : la parcelle de blé du pack EXTRA (dalle hexagonale rendue à la verticale, recolorée par saison), quelques rangs de culture et une botte ronde en volume. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
    "season": "winter",
    "family": "field",
    "tile": "field_1",
@@ -577,13 +577,13 @@
    "file": "tiles/field_2_spring.png",
    "w": 240,
    "h": 280,
-   "bytes": 39717,
+   "bytes": 39166,
    "source": [
     "hexagon-pack",
     "hexagontiles"
    ],
-   "original": "PNG/Objects/fence.png + PNG/Objects/hay.png + PNG/Tiles/Terrain/Dirt/dirt_06.png + hexagontiles/Tiles/bushGrass.png",
-   "note": "Champ : la même parcelle en miroir, rangs de culture, foin et clôture. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
+   "original": "PNG/Objects/fence.png + PNG/Tiles/Terrain/Dirt/dirt_06.png + hexagontiles/Tiles/bushGrass.png",
+   "note": "Champ : la même parcelle en miroir, rangs de culture, botte ronde et clôture. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
    "season": "spring",
    "family": "field",
    "tile": "field_2",
@@ -593,13 +593,13 @@
    "file": "tiles/field_2_summer.png",
    "w": 240,
    "h": 280,
-   "bytes": 25784,
+   "bytes": 24058,
    "source": [
     "hexagon-pack",
     "hexagontiles"
    ],
-   "original": "PNG/Objects/fence.png + PNG/Objects/hay.png + PNG/Tiles/Terrain/Dirt/dirt_06.png + hexagontiles/Tiles/bushGrass.png",
-   "note": "Champ : la même parcelle en miroir, rangs de culture, foin et clôture. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
+   "original": "PNG/Objects/fence.png + PNG/Tiles/Terrain/Dirt/dirt_06.png + hexagontiles/Tiles/bushGrass.png",
+   "note": "Champ : la même parcelle en miroir, rangs de culture, botte ronde et clôture. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
    "season": "summer",
    "family": "field",
    "tile": "field_2",
@@ -609,13 +609,13 @@
    "file": "tiles/field_2_autumn.png",
    "w": 240,
    "h": 280,
-   "bytes": 25453,
+   "bytes": 23715,
    "source": [
     "hexagon-pack",
     "hexagontiles"
    ],
-   "original": "PNG/Objects/fence.png + PNG/Objects/hay.png + PNG/Tiles/Terrain/Dirt/dirt_06.png + hexagontiles/Tiles/bushGrass.png",
-   "note": "Champ : la même parcelle en miroir, rangs de culture, foin et clôture. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
+   "original": "PNG/Objects/fence.png + PNG/Tiles/Terrain/Dirt/dirt_06.png + hexagontiles/Tiles/bushGrass.png",
+   "note": "Champ : la même parcelle en miroir, rangs de culture, botte ronde et clôture. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
    "season": "autumn",
    "family": "field",
    "tile": "field_2",
@@ -625,13 +625,13 @@
    "file": "tiles/field_2_winter.png",
    "w": 240,
    "h": 280,
-   "bytes": 27691,
+   "bytes": 25526,
    "source": [
     "hexagon-pack",
     "hexagontiles"
    ],
-   "original": "PNG/Objects/fence.png + PNG/Objects/hay.png + PNG/Tiles/Terrain/Dirt/dirt_06.png + hexagontiles/Tiles/bushGrass.png",
-   "note": "Champ : la même parcelle en miroir, rangs de culture, foin et clôture. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
+   "original": "PNG/Objects/fence.png + PNG/Tiles/Terrain/Dirt/dirt_06.png + hexagontiles/Tiles/bushGrass.png",
+   "note": "Champ : la même parcelle en miroir, rangs de culture, botte ronde et clôture. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
    "season": "winter",
    "family": "field",
    "tile": "field_2",
@@ -641,7 +641,7 @@
    "file": "tiles/hamlet_1_spring.png",
    "w": 240,
    "h": 280,
-   "bytes": 29952,
+   "bytes": 29827,
    "source": "hexagon-pack",
    "original": "PNG/Tiles/Terrain/Grass/grass_05.png",
    "note": "Hameau : maison KayKit + tonneau + clôture. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
@@ -654,7 +654,7 @@
    "file": "tiles/hamlet_1_summer.png",
    "w": 240,
    "h": 280,
-   "bytes": 29796,
+   "bytes": 29679,
    "source": "hexagon-pack",
    "original": "PNG/Tiles/Terrain/Grass/grass_05.png",
    "note": "Hameau : maison KayKit + tonneau + clôture. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
@@ -667,7 +667,7 @@
    "file": "tiles/hamlet_1_autumn.png",
    "w": 240,
    "h": 280,
-   "bytes": 30014,
+   "bytes": 29899,
    "source": "hexagon-pack",
    "original": "PNG/Tiles/Terrain/Grass/grass_05.png",
    "note": "Hameau : maison KayKit + tonneau + clôture. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
@@ -680,7 +680,7 @@
    "file": "tiles/hamlet_1_winter.png",
    "w": 240,
    "h": 280,
-   "bytes": 30590,
+   "bytes": 30440,
    "source": "hexagon-pack",
    "original": "PNG/Tiles/Terrain/Grass/grass_05.png",
    "note": "Hameau : maison KayKit + tonneau + clôture. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
@@ -693,7 +693,7 @@
    "file": "tiles/hamlet_2_spring.png",
    "w": 240,
    "h": 280,
-   "bytes": 38643,
+   "bytes": 38536,
    "source": "hexagon-pack",
    "original": "PNG/Tiles/Terrain/Grass/grass_05.png",
    "note": "Village : maison à étage KayKit + sac de grain + brouette. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
@@ -706,7 +706,7 @@
    "file": "tiles/hamlet_2_summer.png",
    "w": 240,
    "h": 280,
-   "bytes": 38486,
+   "bytes": 38335,
    "source": "hexagon-pack",
    "original": "PNG/Tiles/Terrain/Grass/grass_05.png",
    "note": "Village : maison à étage KayKit + sac de grain + brouette. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
@@ -719,7 +719,7 @@
    "file": "tiles/hamlet_2_autumn.png",
    "w": 240,
    "h": 280,
-   "bytes": 38568,
+   "bytes": 38444,
    "source": "hexagon-pack",
    "original": "PNG/Tiles/Terrain/Grass/grass_05.png",
    "note": "Village : maison à étage KayKit + sac de grain + brouette. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
@@ -732,7 +732,7 @@
    "file": "tiles/hamlet_2_winter.png",
    "w": 240,
    "h": 280,
-   "bytes": 39137,
+   "bytes": 38918,
    "source": "hexagon-pack",
    "original": "PNG/Tiles/Terrain/Grass/grass_05.png",
    "note": "Village : maison à étage KayKit + sac de grain + brouette. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
@@ -797,7 +797,7 @@
    "file": "tiles/water_1_spring.png",
    "w": 240,
    "h": 280,
-   "bytes": 20262,
+   "bytes": 20102,
    "source": [
     "hexagon-pack",
     "hexagontiles"
@@ -813,7 +813,7 @@
    "file": "tiles/water_1_summer.png",
    "w": 240,
    "h": 280,
-   "bytes": 20262,
+   "bytes": 20414,
    "source": [
     "hexagon-pack",
     "hexagontiles"
@@ -829,7 +829,7 @@
    "file": "tiles/water_1_autumn.png",
    "w": 240,
    "h": 280,
-   "bytes": 20262,
+   "bytes": 20640,
    "source": [
     "hexagon-pack",
     "hexagontiles"
@@ -845,7 +845,7 @@
    "file": "tiles/water_1_winter.png",
    "w": 240,
    "h": 280,
-   "bytes": 20262,
+   "bytes": 19637,
    "source": [
     "hexagon-pack",
     "hexagontiles"
@@ -861,7 +861,7 @@
    "file": "tiles/water_2_spring.png",
    "w": 240,
    "h": 280,
-   "bytes": 16972,
+   "bytes": 17142,
    "source": [
     "hexagon-pack",
     "hexagontiles"
@@ -877,7 +877,7 @@
    "file": "tiles/water_2_summer.png",
    "w": 240,
    "h": 280,
-   "bytes": 16972,
+   "bytes": 17402,
    "source": [
     "hexagon-pack",
     "hexagontiles"
@@ -893,7 +893,7 @@
    "file": "tiles/water_2_autumn.png",
    "w": 240,
    "h": 280,
-   "bytes": 16972,
+   "bytes": 17546,
    "source": [
     "hexagon-pack",
     "hexagontiles"
@@ -909,7 +909,7 @@
    "file": "tiles/water_2_winter.png",
    "w": 240,
    "h": 280,
-   "bytes": 16972,
+   "bytes": 16878,
    "source": [
     "hexagon-pack",
     "hexagontiles"
@@ -925,7 +925,7 @@
    "file": "tiles/marsh_1_spring.png",
    "w": 240,
    "h": 280,
-   "bytes": 18685,
+   "bytes": 18726,
    "source": [
     "hexagon-pack",
     "hexagontiles"
@@ -941,7 +941,7 @@
    "file": "tiles/marsh_1_summer.png",
    "w": 240,
    "h": 280,
-   "bytes": 14307,
+   "bytes": 14324,
    "source": [
     "hexagon-pack",
     "hexagontiles"
@@ -957,7 +957,7 @@
    "file": "tiles/marsh_1_autumn.png",
    "w": 240,
    "h": 280,
-   "bytes": 13837,
+   "bytes": 13831,
    "source": [
     "hexagon-pack",
     "hexagontiles"
@@ -989,7 +989,7 @@
    "file": "tiles/marsh_2_spring.png",
    "w": 240,
    "h": 280,
-   "bytes": 20415,
+   "bytes": 20442,
    "source": [
     "hexagon-pack",
     "hexagontiles"
@@ -1005,7 +1005,7 @@
    "file": "tiles/marsh_2_summer.png",
    "w": 240,
    "h": 280,
-   "bytes": 16228,
+   "bytes": 16256,
    "source": [
     "hexagon-pack",
     "hexagontiles"
@@ -1021,7 +1021,7 @@
    "file": "tiles/marsh_2_autumn.png",
    "w": 240,
    "h": 280,
-   "bytes": 15717,
+   "bytes": 15722,
    "source": [
     "hexagon-pack",
     "hexagontiles"
@@ -1313,7 +1313,7 @@
    "file": "tiles/mill_spring.png",
    "w": 240,
    "h": 280,
-   "bytes": 35833,
+   "bytes": 35686,
    "source": "hexagon-pack",
    "original": "PNG/Tiles/Terrain/Grass/grass_05.png",
    "note": "Moulin à vent KayKit + sac de grain + clôture. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
@@ -1326,7 +1326,7 @@
    "file": "tiles/mill_summer.png",
    "w": 240,
    "h": 280,
-   "bytes": 35792,
+   "bytes": 35677,
    "source": "hexagon-pack",
    "original": "PNG/Tiles/Terrain/Grass/grass_05.png",
    "note": "Moulin à vent KayKit + sac de grain + clôture. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
@@ -1339,7 +1339,7 @@
    "file": "tiles/mill_autumn.png",
    "w": 240,
    "h": 280,
-   "bytes": 35583,
+   "bytes": 35429,
    "source": "hexagon-pack",
    "original": "PNG/Tiles/Terrain/Grass/grass_05.png",
    "note": "Moulin à vent KayKit + sac de grain + clôture. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
@@ -1352,7 +1352,7 @@
    "file": "tiles/mill_winter.png",
    "w": 240,
    "h": 280,
-   "bytes": 36537,
+   "bytes": 36373,
    "source": "hexagon-pack",
    "original": "PNG/Tiles/Terrain/Grass/grass_05.png",
    "note": "Moulin à vent KayKit + sac de grain + clôture. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
@@ -1893,7 +1893,7 @@
    "file": "tiles/granary_spring.png",
    "w": 240,
    "h": 280,
-   "bytes": 35919,
+   "bytes": 35057,
    "source": "hexagon-pack",
    "original": "PNG/Tiles/Terrain/Grass/grass_05.png",
    "note": "Grenier : bâtiment de bois KayKit + deux sacs de grain. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
@@ -1906,7 +1906,7 @@
    "file": "tiles/granary_summer.png",
    "w": 240,
    "h": 280,
-   "bytes": 35872,
+   "bytes": 35290,
    "source": "hexagon-pack",
    "original": "PNG/Tiles/Terrain/Grass/grass_05.png",
    "note": "Grenier : bâtiment de bois KayKit + deux sacs de grain. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
@@ -1919,7 +1919,7 @@
    "file": "tiles/granary_autumn.png",
    "w": 240,
    "h": 280,
-   "bytes": 35582,
+   "bytes": 34830,
    "source": "hexagon-pack",
    "original": "PNG/Tiles/Terrain/Grass/grass_05.png",
    "note": "Grenier : bâtiment de bois KayKit + deux sacs de grain. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
@@ -1932,7 +1932,7 @@
    "file": "tiles/granary_winter.png",
    "w": 240,
    "h": 280,
-   "bytes": 36412,
+   "bytes": 35492,
    "source": "hexagon-pack",
    "original": "PNG/Tiles/Terrain/Grass/grass_05.png",
    "note": "Grenier : bâtiment de bois KayKit + deux sacs de grain. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
@@ -2061,7 +2061,7 @@
    "file": "tiles/fete_spring.png",
    "w": 240,
    "h": 280,
-   "bytes": 25768,
+   "bytes": 25789,
    "source": [
     "hexagon-pack",
     "hexagontiles"
@@ -2077,7 +2077,7 @@
    "file": "tiles/fete_summer.png",
    "w": 240,
    "h": 280,
-   "bytes": 23587,
+   "bytes": 23590,
    "source": [
     "hexagon-pack",
     "hexagontiles"
@@ -2093,7 +2093,7 @@
    "file": "tiles/fete_autumn.png",
    "w": 240,
    "h": 280,
-   "bytes": 21779,
+   "bytes": 21792,
    "source": [
     "hexagon-pack",
     "hexagontiles"
@@ -2109,7 +2109,7 @@
    "file": "tiles/fete_winter.png",
    "w": 240,
    "h": 280,
-   "bytes": 22505,
+   "bytes": 22500,
    "source": [
     "hexagon-pack",
     "hexagontiles"
@@ -2177,7 +2177,7 @@
    "file": "tiles/tavern_spring.png",
    "w": 240,
    "h": 280,
-   "bytes": 43139,
+   "bytes": 42970,
    "source": "hexagon-pack",
    "original": "PNG/Tiles/Terrain/Grass/grass_05.png",
    "note": "Taverne KayKit + deux tonneaux. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
@@ -2190,7 +2190,7 @@
    "file": "tiles/tavern_summer.png",
    "w": 240,
    "h": 280,
-   "bytes": 43033,
+   "bytes": 42794,
    "source": "hexagon-pack",
    "original": "PNG/Tiles/Terrain/Grass/grass_05.png",
    "note": "Taverne KayKit + deux tonneaux. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
@@ -2203,7 +2203,7 @@
    "file": "tiles/tavern_autumn.png",
    "w": 240,
    "h": 280,
-   "bytes": 43168,
+   "bytes": 42992,
    "source": "hexagon-pack",
    "original": "PNG/Tiles/Terrain/Grass/grass_05.png",
    "note": "Taverne KayKit + deux tonneaux. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
@@ -2216,7 +2216,7 @@
    "file": "tiles/tavern_winter.png",
    "w": 240,
    "h": 280,
-   "bytes": 43543,
+   "bytes": 43336,
    "source": "hexagon-pack",
    "original": "PNG/Tiles/Terrain/Grass/grass_05.png",
    "note": "Taverne KayKit + deux tonneaux. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
@@ -2229,7 +2229,7 @@
    "file": "tiles/trough_spring.png",
    "w": 240,
    "h": 280,
-   "bytes": 22537,
+   "bytes": 22396,
    "source": [
     "hexagon-pack",
     "hexagontiles"
@@ -2245,7 +2245,7 @@
    "file": "tiles/trough_summer.png",
    "w": 240,
    "h": 280,
-   "bytes": 15442,
+   "bytes": 15317,
    "source": [
     "hexagon-pack",
     "hexagontiles"
@@ -2261,7 +2261,7 @@
    "file": "tiles/trough_autumn.png",
    "w": 240,
    "h": 280,
-   "bytes": 15510,
+   "bytes": 15380,
    "source": [
     "hexagon-pack",
     "hexagontiles"
@@ -2277,7 +2277,7 @@
    "file": "tiles/trough_winter.png",
    "w": 240,
    "h": 280,
-   "bytes": 15742,
+   "bytes": 15580,
    "source": [
     "hexagon-pack",
     "hexagontiles"
@@ -2625,49 +2625,49 @@
    "file": "tiles/ground_water_spring.png",
    "w": 240,
    "h": 280,
-   "bytes": 9530,
+   "bytes": 10468,
    "source": "hexagon-pack",
    "original": "PNG/Tiles/Terrain/Grass/grass_05.png",
    "note": "Sol « water » (spring) pour le décor composé par région.",
    "ground": "water",
    "season": "spring",
-   "ground_color": "#59a6d5"
+   "ground_color": "#89bfdb"
   },
   "ground_water_summer": {
    "file": "tiles/ground_water_summer.png",
    "w": 240,
    "h": 280,
-   "bytes": 9530,
+   "bytes": 10224,
    "source": "hexagon-pack",
    "original": "PNG/Tiles/Terrain/Grass/grass_05.png",
    "note": "Sol « water » (summer) pour le décor composé par région.",
    "ground": "water",
    "season": "summer",
-   "ground_color": "#59a6d5"
+   "ground_color": "#76b4d7"
   },
   "ground_water_autumn": {
    "file": "tiles/ground_water_autumn.png",
    "w": 240,
    "h": 280,
-   "bytes": 9530,
+   "bytes": 10588,
    "source": "hexagon-pack",
    "original": "PNG/Tiles/Terrain/Grass/grass_05.png",
    "note": "Sol « water » (autumn) pour le décor composé par région.",
    "ground": "water",
    "season": "autumn",
-   "ground_color": "#59a6d5"
+   "ground_color": "#86aec7"
   },
   "ground_water_winter": {
    "file": "tiles/ground_water_winter.png",
    "w": 240,
    "h": 280,
-   "bytes": 9530,
+   "bytes": 10624,
    "source": "hexagon-pack",
    "original": "PNG/Tiles/Terrain/Grass/grass_05.png",
    "note": "Sol « water » (winter) pour le décor composé par région.",
    "ground": "water",
    "season": "winter",
-   "ground_color": "#59a6d5"
+   "ground_color": "#a8c0d1"
   },
   "ground_dirt_spring": {
    "file": "tiles/ground_dirt_spring.png",
@@ -3328,6 +3328,36 @@
    "note": "Buisson bas du pack Forest (spring).",
    "anchor": "bottom"
   },
+  "obj_tallGrass_spring": {
+   "file": "deco/obj_tallGrass_spring.png",
+   "w": 27,
+   "h": 34,
+   "bytes": 2200,
+   "source": "kaykit",
+   "original": "forest/Color1/Grass_2_C_Color1.gltf",
+   "note": "Herbe haute, touffe fine (spring) : prés.",
+   "anchor": "bottom"
+  },
+  "obj_tallGrass2_spring": {
+   "file": "deco/obj_tallGrass2_spring.png",
+   "w": 41,
+   "h": 42,
+   "bytes": 3194,
+   "source": "kaykit",
+   "original": "forest/Color1/Grass_2_D_Color1.gltf",
+   "note": "Herbe haute, touffe large (spring) : prés.",
+   "anchor": "bottom"
+  },
+  "obj_grassClump_spring": {
+   "file": "deco/obj_grassClump_spring.png",
+   "w": 28,
+   "h": 26,
+   "bytes": 1791,
+   "source": "kaykit",
+   "original": "forest/Color1/Grass_1_C_Color1.gltf",
+   "note": "Touffe à feuilles larges (spring) : landes.",
+   "anchor": "bottom"
+  },
   "obj_treePine_large2_summer": {
    "file": "deco/obj_treePine_large2_summer.png",
    "w": 57,
@@ -3366,6 +3396,36 @@
    "source": "kaykit",
    "original": "forest/Color2/Bush_4_A_Color2.gltf",
    "note": "Buisson bas du pack Forest (summer).",
+   "anchor": "bottom"
+  },
+  "obj_tallGrass_summer": {
+   "file": "deco/obj_tallGrass_summer.png",
+   "w": 27,
+   "h": 34,
+   "bytes": 2189,
+   "source": "kaykit",
+   "original": "forest/Color1/Grass_2_C_Color1.gltf",
+   "note": "Herbe haute, touffe fine (summer) : prés.",
+   "anchor": "bottom"
+  },
+  "obj_tallGrass2_summer": {
+   "file": "deco/obj_tallGrass2_summer.png",
+   "w": 41,
+   "h": 42,
+   "bytes": 3183,
+   "source": "kaykit",
+   "original": "forest/Color1/Grass_2_D_Color1.gltf",
+   "note": "Herbe haute, touffe large (summer) : prés.",
+   "anchor": "bottom"
+  },
+  "obj_grassClump_summer": {
+   "file": "deco/obj_grassClump_summer.png",
+   "w": 28,
+   "h": 26,
+   "bytes": 1763,
+   "source": "kaykit",
+   "original": "forest/Color1/Grass_1_C_Color1.gltf",
+   "note": "Touffe à feuilles larges (summer) : landes.",
    "anchor": "bottom"
   },
   "obj_treePine_large2_autumn": {
@@ -3408,6 +3468,36 @@
    "note": "Buisson bas du pack Forest (autumn).",
    "anchor": "bottom"
   },
+  "obj_tallGrass_autumn": {
+   "file": "deco/obj_tallGrass_autumn.png",
+   "w": 27,
+   "h": 34,
+   "bytes": 2186,
+   "source": "kaykit",
+   "original": "forest/Color1/Grass_2_C_Color1.gltf",
+   "note": "Herbe haute, touffe fine (autumn) : prés.",
+   "anchor": "bottom"
+  },
+  "obj_tallGrass2_autumn": {
+   "file": "deco/obj_tallGrass2_autumn.png",
+   "w": 41,
+   "h": 42,
+   "bytes": 3162,
+   "source": "kaykit",
+   "original": "forest/Color1/Grass_2_D_Color1.gltf",
+   "note": "Herbe haute, touffe large (autumn) : prés.",
+   "anchor": "bottom"
+  },
+  "obj_grassClump_autumn": {
+   "file": "deco/obj_grassClump_autumn.png",
+   "w": 28,
+   "h": 26,
+   "bytes": 1777,
+   "source": "kaykit",
+   "original": "forest/Color1/Grass_1_C_Color1.gltf",
+   "note": "Touffe à feuilles larges (autumn) : landes.",
+   "anchor": "bottom"
+  },
   "obj_treePine_large2_winter": {
    "file": "deco/obj_treePine_large2_winter.png",
    "w": 57,
@@ -3446,6 +3536,36 @@
    "source": "kaykit",
    "original": "forest/Color2/Bush_1_A_Color2.gltf",
    "note": "Buisson bas du pack Forest (winter).",
+   "anchor": "bottom"
+  },
+  "obj_tallGrass_winter": {
+   "file": "deco/obj_tallGrass_winter.png",
+   "w": 27,
+   "h": 34,
+   "bytes": 2231,
+   "source": "kaykit",
+   "original": "forest/Color1/Grass_2_C_Color1.gltf",
+   "note": "Herbe haute, touffe fine (winter) : prés.",
+   "anchor": "bottom"
+  },
+  "obj_tallGrass2_winter": {
+   "file": "deco/obj_tallGrass2_winter.png",
+   "w": 41,
+   "h": 42,
+   "bytes": 3247,
+   "source": "kaykit",
+   "original": "forest/Color1/Grass_2_D_Color1.gltf",
+   "note": "Herbe haute, touffe large (winter) : prés.",
+   "anchor": "bottom"
+  },
+  "obj_grassClump_winter": {
+   "file": "deco/obj_grassClump_winter.png",
+   "w": 28,
+   "h": 26,
+   "bytes": 1818,
+   "source": "kaykit",
+   "original": "forest/Color1/Grass_1_C_Color1.gltf",
+   "note": "Touffe à feuilles larges (winter) : landes.",
    "anchor": "bottom"
   },
   "obj_treeRound_fruit_spring": {
@@ -3841,8 +3961,8 @@
   "obj_lily": {
    "file": "deco/obj_lily.png",
    "w": 30,
-   "h": 17,
-   "bytes": 1271,
+   "h": 18,
+   "bytes": 1235,
    "source": "kaykit",
    "original": "decoration/nature/waterlily_A.gltf",
    "note": "Nénuphar en volume (KayKit) : lacs et étangs en été.",
@@ -3850,9 +3970,9 @@
   },
   "obj_horseTrough": {
    "file": "deco/obj_horseTrough.png",
-   "w": 52,
-   "h": 33,
-   "bytes": 4027,
+   "w": 72,
+   "h": 44,
+   "bytes": 6322,
    "source": "kaykit",
    "original": "extra/decoration/props/trough_long.gltf",
    "note": "Abreuvoir de bois (KayKit EXTRA).",
@@ -3971,8 +4091,8 @@
   "obj_shovel": {
    "file": "deco/obj_shovel.png",
    "w": 20,
-   "h": 65,
-   "bytes": 2006,
+   "h": 60,
+   "bytes": 1745,
    "source": "kaykit",
    "original": "extra/units/neutral/shovel.gltf",
    "note": "Pelle plantée (KayKit EXTRA) : chantier et champs.",
@@ -4300,9 +4420,9 @@
   },
   "obj_well": {
    "file": "deco/obj_well.png",
-   "w": 42,
-   "h": 47,
-   "bytes": 4393,
+   "w": 68,
+   "h": 76,
+   "bytes": 9003,
    "source": "kaykit",
    "original": "buildings/red/building_well_red.gltf",
    "note": "Puits. Modèle 3D KayKit.",
@@ -4460,9 +4580,9 @@
   },
   "obj_barrel": {
    "file": "deco/obj_barrel.png",
-   "w": 26,
-   "h": 32,
-   "bytes": 2285,
+   "w": 34,
+   "h": 44,
+   "bytes": 3490,
    "source": "kaykit",
    "original": "decoration/props/barrel.gltf",
    "note": "Tonneau. Modèle 3D KayKit.",
@@ -4470,12 +4590,42 @@
   },
   "obj_sack": {
    "file": "deco/obj_sack.png",
-   "w": 22,
-   "h": 18,
-   "bytes": 1184,
+   "w": 31,
+   "h": 25,
+   "bytes": 1819,
    "source": "kaykit",
    "original": "decoration/props/sack.gltf",
    "note": "Sac de grain. Modèle 3D KayKit.",
+   "anchor": "bottom"
+  },
+  "obj_wheelbarrow": {
+   "file": "deco/obj_wheelbarrow.png",
+   "w": 44,
+   "h": 40,
+   "bytes": 3515,
+   "source": "kaykit",
+   "original": "decoration/props/wheelbarrow.gltf",
+   "note": "Brouette. Modèle 3D KayKit.",
+   "anchor": "bottom"
+  },
+  "obj_tent": {
+   "file": "deco/obj_tent.png",
+   "w": 72,
+   "h": 52,
+   "bytes": 7541,
+   "source": "kaykit",
+   "original": "extra/buildings/red/building_tent_red.gltf",
+   "note": "Tente ronde de campement. Modèle 3D KayKit.",
+   "anchor": "bottom"
+  },
+  "obj_stables": {
+   "file": "deco/obj_stables.png",
+   "w": 120,
+   "h": 76,
+   "bytes": 13686,
+   "source": "kaykit",
+   "original": "extra/buildings/red/building_stables_red.gltf",
+   "note": "Écurie (stalles, bottes, clôture). Modèle 3D KayKit.",
    "anchor": "bottom"
   },
   "obj_crate": {
@@ -4608,34 +4758,14 @@
    "note": "Même bâtiment, toit vert (modèle 3D KayKit).",
    "anchor": "bottom"
   },
-  "obj_hay": {
-   "file": "deco/obj_hay.png",
-   "w": 64,
-   "h": 60,
-   "bytes": 4968,
-   "source": "hexagon-pack",
-   "original": "PNG/Objects/hay.png",
-   "note": "Objet hay (Hexagon Pack).",
-   "anchor": "bottom"
-  },
   "obj_fountain": {
    "file": "deco/obj_fountain.png",
-   "w": 92,
-   "h": 92,
-   "bytes": 9335,
+   "w": 64,
+   "h": 64,
+   "bytes": 7303,
    "source": "hexagon-pack",
    "original": "PNG/Objects/fountain.png",
-   "note": "Objet fountain (Hexagon Pack).",
-   "anchor": "bottom"
-  },
-  "obj_campingTent": {
-   "file": "deco/obj_campingTent.png",
-   "w": 76,
-   "h": 84,
-   "bytes": 6949,
-   "source": "hexagon-pack",
-   "original": "PNG/Objects/campingTent.png",
-   "note": "Objet campingTent (Hexagon Pack).",
+   "note": "Fontaine (Hexagon Pack) réduite et assombrie : elle brillait comme un bouton.",
    "anchor": "bottom"
   },
   "obj_fire": {
@@ -4842,7 +4972,7 @@
    "file": "deco/obj_puddle.png",
    "w": 80,
    "h": 50,
-   "bytes": 378,
+   "bytes": 375,
    "source": "hexagon-pack",
    "original": "grass_05 (alpha)",
    "note": "Flaque d'eau (ellipse dessinée, liseré sombre).",
@@ -6161,15 +6291,6 @@
    "original": "PNG/Objects/log.png",
    "note": "Bûche (Hexagon Pack, 2× svg2x)"
   },
-  "hay": {
-   "file": "ui/hay.png",
-   "w": 64,
-   "h": 60,
-   "bytes": 4968,
-   "source": "hexagon-pack",
-   "original": "PNG/Objects/hay.png",
-   "note": "Botte de foin (Hexagon Pack, 2× svg2x)"
-  },
   "fence": {
    "file": "ui/fence.png",
    "w": 44,
@@ -6265,7 +6386,7 @@
    "file": "succes/un-toit.png",
    "w": 240,
    "h": 280,
-   "bytes": 29796,
+   "bytes": 29679,
    "source": "hexagon-pack",
    "original": "hamlet_1_summer",
    "note": "Vignette de succès composée à partir des tuiles et sprites du jeu.",
@@ -6334,7 +6455,7 @@
    "file": "succes/la-source.png",
    "w": 240,
    "h": 280,
-   "bytes": 28842,
+   "bytes": 28744,
    "source": [
     "hexagon-pack",
     "kaykit"
@@ -6360,7 +6481,7 @@
    "file": "succes/le-lac.png",
    "w": 240,
    "h": 280,
-   "bytes": 20963,
+   "bytes": 21572,
    "source": [
     "hexagon-pack",
     "kaykit"
@@ -6468,7 +6589,7 @@
    "file": "succes/toute-l-ile.png",
    "w": 240,
    "h": 280,
-   "bytes": 23587,
+   "bytes": 23590,
    "source": "hexagon-pack",
    "original": "fete_summer",
    "note": "Vignette de succès composée à partir des tuiles et sprites du jeu.",
@@ -6488,12 +6609,12 @@
    "file": "succes/charpentier.png",
    "w": 240,
    "h": 280,
-   "bytes": 27315,
+   "bytes": 27630,
    "source": [
     "hexagon-pack",
     "kaykit"
    ],
-   "original": "ground_field_summer + obj_logPile + obj_hay",
+   "original": "ground_field_summer + obj_logPile + obj_haybale",
    "note": "Vignette de succès composée à partir des tuiles et sprites du jeu.",
    "badge": true
   },
@@ -6527,7 +6648,7 @@
    "file": "succes/port-d-attache.png",
    "w": 240,
    "h": 280,
-   "bytes": 38403,
+   "bytes": 38946,
    "source": [
     "hexagon-pack",
     "hexagontiles",
