@@ -10,6 +10,7 @@ import { STAGE } from '../core/stage.js';
 import { Save } from '../core/save.js';
 import { Decor, groundOf, groundKey, GROUND_COLORS, spriteKey } from './decor.js';
 import { pathShapes } from './paths.js';
+import { waterBodies } from './water.js';
 // arête i (sommet i → i+1 de corners()) → indice dans DIRS du voisin de l'autre côté ; mesuré, pas deviné
 const EDGE_DIR = [1, 0, 5, 4, 3, 2];
 /** Décors déjà posés à plat sur le sol : ils ne reçoivent pas d'ombre de contact. */
@@ -35,6 +36,17 @@ function fbm(x, y) {
   // Une tuile fait 120 unités de large. La première octave (1/340) porte donc sur près de trois
   // tuiles : c'est elle qui fait les caps et les anses. Les deux autres érodent le rivage.
   return 0.56 * valeur(x / 340, y / 340) + 0.29 * valeur(x / 118 + 31.7, y / 118 - 12.3) + 0.15 * valeur(x / 44 - 7.1, y / 44 + 4.9);
+}
+/**
+ * L'érosion du trait de côte, en unités monde : combien la côte avance (positif) ou recule (négatif)
+ * par rapport au bord des tuiles, en un point donné. Trois octaves CENTRÉES sur zéro, pour que la
+ * côte rentre autant qu'elle sort — un bruit qui ne fait que gonfler donne un nuage, on l'a vu.
+ * Les amplitudes : les anses et les caps (grande octave) déplacent la côte d'une bonne quinzaine
+ * d'unités, le détail (petite octave) de quelques unités seulement, sinon la côte devient dentelée.
+ */
+const centre = (v) => 2 * v - 1;
+function erosion(x, y) {
+  return 16 * centre(valeur(x / 300 + 3.1, y / 300 - 8.7)) + 11 * centre(valeur(x / 105 + 41.7, y / 105 + 17.3)) + 5 * centre(valeur(x / 38 - 5.1, y / 38 + 9.9));
 }
 
 const PLAT = new Set(['obj_puddle1', 'obj_puddle2', 'obj_puddle3', 'obj_leafpile', 'obj_snowdrift',
@@ -253,22 +265,20 @@ export class IslandRenderer {
     this.drawSeaLife(ctx, dt);
   }
 
-  /** Le rivage : un haut-fond très léger, puis l'écume qui suit la côte et respire lentement. */
+  /**
+   * Le rivage : un haut-fond très léger, un voile blanc à 10 % sur quinze unités de mer le long du
+   * trait de côte. C'est un TRAIT épais centré sur la côte : sa moitié intérieure disparaît sous les
+   * sols, sa moitié extérieure fait le bas-fond. Face aux cases jamais posées il n'apparaît qu'avec
+   * l'île nue, comme l'érosion.
+   */
   drawShallows(ctx) {
-    const cote = this.rivage(); if (!cote.length) return;
+    if (!this.rivage().length) return;
     ctx.save(); this.worldSpace(ctx);
-    // Le halo de bas-fond suit le même contour que le rivage : un halo hexagonal autour d'une côte
-    // ondulée redessinerait la grille qu'on vient d'effacer. Seules les cases de BORD le portent,
-    // celles de l'intérieur étant entièrement recouvertes par les tuiles (vérifié : au cœur de l'île
-    // l'écart entre les deux versions est de 0,2 sur 255, c'est-à-dire rien).
-    ctx.fillStyle = 'rgba(255,255,255,0.10)'; ctx.beginPath();
-    let premier = true;
-    for (const { w } of cote) { this.lobeHex(ctx, w.x, w.y, SIZE * 1.24, w, !premier); premier = false; }
-    ctx.fill();
+    ctx.lineJoin = 'round'; ctx.lineCap = 'round'; ctx.lineWidth = 30;
+    this.traitCote(ctx, null, (a) => `rgba(255,255,255,${(0.10 * a).toFixed(3)})`);
     ctx.restore();
   }
 
-  /** La vie au large : un voilier passe une fois par saison, une baleine fait surface de loin en loin. */
   drawSeaLife(ctx, dt) {
     const sea = this.seaGeometry(); const cam = this.cam, z = cam.zoom; const storm = this.weather === 'storm';
     const life = this._life || (this._life = { boat: null, whale: null, nextBoat: rnd(5, 18), nextWhale: rnd(45, 100), season: this.isl.season });
@@ -417,35 +427,35 @@ export class IslandRenderer {
     this.decor.sync(b);
     const tiles = [...b.tiles.values()];
     const vis = (c, m = 170) => !(c.x < -m || c.x > STAGE.W + m || c.y < -m || c.y > STAGE.H + m);
-    if (this.hexShadow) {
-      ctx.save(); ctx.globalAlpha = 0.28;
-      for (const t of tiles) { const w = toWorld(t.q, t.r); const c = cam.toScreen(w.x, w.y); if (!vis(c)) continue; ctx.drawImage(this.hexShadow, c.x - TILE_W * z / 2 + 4 * z, c.y - TILE_H * z / 2 + 10 * z, TILE_W * z, TILE_H * z); }
-      ctx.restore();
-    }
+    // L'ombre portée de l'île : celle du trait de côte, pas une ombre d'hexagone par tuile. Les
+    // ombres hexagonales dépassaient dans la mer partout où la côte érodée recule sur la tuile, et
+    // leurs arêtes droites redessinaient la grille sous l'eau (mesuré : c'était la dernière arête
+    // verticale qui restait). Même retrait qu'avant : six unités vers le bas, un bord doux.
+    const proj = (p) => cam.toScreen(p.x, p.y);
+    ctx.save(); ctx.translate(0, 6 * z); ctx.fillStyle = '#000'; ctx.strokeStyle = '#000'; ctx.lineJoin = 'round';
+    ctx.beginPath(); this.cheminCote(ctx, proj);
+    ctx.globalAlpha = 0.22; ctx.fill(); ctx.globalAlpha = 0.08; ctx.lineWidth = 6 * z; ctx.stroke();
+    ctx.restore();
     this.drawShore(ctx);
-    // LE MASQUE DE L'ÎLE. Le pied lobé ne suffisait pas : chaque tuile dessine ensuite son hexagone
-    // PAR-DESSUS, et un hexagone posé sur un contour rond, c'est le contour rond qui disparaît. On
-    // découpe donc tout le passage des sols sur la silhouette voulue — les disques bruités du rivage
-    // et les hexagones de l'intérieur — une seule fois par image. Plus aucune tuile, terre ou eau,
-    // ne peut déborder de la côte. Les objets, eux, restent hors du masque : un arbre du bord a le
-    // droit de surplomber l'eau, c'est même ce qui fait qu'il pousse au bord.
+    // LE MASQUE DE L'ÎLE : tout le passage des sols est découpé sur le trait de côte, une seule fois
+    // par image. Chaque tuile dessine son hexagone entier, et c'est la découpe qui lui donne sa
+    // côte érodée ; aucune tuile, terre ou eau, ne peut déborder. Les objets, eux, restent hors du
+    // masque : un arbre du bord a le droit de surplomber l'eau, c'est même ce qui fait qu'il pousse
+    // au bord.
     ctx.save();
-    ctx.beginPath();
-    for (const { w } of this.rivage()) { const p = this.lobePts(w.x, w.y, SIZE * 1.02); const q = p.map(([x, y]) => cam.toScreen(x, y)); ctx.moveTo((q[0].x + q[q.length - 1].x) / 2, (q[0].y + q[q.length - 1].y) / 2); for (let i = 0; i < q.length; i++) { const a = q[i], bq = q[(i + 1) % q.length]; ctx.quadraticCurveTo(a.x, a.y, (a.x + bq.x) / 2, (a.y + bq.y) / 2); } ctx.closePath(); }
-    for (const t of tiles) { const w = toWorld(t.q, t.r); const c = cam.toScreen(w.x, w.y); const pts = corners(c.x, c.y, SIZE * cam.zoom * 1.001); ctx.moveTo(pts[0][0], pts[0][1]); for (let i = 1; i < 6; i++) ctx.lineTo(pts[i][0], pts[i][1]); ctx.closePath(); }
-    ctx.clip();
+    ctx.beginPath(); this.cheminCote(ctx, proj); ctx.clip();
     // sols
-    const dropping = new Map();
+    const dropping = new Map(); const anses = this.anses();
     const images = Assets.manifest().images || {};
     for (const t of tiles) {
       const w = toWorld(t.q, t.r); const c = cam.toScreen(w.x, w.y);
       const k = key(t.q, t.r); const d = this.fx.dropTransform(k); if (d.dy !== 0 || d.s !== 1) dropping.set(k, d);
-      if (!vis(c)) continue;
+      if (!vis(c) || anses.has(k)) continue;
       const season = this.seasonFor(w.x); const g = this.decor.groundFor(t);
       // Une case d'eau qui touche la MER ne dessine pas son eau : elle dessine sa rive. Son hexagone
       // bleu, posé au milieu du disque de terre du rivage, ressortait avec ses arêtes droites et ses
       // pointes — et c'est le plan d'eau, dessiné juste après en taches rondes, qui doit faire l'eau.
-      const cotier = t.family === 'water' && DIRS.some(([dq, dr]) => b.isSea(t.q + dq, t.r + dr));
+      const cotier = t.family === 'water' && DIRS.some(([dq, dr]) => this.estMer(t.q + dq, t.r + dr));
       const img = t.family === 'water'
         ? (cotier ? Assets.img(groundKey(this.riveDe(t), season)) : this.waterGround(t, season))
         : Assets.img(groundKey(g, season));
@@ -465,6 +475,34 @@ export class IslandRenderer {
         }
       }
     }
+    // L'OURLET des sols de bord. Chaque image de sol porte son propre liseré (le rebord ombré du
+    // marais, la bordure du champ, l'arête claire du pré) : là où la côte érodée dépasse l'hexagone,
+    // ce liseré redessinait l'arête droite en plein milieu de la terre gagnée. Sur chaque arête qui
+    // donne sur l'eau, une bande de sol plein le recouvre, de l'intérieur de l'hexagone jusqu'au-delà
+    // de la côte — la découpe fait le reste. Les reliefs (roche, colline) gardent leur bord : c'est
+    // une falaise, elle a le droit de surplomber. Face aux cases jamais posées, seulement avec l'île nue.
+    const nu = this.nuAvance();
+    ctx.save();
+    for (const { t, w } of this.rivage()) {
+      let g = this.decor.groundFor(t); if (g === 'water' || t.family === 'water') g = this.riveDe(t);
+      if (RELIEF.has(g)) continue;
+      const c = cam.toScreen(w.x, w.y); if (!vis(c)) continue;
+      const k = key(t.q, t.r); if (dropping.has(k)) continue;
+      const season = this.seasonFor(w.x);
+      const col = GROUND_COLORS[g] || (images[groundKey(g, season)] || {}).ground_color; if (!col) continue;
+      const dedans = corners(c.x, c.y, SIZE * z * 0.86), dehors = corners(c.x, c.y, SIZE * z * 1.5);
+      for (let i = 0; i < 6; i++) {
+        const [dq, dr] = DIRS[EDGE_DIR[i]]; const nk = key(t.q + dq, t.r + dr); if (b.tiles.has(nk) && !anses.has(nk)) continue;
+        const face = this.estMer(t.q + dq, t.r + dr) ? 1 : nu; if (face <= 0.002) continue;
+        const j = (i + 1) % 6;
+        // la bande déborde de trois unités de chaque côté : deux bandes voisines tracées bord à bord
+        // laissaient passer, par l'anticrénelage, un fil de la couleur du dessous
+        const ex = (dedans[j][0] - dedans[i][0]), ey = (dedans[j][1] - dedans[i][1]), el = Math.hypot(ex, ey) || 1, ux = ex / el * 3 * z, uy = ey / el * 3 * z;
+        ctx.globalAlpha = face; ctx.fillStyle = col; ctx.beginPath();
+        ctx.moveTo(dedans[i][0] - ux, dedans[i][1] - uy); ctx.lineTo(dedans[j][0] + ux, dedans[j][1] + uy); ctx.lineTo(dehors[j][0] + ux, dehors[j][1] + uy); ctx.lineTo(dehors[i][0] - ux, dehors[i][1] - uy); ctx.closePath(); ctx.fill();
+      }
+    }
+    ctx.restore();
     // lagunes (trous du masque entourés de terre) : sol de rive puis mare, dessinées comme un étang
     for (const h of this.decor.holes || []) {
       const w = toWorld(h.q, h.r); const c = cam.toScreen(w.x, w.y); if (!vis(c)) continue;
@@ -481,6 +519,7 @@ export class IslandRenderer {
         const n = b.get(t.q + DIRS[d][0], t.r + DIRS[d][1]);
         if (!n || dropping.has(key(n.q, n.r))) continue;
         // avec une tuile d'eau voisine, la rive du côté concerné est déjà dans notre sol : on raccorde aussi
+        if (anses.has(key(n.q, n.r))) continue;   // vers une anse, c'est la côte, pas une couture
         const gn = this.decor.groundFor(n); if (gn !== g && !(n.family === 'water' && g !== 'water')) continue;
         if (t.family === 'water' && n.family === 'water') continue;
         const season = this.seasonFor(w.x);
@@ -499,6 +538,7 @@ export class IslandRenderer {
     // objets
     const rule = this.isl.rule || null, wkey = this.weather || null;
     for (const o of this.decor.objects) {
+      if (anses.has(o.cell)) continue;   // une anse est de la mer : ni nénuphar ni roseau
       const c = cam.toScreen(o.x, o.y); if (!vis(c)) continue;
       const d = dropping.get(o.cell); const season = this.seasonFor(o.x);
       if (o.seasons && !o.seasons.includes(season)) continue;
@@ -570,23 +610,6 @@ export class IslandRenderer {
       }
       ctx.lineWidth = wAt(sp.length - 1) * mul; ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(sp[sp.length - 1].x, sp[sp.length - 1].y); ctx.stroke();
     };
-    // La mer est un dégradé vertical d'écran (voir `drawSea`) : on sait donc sa couleur à n'importe
-    // quelle hauteur, et un bras de mer peut virer exactement à la teinte qu'il rejoint.
-    const seaCols = (this.isl.climate && this.isl.climate.sea) || SEA[this.isl.season] || SEA.spring;
-    // `voile` : la même mer, mais avec le blanc à 10 % de `drawShallows` DÉJÀ MÉLANGÉ dedans. Le
-    // repeindre par-dessus ne marcherait pas — nos disques se recouvrent, et quatre couches de 10 %
-    // font 34 %. Une couleur opaque ne se cumule pas.
-    const blanchi = (hex, a) => { const h = hex.replace('#', ''); const n = parseInt(h, 16);
-      const f = (v) => Math.round(v * (1 - a) + 255 * a).toString(16).padStart(2, '0');
-      return `#${f((n >> 16) & 255)}${f((n >> 8) & 255)}${f(n & 255)}`; };
-    const grdCache = {};
-    const degradeMer = (a) => {
-      if (grdCache[a]) return grdCache[a];
-      const g = ctx.createLinearGradient(0, 0, 0, STAGE.H);
-      g.addColorStop(0, blanchi(seaCols[0], a)); g.addColorStop(1, blanchi(seaCols[1], a));
-      grdCache[a] = g; return g;
-    };
-    const mer = (a = 0) => degradeMer(a);
     ctx.save(); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
     for (const h of this.decor.holes || []) {
       // lagune : une mare comme un étang, gelée en hiver
@@ -600,8 +623,10 @@ export class IslandRenderer {
       else this.drawCracks(ctx, [c], z);
     }
     const ordered = [...bodies].sort((a, b) => (a.kind === 'river') - (b.kind === 'river'));   // nappes d'abord, rubans par-dessus (la rivière se jette dans le lac)
+    const anses = this.anses();
     for (const body of ordered) {
       if (body.cells.some((c) => dropping.has(key(c.q, c.r)))) continue;
+      if (anses.has(key(body.cells[0].q, body.cells[0].r))) continue;   // une anse est déjà de la mer
       const frozen = body.cells.every((c) => c.frozen);
       const c0 = toWorld(body.cells[0].q, body.cells[0].r);
       const pal = frozen ? ICE : (WATER[this.seasonFor(c0.x)] || WATER.spring);
@@ -632,7 +657,6 @@ export class IslandRenderer {
         ctx.fillStyle = pal.edge; this.blob(ctx, c.x, c.y, rr * 1.03, c0); ctx.fill();
         ctx.fillStyle = pal.deep; this.blob(ctx, c.x, c.y, rr, c0); ctx.fill();
         ctx.fillStyle = pal.shoal; this.blob(ctx, c.x, c.y + 3.5 * z, rr * 0.92, c0); ctx.fill();
-        { const db = this.bouche(body.cells[0]); if (db >= 0) this.bras(ctx, c0, db, mer, z, S, body.cells[0], pal); }   // mare ouverte sur la mer : elle devient une crique
         if (!frozen) { ctx.strokeStyle = pal.foam; ctx.lineWidth = RIDE.trait * 0.7 * z; ctx.beginPath(); ctx.ellipse(c.x - rr * 0.2, c.y - rr * 0.25, rr * 0.35, rr * 0.16, -0.4, 0, TAU); ctx.stroke(); }
       } else {
         // lac : union de mares arrondies (une par case, forme irrégulière) reliées par des ponts arrondis entre cases voisines ;
@@ -669,12 +693,6 @@ export class IslandRenderer {
           for (const c of cs) { const j = jit(c.w, { x: 1, y: 1 }); const rr = SIZE * 0.86 * z; ctx.moveTo(c.s.x - rr * 0.3 + j * rr * 0.4, c.s.y - rr * 0.2 + j * rr * 0.3); ctx.bezierCurveTo(c.s.x - rr * 0.1, c.s.y - rr * 0.35 + j * rr * 0.3, c.s.x + rr * 0.1, c.s.y - rr * 0.05 + j * rr * 0.3, c.s.x + rr * 0.3, c.s.y - rr * 0.2 + j * rr * 0.3); }
           ctx.stroke();
         } else this.drawCracks(ctx, cs.map((c) => c.s), z);
-        // Bras de mer : une nappe qui touche le bord de l'île n'est pas un lac fermé, c'est une
-        // échancrure. Dessiné EN DERNIER, après l'écume et les rides : sinon le liseré du lac se
-        // prolongeait dans la mer et redessinait la lèvre qu'on venait d'ouvrir. Mais HORS du
-        // `if (!frozen)` : un lac gelé touche la mer tout autant, et sans ce bras sa lèvre restait
-        // nue au contact du large tout l'hiver.
-        for (const c of cs) { const db = this.bouche(c.cell); if (db >= 0) this.bras(ctx, c.w, db, mer, z, S, c.cell, pal); }
       }
     }
     ctx.restore();
@@ -735,66 +753,6 @@ export class IslandRenderer {
     ctx.restore();
   }
 
-  /**
-   * L'échancrure par laquelle une nappe d'eau rejoint le large, du côté `d` de la case `w`.
-   *
-   * Deux essais avant celui-ci. Peindre le prolongement en ton de bas-fond faisait des taches pâles
-   * sur une mer d'une autre teinte ; le faire virer puis s'effacer laissait passer, entre deux taches
-   * mal jointes, une bande de terre et un bout d'herbe. La réponse est plus simple : **une échancrure
-   * est de l'eau de mer**. On la peint donc exactement à la couleur de la mer, en opaque — la jointure
-   * est alors invisible par construction, et l'opacité recouvre ce qui traînait au milieu (liseré de
-   * côte, coin de terre).
-   *
-   * Mais peindre TOUT le bras en mer déplaçait la couture : le premier disque recouvre le centre de
-   * la tuile, donc le trait ne tombait plus entre le bras et la mer, mais entre le bras et la NAPPE,
-   * en plein milieu de l'eau douce (mesuré : lac 104,176,219 contre bras 116,176,214, d'un pixel au
-   * suivant). Le bras part donc maintenant de l'eau douce et vire à la mer AVANT le trait de côte :
-   * une rampe ne peut pas faire de trait.
-   */
-  bras(ctx, w, d, mer, z, S, cell, pal) {
-    const m = edgeMid(w.x, w.y, d);
-    const vers = (t) => ({ x: w.x + (m.x - w.x) * t, y: w.y + (m.y - w.y) * t });
-    // Le dégradé de la mer, repris à l'identique : même axe (vertical, plein écran), mêmes bornes.
-    // Une couleur plate ne pouvait pas marcher — la mer est un dégradé, donc une teinte unique ne
-    // coïncide que sur une ligne et se voit au-dessus et au-dessous. Avec le même dégradé, l'échancrure
-    // est de l'eau de mer où qu'elle soit, et la jointure ne peut plus se voir. (Mesuré : la mer fait
-    // (110, 172, 209) au ras de l'île, le lac (98, 173, 216) — un cheveu d'écart, invisible.)
-    // quatre disques qui se chevauchent franchement : aucun interstice ne peut subsister entre eux.
-    // Ils sont tracés en UN SEUL chemin, rempli d'un coup : leur union ne se recouvre donc plus
-    // elle-même, et un remplissage semi-transparent (la rampe, plus bas) ne s'y cumule pas.
-    // Un CHENAL, pas une tache. Les disques faisaient 0,55 d'hexagone de rayon, soit 38 unités monde :
-    // le bras recouvrait toute la case et débordait sur la rive, et ce large aplat d'eau de mer posé
-    // sur la terre était le dernier endroit où la côte redevenait anguleuse. Réduits de moitié et
-    // partant plus au large, ils ouvrent l'étang sur la mer sans manger son pourtour.
-    const disques = [[0.80, 0.29], [1.10, 0.30], [1.45, 0.28], [1.85, 0.24]];
-    const tracer = () => { ctx.beginPath(); for (const [t, r] of disques) { const p = S(vers(t)); this.blob(ctx, p.x, p.y, SIZE * r * z, { x: w.x + t * 41, y: w.y - t * 23 }, true); } };
-    tracer(); ctx.fillStyle = mer(); ctx.fill();
-    // Et le voile des bas-fonds. `drawShallows` pose un blanc à 10 % autour des cases du rivage : le
-    // bras, peint à la mer brute, l'effaçait, d'où une tache plus SOMBRE que son entourage. On le
-    // remet, découpé sur exactement la même emprise — et c'est là que le découpage était fautif : il
-    // se faisait sur des HEXAGONES. La frontière entre l'eau voilée et l'eau nue dessinait donc un
-    // hexagone à arêtes droites en plein milieu de la mer, juste à côté d'une côte qu'on venait
-    // d'arrondir. Même contour que le rivage, et la forme disparaît.
-    ctx.save();
-    ctx.beginPath();
-    let premier = true;
-    for (const [q, r] of [[cell.q, cell.r], ...DIRS.map(([a, b]) => [cell.q + a, cell.r + b])]) {
-      if (!this.isl.board.has(q, r)) continue;
-      const c = toWorld(q, r);
-      this.lobeHex(ctx, c.x, c.y, SIZE * 1.24, c, !premier, S); premier = false;
-    }
-    ctx.clip();
-    ctx.fillStyle = mer(0.10); tracer(); ctx.fill();
-    ctx.restore();
-    // Le raccord côté NAPPE. Le bras commence dans l'eau douce : on l'y repeint à son ton de bas-fond,
-    // qui s'efface avant le trait de côte. D'un bout à l'autre il n'y a plus de saut de couleur, juste
-    // une eau qui vire — du lac au large sans rupture.
-    const p0 = S(vers(0)), p1 = S(vers(1.05));
-    const rampe = ctx.createLinearGradient(p0.x, p0.y, p1.x, p1.y);
-    rampe.addColorStop(0, pal.shoal); rampe.addColorStop(1, `${pal.shoal}00`);
-    tracer(); ctx.fillStyle = rampe; ctx.fill();
-  }
-
   /** Disque d'un sol, opaque au centre et effacé sur le bord. Mis en cache par sol et saison. */
   courtImage(g, season) {
     const k = `${g}|${season}`; this._court = this._court || new Map();
@@ -839,75 +797,155 @@ export class IslandRenderer {
   drawClimateTint(ctx) {
     const cl = this.isl.climate; if (!cl || !cl.tint) return;
     const cam = this.cam, b = this.isl.board; ctx.save(); ctx.globalCompositeOperation = 'multiply'; ctx.fillStyle = cl.tint; ctx.beginPath();
-    for (const t of b.tiles.values()) { const w = toWorld(t.q, t.r); const c = cam.toScreen(w.x, w.y); if (c.x < -100 || c.x > STAGE.W + 100 || c.y < -100 || c.y > STAGE.H + 100) continue; const pts = corners(c.x, c.y, SIZE * cam.zoom * 1.01); ctx.moveTo(pts[0][0], pts[0][1]); for (let i = 1; i < 6; i++) ctx.lineTo(pts[i][0], pts[i][1]); ctx.closePath(); }
+    this.cheminCote(ctx, (p) => cam.toScreen(p.x, p.y));   // la même silhouette que les sols, côte érodée comprise
     for (const h of this.decor.holes || []) { const w = toWorld(h.q, h.r); const c = cam.toScreen(w.x, w.y); const pts = corners(c.x, c.y, SIZE * cam.zoom * 1.01); ctx.moveTo(pts[0][0], pts[0][1]); for (let i = 1; i < 6; i++) ctx.lineTo(pts[i][0], pts[i][1]); ctx.closePath(); }
     ctx.fill(); ctx.restore();
   }
 
-  /** Forme arrondie légèrement irrégulière (mare). */
   /**
-   * Hexagone LOBÉ : les six sommets et les six milieux d'arête, poussés au hasard de la case, reliés
-   * par des courbes. L'empreinte reste celle de la tuile — donc les voisines se recouvrent toujours —
-   * mais il n'y reste pas une seule arête droite ni un seul angle à 120°.
+   * LE TRAIT DE CÔTE. Une seule ligne fermée (ou plusieurs : l'île peut avoir des lagunes, ou être
+   * en morceaux en début de partie) qui fait le tour de ce qui est bâti.
    *
-   * C'est ce qui débarrasse la côte de son air de plateau de jeu : à l'intérieur de l'île les lobes
-   * sont cachés par les tuiles voisines, seul le pourtour se voit, et il ondule.
+   * Deux essais ratés avant celui-ci, et l'erreur mérite d'être écrite : bruiter chaque tuile, que
+   * la base soit son hexagone ou un disque, ne peut PAS donner une côte naturelle. La silhouette
+   * reste une union de formes de tuile — six pointes par case dans un cas, un chapelet de bosses
+   * rondes dans l'autre, « un nuage ». La forme qu'on érode doit être celle de l'ÎLE, pas celle
+   * d'une case.
+   *
+   * On prend donc les arêtes de bord des tuiles posées (celles sans tuile de l'autre côté), on les
+   * enchaîne en boucles fermées, on découpe chaque boucle en pas de neuf unités, et chaque point est
+   * poussé le long de sa normale par le bruit `erosion` — vers le large ou vers l'intérieur, lu en
+   * coordonnées monde pour que caps et anses enjambent les cases. Deux lissages pour finir : plus
+   * une arête droite, plus un angle à 120°.
+   *
+   * Deux versions de chaque boucle sont gardées. `plein` : tout le tour est érodé. `sec` : seules
+   * les arêtes face à la MER le sont ; face aux cases jamais posées le bord reste celui de
+   * l'hexagone, parce qu'en cours de partie ces cases sont dessinées et qu'une côte érodée mordant
+   * dans leur grille serait illisible. L'île nue (`nu`) fond de l'une à l'autre.
+   *
+   * Recalculé seulement quand l'île change de forme.
    */
   /**
-   * Le contour d'une case de rivage : un DISQUE bruité, pas un hexagone arrondi.
-   *
-   * Premier essai raté, et l'erreur mérite d'être écrite : j'étais parti de l'hexagone pour en
-   * adoucir les sommets. Mais arrondir un hexagone donne un hexagone arrondi — six pointes et six
-   * côtés, qu'on voit encore. Tant que la forme de base est la tuile, la grille reste.
-   *
-   * La base est donc un CERCLE de rayon égal au circonscrit de l'hexagone : il contient la tuile
-   * (donc rien ne manque), il déborde de neuf unités sur les arêtes (le pied de l'île), et surtout
-   * il n'a ni sommet ni côté. Deux cercles voisins, centrés à 120 l'un de l'autre pour un rayon de
-   * 69, se recouvrent largement : leur union est continue. Le bruit ne fait ensuite que le gonfler,
-   * jamais le rentrer, et il est lu EN COORDONNÉES MONDE au point du contour — deux cases voisines
-   * lisent la même valeur là où leurs cercles se croisent, et les caps comme les anses enjambent
-   * plusieurs tuiles au lieu de se répéter case par case.
+   * LES ANSES. Un étang ou un lac qui touche la mer n'est pas un lac : c'est une anse. On a essayé
+   * de le garder lac, avec sa rive tout autour et un petit chenal vers le large — « de l'eau prise en
+   * tenaille entre deux bouts de terre », et c'était bien ça. Ses cases sont donc rendues comme de
+   * la MER : la côte les contourne par l'intérieur, érodée comme partout, et le large y entre
+   * franchement. Rien ne change au jeu (la région, ses points, son nom à la tournée) ; seul le
+   * rendu. Les rivières gardent leur embouchure étroite : pour elles, c'est naturel.
    */
-  /** Les points du contour, TOUJOURS en coordonnées monde : le bruit ne doit pas suivre la caméra. */
-  lobePts(cx, cy, r) {
-    const N = 34, pts = [];
-    for (let i = 0; i < N; i++) {
-      const a = (i / N) * TAU;
-      const j = 1 + 0.34 * fbm(cx + Math.cos(a) * r, cy + Math.sin(a) * r);
-      pts.push([cx + Math.cos(a) * r * j, cy + Math.sin(a) * r * j]);
-    }
-    return pts;
+  anses() {
+    const b = this.isl.board; const ver = `${b.mask.size}:${b.tiles.size}:${b.version}`;
+    if (this._anses && this._anses.ver === ver) return this._anses.cells;
+    const cells = new Set();
+    for (const body of waterBodies(b)) if (body.kind !== 'river' && body.mouth) for (const c of body.cells) cells.add(key(c.q, c.r));
+    this._anses = { ver, cells };
+    return cells;
   }
 
-  /** Trace le contour. `proj` transforme chaque point, pour les tracés qui se font en repère écran. */
-  lobeHex(ctx, cx, cy, r, seed, suite, proj) {
-    let pts = this.lobePts(cx, cy, r);
-    if (proj) pts = pts.map(([x, y]) => { const p = proj({ x, y }); return [p.x, p.y]; });
-    const N = pts.length;
-    if (!suite) ctx.beginPath();
-    ctx.moveTo((pts[0][0] + pts[N - 1][0]) / 2, (pts[0][1] + pts[N - 1][1]) / 2);
-    for (let i = 0; i < N; i++) { const p = pts[i], q = pts[(i + 1) % N]; ctx.quadraticCurveTo(p[0], p[1], (p[0] + q[0]) / 2, (p[1] + q[1]) / 2); }
-    ctx.closePath();
+  /** Cette case est-elle de l'eau de mer, pour le rendu : hors du masque, ou dans une anse ? */
+  estMer(q, r) { return this.isl.board.isSea(q, r) || this.anses().has(key(q, r)); }
+
+  contourIle() {
+    const b = this.isl.board; const ver = `${b.mask.size}:${b.tiles.size}:${b.version}`;
+    if (this._cote && this._cote.ver === ver) return this._cote;
+    const anses = this.anses();
+    // 1. les arêtes de bord, orientées comme `corners()` (sommet i → i+1), indexées par leur départ.
+    //    Autour d'un sommet, deux hexagones posés sont toujours voisins : chaque sommet du bord n'a
+    //    donc qu'une arête sortante, et l'enchaînement est sans ambiguïté.
+    const cle = (p) => `${Math.round(p[0])},${Math.round(p[1])}`;
+    const aretes = new Map(); let dehors = 0;
+    for (const [k, t] of b.tiles) {
+      if (anses.has(k)) continue;
+      const [q, r] = parse(k); const w = toWorld(q, r); const c = corners(w.x, w.y, SIZE);
+      for (let i = 0; i < 6; i++) {
+        const [dq, dr] = DIRS[EDGE_DIR[i]]; const nk = key(q + dq, r + dr); if (b.tiles.has(nk) && !anses.has(nk)) continue;
+        const a = c[i], d = c[(i + 1) % 6];
+        // de quel côté d'une arête orientée est l'intérieur ? Le même pour toutes : on le mesure une fois
+        if (!dehors) dehors = (d[0] - a[0]) * (w.y - a[1]) - (d[1] - a[1]) * (w.x - a[0]) > 0 ? -1 : 1;
+        aretes.set(cle(a), { a, d, mer: this.estMer(q + dq, r + dr) });
+      }
+    }
+    // 2. on enchaîne en boucles
+    const boucles = []; const vus = new Set();
+    for (const [k0, e0] of aretes) {
+      if (vus.has(k0)) continue;
+      const seg = []; let k = k0, e = e0;
+      while (e && !vus.has(k)) { vus.add(k); seg.push(e); k = cle(e.d); e = aretes.get(k); }
+      boucles.push(seg);
+    }
+    // 3. subdivision, normales, érosion, lissage
+    const PAS = 8, out = [];
+    for (const seg of boucles) {
+      const base = [], mer = [];
+      for (const e of seg) { const n = Math.max(1, Math.round(Math.hypot(e.d[0] - e.a[0], e.d[1] - e.a[1]) / PAS)); for (let i = 0; i < n; i++) { const t = i / n; base.push([e.a[0] + (e.d[0] - e.a[0]) * t, e.a[1] + (e.d[1] - e.a[1]) * t]); mer.push(e.mer); } }
+      const N = base.length; if (N < 3) continue;
+      // lissage [1 2 1] sur les points libres ; un point qui n'est pas érodé reste sur l'hexagone
+      const lisser = (pts, libre, passes) => {
+        for (let pass = 0; pass < passes; pass++) {
+          const src = pts.map((p) => p.slice());
+          for (let i = 0; i < N; i++) { if (!libre[i]) continue; const av = src[(i + N - 1) % N], ap = src[(i + 1) % N]; pts[i][0] = (av[0] + 2 * src[i][0] + ap[0]) / 4; pts[i][1] = (av[1] + 2 * src[i][1] + ap[1]) / 4; }
+        }
+        return pts;
+      };
+      const pousse = (libre) => {
+        // 1. La ligne de base est le tour des hexagones : une dent de scie de trente-cinq unités
+        //    d'amplitude et de cent vingt de période, sur toute côte droite. Un bruit centré sur cette
+        //    ligne la garde : on la lisse d'abord LARGEMENT (trente passes, un flou d'une trentaine
+        //    d'unités) pour que la côte moyenne passe entre les pointes et les creux, et que la
+        //    période des cases n'existe plus. Les vrais caps de l'île, bien plus larges, y survivent.
+        const lis = lisser(base.map((p) => p.slice()), libre, 30);
+        // 2. L'érosion, le long de la normale de la ligne lissée — après le lissage, pour qu'il ne l'efface pas
+        const pts = [];
+        for (let i = 0; i < N; i++) {
+          const p = lis[i], av = lis[(i + N - 1) % N], ap = lis[(i + 1) % N];
+          const tx = ap[0] - av[0], ty = ap[1] - av[1], l = Math.hypot(tx, ty) || 1;
+          const nx = dehors * -ty / l, ny = dehors * tx / l;
+          const d = libre[i] ? clamp(erosion(p[0], p[1]), -18, 24) : 0;
+          pts.push([p[0] + nx * d, p[1] + ny * d]);
+        }
+        // 3. deux passes légères pour ôter les angles du bruit lui-même
+        return lisser(pts, libre, 2);
+      };
+      out.push({ mer, sec: pousse(mer), plein: pousse(mer.map(() => true)) });
+    }
+    this._cote = { ver, boucles: out };
+    return this._cote;
   }
 
   /**
-   * L'embouchure d'une case d'eau : UNE direction, ou -1 si elle ne touche pas la mer.
-   *
-   * On en ouvrait une par côté donnant sur le large. Une mare au bout d'une pointe en avait donc
-   * quatre ou cinq, et ces chenaux rayonnants faisaient une étoile — c'est exactement ce qu'on
-   * prenait pour « des hexagones » sur la côte. Une crique a une embouchure : on garde celle qui
-   * donne sur le plus de mer, et à égalité la première, pour que le choix soit stable d'une image
-   * à l'autre.
+   * Ajoute au chemin courant le trait de côte. `proj` projette chaque point (tracés en repère écran) ;
+   * sans lui on trace en repère monde. `quoi` : 'tout' ferme chaque boucle (remplissage, découpe) ;
+   * 'mer' ne pose que les morceaux face à la mer, 'vide' ceux face aux cases jamais posées.
    */
-  bouche(cell) {
-    const b = this.isl.board; let best = -1, score = -1;
-    for (let d = 0; d < 6; d++) {
-      const nq = cell.q + DIRS[d][0], nr = cell.r + DIRS[d][1];
-      if (!b.isSea(nq, nr)) continue;
-      let ouvert = 0; for (const [dq, dr] of DIRS) if (b.isSea(nq + dq, nr + dr)) ouvert++;
-      if (ouvert > score) { score = ouvert; best = d; }
+  cheminCote(ctx, proj, quoi = 'tout') {
+    const { boucles } = this.contourIle(); const nu = this.nuAvance();
+    for (const bcl of boucles) {
+      const N = bcl.sec.length;
+      const P = (i) => { i = (i + N) % N; const s = bcl.sec[i], p = bcl.plein[i]; const x = s[0] + (p[0] - s[0]) * nu, y = s[1] + (p[1] - s[1]) * nu; return proj ? proj({ x, y }) : { x, y }; };
+      const M = (i) => { const a = P(i), b = P(i + 1); return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }; };
+      if (quoi === 'tout') {
+        const m = M(N - 1); ctx.moveTo(m.x, m.y);
+        for (let i = 0; i < N; i++) { const c = P(i), n = M(i); ctx.quadraticCurveTo(c.x, c.y, n.x, n.y); }
+        ctx.closePath();
+        continue;
+      }
+      const veut = quoi === 'mer'; let ouvert = false;
+      for (let i = 0; i < N; i++) {
+        if (bcl.mer[i] !== veut) { ouvert = false; continue; }
+        if (!ouvert) { const m = M(i - 1); ctx.moveTo(m.x, m.y); ouvert = true; }
+        const c = P(i), n = M(i); ctx.quadraticCurveTo(c.x, c.y, n.x, n.y);
+      }
     }
-    return best;
+  }
+
+  /**
+   * Trace le trait de côte avec le style courant : plein face à la mer, et face aux cases jamais
+   * posées seulement à mesure que l'île se met nue. `style(a)` rend la couleur pour une opacité relative.
+   */
+  traitCote(ctx, proj, style) {
+    const nu = this.nuAvance();
+    ctx.strokeStyle = style(1); ctx.beginPath(); this.cheminCote(ctx, proj, 'mer'); ctx.stroke();
+    if (nu > 0.002) { ctx.strokeStyle = style(nu); ctx.beginPath(); this.cheminCote(ctx, proj, 'vide'); ctx.stroke(); }
   }
 
   /** Le sol de RIVE d'une case d'eau : la terre de ses voisines, à défaut du sable. */
@@ -917,14 +955,15 @@ export class IslandRenderer {
     return 'sand';
   }
 
-  /** Les cases de terre qui touchent la mer : celles dont la silhouette se voit vraiment. */
+  /** Les cases de bord : celles qui ont au moins une voisine non posée — c'est là que la côte s'érode. */
   rivage() {
-    const b = this.isl.board; const ver = `${b.mask.size}:${b.tiles.size}`;
+    const b = this.isl.board; const ver = `${b.mask.size}:${b.tiles.size}:${b.version}`;
     if (this._riv && this._riv.ver === ver) return this._riv.cells;
-    const cells = [];
+    const cells = []; const anses = this.anses();
     for (const [k, t] of b.tiles) {
+      if (anses.has(k)) continue;
       const [q, r] = parse(k);
-      if (!DIRS.some(([dq, dr]) => b.isSea(q + dq, r + dr))) continue;
+      if (!DIRS.some(([dq, dr]) => { const nk = key(q + dq, r + dr); return !b.tiles.has(nk) || anses.has(nk); })) continue;
       cells.push({ t, w: toWorld(q, r) });
     }
     this._riv = { ver, cells };
@@ -932,45 +971,42 @@ export class IslandRenderer {
   }
 
   /**
-   * Le pied de l'île. Sous chaque tuile de bord, une tache de son propre sol, un peu plus large que
-   * l'hexagone et lobée : vers l'intérieur les voisines la recouvrent, vers la mer elle déborde de
-   * quelques unités, et la côte cesse d'être une ligne brisée à 120°. Dessinée entre l'ombre portée
-   * et les sols, pour qu'aucune tuile ne paraisse posée par-dessus.
+   * Le pied de l'île : l'écume le long du trait de côte, puis, sous chaque tuile de bord, sa propre
+   * terre débordant largement de l'hexagone mais découpée sur la côte — c'est elle qui colore ce que
+   * l'érosion a gagné sur la mer. Dessiné entre l'ombre portée et les sols.
    */
   drawShore(ctx) {
     const cote = this.rivage(); if (!cote.length) return;
     const images = Assets.manifest().images || {};
-    const b = this.isl.board, nu = this.nuAvance();
+    const nu = this.nuAvance();
     const winter = this.isl.season === 'winter', storm = this.weather === 'storm';
     ctx.save(); this.worldSpace(ctx);
-    const contour = () => { let premier = true; for (const { w } of cote) { this.lobeHex(ctx, w.x, w.y, SIZE * 1.02, w, !premier); premier = false; } };
-    // ORDRE : l'écume d'abord, la terre ensuite. Les disques de deux cases voisines se recouvrent
-    // largement, y compris HORS de leurs hexagones ; tracés puis laissés tels quels, leurs arcs
-    // intérieurs traîneraient sur la mer. Le remplissage qui suit les recouvre, et il ne reste de
-    // chaque trait que sa moitié extérieure — c'est-à-dire l'ourlet du rivage, et lui seul.
+    // ORDRE : l'écume d'abord, la terre ensuite : de chaque trait, centré sur la côte, la terre
+    // recouvre la moitié intérieure, et il ne reste que l'ourlet du rivage.
     const breath = 0.5 + 0.5 * Math.sin(this.time * (storm ? 2.2 : 0.9));
     ctx.lineJoin = 'round'; ctx.lineCap = 'round';
-    const ecume = (lw, a) => { if (a <= 0.002) return; ctx.lineWidth = lw; ctx.strokeStyle = `rgba(255,255,255,${a.toFixed(3)})`; ctx.beginPath(); contour(); ctx.stroke(); };
+    const ecume = (lw, a) => { if (a <= 0.002) return; ctx.lineWidth = lw; this.traitCote(ctx, null, (k) => `rgba(255,255,255,${(a * k).toFixed(3)})`); };
     if (!this.lowFx) ecume(15, (winter ? 0.12 : 0.20) + 0.10 * breath);   // large et douce : l'écume, qui respire
     // Le liseré FIN ne paraît pas sur l'île nue : sur une image fixe l'œil lit un contour dessiné
     // plutôt qu'un rivage. Il ne reste alors que l'écume large.
     if (nu < 1) ecume(4.5, ((winter ? 0.40 : 0.52) + 0.18 * breath) * (1 - nu));
+    ctx.beginPath(); this.cheminCote(ctx, null); ctx.clip();
     for (const { t, w } of cote) {
       const season = this.seasonFor(w.x);
-      // Une case d'EAU au bord prend la couleur de sa RIVE, pas la sienne : un disque bleu posé sur
-      // la mer est invisible, et l'hexagone de la tuile ressort tel quel. Avec la terre de ses
-      // voisines, l'étang se lit comme tenu par le rivage, et son plan d'eau se dessine par-dessus.
+      // Une case d'EAU au bord prend la couleur de sa RIVE, pas la sienne : de l'eau posée sur la
+      // mer est invisible. Avec la terre de ses voisines, l'étang se lit comme tenu par le rivage,
+      // et son plan d'eau se dessine par-dessus.
       let g = this.decor.groundFor(t);
       if (g === 'water' || t.family === 'water') g = this.riveDe(t);
       const col = GROUND_COLORS[g] || (images[groundKey(g, season)] || {}).ground_color;
       if (!col) continue;
-      ctx.fillStyle = col;
-      this.lobeHex(ctx, w.x, w.y, SIZE * 1.02, w);
-      ctx.fill();
+      const pts = corners(w.x, w.y, SIZE * 1.45);
+      ctx.fillStyle = col; ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]); for (let i = 1; i < 6; i++) ctx.lineTo(pts[i][0], pts[i][1]); ctx.closePath(); ctx.fill();
     }
     ctx.restore();
   }
 
+  /** Forme arrondie légèrement irrégulière (mare). */
   blob(ctx, cx, cy, r, seed, suite) {
     const N = 28, pts = [];
     for (let i = 0; i < N; i++) { const a = (i / N) * TAU; const j = 0.92 + 0.08 * Math.sin(seed.x * 0.037 + seed.y * 0.011 + a * 3) + 0.05 * Math.cos(a * 5 + seed.y * 0.02); pts.push([cx + Math.cos(a) * r * j, cy + Math.sin(a) * r * 0.8 * j]); }
