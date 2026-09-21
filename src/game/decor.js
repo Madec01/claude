@@ -45,20 +45,26 @@ export function groundOf(t) {
 export const groundKey = (g, season) => (g === 'dry' ? 'ground_dry' : g === 'ice' ? 'water_frozen' : `ground_${g}_${season}`);
 
 /**
- * Le sol d'un bourg selon sa taille. Un hameau isolé reste sur l'herbe ; à deux, la terre est battue
- * par le passage ; à trois et plus, on a pavé (les images du sol de roche : à cette taille elles font
- * très bien un pavage, et aucune banque libre ne donne de vrais pavés). Le poids compte les niveaux
- * et non les cases — un hameau devenu village vaut deux.
+ * La cour d'un bourg. Un hameau isolé reste sur l'herbe ; dès deux, le sol est battu par le passage,
+ * et il l'est davantage dans une petite ville. Le poids compte les niveaux et non les cases — un
+ * hameau devenu village vaut deux.
  *
- * Ce n'est PAS le sol de la tuile : remplir l'hexagone donnait une grande dalle grise vide, avec une
+ * C'est de la terre, pas du pavé : le sol de roche avait été essayé en guise de pavage, mais c'est
+ * une dalle bleu-gris semée de carrés clairs — sous des maisons chaudes, ça ne lisait ni pavé ni
+ * sol, juste une tache froide. La terre battue dit la même chose (« ici on passe ») sans jurer.
+ *
+ * Ce n'est PAS le sol de la tuile : remplir l'hexagone donnait une grande dalle vide, avec une
  * couture franche contre l'herbe. C'est une COUR, un disque fondu sous CHAQUE bâtiment ; les disques
- * voisins se recouvrent, si bien que le pavé est exactement là où il doit être — entre les maisons.
+ * voisins se recouvrent, si bien que la terre est exactement là où elle doit être — entre les maisons.
+ * @returns {{ r: number, a: number }|null} rayon et opacité de la cour, ou null pour un hameau isolé
  */
-const BOURG = [null, null, 'dirt', 'stone'];
-export const bourgGround = (poids) => BOURG[Math.min(Math.max(poids, 0), 3)];
+export function bourgCour(poids) {
+  if (poids <= 1) return null;
+  return poids <= 3 ? { r: 40, a: 0.5 } : { r: 48, a: 0.72 };
+}
 
-/** Pas de la trame du bâti des bourgs et rayon de la cour sous chaque bâtiment, en unités monde. */
-const PAS = 34, COUR = 46;
+/** Pas de la trame du bâti des bourgs, en unités monde. */
+const PAS = 34;
 export const GROUND_COLORS = { dry: '#cdbb6a', ice: '#dbe9f4' };
 
 function mulberry(seed) { let s = seed >>> 0 || 7; return () => { s += 0x6D2B79F5; let t = Math.imul(s ^ (s >>> 15), 1 | s); t ^= t + Math.imul(t ^ (t >>> 7), 61 | t); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
@@ -242,7 +248,7 @@ export class Decor {
     for (const reg of board.regions('hamlet')) {
       const keys = reg.keys;
       let poids = 0; for (const c of reg.cells) poids += c.level || 1;
-      const sol = bourgGround(poids);
+      const cour = bourgCour(poids);
       const garde = poids <= 1 ? 0.30 : poids <= 3 ? 0.52 : 0.72;
       const cen = centroidOf(reg);
       const closed = board.regionPaid(reg);
@@ -271,7 +277,7 @@ export class Decor {
         const { p, ck, rng, gros } = b; const r = rng(); const w = wild(rng, 0.9, 1.06);
         const met = (tpl, sc, extra) => add(Object.assign({ x: p.x, y: p.y, tpl, cell: ck, scale: (w.scale || 1) * sc, alpha: 1, flip: w.flip }, extra));
         // la cour ne se met que sous ce qui est bâti : un jardin reste sur l'herbe, c'est lui qui aère le bourg
-        const pave = () => { if (sol) this.courts.push({ x: p.x, y: p.y - 4, r: COUR * (0.9 + rng() * 0.25), g: sol, cell: ck }); };
+        const pave = () => { if (cour) this.courts.push({ x: p.x, y: p.y - 4, r: cour.r * (0.9 + rng() * 0.25), a: cour.a, cell: ck }); };
         if (b === coeur && !hasRare) {
           pave();
           if (poids >= 3) met('obj_townhall', 0.85); else met('obj_well', 1);

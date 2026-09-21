@@ -528,20 +528,23 @@ export class IslandRenderer {
   }
 
   /**
-   * Les cours des bourgs : un disque de terre battue ou de pavé sous chaque groupe de maisons, fondu sur son
-   * pourtour. Une seule image masquée par sol et par saison, posée autant de fois qu'il y a de cases de bourg :
-   * les disques voisins se recouvrent et font une place, sans couture puisqu'ils partagent la même texture.
+   * Les cours des bourgs : un disque de terre battue sous chaque bâtiment, fondu sur son pourtour. Une seule
+   * image masquée par saison, posée autant de fois qu'il y a de bâtiments : les disques voisins se recouvrent
+   * et font une place, sans couture puisqu'ils partagent la même texture. L'opacité dit la taille du bourg.
    */
   drawCourts(ctx, dropping) {
     const courts = this.decor.courts; if (!courts || !courts.length) return;
     const cam = this.cam, z = cam.zoom;
+    ctx.save();
     for (const c of courts) {
       if (dropping.has(c.cell)) continue;
       const p = cam.toScreen(c.x, c.y); const rr = c.r * z;
       if (p.x + rr < 0 || p.x - rr > STAGE.W || p.y + rr < 0 || p.y - rr > STAGE.H) continue;
-      const img = this.courtImage(c.g, this.seasonFor(c.x)); if (!img) continue;
+      const img = this.courtImage('dirt', this.seasonFor(c.x)); if (!img) continue;
+      ctx.globalAlpha = c.a;
       ctx.drawImage(img, p.x - rr, p.y - rr, rr * 2, rr * 2);
     }
+    ctx.restore();
   }
 
   /** Disque d'un sol, opaque au centre et effacé sur le bord. Mis en cache par sol et saison. */
@@ -554,8 +557,8 @@ export class IslandRenderer {
     const cv = document.createElement('canvas'); cv.width = D; cv.height = D; const c = cv.getContext('2d');
     c.drawImage(img, D / 2 - img.width * ech / 2, D / 2 - img.height * ech / 2, img.width * ech, img.height * ech);
     const grad = c.createRadialGradient(D / 2, D / 2, 0, D / 2, D / 2, D / 2);
-    grad.addColorStop(0, 'rgba(0,0,0,0.95)'); grad.addColorStop(0.45, 'rgba(0,0,0,0.8)');
-    grad.addColorStop(0.75, 'rgba(0,0,0,0.42)'); grad.addColorStop(1, 'rgba(0,0,0,0)');
+    grad.addColorStop(0, 'rgba(0,0,0,0.92)'); grad.addColorStop(0.42, 'rgba(0,0,0,0.74)');
+    grad.addColorStop(0.72, 'rgba(0,0,0,0.36)'); grad.addColorStop(1, 'rgba(0,0,0,0)');
     c.globalCompositeOperation = 'destination-in'; c.fillStyle = grad; c.fillRect(0, 0, D, D);
     this._court.set(k, cv); return cv;
   }
