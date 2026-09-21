@@ -11,9 +11,9 @@ import { classifyWater } from './water.js';
 const FUSION_GROUND = { farm: 'field', fort: 'stone', cave: 'stone' };
 /** Décor des tuiles composées : objets posés autour du centre (dx, dy en unités monde). */
 export const FUSION_DECOR = {
-  port:   [{ tpl: 'obj_house_small', dx: -24, dy: 22 }, { tpl: 'obj_lightpost', dx: 22, dy: 30 }, { tpl: 'obj_log', dx: 12, dy: 44 }, { tpl: 'obj_basket', dx: 32, dy: 44 }, { tpl: 'obj_pole', dx: 4, dy: 36 }],
+  port:   [{ tpl: 'obj_house_small', dx: -26, dy: 20 }, { tpl: 'obj_ship', dx: 20, dy: 4 }, { tpl: 'obj_boat', dx: -6, dy: 42 }, { tpl: 'obj_boatrack', dx: 34, dy: 40 }, { tpl: 'obj_anchor', dx: -34, dy: 44 }, { tpl: 'obj_pole', dx: 6, dy: 32 }],
   paddy:  [{ tpl: 'obj_crop_{s}', dx: -20, dy: 10 }, { tpl: 'obj_crop_{s}', dx: 0, dy: 20 }, { tpl: 'obj_crop_{s}', dx: 20, dy: 10 }, { tpl: 'obj_crop_{s}', dx: -10, dy: 34 }, { tpl: 'obj_crop_{s}', dx: 12, dy: 36 }, { tpl: 'obj_lily', dx: -26, dy: 30, seasons: ['summer'] }],
-  farm:   [{ tpl: 'obj_farm', dx: 0, dy: 30 }, { tpl: 'obj_silo1', dx: -34, dy: 22 }, { tpl: 'obj_fence', dx: 32, dy: 40 }, { tpl: 'obj_hay', dx: 30, dy: 12 }, { tpl: 'obj_crop_{s}', dx: -28, dy: 44 }],
+  farm:   [{ tpl: 'obj_farm', dx: 0, dy: 30 }, { tpl: 'obj_silo1', dx: -34, dy: 22 }, { tpl: 'obj_fence', dx: 32, dy: 40 }, { tpl: 'obj_haybale', dx: 30, dy: 12 }, { tpl: 'obj_hay', dx: 8, dy: 46 }, { tpl: 'obj_crop_{s}', dx: -28, dy: 44 }],
   fort:   [{ tpl: 'obj_castle_small', dx: 0, dy: 30 }, { tpl: 'obj_wall_small', dx: -34, dy: 34 }, { tpl: 'obj_rockGrey_small1{w}', dx: 32, dy: 36 }],
   falls:  [{ tpl: 'obj_rockGrey_large{w}', dx: -10, dy: 34, scale: 1.15 }, { tpl: 'obj_rockGrey_medium2{w}', dx: 28, dy: 18 }, { tpl: 'sea_wave_1', dx: 2, dy: 14, wave: true }, { tpl: 'obj_moss', dx: -28, dy: 20, seasons: ['spring'] }],
   cave:   [{ tpl: 'obj_rockGrey_large{w}', dx: 0, dy: 40, scale: 1.3 }, { tpl: 'obj_medieval_doorway', dx: 0, dy: 44, scale: 0.8 }, { tpl: 'obj_treePine_small_{s}', dx: -34, dy: 22 }, { tpl: 'obj_treePine_small_{s}', dx: 34, dy: 26 }],
@@ -28,7 +28,7 @@ export const WORK_DECOR = {
   bridge:    [{ tpl: 'obj_bridge_wood_NE', dx: 0, dy: 34, scale: 1.35 }],
   nestbox:   [{ tpl: 'obj_tinyBuilding', dx: 24, dy: 4, scale: 0.55 }],
   campfire:  [{ tpl: 'obj_fire', dx: 0, dy: 22 }, { tpl: 'obj_log', dx: 22, dy: 30, scale: 0.8 }],
-  menhir:    [{ tpl: 'obj_tombstone1', dx: 0, dy: 26, scale: 1.5 }],
+  menhir:    [{ tpl: 'obj_shrine', dx: 0, dy: 28 }],   // pierre gravée et bougies (KayKit EXTRA) : c'était une pierre TOMBALE de 24 px
   compost:   [{ tpl: 'obj_logPile', dx: 0, dy: 24, scale: 0.9 }, { tpl: 'obj_hay', dx: 22, dy: 30, scale: 0.7 }],
 };
 
@@ -142,7 +142,7 @@ export class Decor {
     };
     const L2 = (cell) => (cell.level || 1) >= 2;   // tuile bâtie : décor nettement plus dense
     const L3 = (cell) => (cell.level || 1) >= 3;   // niveau 3 : une pièce maîtresse au centre
-    const LANDMARK = { forest: ['obj_treeRound_large2_{s}', 1.9], hamlet: ['obj_church', 1.0], field: ['obj_silo1', 1.0], orchard: ['obj_treeRound_fruit_{s}', 1.8], meadow: ['obj_fence', 1.2], marsh: ['obj_bushGrass_{s}', 1.8], rock: ['obj_rockGrey_large{w}', 1.6], sand: ['obj_rockBrown_small{w}', 1.6], hill: ['obj_treePine_large_{s}', 1.4], heath: ['obj_heather_{s}', 1.8] };
+    const LANDMARK = { forest: ['obj_treeRound_large2_{s}', 1.9], hamlet: ['obj_townhall', 1.0], field: ['obj_silo1', 1.0], orchard: ['obj_treeRound_fruit_{s}', 1.8], meadow: ['obj_fence', 1.2], marsh: ['obj_bushGrass_{s}', 1.8], rock: ['obj_rockGrey_large{w}', 1.6], sand: ['obj_rockBrown_small{w}', 1.6], hill: ['obj_treePine_large_{s}', 1.4], heath: ['obj_heather_{s}', 1.8] };
     for (const t of board.tiles.values()) { if (!L3(t) || t.rare) continue; const lm = LANDMARK[t.family]; if (!lm) continue; const c = toWorld(t.q, t.r); add({ x: c.x, y: c.y + (t.family === 'hamlet' ? 34 : 30), tpl: lm[0], cell: key(t.q, t.r), scale: lm[1], alpha: 1, notSeasons: t.family === 'forest' ? ['spring'] : undefined }); if (t.family === 'forest') add({ x: c.x, y: c.y + 30, tpl: 'obj_treeRound_blossom_large2', cell: key(t.q, t.r), scale: lm[1], alpha: 1, seasons: ['spring'] }); }
     // croissance annoncée : une saison avant, la tuile porte en petit ce qu'elle va devenir (jeune pin, maisonnette, pousses)
     const SPROUT = { forest: ['obj_treePine_small_{s}', 0.85], orchard: ['obj_treeRound_small2_{s}', 0.8], hamlet: ['obj_house_small_jaune', 0.7], field: ['obj_crop_{s}', 0.75], meadow: ['obj_bushGrass_{s}', 0.85] };
@@ -173,7 +173,7 @@ export class Decor {
     for (const family of ['forest', 'meadow', 'field', 'hamlet', 'orchard', 'water', 'marsh', 'rock', 'sand', 'hill', 'heath']) {
       for (const reg of board.regions(family)) {
         const keys = reg.keys; const cen = centroidOf(reg); const placed = [];
-        const closed = board.closedRegions.has(reg.id);
+        const closed = board.regionPaid(reg);
         const cells = reg.cells.filter((c) => !c.rare);
         // cellule « centrale » (village)
         let center = null, bd = Infinity;
@@ -214,8 +214,10 @@ export class Decor {
               if (inRegion(p, keys) !== ck || !edgeOk(p, ck, keys, 5)) continue;
               push(p, 'obj_crop_{s}');
             }
-            if (rng() < 0.45) for (const p of sample(rng, cell, keys, 1, { minDist: 30, margin: 12, placed, radius: 0.7 })) { placed.push(p); push(p, 'obj_hay'); }
-            for (const p of sample(rng, cell, keys, 1, { minDist: 30, margin: 12, placed, radius: 0.7 })) { placed.push(p); push(p, 'obj_hay', { seasons: ['autumn'] }); }
+            // deux silhouettes de récolte, tirées au sort : la meule conique et la botte ronde du pack EXTRA
+            const botte = () => (rng() < 0.5 ? 'obj_hay' : 'obj_haybale');
+            if (rng() < 0.45) for (const p of sample(rng, cell, keys, 1, { minDist: 30, margin: 12, placed, radius: 0.7 })) { placed.push(p); push(p, botte(), wild(rng, 0.9, 1.1)); }
+            for (const p of sample(rng, cell, keys, L2(cell) ? 2 : 1, { minDist: 30, margin: 12, placed, radius: 0.75 })) { placed.push(p); push(p, botte(), Object.assign({ seasons: ['autumn'] }, wild(rng, 0.9, 1.1))); }
             for (const p of sample(rng, cell, keys, 1, { minDist: 26, margin: 12, placed: [] })) push(p, 'obj_puddle', { weathers: ['storm'] });
           } else if (family === 'hamlet') {
             const isCenter = cells.length >= 3 && cell === center && !hasRareCenter;
@@ -224,9 +226,11 @@ export class Decor {
             const r = rng();
             if (isCenter) { push({ x: c.x + (dx >= 0 ? 4 : -4), y: c.y + 22 }, 'obj_well'); push({ x: c.x + (dx >= 0 ? -30 : 30), y: c.y + 30 + dy }, `obj_house_small${roof(rng)}`); }
             else if (r < 0.34) push({ x: c.x + dx, y: c.y + 30 + dy }, `obj_house${roof(rng)}`);
-            else if (r < 0.62) { push({ x: c.x + dx - 8, y: c.y + 28 + dy }, `obj_house_small${roof(rng)}`); push({ x: c.x + 30, y: c.y + 12 }, rng() < 0.5 ? 'obj_hay' : 'obj_logPile'); }
+            else if (r < 0.52) { push({ x: c.x + dx - 8, y: c.y + 28 + dy }, `obj_house_small${roof(rng)}`); push({ x: c.x + 30, y: c.y + 12 }, rng() < 0.5 ? 'obj_hay' : 'obj_logPile'); }
+            // l'atelier de charpente : une troisième silhouette d'artisan, le pack ne donnait que la scierie
+            else if (r < 0.62) { push({ x: c.x + dx, y: c.y + 30 + dy }, 'obj_workshop'); push({ x: c.x + (dx >= 0 ? -30 : 30), y: c.y + 10 }, 'obj_logPile', { scale: 0.85 }); }
             else if (r < 0.78) push({ x: c.x + dx, y: c.y + 30 + dy }, `obj_villa${roof(rng)}`);
-            else if (r < 0.9 && nearField) { push({ x: c.x + dx, y: c.y + 30 + dy }, `obj_farm${roof(rng)}`); push({ x: c.x - 32, y: c.y + 4 }, 'obj_hay'); }
+            else if (r < 0.9 && nearField) { push({ x: c.x + dx, y: c.y + 30 + dy }, `obj_farm${roof(rng)}`); push({ x: c.x - 32, y: c.y + 4 }, rng() < 0.5 ? 'obj_hay' : 'obj_haybale'); }
             else { push({ x: c.x + dx + 10, y: c.y + 26 + dy }, `obj_house_small${roof(rng)}`); push({ x: c.x - 28, y: c.y + 8 }, `obj_tinyBuilding${roof(rng)}`); }
             // niveau 2 : le hameau devient un village, il faut que ça se voie — quatre bâtiments de plus, une clôture et un puits
             if (L2(cell)) { push({ x: c.x + (dx >= 0 ? 30 : -30), y: c.y - 4 }, `obj_house_small${roof(rng)}`); push({ x: c.x + (dx >= 0 ? -26 : 26), y: c.y - 10 }, `obj_tinyBuilding${roof(rng)}`); push({ x: c.x - 4, y: c.y - 16 }, `obj_house_small${roof(rng)}`, { scale: 0.9 }); push({ x: c.x + (dx >= 0 ? -34 : 34), y: c.y + 30 }, `obj_tinyBuilding${roof(rng)}`, { scale: 0.85 }); push({ x: c.x + 18, y: c.y + 42 }, 'obj_fence'); push({ x: c.x - 24, y: c.y + 40 }, 'obj_well'); }
@@ -259,6 +263,8 @@ export class Decor {
           } else if (family === 'marsh') {
             for (const p of sample(rng, cell, keys, 2, { minDist: 30, margin: 12, placed })) { placed.push(p); push(p, 'obj_puddle{w}'); }
             for (const p of sample(rng, cell, keys, L2(cell) ? 7 : 3, { minDist: L2(cell) ? 11 : 15, margin: 5, placed })) { placed.push(p); push(p, 'obj_bushGrass_{s}'); }
+            // les massettes du pack : un vrai volume au milieu des touffes recolorées
+            for (const p of sample(rng, cell, keys, L2(cell) ? 4 : 2, { minDist: 16, margin: 6, placed })) { placed.push(p); push(p, PICK(rng, ['obj_waterplant1', 'obj_waterplant2', 'obj_waterplant3']), wild(rng, 0.85, 1.2)); }
             for (const p of sample(rng, cell, keys, 2, { minDist: 18, margin: 8, placed })) { placed.push(p); push(p, PICK(rng, ['obj_flowerWhite', 'obj_flowerBlue']), { seasons: ['spring'] }); }
             for (const p of sample(rng, cell, keys, 2, { minDist: 18, margin: 8, placed: [] })) push(p, 'obj_bushGrass_dry', { weathers: ['heat'] });
           } else if (family === 'rock') {

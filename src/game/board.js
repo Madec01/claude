@@ -7,8 +7,34 @@ export class Board {
     this.version = 0;
     this.mask = new Set(mask);
     this.tiles = new Map();     // key -> tile { family, variant, rare?, q, r, dry, frozen, bloom, closed }
-    this.closedRegions = new Set(); // clés de régions déjà fermées ("family:minKey")
+    // Cellules déjà payées par une fermeture, « famille:q,r ». On note les CELLULES, pas la région :
+    // l'identité d'une région était son plus petit sommet, or une région close qui grandit change d'identité
+    // quand la nouvelle case trie plus petit, et pas autrement. Le même geste payait donc la prime entière
+    // d'un côté et rien de l'autre. En notant les cellules, une région qui regrandit ne paie que ce qu'elle
+    // a gagné, du côté qu'on veut.
+    this.closedRegions = new Set();
   }
+
+  /** La région a-t-elle déjà été payée en entier ? */
+  regionPaid(reg) {
+    if (!reg) return false;
+    for (const k of reg.keys) if (!this.closedRegions.has(`${reg.family}:${k}`)) return false;
+    return true;
+  }
+
+  /** Ce que la région vaut encore : la taille de ce qui n'a pas déjà été payé (niveau 2 compté double). */
+  regionUnpaid(reg) {
+    if (!reg) return 0;
+    let n = 0;
+    for (const c of reg.cells) if (!this.closedRegions.has(`${reg.family}:${key(c.q, c.r)}`)) n += c.level || 1;
+    return n;
+  }
+
+  /** Marque toute la région comme payée. */
+  payRegion(reg) { if (reg) for (const k of reg.keys) this.closedRegions.add(`${reg.family}:${k}`); }
+
+  /** Régions d'une famille déjà payées en entier (les « régions closes » au sens du jeu). */
+  paidRegions(family) { return this.regions(family).filter((r) => this.regionPaid(r)); }
 
   has(q, r) { return this.mask.has(key(q, r)); }
   get(q, r) { return this.tiles.get(key(q, r)) || null; }
@@ -124,5 +150,25 @@ export class Board {
 
   /** Instantané sérialisable (pour le souvenir / annulation). */
   snapshot() { return { mask: [...this.mask], tiles: [...this.tiles.values()].map((t) => ({ ...t })), closed: [...this.closedRegions] }; }
-  restore(s) { this.mask = new Set(s.mask); this.tiles = new Map(s.tiles.map((t) => [key(t.q, t.r), { ...t }])); this.closedRegions = new Set(s.closed); this.version = (this.version || 0) + 1; }
+  restore(s) {
+    this.mask = new Set(s.mask); this.tiles = new Map(s.tiles.map((t) => [key(t.q, t.r), { ...t }]));
+    this.closedRegions = new Set(s.closed); this.version = (this.version || 0) + 1;
+    this.sealClosed();
+  }
+
+  /**
+   * Toute région actuellement close est payée : c'est vrai par construction (une région ne peut se fermer
+   * sans qu'une pose voisine l'ait vue), et ça rattrape les parties enregistrées quand on notait les régions
+   * plutôt que les cellules — sans quoi une partie reprise aurait repayé ses régions déjà closes.
+   */
+  sealClosed() {
+    const familles = new Set();
+    for (const t of this.tiles.values()) for (const f of Board.familiesOf(t)) familles.add(f);
+    for (const fam of familles) {
+      for (const reg of this.regions(fam)) {
+        if (this.regionPaid(reg) || this.regionUnpaid(reg) === reg.size) continue;   // rien de payé du tout : on n'invente pas
+        this.payRegion(reg);
+      }
+    }
+  }
 }
