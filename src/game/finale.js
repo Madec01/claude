@@ -25,11 +25,13 @@ const ANIMAL_LINE = { rabbit: 'les lapins y courent', moose: 'l’élan y passe'
 
 /**
  * Le tempo, en secondes. `long` : la première fois qu'on termine une île, on prend le temps.
- * `court` : les fois suivantes — le joueur connaît le paysage, il veut son bilan (un plan, pas de nuit).
+ * `court` : les fois suivantes — le joueur connaît le paysage, il veut son bilan : un seul plan, des
+ * saisons rapides. La nuit reste (raccourcie) : c'est ce qu'on voit le mieux, et une reprise sans
+ * elle donnait l'impression que rien n'avait changé.
  */
 const DUREE = {
   long: { reveil: 4.2, plan: 1.8, vague: 1.5, saison: 1.15, titre: 4 },
-  court: { reveil: 1.4, plan: 1.5, vague: 1.2, saison: 0.7, titre: 2.8 },
+  court: { reveil: 2.8, plan: 1.5, vague: 1.2, saison: 0.7, titre: 2.8 },
 };
 
 const doux = (t) => t * t * (3 - 2 * t);
@@ -161,7 +163,7 @@ export class Finale {
     const D = this.D;
     if (this.phase === 'reveil') {
       this.majCamera(doux(clamp(this.stepT / D.reveil, 0, 1)));
-      if (!this.court) this.cycleJour(clamp(this.stepT / D.reveil, 0, 1));
+      this.cycleJour(clamp(this.stepT / D.reveil, 0, 1));
       if (this.stepT >= D.reveil) this.entrer('tour');
     } else if (this.phase === 'tour') {
       if (this.idx < 0 || this.stepT >= D.plan) {
