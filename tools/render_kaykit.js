@@ -61,8 +61,13 @@ const loader = new GLTFLoader();
 let current = null;
 // el / az : angles de prise de vue, par défaut ceux des tuiles. Une dalle posée à plat se rend à la
 // verticale (el = 90), sans quoi son hexagone, écrasé par la perspective, ne recouvre pas le nôtre.
-window.__shot = (url, el, az) => new Promise((res, rej) => {
+// zoom : nombre de pixels par unité, multiplié. Il ne sert qu'aux modèles MINUSCULES (le sac de grain
+// fait 20 px de large au rendu ordinaire), qu'on agrandissait ensuite à l'image — c'est-à-dire qu'on
+// interpolait du vide. On les rend gros dès la 3D ; l'objet garde sa taille en jeu, il a des pixels.
+window.__shot = (url, el, az, zoom) => new Promise((res, rej) => {
   const e = (el === undefined ? ${EL} : el) * Math.PI / 180, a = (az === undefined ? ${AZ} : az) * Math.PI / 180;
+  const ppu = ${PPU} * (zoom || 1), h2 = ${CANVAS} / 2 / ppu;
+  cam.left = -h2; cam.right = h2; cam.top = h2; cam.bottom = -h2; cam.updateProjectionMatrix();
   loader.load(url, (g) => {
     if (current) scene.remove(current);
     current = g.scene; scene.add(current);
@@ -74,7 +79,7 @@ window.__shot = (url, el, az) => new Promise((res, rej) => {
     cam.position.set(d * Math.cos(e) * Math.sin(a), cy + d * Math.sin(e), d * Math.cos(e) * Math.cos(a));
     cam.lookAt(0, cy, 0);
     renderer.render(scene, cam);
-    res({ min: b.min.toArray(), max: b.max.toArray(), origin: [${CANVAS} / 2, ${CANVAS} / 2 + cy * Math.cos(e) * ${PPU}] });
+    res({ min: b.min.toArray(), max: b.max.toArray(), origin: [${CANVAS} / 2, ${CANVAS} / 2 + cy * Math.cos(e) * ppu] });
   }, undefined, (err) => rej(new Error(String((err && err.message) || err))));
 });
 window.__ready = true;
@@ -101,7 +106,7 @@ function serve(kayRoot, forestRoot, extraRoot, threeDir) {
 }
 
 (async () => {
-  // Chaque entrée vaut « alias: "chemin" », ou « alias: { model, el, az } » pour une prise de vue à part.
+  // Chaque entrée vaut « alias: "chemin" », ou « alias: { model, el, az, zoom } » pour une prise de vue à part.
   const models = Object.fromEntries(Object.entries(JSON.parse(fs.readFileSync(process.argv[2], 'utf8')))
     .map(([k, v]) => [k, typeof v === 'string' ? { model: v } : v]));
   const kayRoot = path.join(arg('--src', '/home/user/kaykit/KayKit-Medieval-Hexagon-Pack-1.0'),
@@ -133,12 +138,12 @@ function serve(kayRoot, forestRoot, extraRoot, threeDir) {
         : path.join(kayRoot, `${rel}.gltf`);
     if (!fs.existsSync(disk)) { errors.push(`${name} : modèle absent (${rel}.gltf)`); continue; }
     let box;
-    try { box = await page.evaluate(([u, el, az]) => window.__shot(u, el, az), [url, spec.el, spec.az]); }
+    try { box = await page.evaluate(([u, el, az, z]) => window.__shot(u, el, az, z), [url, spec.el, spec.az, spec.zoom]); }
     catch (e) { errors.push(`${name} : ${e.message}`); continue; }
     const buf = await page.locator('#c').screenshot({ omitBackground: true });
     const tmp = path.join(out, `${name}.raw.png`);
     fs.writeFileSync(tmp, buf);
-    meta[name] = { model: rel, el: spec.el, az: spec.az, box: { min: box.min.map((x) => +x.toFixed(4)), max: box.max.map((x) => +x.toFixed(4)) }, origin: box.origin.map((x) => +x.toFixed(2)) };
+    meta[name] = { model: rel, el: spec.el, az: spec.az, zoom: spec.zoom, box: { min: box.min.map((x) => +x.toFixed(4)), max: box.max.map((x) => +x.toFixed(4)) }, origin: box.origin.map((x) => +x.toFixed(2)) };
   }
   await b.close();
   srv.close();

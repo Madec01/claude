@@ -29,6 +29,7 @@ import argparse
 import datetime as _dt
 import json
 import os
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -148,6 +149,16 @@ KAY_MODELS = {
     "massif_B": "decoration/nature/mountain_B",
     "massif_C": "decoration/nature/mountain_A",
     "bloc_grand": "forest/Color1/Rock_2_C_Color1",
+    # --- herbes hautes du pack Forest. Les variantes « _A » et « _B » sont des brins isolés (mesuré :
+    # 37 px de large), illisibles seuls ; seules les « _C » et « _D » sont de vraies touffes. Grass_2 est
+    # la graminée fine et haute (le pré), Grass_1 la touffe à feuilles larges (la lande).
+    # Contrairement aux feuillus, on ne prend PAS les palettes de saison du pack : ces touffes passent par
+    # la recoloration « reed », la même que les roseaux et les touffes déjà en place — sans quoi deux
+    # herbes voisines dans un même pré ne parleraient pas la même langue. La couleur de départ est donc
+    # sans effet, et une seule entrée suffit par famille.
+    "herbe1": "forest/Color1/Grass_2_C_Color1",
+    "herbe2": "forest/Color1/Grass_2_D_Color1",
+    "touffe": "forest/Color1/Grass_1_C_Color1",
     # --- pack EXTRA : les deux dalles hexagonales. Elles se rendent à la VERTICALE (voir KAY_VIEWS) :
     # nos tuiles sont des hexagones réguliers vus de dessus (240 × 280), pas des dalles en perspective.
     "ble": "extra/buildings/neutral/building_grain",
@@ -158,6 +169,9 @@ KAY_MODELS = {
     "nenuphar": "decoration/nature/waterlily_A",
     # --- la variété qui ne coûte rien : une seconde silhouette de récolte et trois massettes d'eau
     "botte_ronde": "extra/decoration/props/haybale",
+    # --- la tente du campement et l'écurie : deux sprites plats Kenney de moins
+    "tente": "extra/buildings/red/building_tent_red",
+    "ecurie": "extra/buildings/red/building_stables_red",
     "roseau_A": "decoration/nature/waterplant_A",
     "roseau_B": "decoration/nature/waterplant_B",
     "roseau_C": "decoration/nature/waterplant_C",
@@ -292,7 +306,13 @@ COLORS = {
     "field": {"spring": "#a8743f", "summer": "#a9c24a", "autumn": "#d8a33c", "winter": SNOW},
     "reed": {"spring": "#9db04a", "summer": "#a5a63f", "autumn": "#c29d45", "winter": "#d3d9d2"},
     "dry": "#cdbb6a",
-    "water": "#5aa7d6", "water_edge": "#4a90bd",
+    # L'eau douce suit la MER, saison par saison — c'est `render.js` qui fait autorité (constantes
+    # SEA et CREUX) : le plan d'eau prend la couleur de la mer à mi-écran, le liseré son rapport de
+    # lèvre. Ces quatre couples sont la recopie de ce calcul, pour les flaques du marais et pour la
+    # carte de la tuile d'eau, que le pipeline cuit une fois pour toutes. Un lac bleu roi à côté
+    # d'une mer bleu-gris, c'étaient deux matières ; c'est désormais la même.
+    "water": {"spring": "#8ac0dc", "summer": "#77b5d8", "autumn": "#87afc8", "winter": "#a9c1d2"},
+    "water_edge": {"spring": "#5a95b7", "summer": "#4e8db3", "autumn": "#5988a6", "winter": "#6f96ae"},
     "ice": "#dbe9f4", "ice_edge": "#c5d8ea",
     "fruit": {"summer": ("#e8553d", "#d9463a"), "autumn": ("#f0a03a", "#e8553d")},
     "stone_winter": "#e3eaf0", "dirt_winter": "#e6ebf0",
@@ -506,7 +526,8 @@ class Sources:
             # une prise de vue modifiée (KAY_VIEWS) ne change pas le nom du fichier : on la compare au cache
             m = json.loads((self.kay2x / "meta.json").read_text(encoding="utf-8"))["models"]
             todo = any((m.get(n) or {}).get("el") != KAY_VIEWS.get(n, {}).get("el")
-                       or (m.get(n) or {}).get("az") != KAY_VIEWS.get(n, {}).get("az") for n in KAY_MODELS)
+                       or (m.get(n) or {}).get("az") != KAY_VIEWS.get(n, {}).get("az")
+                       or (m.get(n) or {}).get("zoom") != KAY_VIEWS.get(n, {}).get("zoom") for n in KAY_MODELS)
         if not todo:
             return
         jobs = CACHE / "kaykit_models.json"
@@ -550,6 +571,10 @@ class Sources:
         # l'origine du modèle est donnée par le rendu (la caméra vise le milieu du modèle, pas l'origine)
         org = self.kay_meta()["models"][name].get("origin") or [p and 0, 0]
         ox, oy = org[0] - box[0], org[1] - box[1]
+        # `scale` reste exprimé par rapport à la taille CANONIQUE du modèle (120 px/unité). Si son rendu
+        # a été zoomé (KAY_VIEWS), on divise d'autant : la taille finale est la même qu'avant, mais on
+        # réduit une grande image au lieu d'en agrandir une petite.
+        scale = scale / float(KAY_VIEWS.get(name, {}).get("zoom", 1) or 1)
         if scale != 1.0 or sy != 1.0:
             im = im.resize((max(1, round(im.width * scale)), max(1, round(im.height * scale * sy))), Image.LANCZOS)
             ox, oy = ox * scale, oy * scale * sy
@@ -614,6 +639,18 @@ def kay_model(sprite, season):
 KAY_VIEWS = {
     "ble": {"el": 90, "az": 0},
     "terre": {"el": 90, "az": 0},
+    # `zoom` : pixels par unité multipliés au RENDU 3D seulement. Certains modèles sont minuscules
+    # (le sac de grain fait 20 px de large à 120 px/unité) et on les agrandissait ensuite à l'image :
+    # on interpolait du vide, d'où une bouillie beige au pied du grenier. Rendus gros, puis réduits à
+    # la taille voulue, ils gardent leurs arêtes. `Sources.kay` divise l'échelle demandée par ce zoom,
+    # si bien que RIEN d'autre ne bouge : même taille en jeu, même ancrage, seulement plus de pixels.
+    # (Relevé des cinq sprites interpolés : sac ×2,42, nénuphar ×1,67, abreuvoir ×1,58, pelle ×1,54,
+    # tonneau ×1,41 — facteur = taille émise × échelle maximale en jeu ÷ taille naturelle.)
+    "sack": {"zoom": 3.0},
+    "nenuphar": {"zoom": 2.0},
+    "abreuvoir": {"zoom": 2.0},
+    "pelle": {"zoom": 2.0},
+    "barrel": {"zoom": 1.8},
 }
 
 
@@ -659,14 +696,14 @@ TILES = {
                                       L("kay:ble", 60, 70, "field", width=240, flat=True, seasons=["summer", "autumn", "winter"])]
                  + [L("ht:bushGrass:1.9", x, y, "crop") for (x, y) in
                     [(34, 68), (70, 68), (26, 84), (62, 84), (98, 84), (44, 100), (80, 100), (62, 116)]]
-                 + [L("obj:hay", 96, 110)],
-                 base_kind="dirt", note="Champ : la parcelle de blé du pack EXTRA (dalle hexagonale rendue à la verticale, recolorée par saison), quelques rangs de culture et une botte de foin."),
+                 + [L("kay:botte_ronde", 96, 112, scale=0.85)],
+                 base_kind="dirt", note="Champ : la parcelle de blé du pack EXTRA (dalle hexagonale rendue à la verticale, recolorée par saison), quelques rangs de culture et une botte ronde en volume."),
     "field_2": T("field", "dirt_06", [L("kay:terre", 60, 70, "field", width=236, flat=True, mirror=True, seasons=["spring"]),
                                       L("kay:ble", 60, 70, "field", width=240, flat=True, mirror=True, seasons=["summer", "autumn", "winter"])]
                  + [L("ht:bushGrass:1.9", x, y, "crop") for (x, y) in
                     [(44, 66), (80, 66), (34, 82), (70, 82), (26, 98), (62, 98), (98, 98), (52, 114)]]
-                 + [L("obj:hay", 30, 116), L("obj:fence", 96, 118)],
-                 base_kind="dirt", base_mirror=True, note="Champ : la même parcelle en miroir, rangs de culture, foin et clôture."),
+                 + [L("kay:botte_ronde", 36, 112, scale=0.85), L("obj:fence", 96, 118)],
+                 base_kind="dirt", base_mirror=True, note="Champ : la même parcelle en miroir, rangs de culture, botte ronde et clôture."),
     # --- hameaux (bâtiments inchangés par la saison)
     "hamlet_1": T("hamlet", "grass_05", [L("kay:home_A_jaune", 58, 90, scale=0.94), L("kay:barrel", 90, 98, scale=1.2), L("kay:fence_wood", 40, 94, scale=0.45)],
                   note="Hameau : maison KayKit + tonneau + clôture."),
@@ -766,7 +803,7 @@ class Composer:
         self.hex_mask = np.asarray(self.hex_alpha) > 8
         self.inside = np.asarray(self.hex_alpha.filter(ImageFilter.MaxFilter(3))) > 8
         self.errors = []
-        self.water_base = self.make_water_base(COLORS["water"], COLORS["water_edge"])
+        self.water_base = {sai: self.make_water_base(COLORS["water"][sai], COLORS["water_edge"][sai]) for sai in SEASONS}
         self.ice_base = self.make_water_base(COLORS["ice"], COLORS["ice_edge"])
 
     # --- bases
@@ -782,7 +819,7 @@ class Composer:
     def base_for(self, spec, season):
         kind = spec["base_kind"]
         if kind == "water":
-            im = self.water_base.copy()
+            im = self.water_base[season].copy()
         else:
             im = self.src.hp(spec["base"]).copy()
         if spec["base_mirror"] or spec["base_rot"]:
@@ -883,7 +920,7 @@ class Composer:
         """Flaque (ellipse eau + liseré) dessinée sur un calque puis composée (l'alpha de la base est préservé)."""
         cx, cy = layer["x"] * SCALE, layer["y"] * SCALE
         rx, ry = layer["rx"] * SCALE, layer["ry"] * SCALE
-        fill, edge = (COLORS["ice"], COLORS["ice_edge"]) if season == "winter" else (COLORS["water"], COLORS["water_edge"])
+        fill, edge = (COLORS["ice"], COLORS["ice_edge"]) if season == "winter" else (COLORS["water"][season], COLORS["water_edge"][season])
         lay = Image.new("RGBA", canvas.size, (0, 0, 0, 0))
         d = ImageDraw.Draw(lay)
         d.ellipse((cx - rx, cy - ry, cx + rx, cy + ry), fill=hex2rgb(edge) + (255,))
@@ -1146,6 +1183,14 @@ class Builder:
                  f"Buisson du pack Forest ({season}) : sous-bois.", target_h=26)
             kobj(f"obj_bush2_{season}", f"buisson2_{season}", season, None, "static",
                  f"Buisson bas du pack Forest ({season}).", target_h=20)
+            # Les prés étaient les tuiles les plus vides du jeu. Deux graminées hautes (Grass_2_C et
+            # Grass_2_D du pack Forest) et une touffe à feuilles larges (Grass_1_C) pour la lande.
+            kobj(f"obj_tallGrass_{season}", "herbe1", season, None, "reed",
+                 f"Herbe haute, touffe fine ({season}) : prés.", target_h=34)
+            kobj(f"obj_tallGrass2_{season}", "herbe2", season, None, "reed",
+                 f"Herbe haute, touffe large ({season}) : prés.", target_h=42)
+            kobj(f"obj_grassClump_{season}", "touffe", season, None, "reed",
+                 f"Touffe à feuilles larges ({season}) : landes.", target_h=26)
         for season in SEASONS:
             kobj(f"obj_treeRound_fruit_{season}", f"pommier_{season}", season, None, "static",
                  f"Fruitier ({season}) : feuillu du pack Forest dans sa palette de saison, fruits dessinés en été et en automne.",
@@ -1171,7 +1216,7 @@ class Builder:
         # place à des volumes — l'abreuvoir, la pierre du menhir (qui était une pierre TOMBALE de 24 px) et
         # le nénuphar. Le nénuphar flotte à plat : il se rend à la verticale, comme les dalles.
         kobj("obj_lily", "nenuphar", "summer", 30, "static", "Nénuphar en volume (KayKit) : lacs et étangs en été.")
-        kobj("obj_horseTrough", "abreuvoir", "summer", 52, "static", "Abreuvoir de bois (KayKit EXTRA).")
+        kobj("obj_horseTrough", "abreuvoir", "summer", 72, "static", "Abreuvoir de bois (KayKit EXTRA).")
         kobj("obj_shrine", "sanctuaire", "summer", 86, "static", "Pierre gravée, bougies au pied (KayKit EXTRA) : l'ouvrage « menhir ».")
         # La variété qui ne coûte presque rien : une seconde silhouette de récolte, trois roseaux, deux souches.
         kobj("obj_haybale", "botte_ronde", "summer", 44, "static", "Botte de paille ronde (KayKit EXTRA) : seconde silhouette de récolte.")
@@ -1210,7 +1255,9 @@ class Builder:
                 ("obj_farm", "lumbermill", 128, "Ferme / atelier de bois."),
                 ("obj_townhall", "mairie", 158, "Hôtel de ville (beffroi à horloge) — pack EXTRA."),
                 ("obj_workshop", "atelier", 155, "Atelier de charpente (scie, cheminée) — pack EXTRA."),
-                ("obj_well", "well", 56, "Puits."),
+                # Mesuré : à 56 (soit 21 unités monde) le puits faisait le tiers de l'hôtel de ville et
+                # ne laissait qu'un trait rouge sur du gris. Ce n'était pas le modèle, c'était la taille.
+                ("obj_well", "well", 90, "Puits."),
                 ("obj_church", "church", 150, "Église."),
                 ("obj_silo1", "tower_base", 84, "Silo (fût de pierre)."),
                 ("obj_windmill_complete", "windmill", 120, "Moulin à vent."),
@@ -1226,8 +1273,14 @@ class Builder:
                 ("obj_fence", "fence_wood", 52, "Clôture de bois."),
                 ("obj_logPile", "lumber", 74, "Tas de rondins."),
                 ("obj_log", "lumber", 56, "Rondin."),
-                ("obj_barrel", "barrel", 34, "Tonneau."),
-                ("obj_sack", "sack", 30, "Sac de grain."),
+                ("obj_barrel", "barrel", 45, "Tonneau."),
+                # Le sac est un accessoire de 0,17 unité dans le pack : le montrer à 25 unités monde, c'était
+                # l'agrandir deux fois et demie au-delà de ce que le modèle porte — d'où un pain beige sans
+                # détail. À 15 unités il redevient un sac posé à côté d'un bâtiment.
+                ("obj_sack", "sack", 40, "Sac de grain."),
+                ("obj_wheelbarrow", "wheelbarrow", 58, "Brouette."),
+                ("obj_tent", "tente", 96, "Tente ronde de campement."),
+                ("obj_stables", "ecurie", 160, "Écurie (stalles, bottes, clôture)."),
                 ("obj_crate", "crate", 34, "Caisse."),
                 ("obj_scaffolding", "scaffolding", 150, "Échafaudage de chantier."),
                 ("obj_ruin_building", "ruin", 140, "Bâtiment effondré.")):
@@ -1239,7 +1292,22 @@ class Builder:
             for suffix, colour in (("_jaune", "ambre"), ("_vert", "vert")):
                 kobj(keyname + suffix, model + suffix, "summer", round(w * BUILD_SCALE), "static",
                      f"Même bâtiment, toit {colour} (modèle 3D KayKit).")
-        for name in ("hay", "fountain", "campingTent", "fire", "towerRuin", "ruinsCorner", "ruins_brick1",
+        # La fontaine n'a aucun équivalent dans KayKit. Elle restait un disque de 46 unités monde —
+        # aussi large qu'une maison, et plus clair que tout le reste du plateau : l'œil la prenait pour
+        # un bouton d'interface. Réduite à 32 et assombrie d'un cran, elle redevient un objet posé au sol.
+        fon = comp.layer_image(L("obj:fountain", 0, 0, scale=0.70), "summer", 0)
+        arr_f = np.asarray(fon).astype(np.float32)
+        arr_f[..., :3] *= 0.80
+        fon = Image.fromarray(np.clip(arr_f, 0, 255).astype(np.uint8), "RGBA")
+        bb_f = fon.split()[3].getbbox()
+        if bb_f:
+            fon = fon.crop((bb_f[0], bb_f[1], bb_f[2], fon.height))
+        self.emit("obj_fountain", "deco", fon, HP, self.src.hp_original("fountain"),
+                  "Fontaine (Hexagon Pack) réduite et assombrie : elle brillait comme un bouton.", anchor="bottom")
+        # « hay » et « campingTent » ont disparu : la meule plate Kenney se lisait comme un jeton
+        # d'interface (32 unités monde, plus grosse que le puits), et la tente était un triangle bleu
+        # sans volume. La botte ronde et la tente ronde KayKit les remplacent.
+        for name in ("fire", "towerRuin", "ruinsCorner", "ruins_brick1",
                      "lightpost", "banner", "medieval_doorway", "pole", "box2"):
             obj(f"obj_{name}", L(f"obj:{name}", 0, 0), "summer", f"Objet {name} (Hexagon Pack).")
         for name in ("flowerWhite", "flowerYellow", "flowerRed"):
@@ -1397,7 +1465,7 @@ class Builder:
             "les-manchots": ("water_frozen", [("fauna_penguin", 98, 210, 0.95), ("fauna_penguin", 150, 200, 0.8)]),
             "promesse-tenue": ("ground_grass_summer", [("obj_banner", 120, 212, 1.8)]),
             "toute-l-ile": ("fete_summer", []), "cinquante-promesses": ("chapel_summer", []),
-            "charpentier": ("ground_field_summer", [("obj_logPile", 100, 205, 1.49), ("obj_hay", 165, 200, 1.22)]),
+            "charpentier": ("ground_field_summer", [("obj_logPile", 100, 205, 1.49), ("obj_haybale", 165, 200, 2.0)]),
             "signature": ("ground_grass_summer", [("obj_church", 120, 215, 1.35)]),
             "le-cahier-complet": ("ground_stone_summer", [("obj_castle_small", 120, 210, 1.35)]),
             "port-d-attache": ("ground_water_summer", [("obj_house_small", 84, 200, 1.35), ("obj_pole", 160, 205, 1.35), ("sea_wave_1", 150, 160, 1.0)]),
@@ -1473,7 +1541,7 @@ class Builder:
         self.emit("icon_sun", "ui", draw_sun(), "generated", "dessin (tools/build_images.py)", "Soleil (été) — dessiné : disque + 8 rayons, blanc, 100 px")
         self.emit("icon_wind", "ui", draw_wind(), "generated", "dessin (tools/build_images.py)", "Vent (souffles) — dessiné : trois traits bouclés, blanc, 100 px")
         # décor d'UI : objets du Hexagon Pack en 2×
-        for name, note in (("banner", "Bannière rouge"), ("sign", "Panneau bleu"), ("log", "Bûche"), ("hay", "Botte de foin"), ("fence", "Clôture")):
+        for name, note in (("banner", "Bannière rouge"), ("sign", "Panneau bleu"), ("log", "Bûche"), ("fence", "Clôture")):
             im = self.src.hp(name)
             self.emit(name, "ui", im, HP, self.src.hp_original(name), note + f" (Hexagon Pack, 2× {self.src.methods[name]})")
         for key, f, note in [("panel_grey", "grey_panel", "Panneau 9-slice gris (bords 10 px)"),
@@ -1608,6 +1676,37 @@ def check_licenses(src_root):
         meta["license_text_path"] = str(p.relative_to(src_root))
 
 
+def check_water_colours():
+    """L'eau douce du pipeline doit être exactement celle que `render.js` calcule.
+
+    Deux tables de couleurs qui disent la même chose finissent toujours par diverger, et la divergence
+    ne se voit qu'en jeu, des semaines plus tard. On recalcule donc ici, depuis SEA et CREUX lus dans
+    `render.js`, ce que les flaques et la carte de la tuile d'eau devraient valoir, et on refuse de
+    construire si la table ci-dessus ne correspond plus.
+    """
+    src = (ROOT / "src" / "game" / "render.js").read_text(encoding="utf-8")
+    m = re.search(r"const SEA = \{([^}]*)\};", src)
+    if not m:
+        raise RuntimeError("render.js : constante SEA introuvable")
+    sea = {k: [a, b] for k, a, b in re.findall(r"(\w+): \['(#\w{6})', '(#\w{6})'\]", m.group(1))}
+    c = re.search(r"const CREUX = \{[^}]*shoal: \[([\d., ]+)\][^}]*edge: \[([\d., ]+)\]", src)
+    if not c:
+        raise RuntimeError("render.js : constante CREUX introuvable")
+    kshoal = [float(x) for x in c.group(1).split(",")]
+    kedge = [float(x) for x in c.group(2).split(",")]
+    ksurf = [(1 + k) / 2 for k in kshoal]   # cf. SURFACE dans render.js
+    for sai in SEASONS:
+        haut, bas = (hex2rgb(sea[sai][0]), hex2rgb(sea[sai][1]))
+        mid = [(a + b) / 2 for a, b in zip(haut, bas)]
+        surf = [v * k for v, k in zip(mid, ksurf)]
+        attendu = "#%02x%02x%02x" % tuple(max(0, min(255, round(v))) for v in surf)
+        bord = "#%02x%02x%02x" % tuple(max(0, min(255, round(v * k))) for v, k in zip(mid, kedge))
+        if COLORS["water"][sai] != attendu or COLORS["water_edge"][sai] != bord:
+            raise RuntimeError(
+                f"eau douce désaccordée de la mer ({sai}) : le pipeline dit "
+                f"{COLORS['water'][sai]} / {COLORS['water_edge'][sai]}, render.js calcule {attendu} / {bord}")
+
+
 def check_kaykit_license(kay_root):
     p = kay_root / KAYKIT["license_file"]
     if not p.exists():
@@ -1668,6 +1767,7 @@ def main():
     args = ap.parse_args()
     src_root, repo, kay_root = Path(args.src), Path(args.out), Path(args.kaykit)
     animals_root = Path(args.animaux)
+    check_water_colours()
     check_licenses(src_root)
     check_kaykit_license(kay_root)
     check_forest_license(Path(args.forest))
