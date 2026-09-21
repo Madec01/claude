@@ -12,12 +12,23 @@ import { Decor, groundOf, groundKey, GROUND_COLORS, spriteKey } from './decor.js
 import { pathShapes } from './paths.js';
 // arête i (sommet i → i+1 de corners()) → indice dans DIRS du voisin de l'autre côté ; mesuré, pas deviné
 const EDGE_DIR = [1, 0, 5, 4, 3, 2];
-/** La même couleur hexadécimale, avec une opacité : sert aux dégradés qui se dissolvent. */
-function hexA(hex, a) {
+/** Les composantes d'une couleur hexadécimale. */
+function rgb(hex) {
   const h = hex.replace('#', '');
   const n = parseInt(h.length === 3 ? h.split('').map((c) => c + c).join('') : h, 16);
-  return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`;
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
 }
+/** La même couleur, avec une opacité : sert aux dégradés qui se dissolvent. */
+function hexA(hex, a) { const [r, g, b] = rgb(hex); return `rgba(${r},${g},${b},${a})`; }
+/** Le mélange de deux couleurs hexadécimales, `t` = 0 pour la première, 1 pour la seconde. */
+function mix(x, y, t) {
+  const p = rgb(x), q = rgb(y);
+  return [Math.round(p[0] + (q[0] - p[0]) * t), Math.round(p[1] + (q[1] - p[1]) * t), Math.round(p[2] + (q[2] - p[2]) * t)];
+}
+/** Idem, rendu en hexadécimal (pour pouvoir remélanger ensuite). */
+function mixHexStr(x, y, t) { return `#${mix(x, y, t).map((n) => n.toString(16).padStart(2, '0')).join('')}`; }
+/** Idem, rendu en rgba avec une opacité. */
+function mixHex(x, y, t, a = 1) { const c = mix(x, y, t); return `rgba(${c[0]},${c[1]},${c[2]},${a})`; }
 
 /** Décors déjà posés à plat sur le sol : ils ne reçoivent pas d'ombre de contact. */
 const PLAT = new Set(['obj_puddle', 'obj_leafpile', 'obj_snowdrift', 'obj_moss', 'obj_lily',
@@ -472,6 +483,10 @@ export class IslandRenderer {
       }
       ctx.lineWidth = wAt(sp.length - 1) * mul; ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(sp[sp.length - 1].x, sp[sp.length - 1].y); ctx.stroke();
     };
+    // La mer est un dégradé vertical d'écran (voir `drawSea`) : on sait donc sa couleur à n'importe
+    // quelle hauteur, et un bras de mer peut virer exactement à la teinte qu'il rejoint.
+    const seaCols = (this.isl.climate && this.isl.climate.sea) || SEA[this.isl.season] || SEA.spring;
+    const mer = (y) => mixHexStr(seaCols[0], seaCols[1], Math.max(0, Math.min(1, y / STAGE.H)));
     ctx.save(); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
     for (const h of this.decor.holes || []) {
       // lagune : une mare comme un étang, gelée en hiver
@@ -522,12 +537,16 @@ export class IslandRenderer {
           if (!b.isSea(nq, nr)) continue;
           const m = edgeMid(c0.x, c0.y, d);
           const dedans = S({ x: (c0.x + m.x) / 2, y: (c0.y + m.y) / 2 });
-          const dehors = S({ x: m.x + (m.x - c0.x) * 0.75, y: m.y + (m.y - c0.y) * 0.75 });
+          const milieu = S({ x: m.x + (m.x - c0.x) * 0.4, y: m.y + (m.y - c0.y) * 0.4 });
+          const dehors = S({ x: m.x + (m.x - c0.x) * 0.85, y: m.y + (m.y - c0.y) * 0.85 });
           const grd = ctx.createLinearGradient(dedans.x, dedans.y, dehors.x, dehors.y);
-          grd.addColorStop(0, pal.shoal); grd.addColorStop(0.5, pal.shoal); grd.addColorStop(0.72, hexA(pal.shoal, 0.6)); grd.addColorStop(1, hexA(pal.shoal, 0));
+          grd.addColorStop(0, pal.shoal); grd.addColorStop(0.42, pal.shoal);
+          grd.addColorStop(0.72, mixHex(pal.shoal, mer(dehors.y), 0.75));
+          grd.addColorStop(1, mixHex(pal.shoal, mer(dehors.y), 1, 0));
           ctx.fillStyle = grd;
-          this.blob(ctx, dedans.x, dedans.y, SIZE * 0.48 * z, c0); ctx.fill();
-          this.blob(ctx, dehors.x, dehors.y, SIZE * 0.34 * z, { x: c0.x + 31, y: c0.y - 17 }); ctx.fill();
+          this.blob(ctx, dedans.x, dedans.y, SIZE * 0.5 * z, c0); ctx.fill();
+          this.blob(ctx, milieu.x, milieu.y, SIZE * 0.42 * z, { x: c0.x + 31, y: c0.y - 17 }); ctx.fill();
+          this.blob(ctx, dehors.x, dehors.y, SIZE * 0.32 * z, { x: c0.x - 19, y: c0.y + 23 }); ctx.fill();
         }
         if (!frozen) { ctx.strokeStyle = pal.foam; ctx.lineWidth = 1.5 * z; ctx.beginPath(); ctx.ellipse(c.x - rr * 0.2, c.y - rr * 0.25, rr * 0.35, rr * 0.16, -0.4, 0, TAU); ctx.stroke(); }
       } else {
@@ -562,13 +581,19 @@ export class IslandRenderer {
           if (!b.isSea(nq, nr)) continue;
           const m = edgeMid(c.w.x, c.w.y, d);
           const dedans = S({ x: (c.w.x + m.x) / 2, y: (c.w.y + m.y) / 2 });
-          const dehors = S({ x: m.x + (m.x - c.w.x) * 0.8, y: m.y + (m.y - c.w.y) * 0.8 });
-          // opaque jusqu'au trait de côte (le liseré blanc de l'île le referme sinon), puis dissolution
+          const milieu = S({ x: m.x + (m.x - c.w.x) * 0.45, y: m.y + (m.y - c.w.y) * 0.45 });
+          const dehors = S({ x: m.x + (m.x - c.w.x) * 0.95, y: m.y + (m.y - c.w.y) * 0.95 });
+          // Le bras ne se contente pas de s'effacer : il VIRE d'abord à la couleur de la mer, sinon
+          // on voit la couture entre deux bleus qui ne sont pas les mêmes. Opaque jusqu'au trait de
+          // côte — le liseré blanc de l'île le refermerait — puis virage, puis dissolution.
           const grd = ctx.createLinearGradient(dedans.x, dedans.y, dehors.x, dehors.y);
-          grd.addColorStop(0, pal.shoal); grd.addColorStop(0.5, pal.shoal); grd.addColorStop(0.72, hexA(pal.shoal, 0.6)); grd.addColorStop(1, hexA(pal.shoal, 0));
+          grd.addColorStop(0, pal.shoal); grd.addColorStop(0.42, pal.shoal);
+          grd.addColorStop(0.72, mixHex(pal.shoal, mer(dehors.y), 0.75));
+          grd.addColorStop(1, mixHex(pal.shoal, mer(dehors.y), 1, 0));
           ctx.fillStyle = grd;
-          this.blob(ctx, dedans.x, dedans.y, SIZE * 0.58 * z, c.w); ctx.fill();
-          this.blob(ctx, dehors.x, dehors.y, SIZE * 0.4 * z, { x: c.w.x + 31, y: c.w.y - 17 }); ctx.fill();
+          this.blob(ctx, dedans.x, dedans.y, SIZE * 0.6 * z, c.w); ctx.fill();
+          this.blob(ctx, milieu.x, milieu.y, SIZE * 0.5 * z, { x: c.w.x + 31, y: c.w.y - 17 }); ctx.fill();
+          this.blob(ctx, dehors.x, dehors.y, SIZE * 0.38 * z, { x: c.w.x - 19, y: c.w.y + 23 }); ctx.fill();
         }
         if (!frozen) {
           // la rive scintille : un liseré clair qui court le long du contour, et qui BOUGE — sans
