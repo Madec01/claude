@@ -3,7 +3,7 @@ import { Assets } from '../core/assets.js';
 import { toWorld, corners, parse, key, DIRS, edgeMid, TILE_W, TILE_H, SIZE } from './hex.js';
 import { FAMILY_COLORS, SEASONS } from '../data/tiles.js';
 import { STORY } from '../data/story.js';
-import { FAUNA_SIZE } from './fauna.js';
+import { FAUNA_SIZE, FAUNA_PERCHED } from './fauna.js';
 import { clamp, lerp, TAU, easeOutCubic, rnd } from '../core/math.js';
 
 import { STAGE } from '../core/stage.js';
@@ -1182,6 +1182,9 @@ export class IslandRenderer {
     const home = toWorld(a.q, a.r);
     let st = this.wander.get(k);
     if (!st) { st = { x: home.x, y: home.y, tx: home.x, ty: home.y, wait: 1 + Math.random() * 3, hop: 0, walked: Math.random() * 100, left: Math.random() < 0.5 }; this.wander.set(k, st); }
+    // un perché porte sa branche dans son sprite : s'il se promène, c'est la branche qui glisse sur
+    // le sol. Il ne quitte pas sa case.
+    if (FAUNA_PERCHED.has(a.species)) { st.x = st.tx = home.x; st.y = st.ty = home.y; return st; }
     st.wait -= dt;
     const fam = HAB[a.species];
     if (st.wait <= 0 && fam) {
@@ -1248,7 +1251,9 @@ export class IslandRenderer {
       // en plus (ses sabots resteraient en l'air). Les autres avancent par petits bonds.
       const sheet = (Assets.manifest().images || {})[`fauna_${a.species}_side`];
       const walks = !!(sheet && sheet.cycle === 'walk');
-      const lift = moving && !walks ? Math.abs(Math.sin(st.hop)) * 5 * cam.zoom
+      // ni saut ni respiration pour un perché : sa branche décollerait du sol avec lui.
+      const lift = FAUNA_PERCHED.has(a.species) ? 0
+        : moving && !walks ? Math.abs(Math.sin(st.hop)) * 5 * cam.zoom
         : (walks ? 0 : (Math.sin(this.time * 2.2 + a.q * 1.7 + a.r) + 1) * 0.8 * cam.zoom);
       this.drawAnimal(ctx, a.species, st, g.x, g.y, lift, s, alpha);
     }
@@ -1258,7 +1263,8 @@ export class IslandRenderer {
       const info = an.info; if (!info) continue;
       const w = toWorld(info.q, info.r); const g = cam.toScreen(w.x, w.y + FAUNA_GROUND);
       const t = Math.min(1, an.t / 0.8);
-      this.drawAnimal(ctx, info.species, null, g.x, g.y, t * 40 * cam.zoom, 1, 1 - t);
+      const up = FAUNA_PERCHED.has(info.species) ? 0 : t * 40 * cam.zoom;   // un perché s'efface, il ne s'envole pas avec sa branche
+      this.drawAnimal(ctx, info.species, null, g.x, g.y, up, 1, 1 - t);
     }
   }
 
