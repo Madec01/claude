@@ -51,6 +51,26 @@ async function openSection(page) {
   check(texte.includes('Quelle saison ?') && texte.includes('hexagone'), 'les questions de la feuille sont déposées dans le commentaire');
   await page.screenshot({ path: path.join(OUT, 'pepin-mobile-arbre.png') });
 
+  // --- la recherche : un mot doit suffire à couper dans 240 feuilles
+  await page.fill('.rep-search-input', 'montagne');
+  await page.waitForTimeout(250);
+  const res = await page.$$eval('.rep-result b', (a) => a.map((x) => x.textContent));
+  check(res[0] === 'Roche et montagnes', `la recherche trouve la bonne tuile en tête (${res[0]})`);
+  check(await page.$eval('.rep-crumbs', (e) => e.classList.contains('hidden')), 'le fil d’Ariane s’efface pendant la recherche : on ne fouille pas deux choses à la fois');
+  const chemins = await page.$$eval('.rep-result small', (a) => a.map((x) => x.textContent));
+  check(chemins.some((c) => c.includes('›')), 'chaque résultat dit le chemin qui y mène (« Rivière » existe en dessin ET en calcul)');
+  await page.fill('.rep-search-input', 'lag');
+  await page.waitForTimeout(250);
+  const motsCourants = await page.$$eval('.rep-result b', (a) => a.map((x) => x.textContent).join(' | '));
+  check(/rame|Lenteur/i.test(motsCourants), `un mot que l’arbre n’emploie pas trouve quand même (« lag » → ${motsCourants.split('|')[0].trim()})`);
+  check(!/Autre chose/.test(motsCourants), '« Autre chose » ne remonte jamais dans une recherche');
+  await page.fill('.rep-search-input', 'zzzz');
+  await page.waitForTimeout(250);
+  check(await page.$('.rep-noresult'), 'sans résultat, le jeu le dit et renvoie vers le commentaire libre');
+  await page.click('.rep-search-x');
+  await page.waitForTimeout(200);
+  check(await page.$eval('.rep-crumbs', (e) => !e.classList.contains('hidden')), 'effacer la recherche rend l’arbre');
+
   // --- ce que le joueur a tapé n'est jamais écrasé
   await page.fill('.rep-text', 'les arbres sont bleus');
   await page.click('.rep-crumb:has-text("Tout")');
@@ -99,6 +119,28 @@ async function openSection(page) {
   check(!over, 'aucun débordement horizontal en portrait');
   const petits = await page.$$eval('.rep-tile, .rep-chip, .rep-tab', (a) => a.filter((e) => e.getBoundingClientRect().height < 40).length);
   check(petits === 0, `toutes les tuiles font au moins 40 px de haut (${petits} trop petites)`);
+
+  // --- on doit pouvoir défiler : le panneau compact est une colonne à overflow caché (css/mobile.css), il lui
+  // faut UN enfant défilant. Sans ça, rien ne bougeait — c'est le premier pépin qu'on m'a signalé sur la section.
+  const defile = await page.evaluate(() => {
+    const p = document.querySelector('.panel-report'), b = document.querySelector('.rep-body'), g = document.querySelector('.rep-grid');
+    const boite = (e) => ({ h: e.scrollHeight, c: e.clientHeight, o: getComputedStyle(e).overflowY });
+    p.scrollTop = 0; b.scrollTop = 0;
+    b.scrollTop = 400;                                   // un défileur réel accepte qu'on le pousse
+    const bouge = b.scrollTop > 0 || (p.scrollTop = 400, p.scrollTop > 0);
+    p.scrollTop = 0; b.scrollTop = 0;
+    return { panneau: boite(p), corps: boite(b), grille: boite(g), bouge };
+  });
+  check(defile.corps.h > defile.corps.c + 2 || defile.panneau.h > defile.panneau.c + 2, 'le contenu dépasse la fenêtre : il y a bien de quoi défiler');
+  check(defile.bouge, 'le panneau défile vraiment (un enfant porte overflow, il n’est pas juste caché)');
+  check(defile.grille.o === 'visible', 'la grille n’est PAS un second défileur : un seul, pour que le doigt ne se batte pas');
+  await page.evaluate(() => { document.querySelector('.rep-body').scrollTop = 0; });
+  const envoiVisible = await page.evaluate(() => {
+    const b = [...document.querySelectorAll('.panel-report .btn')].find((x) => x.textContent.includes('Envoyer'));
+    const r = b.getBoundingClientRect();
+    return r.bottom <= innerHeight + 1 && r.top >= -1;
+  });
+  check(envoiVisible, 'le bouton « Envoyer » reste posé en bas, sans avoir à défiler');
 
   // --- hors ligne : le rapport est téléchargé, jamais d'échec muet
   await page.click('.rep-tab:has-text("Un pépin")');

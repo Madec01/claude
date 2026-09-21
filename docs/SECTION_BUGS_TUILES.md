@@ -93,7 +93,29 @@ retient que l'identifiant.
 Chaque niveau se termine par une tuile **`Autre chose`**, qui embarque la branche et bascule le curseur dans la
 zone de texte. Personne ne doit pouvoir se retrouver coincé dans l'arbre sans moyen de dire ce qu'il a vu.
 
-### 2.5 Un raccourci pour les cas fréquents
+### 2.5 Un champ de recherche au-dessus des tuiles
+
+Deux cent quarante feuilles, c'est beaucoup à parcourir au pouce quand on sait déjà ce qu'on cherche. Un champ
+au-dessus de la liste y coupe en un mot : tant qu'il n'est pas vide, les résultats **remplacent** l'arbre — on ne
+fouille pas deux choses à la fois — et le fil d'Ariane s'efface.
+
+- Chaque résultat porte **le chemin qui y mène**, en petit. Sans ça, « Rivière » ne dirait pas s'il s'agit du dessin
+  ou du calcul, et il y en a un de chaque.
+- Toucher une **feuille** l'embarque. Toucher une **branche** y descend et efface la recherche : on a cherché une
+  catégorie, on atterrit dedans.
+- **« Autre chose » ne remonte jamais** dans une recherche : répondre « je ne sais pas » à quelqu'un qui vient de
+  dire ce qu'il cherche n'aurait aucun sens.
+- **Un dictionnaire de mots courants** (`MOTS`, dans `bug_tree.js`) rattrape ce que l'arbre ne dit pas avec les mots
+  du joueur : *lag*, *crash*, *fps*, *plante*, *moche*, *rame*, *injuste*, *verrouillé*, *synchro*… Il est tenu à
+  part de l'arbre — on le relit d'un coup d'œil, et ajouter un synonyme ne demande pas d'y toucher.
+- **Le classement** va du plus précis au plus vague : le nom de la tuile, puis ses propres mots courants, puis le
+  chemin, puis les mots d'une branche au-dessus. À égalité, une feuille passe devant une branche.
+- **Tous les mots tapés doivent trouver quelque chose** — avec trois cents nœuds, un « ou » rendrait la moitié de
+  l'arbre à chaque frappe. Mais si plus rien ne colle, on se rabat sur les mots qui collent : rendre « rien » à
+  quelqu'un qui vient d'écrire « musique coupée » le renverrait à l'arbre entier pour un mot de trop.
+- Le champ **ne prend pas le focus tout seul** sur téléphone, comme le commentaire : le clavier mangerait l'écran.
+
+### 2.6 Un raccourci pour les cas fréquents
 
 Au-dessus de l'arbre, une ligne de **quatre tuiles d'accès direct**, les pépins qu'on rencontre vraiment :
 `Ça s'est bloqué` · `Le compte est faux` · `C'est mal placé` · `Le jeu a planté`. Un seul toucher, et on est dans
