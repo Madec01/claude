@@ -89,7 +89,7 @@ export function collectContext(scene, sceneName) {
  * Compose le rapport. `mode` vaut 'pepin' ou 'idee'.
  * En mode idée la partie rejouable ne part pas : il n'y a rien à rejouer, et le contexte léger dit déjà l'essentiel.
  */
-export function buildReport({ mode = 'pepin', tuiles = [], raccourci = null, mot = '', scene = null, sceneName = null, avecPartie = true } = {}) {
+export function buildReport({ mode = 'pepin', tuiles = [], raccourci = null, mot = '', scene = null, sceneName = null, avecPartie = true, partie = null } = {}) {
   const code = nouveauCode();
   const ctx = collectContext(scene, sceneName);
   const r = {
@@ -104,14 +104,34 @@ export function buildReport({ mode = 'pepin', tuiles = [], raccourci = null, mot
     const errs = BlackBox.pending();
     if (errs && errs.length) r.erreurs = errs;
     if (avecPartie) {
-      const run = RunSave.read();
-      if (run) r.partie = run;
-      else if (scene && scene.isl && !scene.isl.ended && scene.isl.placements) {
-        try { r.partie = { where: scene.def && scene.def.id ? { kind: 'campaign', id: scene.def.id, semis: scene.def.semis } : null, title: scene.title, isl: scene.isl.serialize() }; } catch (_) { /* tant pis : le reste part */ }
-      }
+      const p = partie || partieCourante(scene);
+      if (p) r.partie = p;
     }
   }
   return r;
+}
+
+/** La partie du moment : celle gardée sur l'appareil, ou l'île en cours si elle n'a pas encore été rangée. */
+function partieCourante(scene) {
+  const run = RunSave.read();
+  if (run) return run;
+  if (scene && scene.isl && !scene.isl.ended && scene.isl.placements) {
+    try { return { where: scene.def && scene.def.id ? { kind: 'campaign', id: scene.def.id, semis: scene.def.semis } : null, title: scene.title, isl: scene.isl.serialize() }; } catch (_) { /* tant pis : le reste part */ }
+  }
+  return null;
+}
+
+/**
+ * Les parties qu'on peut joindre au rapport : celle du moment d'abord, puis les dernières jouées.
+ * Un pépin se raconte souvent APRÈS coup, l'île finie et le menu revenu — sans ce choix, le rapport joignait
+ * alors une partie vide, ou rien du tout.
+ */
+export function partiesPossibles(scene = null) {
+  const out = [];
+  const cur = partieCourante(scene);
+  if (cur) out.push({ id: 'en-cours', label: `La partie en cours · ${cur.title || 'île'} · ${(cur.isl || {}).placements || 0} tuiles`, partie: cur });
+  RunSave.history().forEach((e, i) => out.push({ id: `h${i}`, label: RunSave.label(e), partie: e }));
+  return out;
 }
 
 /** La version du jeu, telle qu'elle s'affiche au menu. Importée à la volée pour ne pas croiser les modules d'UI. */
@@ -131,11 +151,40 @@ export function captureImage({ mot = '', code = '', rapport = null } = {}) {
   const scale = Math.min(1, IMG_W / src.width);
   const w = Math.max(320, Math.round(src.width * scale));
   const h = Math.round(src.height * scale);
+  return habiller((ctx) => ctx.drawImage(src, 0, 0, w, h), w, h, { mot, code, rapport });
+}
+
+/**
+ * L'image que le joueur APPORTE : une capture de son téléphone, une photo de l'écran. Le jeu, lui, ne sait
+ * photographier que son canvas — le HUD (file, saison, vœux, boutons) est du DOM par-dessus, invisible à la
+ * capture. Pour tout pépin d'interface, la capture du téléphone montre ce que le jeu ne peut pas montrer.
+ * Rendue au même format et au même bandeau que la capture, pour qu'un relevé ne fasse pas la différence.
+ */
+export function imageFichier(fichier, { mot = '', code = '', rapport = null } = {}) {
+  return new Promise((resolve) => {
+    if (!fichier || !/^image\//.test(fichier.type || '')) { resolve(null); return; }
+    const url = URL.createObjectURL(fichier);
+    const img = new Image();
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const nw = img.naturalWidth || img.width, nh = img.naturalHeight || img.height;
+      if (!nw || !nh) { resolve(null); return; }
+      const scale = Math.min(1, IMG_W / nw);
+      const w = Math.max(1, Math.round(nw * scale)), h = Math.max(1, Math.round(nh * scale));
+      resolve(habiller((ctx) => ctx.drawImage(img, 0, 0, w, h), w, h, { mot, code, rapport }));
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); resolve(null); };
+    img.src = url;
+  });
+}
+
+/** Le bandeau papier et l'encodage, communs à la capture du jeu et à l'image apportée. */
+function habiller(dessiner, w, h, { mot = '', code = '', rapport = null }) {
   const band = 64;
   const cvs = document.createElement('canvas'); cvs.width = w; cvs.height = h + band;
   const ctx = cvs.getContext('2d');
   ctx.fillStyle = PAPER; ctx.fillRect(0, 0, w, h + band);
-  try { ctx.drawImage(src, 0, 0, w, h); } catch (_) { return null; }
+  try { dessiner(ctx); } catch (_) { return null; }
   ctx.strokeStyle = 'rgba(43,42,38,0.25)'; ctx.lineWidth = 1; ctx.strokeRect(0.5, 0.5, w - 1, h - 1);
   // le bandeau : la phrase, puis le contexte, puis le code — écrit DANS l'image, il survit à toute recompression
   ctx.fillStyle = INK; ctx.textBaseline = 'alphabetic';
@@ -154,7 +203,20 @@ export function captureImage({ mot = '', code = '', rapport = null } = {}) {
   ctx.font = '700 16px Quicksand, sans-serif'; ctx.fillStyle = '#e0a33a';
   ctx.fillText(`PÉPIN-${code}`, w - 12, h + 34);
   ctx.textAlign = 'left';
-  try { return cvs.toDataURL('image/jpeg', IMG_Q); } catch (_) { return null; }
+  return encoder(cvs);
+}
+
+/**
+ * En JPEG. Une capture de téléphone en haute résolution peut dépasser à elle seule ce que la règle Firestore
+ * accepte : on baisse alors la qualité plutôt que de perdre l'image — c'est le joueur qui l'a choisie.
+ */
+function encoder(cvs) {
+  let data = null;
+  for (const q of [IMG_Q, 0.45, 0.3]) {
+    try { data = cvs.toDataURL('image/jpeg', q); } catch (_) { return null; }
+    if ((data.split(',')[1] || '').length < MAX_IMAGE) return data;
+  }
+  return data;   // encore trop lourde : l'envoi la laissera tomber et le rapport partira sans elle
 }
 
 // ---------------------------------------------------------------------------------------------------

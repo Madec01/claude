@@ -46,10 +46,15 @@ const errors = []; const check = (ok, m) => { if (!ok) errors.push(m); console.l
   await page.waitForFunction(() => window.CS.scenes.currentName === 'island', null, { timeout: 20000 });
   await page.evaluate(() => { const isl = window.CS.scenes.current.isl; for (let k = 0; k < 40 && !isl.ended; k++) { if (isl.current && isl.current.work) { isl.toShed(); continue; } let best = null, bs = -Infinity; for (const c of isl.board.legalCells()) { const pv = isl.preview(c.q, c.r); if (pv && pv.total > bs) { bs = pv.total; best = c; } } if (!best || !isl.place(best.q, best.r)) break; } });
   await page.waitForTimeout(1500);
-  const fauna = await page.evaluate(() => [...window.CS.scenes.current.isl.fauna.entries()].map(([k, a]) => ({ k, sp: a.species })));
+  const fauna = await page.evaluate(async () => {
+    const { FAUNA_PERCHED } = await import('/src/game/fauna.js');
+    return [...window.CS.scenes.current.isl.fauna.entries()].map(([k, a]) => ({ k, sp: a.species, perche: FAUNA_PERCHED.has(a.species) }));
+  });
   check(fauna.length > 0, `de la faune est arrivée pendant l’essai (${fauna.map((f) => f.sp).join(', ') || 'aucune'})`);
-  if (fauna.length) {
-    const a = fauna[0];
+  // un perché ne se promène pas (voir plus bas) : il ne peut pas servir d’essai de marche
+  const marcheur = fauna.find((f) => !f.perche);
+  if (marcheur) {
+    const a = marcheur;
     // on pousse l'animal vers la droite puis vers la gauche et on relève son état
     const right = await page.evaluate((k) => {
       const R = window.CS.scenes.current.renderer; const st = R.wander.get(k);
@@ -76,6 +81,31 @@ const errors = []; const check = (ok, m) => { if (!ok) errors.push(m); console.l
     }, a.k);
     check(still === 0, `${a.sp} : à l’arrêt, le cycle ne tourne pas (${still} px)`);
   }
+
+  // --- 2 bis. le perché reste sur sa branche : son sprite la porte, donc rien ne doit le déplacer
+  // ni le soulever, sous peine de voir la branche sautiller avec lui (pépin QC94).
+  const perche = await page.evaluate(() => {
+    const sc = window.CS.scenes.current; const R = sc.renderer; const k = 'owl@essai';
+    sc.isl.fauna.set(k, { species: 'owl', q: 0, r: 0, regionId: 'essai' });
+    const st = R.wanderPos(k, sc.isl.fauna.get(k), 0);
+    const x0 = st.x, y0 = st.y, w0 = st.walked;
+    st.tx = x0 + 400; st.ty = y0 + 300; st.wait = -1;                       // on l’appelle loin de sa case
+    for (let i = 0; i < 30; i++) R.wanderPos(k, sc.isl.fauna.get(k), 0.05);
+    const bouge = Math.abs(st.x - x0) + Math.abs(st.y - y0) + Math.abs(st.walked - w0);
+    // la hauteur à laquelle il est dessiné ne doit dépendre ni de l’horloge ni du reste
+    const ys = []; const calls = []; const t0 = R.time;
+    const ctx = {
+      globalAlpha: 1, fillStyle: '',
+      save() {}, restore() {}, beginPath() {}, fill() {}, translate() {}, scale() {}, ellipse() {},
+      drawImage(...a) { calls.push(a.length > 5 ? a[6] : a[2]); },
+    };
+    const idx = [...sc.isl.fauna.keys()].indexOf(k);
+    for (const t of [0, 0.7, 1.4]) { R.time = t; calls.length = 0; R.drawFauna(ctx, 0); ys.push(calls[idx]); }
+    R.time = t0; sc.isl.fauna.delete(k); R.wander.delete(k);
+    return { bouge, ys };
+  });
+  check(perche.bouge === 0, `le hibou perché ne quitte pas sa case (${perche.bouge.toFixed(1)} px)`);
+  check(perche.ys.length === 3 && perche.ys.every((y) => y === perche.ys[0]), `sa branche ne monte ni ne descend (y = ${perche.ys.join(', ')})`);
 
   // --- 3. l'ombre reste au sol : seul l'animal se soulève
   const geo = await page.evaluate(() => {
