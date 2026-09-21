@@ -23,4 +23,11 @@ export const CLOUD = {
   maxPerDay: 200,         // au-delà, il se tait jusqu'au lendemain (compté sur l'appareil)
   maxBytes: 180000,       // une fiche plus grosse n'est pas envoyée (la règle Firestore refuse au-delà de 200 Ko)
   timeoutMs: 12000,       // au-delà, on abandonne et on garde le local
+
+  // Les pépins et les idées : UNE écriture par rapport, sur demande explicite du joueur, dans une collection à
+  // part — jamais dans `parties`. Le jeu n'en lit aucun ; c'est le relevé (hors du jeu) qui les ramasse et les
+  // efface. `pepins: false` coupe l'envoi en un commit, sans toucher au reste.
+  pepins: true,
+  pepinsCollection: 'pepins',
+  pepinsMaxParJour: 5,    // par appareil : un doigt qui s'emballe ne peut pas entamer le budget de la sauvegarde
 };

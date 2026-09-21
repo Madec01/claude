@@ -52,8 +52,8 @@ export function celebrate(a, { sound } = {}) {
  * pas vue autrement. Sans elle, ces déblocages n'étaient qu'un bouton du menu qui cessait d'être grisé — invisible
  * sur téléphone, où il n'y a pas d'infobulle.
  */
-export function celebrateThing({ kicker = 'Débloqué', name, desc, iconName = 'icon_star' }, { sound } = {}) {
-  queue.push({ thing: { kicker, name, desc, iconName }, sound }); if (!showing) next();
+export function celebrateThing({ kicker = 'Débloqué', name, desc, iconName = 'icon_star', onClick = null }, { sound } = {}) {
+  queue.push({ thing: { kicker, name, desc, iconName, onClick }, sound }); if (!showing) next();
 }
 function next() {
   const item = queue.shift(); if (!item) { showing = false; return; }
@@ -69,6 +69,7 @@ function next() {
       h('div', { class: 'ach-desc' }, t ? t.desc : `${item.a.desc} · +${ACHIEVEMENT_SEED} graine`)),
     h('div', { class: 'ach-sparks' }, ...Array.from({ length: 12 }, (_, i) => h('i', { style: `--i:${i}` }))),
   );
+  if (t && t.onClick) { el.classList.add('clickable'); el.addEventListener('click', () => { el.classList.add('off'); t.onClick(); }); }
   host.appendChild(el);
   if (item.sound) item.sound();
   requestAnimationFrame(() => el.classList.add('on'));

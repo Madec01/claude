@@ -1,10 +1,44 @@
-# Les tuiles de pépin — arborescence et textes pré-remplis
+# Pépins et idées — arborescence et textes pré-remplis
 
 > Complément à `SECTION_BUGS.md`. Ce document décrit **l'entonnoir de tuiles** : comment il est construit, comment on
-> s'en sert au pouce, et l'arbre complet des éléments du jeu avec, pour chaque tuile, les questions qui aident à
-> reproduire le pépin.
+> s'en sert au pouce, et l'arbre complet des éléments du jeu avec, pour chaque tuile, les questions qui aident —
+> selon le cas — à reproduire un pépin ou à comprendre une idée.
 >
 > Document de conception. Aucune ligne de `src/` n'est touchée ici.
+
+---
+
+## 0. Deux modes, un seul arbre
+
+La section s'appelle **« Pépins et idées »**. En haut de l'écran, un sélecteur à deux positions :
+
+```
+  ┌──────────────┬──────────────┐
+  │  Un pépin  ● │   Une idée   │      ← « Un pépin » par défaut
+  └──────────────┴──────────────┘
+```
+
+**Pas d'écran de choix supplémentaire.** Le sélecteur est posé sur le même écran que le reste, et il est déjà sur
+`Un pépin` : celui qui vient signaler un problème ne paie rien pour la nouveauté. Celui qui a une idée touche une
+fois. Quand la section est ouverte depuis la bannière de plantage, le sélecteur est **verrouillé sur `Un pépin`** —
+le jeu sait déjà de quoi il s'agit.
+
+**L'arbre est le même dans les deux modes.** Les branches, les rameaux, les feuilles : identiques. Ce qui change :
+
+| | Mode `Un pépin` | Mode `Une idée` |
+|---|---|---|
+| Les quatre raccourcis du haut | Ça s'est bloqué · Le compte est faux · C'est mal placé · Le jeu a planté | Je n'ai pas compris · C'est trop dur · C'est trop facile · Ce serait plus simple si… |
+| Les questions pré-remplies | **Par feuille** — 240 jeux de questions, faits pour reproduire (§ 7) | **Par branche** — 8 jeux, plus un trio commun (§ 7 bis) |
+| L'erreur relevée par le jeu | Affichée en haut, embarquable | Masquée : elle n'a rien à faire là |
+| La partie rejouable | Jointe par défaut | **Non jointe** — il n'y a rien à rejouer ; seul le contexte léger part (île, chapitre, mécaniques ouvertes) |
+| L'image de l'écran | Proposée, repliée | Proposée, repliée — *« montre-moi où tu imagines ça »* |
+| Dans GitHub | Étiquette `pépin`, titre `PÉPIN-7K3Q · …` | Étiquette `idée`, titre `IDÉE-7K3Q · …` |
+
+**Pourquoi les questions ne sont pas par feuille en mode idée.** Une idée n'a rien à reproduire. Les questions qui
+servent un pépin — quelle saison, une tuile ou toutes, ça le fait à chaque fois — n'ont aucun sens face à « j'aimerais
+que les vergers sentent quelque chose en automne ». Trois questions suffisent, partout, et une nuance par branche.
+Dupliquer les 240 jeux aurait doublé l'entretien pour un gain nul. La différence de traitement n'est pas une
+économie, c'est la nature de la chose.
 
 ---
 
@@ -145,13 +179,16 @@ Il tape ses réponses à la suite, ou pas. Un rapport avec deux réponses sur tr
 
 ```
 ┌─────────────────────────────────────────┐
-│  Signaler un pépin                      │
+│  Pépins et idées                        │
+│  ┌────────────┬────────────┐            │  ← le sélecteur, « Un pépin »
+│  │ Un pépin ● │  Une idée  │            │     par défaut
+│  └────────────┴────────────┘            │
 │                                         │
 │  ⚠ Le jeu a relevé une erreur           │  ← seulement s'il y en a une,
-│    pendant ta partie.  [ l'ajouter ]    │     déjà prête à embarquer
+│    pendant ta partie.  [ l'ajouter ]    │     et seulement en mode pépin
 │                                         │
 │  ( ça s'est bloqué ) ( le compte est faux )  ← les quatre raccourcis
-│  ( c'est mal placé ) ( le jeu a planté )│
+│  ( c'est mal placé ) ( le jeu a planté )│     (ils changent avec le mode)
 │                                         │
 │  ─ ou cherche dans la liste ─           │
 │  Graphisme › Sprites                    │  ← fil d'Ariane, retour d'un toucher
@@ -203,12 +240,18 @@ En plus de tout ce que décrit `SECTION_BUGS.md` § 6, l'entonnoir ajoute :
 
 | Champ | Contenu |
 |---|---|
-| `tuiles` | La liste des chemins choisis : `["graphisme/sprites/foret", "jeu/saisons/automne"]` |
-| `raccourci` | Le raccourci touché, s'il y en a un : `bloque`, `compte`, `place`, `plantage` |
+| `mode` | `pepin` ou `idee` |
+| `tuiles` | La liste des chemins choisis : `["graphisme/sprites/foret", "regles/saisons/automne"]` |
+| `raccourci` | Le raccourci touché, s'il y en a un : `bloque`, `compte`, `place`, `plantage` (pépin) ou `compris`, `dur`, `facile`, `simple` (idée) |
 | `questions` | Les questions qui ont été posées — pour savoir, en lisant la réponse, à quoi elle répond |
 
-L'issue GitHub porte les chemins en **étiquettes** (`graphisme`, `graphisme/sprites`, `graphisme/sprites/foret`) :
-trois niveaux d'étiquette, donc trois grains de filtre selon ce que tu cherches.
+L'issue GitHub porte le mode et les chemins en **étiquettes** : `pépin` ou `idée`, puis `graphisme`,
+`graphisme/sprites`, `graphisme/sprites/foret` — trois niveaux de chemin, donc trois grains de filtre selon ce que
+tu cherches, et un filtre en travers pour séparer ce qui est cassé de ce qui est souhaité.
+
+En mode `idee`, `partie` (le `RunSave`) est **absent** : rien à rejouer. Le rapport garde en revanche le contexte
+léger — île, chapitre, climat, saison, mécaniques ouvertes — parce que « il propose ça à l'île 12 » et « il propose
+ça à l'île 47 » ne veulent pas dire la même chose.
 
 ---
 
@@ -704,22 +747,53 @@ reconnaître les mots qu'il a lus en jouant, pas ceux du code.
 
 ---
 
-### I — Une idée · *ce n'est pas un pépin*
+*(La branche « Une idée » a disparu de l'arbre : elle est devenue un **mode**, voir § 0 et § 7 bis.)*
 
-*Branche : Qu'est-ce que tu aimerais, et à quel moment du jeu ça te manque ?*
+---
 
-- **Une envie de jeu** → Quelle mécanique ? Qu'est-ce qui manque ou frustre ?
-- **Une envie d'interface** → Quel geste aimerais-tu plus court ?
-- **Quelque chose que je ne comprends pas** → Quelle règle ? Où l'as-tu cherchée ?
-- **Quelque chose de trop dur ou trop facile** → Quelle île ? Quel moment ?
-- **Autre chose** → Raconte.
+## 7 bis. Les questions en mode « Une idée »
+
+### Le trio commun, partout
+
+Quelle que soit la tuile choisie, trois questions, toujours les mêmes :
+
+```
+Qu'est-ce que tu aimerais ?
+Qu'est-ce qui te manque ou t'agace aujourd'hui ?
+À quel moment du jeu ça te viendrait ?
+```
+
+La deuxième est la plus importante : une idée est presque toujours la réponse à une gêne, et c'est la gêne qui se
+corrige — parfois autrement que par l'idée proposée.
+
+### La nuance par branche
+
+Une seule question de plus, qui remplace la deuxième du trio quand la branche la précise mieux :
+
+| Branche | Question propre à la branche |
+|---|---|
+| **A · Graphisme** | Qu'est-ce que tu voudrais voir à la place, ou en plus ? |
+| **B · Son et vibrations** | Qu'est-ce que tu voudrais entendre, ou ne plus entendre ? |
+| **C · Règles et comptes** | Qu'est-ce qui te semble injuste, plat ou trop prévisible ? |
+| **D · Interface et commandes** | Quel geste aimerais-tu plus court, ou moins risqué ? |
+| **E · Écrans et menus** | Qu'est-ce que tu cherches et que tu ne trouves pas ? |
+| **F · Sauvegarde et progression** | De quoi voudrais-tu être sûr, et quand ? |
+| **G · Lenteur, chargement, plantage** | Qu'est-ce qui te fait attendre, et combien de temps ? |
+| **H · Textes** | Quelle phrase te fait tiquer, et comment tu la dirais ? |
+
+### Ce qui ne change pas
+
+Le joueur peut toujours prendre plusieurs tuiles, embarquer une branche entière, ou n'en prendre aucune et écrire
+tout droit. `Autre chose` reste à chaque niveau.
 
 ---
 
 ## 8. Les raccourcis, et vers quoi ils pointent
 
 Les quatre tuiles d'accès direct, en haut de l'écran, ne sont pas des branches : ce sont des **étiquettes à plat**
-qui mènent droit au commentaire.
+qui mènent droit au commentaire. Elles changent avec le mode.
+
+### Mode « Un pépin »
 
 | Raccourci | Étiquette | Questions posées |
 |---|---|---|
@@ -729,6 +803,20 @@ qui mènent droit au commentaire.
 | `Le jeu a planté` | `plantage` | Qu'as-tu fait juste avant ? La page s'est-elle fermée ou rechargée ? |
 
 Quand la boîte noire a relevé une erreur, `Le jeu a planté` est **déjà coché** à l'ouverture de la section.
+
+### Mode « Une idée »
+
+| Raccourci | Étiquette | Questions posées |
+|---|---|---|
+| `Je n'ai pas compris` | `compris` | Quelle règle ? Où l'as-tu cherchée (Guide, carte, bandeau) ? Qu'est-ce que tu croyais ? |
+| `C'est trop dur` | `dur` | Quelle île, quel moment ? Qu'as-tu essayé ? Tu es resté bloqué combien de temps ? |
+| `C'est trop facile` | `facile` | Quelle île, quel moment ? Qu'est-ce qui ne te demandait aucun effort ? |
+| `Ce serait plus simple si…` | `simple` | Quel geste te coûte ? Combien de fois par partie tu le fais ? |
+
+`Je n'ai pas compris` mérite une note : ce n'est ni un pépin ni une idée, mais c'est le retour le plus précieux d'un
+testeur. Une règle qu'on n'a pas comprise est un défaut du jeu, pas du joueur — et personne ne le signale
+spontanément, parce qu'on croit toujours que c'est soi qui a mal lu. Lui donner un bouton, c'est le seul moyen de
+l'entendre.
 
 ---
 
