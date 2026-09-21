@@ -10,6 +10,13 @@ function migrate(data, from) {
     c.unlockedIsland = c.completed ? 50 : (OLD_TO_NEW[Math.min(12, Math.max(1, c.unlockedIsland || 1))] || 1);
     c.completed = false;
   }
+  // « Grille discrète » : elle redessinait le contour des hexagones PAR-DESSUS les fondus de sol,
+  // donc la grille réapparaissait entre deux tuiles posées — exactement ce que les fondus servent à
+  // effacer. Elle n'a jamais été cochée par défaut, mais une sauvegarde l'ayant essayée la gardait
+  // allumée sans qu'on fasse le lien. On la décoche une seule fois ; le marqueur évite de contrarier
+  // qui la rallume ensuite volontairement.
+  if (!data.fixes) data.fixes = {};
+  if (!data.fixes.gridOff) { data.fixes.gridOff = true; if (data.options) data.options.grid = false; }
   return data;
 }
 
@@ -30,6 +37,7 @@ const defaults = () => ({
   infinite: { best: 0, bestSeasons: 0, unlocked: false },
   daily: { best: {}, history: [], streak: 0, lastPlayed: null },
   stats: { placements: 0, closed: 0, fauna: 0, wishes: 0 },
+  fixes: {},   // correctifs appliqués une seule fois aux sauvegardes existantes (voir `migrate`)
 });
 
 function merge(base, extra) {
