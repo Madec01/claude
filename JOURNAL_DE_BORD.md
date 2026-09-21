@@ -2,6 +2,9 @@
 
 > Document de référence du projet. Il permet à n'importe qui (humain ou IA) de reprendre le projet à froid.
 > Règle : aucune modification significative du jeu sans une ligne dans le **Journal des modifications** (section 7).
+> Règle : toute mécanique, tuile, règle, écran ou réglage **nouveau** ajoute sa tuile dans l'arbre de
+> `docs/SECTION_BUGS_TUILES.md` (section 7). Sans quoi l'arbre vieillit, et le joueur qui veut signaler la
+> nouveauté ne trouve plus sa case : il écrit dans « Autre chose », et le tri est à refaire à la main.
 
 > **Historique des pivots.** Le projet a connu deux concepts abandonnés : « Feux de Brume » (gardienne de phare, jugé trop proche d'un jeu antérieur du commanditaire) puis « Tu tires ou tu pointes ? » (pétanque narrative, ébauche interrompue quand le commanditaire a demandé dix propositions). Le concept retenu par le commanditaire est **Cent Saisons**. Le moteur générique (boucle, entrées, chargeur, audio, sauvegarde, scènes, particules, écrans DOM, pipelines d'assets, bot de QA) est conservé ; tout le reste est refait. Les anciens concepts sont archivés en section 6 et dans l'historique git.
 
