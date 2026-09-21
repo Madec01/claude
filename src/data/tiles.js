@@ -41,7 +41,10 @@ export const LEVEL3_SEASONAL = {
 };
 
 /** Ouvrages : tuiles bonus qui se posent SUR une tuile existante (une par tuile) ; bonne ou mauvaise place, jugée à chaque saison. */
-export const WORKS = ['hive', 'scarecrow', 'pier', 'bridge', 'nestbox', 'campfire', 'menhir', 'compost'];
+// Le ponton et le pont sont partis : les sprites du Nature Kit (une passerelle claire de 66 × 48 sur
+// un hexagone large de 120) ne se mariaient avec rien, et un ouvrage posé au milieu d'un étang ne
+// racontait pas un ouvrage. Ils reviendront peut-être avec le Livre II et ses vraies tuiles de mer.
+export const WORKS = ['hive', 'scarecrow', 'nestbox', 'campfire', 'menhir', 'compost'];
 
 /** Table des affinités : clé "a|b" (ordre indifférent) → points par bord partagé. */
 const PAIRS = {
@@ -75,4 +78,4 @@ export const PAIR_LABELS = {
 };
 
 /** Icônes d'UI par famille (Game Icons) et couleurs d'accent. */
-export const FAMILY_COLORS = { hive: '#e0a33a', scarecrow: '#c9903a', pier: '#8a6a44', bridge: '#8a8f96', nestbox: '#7a5a3a', campfire: '#d95f4b', menhir: '#6f747a', compost: '#7a6a3a', paddy: '#7fb26a', farm: '#c9903a', fort: '#8a8f96', falls: '#6fb2d8', cave: '#7a7f86', lagoon: '#7fcbe0', meadow: '#7cc46f', forest: '#3f8a3d', field: '#d8a33c', hamlet: '#c96b4a', orchard: '#e0785a', water: '#5aa7d6', marsh: '#7ea36b', rock: '#8f9aa3', sand: '#e6d29a', mill: '#d8a33c', chapel: '#c96b4a', watchtower: '#8f9aa3', well: '#5aa7d6', camp: '#e0a33a', ruins: '#8f9aa3', hill: '#9bb56a', heath: '#a67bb8', granary: '#d8a33c', fountain: '#5aa7d6', market: '#c96b4a', fete: '#e0a33a', restore: '#8f9aa3', tavern: '#c96b4a', trough: '#7cc46f', archway: '#c96b4a', mine: '#8f9aa3', oven: '#c96b4a' };
+export const FAMILY_COLORS = { hive: '#e0a33a', scarecrow: '#c9903a', nestbox: '#7a5a3a', campfire: '#d95f4b', menhir: '#6f747a', compost: '#7a6a3a', paddy: '#7fb26a', farm: '#c9903a', fort: '#8a8f96', falls: '#6fb2d8', cave: '#7a7f86', lagoon: '#7fcbe0', meadow: '#7cc46f', forest: '#3f8a3d', field: '#d8a33c', hamlet: '#c96b4a', orchard: '#e0785a', water: '#5aa7d6', marsh: '#7ea36b', rock: '#8f9aa3', sand: '#e6d29a', mill: '#d8a33c', chapel: '#c96b4a', watchtower: '#8f9aa3', well: '#5aa7d6', camp: '#e0a33a', ruins: '#8f9aa3', hill: '#9bb56a', heath: '#a67bb8', granary: '#d8a33c', fountain: '#5aa7d6', market: '#c96b4a', fete: '#e0a33a', restore: '#8f9aa3', tavern: '#c96b4a', trough: '#7cc46f', archway: '#c96b4a', mine: '#8f9aa3', oven: '#c96b4a' };

@@ -4,7 +4,7 @@ import { Island } from '../src/game/island.js';
 import { ISLANDS, INFINITE, GARDEN } from '../src/data/islands.js';
 import { Board } from '../src/game/board.js';
 import { neighbors } from '../src/game/hex.js';
-import { affinity } from '../src/data/tiles.js';
+import { affinity, WORKS } from '../src/data/tiles.js';
 import { preview, previewBuild, canBuild, canFuse, previewFuse, apply, closedRegionsAround, countClosedRegions } from '../src/game/rules.js';
 import { STORY } from '../src/data/story.js';
 import { progressOf } from '../src/game/wishes.js';
@@ -179,13 +179,9 @@ check(affinity('meadow', 'water') === 0, 'prairie-eau = 0');
     b2.place(3, 0, { family: 'water', variant: 1 }); b2.place(4, 0, { family: 'water', variant: 1 });
     check(classifyWater(b2).get('4,0').mouth, 'le bout de la rivière touche la mer : embouchure');
   }
-  // pont : bon sur le tronc entre deux hameaux, mauvais sur le lac
-  b.place(1, -1, { family: 'hamlet', variant: 1 }); b.place(0, 1, { family: 'hamlet', variant: 1 });
-  const onRiver = evalWork(b, { ...b.get(1, 0), work: 'bridge' }, 'spring'); check(onRiver.good && onRiver.pts === 3, 'pont sur la rivière entre deux hameaux : bien placé');
-  b.place(4, -1, { family: 'hamlet', variant: 1 }); b.place(3, 1, { family: 'hamlet', variant: 1 });
-  const onLake = evalWork(b, { ...b.get(3, 0), work: 'bridge' }, 'spring'); check(!onLake.good && onLake.label === 'pas de rivière', `pont sur le lac : mal placé (${onLake.label})`);
-  // ponton : reste sur sa tuile de rivière
-  const pier = evalWork(b, { ...b.get(1, 0), work: 'pier' }, 'spring'); check(pier.good, 'ponton sur la rivière collée à un hameau');
+  // le pont et le ponton ont été retirés (leurs sprites ne tenaient pas l'échelle et un ouvrage au
+  // milieu d'un étang ne racontait rien) : on vérifie qu'ils ne sont plus proposés
+  check(!WORKS.includes('bridge') && !WORKS.includes('pier'), 'plus de pont ni de ponton dans les ouvrages');
 }
 
 

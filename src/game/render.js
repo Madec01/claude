@@ -510,6 +510,13 @@ export class IslandRenderer {
         ctx.fillStyle = pal.edge; this.blob(ctx, c.x, c.y, rr * 1.03, c0); ctx.fill();
         ctx.fillStyle = pal.deep; this.blob(ctx, c.x, c.y, rr, c0); ctx.fill();
         ctx.fillStyle = pal.shoal; this.blob(ctx, c.x, c.y + 3.5 * z, rr * 0.92, c0); ctx.fill();
+        for (let d = 0; d < 6; d++) {   // mare ouverte sur la mer : elle devient une crique
+          const cell = body.cells[0]; const nq = cell.q + DIRS[d][0], nr = cell.r + DIRS[d][1];
+          if (!b.isSea(nq, nr)) continue;
+          const m = edgeMid(c0.x, c0.y, d); const ow = toWorld(nq, nr);
+          const g1 = S({ x: (c0.x + m.x) / 2, y: (c0.y + m.y) / 2 }); this.blob(ctx, g1.x, g1.y, SIZE * 0.5 * z, c0); ctx.fill();
+          const g2 = S({ x: (m.x + ow.x) / 2, y: (m.y + ow.y) / 2 }); this.blob(ctx, g2.x, g2.y, SIZE * 0.42 * z, ow); ctx.fill();
+        }
         if (!frozen) { ctx.strokeStyle = pal.foam; ctx.lineWidth = 1.5 * z; ctx.beginPath(); ctx.ellipse(c.x - rr * 0.2, c.y - rr * 0.25, rr * 0.35, rr * 0.16, -0.4, 0, TAU); ctx.stroke(); }
       } else {
         // lac : union de mares arrondies (une par case, forme irrégulière) reliées par des ponts arrondis entre cases voisines ;
@@ -534,6 +541,19 @@ export class IslandRenderer {
         nappe(pal.edge, 2);            // la lèvre : un liseré sombre au contact de la terre, sans débord
         nappe(pal.deep, 0);            // le fond, à l'ombre
         nappe(grad, -4, 4 * z);        // le plan d'eau, un peu rétréci et descendu : ombre fine sous la lèvre
+        // Bras de mer : une nappe qui touche le bord de l'île n'est pas un lac fermé, c'est une
+        // échancrure. Du côté ouvert on efface la lèvre et on prolonge l'eau au-dessus du large, en
+        // ton de bas-fond — la mer entre dans les terres au lieu de s'arrêter sur un trait.
+        ctx.fillStyle = pal.shoal;
+        for (const c of cs) for (let d = 0; d < 6; d++) {
+          const nq = c.cell.q + DIRS[d][0], nr = c.cell.r + DIRS[d][1];
+          if (!b.isSea(nq, nr)) continue;
+          const m = edgeMid(c.w.x, c.w.y, d);
+          const g1 = S({ x: (c.w.x + m.x) / 2, y: (c.w.y + m.y) / 2 });
+          this.blob(ctx, g1.x, g1.y, SIZE * 0.6 * z, c.w); ctx.fill();
+          const ow = toWorld(nq, nr); const g2 = S({ x: (m.x + ow.x) / 2, y: (m.y + ow.y) / 2 });
+          this.blob(ctx, g2.x, g2.y, SIZE * 0.5 * z, ow); ctx.fill();
+        }
         if (!frozen) {
           // la rive scintille : un liseré clair qui court le long du contour, et qui BOUGE — sans
           // l'animation ce n'est qu'un trait peint, et c'est ce mouvement qui fait lire « de l'eau »
