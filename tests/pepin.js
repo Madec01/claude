@@ -51,6 +51,26 @@ async function openSection(page) {
   check(texte.includes('Quelle saison ?') && texte.includes('hexagone'), 'les questions de la feuille sont déposées dans le commentaire');
   await page.screenshot({ path: path.join(OUT, 'pepin-mobile-arbre.png') });
 
+  // --- la recherche : un mot doit suffire à couper dans 240 feuilles
+  await page.fill('.rep-search-input', 'montagne');
+  await page.waitForTimeout(250);
+  const res = await page.$$eval('.rep-result b', (a) => a.map((x) => x.textContent));
+  check(res[0] === 'Roche et montagnes', `la recherche trouve la bonne tuile en tête (${res[0]})`);
+  check(await page.$eval('.rep-crumbs', (e) => e.classList.contains('hidden')), 'le fil d’Ariane s’efface pendant la recherche : on ne fouille pas deux choses à la fois');
+  const chemins = await page.$$eval('.rep-result small', (a) => a.map((x) => x.textContent));
+  check(chemins.some((c) => c.includes('›')), 'chaque résultat dit le chemin qui y mène (« Rivière » existe en dessin ET en calcul)');
+  await page.fill('.rep-search-input', 'lag');
+  await page.waitForTimeout(250);
+  const motsCourants = await page.$$eval('.rep-result b', (a) => a.map((x) => x.textContent).join(' | '));
+  check(/rame|Lenteur/i.test(motsCourants), `un mot que l’arbre n’emploie pas trouve quand même (« lag » → ${motsCourants.split('|')[0].trim()})`);
+  check(!/Autre chose/.test(motsCourants), '« Autre chose » ne remonte jamais dans une recherche');
+  await page.fill('.rep-search-input', 'zzzz');
+  await page.waitForTimeout(250);
+  check(await page.$('.rep-noresult'), 'sans résultat, le jeu le dit et renvoie vers le commentaire libre');
+  await page.click('.rep-search-x');
+  await page.waitForTimeout(200);
+  check(await page.$eval('.rep-crumbs', (e) => !e.classList.contains('hidden')), 'effacer la recherche rend l’arbre');
+
   // --- ce que le joueur a tapé n'est jamais écrasé
   await page.fill('.rep-text', 'les arbres sont bleus');
   await page.click('.rep-crumb:has-text("Tout")');

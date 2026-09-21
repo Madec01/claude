@@ -519,6 +519,125 @@ export const TRIO_IDEE = [
   'À quel moment du jeu ça te viendrait ?',
 ];
 
+/**
+ * Les mots que le joueur tape, et qui ne sont dans aucun nom de tuile. Gardés à part plutôt que semés dans
+ * l'arbre : on les relit d'un coup d'œil, et ajouter un synonyme ne demande pas de toucher à l'arbre.
+ * Un mot posé sur une branche vaut pour toutes ses feuilles.
+ */
+export const MOTS = {
+  graphisme: ['image', 'affichage', 'moche', 'laid', 'dessin', 'visuel', 'couleur', 'pixel'],
+  'graphisme/sprites': ['tuile', 'objet', 'batiment', 'maison', 'arbre', 'decor'],
+  'graphisme/sprites/roche': ['montagne', 'caillou', 'pierre', 'massif', 'rocher'],
+  'graphisme/sprites/hameau': ['village', 'maison', 'toit', 'bourg'],
+  'graphisme/effets': ['animation', 'particule', 'meteo'],
+  'graphisme/camera': ['vue', 'zoom', 'cadrage', 'deplacement'],
+  'graphisme/hud': ['interface', 'barre', 'affichage', 'ecran', 'coupe', 'rogne', 'deborde'],
+  son: ['audio', 'bruit', 'musique', 'volume', 'silence', 'sourd'],
+  'son/vibrations': ['haptique', 'vibre', 'vibreur'],
+  regles: ['score', 'points', 'compte', 'calcul', 'injuste', 'faux', 'fausse', 'mauvais', 'incorrect', 'errone', 'compte pas', 'pas compte'],
+  'regles/pose': ['poser', 'placement', 'bord', 'affinite'],
+  'regles/regions': ['fermer', 'fermeture', 'cloture', 'prime', 'encercler'],
+  'regles/eau': ['riviere', 'lac', 'etang', 'mer', 'gel', 'glace'],
+  'regles/saisons': ['printemps', 'ete', 'automne', 'hiver', 'regle de saison'],
+  'regles/climat': ['chaud', 'froid', 'humide', 'orage', 'canicule', 'vent', 'neige'],
+  'regles/faune': ['animal', 'animaux', 'bete', 'lapin', 'ours', 'elan', 'canard', 'hibou', 'manchot', 'grenouille', 'poule', 'cheval', 'vache', 'chevre'],
+  'regles/voeux': ['objectif', 'quete', 'demande', 'habitant', 'promesse'],
+  'regles/souffles': ['pouvoir', 'energie', 'annuler', 'echanger', 'defausser', 'bourgeon', 'poche'],
+  'regles/file': ['main', 'tuiles a venir', 'prochaine tuile', 'remise'],
+  'regles/batir': ['construire', 'niveau 2', 'niveau 3', 'fusion', 'fusionner', 'ouvrage', 'signature', 'croissance'],
+  'regles/rares': ['moulin', 'chapelle', 'puits', 'campement', 'grenier', 'fontaine', 'auberge', 'mine', 'marche', 'fete', 'ruine'],
+  'regles/etoiles': ['graine', 'atelier', 'amelioration', 'seuil', 'etoile d or'],
+  'regles/campagne': ['chapitre', 'porte', 'contrat', 'archipel', 'semis', 'debloquer', 'verrouille', 'ile suivante'],
+  'regles/bilan': ['fin de partie', 'resultat', 'recapitulatif'],
+  interface: ['commande', 'bouton', 'touche', 'clic', 'toucher', 'repond pas', 'reagit pas'],
+  'interface/poser': ['poser', 'placer', 'pose pas', 'refuse'],
+  'interface/vue': ['glisser', 'pincer', 'zoomer', 'deplacer', 'scroll', 'defiler'],
+  'interface/clavier': ['touche', 'raccourci'],
+  'interface/ecran': ['portrait', 'paysage', 'rotation', 'plein ecran', 'encoche', 'trop petit', 'deborde'],
+  'interface/tutoriel': ['consigne', 'aide', 'explication', 'carte'],
+  ecrans: ['menu', 'panneau', 'page', 'fenetre'],
+  'ecrans/menu': ['accueil', 'carte des iles', 'reprendre', 'continuer'],
+  'ecrans/options': ['reglage', 'parametre', 'preference'],
+  'ecrans/guide': ['cahier', 'aide', 'recette'],
+  'ecrans/apres': ['bilan', 'atelier', 'succes', 'credits', 'trophee'],
+  sauvegarde: ['perdu', 'progression', 'compte', 'nuage', 'cloud', 'synchro', 'google', 'sauvegarder'],
+  'sauvegarde/reprise': ['reprendre', 'partie en cours', 'continuer'],
+  'sauvegarde/nuage': ['en ligne', 'google', 'connexion', 'synchronisation', 'firebase', 'appareil'],
+  technique: ['bug', 'crash', 'plante', 'plantage', 'lent', 'lag', 'rame', 'fps', 'freeze', 'fige', 'bloque'],
+  'technique/lenteur': ['lag', 'rame', 'fps', 'saccade', 'ralenti', 'images par seconde', 'chauffe'],
+  'technique/fige': ['bloque', 'coince', 'freeze', 'repond plus'],
+  'technique/plantage': ['crash', 'ferme', 'page blanche', 'plante'],
+  'technique/lancement': ['demarrage', 'chargement', 'ouvre pas', 'lance pas'],
+  textes: ['faute', 'orthographe', 'traduction', 'mot', 'phrase', 'ecriture', 'coupe', 'deborde'],
+};
+
+const norm = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+  .replace(/[\u2019']/g, ' ').replace(/[^a-z0-9]+/g, ' ').trim();
+
+/** L'index plat de l'arbre, construit une fois : un enregistrement par nœud, feuille ou branche. */
+let _index = null;
+function index() {
+  if (_index) return _index;
+  _index = [];
+  const walk = (list, prefix, ancetres) => {
+    for (const node of list || []) {
+      const path = prefix ? `${prefix}/${node.id}` : node.id;
+      const chemin = [...ancetres, node.n];
+      // « Autre chose » est une sortie de secours dans un niveau, pas une réponse à une recherche : la proposer
+      // reviendrait à répondre « je ne sais pas » à quelqu'un qui vient justement de dire ce qu'il cherche.
+      if (node.id !== 'autre') {
+        const anc = path.split('/').slice(0, -1).map((_, i, a) => a.slice(0, i + 1).join('/'));
+        _index.push({
+          path, nom: node.n, label: chemin.join(' · '), feuille: !(node.e && node.e.length),
+          nomN: norm(node.n),
+          ancetresN: norm(ancetres.join(' ')),
+          motsN: norm((MOTS[path] || []).join(' ')),
+          motsAncN: norm(anc.flatMap((a) => MOTS[a] || []).join(' ')),
+        });
+      }
+      if (node.e) walk(node.e, path, chemin);
+    }
+  };
+  walk(TREE, '', []);
+  return _index;
+}
+
+/**
+ * Cherche une tuile par mots-clés. Tous les mots tapés doivent trouver quelque chose (et non « au moins un ») :
+ * avec 300 nœuds, un « ou » rendrait la moitié de l'arbre à chaque frappe.
+ * Le classement va du plus précis au plus vague : le nom de la tuile, ses propres mots courants, le chemin qui y
+ * mène, puis les mots d'une branche au-dessus — sans quoi un mot posé sur une branche ferait remonter ses trente
+ * feuilles à égalité. À score égal, une feuille passe devant une branche, parce qu'elle désigne mieux.
+ */
+export function search(q, limit = 30) {
+  const mots = norm(q).split(' ').filter((m) => m.length >= 2);
+  if (!mots.length) return [];
+  const trouve = (exigeTous) => {
+  const out = [];
+  for (const e of index()) {
+    let score = 0, tous = true;
+    for (const m of mots) {
+      let s = 0;
+      if (e.nomN.split(' ').some((w) => w.startsWith(m))) s = 20;
+      else if (e.nomN.includes(m)) s = 12;
+      else if (e.motsN.split(' ').some((w) => w.startsWith(m))) s = 15;
+      else if (e.motsN.includes(m)) s = 9;
+      else if (e.ancetresN.includes(m)) s = 5;
+      else if (e.motsAncN.split(' ').some((w) => w.startsWith(m))) s = 4;
+      if (!s) { tous = false; if (exigeTous) break; else continue; }
+      score += s;
+    }
+    if (exigeTous ? tous : score > 0) out.push({ ...e, score: score + (e.feuille ? 2 : 0) });
+  }
+  out.sort((a, b) => b.score - a.score || a.label.length - b.label.length);
+  return out.slice(0, limit);
+  };
+  // d'abord tous les mots ; si rien ne colle, on se rabat sur ceux qui collent. Rendre « rien » à quelqu'un qui
+  // vient d'écrire « musique coupée » serait le renvoyer à l'arbre entier pour un mot de trop.
+  const strict = trouve(true);
+  return strict.length ? strict : trouve(false);
+}
+
 /** Retrouve un nœud par son chemin (« graphisme/sprites/foret »). */
 export function nodeAt(path) {
   const parts = String(path || '').split('/').filter(Boolean);
