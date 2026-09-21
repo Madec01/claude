@@ -535,18 +535,7 @@ export class IslandRenderer {
         for (let d = 0; d < 6; d++) {   // mare ouverte sur la mer : elle devient une crique
           const cell = body.cells[0]; const nq = cell.q + DIRS[d][0], nr = cell.r + DIRS[d][1];
           if (!b.isSea(nq, nr)) continue;
-          const m = edgeMid(c0.x, c0.y, d);
-          const dedans = S({ x: (c0.x + m.x) / 2, y: (c0.y + m.y) / 2 });
-          const milieu = S({ x: m.x + (m.x - c0.x) * 0.4, y: m.y + (m.y - c0.y) * 0.4 });
-          const dehors = S({ x: m.x + (m.x - c0.x) * 0.85, y: m.y + (m.y - c0.y) * 0.85 });
-          const grd = ctx.createLinearGradient(dedans.x, dedans.y, dehors.x, dehors.y);
-          grd.addColorStop(0, pal.shoal); grd.addColorStop(0.42, pal.shoal);
-          grd.addColorStop(0.72, mixHex(pal.shoal, mer(dehors.y), 0.75));
-          grd.addColorStop(1, mixHex(pal.shoal, mer(dehors.y), 1, 0));
-          ctx.fillStyle = grd;
-          this.blob(ctx, dedans.x, dedans.y, SIZE * 0.5 * z, c0); ctx.fill();
-          this.blob(ctx, milieu.x, milieu.y, SIZE * 0.42 * z, { x: c0.x + 31, y: c0.y - 17 }); ctx.fill();
-          this.blob(ctx, dehors.x, dehors.y, SIZE * 0.32 * z, { x: c0.x - 19, y: c0.y + 23 }); ctx.fill();
+          this.bras(ctx, c0, d, pal, mer, z, S);
         }
         if (!frozen) { ctx.strokeStyle = pal.foam; ctx.lineWidth = 1.5 * z; ctx.beginPath(); ctx.ellipse(c.x - rr * 0.2, c.y - rr * 0.25, rr * 0.35, rr * 0.16, -0.4, 0, TAU); ctx.stroke(); }
       } else {
@@ -579,21 +568,7 @@ export class IslandRenderer {
         for (const c of cs) for (let d = 0; d < 6; d++) {
           const nq = c.cell.q + DIRS[d][0], nr = c.cell.r + DIRS[d][1];
           if (!b.isSea(nq, nr)) continue;
-          const m = edgeMid(c.w.x, c.w.y, d);
-          const dedans = S({ x: (c.w.x + m.x) / 2, y: (c.w.y + m.y) / 2 });
-          const milieu = S({ x: m.x + (m.x - c.w.x) * 0.45, y: m.y + (m.y - c.w.y) * 0.45 });
-          const dehors = S({ x: m.x + (m.x - c.w.x) * 0.95, y: m.y + (m.y - c.w.y) * 0.95 });
-          // Le bras ne se contente pas de s'effacer : il VIRE d'abord à la couleur de la mer, sinon
-          // on voit la couture entre deux bleus qui ne sont pas les mêmes. Opaque jusqu'au trait de
-          // côte — le liseré blanc de l'île le refermerait — puis virage, puis dissolution.
-          const grd = ctx.createLinearGradient(dedans.x, dedans.y, dehors.x, dehors.y);
-          grd.addColorStop(0, pal.shoal); grd.addColorStop(0.42, pal.shoal);
-          grd.addColorStop(0.72, mixHex(pal.shoal, mer(dehors.y), 0.75));
-          grd.addColorStop(1, mixHex(pal.shoal, mer(dehors.y), 1, 0));
-          ctx.fillStyle = grd;
-          this.blob(ctx, dedans.x, dedans.y, SIZE * 0.6 * z, c.w); ctx.fill();
-          this.blob(ctx, milieu.x, milieu.y, SIZE * 0.5 * z, { x: c.w.x + 31, y: c.w.y - 17 }); ctx.fill();
-          this.blob(ctx, dehors.x, dehors.y, SIZE * 0.38 * z, { x: c.w.x - 19, y: c.w.y + 23 }); ctx.fill();
+          this.bras(ctx, c.w, d, pal, mer, z, S);
         }
         if (!frozen) {
           // la rive scintille : un liseré clair qui court le long du contour, et qui BOUGE — sans
@@ -658,6 +633,34 @@ export class IslandRenderer {
       ctx.drawImage(img, p.x - rr, p.y - rr, rr * 2, rr * 2);
     }
     ctx.restore();
+  }
+
+  /**
+   * L'échancrure par laquelle une nappe d'eau rejoint le large, du côté `d` de la case `w`.
+   *
+   * Deux essais avant celui-ci. Peindre le prolongement en ton de bas-fond faisait des taches pâles
+   * sur une mer d'une autre teinte ; le faire virer puis s'effacer laissait passer, entre deux taches
+   * mal jointes, une bande de terre et un bout d'herbe. La réponse est plus simple : **une échancrure
+   * est de l'eau de mer**. On la peint donc exactement à la couleur de la mer, en opaque — la jointure
+   * est alors invisible par construction, et l'opacité recouvre ce qui traînait au milieu (liseré de
+   * côte, coin de terre). Seul le tout début, encore dans la nappe, garde son ton de bas-fond.
+   */
+  bras(ctx, w, d, pal, mer, z, S) {
+    const m = edgeMid(w.x, w.y, d);
+    const vers = (t) => ({ x: w.x + (m.x - w.x) * t, y: w.y + (m.y - w.y) * t });
+    const a = S(vers(0.45)), fin = S(vers(2.0));
+    const bleu = mer(S(vers(1.3)).y);
+    const grd = ctx.createLinearGradient(a.x, a.y, fin.x, fin.y);
+    // le virage se fait tôt : les disques débordent aussi SUR LES CÔTÉS, et un ton de bas-fond qui
+    // s'étale latéralement redessine exactement le lobe pâle qu'on cherchait à supprimer
+    grd.addColorStop(0, pal.shoal); grd.addColorStop(0.22, bleu); grd.addColorStop(1, bleu);
+    ctx.fillStyle = grd;
+    // quatre disques qui se chevauchent franchement : aucun interstice ne peut subsister entre eux
+    for (const [t, r] of [[0.55, 0.55], [0.95, 0.55], [1.4, 0.5], [1.85, 0.4]]) {
+      const p = S(vers(t));
+      this.blob(ctx, p.x, p.y, SIZE * r * z, { x: w.x + t * 41, y: w.y - t * 23 });
+      ctx.fill();
+    }
   }
 
   /** Disque d'un sol, opaque au centre et effacé sur le bord. Mis en cache par sol et saison. */
