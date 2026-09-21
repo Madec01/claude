@@ -468,13 +468,20 @@ export class IslandRenderer {
     // La mer est un dégradé vertical d'écran (voir `drawSea`) : on sait donc sa couleur à n'importe
     // quelle hauteur, et un bras de mer peut virer exactement à la teinte qu'il rejoint.
     const seaCols = (this.isl.climate && this.isl.climate.sea) || SEA[this.isl.season] || SEA.spring;
-    let merGrd = null;
-    const mer = () => {
-      if (merGrd) return merGrd;
-      merGrd = ctx.createLinearGradient(0, 0, 0, STAGE.H);
-      merGrd.addColorStop(0, seaCols[0]); merGrd.addColorStop(1, seaCols[1]);
-      return merGrd;
+    // `voile` : la même mer, mais avec le blanc à 10 % de `drawShallows` DÉJÀ MÉLANGÉ dedans. Le
+    // repeindre par-dessus ne marcherait pas — nos disques se recouvrent, et quatre couches de 10 %
+    // font 34 %. Une couleur opaque ne se cumule pas.
+    const blanchi = (hex, a) => { const h = hex.replace('#', ''); const n = parseInt(h, 16);
+      const f = (v) => Math.round(v * (1 - a) + 255 * a).toString(16).padStart(2, '0');
+      return `#${f((n >> 16) & 255)}${f((n >> 8) & 255)}${f(n & 255)}`; };
+    const grdCache = {};
+    const degradeMer = (a) => {
+      if (grdCache[a]) return grdCache[a];
+      const g = ctx.createLinearGradient(0, 0, 0, STAGE.H);
+      g.addColorStop(0, blanchi(seaCols[0], a)); g.addColorStop(1, blanchi(seaCols[1], a));
+      grdCache[a] = g; return g;
     };
+    const mer = (a = 0) => degradeMer(a);
     ctx.save(); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
     for (const h of this.decor.holes || []) {
       // lagune : une mare comme un étang, gelée en hiver
@@ -523,7 +530,7 @@ export class IslandRenderer {
         for (let d = 0; d < 6; d++) {   // mare ouverte sur la mer : elle devient une crique
           const cell = body.cells[0]; const nq = cell.q + DIRS[d][0], nr = cell.r + DIRS[d][1];
           if (!b.isSea(nq, nr)) continue;
-          this.bras(ctx, c0, d, mer, z, S);
+          this.bras(ctx, c0, d, mer, z, S, body.cells[0]);
         }
         if (!frozen) { ctx.strokeStyle = pal.foam; ctx.lineWidth = 1.5 * z; ctx.beginPath(); ctx.ellipse(c.x - rr * 0.2, c.y - rr * 0.25, rr * 0.35, rr * 0.16, -0.4, 0, TAU); ctx.stroke(); }
       } else {
@@ -566,7 +573,7 @@ export class IslandRenderer {
         for (const c of cs) for (let d = 0; d < 6; d++) {
           const nq = c.cell.q + DIRS[d][0], nr = c.cell.r + DIRS[d][1];
           if (!b.isSea(nq, nr)) continue;
-          this.bras(ctx, c.w, d, mer, z, S);
+          this.bras(ctx, c.w, d, mer, z, S, c.cell);
         }
         } else this.drawCracks(ctx, cs.map((c) => c.s), z);
       }
@@ -632,7 +639,7 @@ export class IslandRenderer {
    * est alors invisible par construction, et l'opacité recouvre ce qui traînait au milieu (liseré de
    * côte, coin de terre). Seul le tout début, encore dans la nappe, garde son ton de bas-fond.
    */
-  bras(ctx, w, d, mer, z, S) {
+  bras(ctx, w, d, mer, z, S, cell) {
     const m = edgeMid(w.x, w.y, d);
     const vers = (t) => ({ x: w.x + (m.x - w.x) * t, y: w.y + (m.y - w.y) * t });
     // Le dégradé de la mer, repris à l'identique : même axe (vertical, plein écran), mêmes bornes.
@@ -642,11 +649,23 @@ export class IslandRenderer {
     // (110, 172, 209) au ras de l'île, le lac (98, 173, 216) — un cheveu d'écart, invisible.)
     ctx.fillStyle = mer();
     // quatre disques qui se chevauchent franchement : aucun interstice ne peut subsister entre eux
-    for (const [t, r] of [[0.55, 0.55], [0.95, 0.55], [1.4, 0.5], [1.85, 0.4]]) {
-      const p = S(vers(t));
-      this.blob(ctx, p.x, p.y, SIZE * r * z, { x: w.x + t * 41, y: w.y - t * 23 });
-      ctx.fill();
+    const disques = [[0.55, 0.55], [0.95, 0.55], [1.4, 0.5], [1.85, 0.4]];
+    const tracer = () => { for (const [t, r] of disques) { const p = S(vers(t)); this.blob(ctx, p.x, p.y, SIZE * r * z, { x: w.x + t * 41, y: w.y - t * 23 }); ctx.fill(); } };
+    tracer();
+    // Et le voile des bas-fonds. `drawShallows` pose un blanc à 10 % sur chaque case du masque ÉLARGIE
+    // à 1,22 : c'est le halo clair autour de l'île. Le bras, peint à la mer brute, l'effaçait — d'où
+    // une tache plus SOMBRE que son entourage, et c'est elle qu'on voyait encore après trois
+    // corrections de couleur. On remet le voile, découpé sur exactement la même emprise.
+    ctx.save();
+    ctx.beginPath();
+    for (const [q, r] of [[cell.q, cell.r], ...DIRS.map(([a, b]) => [cell.q + a, cell.r + b])]) {
+      if (!this.isl.board.has(q, r)) continue;
+      const c = toWorld(q, r); const pts = corners(c.x, c.y, SIZE * 1.22).map(([x, y]) => S({ x, y }));
+      ctx.moveTo(pts[0].x, pts[0].y); for (let i = 1; i < 6; i++) ctx.lineTo(pts[i].x, pts[i].y); ctx.closePath();
     }
+    ctx.clip();
+    ctx.fillStyle = mer(0.10); tracer();
+    ctx.restore();
   }
 
   /** Disque d'un sol, opaque au centre et effacé sur le bord. Mis en cache par sol et saison. */
