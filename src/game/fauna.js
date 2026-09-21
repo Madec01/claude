@@ -29,6 +29,13 @@ export const FAUNA_SIZE = {
   frog: 0.58,     // 12 → 7
 };
 
+/**
+ * Les espèces dont le sprite porte son perchoir. Le hibou est rendu **avec sa branche** : tout
+ * mouvement le déplace avec son décor, et on voit une branche qui sautille ou qui glisse sur le sol.
+ * Ces espèces-là ne se promènent pas et ne bondissent pas — elles veillent, posées sur leur case.
+ */
+export const FAUNA_PERCHED = new Set(['owl']);
+
 /** Case « centrale » d'une région (la plus proche du barycentre) pour poser l'animal. */
 function anchor(reg) {
   let cx = 0, cy = 0;
