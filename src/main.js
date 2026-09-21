@@ -424,6 +424,12 @@ class AmbientIsland {
     this.cam = new Camera(); this.cam.fit(this.isl.board.mask, { ...uiMargins('ambient'), immediate: true });
     this.particles = new ParticleSystem(600); this.fx = new Effects(this.particles);
     this.renderer = new IslandRenderer(this.isl, this.cam, this.fx, this.particles);
+    // L'île de fond est un DÉCOR : personne n'y posera jamais de tuile. La grille des cases vides n'y
+    // promet donc rien — elle pose seulement un pavage d'hexagones pâles cerclés de blanc sur la mer,
+    // et c'est lui qu'on lit comme « l'eau a un problème de texture au niveau des côtes » (pépin CJ64).
+    // Île nue d'emblée, comme la carte postale : il ne reste que ce qui est bâti, et la mer redevient
+    // de la mer. Le `_nu0` reculé évite que la grille clignote pendant les sept dixièmes du fondu.
+    this.renderer.nu = true; this.renderer._nu0 = this.renderer.time - 10;
     this.timer = 1.2;
     this.isl.on((e) => { if (e.type === 'place') this.fx.drop(key(e.q, e.r)); if (e.type === 'season') this.renderer.startTransition(e.from, e.to); if (e.type === 'fauna') this.fx.fauna(`${e.species}@${e.regionId}`, e.kind); });
   }

@@ -867,14 +867,22 @@ export class IslandRenderer {
     ctx.closePath();
   }
 
-  /** Les cases de terre qui touchent la mer : celles dont la silhouette se voit vraiment. */
+  /**
+   * Les cases de terre qui touchent la mer : celles dont la silhouette se voit vraiment.
+   *
+   * Sur l'île NUE, la grille des cases vides ne se dessine plus : la côte n'est alors plus au bord du
+   * MASQUE mais au bord de ce qui est BÂTI. Sans cette distinction, une île à moitié posée s'arrête
+   * sur des arêtes d'hexagone nues en pleine mer — ni pied de côte, ni halo de bas-fond, ni écume.
+   */
   rivage() {
-    const b = this.isl.board; const ver = `${b.mask.size}:${b.tiles.size}`;
+    const b = this.isl.board; const nue = !!this.nu;
+    const ver = `${b.mask.size}:${b.tiles.size}:${nue ? 1 : 0}`;
     if (this._riv && this._riv.ver === ver) return this._riv.cells;
+    const eau = nue ? (q, r) => b.isSea(q, r) || !b.tiles.has(key(q, r)) : (q, r) => b.isSea(q, r);
     const cells = [];
     for (const [k, t] of b.tiles) {
       const [q, r] = parse(k);
-      if (!DIRS.some(([dq, dr]) => b.isSea(q + dq, r + dr))) continue;
+      if (!DIRS.some(([dq, dr]) => eau(q + dq, r + dr))) continue;
       cells.push({ t, w: toWorld(q, r) });
     }
     this._riv = { ver, cells };
