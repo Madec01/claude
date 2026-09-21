@@ -1,5 +1,5 @@
 // LA TOURNÉE D'AVANT, gardée au cas où. C'est mot pour mot la tournée finale telle qu'elle était
-// avant la refonte du journal 88 : recul, douze étapes de même durée du plus petit au plus grand,
+// avant la refonte du journal 90 : recul, douze étapes de même durée du plus petit au plus grand,
 // balayage des saisons, bandeau plein écran avec le nom et les étoiles.
 //
 // Elle n'est pas branchée par défaut. Pour y revenir sans rien recompiler, il suffit de mettre

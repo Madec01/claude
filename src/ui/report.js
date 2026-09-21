@@ -11,7 +11,7 @@ import { h, button, icon, append } from './dom.js';
 import { AudioSys } from '../core/audio.js';
 import { BlackBox } from '../core/blackbox.js';
 import { TREE, RACCOURCIS, nodeAt, labelOf, questionsFor, search } from '../data/bug_tree.js';
-import { buildReport, captureImage, imageFichier, partiesPossibles, envoyerRapport, raisonTexte } from '../core/report.js';
+import { buildReport, captureImage, imageFichier, partiesPossibles, envoyerRapport, raisonTexte, journalEnvois, noterEnvoi, oublierEnvois } from '../core/report.js';
 
 const MAX_TUILES = 4;
 
@@ -46,6 +46,49 @@ export function buildReportPanel({ onBack, scene = null, sceneName = null, mode 
   const onglets = h('div', { class: 'rep-tabs', role: 'tablist' }, ongletPepin, ongletIdee);
 
   const accroche = h('p', { class: 'ws-intro' }, ACCROCHE[state.mode]);
+
+  // ---- « Tes envois » : replié, il ne coûte qu'une ligne, et il est la première chose qu'on voit en arrivant.
+  // Le code ne s'affiche qu'une fois, à l'envoi ; le carnet où le rapport arrive est privé et le jeu ne peut pas
+  // le relire. Cette liste dit donc ce que l'appareil SAIT — ce qui est parti, ce qui attend encore — et ne
+  // prétend jamais savoir ce qu'il ne sait pas : si le pépin a été corrigé.
+  const MOIS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+  // l'année n'apparaît que si ce n'est pas celle-ci : « 21 septembre » se lit mieux, et vingt envois tiennent
+  // rarement sur plus d'une saison
+  const quand = (ms) => {
+    const d = new Date(ms || 0);
+    if (!ms || Number.isNaN(d.getTime())) return '';
+    const an = d.getFullYear() === new Date().getFullYear() ? '' : ` ${d.getFullYear()}`;
+    return `${d.getDate()} ${MOIS[d.getMonth()]}${an}`;
+  };
+
+  const histoListe = h('div', { class: 'rep-histo-list' });
+  const histoTitre = h('summary', {}, 'Tes envois');
+  const histo = h('details', { class: 'rep-details rep-histo hidden' }, histoTitre, histoListe);
+
+  const renderHisto = () => {
+    const envois = journalEnvois();
+    histo.classList.toggle('hidden', !envois.length);
+    if (!envois.length) { histo.open = false; return; }
+    histoTitre.textContent = envois.length > 1 ? `Tes envois · ${envois.length}` : 'Ton envoi';
+    histoListe.innerHTML = '';
+    histoListe.appendChild(h('p', { class: 'rep-privacy' },
+      'Le jeu ne peut pas dire si c’est corrigé : le carnet où tes rapports arrivent est privé. Ce que tu vois ici, c’est ce que ton appareil sait — ce qui est parti, et ce qui attend encore. Le code sert à en reparler.'));
+    for (const e of envois) {
+      const parti = e.voie === 'nuage';
+      const sujet = (e.tuiles || []).map(labelOf).filter(Boolean).join(' · ');
+      histoListe.appendChild(h('div', { class: 'rep-histo-item' },
+        h('div', { class: 'rep-histo-head' },
+          h('b', { class: 'rep-histo-code' }, `${e.mode === 'idee' ? 'IDÉE' : 'PÉPIN'}-${e.code}`),
+          h('span', { class: 'rep-histo-date' }, quand(e.at))),
+        e.mot && e.mot !== '(sans commentaire)' ? h('div', { class: 'rep-histo-mot' }, `« ${e.mot} »`) : null,
+        sujet ? h('div', { class: 'rep-histo-sujet' }, sujet) : null,
+        h('div', { class: `rep-histo-etat ${parti ? 'on' : ''}` },
+          h('span', {}, parti ? '✓ Parti au carnet' : '↓ Gardé sur ton appareil'),
+          parti ? null : h('small', {}, 'Les deux fichiers ont été téléchargés : rien n’est perdu.'))));
+    }
+    histoListe.appendChild(h('div', { class: 'rep-histo-foot' },
+      button('Oublier cette liste', () => { oublierEnvois(); renderHisto(); }, { cls: 'btn-small btn-ghost' })));
+  };
 
   // ---- le rapport que le jeu a émis tout seul
   const carteErreur = h('div', { class: 'rep-error' });
@@ -274,7 +317,7 @@ export function buildReportPanel({ onBack, scene = null, sceneName = null, mode 
     h('span', { class: 'rep-choice-lab' }, 'Laquelle ?'), choixPartie);
   if (!parties.length) blocPartie.classList.add('hidden');   // rien à joindre : on ne le promet pas
 
-  const pli = h('details', { class: 'rep-details' },
+  const pli = h('details', { class: 'rep-details rep-pli' },
     h('summary', {}, 'Ce qui part avec'),
     h('ul', { class: 'rep-what' },
       h('li', {}, 'Ta phrase et les tuiles choisies'),
@@ -306,6 +349,7 @@ export function buildReportPanel({ onBack, scene = null, sceneName = null, mode 
         if (!image) { etat.textContent = 'Ton image n’a pas pu être lue. Choisis-en une autre, ou retire-la pour envoyer sans.'; envoyer.disabled = false; return; }
       } else if (state.avecImage) image = captureImage({ mot: zone.value, code: rapport.code, rapport });
       const r = await envoyerRapport(rapport, image);
+      noterEnvoi(rapport, r);
       state.envoye = true;
       if (r.voie === 'nuage') BlackBox.clear();
       AudioSys.play('ui_confirm', { volume: 0.6 });
@@ -320,7 +364,7 @@ export function buildReportPanel({ onBack, scene = null, sceneName = null, mode 
   const dire = (t) => { etat.textContent = t; };
 
   const corps = h('div', { class: 'rep-body' },
-    accroche, carteErreur, barreRaccourcis,
+    histo, accroche, carteErreur, barreRaccourcis,
     h('div', { class: 'rep-or' }, 'ou cherche'),
     recherche, filAriane, grille, sujetBloc, zone, pli, etat);
 
@@ -332,7 +376,8 @@ export function buildReportPanel({ onBack, scene = null, sceneName = null, mode 
         h('div', { class: 'rep-code' }, `${mot === 'idée' ? 'IDÉE' : 'PÉPIN'}-${code}`),
         h('p', {}, r.voie === 'nuage'
           ? `C’est parti. Ton ${mot} porte ce code — garde-le si tu veux en reparler.`
-          : raisonTexte(r.raison))));
+          : raisonTexte(r.raison)),
+        h('p', { class: 'rep-privacy' }, 'Tu le retrouveras dans « Tes envois », en haut de cet écran.')));
     actions.innerHTML = '';
     actions.appendChild(button('Retour', onBack, { cls: 'btn-primary', iconName: 'icon_return' }));
   }
@@ -360,7 +405,7 @@ export function buildReportPanel({ onBack, scene = null, sceneName = null, mode 
   ongletIdee.classList.toggle('on', state.mode === 'idee');
   blocPartie.classList.toggle('hidden', state.mode === 'idee' || !parties.length);
   blocChoix.classList.toggle('hidden', state.mode === 'idee' || parties.length < 2);
-  renderErreur(); renderRaccourcis(); renderArbre(); renderSujet();
+  renderHisto(); renderErreur(); renderRaccourcis(); renderArbre(); renderSujet();
   // le clavier ne doit pas monter tout seul sur téléphone : il mangerait la moitié de l'écran avant qu'il ait lu
   if (!document.documentElement.classList.contains('touch')) setTimeout(() => zone.focus({ preventScroll: true }), 80);
   return root;
