@@ -73,7 +73,7 @@ Trois choses à retenir :
 | Décision | Alternatives pesées | Raison |
 |---|---|---|
 | **Le rapport part vers GitHub, en passant par Firebase** | Message par `navigator.share` ; issue pré-remplie par lien ; `mailto:` ; presse-papiers | Le message est justement ce qu'on veut supprimer, des deux côtés. L'issue pré-remplie exigerait un **compte GitHub** de l'ami (barrière réelle) et plafonne vers 8 Ko d'URL : la partie rejouable n'y tiendrait pas. Firebase est déjà branché et son budget absorbe un pépin sans broncher. |
-| **Les issues vont dans un dépôt privé dédié** (`cent-saisons-pepins`, à créer) | Le dépôt du jeu ; basculer le dépôt du jeu en privé | Le dépôt du jeu est **public** : une issue y exposerait les mots de l'ami, son modèle de téléphone, ses réglages et sa progression à tout internet. Le basculer en privé casserait GitHub Pages (qui demande un compte payant sur un dépôt privé). |
+| **Les issues vont dans un dépôt privé dédié** (`cent-saisons-bugs`, à créer) | Le dépôt du jeu ; basculer le dépôt du jeu en privé | Le dépôt du jeu est **public** : une issue y exposerait les mots de l'ami, son modèle de téléphone, ses réglages et sa progression à tout internet. Le basculer en privé casserait GitHub Pages (qui demande un compte payant sur un dépôt privé). |
 | **Le workflow vit dans le dépôt privé**, pas dans celui du jeu | Workflow dans `Madec01/claude` avec un jeton personnel en secret | Dans son propre dépôt, le `GITHUB_TOKEN` automatique suffit : **aucun jeton personnel à créer, à stocker ni à faire expirer**. Et le dépôt du jeu reste le dépôt du jeu : pas de workflow, pas de secret. |
 | **En secours : le téléchargement, rien d'autre** | Lien vers une issue pré-remplie ; garder le pépin pour plus tard | Le lien réintroduirait le compte GitHub. Garder le pépin en attente ferait traîner des données sur l'appareil sans garantie de départ. Deux fichiers téléchargés, une phrase qui dit quoi en faire : franc et fini. |
 | **La partie rejouable part par défaut**, décochable | À cocher ; toujours, sans case | C'est ce qui distingue un rapport utile d'une phrase. Elle ne contient que son île — aucune donnée personnelle. La case existe quand même : l'écran vie privée montre ce qui part, il ne le cache pas. |
@@ -283,7 +283,7 @@ quatre lignes de pile, la scène en cours et l'heure.
 
 ### 9.1 Où elle vit
 
-Dans un **dépôt privé dédié**, à créer : `Madec01/cent-saisons-pepins`. Il ne contient que le workflow, le script de
+Dans un **dépôt privé dédié**, à créer : `Madec01/cent-saisons-bugs`. Il ne contient que le workflow, le script de
 relève et les images relevées. Le dépôt du jeu n'y gagne **ni workflow, ni secret** — il reste le dépôt du jeu.
 
 Ce choix a une raison précise : dans son propre dépôt, le workflow utilise le `GITHUB_TOKEN` fourni automatiquement
@@ -294,7 +294,7 @@ dans le dépôt public aurait eu besoin d'un jeton personnel en secret pour écr
 
 | Où | Quoi |
 |---|---|
-| GitHub | Créer le dépôt **privé** `cent-saisons-pepins`. |
+| GitHub | Créer le dépôt **privé** `cent-saisons-bugs`. |
 | Console Firebase → Paramètres → Comptes de service | *Générer une nouvelle clé privée* : un fichier JSON. |
 | Dépôt privé → Settings → Secrets → Actions | Le coller dans un secret `FIREBASE_SERVICE_ACCOUNT`. |
 | Dépôt privé | `.github/workflows/pepins.yml` et `releve.mjs` (§ 9.3). |
@@ -427,7 +427,7 @@ La voix de l'île parle au « nous » et tutoie le joueur. Rien d'un formulaire 
 
 ## 15. Ce qui reste ouvert
 
-- **Le nom du dépôt privé** (`cent-saisons-pepins` est une proposition).
+- **Le nom du dépôt privé** (`cent-saisons-bugs` est une proposition).
 - **La cadence de relève** (deux heures) est un pari. Si tu veux les pépins plus vite, la relève à la demande est là ;
   descendre sous l'heure ne servirait qu'à consommer des minutes d'Action pour rien.
 - **Le nombre d'entrées de journal joint** (30) est un pari raisonnable, pas une mesure. À ajuster après les

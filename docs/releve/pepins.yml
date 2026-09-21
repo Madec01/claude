@@ -1,0 +1,39 @@
+# Relève des pépins — à poser dans le dépôt PRIVÉ `cent-saisons-bugs`,
+# au chemin .github/workflows/pepins.yml (avec releve.mjs à la racine).
+#
+# Il vit dans ce dépôt-là et pas dans celui du jeu : dans son propre dépôt, le GITHUB_TOKEN fourni
+# automatiquement par Actions suffit — aucun jeton personnel à créer, à stocker ni à renouveler.
+# Et le dépôt du jeu, qui est public, ne gagne ni workflow ni secret.
+
+name: Relève des pépins
+
+on:
+  # toutes les deux heures, à une minute décalée pour ne pas tomber pile à l'heure avec le reste du monde
+  schedule:
+    - cron: '17 */2 * * *'
+  # et à la demande, quand on veut les voir tout de suite (onglet Actions → Run workflow)
+  workflow_dispatch:
+
+permissions:
+  contents: write   # pour valider les images dans rapports/
+  issues: write     # pour ouvrir une issue par rapport
+
+concurrency:
+  group: releve-pepins
+  cancel-in-progress: false   # deux relèves en même temps ouvriraient les mêmes issues deux fois
+
+jobs:
+  releve:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm install firebase-admin@12 --no-save --no-audit --no-fund
+      - run: node releve.mjs
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_REF_NAME: ${{ github.ref_name }}
