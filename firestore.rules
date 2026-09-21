@@ -16,6 +16,16 @@ service cloud.firestore {
         && request.resource.data.save is string
         && request.resource.data.save.size() < 200000;
     }
+    // les pépins et les idées : on en dépose, on n'en lit aucun. Le relevé passe par le SDK d'administration,
+    // qui n'est pas soumis à ces règles. Les trois cas restent séparés (cf. le piège de `request.resource`).
+    match /pepins/{pepin} {
+      allow create: if request.auth != null
+        && request.resource.data.keys().hasOnly(['code', 'at', 'rapport', 'image'])
+        && request.resource.data.rapport is string
+        && request.resource.data.rapport.size() < 120000
+        && (!('image' in request.resource.data) || request.resource.data.image.size() < 300000);
+      allow read, update, delete: if false;
+    }
     // tout le reste est refusé
     match /{document=**} { allow read, write: if false; }
   }

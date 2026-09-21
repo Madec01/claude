@@ -1,4 +1,4 @@
-# Signaler un pépin — spécification
+# Pépins et idées — spécification
 
 > Document de conception. Écrit avec le commanditaire, à partir du dépôt tel qu'il est au 21 septembre 2026
 > (commit `1ddda12`). Aucune ligne de `src/` n'est touchée ici : ce document dit **quoi faire**, pas **où l'écrire**.
@@ -73,12 +73,13 @@ Trois choses à retenir :
 | Décision | Alternatives pesées | Raison |
 |---|---|---|
 | **Le rapport part vers GitHub, en passant par Firebase** | Message par `navigator.share` ; issue pré-remplie par lien ; `mailto:` ; presse-papiers | Le message est justement ce qu'on veut supprimer, des deux côtés. L'issue pré-remplie exigerait un **compte GitHub** de l'ami (barrière réelle) et plafonne vers 8 Ko d'URL : la partie rejouable n'y tiendrait pas. Firebase est déjà branché et son budget absorbe un pépin sans broncher. |
-| **Les issues vont dans un dépôt privé dédié** (`cent-saisons-pepins`, à créer) | Le dépôt du jeu ; basculer le dépôt du jeu en privé | Le dépôt du jeu est **public** : une issue y exposerait les mots de l'ami, son modèle de téléphone, ses réglages et sa progression à tout internet. Le basculer en privé casserait GitHub Pages (qui demande un compte payant sur un dépôt privé). |
+| **Les issues vont dans un dépôt privé dédié** (`cent-saisons-bugs`, à créer) | Le dépôt du jeu ; basculer le dépôt du jeu en privé | Le dépôt du jeu est **public** : une issue y exposerait les mots de l'ami, son modèle de téléphone, ses réglages et sa progression à tout internet. Le basculer en privé casserait GitHub Pages (qui demande un compte payant sur un dépôt privé). |
 | **Le workflow vit dans le dépôt privé**, pas dans celui du jeu | Workflow dans `Madec01/claude` avec un jeton personnel en secret | Dans son propre dépôt, le `GITHUB_TOKEN` automatique suffit : **aucun jeton personnel à créer, à stocker ni à faire expirer**. Et le dépôt du jeu reste le dépôt du jeu : pas de workflow, pas de secret. |
 | **En secours : le téléchargement, rien d'autre** | Lien vers une issue pré-remplie ; garder le pépin pour plus tard | Le lien réintroduirait le compte GitHub. Garder le pépin en attente ferait traîner des données sur l'appareil sans garantie de départ. Deux fichiers téléchargés, une phrase qui dit quoi en faire : franc et fini. |
 | **La partie rejouable part par défaut**, décochable | À cocher ; toujours, sans case | C'est ce qui distingue un rapport utile d'une phrase. Elle ne contient que son île — aucune donnée personnelle. La case existe quand même : l'écran vie privée montre ce qui part, il ne le cache pas. |
 | **Une bannière sobre après un plantage**, une seule fois | Rien du tout ; une pastille sur le bouton Pause | Une erreur qui tue l'onglet ne se signale jamais autrement. La bannière des succès existe déjà et sait s'effacer toute seule. |
-| **Le mot du jeu : « Signaler un pépin »** | « Signaler un bug » ; « Quelque chose ne va pas ? » ; « Nous avons trébuché » | Double sens : l'ennui et la graine. Dans un jeu où les graines sont la monnaie, le mot est chez lui, il dédramatise, et il tient sur un bouton en portrait. |
+| **Le mot du jeu : « pépin »** | « bug » ; « Quelque chose ne va pas ? » ; « Nous avons trébuché » | Double sens : l'ennui et la graine. Dans un jeu où les graines sont la monnaie, le mot est chez lui, il dédramatise, et il tient sur un bouton en portrait. |
+| **La section prend aussi les idées**, par un sélecteur à deux positions en haut de l'écran | Une section à part pour les suggestions ; ne prendre que les pépins | Un testeur mélange toujours « ça bugue » et « ce serait mieux si ». Une section qui ne prend que les bugs récolte des idées tordues en bugs — ou rien. Un sélecteur coûte un toucher à celui qui a une idée, et **zéro** à celui qui signale un pépin, puisqu'il est déjà dessus. L'arbre de tuiles est le même : seules les questions changent (`SECTION_BUGS_TUILES.md` § 0). |
 | **Une seule question obligatoire** | Un formulaire à rubriques (type, gravité, étapes de reproduction…) | *Complète et simple d'utilisation* : la complétude vient de ce que le jeu joint tout seul, pas de ce qu'on fait taper au pouce. |
 | **Aucune adresse demandée** | Champ e-mail facultatif pour recontacter | Le commanditaire connaît son testeur. Demander une adresse serait collecter sans motif. |
 
@@ -88,7 +89,7 @@ Trois choses à retenir :
 
 ### 5.1 Trois portes d'entrée, pas plus
 
-1. **Menu de pause** — un bouton `Signaler un pépin` sur la ligne qui porte déjà *Guide*, *Options*, *Carte postale*
+1. **Menu de pause** — un bouton `Pépins et idées` sur la ligne qui porte déjà *Guide*, *Options*, *Carte postale*
    (`src/ui/pause.js`). C'est là qu'on va quand ça coince en jeu, et c'est la porte principale.
 2. **Options** — une entrée pour les pépins hors partie (menu, Atelier, Guide, Succès).
 3. **Après un plantage** — au lancement suivant, la bannière `celebrateThing` dit une fois : *« Nous avons
@@ -101,7 +102,8 @@ Un seul écran, qui tient sur un téléphone en portrait **sans défiler**. Pann
 
 ```
 ┌───────────────────────────────────────┐
-│  Signaler un pépin                    │   ← .panel-title
+│  Pépins et idées                      │   ← .panel-title
+│  [ Un pépin ● ][  Une idée  ]         │   ← sélecteur, « Un pépin » par défaut
 │                                       │
 │  Il nous arrive de trébucher.         │   ← .ws-intro, la voix de l'île
 │  Raconte-nous ce que tu as vu :       │
@@ -156,6 +158,7 @@ Un objet JSON, `version: 1`. Champ par champ :
 
 | Champ | Contenu | D'où il vient | Pourquoi |
 |---|---|---|---|
+| `mode` | `pepin` ou `idee` | le sélecteur du haut | Sépare ce qui est cassé de ce qui est souhaité, dès l'étiquette. |
 | `code` | `7K3Q` | tiré à l'envoi (§ 6.1) | Nommer un pépin dans une conversation. Devient le titre de l'issue. |
 | `at` | horodatage ISO | `new Date()` | Ordre d'arrivée, recoupement. |
 | `mot` | la phrase du joueur | `<textarea>` | Ce qu'il a vu, dans ses mots. |
@@ -280,7 +283,7 @@ quatre lignes de pile, la scène en cours et l'heure.
 
 ### 9.1 Où elle vit
 
-Dans un **dépôt privé dédié**, à créer : `Madec01/cent-saisons-pepins`. Il ne contient que le workflow, le script de
+Dans un **dépôt privé dédié**, à créer : `Madec01/cent-saisons-bugs`. Il ne contient que le workflow, le script de
 relève et les images relevées. Le dépôt du jeu n'y gagne **ni workflow, ni secret** — il reste le dépôt du jeu.
 
 Ce choix a une raison précise : dans son propre dépôt, le workflow utilise le `GITHUB_TOKEN` fourni automatiquement
@@ -291,7 +294,7 @@ dans le dépôt public aurait eu besoin d'un jeton personnel en secret pour écr
 
 | Où | Quoi |
 |---|---|
-| GitHub | Créer le dépôt **privé** `cent-saisons-pepins`. |
+| GitHub | Créer le dépôt **privé** `cent-saisons-bugs`. |
 | Console Firebase → Paramètres → Comptes de service | *Générer une nouvelle clé privée* : un fichier JSON. |
 | Dépôt privé → Settings → Secrets → Actions | Le coller dans un secret `FIREBASE_SERVICE_ACCOUNT`. |
 | Dépôt privé | `.github/workflows/pepins.yml` et `releve.mjs` (§ 9.3). |
@@ -310,9 +313,10 @@ Pour chaque document de `pepins`, du plus ancien au plus récent, vingt au maxim
 
 1. Écrire l'image dans `rapports/AAAA-MM/PEPIN-XXXX.jpg` et la valider en un seul commit pour tout le lot.
 2. Ouvrir une issue :
-   - **titre** : `PÉPIN-7K3Q · « le score reste à zéro » · île 12`
-   - **étiquettes** : `pépin`, le genre (`bloqué`, `mal placé`, `compte faux`), `plantage` s'il y a une erreur,
-     `avec-partie` si la partie rejouable est là.
+   - **titre** : `PÉPIN-7K3Q · « le score reste à zéro » · île 12`, ou `IDÉE-7K3Q · …` selon le mode.
+   - **étiquettes** : `pépin` ou `idée` ; le chemin des tuiles choisies, à ses trois niveaux (`graphisme`,
+     `graphisme/sprites`, `graphisme/sprites/foret`) ; le raccourci touché s'il y en a un ; `plantage` s'il y a une
+     erreur ; `avec-partie` si la partie rejouable est là.
    - **corps** : la phrase en premier, puis l'île, la version et l'appareil en tableau, puis le lien vers l'image,
      puis les erreurs, puis le journal des trente derniers événements, puis la partie rejouable **repliée** dans un
      `<details>` — elle est longue et on ne la lit pas, on la copie.
@@ -366,10 +370,11 @@ effacé dès que l'issue est ouverte.
 
 Ligne à ajouter dans `src/ui/privacy.js`, dans la liste existante :
 
-> **Si tu signales un pépin** — Le rapport part avec ta phrase, l'île en cours, ce que tu venais de faire, ton
-> modèle de téléphone et l'erreur s'il y en a une. Il passe par Google, comme ta sauvegarde, puis arrive dans un
-> carnet privé que seul l'auteur du jeu peut lire, et il est aussitôt effacé de chez Google. Tu vois tout avant
-> d'envoyer, et tu peux retirer la partie. Aucune adresse, aucun nom : rien qui dise qui tu es.
+> **Si tu signales un pépin ou envoies une idée** — Le rapport part avec ta phrase, l'île en cours, ce que tu venais
+> de faire, ton modèle de téléphone et l'erreur s'il y en a une. Il passe par Google, comme ta sauvegarde, puis
+> arrive dans un carnet privé que seul l'auteur du jeu peut lire, et il est aussitôt effacé de chez Google. Tu vois
+> tout avant d'envoyer, et tu peux retirer la partie ; une idée ne l'emporte jamais. Aucune adresse, aucun nom :
+> rien qui dise qui tu es.
 
 ---
 
@@ -379,8 +384,10 @@ La voix de l'île parle au « nous » et tutoie le joueur. Rien d'un formulaire 
 
 | Endroit | Texte |
 |---|---|
-| Bouton (pause, options) | `Signaler un pépin` |
-| Titre de l'écran | `Signaler un pépin` |
+| Bouton (pause, options) | `Pépins et idées` |
+| Titre de l'écran | `Pépins et idées` |
+| Sélecteur | `Un pépin` · `Une idée` |
+| Accroche en mode idée | `Tu vois quelque chose qui nous manque ? Dis-le-nous : nous avons tout notre temps.` |
 | Accroche | `Il nous arrive de trébucher. Raconte-nous ce que tu as vu : nous emportons le reste.` |
 | Champ | `Qu'est-ce qui s'est passé ?` |
 | Pastilles | `ça s'est bloqué` · `c'est mal placé` · `le compte est faux` · `autre` |
@@ -420,7 +427,7 @@ La voix de l'île parle au « nous » et tutoie le joueur. Rien d'un formulaire 
 
 ## 15. Ce qui reste ouvert
 
-- **Le nom du dépôt privé** (`cent-saisons-pepins` est une proposition).
+- **Le nom du dépôt privé** (`cent-saisons-bugs` est une proposition).
 - **La cadence de relève** (deux heures) est un pari. Si tu veux les pépins plus vite, la relève à la demande est là ;
   descendre sous l'heure ne servirait qu'à consommer des minutes d'Action pour rien.
 - **Le nombre d'entrées de journal joint** (30) est un pari raisonnable, pas une mesure. À ajuster après les
