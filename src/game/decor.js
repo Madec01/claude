@@ -243,7 +243,13 @@ export class Decor {
     const rareTiles = [];
     for (const t of board.tiles.values()) {
       if (!t.rare) continue; const c = toWorld(t.q, t.r);
-      if (t.fusion) { for (const o of FUSION_DECOR[t.family] || []) add({ x: c.x + o.dx, y: c.y + o.dy, tpl: o.tpl, cell: key(t.q, t.r), scale: o.scale || 1, alpha: o.alpha || 1, seasons: o.seasons, wave: o.wave }); continue; }
+      if (t.fusion) {
+        // `FUSION_DECOR` est un tableau fixe : sans hasard de case, tous les forts de l'île sont
+        // dessinés au pixel près identiques, et deux cases voisines affichent le même trio.
+        const rg = mulberry(cellSeed(this.seed, t.q, t.r, 29)); const ck2 = key(t.q, t.r);
+        for (const o of FUSION_DECOR[t.family] || []) add({ x: c.x + o.dx + (rg() - 0.5) * 7, y: c.y + o.dy + (rg() - 0.5) * 5, tpl: o.tpl, cell: ck2, scale: (o.scale || 1) * (0.93 + rg() * 0.14), alpha: o.alpha || 1, seasons: o.seasons, wave: o.wave, flip: o.wave ? false : rg() < 0.35 });
+        continue;
+      }
       const ck = key(t.q, t.r); const liste = RARE_DECOR[t.family];
       if (!liste) { add({ x: c.x, y: c.y + 26, tile: t, cell: ck, composed: true }); continue; }   // repli (pré sec)
       const rng = mulberry(cellSeed(this.seed, t.q, t.r, 23));
@@ -266,7 +272,15 @@ export class Decor {
       else if (t.family === 'rock' || t.family === 'hill') { push(0, 34, 'obj_rockGrey_medium2', 0.9); }
       push(-26 + rng() * 10, 36, 'obj_bushGrass_dry', 0.9); push(24 + rng() * 8, 34, 'obj_bushGrass_dry', 0.8); push(6, 20, 'obj_bushGrass_dry', 0.7);
     }
-    for (const t of board.tiles.values()) { if (!t.work) continue; const c = toWorld(t.q, t.r); const list = t.work === 'bridge' || t.work === 'pier' ? this.waterWorkDecor(board, t) : (WORK_DECOR[t.work] || []); for (const o of list) add({ x: c.x + o.dx, y: c.y + o.dy, tpl: o.tpl, cell: key(t.q, t.r), scale: o.scale || 1, alpha: 1, flip: o.flip }); }
+    for (const t of board.tiles.values()) {
+      if (!t.work) continue; const c = toWorld(t.q, t.r); const ck = key(t.q, t.r);
+      const pont = t.work === 'bridge' || t.work === 'pier';   // ceux-là sont orientés : on n'y touche pas
+      const list = pont ? this.waterWorkDecor(board, t) : (WORK_DECOR[t.work] || []);
+      const rg = mulberry(cellSeed(this.seed, t.q, t.r, 31));
+      for (const o of list) add(pont
+        ? { x: c.x + o.dx, y: c.y + o.dy, tpl: o.tpl, cell: ck, scale: o.scale || 1, alpha: 1, flip: o.flip }
+        : { x: c.x + o.dx + (rg() - 0.5) * 7, y: c.y + o.dy + (rg() - 0.5) * 5, tpl: o.tpl, cell: ck, scale: (o.scale || 1) * (0.93 + rg() * 0.14), alpha: 1, flip: o.flip !== undefined ? o.flip : rg() < 0.4 });
+    }
 
     // -------------------------------------------------------------------------
     // Les bords de chemin. Un caillou, une touffe, une flaque : rien qui ait de DIRECTION,
@@ -522,7 +536,22 @@ export class Decor {
             }
             for (const p of sample(rng, cell, keys, 1, { minDist: 22, margin: 8, placed: [] })) push(p, 'obj_moss', { seasons: ['spring'] });
           } else if (family === 'sand') {
-            if (rng() < 0.35) for (const p of sample(rng, cell, keys, 1, { minDist: 30, margin: 12, placed })) { placed.push(p); push(p, 'obj_rockBrown_small{w}'); }
+            // Le sable était le dernier grand vide : un aplat beige avec un caillou une fois sur trois.
+            // Même recette que les prés — densité forte en lisière, claire au milieu — mais avec ce qui
+            // se trouve sur une plage : bois flotté, oyats, galets, coquilles, et des rides de sable.
+            for (const p of sample(rng, cell, keys, L2(cell) ? 15 : 11, { minDist: 17, margin: 6, placed, radius: 1.0, tries: 24 })) {
+              const d = distBord(p, ck, keys);
+              if (rng() > Math.max(0.28, Math.min(0.9, 0.92 - d / 105))) continue;
+              placed.push(p); const r2 = rng(); const w = wild(rng, 0.85, 1.15);
+              if (r2 < 0.30) push(p, 'obj_bushGrass_dry', Object.assign({ scale: (w.scale || 1) * 0.85 }, { flip: w.flip }));            // oyats
+              else if (r2 < 0.52) push(p, `obj_rockBrown_small{w}`, Object.assign({ scale: (w.scale || 1) * 0.5 }, { flip: w.flip }));   // galets
+              else if (r2 < 0.66) push(p, `obj_rockGrey_small${VAR3(rng)}{w}`, Object.assign({ scale: (w.scale || 1) * 0.42 }, { flip: w.flip }));
+              else if (r2 < 0.76) push(p, 'obj_log', Object.assign({ scale: (w.scale || 1) * 0.7 }, { flip: w.flip }));                  // bois flotté
+              else if (r2 < 0.86) push(p, 'obj_bushGrass_dry', Object.assign({ scale: (w.scale || 1) * 1.05 }, { flip: w.flip }));
+              else if (d < 24) push(p, 'obj_logPile', { scale: (w.scale || 1) * 0.6, flip: w.flip });
+              else push(p, 'obj_bushGrass_dry', Object.assign({ scale: (w.scale || 1) * 0.6 }, { flip: w.flip }));
+            }
+            for (const p of sample(rng, cell, keys, 1, { minDist: 26, margin: 12, placed: [] })) push(p, 'obj_puddle', { weathers: ['storm'] });
           } else if (family === 'hill') {
             for (const p of sample(rng, cell, keys, L2(cell) ? 5 : 2, { minDist: L2(cell) ? 18 : 26, margin: 12, placed, yMax: 8, radius: 0.7 })) { placed.push(p); push(p, PICK(rng, ['obj_treePine_small_{s}', 'obj_treeRound_small_{s}', 'obj_bushGrass_{s}'])); }
             for (const p of sample(rng, cell, keys, 2, { minDist: 22, margin: 12, placed: [], yMax: 8, radius: 0.7 })) push(p, PICK(rng, ['obj_flowerYellow', 'obj_flowerBlue']), { seasons: ['spring'] });

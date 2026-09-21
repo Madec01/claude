@@ -12,6 +12,10 @@ import { Decor, groundOf, groundKey, GROUND_COLORS, spriteKey } from './decor.js
 import { pathShapes } from './paths.js';
 // arête i (sommet i → i+1 de corners()) → indice dans DIRS du voisin de l'autre côté ; mesuré, pas deviné
 const EDGE_DIR = [1, 0, 5, 4, 3, 2];
+/** Décors déjà posés à plat sur le sol : ils ne reçoivent pas d'ombre de contact. */
+const PLAT = new Set(['obj_puddle', 'obj_leafpile', 'obj_snowdrift', 'obj_moss', 'obj_lily',
+  'obj_flowerWhite', 'obj_flowerRed', 'obj_flowerBlue', 'obj_flowerYellow']);
+
 /** Sols en relief : falaise (roche) et talus (colline). */
 const RELIEF = new Set(['stone', 'hill']);
 /** Deux sols qui se touchent par une arête franche plutôt que par un fondu. */
@@ -404,6 +408,14 @@ export class IslandRenderer {
       const w = (m ? m.w : img.width) / div * os, h = (m ? m.h : img.height) / div * os;
       const sc = d ? z * d.s : z, dy = d ? d.dy * z : 0;
       ctx.save();
+      // Ombre de contact : sans elle un arbre a l'air collé en autocollant AU-DESSUS du sol — les
+      // animaux en avaient une, pas le décor, et c'est ce qui faisait flotter tout le reste. Rien
+      // qui soit déjà à plat n'en reçoit (flaque, feuilles, congère, fleurs, mousse, vague).
+      if (!o.wave && !PLAT.has(o.tpl) && h * sc > 9) {
+        ctx.globalAlpha = (o.alpha || 1) * 0.16; ctx.fillStyle = '#000';
+        ctx.beginPath(); ctx.ellipse(c.x, c.y + dy, w * sc * 0.30, w * sc * 0.11, 0, 0, TAU); ctx.fill();
+      }
+      ctx.globalAlpha = 1;
       if (o.alpha) ctx.globalAlpha = o.alpha;
       if (o.flip) { ctx.translate(c.x, c.y + dy); ctx.scale(-1, 1); ctx.drawImage(img, -w * sc / 2, -h * sc, w * sc, h * sc); }
       else ctx.drawImage(img, c.x - w * sc / 2, c.y + dy - h * sc, w * sc, h * sc);
