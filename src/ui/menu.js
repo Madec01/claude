@@ -3,7 +3,7 @@ import { ACHIEVEMENTS } from '../data/achievements.js';
 import { Achievements } from '../game/achievements.js';
 const achCount = () => Achievements.count();
 import { h, button, icon, stagger, append } from './dom.js';
-import { CHAPTERS, campaignIsland, chapterStars, gateStars, CHAPTER_GATE, CAMPAIGN_SIZE } from '../data/campaign.js';
+import { CHAPTERS, campaignIsland, chapterStars, CAMPAIGN_SIZE, gateText, gateOpen, islandDone } from '../data/campaign.js';
 import { contractLine } from '../data/contracts.js';
 import { Save } from '../core/save.js';
 import { RunSave } from '../core/run.js';
@@ -71,7 +71,12 @@ export function buildMenu({ game }) {
         const def = campaignIsland(n); const name = def.story && STORY.islands[def.story] ? STORY.islands[def.story].name : def.name;
         const unlocked = testMode || n <= c.unlockedIsland;
         const stars = c.stars[n] || 0;
-        const card = h('button', { class: `night-card ${unlocked ? '' : 'locked'} act-${((ch.id - 1) % 3) + 1} ${def.memory ? 'memory' : ''} ${n === Math.min(c.unlockedIsland, CAMPAIGN_SIZE) && !c.completed ? 'current' : ''}`, disabled: !unlocked, title: unlocked ? `Jouer l’île ${n}` : 'Île verrouillée' },
+        // une île verrouillée dit pourquoi : l'île d'avant reste à terminer, ou c'est la porte du chapitre qui tient
+        const why = unlocked ? `Jouer l’île ${n}`
+          : n === first && ch.id > 1 && !gateOpen(c, ch.id - 1) ? gateText(c, ch.id - 1)
+            : !islandDone(c, n - 1) ? `Termine l’île ${n - 1} et celle-ci s’ouvre — une île terminée suffit, les étoiles ne servent qu’aux portes de chapitre.`
+              : 'Île verrouillée';
+        const card = h('button', { class: `night-card ${unlocked ? '' : 'locked'} act-${((ch.id - 1) % 3) + 1} ${def.memory ? 'memory' : ''} ${n === Math.min(c.unlockedIsland, CAMPAIGN_SIZE) && !c.completed ? 'current' : ''}`, disabled: !unlocked, title: why },
           h('div', { class: 'nc-num' }, `Île ${n} · ${def.cells} cases${def.memory ? ' · souvenir' : ''}${def.signature ? ` · ${def.signature.name.toLowerCase()}` : ''}`),
           h('div', { class: 'nc-title' }, name),
           h('div', { class: `nc-stars ${c.gold && c.gold[n] ? 'gold' : ''}`, title: c.gold && c.gold[n] ? 'Étoile d’or' : '' }, ...[0, 1, 2].map((i) => h('span', { class: `star ${i < stars ? 'on' : ''}` }, icon('icon_star'))), c.best[n] ? h('span', { class: 'nc-best' }, `${c.best[n]} pts`) : null),
@@ -80,8 +85,9 @@ export function buildMenu({ game }) {
         card.addEventListener('click', () => game.startIsland(n, { fromSelect: true }));
         row.appendChild(card);
       }
-      // la porte : on montre où en est le compte, et qu'une île déjà jouée peut être refaite pour l'atteindre
-      if (ch.id < CHAPTERS.length && gateStars(c, ch.id) < CHAPTER_GATE && c.unlockedIsland <= first + 4) row.appendChild(h('div', { class: 'act-gate' }, `${gateStars(c, ch.id)} / ${CHAPTER_GATE} étoiles pour ouvrir le chapitre suivant — rejouer une île déjà faite compte aussi${ch.id >= 2 ? ', et le contrat d’archipel vaut deux étoiles' : ''}`));
+      // la porte : les deux comptes, et qu'une île déjà jouée peut être refaite pour les faire monter
+      const gt = ch.id < CHAPTERS.length && open ? gateText(c, ch.id) : null;
+      if (gt) row.appendChild(h('div', { class: 'act-gate' }, gt));
       rows.appendChild(row);
     }
     game.showPanel(h('div', { class: 'panel panel-nights' }, h('h2', { class: 'panel-title' }, 'Choisir une île'), rows,

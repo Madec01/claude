@@ -29,10 +29,14 @@ export function summarize(data) {
   const gold = Object.values(c.gold || {}).filter(Boolean).length;
   return { stars, gold, islands: Math.max(0, (c.unlockedIsland || 1) - 1), played: c.islandsPlayed || 0, seeds: c.seedsTotal || 0 };
 }
-/** Laquelle des deux est la plus avancée ? Étoiles d'abord, puis îles jouées, puis graines. */
+/**
+ * Laquelle des deux est la plus avancée ? Le point de la campagne d'abord (c'est lui qu'on perdrait),
+ * puis les étoiles, les îles jouées, les graines. Depuis que terminer une île ouvre la suivante, une partie
+ * peut être plus loin avec moins d'étoiles : la compter aux étoiles seules ferait proposer la mauvaise.
+ */
 export function moreAdvanced(a, b) {
   const x = summarize(a), y = summarize(b);
-  return (x.stars - y.stars) || (x.played - y.played) || (x.seeds - y.seeds);
+  return (x.islands - y.islands) || (x.stars - y.stars) || (x.played - y.played) || (x.seeds - y.seeds);
 }
 
 /** Erreurs qui veulent dire « la fenêtre surgissante n'a pas pu s'ouvrir » : là, et seulement là, on redirige. */

@@ -1,7 +1,7 @@
 // Choix du contrat d'archipel à l'entrée d'un chapitre : trois cartes, une seule se prend. Rempli sur les cinq îles, il vaut deux étoiles pour la porte.
 import { h, button, append } from './dom.js';
 import { contractOffers, contractTarget, CONTRACT_STARS } from '../data/contracts.js';
-import { CHAPTERS, CHAPTER_GATE } from '../data/campaign.js';
+import { CHAPTERS, CHAPTER_GATE, CHAPTER_PATIENCE } from '../data/campaign.js';
 
 export function buildContractPick({ chapter, onPick }) {
   const root = h('div', { class: 'panel panel-wishes-intro panel-contract' });
@@ -16,7 +16,7 @@ export function buildContractPick({ chapter, onPick }) {
   append(root,
     h('h2', { class: 'panel-title' }, `Chapitre ${chapter} · ${ch.name}`),
     h('h3', { class: 'prep-h' }, 'Le contrat d’archipel'),
-    h('p', { class: 'ws-intro' }, `Un engagement sur les cinq îles du chapitre. Rempli, il vaut ${CONTRACT_STARS} étoiles pour la porte du chapitre suivant (${CHAPTER_GATE} étoiles sur 15). Rejouer une île ne cumule pas : c’est le meilleur résultat de chaque île qui compte.`),
+    h('p', { class: 'ws-intro' }, `Un engagement sur les cinq îles du chapitre. Rempli, il vaut ${CONTRACT_STARS} étoiles pour la porte du chapitre suivant (${CHAPTER_GATE} étoiles sur 15, ou ${CHAPTER_PATIENCE} parties terminées dans le chapitre). Rejouer une île ne cumule pas : c’est le meilleur résultat de chaque île qui compte.`),
     h('div', { class: 'semis-list contract-list' }, ...cards),
     h('div', { class: 'panel-actions' }, go),
   );

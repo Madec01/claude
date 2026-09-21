@@ -6,7 +6,7 @@ const OLD_TO_NEW = { 1: 1, 2: 3, 3: 7, 4: 5, 5: 10, 6: 15, 7: 13, 8: 20, 9: 25, 
 function migrate(data, from) {
   if (from < 2) {
     const c = data.campaign; const remap = (obj) => { const o = {}; for (const [k, v] of Object.entries(obj || {})) { const n = OLD_TO_NEW[Number(k)]; if (n) o[n] = v; } return o; };
-    c.stars = remap(c.stars); c.best = remap(c.best); c.memoriesRead = (c.memoriesRead || []).map((k) => OLD_TO_NEW[k]).filter(Boolean);
+    c.stars = remap(c.stars); c.best = remap(c.best); c.plays = remap(c.plays); c.memoriesRead = (c.memoriesRead || []).map((k) => OLD_TO_NEW[k]).filter(Boolean);
     c.unlockedIsland = c.completed ? 50 : (OLD_TO_NEW[Math.min(12, Math.max(1, c.unlockedIsland || 1))] || 1);
     c.completed = false;
   }
@@ -18,7 +18,7 @@ const defaults = () => ({
   options: { master: 0.8, music: 0.7, ambience: 0.8, sfx: 0.9, muted: false, shake: true, testMode: false, skipTutorial: false, showFps: false, tileHelp: true, grid: false, recap: 'auto', notes: 'auto', haptics: true, rest: true },   // relevé de saison : auto (complet sur ordinateur, bref sur téléphone), full, brief, none ; notes : auto (sobres sur téléphone, toutes sur ordinateur), all, sober ; haptics : vibrations
   campaign: {
     recipes: [],   // fusions découvertes (Cahier)
-    unlockedIsland: 1, stars: {}, gold: {}, best: {}, seeds: 0, seedsTotal: 0,   // gold : étoile d'or par île (cosmétique) ; contracts : contrat d'archipel par chapitre
+    unlockedIsland: 1, stars: {}, gold: {}, best: {}, plays: {}, seeds: 0, seedsTotal: 0,   // gold : étoile d'or par île (cosmétique) ; plays : parties terminées par île (déblocage et porte de chapitre) ; contracts : contrat d'archipel par chapitre
     contracts: {},
     upgrades: { sight: 0, pocket: 0, breath: 0, patience: 0, rare: 0, memory: 0 },
     prologueSeen: false, completed: false, islandsPlayed: 0, memoriesRead: [],

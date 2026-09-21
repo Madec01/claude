@@ -100,7 +100,7 @@ export const Achievements = {
   /** Après l'enregistrement du bilan d'une île de campagne (étoiles à jour). */
   onCampaignResult(result, def) {
     const s = this.save.data;
-    if (def.id === CAMPAIGN_SIZE && result.stars >= 1) this.unlock('cent-saisons');
+    if (def.id === CAMPAIGN_SIZE) this.unlock('cent-saisons');   // « Terminer l'île 50 » : la terminer suffit, comme partout ailleurs
     for (const ch of CHAPTERS) if (chapterStars(s.campaign.stars, ch.id) >= 15) { this.unlock('chapitre-clos'); break; }
     this.checkCounters();   // étoiles, climats
   },

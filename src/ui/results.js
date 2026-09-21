@@ -41,6 +41,8 @@ export function buildResults({ result, def, onContinue, onRetry, onMenu, onPostc
       daily ? row('Jours d’affilée', daily.streak) : null,
     ),
     result.tally ? whyBlock(result) : null,
+    // sans étoile, l'île est terminée quand même : plus personne n'est muré sur une île (les étoiles ne gardent que les portes de chapitre)
+    !special && !daily && stars === 0 ? h('p', { class: 'res-note' }, 'L’île est terminée : la suivante s’ouvre quand même. Les étoiles ne gardent que les portes de chapitre, et elles se rattrapent quand tu veux.') : null,
     daily ? h('p', { class: 'res-note' }, 'Île du jour : la même île pour tout le monde, un meilleur score par jour. Demain, une autre île.') : special ? null : h('p', { class: 'res-note' }, Save.options.testMode ? 'Mode test : les graines et les étoiles ne sont pas enregistrées.' : seedsGained ? 'Graines : 1 par nouvelle étoile, 1 par vœu exaucé et 2 pour l’île, la première fois. Elles se dépensent dans l’Atelier des saisons.' : 'Pas de nouvelle graine : elles viennent des nouvelles étoiles, des vœux exaucés et de la première fois qu’une île est terminée.'),
     newRecord ? h('div', { class: 'res-record' }, 'Nouveau record !') : null,
     h('div', { class: 'panel-actions' },

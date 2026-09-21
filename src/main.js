@@ -25,7 +25,7 @@ import { buildCredits, loadCredits } from './ui/credits.js';
 import { buildGuide } from './ui/guide.js';
 import { dailyDef, dailyKey, yesterdayKey } from './data/daily.js';
 import { Finale } from './game/finale.js';
-import { campaignIsland, campaignMechanics, islandOptions, CAMPAIGN_SIZE, MECH_AT, chapterStars, gateStars, CHAPTER_GATE, climateCardFor, unlockedUpTo } from './data/campaign.js';
+import { campaignIsland, campaignMechanics, islandOptions, CAMPAIGN_SIZE, MECH_AT, climateCardFor, unlockedUpTo, gateText } from './data/campaign.js';
 import { GRADES, streakMilestone } from './game/feedback.js';
 import { computeLinks } from './game/paths.js';
 import { waterBodies } from './game/water.js';
@@ -310,6 +310,8 @@ const Game = {
     }
     if (!test) {
       c.islandsPlayed++;
+      // une partie terminée compte pour l'île : c'est elle qui ouvre la suivante, et la patience ouvre la porte du chapitre
+      c.plays = c.plays || {}; c.plays[def.id] = (c.plays[def.id] || 0) + 1;
       Save.data.stats.placements += result.placements; Save.data.stats.closed += result.stats.closed; Save.data.stats.wishes += result.wishesDone;
       const prevStars = c.stars[def.id] || 0;
       c.stars[def.id] = Math.max(prevStars, result.stars);
@@ -323,7 +325,7 @@ const Game = {
       // déblocage recalculé depuis les étoiles : l'étoile qui manquait à la porte compte même si on l'a décrochée
       // sur une île déjà jouée. `Math.max` pour ne jamais retirer ce qui était ouvert (mode test, anciennes sauvegardes).
       c.unlockedIsland = Math.max(c.unlockedIsland, unlockedUpTo(c));
-      if (def.id === CAMPAIGN_SIZE && result.stars >= 1) { c.completed = true; Save.data.infinite.unlocked = true; }
+      if (def.id === CAMPAIGN_SIZE) { c.completed = true; Save.data.infinite.unlocked = true; }
       if (def.id >= 10) Save.data.infinite.unlocked = true;
       Save.noteIslandDone();
       Save.save();
@@ -343,14 +345,15 @@ const Game = {
     if (def.daily) { this.showMenu(); return; }
     const c = Save.campaign;
     const memory = islandMemoryScreens(def, result);
+    // Terminer une île suffit : elle ouvre la suivante et livre sa mémoire, avec ou sans étoile. Les étoiles
+    // ne gardent plus que les portes de chapitre — et une porte a deux clés (voir gateOpen).
     const next = () => {
-      if (result.stars < 1) { this.startIsland(def.id); return; }
       if (def.id === CAMPAIGN_SIZE) { scenes.go('story', { screens: endingScreens(), skippable: false, onDone: () => scenes.go('ending') }); return; }
-      scenes.go('workshop', { onContinue: () => { if (c.unlockedIsland > def.id) this.startIsland(def.id + 1); else { this.showMenu(); this.toast(`Il faut ${CHAPTER_GATE} étoiles dans ce chapitre pour passer au suivant (le contrat d’archipel en vaut deux)`); } } });
+      scenes.go('workshop', { onContinue: () => { if (c.unlockedIsland > def.id) this.startIsland(def.id + 1); else { this.showMenu(); const t = gateText(c, Math.ceil(def.id / 5)); if (t) this.toast(t, 7000); } } });
     };
-    if (result.stars >= 1 && !c.memoriesRead.includes(def.id)) { c.memoriesRead.push(def.id); Save.save(); }
+    if (!c.memoriesRead.includes(def.id)) { c.memoriesRead.push(def.id); Save.save(); }
     this.remindBackup();
-    if (result.stars >= 1) scenes.go('story', { screens: memory, onDone: next }); else next();
+    scenes.go('story', { screens: memory, onDone: next });
   },
 };
 window.CS = { Game, Save, scenes, AudioSys, ISLANDS, BALANCE, STORY, STAGE, input, campaignIsland, Cloud };

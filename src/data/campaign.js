@@ -142,23 +142,58 @@ export const OLD_TO_NEW = { 1: 1, 2: 3, 3: 7, 4: 5, 5: 10, 6: 15, 7: 13, 8: 20, 
 /** Étoiles du chapitre k dans une sauvegarde. */
 export function chapterStars(stars, k) { let s = 0; for (let n = (k - 1) * 5 + 1; n <= k * 5; n++) s += stars[n] || 0; return s; }
 /** Étoiles comptées pour la porte : celles des cinq îles, plus deux si le contrat d'archipel du chapitre est rempli. */
-export function gateStars(campaign, k) { const ct = campaign.contracts && campaign.contracts[k]; return chapterStars(campaign.stars, k) + (ct && ct.done ? 2 : 0); }
-export const CHAPTER_GATE = 6;   // étoiles nécessaires dans un chapitre pour entrer dans le suivant (sur 15) ; 8 jugé trop haut par l'audit
+export function gateStars(campaign, k) { const ct = campaign.contracts && campaign.contracts[k]; return chapterStars((campaign && campaign.stars) || {}, k) + (ct && ct.done ? 2 : 0); }
+export const CHAPTER_GATE = 6;       // étoiles dans un chapitre (sur 15) pour ouvrir le suivant
+export const CHAPTER_PATIENCE = 8;   // ou, sans les étoiles : parties terminées dans le chapitre. La porte finit toujours par s'ouvrir.
 
 /**
- * Jusqu'où la campagne est ouverte, **déduite des étoiles gagnées** plutôt que notée au passage.
- * Recalculée après chaque île et au lancement : décrocher sur une île déjà jouée l'étoile qui manquait à la porte
- * d'un chapitre ouvre la suite immédiatement, sans avoir à rejouer l'île de bout de chapitre.
+ * Une île est **terminée** dès qu'on en a vu le bout, avec ou sans étoile : c'est ce qui ouvre la suivante.
+ * Les étoiles ne servent plus qu'aux portes de chapitre, aux graines et à l'or — une île ratée ne mure personne.
+ * `best` et `stars` servent de repli pour les sauvegardes d'avant `plays`.
+ */
+export function islandDone(campaign, n) {
+  const c = campaign || {};
+  return ((c.plays && c.plays[n]) || 0) > 0 || ((c.stars && c.stars[n]) || 0) >= 1 || ((c.best && c.best[n]) || 0) > 0;
+}
+/** Parties terminées dans le chapitre k (une île terminée avant que `plays` n'existe compte pour une). */
+export function chapterPlays(campaign, k) {
+  const c = campaign || {}; let s = 0;
+  for (let n = (k - 1) * 5 + 1; n <= k * 5; n++) s += Math.max((c.plays && c.plays[n]) || 0, islandDone(c, n) ? 1 : 0);
+  return s;
+}
+/** Les cinq îles du chapitre k sont-elles toutes terminées ? */
+export function chapterDone(campaign, k) { for (let n = (k - 1) * 5 + 1; n <= k * 5; n++) if (!islandDone(campaign, n)) return false; return true; }
+/**
+ * La porte du chapitre k. Deux clés, et il suffit d'une :
+ *  — les étoiles (six sur quinze, le contrat d'archipel en vaut deux) : la voie du joueur qui vise ;
+ *  — la patience (les cinq îles terminées, et huit parties en tout dans le chapitre) : la voie du joueur qui rame.
+ *    Elle s'atteint en jouant, donc aucune porte ne peut rester fermée pour de bon — et rejouer neuf fois la même
+ *    île n'ouvre rien, puisqu'il faut d'abord avoir vu le bout des cinq.
+ */
+export function gateOpen(campaign, k) {
+  return gateStars(campaign, k) >= CHAPTER_GATE || (chapterDone(campaign, k) && chapterPlays(campaign, k) >= CHAPTER_PATIENCE);
+}
+
+/**
+ * Jusqu'où la campagne est ouverte, **déduite de la sauvegarde** plutôt que notée au passage.
+ * Recalculée après chaque île et au lancement : terminer une île ouvre la suivante, et décrocher sur une île déjà
+ * jouée l'étoile qui manquait à une porte ouvre la suite immédiatement, sans rejouer l'île de bout de chapitre.
  */
 export function unlockedUpTo(campaign) {
-  const stars = (campaign && campaign.stars) || {};
   let n = 1;
   while (n < CAMPAIGN_SIZE) {
-    if ((stars[n] || 0) < 1) break;                                        // île pas encore réussie : la suite attend
-    if (n % 5 === 0 && gateStars(campaign, n / 5) < CHAPTER_GATE) break;   // porte de chapitre encore fermée
+    if (!islandDone(campaign, n)) break;                          // île pas encore terminée : la suite attend
+    if (n % 5 === 0 && !gateOpen(campaign, n / 5)) break;         // porte de chapitre encore fermée
     n++;
   }
   return n;
+}
+
+/** Ce qui manque pour ouvrir la porte du chapitre k, en une phrase pour le joueur (null si elle est ouverte). */
+export function gateText(campaign, k) {
+  if (gateOpen(campaign, k)) return null;
+  const st = gateStars(campaign, k), pl = chapterPlays(campaign, k);
+  return `${st} / ${CHAPTER_GATE} étoiles pour ouvrir le chapitre suivant — ou ${pl} / ${CHAPTER_PATIENCE} parties terminées dans ce chapitre, les cinq îles comprises. Rejouer une île déjà faite compte des deux côtés${k >= 2 ? ', et le contrat d’archipel vaut deux étoiles' : ''}.`;
 }
 
 /** Options à passer à `new Island(def, …)` depuis les mécaniques de l'île (tout est ouvert dans les modes libres). */

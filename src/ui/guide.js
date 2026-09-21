@@ -1,5 +1,5 @@
 // Guide en jeu : tuiles et affinités, saisons, faune, tuiles rares, souffles et vœux, graines et Atelier.
-import { mechIsland } from '../data/campaign.js';
+import { mechIsland, CHAPTER_GATE, CHAPTER_PATIENCE } from '../data/campaign.js';
 // Tout est dérivé des données du jeu (tiles.js, balance.js, upgrades.js, story.js) : aucune valeur n'est recopiée à la main.
 import { h, button, icon, append } from './dom.js';
 import { FAMILIES, RARE, RARE_AS, FAMILY_FROM, RARE_LATE, SEASONS, affinity, FUSIONS, WORKS } from '../data/tiles.js';
@@ -93,6 +93,8 @@ const TABS = {
     h('p', { class: 'g-intro' }, 'À l’entrée de chaque chapitre, on signe un contrat parmi trois : régions closes, animaux présents, vœux exaucés, coups parfaits, séries de cinq, tuiles bâties, fusions ou ouvrages bien placés, sur les cinq îles du chapitre. Le meilleur résultat de chaque île compte ; rempli, le contrat vaut deux étoiles pour la porte du chapitre suivant. Son avancement est rappelé sur la carte des îles, au départ de chaque île et au bilan.'),
     h('p', { class: 'g-intro' }, 'L’Île du jour (menu) est générée depuis la date, identique pour tout le monde, avec trois vœux tirés au sort et la météo. Le meilleur score du jour et les jours joués d’affilée sont conservés.'),
     h('p', { class: 'g-intro' }, 'Les étoiles dépendent du score : chaque île a ses trois seuils, affichés sous les points pendant la partie (le prochain seuil à atteindre) et sur le bilan. Ils ont été réglés avec un joueur automatique qui anticipe ses coups : la première étoile demande un peu plus de la moitié de son score, la deuxième 80 %, la troisième 90 %. Son score entier vaut l’étoile d’or, cosmétique (une graine, et l’île brille sur la carte), hors porte de chapitre.'),
+    h('h3', {}, icon('icon_menu'), 'Avancer dans la campagne'),
+    h('p', { class: 'g-intro' }, `Terminer une île ouvre la suivante, avec ou sans étoile : aucune île ne peut arrêter la campagne. Les étoiles ne gardent que la porte entre deux chapitres, et cette porte a deux clés — ${CHAPTER_GATE} étoiles sur les quinze du chapitre (le contrat d’archipel en vaut deux), ou ${CHAPTER_PATIENCE} parties terminées dans le chapitre, les cinq îles comprises. La seconde s’atteint en jouant : personne ne reste bloqué. Rejouer une île déjà faite compte des deux côtés, et seule la meilleure partie de chaque île est retenue.`),
   ) },
   seeds: { label: 'Graines et Atelier', build: () => h('div', {},
     h('h3', {}, icon('icon_leaf'), 'Les graines'),

@@ -10,7 +10,7 @@ import { STORY } from '../src/data/story.js';
 import { progressOf } from '../src/game/wishes.js';
 import { BALANCE } from '../src/data/balance.js';
 import { playStrong } from './bot.js';
-import { campaignIsland, CAMPAIGN_SIZE, CAMPAIGN_WISHES, islandOptions, gateStars, chapterStars, unlockedUpTo, CHAPTER_GATE } from '../src/data/campaign.js';
+import { campaignIsland, CAMPAIGN_SIZE, CAMPAIGN_WISHES, islandOptions, gateStars, chapterStars, unlockedUpTo, CHAPTER_GATE, CHAPTER_PATIENCE, islandDone, chapterPlays, gateOpen, gateText } from '../src/data/campaign.js';
 import { contractOffers, chooseContract, noteContractResult, contractLine, contractNeeded, CONTRACTS } from '../src/data/contracts.js';
 import { gradeMove } from '../src/game/feedback.js';
 
@@ -406,11 +406,11 @@ for (const def of ISLANDS.slice(0, 4)) {
   check(gateStars(camp, 2) === 4 && chapterStars(camp.stars, 2) === 4, 'porte sans contrat rempli : les étoiles seules');
   const r3 = noteContractResult(camp, 9, { stats: {}, fauna: 0, wishesDone: 3 }); check(r3.done && r3.justDone && gateStars(camp, 2) === 6, `contrat rempli : +2 pour la porte (${r3.after}/${r3.target}, porte ${gateStars(camp, 2)})`);
 
-// --- portes de chapitre : le déblocage se déduit des étoiles, pas du moment où on les gagne
+// --- portes de chapitre : le déblocage se déduit de la sauvegarde, pas du moment où on gagne les étoiles
 // (retour joueur : bloqué à l'île 5 alors que le compte y était, parce que l'étoile manquante avait été décrochée
-//  en refaisant une île précédente et que rien ne rejugeait la porte.)
+//  en refaisant une île précédente et que rien ne rejugeait la porte ; puis bloqué à l'île 9, sans étoile sur elle.)
 {
-  const camp = (stars, contracts = {}) => ({ stars, contracts });
+  const camp = (stars, contracts = {}, plays = undefined) => ({ stars, contracts, ...(plays ? { plays } : {}) });
   check(unlockedUpTo(camp({})) === 1, 'rien de joué : on commence à l’île 1');
   check(unlockedUpTo(camp({ 1: 2 })) === 2, 'une île réussie ouvre la suivante');
   check(unlockedUpTo(camp({ 1: 2, 3: 3 })) === 2, 'un trou dans la série arrête le déblocage');
@@ -423,6 +423,24 @@ for (const def of ISLANDS.slice(0, 4)) {
   check(unlockedUpTo(camp(plein)) === CAMPAIGN_SIZE, 'campagne parfaite : tout est ouvert jusqu’à la dernière île');
   // la règle ne retire jamais rien : `Math.max` côté jeu, vérifié ici sur le principe
   check(unlockedUpTo(camp({ 1: 1, 2: 1, 3: 1, 4: 1, 5: 1, 6: 3, 7: 3 })) === 5, 'des étoiles au-delà d’une porte fermée n’ouvrent pas la porte');
+
+  // --- plus aucune île ne peut murer : la terminer suffit à ouvrir la suivante
+  check(unlockedUpTo({ stars: {}, plays: { 1: 1 } }) === 2, 'une île terminée SANS étoile ouvre la suivante');
+  check(islandDone({ plays: { 3: 2 } }, 3) && islandDone({ stars: { 3: 1 } }, 3) && islandDone({ best: { 3: 120 } }, 3), 'terminée : parties comptées, étoile, ou meilleur score (anciennes sauvegardes)');
+  check(!islandDone({ stars: { 3: 0 }, best: { 3: 0 } }, 3), 'jamais jouée : pas terminée');
+  // le cas du joueur bloqué à l'île 9 : chapitre 1 passé, puis une île qu'il n'arrive pas à étoiler
+  const bloque = { stars: { 1: 2, 2: 2, 3: 2, 4: 2, 5: 2, 6: 1, 7: 1, 8: 1 }, contracts: {}, plays: { 9: 1 } };
+  check(unlockedUpTo(bloque) === 10, 'île 9 terminée sans étoile : l’île 10 s’ouvre (avant, la campagne s’arrêtait là)');
+
+  // --- la porte de chapitre a une seconde clé : la patience. Elle s'atteint en jouant, donc elle ne peut pas se fermer pour de bon.
+  const cinq = { 1: 1, 2: 1, 3: 1, 4: 1, 5: 1 };
+  check(chapterPlays({ stars: cinq }, 1) === 5, 'cinq îles terminées : cinq parties comptées');
+  check(!gateOpen({ stars: cinq, contracts: {} }, 1), `cinq étoiles et cinq parties : la porte tient (${CHAPTER_GATE} étoiles ou ${CHAPTER_PATIENCE} parties)`);
+  check(gateOpen({ stars: cinq, contracts: {}, plays: { 1: 2, 2: 2, 3: 2, 4: 1, 5: 1 } }, 1), 'huit parties terminées dans le chapitre : la porte s’ouvre sans les étoiles');
+  check(unlockedUpTo({ stars: cinq, contracts: {}, plays: { 1: 2, 2: 2, 3: 2, 4: 1, 5: 1 } }) === 6, 'et le chapitre 2 devient jouable');
+  check(!gateOpen({ stars: {}, contracts: {}, plays: { 1: 9 } }, 1), 'rejouer neuf fois la même île n’ouvre rien : les cinq îles restent à terminer');
+  check(gateText({ stars: cinq, contracts: {} }, 1).includes(`5 / ${CHAPTER_GATE}`) && gateText({ stars: cinq, contracts: {} }, 1).includes(`5 / ${CHAPTER_PATIENCE}`), 'le joueur voit les deux comptes');
+  check(gateText({ stars: { 1: 3, 2: 3 }, contracts: {} }, 1) === null, 'porte ouverte : plus rien à afficher');
 }
   check(contractLine(camp, 2).done && /rempli/.test(contractLine(camp, 2).text), 'ligne de rappel : rempli');
 }
