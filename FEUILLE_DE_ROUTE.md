@@ -32,8 +32,8 @@
 |---|---|---|---|
 | 14 | **Bâtir : niveaux 2** | Poser une tuile sur une tuile de même famille (1 souffle) : bords +1, compte double dans sa région, décor plus dense ; retour d'une tuile si région close, en saison ou bien entourée (une fois par saison). Île 6. | **fait** |
 | 15 | **Grille effacée entre tuiles posées** | Fondus le long des bords entre sols différents (champs compris), roche et colline nettes ; pointillé au survol ; option « Grille discrète ». | **fait** |
-| 16 | **Fusions et Cahier** | Port, rizière, ferme, fortin, cascade, grotte, lagune (commutatives, 1 souffle, +3, prime de saison) ; découverte = retour de tuile + rare ; Cahier des recettes dans le Guide ; vœux de fusion aux îles 8, 10 et 12. | **fait** |
-| 17 | **Ouvrages (tuiles bonus)** | Ruche, épouvantail, ponton, pont, nichoir, feu de camp, menhir, compost : bonne et mauvaise place jugées à chaque saison, marqueur rouge, une toutes les seize poses et en récompense de vœu, amélioration Talisman. Île 7. | **fait** |
+| 16 | **Fusions et Cahier** | ~~Port~~ (retiré : la mer n'est pas une tuile, un port ne pouvait qu'être à l'intérieur des terres — il revient au Livre II), rizière, ferme, fortin, cascade, grotte, lagune (commutatives, 1 souffle, +3, prime de saison) ; découverte = retour de tuile + rare ; Cahier des recettes dans le Guide ; vœux de fusion aux îles 8, 10 et 12. | **fait** |
+| 17 | **Ouvrages (tuiles bonus)** | Ruche, épouvantail, ~~ponton, pont~~ (retirés : trop gros et trop laids sur l'hexagone), nichoir, feu de camp, menhir, compost : bonne et mauvaise place jugées à chaque saison, marqueur rouge, une toutes les seize poses et en récompense de vœu, amélioration Talisman. Île 7. | **fait** |
 | 18 | **Niveaux 3, Atelier, recalibrage** | Signatures par famille (onze), condition « mûrir » (une saison), 2 souffles, +1 par saison ; Charpente, Semence forte, Talisman ; bot qui bâtit, fusionne et pose les ouvrages ; seuils recalibrés. Île 10. | **fait** |
 
 ## Lot 5 : climats (idée du commanditaire)
@@ -111,7 +111,7 @@ Un niveau = un deck, un compte de saisons, deux à quatre îles. Contraintes pos
 
 | Chapitre | Îles | Ce qui arrive | Statut |
 |---|---|---|---|
-| 11. La Côte | 51–55 | une île bordée de mer posable : Mer, récif, algues, abysse | **en cours** |
+| 11. La Côte | 51–55 | une île bordée de mer posable : Mer, récif, algues, abysse | à faire (rien en code : ni tuile de mer, ni île au-delà de 50) |
 | 12. Les Routes | 56–60 | deux îles, ports, cargaisons, faune marine | à faire |
 | 13. Les Vents | 61–65 | climat venteux, tempêtes, phare et balise, fusions marines | à faire |
 | 14. L'Archipel | 66–70 | trois îles à contraintes, montagnard, marées | à faire |
