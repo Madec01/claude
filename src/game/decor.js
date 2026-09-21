@@ -434,8 +434,10 @@ export class Decor {
               else if (r2 < 0.74) fleurir(p, ck, rng, 3);
               else if (r2 < 0.83) push(p, `obj_rockGrey_small${VAR3(rng)}{w}`, Object.assign({ scale: (w.scale || 1) * 0.45 }, { flip: w.flip }));
               else if (r2 < 0.89) push(p, 'obj_log', Object.assign({ scale: (w.scale || 1) * 0.8 }, { flip: w.flip }));
-              // haie et arbre isolé : seulement en lisière, là où un pré s'arrête vraiment
-              else if (d < 26) push(p, rng() < 0.55 ? 'obj_hedge_{s}' : 'obj_treeRound_small_{s}', { scale: (w.scale || 1) * 0.62, flip: w.flip });
+              // arbre isolé et piquet : seulement en lisière, là où un pré s'arrête vraiment.
+              // (`obj_hedge` a été essayé ici : ce n'est pas un segment de haie mais un ENCLOS carré,
+              // qui à cette taille se lit comme un rectangle vide posé sur l'herbe.)
+              else if (d < 26) push(p, rng() < 0.65 ? 'obj_treeRound_small_{s}' : 'obj_fence', { scale: (w.scale || 1) * 0.62, flip: w.flip });
               else push(p, 'obj_bushGrass_{s}', Object.assign({ scale: (w.scale || 1) * 0.8 }, { flip: w.flip }));
             }
             if (rng() < 0.5) for (const p of sample(rng, cell, keys, 1, { minDist: 28, margin: 12, placed })) { placed.push(p); push(p, 'obj_hay', { seasons: ['autumn'] }); }

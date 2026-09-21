@@ -12,6 +12,13 @@ import { Decor, groundOf, groundKey, GROUND_COLORS, spriteKey } from './decor.js
 import { pathShapes } from './paths.js';
 // arête i (sommet i → i+1 de corners()) → indice dans DIRS du voisin de l'autre côté ; mesuré, pas deviné
 const EDGE_DIR = [1, 0, 5, 4, 3, 2];
+/** La même couleur hexadécimale, avec une opacité : sert aux dégradés qui se dissolvent. */
+function hexA(hex, a) {
+  const h = hex.replace('#', '');
+  const n = parseInt(h.length === 3 ? h.split('').map((c) => c + c).join('') : h, 16);
+  return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`;
+}
+
 /** Décors déjà posés à plat sur le sol : ils ne reçoivent pas d'ombre de contact. */
 const PLAT = new Set(['obj_puddle', 'obj_leafpile', 'obj_snowdrift', 'obj_moss', 'obj_lily',
   'obj_flowerWhite', 'obj_flowerRed', 'obj_flowerBlue', 'obj_flowerYellow']);
@@ -513,9 +520,14 @@ export class IslandRenderer {
         for (let d = 0; d < 6; d++) {   // mare ouverte sur la mer : elle devient une crique
           const cell = body.cells[0]; const nq = cell.q + DIRS[d][0], nr = cell.r + DIRS[d][1];
           if (!b.isSea(nq, nr)) continue;
-          const m = edgeMid(c0.x, c0.y, d); const ow = toWorld(nq, nr);
-          const g1 = S({ x: (c0.x + m.x) / 2, y: (c0.y + m.y) / 2 }); this.blob(ctx, g1.x, g1.y, SIZE * 0.5 * z, c0); ctx.fill();
-          const g2 = S({ x: (m.x + ow.x) / 2, y: (m.y + ow.y) / 2 }); this.blob(ctx, g2.x, g2.y, SIZE * 0.42 * z, ow); ctx.fill();
+          const m = edgeMid(c0.x, c0.y, d);
+          const dedans = S({ x: (c0.x + m.x) / 2, y: (c0.y + m.y) / 2 });
+          const dehors = S({ x: m.x + (m.x - c0.x) * 0.75, y: m.y + (m.y - c0.y) * 0.75 });
+          const grd = ctx.createLinearGradient(dedans.x, dedans.y, dehors.x, dehors.y);
+          grd.addColorStop(0, pal.shoal); grd.addColorStop(0.5, pal.shoal); grd.addColorStop(0.72, hexA(pal.shoal, 0.6)); grd.addColorStop(1, hexA(pal.shoal, 0));
+          ctx.fillStyle = grd;
+          this.blob(ctx, dedans.x, dedans.y, SIZE * 0.48 * z, c0); ctx.fill();
+          this.blob(ctx, dehors.x, dehors.y, SIZE * 0.34 * z, { x: c0.x + 31, y: c0.y - 17 }); ctx.fill();
         }
         if (!frozen) { ctx.strokeStyle = pal.foam; ctx.lineWidth = 1.5 * z; ctx.beginPath(); ctx.ellipse(c.x - rr * 0.2, c.y - rr * 0.25, rr * 0.35, rr * 0.16, -0.4, 0, TAU); ctx.stroke(); }
       } else {
@@ -542,17 +554,21 @@ export class IslandRenderer {
         nappe(pal.deep, 0);            // le fond, à l'ombre
         nappe(grad, -4, 4 * z);        // le plan d'eau, un peu rétréci et descendu : ombre fine sous la lèvre
         // Bras de mer : une nappe qui touche le bord de l'île n'est pas un lac fermé, c'est une
-        // échancrure. Du côté ouvert on efface la lèvre et on prolonge l'eau au-dessus du large, en
-        // ton de bas-fond — la mer entre dans les terres au lieu de s'arrêter sur un trait.
-        ctx.fillStyle = pal.shoal;
+        // échancrure. Du côté ouvert on efface la lèvre et on prolonge l'eau vers le large.
+        // Le prolongement se DISSOUT : peint en aplat, il faisait des taches pâles sur la mer, qui
+        // n'a pas la même teinte. Un dégradé vers le transparent laisse la mer reprendre la main.
         for (const c of cs) for (let d = 0; d < 6; d++) {
           const nq = c.cell.q + DIRS[d][0], nr = c.cell.r + DIRS[d][1];
           if (!b.isSea(nq, nr)) continue;
           const m = edgeMid(c.w.x, c.w.y, d);
-          const g1 = S({ x: (c.w.x + m.x) / 2, y: (c.w.y + m.y) / 2 });
-          this.blob(ctx, g1.x, g1.y, SIZE * 0.6 * z, c.w); ctx.fill();
-          const ow = toWorld(nq, nr); const g2 = S({ x: (m.x + ow.x) / 2, y: (m.y + ow.y) / 2 });
-          this.blob(ctx, g2.x, g2.y, SIZE * 0.5 * z, ow); ctx.fill();
+          const dedans = S({ x: (c.w.x + m.x) / 2, y: (c.w.y + m.y) / 2 });
+          const dehors = S({ x: m.x + (m.x - c.w.x) * 0.8, y: m.y + (m.y - c.w.y) * 0.8 });
+          // opaque jusqu'au trait de côte (le liseré blanc de l'île le referme sinon), puis dissolution
+          const grd = ctx.createLinearGradient(dedans.x, dedans.y, dehors.x, dehors.y);
+          grd.addColorStop(0, pal.shoal); grd.addColorStop(0.5, pal.shoal); grd.addColorStop(0.72, hexA(pal.shoal, 0.6)); grd.addColorStop(1, hexA(pal.shoal, 0));
+          ctx.fillStyle = grd;
+          this.blob(ctx, dedans.x, dedans.y, SIZE * 0.58 * z, c.w); ctx.fill();
+          this.blob(ctx, dehors.x, dehors.y, SIZE * 0.4 * z, { x: c.w.x + 31, y: c.w.y - 17 }); ctx.fill();
         }
         if (!frozen) {
           // la rive scintille : un liseré clair qui court le long du contour, et qui BOUGE — sans
