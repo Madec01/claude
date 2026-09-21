@@ -25,6 +25,7 @@ import { buildCredits, loadCredits } from './ui/credits.js';
 import { buildGuide } from './ui/guide.js';
 import { dailyDef, dailyKey, yesterdayKey } from './data/daily.js';
 import { Finale } from './game/finale.js';
+import { FinaleClassique } from './game/finale_classique.js';   // la tournée d'avant, gardée au cas où (option `finaleClassique`)
 import { campaignIsland, campaignMechanics, islandOptions, CAMPAIGN_SIZE, MECH_AT, climateCardFor, unlockedUpTo, gateText, restarFromBest } from './data/campaign.js';
 import { GRADES, streakMilestone } from './game/feedback.js';
 import { computeLinks } from './game/paths.js';
@@ -789,7 +790,9 @@ class IslandScene {
     if (this.finale) return;
     this.armed = null; this.hud.setPlaceButton(null); this.setBud(false);
     document.getElementById('hud').classList.add('finale'); document.getElementById('tutorial').classList.add('finale');
-    this.finale = new Finale(this);
+    // l'option `finaleClassique` rend la tournée d'avant sans rien changer d'autre : elle est lue ici,
+    // à chaque île, pour qu'un aller-retour ne demande pas de recharger la page
+    this.finale = new (Save.options.finaleClassique ? FinaleClassique : Finale)(this);
   }
   bounds() { const tl = this.cam.toWorldPoint(0, 0), br = this.cam.toWorldPoint(STAGE.W, STAGE.H); return { minX: tl.x, maxX: br.x, minY: tl.y, maxY: br.y }; }
   playSfx(key, volume = 0.6) { if (AudioSys.has(key)) AudioSys.play(key, { volume }); }

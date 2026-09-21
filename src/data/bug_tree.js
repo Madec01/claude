@@ -77,7 +77,7 @@ export const TREE = [
         f('vol', 'Points qui volent (changement de saison)', 'L’étincelle part-elle de la bonne tuile ?', 'Il en reste en l’air ?'),
         f('onde', 'Onde de fermeture de région', 'L’onde couvre-t-elle toute la région ?', 'Part-elle de la mauvaise case ?'),
         f('transition', 'Transition de saison (le balayage)', 'Une bande reste figée ?', 'Des tuiles restent dans l’ancienne saison ?'),
-        f('finale', 'Tournée finale', 'À quelle phase ?', 'Une région est-elle oubliée ou nommée deux fois ?'),
+        f('finale', 'Tournée finale', 'À quel moment (la nuit, un plan, la vague, une saison, la carte postale) ?', 'La caméra va-t-elle au bon endroit ?'),
         f('tremblement', 'Tremblement de l’écran', 'Trop fort, trop fréquent ?', 'L’option est-elle coupée ?'),
         autre('Quel effet cloche, et à quel moment ?'),
       ] },
@@ -281,7 +281,7 @@ export const TREE = [
         f('ligne', 'Une ligne du bilan', 'Laquelle ?', 'Quelle valeur attendais-tu ?'),
         f('sources', '« D’où viennent les points »', 'Quelle ligne semble fausse ?', 'La somme fait-elle le score total ?'),
         f('meilleur', 'Le meilleur coup de la partie', 'Correspond-il à ce que tu as joué ?'),
-        f('tournee', 'Les libellés de la tournée finale', 'Quel libellé faux ?', 'Quelle taille annoncée ?'),
+        f('tournee', 'Les noms des lieux visités par la tournée', 'Quel nom tombe à côté ?', 'Un lieu est-il visité deux fois, ou oublié ?'),
         autre('Quel problème de fin d’île ?'),
       ] },
       { id: 'succes', n: 'Succès', q: [], e: [

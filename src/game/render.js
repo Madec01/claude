@@ -61,6 +61,13 @@ const PLAT = new Set(['obj_puddle1', 'obj_puddle2', 'obj_puddle3', 'obj_leafpile
  */
 const estPlat = (tpl) => PLAT.has(tpl.replace(/\{[sw]\}/g, ''));
 
+/**
+ * Les bâtiments dont les fenêtres s'allument la nuit (tournée finale). Un halo chaud posé au-dessus
+ * du sprite : un dégradé, pas une image dessinée. La tente du campement en est, elle aussi — on y
+ * veille à la lampe.
+ */
+const LUMIERE = new Set(['obj_house', 'obj_villa', 'obj_farm', 'obj_church', 'obj_tavern', 'obj_tower', 'obj_windmill', 'obj_tent']);
+
 /** Sols en relief : falaise (roche) et talus (colline). */
 const RELIEF = new Set(['stone', 'hill']);
 /** Deux sols qui se touchent par une arête franche plutôt que par un fondu. */
@@ -121,7 +128,10 @@ export class IslandRenderer {
     this.hexMask = Assets.img('hex_mask'); this.hexOutline = Assets.img('hex_outline'); this.hexShadow = Assets.img('hex_shadow');
     this.lowFx = false;         // posé par la scène quand les i/s baissent : on coupe la profondeur et l'écume large
     this._sea = null;           // géométrie de la mer (centre, rayon, côte, vagues), recalculée si l'île change de forme
-    this._life = null;          // le voilier et la baleine
+    this.nuit = 0;              // tour du cadran : 0 = plein jour, 1 = nuit noire (tournée finale)
+    // la vie du large est montée ici plutôt qu'à la première image : la tournée finale doit pouvoir
+    // y poser son voilier avant même que `drawSeaLife` ait tourné une fois
+    this._life = { boat: null, whale: null, nextBoat: rnd(5, 18), nextWhale: rnd(45, 100), season: island.season };   // le voilier et la baleine
     this.faunaPos = new Map();  // clé -> { x, y, bob }
     this.decor = new Decor((island.def && island.def.seed) || 1);
     this.weather = null; this.flash = 0; this.rain = [];
@@ -168,6 +178,7 @@ export class IslandRenderer {
     this.drawFauna(ctx, dt);
     this.drawWorkMarks(ctx);
     this.particlesWorld(ctx, 1);
+    this.drawNuit(ctx);
     this.drawTexts(ctx);
     this.drawWeather(ctx, dt);
     this.drawTransition(ctx);
@@ -281,7 +292,7 @@ export class IslandRenderer {
 
   drawSeaLife(ctx, dt) {
     const sea = this.seaGeometry(); const cam = this.cam, z = cam.zoom; const storm = this.weather === 'storm';
-    const life = this._life || (this._life = { boat: null, whale: null, nextBoat: rnd(5, 18), nextWhale: rnd(45, 100), season: this.isl.season });
+    const life = this._life;
     if (life.season !== this.isl.season) { life.season = this.isl.season; life.nextBoat = Math.min(life.nextBoat, rnd(4, 14)); }   // à chaque saison, un bateau ne tarde pas
     // --- le voilier : une ligne tangente à l'île, au large, d'un bord du champ à l'autre
     if (!life.boat) {
@@ -338,6 +349,73 @@ export class IslandRenderer {
         }
       }
     }
+  }
+
+  /**
+   * LE TOUR DU CADRAN. `nuit` va de 0 (plein jour) à 1 (nuit noire) : un voile bleu en multiplication
+   * sur tout l'écran — la mer aussi, elle ne fait pas exception —, puis les fenêtres qui s'allument.
+   *
+   * Posé après le monde et avant les textes : le paysage passe à la nuit, l'interface non. Et la
+   * multiplication part du blanc, qui ne change rien : à `nuit` nul le tracé est sauté de toute façon,
+   * mais le fondu reste continu de bout en bout.
+   */
+  drawNuit(ctx) {
+    const n = this.nuit || 0; if (n <= 0.002) return;
+    const cam = this.cam, z = cam.zoom;
+    const vers = (jour, soir) => Math.round(jour + (soir - jour) * n);
+    ctx.save();
+    ctx.globalCompositeOperation = 'multiply';
+    ctx.fillStyle = `rgb(${vers(255, 74)},${vers(255, 88)},${vers(255, 150)})`;
+    ctx.fillRect(0, 0, STAGE.W, STAGE.H);
+    ctx.restore();
+    // les fenêtres : un halo chaud au-dessus de chaque toit, qui respire un peu et se lève plus tard
+    // que la nuit ne tombe (on n'allume pas au premier nuage) — d'où le retard de trois dixièmes.
+    const veille = clamp((n - 0.3) / 0.5, 0, 1); if (veille <= 0) return;
+    ctx.save(); ctx.globalCompositeOperation = 'lighter';
+    for (const o of this.decor.objects) {
+      if (!LUMIERE.has(o.tpl)) continue;
+      const c = cam.toScreen(o.x, o.y - 24);
+      if (c.x < -80 || c.x > STAGE.W + 80 || c.y < -80 || c.y > STAGE.H + 80) continue;
+      const r = 30 * z; const a = veille * (0.62 + 0.1 * Math.sin(this.time * 1.9 + o.x * 0.031 + o.y * 0.017));
+      const g = ctx.createRadialGradient(c.x, c.y, 0, c.x, c.y, r);
+      g.addColorStop(0, `rgba(255,214,140,${(a * 0.7).toFixed(3)})`); g.addColorStop(0.45, `rgba(255,186,96,${(a * 0.22).toFixed(3)})`); g.addColorStop(1, 'rgba(255,170,70,0)');
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(c.x, c.y, r, 0, TAU); ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  /**
+   * Fait partir un voilier du large vers l'horizon, pour la tournée finale. Le point de départ est
+   * choisi parmi seize directions autour de `vers` (un point du monde, le village par exemple) : la
+   * première qui tombe DANS le champ est gardée, parce qu'un bateau qu'on ne voit pas ne sert à rien.
+   */
+  envoyerVoilier(vers = null, duree = 3.4) {
+    const sea = this.seaGeometry(), cam = this.cam;
+    const a0 = vers ? Math.atan2(vers.y - sea.cy, vers.x - sea.cx) : Math.PI * 0.75;
+    let best = null;
+    for (let i = 0; i < 16 && !best; i++) {
+      const a = a0 + (i % 2 ? 1 : -1) * Math.ceil(i / 2) * (TAU / 16);
+      const x = sea.cx + Math.cos(a) * sea.R * 1.04, y = sea.cy + Math.sin(a) * sea.R * 1.04;
+      const p = cam.toScreen(x, y);
+      if (p.x > 40 && p.x < STAGE.W - 40 && p.y > 50 && p.y < STAGE.H - 50) best = { a, x, y };
+    }
+    if (!best) return false;
+    const len = sea.R * 1.1;
+    this._life.boat = { x: best.x, y: best.y, dir: best.a, dist: 0, len, speed: len / duree, img: Math.random() < 0.5 ? 'sea_boat_1' : 'sea_boat_2', t: 0 };
+    this._life.nextBoat = 999;   // celui-là suffit : pas d'autre bateau par-dessus
+    return true;
+  }
+
+  /** Fait surface une baleine, au large mais dans le champ. Même règle : on la place là où elle se voit. */
+  souffleBaleine(duree = 5.5) {
+    const sea = this.seaGeometry(), cam = this.cam;
+    for (let k = 0; k < 16; k++) {
+      const a = rnd(0, TAU), rr = sea.R * rnd(1.05, 1.35);
+      const x = sea.cx + Math.cos(a) * rr, y = sea.cy + Math.sin(a) * rr;
+      const p = cam.toScreen(x, y);
+      if (p.x > 90 && p.x < STAGE.W - 90 && p.y > 110 && p.y < STAGE.H - 110) { this._life.whale = { x, y, t: 0, life: duree, flip: Math.random() < 0.5, spouted: false }; this._life.nextWhale = 999; return true; }
+    }
+    return false;
   }
 
   /**
