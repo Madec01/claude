@@ -3,7 +3,6 @@
 // CE FICHIER NE VIT PAS DANS LE DÉPÔT DU JEU. Il est à poser à la racine du dépôt PRIVÉ `cent-saisons-bugs`,
 // avec `.github/workflows/pepins.yml`. Il est gardé ici pour qu'on le retrouve, et pour qu'il soit versionné avec
 // la spécification qu'il applique (docs/SECTION_BUGS.md § 9).
-//
 // Ce qu'il fait, à chaque passage :
 //   1. lit les documents de la collection `pepins`, du plus ancien au plus récent, vingt au plus ;
 //   2. écrit les images dans rapports/AAAA-MM/ et les valide en UN commit pour tout le lot ;
@@ -71,6 +70,10 @@ function corps(r, urlImage) {
   L.push('<details><summary>Réglages et progression</summary>', '', '```json', JSON.stringify({ reglages: r.reglages, progression: r.progression }, null, 1), '```', '', '</details>', '');
   if (r.partie) L.push('<details><summary>La partie, pour la rejouer (Options → Mode test → Ouvrir un rapport)</summary>', '', '```json', JSON.stringify(r.partie), '```', '', '</details>', '');
   L.push('', `*${r.mode === 'idee' ? 'Idée' : 'Pépin'} ${r.code} · relevé le ${new Date().toISOString().slice(0, 16).replace('T', ' ')}*`);
+  // Une seconde corde à l'arc pour la notification. L'assignation en déclenche une, la mention aussi — mais ce
+  // sont deux catégories distinctes dans les réglages de GitHub, et l'une peut être coupée sans l'autre. Deux
+  // chances valent mieux qu'une pour un rapport qu'on ne doit pas rater.
+  L.push('', `@${OWNER}`);
   return L.join('\n');
 }
 
@@ -80,10 +83,11 @@ async function ouvrirIssue(titre, body, labels) {
     headers: { Authorization: `Bearer ${TOKEN}`, Accept: 'application/vnd.github+json', 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   });
-  let res = await appel({ title: titre, body, labels });
+  // t'assigner, c'est ce qui déclenche la notification sur ton téléphone (application GitHub)
+  let res = await appel({ title: titre, body, labels, assignees: [OWNER] });
   // une étiquette qui n'existe pas encore est normalement créée à la volée ; si le serveur s'en plaint, on ouvre
   // l'issue sans étiquettes plutôt que de perdre le rapport
-  if (!res.ok) { console.warn(`issue refusée (${res.status}), nouvel essai sans étiquettes`); res = await appel({ title: titre, body }); }
+  if (!res.ok) { console.warn(`issue refusée (${res.status}), nouvel essai sans étiquettes ni assignation`); res = await appel({ title: titre, body }); }
   if (!res.ok) throw new Error(`GitHub ${res.status} : ${court(await res.text(), 300)}`);
   return (await res.json()).number;
 }
