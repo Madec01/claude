@@ -171,7 +171,7 @@ Un objet JSON, `version: 1`. Champ par champ :
 | `appareil` | `{ ua, largeur, hauteur, dpr, classes, plein_ecran, langue }` | `navigator`, `STAGE`, classes de `<html>` | Reproduire une mise en page. `classes` = `compact portrait touch`. |
 | `reglages` | `Save.options` | `Save.options` | « Chez moi le relevé de saison ne s'affiche pas » : la réponse est souvent là. |
 | `progression` | `{ ile_debloquee, etoiles, graines, ameliorations, contrats }` | résumé de `Save.campaign` | Un pépin de déblocage se lit ici. **Résumé, pas la sauvegarde entière.** |
-| `partie` | le `RunSave` complet (`{ where, title, isl }`) | `RunSave.read()`, ou `isl.serialize()` en direct | **La pièce qui permet de rejouer.** Décochable. Absente hors partie. |
+| `partie` | le `RunSave` complet (`{ where, title, isl }`) | la partie du moment (`RunSave.read()`, ou `isl.serialize()` en direct), **ou l'une des trois dernières jouées** (`RunSave.history()`) | **La pièce qui permet de rejouer.** Décochable, et choisie dans une liste dès qu'il y en a plusieurs : un pépin se raconte souvent l'île finie, quand la partie du moment est vide. |
 | `nuage` | `{ mode, etat }` : `google` / `anon` / `none`, et `ready` / `quota` / `error` | `Cloud.status()` | Comprendre un pépin de sauvegarde, sans identifiant. |
 
 **Ce qui n'y est jamais :** aucune adresse e-mail, aucun nom Google, aucun `uid` Firebase, aucune position, aucun
@@ -203,6 +203,17 @@ la partie rejouable vaut mieux qu'une photo.
 
 Hors partie (menu, Atelier), le canvas porte le fond d'île du menu : l'image est alors surtout un porte-texte, et
 c'est très bien.
+
+**Ou celle que le joueur apporte** (`imageFichier`) : une capture de son téléphone, une photo de l'écran. C'est la
+réponse au « je ne sais pas photographier le HUD » ci-dessus — sa capture, elle, montre la file, la saison, les
+vœux et les boutons. Même largeur, même bandeau, même encodage que la capture du jeu : un relevé ne fait pas la
+différence. **Une seule image part avec un rapport** (le document Firestore n'a qu'un champ `image`) : choisir une
+image décoche la capture de l'écran, et l'écran le dit. Une capture de téléphone en haute résolution peut à elle
+seule dépasser le plafond de la règle : la qualité descend alors par paliers (0,6 → 0,45 → 0,3) plutôt que de
+perdre l'image que le joueur a choisie.
+
+> Une image illisible ne part **pas** en silence : l'envoi s'arrête et l'écran propose d'en choisir une autre ou
+> de la retirer.
 
 ---
 
@@ -392,7 +403,7 @@ La voix de l'île parle au « nous » et tutoie le joueur. Rien d'un formulaire 
 | Champ | `Qu'est-ce qui s'est passé ?` |
 | Pastilles | `ça s'est bloqué` · `c'est mal placé` · `le compte est faux` · `autre` |
 | Pli | `Ce qui part avec ce pépin` |
-| Lignes du pli | `Ta phrase` · `L'île en image` · `La partie, pour la rejouer` · `Les trente derniers événements` · `L'erreur, s'il y en a eu une` · `Ton téléphone et la version du jeu` · `Tes réglages et ta progression` |
+| Lignes du pli | `Ta phrase` · `L'île en image` · `La partie, pour la rejouer` (et `Laquelle ?` dès qu'il y en a plusieurs) · `Les trente derniers événements` · `L'erreur, s'il y en a eu une` · `L'image que tu ajoutes, si tu en ajoutes une` · `Ton téléphone et la version du jeu` · `Tes réglages et ta progression` |
 | Sous le pli | `Rien de tout cela ne dit qui tu es.` |
 | Bouton d'envoi | `Envoyer` |
 | Après l'envoi | `C'est parti. Ton pépin porte le code PÉPIN-7K3Q — garde-le si tu veux en reparler.` |
