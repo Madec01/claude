@@ -305,7 +305,7 @@ jamais dans le dépôt du jeu, jamais dans le code du jeu.
 
 ### 9.3 Ce que fait le workflow
 
-Déclenché **toutes les deux heures** (à une minute décalée, pour ne pas tomber pile à l'heure avec le reste du
+Déclenché **toutes les heures** (à une minute décalée, pour ne pas tomber pile à l'heure avec le reste du
 monde) et **à la demande** (`workflow_dispatch`) quand le commanditaire veut les voir tout de suite. Permissions :
 `issues: write`, `contents: write` — les siennes, rien de plus.
 
@@ -428,7 +428,7 @@ La voix de l'île parle au « nous » et tutoie le joueur. Rien d'un formulaire 
 ## 15. Ce qui reste ouvert
 
 - **Le nom du dépôt privé** (`cent-saisons-bugs` est une proposition).
-- **La cadence de relève** (deux heures) est un pari. Si tu veux les pépins plus vite, la relève à la demande est là ;
+- **La cadence de relève** (une heure) est un pari. Si tu veux les pépins plus vite, la relève à la demande est là ;
   descendre sous l'heure ne servirait qu'à consommer des minutes d'Action pour rien.
 - **Le nombre d'entrées de journal joint** (30) est un pari raisonnable, pas une mesure. À ajuster après les
   premiers vrais rapports.
