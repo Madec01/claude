@@ -28,14 +28,14 @@ export class Finale {
   /** Étapes de la tournée : régions de deux tuiles ou plus (au plus douze, les plus grandes), du plus petit au plus grand, puis les plans d'eau. */
   buildStops() {
     const b = this.isl.board; const stops = [];
-    for (const fam of Object.keys(REGION_LABEL)) for (const reg of b.regions(fam)) if (reg.size >= 2) stops.push({ cells: reg.cells, size: reg.size, id: reg.id, label: `${REGION_LABEL[fam]} de ${reg.size}`, family: fam });
+    for (const fam of Object.keys(REGION_LABEL)) for (const reg of b.regions(fam)) if (reg.size >= 2) stops.push({ cells: reg.cells, size: reg.size, id: reg.id, closed: b.regionPaid(reg), label: `${REGION_LABEL[fam]} de ${reg.size}`, family: fam });
     for (const w of waterBodies(b)) if (w.size >= 2 || w.kind === 'pond') stops.push({ cells: w.cells, size: w.size, id: w.id, label: `${KIND_LABEL[w.kind][0].toUpperCase()}${KIND_LABEL[w.kind].slice(1)}${w.size > 1 ? ` de ${w.size}` : ''}${w.kind === 'river' && w.mouth ? ' jusqu’à la mer' : ''}`, family: 'water' });
     stops.sort((a, c) => c.size - a.size); const kept = stops.slice(0, 12).sort((a, c) => a.size - c.size);
     for (const s of kept) {
       let x = 0, y = 0; for (const c of s.cells) { const w = toWorld(c.q, c.r); x += w.x; y += w.y; } s.x = x / s.cells.length; s.y = y / s.cells.length;
       const animals = [...this.isl.fauna.values()].filter((a) => a.regionId === s.id).map((a) => ANIMAL_LINE[a.species]).filter(Boolean);
       if (animals.length) s.label += ` · ${animals[0]}`;
-      else if (this.isl.board.closedRegions.has(s.id)) s.label += ' · bien clos';
+      else if (s.closed) s.label += ' · bien clos';
     }
     return kept;
   }

@@ -26,13 +26,13 @@ function evalMove(isl, tile, q, r, rng, deep) {
   const before = open.map((w) => progressOf(w, ctx));
   const faunaBefore = evalFauna(b, isl.season, isl.rule).size;
   b.place(q, r, tile);
-  const closedAdded = pv.closes.map((c) => c.id).filter((id) => !b.closedRegions.has(id)); for (const id of closedAdded) b.closedRegions.add(id);
+  const avant = new Set(b.closedRegions); for (const c of pv.closes) b.payRegion(c);
   try {
     open.forEach((w, i) => { const p = progressOf(w, ctx); const d = Math.min(p, w.target) - Math.min(before[i], w.target); if (d > 0) s += d * W.wish; if (p >= w.target && before[i] < w.target) s += W.wishDone; });
     s += (evalFauna(b, isl.season, isl.rule).size - faunaBefore) * W.fauna;
     const nxt = isl.queue.list[1];
     if (nxt) { let best = 0; for (const c of b.legalCells()) { const p = isl.preview(c.q, c.r, nxt); if (p && p.total > best) best = p.total; } s += best * W.next; }
-  } finally { for (const id of closedAdded) b.closedRegions.delete(id); b.remove(q, r); }
+  } finally { b.closedRegions = avant; b.remove(q, r); }
   return s;
 }
 

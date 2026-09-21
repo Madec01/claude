@@ -152,6 +152,31 @@ KAY_MODELS = {
     # nos tuiles sont des hexagones réguliers vus de dessus (240 × 280), pas des dalles en perspective.
     "ble": "extra/buildings/neutral/building_grain",
     "terre": "extra/buildings/neutral/building_dirt",
+    # --- trois volumes qui remplacent les derniers sprites plats posés à côté de modèles 3D
+    "abreuvoir": "extra/decoration/props/trough_long",
+    "sanctuaire": "extra/buildings/green/building_shrine_green",
+    "nenuphar": "decoration/nature/waterlily_A",
+    # --- la variété qui ne coûte rien : une seconde silhouette de récolte et trois massettes d'eau
+    "botte_ronde": "extra/decoration/props/haybale",
+    "roseau_A": "decoration/nature/waterplant_A",
+    "roseau_B": "decoration/nature/waterplant_B",
+    "roseau_C": "decoration/nature/waterplant_C",
+    # --- le port : le seul endroit du jeu dont le vocabulaire venait encore d'un autre pack (Nature Kit)
+    "ponton": "extra/buildings/red/building_docks_red",
+    "barque": "extra/decoration/props/boat",
+    "chevalet": "extra/decoration/props/boatrack",
+    "ancre": "extra/decoration/props/anchor",
+    "navire": "extra/units/neutral/ship",
+    "chantier_naval": "extra/buildings/red/building_shipyard_red",
+    # --- les deux bâtiments civils, et le chantier
+    "mairie": "extra/buildings/red/building_townhall_red",
+    "atelier": "extra/buildings/red/building_workshop_red",
+    "chantier_A": "buildings/neutral/building_stage_A",
+    "chantier_B": "buildings/neutral/building_stage_B",
+    "echelle": "decoration/props/ladder",
+    "pelle": "extra/units/neutral/shovel",
+    "charrette": "extra/units/neutral/cart",
+    "charrette_marchand": "extra/units/neutral/cart_merchant",
     "caillou_A": "decoration/nature/rock_single_A",
     "caillou_B": "decoration/nature/rock_single_B",
     "caillou_C": "decoration/nature/rock_single_C",
@@ -709,16 +734,16 @@ TILES = {
     "fountain": T("rare", "grass_05", [L("obj:fountain", 60, 94), L("kay:fence_stone", 40, 94, scale=0.5), L("kay:fence_stone", 82, 94, scale=0.5)] + FLOWERS_SPRING + FLOWERS_SUMMER,
                   note="Fontaine + clôtures + fleurs au printemps et en été."),
     # --- tuiles d'événement (dès l'île 5) et rares tardives (dès l'île 8)
-    "market": T("rare", "grass_05", [L("kay:market", 60, 90, scale=0.77), L("kay:crate_open", 26, 104, scale=1.3)],
+    "market": T("rare", "grass_05", [L("kay:market", 60, 90, scale=0.77), L("kay:charrette_marchand", 88, 104, width=52), L("kay:crate_open", 26, 104, scale=1.3)],
                 note="Marché KayKit (étal, auvent, cageots) + caisse ouverte."),
     "fete": T("rare", "grass_05", [L("kay:table", 46, 90, scale=1.0), L("kay:table", 72, 100, scale=1.0), L("kay:barrel", 60, 78, scale=1.1),
                                        L("kay:crate_open", 88, 104, scale=1.1), L("kay:flag", 30, 100, scale=2.6), L("kay:flag_green", 90, 84, scale=2.6)] + FLOWERS_SPRING + FLOWERS_SUMMER,
               note="Fête : deux tablées KayKit, un tonneau, deux oriflammes, des fleurs."),
-    "restore": T("rare", "grass_05", [L("kay:scaffolding", 60, 92, scale=0.72), L("kay:pallet", 26, 106, scale=1.3)],
+    "restore": T("rare", "grass_05", [L("kay:chantier_B", 56, 98, width=96), L("kay:echelle", 90, 102, width=22), L("kay:pallet", 26, 106, scale=1.3)],
                  note="Chantier KayKit : échafaudage et palette (devient la famille majoritaire autour d'elle)."),
     "tavern": T("rare", "grass_05", [L("kay:tavern", 60, 90, scale=0.81), L("kay:barrel", 26, 102, scale=1.4), L("kay:barrel", 94, 106, scale=1.2)],
                 note="Taverne KayKit + deux tonneaux."),
-    "trough": T("rare", "grass_05", [L("obj:horseTrough", 60, 94), L("kay:fence_wood", 40, 94, scale=0.45), L("kay:fence_wood", 82, 94, scale=0.45), L("kay:bucket", 92, 104, scale=1.4)] + FLOWERS_SPRING,
+    "trough": T("rare", "grass_05", [L("kay:abreuvoir", 60, 94, width=56), L("kay:fence_wood", 40, 94, scale=0.45), L("kay:fence_wood", 82, 94, scale=0.45), L("kay:bucket", 92, 104, scale=1.4)] + FLOWERS_SPRING,
                 note="Abreuvoir + clôtures KayKit + seau + fleurs au printemps."),
     "archway": T("rare", "grass_05", [L("kay:gate", 60, 94, scale=0.68), L("kay:wall", 28, 96, scale=0.5), L("kay:wall", 92, 96, scale=0.5)],
                  note="Porte fortifiée KayKit + deux pans de muraille."),
@@ -1142,7 +1167,27 @@ class Builder:
         obj("obj_snowdrift", L("ht:bushSnow:2.4", 0, 0), "winter", "Congère (bushSnow ×2.4) : hiver et bourrasque.", pack=HT)
         obj("obj_moss", L("ht:rockStone_moss1:1.6", 0, 0), "spring", "Petit rocher moussu (rockStone_moss1 ×1.6) : roches au printemps.", pack=HT)
         obj("obj_flowerBlue", L("ht:flowerBlue:2.8", 0, 0), "spring", "Fleur bleue (Hexagon Tiles ×2.8).", pack=HT)
-        obj("obj_lily", L("ht:flowerGreen:2.0", 0, 0), "summer", "Nénuphar (flowerGreen ×2.0) : lacs et étangs en été.", pack=HT)
+        # Pack EXTRA et pack de base : les trois derniers sprites plats posés à côté de modèles 3D cèdent la
+        # place à des volumes — l'abreuvoir, la pierre du menhir (qui était une pierre TOMBALE de 24 px) et
+        # le nénuphar. Le nénuphar flotte à plat : il se rend à la verticale, comme les dalles.
+        kobj("obj_lily", "nenuphar", "summer", 30, "static", "Nénuphar en volume (KayKit) : lacs et étangs en été.")
+        kobj("obj_horseTrough", "abreuvoir", "summer", 52, "static", "Abreuvoir de bois (KayKit EXTRA).")
+        kobj("obj_shrine", "sanctuaire", "summer", 86, "static", "Pierre gravée, bougies au pied (KayKit EXTRA) : l'ouvrage « menhir ».")
+        # La variété qui ne coûte presque rien : une seconde silhouette de récolte, trois roseaux, deux souches.
+        kobj("obj_haybale", "botte_ronde", "summer", 44, "static", "Botte de paille ronde (KayKit EXTRA) : seconde silhouette de récolte.")
+        for i, m in enumerate(("roseau_A", "roseau_B", "roseau_C"), 1):
+            kobj(f"obj_waterplant{i}", m, "summer", 26, "reed", f"Massette d'eau {i} (KayKit) : marais et bords d'étang.")
+        # Le port : barque, chevalet, ancre et navire au mouillage.
+        kobj("obj_boat", "barque", "summer", 52, "static", "Barque de bois (KayKit EXTRA) : rives et port.")
+        kobj("obj_boatrack", "chevalet", "summer", 56, "static", "Chevalet à bateau (KayKit EXTRA) : rives et port.")
+        kobj("obj_anchor", "ancre", "summer", 28, "static", "Ancre de fer (KayKit EXTRA) : port.")
+        kobj("obj_ship", "navire", "summer", 100, "static", "Trois-mâts marchand (KayKit EXTRA) : mouillé au port.")
+        # Le chantier : ossature, échelle, pelle, et deux charrettes pour le marché.
+        kobj("obj_stage", "chantier_B", "summer", 130, "static", "Ossature de chantier (KayKit) : tuile « restaurer ».")
+        kobj("obj_ladder", "echelle", "summer", 26, "static", "Échelle (KayKit) : chantier.")
+        kobj("obj_shovel", "pelle", "summer", 20, "static", "Pelle plantée (KayKit EXTRA) : chantier et champs.")
+        kobj("obj_cart", "charrette", "summer", 70, "static", "Charrette bâchée (KayKit EXTRA) : marché, fête, hameau.")
+        kobj("obj_cart_merchant", "charrette_marchand", "summer", 70, "static", "Charrette de marchand chargée (KayKit EXTRA).")
         obj("obj_basket", L("obj:box1", 0, 0), "autumn", "Caisse de récolte (box1) : vergers en automne, cueillette.")
         # rochers : blocs 3D KayKit (les largeurs reprennent celles des sprites plats remplacés)
         for name, model, w in (("rockGrey_large", "massif_A", 150), ("rockGrey_large2", "massif_B", 138),
@@ -1163,6 +1208,8 @@ class Builder:
                 ("obj_villa", "tavern", 150, "Grande bâtisse (taverne)."),
                 ("obj_tinyBuilding", "home_A", 66, "Petite remise (maisonnette réduite)."),
                 ("obj_farm", "lumbermill", 128, "Ferme / atelier de bois."),
+                ("obj_townhall", "mairie", 158, "Hôtel de ville (beffroi à horloge) — pack EXTRA."),
+                ("obj_workshop", "atelier", 155, "Atelier de charpente (scie, cheminée) — pack EXTRA."),
                 ("obj_well", "well", 56, "Puits."),
                 ("obj_church", "church", 150, "Église."),
                 ("obj_silo1", "tower_base", 84, "Silo (fût de pierre)."),
@@ -1192,8 +1239,8 @@ class Builder:
             for suffix, colour in (("_jaune", "ambre"), ("_vert", "vert")):
                 kobj(keyname + suffix, model + suffix, "summer", round(w * BUILD_SCALE), "static",
                      f"Même bâtiment, toit {colour} (modèle 3D KayKit).")
-        for name in ("hay", "fountain", "campingTent", "fire", "tombstone1", "towerRuin", "ruinsCorner", "ruins_brick1",
-                     "lightpost", "horseTrough", "banner", "medieval_doorway", "pole", "box2"):
+        for name in ("hay", "fountain", "campingTent", "fire", "towerRuin", "ruinsCorner", "ruins_brick1",
+                     "lightpost", "banner", "medieval_doorway", "pole", "box2"):
             obj(f"obj_{name}", L(f"obj:{name}", 0, 0), "summer", f"Objet {name} (Hexagon Pack).")
         for name in ("flowerWhite", "flowerYellow", "flowerRed"):
             obj(f"obj_{name}", L(f"ht:{name}:2.8", 0, 0), "summer", f"Fleur {name} (Hexagon Tiles ×2.8).", pack=HT)

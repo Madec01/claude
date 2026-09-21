@@ -217,7 +217,7 @@ export class Island {
   /** Une tuile bien bâtie rend une tuile : région close, en saison, ou entourée d'au moins quatre tuiles de sa famille (une seule fois par saison). */
   refundFor(q, r, family) {
     const reg = this.board.region(q, r, family); if (!reg || this.refunds >= BALANCE.build.refundsPerSeason) return { ok: false, reason: 'none' };
-    if (this.board.closedRegions.has(reg.id)) return { ok: true, reason: 'closed', region: reg.id };
+    if (this.board.regionPaid(reg)) return { ok: true, reason: 'closed', region: reg.id };
     if (BALANCE.build.season[family] === this.season) return { ok: true, reason: 'season', region: reg.id };
     const same = neighbors(q, r).filter(([a, b]) => { const n = this.board.get(a, b); return n && n.family === family; }).length;
     if (same >= BALANCE.build.neighborsForRefund) return { ok: true, reason: 'crowd', region: reg.id };
@@ -236,12 +236,12 @@ export class Island {
     } else if (pv.fuse) {
       // fusion : la tuile en place devient la tuile composée ; fermetures éventuelles ; découverte = une tuile de retour et une rare
       placed = fusedTile(target, pv.fuse); this.board.tiles.set(key(q, r), placed); this.board.touch();
-      for (const c of pv.closes) { this.board.closedRegions.add(c.id); this.stats.closed++; this.stats.closedThisSeason++; this.breaths += BALANCE.breaths.close; this.stats.biggestRegion = Math.max(this.stats.biggestRegion, c.size); }
+      for (const c of pv.closes) { this.board.payRegion(c); this.stats.closed++; this.stats.closedThisSeason++; this.breaths += BALANCE.breaths.close; this.stats.biggestRegion = Math.max(this.stats.biggestRegion, c.size); }
       this.breaths -= this.fusionCost(); this.stats.fusions++;
       if (pv.first) { this.known.add(pv.fuse.id); this.queue.inject(this.queue.makeTile(tile.family), false); rare = this.pickRare(); if (WORKS.includes(rare)) this.giveWork(rare); else this.queue.inject(this.queue.makeRare(rare), false); this.stats.refunds++; }
     } else if (pv.restore) {
       target.blighted = false; this.board.touch(); this.breaths -= BALANCE.build.cost; this.stats.restored = (this.stats.restored || 0) + 1;
-      for (const c of pv.closes) { this.board.closedRegions.add(c.id); this.stats.closed++; this.stats.closedThisSeason++; this.breaths += BALANCE.breaths.close; }
+      for (const c of pv.closes) { this.board.payRegion(c); this.stats.closed++; this.stats.closedThisSeason++; this.breaths += BALANCE.breaths.close; }
     } else {
       target.level = (target.level || 1) + 1; target.builtAt = this.seasonsPassed.length; this.board.touch();
       this.breaths -= this.buildCost(target.level); this.stats.built++; if (target.level >= 3) this.stats.level3++;

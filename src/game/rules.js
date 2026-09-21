@@ -134,7 +134,7 @@ export function closedRegionsAround(board, q, r) {
     const t = board.get(a, b); if (!t) continue;
     for (const fam of Board.familiesOf(t)) {
       const reg = board.region(a, b, fam);
-      if (!reg || seen.has(reg.id) || board.closedRegions.has(reg.id)) continue;
+      if (!reg || seen.has(reg.id) || board.regionPaid(reg)) continue;   // déjà payée en entier : plus rien à donner
       seen.add(reg.id);
       if (fam === 'rock' && reg.cells.every((c) => c.rare || c.start)) continue; // les rochers de départ ne font pas de prime
       const closed = board.isRegionClosed(reg) || (reg.cells.some((c) => c.family === 'watchtower' || c.family === 'fort') && openCells(board, reg) <= 1);
@@ -142,7 +142,10 @@ export function closedRegionsAround(board, q, r) {
       let mul = P.closeBonusMul[fam] || 1;
       if (fam === 'hamlet' && reg.cells.some((c) => c.family === 'archway')) mul = 3;
       if (fam === 'rock' && reg.cells.some((c) => c.family === 'mine')) mul = Math.max(mul, 2);
-      if (closed) out.push({ family: fam, size: reg.size, bonus: reg.size * mul, keys: reg.keys, id: reg.id, cells: reg.cells });
+      // la prime ne porte que sur ce qui n'a pas déjà été payé : une région close qui regrandit paie
+      // son agrandissement, du côté qu'on veut, et jamais deux fois la même case
+      const neuf = board.regionUnpaid(reg);
+      if (closed && neuf > 0) out.push({ family: fam, size: reg.size, newSize: neuf, bonus: neuf * mul, keys: reg.keys, id: reg.id, cells: reg.cells, again: neuf < reg.size });
     }
   }
   return out;
@@ -159,14 +162,17 @@ export function apply(board, q, r, tile, season, mods = {}) {
   const res = preview(board, q, r, tile, season, mods);
   const placed = board.place(q, r, tile);
   if (res.blight) { placed.blighted = true; placed.level = 1; }
-  for (const c of res.closes) board.closedRegions.add(c.id);
+  for (const c of res.closes) board.payRegion(c);
   return res;
 }
 
 /** Régions closes « bourgs » (hameaux) présentes sur le plateau. */
 export function countClosedRegions(board, family = null) {
+  if (family) return board.paidRegions(family).length;
+  const familles = new Set();
+  for (const t of board.tiles.values()) for (const f of Board.familiesOf(t)) familles.add(f);
   let n = 0;
-  for (const id of board.closedRegions) if (!family || id.startsWith(family + ':')) n++;
+  for (const fam of familles) n += board.paidRegions(fam).length;
   return n;
 }
 

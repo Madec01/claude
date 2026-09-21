@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-21T07:31:52+00:00",
+ "generated": "2026-09-21T08:21:31+00:00",
  "generator": "tools/build_images.py",
  "conventions": {
   "hex": {
@@ -2009,7 +2009,7 @@
    "file": "tiles/market_spring.png",
    "w": 240,
    "h": 280,
-   "bytes": 41587,
+   "bytes": 45824,
    "source": "hexagon-pack",
    "original": "PNG/Tiles/Terrain/Grass/grass_05.png",
    "note": "Marché KayKit (étal, auvent, cageots) + caisse ouverte. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
@@ -2022,7 +2022,7 @@
    "file": "tiles/market_summer.png",
    "w": 240,
    "h": 280,
-   "bytes": 41399,
+   "bytes": 45578,
    "source": "hexagon-pack",
    "original": "PNG/Tiles/Terrain/Grass/grass_05.png",
    "note": "Marché KayKit (étal, auvent, cageots) + caisse ouverte. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
@@ -2035,7 +2035,7 @@
    "file": "tiles/market_autumn.png",
    "w": 240,
    "h": 280,
-   "bytes": 41283,
+   "bytes": 45456,
    "source": "hexagon-pack",
    "original": "PNG/Tiles/Terrain/Grass/grass_05.png",
    "note": "Marché KayKit (étal, auvent, cageots) + caisse ouverte. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
@@ -2048,7 +2048,7 @@
    "file": "tiles/market_winter.png",
    "w": 240,
    "h": 280,
-   "bytes": 42066,
+   "bytes": 46412,
    "source": "hexagon-pack",
    "original": "PNG/Tiles/Terrain/Grass/grass_05.png",
    "note": "Marché KayKit (étal, auvent, cageots) + caisse ouverte. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
@@ -2125,7 +2125,7 @@
    "file": "tiles/restore_spring.png",
    "w": 240,
    "h": 280,
-   "bytes": 47744,
+   "bytes": 24996,
    "source": "hexagon-pack",
    "original": "PNG/Tiles/Terrain/Grass/grass_05.png",
    "note": "Chantier KayKit : échafaudage et palette (devient la famille majoritaire autour d'elle). Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
@@ -2138,7 +2138,7 @@
    "file": "tiles/restore_summer.png",
    "w": 240,
    "h": 280,
-   "bytes": 47454,
+   "bytes": 24834,
    "source": "hexagon-pack",
    "original": "PNG/Tiles/Terrain/Grass/grass_05.png",
    "note": "Chantier KayKit : échafaudage et palette (devient la famille majoritaire autour d'elle). Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
@@ -2151,7 +2151,7 @@
    "file": "tiles/restore_autumn.png",
    "w": 240,
    "h": 280,
-   "bytes": 46945,
+   "bytes": 24740,
    "source": "hexagon-pack",
    "original": "PNG/Tiles/Terrain/Grass/grass_05.png",
    "note": "Chantier KayKit : échafaudage et palette (devient la famille majoritaire autour d'elle). Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
@@ -2164,7 +2164,7 @@
    "file": "tiles/restore_winter.png",
    "w": 240,
    "h": 280,
-   "bytes": 49105,
+   "bytes": 25626,
    "source": "hexagon-pack",
    "original": "PNG/Tiles/Terrain/Grass/grass_05.png",
    "note": "Chantier KayKit : échafaudage et palette (devient la famille majoritaire autour d'elle). Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
@@ -2229,12 +2229,12 @@
    "file": "tiles/trough_spring.png",
    "w": 240,
    "h": 280,
-   "bytes": 25653,
+   "bytes": 22537,
    "source": [
     "hexagon-pack",
     "hexagontiles"
    ],
-   "original": "PNG/Objects/horseTrough.png + PNG/Tiles/Terrain/Grass/grass_05.png + hexagontiles/Tiles/flowerWhite.png + hexagontiles/Tiles/flowerYellow.png",
+   "original": "PNG/Tiles/Terrain/Grass/grass_05.png + hexagontiles/Tiles/flowerWhite.png + hexagontiles/Tiles/flowerYellow.png",
    "note": "Abreuvoir + clôtures KayKit + seau + fleurs au printemps. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
    "season": "spring",
    "family": "rare",
@@ -2245,12 +2245,12 @@
    "file": "tiles/trough_summer.png",
    "w": 240,
    "h": 280,
-   "bytes": 18592,
+   "bytes": 15442,
    "source": [
     "hexagon-pack",
     "hexagontiles"
    ],
-   "original": "PNG/Objects/horseTrough.png + PNG/Tiles/Terrain/Grass/grass_05.png + hexagontiles/Tiles/flowerWhite.png + hexagontiles/Tiles/flowerYellow.png",
+   "original": "PNG/Tiles/Terrain/Grass/grass_05.png + hexagontiles/Tiles/flowerWhite.png + hexagontiles/Tiles/flowerYellow.png",
    "note": "Abreuvoir + clôtures KayKit + seau + fleurs au printemps. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
    "season": "summer",
    "family": "rare",
@@ -2261,12 +2261,12 @@
    "file": "tiles/trough_autumn.png",
    "w": 240,
    "h": 280,
-   "bytes": 18682,
+   "bytes": 15510,
    "source": [
     "hexagon-pack",
     "hexagontiles"
    ],
-   "original": "PNG/Objects/horseTrough.png + PNG/Tiles/Terrain/Grass/grass_05.png + hexagontiles/Tiles/flowerWhite.png + hexagontiles/Tiles/flowerYellow.png",
+   "original": "PNG/Tiles/Terrain/Grass/grass_05.png + hexagontiles/Tiles/flowerWhite.png + hexagontiles/Tiles/flowerYellow.png",
    "note": "Abreuvoir + clôtures KayKit + seau + fleurs au printemps. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
    "season": "autumn",
    "family": "rare",
@@ -2277,12 +2277,12 @@
    "file": "tiles/trough_winter.png",
    "w": 240,
    "h": 280,
-   "bytes": 19187,
+   "bytes": 15742,
    "source": [
     "hexagon-pack",
     "hexagontiles"
    ],
-   "original": "PNG/Objects/horseTrough.png + PNG/Tiles/Terrain/Grass/grass_05.png + hexagontiles/Tiles/flowerWhite.png + hexagontiles/Tiles/flowerYellow.png",
+   "original": "PNG/Tiles/Terrain/Grass/grass_05.png + hexagontiles/Tiles/flowerWhite.png + hexagontiles/Tiles/flowerYellow.png",
    "note": "Abreuvoir + clôtures KayKit + seau + fleurs au printemps. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
    "season": "winter",
    "family": "rare",
@@ -3840,12 +3840,162 @@
   },
   "obj_lily": {
    "file": "deco/obj_lily.png",
-   "w": 24,
-   "h": 22,
-   "bytes": 1629,
-   "source": "hexagontiles",
-   "original": "Tiles/flowerGreen.png",
-   "note": "Nénuphar (flowerGreen ×2.0) : lacs et étangs en été.",
+   "w": 30,
+   "h": 17,
+   "bytes": 1271,
+   "source": "kaykit",
+   "original": "decoration/nature/waterlily_A.gltf",
+   "note": "Nénuphar en volume (KayKit) : lacs et étangs en été.",
+   "anchor": "bottom"
+  },
+  "obj_horseTrough": {
+   "file": "deco/obj_horseTrough.png",
+   "w": 52,
+   "h": 33,
+   "bytes": 4027,
+   "source": "kaykit",
+   "original": "extra/decoration/props/trough_long.gltf",
+   "note": "Abreuvoir de bois (KayKit EXTRA).",
+   "anchor": "bottom"
+  },
+  "obj_shrine": {
+   "file": "deco/obj_shrine.png",
+   "w": 86,
+   "h": 83,
+   "bytes": 10731,
+   "source": "kaykit",
+   "original": "extra/buildings/green/building_shrine_green.gltf",
+   "note": "Pierre gravée, bougies au pied (KayKit EXTRA) : l'ouvrage « menhir ».",
+   "anchor": "bottom"
+  },
+  "obj_haybale": {
+   "file": "deco/obj_haybale.png",
+   "w": 44,
+   "h": 30,
+   "bytes": 2837,
+   "source": "kaykit",
+   "original": "extra/decoration/props/haybale.gltf",
+   "note": "Botte de paille ronde (KayKit EXTRA) : seconde silhouette de récolte.",
+   "anchor": "bottom"
+  },
+  "obj_waterplant1": {
+   "file": "deco/obj_waterplant1.png",
+   "w": 26,
+   "h": 24,
+   "bytes": 1399,
+   "source": "kaykit",
+   "original": "decoration/nature/waterplant_A.gltf",
+   "note": "Massette d'eau 1 (KayKit) : marais et bords d'étang.",
+   "anchor": "bottom"
+  },
+  "obj_waterplant2": {
+   "file": "deco/obj_waterplant2.png",
+   "w": 26,
+   "h": 29,
+   "bytes": 1533,
+   "source": "kaykit",
+   "original": "decoration/nature/waterplant_B.gltf",
+   "note": "Massette d'eau 2 (KayKit) : marais et bords d'étang.",
+   "anchor": "bottom"
+  },
+  "obj_waterplant3": {
+   "file": "deco/obj_waterplant3.png",
+   "w": 26,
+   "h": 29,
+   "bytes": 1941,
+   "source": "kaykit",
+   "original": "decoration/nature/waterplant_C.gltf",
+   "note": "Massette d'eau 3 (KayKit) : marais et bords d'étang.",
+   "anchor": "bottom"
+  },
+  "obj_boat": {
+   "file": "deco/obj_boat.png",
+   "w": 52,
+   "h": 41,
+   "bytes": 3780,
+   "source": "kaykit",
+   "original": "extra/decoration/props/boat.gltf",
+   "note": "Barque de bois (KayKit EXTRA) : rives et port.",
+   "anchor": "bottom"
+  },
+  "obj_boatrack": {
+   "file": "deco/obj_boatrack.png",
+   "w": 56,
+   "h": 41,
+   "bytes": 4613,
+   "source": "kaykit",
+   "original": "extra/decoration/props/boatrack.gltf",
+   "note": "Chevalet à bateau (KayKit EXTRA) : rives et port.",
+   "anchor": "bottom"
+  },
+  "obj_anchor": {
+   "file": "deco/obj_anchor.png",
+   "w": 28,
+   "h": 37,
+   "bytes": 2610,
+   "source": "kaykit",
+   "original": "extra/decoration/props/anchor.gltf",
+   "note": "Ancre de fer (KayKit EXTRA) : port.",
+   "anchor": "bottom"
+  },
+  "obj_ship": {
+   "file": "deco/obj_ship.png",
+   "w": 100,
+   "h": 162,
+   "bytes": 23700,
+   "source": "kaykit",
+   "original": "extra/units/neutral/ship.gltf",
+   "note": "Trois-mâts marchand (KayKit EXTRA) : mouillé au port.",
+   "anchor": "bottom"
+  },
+  "obj_stage": {
+   "file": "deco/obj_stage.png",
+   "w": 130,
+   "h": 103,
+   "bytes": 19198,
+   "source": "kaykit",
+   "original": "buildings/neutral/building_stage_B.gltf",
+   "note": "Ossature de chantier (KayKit) : tuile « restaurer ».",
+   "anchor": "bottom"
+  },
+  "obj_ladder": {
+   "file": "deco/obj_ladder.png",
+   "w": 26,
+   "h": 82,
+   "bytes": 4788,
+   "source": "kaykit",
+   "original": "decoration/props/ladder.gltf",
+   "note": "Échelle (KayKit) : chantier.",
+   "anchor": "bottom"
+  },
+  "obj_shovel": {
+   "file": "deco/obj_shovel.png",
+   "w": 20,
+   "h": 65,
+   "bytes": 2006,
+   "source": "kaykit",
+   "original": "extra/units/neutral/shovel.gltf",
+   "note": "Pelle plantée (KayKit EXTRA) : chantier et champs.",
+   "anchor": "bottom"
+  },
+  "obj_cart": {
+   "file": "deco/obj_cart.png",
+   "w": 70,
+   "h": 73,
+   "bytes": 9458,
+   "source": "kaykit",
+   "original": "extra/units/neutral/cart.gltf",
+   "note": "Charrette bâchée (KayKit EXTRA) : marché, fête, hameau.",
+   "anchor": "bottom"
+  },
+  "obj_cart_merchant": {
+   "file": "deco/obj_cart_merchant.png",
+   "w": 70,
+   "h": 83,
+   "bytes": 11755,
+   "source": "kaykit",
+   "original": "extra/units/neutral/cart_merchant.gltf",
+   "note": "Charrette de marchand chargée (KayKit EXTRA).",
    "anchor": "bottom"
   },
   "obj_basket": {
@@ -4126,6 +4276,26 @@
    "source": "kaykit",
    "original": "buildings/red/building_lumbermill_red.gltf",
    "note": "Ferme / atelier de bois. Modèle 3D KayKit.",
+   "anchor": "bottom"
+  },
+  "obj_townhall": {
+   "file": "deco/obj_townhall.png",
+   "w": 118,
+   "h": 137,
+   "bytes": 27893,
+   "source": "kaykit",
+   "original": "extra/buildings/red/building_townhall_red.gltf",
+   "note": "Hôtel de ville (beffroi à horloge) — pack EXTRA. Modèle 3D KayKit.",
+   "anchor": "bottom"
+  },
+  "obj_workshop": {
+   "file": "deco/obj_workshop.png",
+   "w": 116,
+   "h": 122,
+   "bytes": 25714,
+   "source": "kaykit",
+   "original": "extra/buildings/red/building_workshop_red.gltf",
+   "note": "Atelier de charpente (scie, cheminée) — pack EXTRA. Modèle 3D KayKit.",
    "anchor": "bottom"
   },
   "obj_well": {
@@ -4478,16 +4648,6 @@
    "note": "Objet fire (Hexagon Pack).",
    "anchor": "bottom"
   },
-  "obj_tombstone1": {
-   "file": "deco/obj_tombstone1.png",
-   "w": 24,
-   "h": 36,
-   "bytes": 1719,
-   "source": "hexagon-pack",
-   "original": "PNG/Objects/tombstone1.png",
-   "note": "Objet tombstone1 (Hexagon Pack).",
-   "anchor": "bottom"
-  },
   "obj_towerRuin": {
    "file": "deco/obj_towerRuin.png",
    "w": 84,
@@ -4526,16 +4686,6 @@
    "source": "hexagon-pack",
    "original": "PNG/Objects/lightpost.png",
    "note": "Objet lightpost (Hexagon Pack).",
-   "anchor": "bottom"
-  },
-  "obj_horseTrough": {
-   "file": "deco/obj_horseTrough.png",
-   "w": 80,
-   "h": 56,
-   "bytes": 7383,
-   "source": "hexagon-pack",
-   "original": "PNG/Objects/horseTrough.png",
-   "note": "Objet horseTrough (Hexagon Pack).",
    "anchor": "bottom"
   },
   "obj_banner": {
@@ -6210,10 +6360,10 @@
    "file": "succes/le-lac.png",
    "w": 240,
    "h": 280,
-   "bytes": 22250,
+   "bytes": 20963,
    "source": [
     "hexagon-pack",
-    "hexagontiles"
+    "kaykit"
    ],
    "original": "water_2_summer + obj_lily + obj_lily",
    "note": "Vignette de succès composée à partir des tuiles et sprites du jeu.",

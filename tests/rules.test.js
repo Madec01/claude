@@ -5,7 +5,7 @@ import { ISLANDS, INFINITE, GARDEN } from '../src/data/islands.js';
 import { Board } from '../src/game/board.js';
 import { neighbors } from '../src/game/hex.js';
 import { affinity } from '../src/data/tiles.js';
-import { preview, previewBuild, canBuild, canFuse, previewFuse } from '../src/game/rules.js';
+import { preview, previewBuild, canBuild, canFuse, previewFuse, apply, closedRegionsAround, countClosedRegions } from '../src/game/rules.js';
 import { STORY } from '../src/data/story.js';
 import { progressOf } from '../src/game/wishes.js';
 import { BALANCE } from '../src/data/balance.js';
@@ -405,6 +405,49 @@ for (const def of ISLANDS.slice(0, 4)) {
   for (const n of [7, 8]) noteContractResult(camp, n, { stats: {}, fauna: 0, wishesDone: 1 });
   check(gateStars(camp, 2) === 4 && chapterStars(camp.stars, 2) === 4, 'porte sans contrat rempli : les étoiles seules');
   const r3 = noteContractResult(camp, 9, { stats: {}, fauna: 0, wishesDone: 3 }); check(r3.done && r3.justDone && gateStars(camp, 2) === 6, `contrat rempli : +2 pour la porte (${r3.after}/${r3.target}, porte ${gateStars(camp, 2)})`);
+
+// --- une région close qui regrandit : ce qu'elle paie ne doit pas dépendre du côté par lequel elle grandit.
+// L'identité d'une région était « famille:plus petit sommet », et ne changeait donc que si la nouvelle case
+// triait plus petit. Réparer une friche au bout d'une rangée close payait la prime ENTIÈRE d'un côté, et rien
+// de l'autre. (Une friche ne compte pour aucune famille : la réparer fait grandir une région déjà close.)
+{
+  // trois cases en ligne ; une friche à un bout, la rangée close de l'autre. On répare, et on regarde ce que ça paie.
+  const essai = (friche) => {
+    const cases = ['0,0', '1,0', '2,0'];
+    const b = new Board(cases);
+    for (const k of cases) {
+      const [q, r] = k.split(',').map(Number);
+      const t = b.place(q, r, { family: 'meadow', variant: 1, id: 0 });
+      if (k === friche) t.blighted = true;
+    }
+    // la rangée sans la friche est close (son seul voisin du masque est occupé) : on la paie, comme en jeu
+    const vivantes = cases.filter((k) => k !== friche);
+    const [q0, r0] = vivantes[0].split(',').map(Number);
+    const premier = closedRegionsAround(b, q0, r0);
+    const primeInitiale = premier.reduce((a, c) => a + c.bonus, 0);
+    for (const c of premier) b.payRegion(c);
+    // on répare la friche : la région close grandit d'une case
+    const [qf, rf] = friche.split(',').map(Number);
+    b.get(qf, rf).blighted = false; b.touch();
+    const apres = closedRegionsAround(b, qf, rf);
+    return { primeInitiale, prime: apres.reduce((a, c) => a + c.bonus, 0) };
+  };
+  const gauche = essai('0,0');   // la case réparée trie PLUS PETIT que la région : l'ancien identifiant changeait
+  const droite = essai('2,0');   // elle trie plus grand : l'identifiant ne changeait pas
+  check(gauche.primeInitiale === 2 && droite.primeInitiale === 2, `la rangée de deux se paie d'abord (${gauche.primeInitiale} / ${droite.primeInitiale})`);
+  check(gauche.prime === droite.prime, `réparer paie pareil des deux côtés (gauche +${gauche.prime}, droite +${droite.prime})`);
+  check(gauche.prime === 1, `et ne paie que la case gagnée, jamais la région entière (+${gauche.prime} pour une case)`);
+
+  // une case déjà payée ne repaie jamais : on redemande la fermeture sans rien avoir changé
+  const b2 = new Board(['0,0', '1,0']);
+  for (const [q, r] of [[0, 0], [1, 0]]) b2.place(q, r, { family: 'meadow', variant: 1, id: 0 });
+  const un = closedRegionsAround(b2, 0, 0); for (const c of un) b2.payRegion(c);
+  check(un.reduce((a, c) => a + c.bonus, 0) === 2, 'une région de deux vaut deux');
+  check(closedRegionsAround(b2, 0, 0).length === 0, 'redemandée telle quelle, elle ne propose plus rien');
+  const reg = b2.region(0, 0, 'meadow');
+  check(b2.regionPaid(reg) && b2.regionUnpaid(reg) === 0, 'elle est marquée payée, cellule par cellule');
+  check(countClosedRegions(b2, 'meadow') === 1, 'et elle compte pour une région close');
+}
 
 // --- portes de chapitre : le déblocage se déduit de la sauvegarde, pas du moment où on gagne les étoiles
 // (retour joueur : bloqué à l'île 5 alors que le compte y était, parce que l'étoile manquante avait été décrochée

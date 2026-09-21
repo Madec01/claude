@@ -8,7 +8,7 @@ import { clamp, lerp, TAU, easeOutCubic, rnd } from '../core/math.js';
 import { STAGE } from '../core/stage.js';
 import { Save } from '../core/save.js';
 import { Decor, groundOf, groundKey, GROUND_COLORS, spriteKey } from './decor.js';
-import { computeLinks } from './paths.js';
+import { pathShapes } from './paths.js';
 // arête i (sommet i → i+1 de corners()) → indice dans DIRS du voisin de l'autre côté ; mesuré, pas deviné
 const EDGE_DIR = [1, 0, 5, 4, 3, 2];
 const FAUNA_GROUND = 10;   // un animal se tient un peu en avant du centre de sa tuile, comme le décor
@@ -368,6 +368,7 @@ export class IslandRenderer {
       }
     }
     ctx.restore();
+    this.drawCourts(ctx, dropping);
     this.drawWater(ctx, dropping);
     this.drawPaths(ctx);
     // objets
@@ -527,6 +528,39 @@ export class IslandRenderer {
   }
 
   /**
+   * Les cours des bourgs : un disque de terre battue ou de pavé sous chaque groupe de maisons, fondu sur son
+   * pourtour. Une seule image masquée par sol et par saison, posée autant de fois qu'il y a de cases de bourg :
+   * les disques voisins se recouvrent et font une place, sans couture puisqu'ils partagent la même texture.
+   */
+  drawCourts(ctx, dropping) {
+    const courts = this.decor.courts; if (!courts || !courts.length) return;
+    const cam = this.cam, z = cam.zoom;
+    for (const c of courts) {
+      if (dropping.has(c.cell)) continue;
+      const p = cam.toScreen(c.x, c.y); const rr = c.r * z;
+      if (p.x + rr < 0 || p.x - rr > STAGE.W || p.y + rr < 0 || p.y - rr > STAGE.H) continue;
+      const img = this.courtImage(c.g, this.seasonFor(c.x)); if (!img) continue;
+      ctx.drawImage(img, p.x - rr, p.y - rr, rr * 2, rr * 2);
+    }
+  }
+
+  /** Disque d'un sol, opaque au centre et effacé sur le bord. Mis en cache par sol et saison. */
+  courtImage(g, season) {
+    const k = `${g}|${season}`; this._court = this._court || new Map();
+    const hit = this._court.get(k); if (hit !== undefined) return hit;
+    const img = Assets.img(groundKey(g, season)); if (!img) { this._court.set(k, null); return null; }
+    // le disque fait un apothème de rayon : à cette échelle la texture est à sa taille native, donc nette
+    const D = 256, ech = (D / 2) / (img.width / 2);
+    const cv = document.createElement('canvas'); cv.width = D; cv.height = D; const c = cv.getContext('2d');
+    c.drawImage(img, D / 2 - img.width * ech / 2, D / 2 - img.height * ech / 2, img.width * ech, img.height * ech);
+    const grad = c.createRadialGradient(D / 2, D / 2, 0, D / 2, D / 2, D / 2);
+    grad.addColorStop(0, 'rgba(0,0,0,1)'); grad.addColorStop(0.62, 'rgba(0,0,0,1)');
+    grad.addColorStop(0.84, 'rgba(0,0,0,0.6)'); grad.addColorStop(1, 'rgba(0,0,0,0)');
+    c.globalCompositeOperation = 'destination-in'; c.fillStyle = grad; c.fillRect(0, 0, D, D);
+    this._court.set(k, cv); return cv;
+  }
+
+  /**
    * Lentille de sol : l'image du sol `g` masquée par un dégradé perpendiculaire au bord `d` (opaque sur le bord, effacé
    * à un tiers de l'apothème), limitée au trapèze de ce bord. Dessinée sur la tuile voisine, elle efface la couture.
    * Cache par sol, saison et direction (au plus quelques dizaines de petites images).
@@ -575,26 +609,27 @@ export class IslandRenderer {
     ctx.stroke();
   }
 
-  /** Ruelles entre hameaux voisins et sentiers entre villages, tracés en courbes douces sous les objets. */
+  /**
+   * Ruelles entre hameaux voisins et sentiers entre villages, tracés en courbes douces sous les objets.
+   * La géométrie vient de `pathShapes` (partagée avec le décor, qui l'évite) : le chemin s'arrête devant
+   * la maison au lieu de la traverser, et son hésitation est tirée par case, si bien que deux chemins
+   * n'ondulent plus de la même façon.
+   */
   drawPaths(ctx) {
     const b = this.isl.board, cam = this.cam, z = cam.zoom;
-    const { lanes, links } = computeLinks(b);
-    if (!lanes.length && !links.length) return;
+    const shapes = pathShapes(b);
+    if (!shapes.length) return;
     const season = this.isl.season;
     const col = { spring: '#c9a570', summer: '#d1ab74', autumn: '#bf9463', winter: '#dcd2c3' }[season] || '#c9a570';
     const dark = { spring: '#a37f4c', summer: '#ab864f', autumn: '#966f42', winter: '#b7ab9a' }[season] || '#a37f4c';
     ctx.save(); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
     const trace = (sp) => { ctx.beginPath(); ctx.moveTo(sp[0].x, sp[0].y); if (sp.length === 2) ctx.lineTo(sp[1].x, sp[1].y); else { for (let i = 1; i < sp.length - 1; i++) { const mx = (sp[i].x + sp[i + 1].x) / 2, my = (sp[i].y + sp[i + 1].y) / 2; ctx.quadraticCurveTo(sp[i].x, sp[i].y, mx, my); } ctx.lineTo(sp[sp.length - 1].x, sp[sp.length - 1].y); } };
-    const w = (k) => { const [q, r] = parse(k); return toWorld(q, r); };
-    // tracé organique : un point de contrôle décalé perpendiculairement au milieu de chaque segment (décalage déterministe par segment)
-    const jit = (a, c) => { const h = Math.sin(a.x * 12.9898 + a.y * 78.233 + c.x * 37.719 + c.y * 4.1) * 43758.5453; return (h - Math.floor(h)) - 0.5; };
-    const organic = (pts) => { const out = [pts[0]]; for (let i = 0; i < pts.length - 1; i++) { const a = pts[i], c = pts[i + 1]; const dx = c.x - a.x, dy = c.y - a.y, len = Math.hypot(dx, dy) || 1; const j = jit(a, c), j2 = jit(c, a); out.push({ x: a.x + dx * 0.35 + (-dy / len) * j * 26, y: a.y + dy * 0.35 + (dx / len) * j * 26 }); out.push({ x: a.x + dx * 0.7 + (-dy / len) * j2 * 18, y: a.y + dy * 0.7 + (dx / len) * j2 * 18 }); out.push(c); } return out; };
-    const all = [...lanes.map(([a, c]) => ({ sp: organic([w(a), w(c)]).map((p) => cam.toScreen(p.x, p.y)), width: 6 })), ...links.map((l) => ({ sp: organic(l.cells.map(w)).map((p) => cam.toScreen(p.x, p.y)), width: 9 }))]
+    const all = shapes.map((s) => ({ sp: s.pts.map((p) => cam.toScreen(p.x, p.y)), width: s.kind === 'lane' ? 6 : 9 }))
       .filter((o) => !o.sp.every((p) => p.x < -200 || p.x > STAGE.W + 200 || p.y < -200 || p.y > STAGE.H + 200));
-    // trois passes globales (bordure sombre, terre, pointillé clair) pour que les croisements restent propres
+    // deux passes globales (bordure sombre puis terre) pour que les croisements restent propres.
+    // Le pointillé blanc du milieu est parti : c'était un marquage routier dans un jeu qui n'a pas de routes.
     ctx.globalAlpha = 0.5; ctx.strokeStyle = dark; for (const o of all) { ctx.lineWidth = (o.width + 4) * z; trace(o.sp); ctx.stroke(); }
     ctx.globalAlpha = 1; ctx.strokeStyle = col; for (const o of all) { ctx.lineWidth = o.width * z; trace(o.sp); ctx.stroke(); }
-    ctx.globalAlpha = 0.4; ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.4 * z; ctx.setLineDash([4 * z, 9 * z]); for (const o of all) { trace(o.sp); ctx.stroke(); } ctx.setLineDash([]);
     if (this.finale) { ctx.globalAlpha = 0.35 + 0.3 * Math.sin(this.time * 5); ctx.strokeStyle = '#ffd77a'; ctx.lineWidth = 4 * z; ctx.setLineDash([14 * z, 10 * z]); ctx.lineDashOffset = -this.time * 60 * z; for (const o of all) { trace(o.sp); ctx.stroke(); } ctx.setLineDash([]); }
     ctx.restore();
   }

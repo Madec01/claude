@@ -56,7 +56,7 @@ export function transition(board, season, rule = null, climate = null) {
     if (rule === 'foire') {
       // grande foire : chaque bourg (hameau clos) rapporte +1 par champ, verger ou moulin voisin
       for (const reg of board.regions('hamlet')) {
-        if (!board.closedRegions.has(reg.id)) continue;
+        if (!board.regionPaid(reg)) continue;
         const n = board.regionNeighbors(reg).filter((x) => Board.isFamily(x, 'field') || Board.isFamily(x, 'orchard') || x.family === 'mill').length;
         if (n) { const c = reg.cells[0]; ev.push({ type: 'fair', q: c.q, r: c.r, pts: n }); }
       }
