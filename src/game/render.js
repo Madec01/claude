@@ -561,7 +561,7 @@ export class IslandRenderer {
         for (let d = 0; d < 6; d++) {   // mare ouverte sur la mer : elle devient une crique
           const cell = body.cells[0]; const nq = cell.q + DIRS[d][0], nr = cell.r + DIRS[d][1];
           if (!b.isSea(nq, nr)) continue;
-          this.bras(ctx, c0, d, mer, z, S, body.cells[0]);
+          this.bras(ctx, c0, d, mer, z, S, body.cells[0], pal);
         }
         if (!frozen) { ctx.strokeStyle = pal.foam; ctx.lineWidth = RIDE.trait * 0.7 * z; ctx.beginPath(); ctx.ellipse(c.x - rr * 0.2, c.y - rr * 0.25, rr * 0.35, rr * 0.16, -0.4, 0, TAU); ctx.stroke(); }
       } else {
@@ -598,15 +598,17 @@ export class IslandRenderer {
           ctx.strokeStyle = pal.foam; ctx.lineWidth = RIDE.trait * 0.7 * z; ctx.beginPath();
           for (const c of cs) { const j = jit(c.w, { x: 1, y: 1 }); const rr = SIZE * 0.86 * z; ctx.moveTo(c.s.x - rr * 0.3 + j * rr * 0.4, c.s.y - rr * 0.2 + j * rr * 0.3); ctx.bezierCurveTo(c.s.x - rr * 0.1, c.s.y - rr * 0.35 + j * rr * 0.3, c.s.x + rr * 0.1, c.s.y - rr * 0.05 + j * rr * 0.3, c.s.x + rr * 0.3, c.s.y - rr * 0.2 + j * rr * 0.3); }
           ctx.stroke();
+        } else this.drawCracks(ctx, cs.map((c) => c.s), z);
         // Bras de mer : une nappe qui touche le bord de l'île n'est pas un lac fermé, c'est une
         // échancrure. Dessiné EN DERNIER, après l'écume et les rides : sinon le liseré du lac se
-        // prolongeait dans la mer et redessinait la lèvre qu'on venait d'ouvrir.
+        // prolongeait dans la mer et redessinait la lèvre qu'on venait d'ouvrir. Mais HORS du
+        // `if (!frozen)` : un lac gelé touche la mer tout autant, et sans ce bras sa lèvre restait
+        // nue au contact du large tout l'hiver.
         for (const c of cs) for (let d = 0; d < 6; d++) {
           const nq = c.cell.q + DIRS[d][0], nr = c.cell.r + DIRS[d][1];
           if (!b.isSea(nq, nr)) continue;
-          this.bras(ctx, c.w, d, mer, z, S, c.cell);
+          this.bras(ctx, c.w, d, mer, z, S, c.cell, pal);
         }
-        } else this.drawCracks(ctx, cs.map((c) => c.s), z);
       }
     }
     ctx.restore();
@@ -668,9 +670,15 @@ export class IslandRenderer {
    * mal jointes, une bande de terre et un bout d'herbe. La réponse est plus simple : **une échancrure
    * est de l'eau de mer**. On la peint donc exactement à la couleur de la mer, en opaque — la jointure
    * est alors invisible par construction, et l'opacité recouvre ce qui traînait au milieu (liseré de
-   * côte, coin de terre). Seul le tout début, encore dans la nappe, garde son ton de bas-fond.
+   * côte, coin de terre).
+   *
+   * Mais peindre TOUT le bras en mer déplaçait la couture : le premier disque recouvre le centre de
+   * la tuile, donc le trait ne tombait plus entre le bras et la mer, mais entre le bras et la NAPPE,
+   * en plein milieu de l'eau douce (mesuré : lac 104,176,219 contre bras 116,176,214, d'un pixel au
+   * suivant). Le bras part donc maintenant de l'eau douce et vire à la mer AVANT le trait de côte :
+   * une rampe ne peut pas faire de trait.
    */
-  bras(ctx, w, d, mer, z, S, cell) {
+  bras(ctx, w, d, mer, z, S, cell, pal) {
     const m = edgeMid(w.x, w.y, d);
     const vers = (t) => ({ x: w.x + (m.x - w.x) * t, y: w.y + (m.y - w.y) * t });
     // Le dégradé de la mer, repris à l'identique : même axe (vertical, plein écran), mêmes bornes.
@@ -678,11 +686,12 @@ export class IslandRenderer {
     // coïncide que sur une ligne et se voit au-dessus et au-dessous. Avec le même dégradé, l'échancrure
     // est de l'eau de mer où qu'elle soit, et la jointure ne peut plus se voir. (Mesuré : la mer fait
     // (110, 172, 209) au ras de l'île, le lac (98, 173, 216) — un cheveu d'écart, invisible.)
-    ctx.fillStyle = mer();
-    // quatre disques qui se chevauchent franchement : aucun interstice ne peut subsister entre eux
+    // quatre disques qui se chevauchent franchement : aucun interstice ne peut subsister entre eux.
+    // Ils sont tracés en UN SEUL chemin, rempli d'un coup : leur union ne se recouvre donc plus
+    // elle-même, et un remplissage semi-transparent (la rampe, plus bas) ne s'y cumule pas.
     const disques = [[0.55, 0.55], [0.95, 0.55], [1.4, 0.5], [1.85, 0.4]];
-    const tracer = () => { for (const [t, r] of disques) { const p = S(vers(t)); this.blob(ctx, p.x, p.y, SIZE * r * z, { x: w.x + t * 41, y: w.y - t * 23 }); ctx.fill(); } };
-    tracer();
+    const tracer = () => { ctx.beginPath(); for (const [t, r] of disques) { const p = S(vers(t)); this.blob(ctx, p.x, p.y, SIZE * r * z, { x: w.x + t * 41, y: w.y - t * 23 }, true); } };
+    tracer(); ctx.fillStyle = mer(); ctx.fill();
     // Et le voile des bas-fonds. `drawShallows` pose un blanc à 10 % sur chaque case du masque ÉLARGIE
     // à 1,22 : c'est le halo clair autour de l'île. Le bras, peint à la mer brute, l'effaçait — d'où
     // une tache plus SOMBRE que son entourage, et c'est elle qu'on voyait encore après trois
@@ -695,8 +704,15 @@ export class IslandRenderer {
       ctx.moveTo(pts[0].x, pts[0].y); for (let i = 1; i < 6; i++) ctx.lineTo(pts[i].x, pts[i].y); ctx.closePath();
     }
     ctx.clip();
-    ctx.fillStyle = mer(0.10); tracer();
+    ctx.fillStyle = mer(0.10); tracer(); ctx.fill();
     ctx.restore();
+    // Le raccord côté NAPPE. Le bras commence dans l'eau douce : on l'y repeint à son ton de bas-fond,
+    // qui s'efface avant le trait de côte. D'un bout à l'autre il n'y a plus de saut de couleur, juste
+    // une eau qui vire — du lac au large sans rupture.
+    const p0 = S(vers(0)), p1 = S(vers(1.05));
+    const rampe = ctx.createLinearGradient(p0.x, p0.y, p1.x, p1.y);
+    rampe.addColorStop(0, pal.shoal); rampe.addColorStop(1, `${pal.shoal}00`);
+    tracer(); ctx.fillStyle = rampe; ctx.fill();
   }
 
   /** Disque d'un sol, opaque au centre et effacé sur le bord. Mis en cache par sol et saison. */
@@ -749,10 +765,11 @@ export class IslandRenderer {
   }
 
   /** Forme arrondie légèrement irrégulière (mare). */
-  blob(ctx, cx, cy, r, seed) {
+  blob(ctx, cx, cy, r, seed, suite) {
     const N = 28, pts = [];
     for (let i = 0; i < N; i++) { const a = (i / N) * TAU; const j = 0.92 + 0.08 * Math.sin(seed.x * 0.037 + seed.y * 0.011 + a * 3) + 0.05 * Math.cos(a * 5 + seed.y * 0.02); pts.push([cx + Math.cos(a) * r * j, cy + Math.sin(a) * r * 0.8 * j]); }
-    ctx.beginPath(); ctx.moveTo((pts[0][0] + pts[N - 1][0]) / 2, (pts[0][1] + pts[N - 1][1]) / 2);
+    if (!suite) ctx.beginPath();   // `suite` : on s'ajoute au chemin en cours au lieu d'en ouvrir un neuf
+    ctx.moveTo((pts[0][0] + pts[N - 1][0]) / 2, (pts[0][1] + pts[N - 1][1]) / 2);
     for (let i = 0; i < N; i++) { const p = pts[i], q = pts[(i + 1) % N]; ctx.quadraticCurveTo(p[0], p[1], (p[0] + q[0]) / 2, (p[1] + q[1]) / 2); }
     ctx.closePath();
   }
