@@ -30,8 +30,12 @@ export const ACHIEVEMENTS = [
   // bâtir, fusions, ouvrages
   { id: 'charpentier', cat: 'build', name: 'Charpentier', desc: 'Bâtir vingt tuiles en tout.', target: 20, counter: 'built' },
   { id: 'signature', cat: 'build', name: 'Signature', desc: 'Amener une tuile au niveau 3.' },
-  { id: 'le-cahier-complet', cat: 'build', name: 'Le Cahier complet', desc: 'Découvrir les sept recettes de fusion.', target: 7, counter: 'recipes' },
-  { id: 'port-d-attache', cat: 'build', name: 'Port d’attache', desc: 'Faire un port.' },
+  { id: 'le-cahier-complet', cat: 'build', name: 'Le Cahier complet', desc: 'Découvrir les six recettes de fusion.', target: 6, counter: 'recipes' },
+  // Ce succès récompensait le port, recette retirée en attendant le Livre II (il n'y a pas de tuile de
+  // mer à marier : un port se formait donc toujours sur un étang). Il garde son identifiant — le
+  // supprimer changerait le compte des succès et fausserait les sauvegardes existantes — et récompense
+  // désormais la cascade, qui demande la même idée : marier l'eau à ce qui n'est pas elle.
+  { id: 'port-d-attache', cat: 'build', name: 'Le saut de l’eau', desc: 'Faire une cascade.' },
   { id: 'bien-place', cat: 'build', name: 'Bien placé', desc: 'Dix ouvrages bien placés à la fin d’une île.' },
   { id: 'frais-du-jour', cat: 'build', name: 'Frais du jour', desc: 'Un ouvrage frais qui rapporte pendant six saisons.' },
   // campagne

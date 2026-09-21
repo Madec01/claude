@@ -3,6 +3,7 @@ import { Assets } from '../core/assets.js';
 import { toWorld, corners, parse, key, DIRS, edgeMid, TILE_W, TILE_H, SIZE } from './hex.js';
 import { FAMILY_COLORS, SEASONS } from '../data/tiles.js';
 import { STORY } from '../data/story.js';
+import { FAUNA_SIZE } from './fauna.js';
 import { clamp, lerp, TAU, easeOutCubic, rnd } from '../core/math.js';
 
 import { STAGE } from '../core/stage.js';
@@ -11,10 +12,26 @@ import { Decor, groundOf, groundKey, GROUND_COLORS, spriteKey } from './decor.js
 import { pathShapes } from './paths.js';
 // arête i (sommet i → i+1 de corners()) → indice dans DIRS du voisin de l'autre côté ; mesuré, pas deviné
 const EDGE_DIR = [1, 0, 5, 4, 3, 2];
+/** Décors déjà posés à plat sur le sol : ils ne reçoivent pas d'ombre de contact. */
+const PLAT = new Set(['obj_puddle', 'obj_leafpile', 'obj_snowdrift', 'obj_moss', 'obj_lily',
+  'obj_flowerWhite', 'obj_flowerRed', 'obj_flowerBlue', 'obj_flowerYellow']);
+
+/** Sols en relief : falaise (roche) et talus (colline). */
+const RELIEF = new Set(['stone', 'hill']);
+/** Deux sols qui se touchent par une arête franche plutôt que par un fondu. */
+const areteFranche = (a, b) => (RELIEF.has(a) || RELIEF.has(b)) && (a === 'grass' || b === 'grass' || (RELIEF.has(a) && RELIEF.has(b)));
 const FAUNA_GROUND = 10;   // un animal se tient un peu en avant du centre de sa tuile, comme le décor
 const SEA = { spring: ['#8fc8e6', '#5f9fc8'], summer: ['#7fc0e4', '#4f93c2'], autumn: ['#8cb9d3', '#5d8fb3'], winter: ['#a9c7db', '#7aa2bf'] };
-const WATER = { spring: { fill: '#5aa7d6', edge: '#3f86b6', foam: 'rgba(255,255,255,0.55)' }, summer: { fill: '#4f9ed2', edge: '#397fb0', foam: 'rgba(255,255,255,0.5)' }, autumn: { fill: '#5b95bd', edge: '#41769a', foam: 'rgba(255,255,255,0.45)' }, winter: { fill: '#6f9fc0', edge: '#4f7f9f', foam: 'rgba(255,255,255,0.4)' } };
-const ICE = { fill: '#dbe9f4', edge: '#b9cfe0', foam: 'rgba(255,255,255,0.8)' };
+// `bank` : l'ombre de la berge, posée SOUS l'eau et débordant vers le bas — c'est elle qui fait que l'eau
+// est creusée dans le terrain au lieu d'être peinte dessus. `shoal` : les bas-fonds, un anneau clair au
+// contact de la terre. `deep` : le fond, vers lequel le dégradé descend. Une seule famille de teintes.
+const WATER = {
+  spring: { fill: '#5aa7d6', deep: '#4e99c8', shoal: '#74bade', edge: '#448cba', foam: 'rgba(255,255,255,0.55)' },
+  summer: { fill: '#4f9ed2', deep: '#4390c4', shoal: '#6bb3dc', edge: '#3d85b4', foam: 'rgba(255,255,255,0.5)' },
+  autumn: { fill: '#5b95bd', deep: '#4f87ae', shoal: '#7dadc9', edge: '#457a9e', foam: 'rgba(255,255,255,0.45)' },
+  winter: { fill: '#6f9fc0', deep: '#6291b3', shoal: '#8db5cf', edge: '#5483a3', foam: 'rgba(255,255,255,0.4)' },
+};
+const ICE = { fill: '#dbe9f4', deep: '#cfe0ee', shoal: '#e8f2fa', edge: '#bdd2e2', foam: 'rgba(255,255,255,0.8)' };
 
 export class IslandRenderer {
   constructor(island, camera, effects, particles) {
@@ -331,12 +348,15 @@ export class IslandRenderer {
       const zz = z * d.s, cy = c.y + d.dy * z;
       if (img) ctx.drawImage(img, c.x - TILE_W * zz / 2, cy - TILE_H * zz / 2, TILE_W * zz, TILE_H * zz);
       else this.drawTileAt(ctx, t, c.x, cy, d.s, 1);
-      // la grille s'efface : le sol de chaque voisine de terre déborde en fondu le long du bord partagé
-      // (la roche et la colline gardent une arête nette : falaise et talus ; l'eau compose déjà ses rives)
-      if (!this.noLens && t.family !== 'water' && g !== 'stone' && g !== 'hill' && d.s === 1 && d.dy === 0) {
+      // la grille s'efface : le sol de chaque voisine de terre déborde en fondu le long du bord partagé.
+      // La roche et la colline sont des reliefs : elles gardent une arête franche contre l'herbe, où la
+      // falaise et le talus se lisent, mais se fondent contre un champ, une lande, du sable ou de la terre.
+      // (Tout leur refuser alignait leurs six arêtes d'une case à l'autre et redessinait la grille ;
+      // l'eau, elle, compose déjà ses rives.)
+      if (!this.noLens && t.family !== 'water' && d.s === 1 && d.dy === 0) {
         for (let dir = 0; dir < 6; dir++) {
           const n = b.get(t.q + DIRS[dir][0], t.r + DIRS[dir][1]); if (!n || n.family === 'water') continue;
-          const gn = this.decor.groundFor(n); if (gn === g || gn === 'stone' || gn === 'hill') continue;
+          const gn = this.decor.groundFor(n); if (gn === g || areteFranche(g, gn)) continue;
           const lens = this.groundLens(gn, season, dir); if (lens) ctx.drawImage(lens, c.x - TILE_W * z / 2, c.y - TILE_H * z / 2, TILE_W * z, TILE_H * z);
         }
       }
@@ -388,6 +408,14 @@ export class IslandRenderer {
       const w = (m ? m.w : img.width) / div * os, h = (m ? m.h : img.height) / div * os;
       const sc = d ? z * d.s : z, dy = d ? d.dy * z : 0;
       ctx.save();
+      // Ombre de contact : sans elle un arbre a l'air collé en autocollant AU-DESSUS du sol — les
+      // animaux en avaient une, pas le décor, et c'est ce qui faisait flotter tout le reste. Rien
+      // qui soit déjà à plat n'en reçoit (flaque, feuilles, congère, fleurs, mousse, vague).
+      if (!o.wave && !PLAT.has(o.tpl) && h * sc > 9) {
+        ctx.globalAlpha = (o.alpha || 1) * 0.16; ctx.fillStyle = '#000';
+        ctx.beginPath(); ctx.ellipse(c.x, c.y + dy, w * sc * 0.30, w * sc * 0.11, 0, 0, TAU); ctx.fill();
+      }
+      ctx.globalAlpha = 1;
       if (o.alpha) ctx.globalAlpha = o.alpha;
       if (o.flip) { ctx.translate(c.x, c.y + dy); ctx.scale(-1, 1); ctx.drawImage(img, -w * sc / 2, -h * sc, w * sc, h * sc); }
       else ctx.drawImage(img, c.x - w * sc / 2, c.y + dy - h * sc, w * sc, h * sc);
@@ -442,8 +470,10 @@ export class IslandRenderer {
       // lagune : une mare comme un étang, gelée en hiver
       const c0 = toWorld(h.q, h.r); const c = S(c0); if (!vis(c)) continue;
       const frozen = this.isl.season === 'winter'; const pal = frozen ? ICE : (WATER[this.seasonFor(c0.x)] || WATER.spring);
-      const rr = SIZE * 0.7 * z; ctx.fillStyle = pal.edge; this.blob(ctx, c.x, c.y + 2 * z, rr, c0); ctx.fill();
-      ctx.fillStyle = pal.fill; this.blob(ctx, c.x, c.y, rr * 0.9, c0); ctx.fill();
+      const rr = SIZE * 0.7 * z;
+      ctx.fillStyle = pal.edge; this.blob(ctx, c.x, c.y, rr * 1.03, c0); ctx.fill();
+      ctx.fillStyle = pal.deep; this.blob(ctx, c.x, c.y, rr, c0); ctx.fill();
+      ctx.fillStyle = pal.shoal; this.blob(ctx, c.x, c.y + 3.5 * z, rr * 0.92, c0); ctx.fill();
       if (!frozen) { ctx.strokeStyle = pal.foam; ctx.lineWidth = 1.5 * z; ctx.beginPath(); ctx.ellipse(c.x - rr * 0.2, c.y - rr * 0.25, rr * 0.35, rr * 0.16, -0.4, 0, TAU); ctx.stroke(); }
       else this.drawCracks(ctx, [c], z);
     }
@@ -467,14 +497,26 @@ export class IslandRenderer {
         // filet qui s'élargit de la source à l'embouchure : chaque tronçon lissé a sa propre largeur (bouts ronds : pas de joint visible)
         const wAt = (i) => { const t = i / Math.max(1, sp.length - 1); return (16 + 12 * t + 3 * Math.sin(i * 2.3)) * z; };
         ctx.globalAlpha = 1;
-        tapered(sp, wAt, 1.45, pal.edge); tapered(sp, wAt, 1, pal.fill);
+        // le lit est creusé : bord sombre, fond à l'ombre, puis le filet d'eau clair décalé vers le bas
+        tapered(sp, wAt, 1.12, pal.edge);
+        tapered(sp, wAt, 1, pal.deep);
+        ctx.save(); ctx.translate(0, 2.5 * z); tapered(sp, wAt, 0.88, pal.shoal); ctx.restore();
         if (mouth) { const m = S(mouth); ctx.fillStyle = pal.fill; ctx.beginPath(); ctx.ellipse(m.x, m.y, 26 * z, 16 * z, 0, 0, TAU); ctx.fill(); }
         if (!frozen) { ctx.strokeStyle = pal.foam; ctx.lineWidth = (this.finale ? 3 : 1.5) * z; ctx.setLineDash([8 * z, 22 * z]); ctx.lineDashOffset = -this.time * (this.finale ? 120 : 40) * z; trace(sp); ctx.stroke(); ctx.setLineDash([]); }
         else this.drawCracks(ctx, sp, z);
       } else if (body.kind === 'pond') {
         const c = S(c0); if (!vis(c)) continue;
-        const rr = SIZE * 0.66 * z; ctx.fillStyle = pal.edge; this.blob(ctx, c.x, c.y + 2 * z, rr, c0); ctx.fill();
-        ctx.fillStyle = pal.fill; this.blob(ctx, c.x, c.y, rr * 0.9, c0); ctx.fill();
+        const rr = SIZE * 0.66 * z;
+        ctx.fillStyle = pal.edge; this.blob(ctx, c.x, c.y, rr * 1.03, c0); ctx.fill();
+        ctx.fillStyle = pal.deep; this.blob(ctx, c.x, c.y, rr, c0); ctx.fill();
+        ctx.fillStyle = pal.shoal; this.blob(ctx, c.x, c.y + 3.5 * z, rr * 0.92, c0); ctx.fill();
+        for (let d = 0; d < 6; d++) {   // mare ouverte sur la mer : elle devient une crique
+          const cell = body.cells[0]; const nq = cell.q + DIRS[d][0], nr = cell.r + DIRS[d][1];
+          if (!b.isSea(nq, nr)) continue;
+          const m = edgeMid(c0.x, c0.y, d); const ow = toWorld(nq, nr);
+          const g1 = S({ x: (c0.x + m.x) / 2, y: (c0.y + m.y) / 2 }); this.blob(ctx, g1.x, g1.y, SIZE * 0.5 * z, c0); ctx.fill();
+          const g2 = S({ x: (m.x + ow.x) / 2, y: (m.y + ow.y) / 2 }); this.blob(ctx, g2.x, g2.y, SIZE * 0.42 * z, ow); ctx.fill();
+        }
         if (!frozen) { ctx.strokeStyle = pal.foam; ctx.lineWidth = 1.5 * z; ctx.beginPath(); ctx.ellipse(c.x - rr * 0.2, c.y - rr * 0.25, rr * 0.35, rr * 0.16, -0.4, 0, TAU); ctx.stroke(); }
       } else {
         // lac : union de mares arrondies (une par case, forme irrégulière) reliées par des ponts arrondis entre cases voisines ;
@@ -482,13 +524,43 @@ export class IslandRenderer {
         const cs = body.cells.map((cell) => { const w = toWorld(cell.q, cell.r); return { w, s: S(w), cell }; });
         if (!cs.some((c) => vis(c.s))) continue;
         const bridges = []; for (const a of cs) for (let d = 0; d < 3; d++) { const nk = key(a.cell.q + DIRS[d][0], a.cell.r + DIRS[d][1]); if (!body.keys.has(nk)) continue; const o = cs.find((c) => key(c.cell.q, c.cell.r) === nk); if (o) bridges.push([a, o]); }
-        const nappe = (color, grow) => {
+        const nappe = (color, grow, dy = 0) => {
           ctx.fillStyle = color; ctx.strokeStyle = color;
-          for (const c of cs) { this.blob(ctx, c.s.x, c.s.y, (SIZE * 0.86 + grow) * z, c.w); ctx.fill(); }
-          ctx.lineWidth = (SIZE * 1.05 + grow * 2) * z; ctx.beginPath(); for (const [a, o] of bridges) { ctx.moveTo(a.s.x, a.s.y); ctx.lineTo(o.s.x, o.s.y); } ctx.stroke();
+          for (const c of cs) { this.blob(ctx, c.s.x, c.s.y + dy, (SIZE * 0.92 + grow) * z, c.w); ctx.fill(); }
+          ctx.lineWidth = (SIZE * 1.11 + grow * 2) * z; ctx.beginPath(); for (const [a, o] of bridges) { ctx.moveTo(a.s.x, a.s.y + dy); ctx.lineTo(o.s.x, o.s.y + dy); } ctx.stroke();
         };
-        nappe(pal.edge, 7); nappe(pal.fill, 0);
+        // Une CUVETTE, pas un monticule. Une ombre portée à l'extérieur et vers le bas est la signature
+        // d'un objet posé SUR le sol : c'est exactement l'inverse de ce qu'on veut. L'ombre va donc
+        // DEDANS, en croissant sous la lèvre proche (le bord haut), et le fond s'éclaircit en
+        // s'éloignant. On l'obtient sans découpe : la nappe entière au ton le plus sombre, puis la même
+        // forme rétrécie et descendue par-dessus — ce qui reste à découvert est le croissant du haut.
+        let grad = null;
+        { let y0 = Infinity, y1 = -Infinity; for (const c of cs) { y0 = Math.min(y0, c.s.y); y1 = Math.max(y1, c.s.y); }
+          grad = ctx.createLinearGradient(0, y0 - SIZE * 0.6 * z, 0, y1 + SIZE * z);
+          grad.addColorStop(0, pal.fill); grad.addColorStop(0.75, pal.shoal); grad.addColorStop(1, pal.shoal); }
+        nappe(pal.edge, 2);            // la lèvre : un liseré sombre au contact de la terre, sans débord
+        nappe(pal.deep, 0);            // le fond, à l'ombre
+        nappe(grad, -4, 4 * z);        // le plan d'eau, un peu rétréci et descendu : ombre fine sous la lèvre
+        // Bras de mer : une nappe qui touche le bord de l'île n'est pas un lac fermé, c'est une
+        // échancrure. Du côté ouvert on efface la lèvre et on prolonge l'eau au-dessus du large, en
+        // ton de bas-fond — la mer entre dans les terres au lieu de s'arrêter sur un trait.
+        ctx.fillStyle = pal.shoal;
+        for (const c of cs) for (let d = 0; d < 6; d++) {
+          const nq = c.cell.q + DIRS[d][0], nr = c.cell.r + DIRS[d][1];
+          if (!b.isSea(nq, nr)) continue;
+          const m = edgeMid(c.w.x, c.w.y, d);
+          const g1 = S({ x: (c.w.x + m.x) / 2, y: (c.w.y + m.y) / 2 });
+          this.blob(ctx, g1.x, g1.y, SIZE * 0.6 * z, c.w); ctx.fill();
+          const ow = toWorld(nq, nr); const g2 = S({ x: (m.x + ow.x) / 2, y: (m.y + ow.y) / 2 });
+          this.blob(ctx, g2.x, g2.y, SIZE * 0.5 * z, ow); ctx.fill();
+        }
         if (!frozen) {
+          // la rive scintille : un liseré clair qui court le long du contour, et qui BOUGE — sans
+          // l'animation ce n'est qu'un trait peint, et c'est ce mouvement qui fait lire « de l'eau »
+          ctx.save(); ctx.strokeStyle = pal.foam; ctx.lineWidth = 2.2 * z;
+          ctx.setLineDash([10 * z, 26 * z]); ctx.lineDashOffset = -this.time * 12 * z;
+          for (const c of cs) { this.blob(ctx, c.s.x, c.s.y, SIZE * 0.9 * z, c.w); ctx.stroke(); }
+          ctx.restore();
           // reflets : une ride par case, placée de façon déterministe
           ctx.strokeStyle = pal.foam; ctx.lineWidth = 1.5 * z; ctx.beginPath();
           for (const c of cs) { const j = jit(c.w, { x: 1, y: 1 }); const rr = SIZE * 0.86 * z; ctx.moveTo(c.s.x - rr * 0.3 + j * rr * 0.4, c.s.y - rr * 0.2 + j * rr * 0.3); ctx.bezierCurveTo(c.s.x - rr * 0.1, c.s.y - rr * 0.35 + j * rr * 0.3, c.s.x + rr * 0.1, c.s.y - rr * 0.05 + j * rr * 0.3, c.s.x + rr * 0.3, c.s.y - rr * 0.2 + j * rr * 0.3); }
@@ -528,20 +600,23 @@ export class IslandRenderer {
   }
 
   /**
-   * Les cours des bourgs : un disque de terre battue ou de pavé sous chaque groupe de maisons, fondu sur son
-   * pourtour. Une seule image masquée par sol et par saison, posée autant de fois qu'il y a de cases de bourg :
-   * les disques voisins se recouvrent et font une place, sans couture puisqu'ils partagent la même texture.
+   * Les cours des bourgs : un disque de terre battue sous chaque bâtiment, fondu sur son pourtour. Une seule
+   * image masquée par saison, posée autant de fois qu'il y a de bâtiments : les disques voisins se recouvrent
+   * et font une place, sans couture puisqu'ils partagent la même texture. L'opacité dit la taille du bourg.
    */
   drawCourts(ctx, dropping) {
     const courts = this.decor.courts; if (!courts || !courts.length) return;
     const cam = this.cam, z = cam.zoom;
+    ctx.save();
     for (const c of courts) {
       if (dropping.has(c.cell)) continue;
       const p = cam.toScreen(c.x, c.y); const rr = c.r * z;
       if (p.x + rr < 0 || p.x - rr > STAGE.W || p.y + rr < 0 || p.y - rr > STAGE.H) continue;
-      const img = this.courtImage(c.g, this.seasonFor(c.x)); if (!img) continue;
+      const img = this.courtImage('dirt', this.seasonFor(c.x)); if (!img) continue;
+      ctx.globalAlpha = c.a;
       ctx.drawImage(img, p.x - rr, p.y - rr, rr * 2, rr * 2);
     }
+    ctx.restore();
   }
 
   /** Disque d'un sol, opaque au centre et effacé sur le bord. Mis en cache par sol et saison. */
@@ -554,8 +629,8 @@ export class IslandRenderer {
     const cv = document.createElement('canvas'); cv.width = D; cv.height = D; const c = cv.getContext('2d');
     c.drawImage(img, D / 2 - img.width * ech / 2, D / 2 - img.height * ech / 2, img.width * ech, img.height * ech);
     const grad = c.createRadialGradient(D / 2, D / 2, 0, D / 2, D / 2, D / 2);
-    grad.addColorStop(0, 'rgba(0,0,0,1)'); grad.addColorStop(0.62, 'rgba(0,0,0,1)');
-    grad.addColorStop(0.84, 'rgba(0,0,0,0.6)'); grad.addColorStop(1, 'rgba(0,0,0,0)');
+    grad.addColorStop(0, 'rgba(0,0,0,0.92)'); grad.addColorStop(0.42, 'rgba(0,0,0,0.74)');
+    grad.addColorStop(0.72, 'rgba(0,0,0,0.36)'); grad.addColorStop(1, 'rgba(0,0,0,0)');
     c.globalCompositeOperation = 'destination-in'; c.fillStyle = grad; c.fillRect(0, 0, D, D);
     this._court.set(k, cv); return cv;
   }
@@ -801,6 +876,7 @@ export class IslandRenderer {
     const cam = this.cam;
     const sheet = Assets.img(`fauna_${species}_side`);
     const m = sheet ? (Assets.manifest().images || {})[`fauna_${species}_side`] : null;
+    s *= FAUNA_SIZE[species] || 0.5;   // échelle commune : sans elle, chaque espèce fait la taille de son rendu
     const w = m ? (m.frame_w / 2) * cam.zoom * s : 44 * cam.zoom * s;
     const k = 1 - Math.min(0.3, Math.abs(lift) / Math.max(1, 70 * cam.zoom));   // l'ombre rétrécit un peu quand il se soulève
     ctx.save();

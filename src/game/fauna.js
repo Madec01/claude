@@ -6,6 +6,29 @@ import { neighbors, key } from './hex.js';
 const F = BALANCE.fauna;
 export const SPECIES = ['rabbit', 'moose', 'frog', 'duck', 'bear', 'owl', 'penguin', 'goat', 'chicken', 'horse', 'cow'];
 
+/**
+ * Échelle de chaque espèce à l'écran. Chaque sprite était dessiné à la taille que son rendu 3D avait
+ * produite, sans référence au monde : la poule faisait 36 unités de haut pour une maisonnette de 29,
+ * le cheval 52 pour une petite maison de 50. Ce n'est pas l'échelle réelle qu'on vise — une poule à
+ * l'échelle ferait quatre pixels et disparaîtrait — mais une échelle COHÉRENTE : le plus grand animal
+ * arrive à mi-hauteur d'une maison, le plus petit est un point. Les facteurs ci-dessous amènent la
+ * hauteur de chaque espèce à la valeur voulue, en unités monde (l'hexagone fait 120 de large).
+ */
+export const FAUNA_SIZE = {
+  moose: 0.55,    // 51 → 28
+  horse: 0.50,    // 52 → 26
+  cow: 0.63,      // 38 → 24
+  bear: 0.62,     // 39 → 24
+  goat: 0.47,     // 38 → 18
+  penguin: 0.34,  // 53 → 18
+  duck: 0.46,     // 28 → 13
+  chicken: 0.36,  // 36 → 13
+  rabbit: 0.41,   // 27 → 11
+  owl: 0.46,      // 24 → 11
+  chick: 0.44,    // 18 → 8
+  frog: 0.58,     // 12 → 7
+};
+
 /** Case « centrale » d'une région (la plus proche du barycentre) pour poser l'animal. */
 function anchor(reg) {
   let cx = 0, cy = 0;

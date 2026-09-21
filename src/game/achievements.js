@@ -85,7 +85,7 @@ export const Achievements = {
       this.unlock('promesse-tenue'); this.add('wishes'); this.checkCounters();
     } else if (e.type === 'build') {
       if (e.kind === 'level') { this.add('built'); this.checkCounters(); if (e.level >= 3) this.unlock('signature'); }
-      if (e.kind === 'fuse' && e.recipe === 'port') this.unlock('port-d-attache');
+      if (e.kind === 'fuse' && e.recipe === 'falls') this.unlock('port-d-attache');
       if (e.kind === 'fuse') this.checkCounters();   // recettes du Cahier (enregistrées par la scène)
     } else if (e.type === 'end') {
       const r = e.result;
