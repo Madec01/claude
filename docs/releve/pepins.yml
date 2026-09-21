@@ -8,9 +8,13 @@
 name: Relève des pépins
 
 on:
-  # toutes les deux heures, à une minute décalée pour ne pas tomber pile à l'heure avec le reste du monde
+  # toutes les heures, à une minute décalée pour ne pas tomber pile à l'heure avec le reste du monde.
+  # Pas plus souvent : sur un dépôt privé les minutes d'Actions sont comptées, et GitHub arrondit CHAQUE exécution
+  # à la minute supérieure — une relève de 33 s en coûte une. 720 par mois sur les 2 000 du palier gratuit.
+  # De toute façon les horaires de GitHub ne sont pas tenus : cinq à vingt minutes de retard sont courantes.
+  # Pour les voir tout de suite, il y a le bouton « Run workflow » ci-dessous.
   schedule:
-    - cron: '17 */2 * * *'
+    - cron: '17 * * * *'
   # et à la demande, quand on veut les voir tout de suite (onglet Actions → Run workflow)
   workflow_dispatch:
 
