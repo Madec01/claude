@@ -128,15 +128,18 @@ KAY_MODELS = {
     "pommier_summer": "forest/Color1/Tree_2_A_Color1",
     "pommier_autumn": "forest/Color7/Tree_2_A_Color7",
     "pommier_winter": "forest/Color2/Tree_Bare_2_B_Color2",
-    # --- pack Forest : de vrais blocs de rocher
-    "bloc_grand": "forest/Color1/Rock_3_D_Color1",
-    "bloc_double": "forest/Color1/Rock_1_A_Color1",
-    "bloc_moyen": "forest/Color1/Rock_3_A_Color1",
-    "bloc_moyen2": "forest/Color1/Rock_3_B_Color1",
-    "bloc_petit": "forest/Color1/Rock_2_B_Color1",
-    "bloc_petit2": "forest/Color1/Rock_5_B_Color1",
-    "bloc_petit3": "forest/Color1/Rock_5_C_Color1",
-    "bloc_petit4": "forest/Color1/Rock_3_C_Color1",
+    # --- la roche : les vrais massifs sont dans le pack hexagonal (le pack Forest n'a que des
+    # galets lisses, qui ne font pas montagne). Trois massifs de silhouettes différentes, un
+    # gros bloc et des cailloux pour l'éboulis.
+    "massif_A": "decoration/nature/mountain_C",
+    "massif_B": "decoration/nature/mountain_B",
+    "massif_C": "decoration/nature/mountain_A",
+    "bloc_grand": "forest/Color1/Rock_2_C_Color1",
+    "caillou_A": "decoration/nature/rock_single_A",
+    "caillou_B": "decoration/nature/rock_single_B",
+    "caillou_C": "decoration/nature/rock_single_C",
+    "caillou_D": "decoration/nature/rock_single_D",
+    "caillou_E": "decoration/nature/rock_single_E",
     "bloc_brun": "forest/Color5/Rock_5_C_Color5",
     "home_A": "buildings/red/building_home_A_red",
     "home_A_jaune": "buildings/yellow/building_home_A_yellow",
@@ -571,7 +574,7 @@ TILES = {
     "meadow_1": T("meadow", "grass_05", [L("ht:bushGrass:2.4", 84, 100, "reed"), L("ht:bushGrass:2.2", 36, 66, "reed", mirror=True)], note="Herbe unie (grass_05) + deux touffes."),
     "meadow_2": T("meadow", "grass_05", FLOWERS_SPRING + FLOWERS_SUMMER, base_mirror=True,
                   note="Herbe unie en miroir + fleurs (Hexagon Tiles ×2.8) au printemps et en été."),
-    "meadow_3": T("meadow", "grass_05", [L("kay:bloc_petit2", 84, 96, "rock", width=42), L("ht:bushGrass:2.6", 32, 74, "reed")],
+    "meadow_3": T("meadow", "grass_05", [L("kay:caillou_C", 84, 96, "rock", width=40), L("ht:bushGrass:2.6", 32, 74, "reed")],
                   base_rot=180, note="Herbe unie tournée de 180° + petit rocher + touffe (Hexagon Tiles ×2.6)."),
     # --- forêts : trois densités (5, 7 et 9 arbres)
     "forest_1": T("forest", "grass_05", [L(KPINE, 44, 80, "foliage", scale=0.55), L(KPINE, 74, 74, "foliage", scale=0.5), L(KPINE, 62, 96, "foliage", scale=0.6)], note="Forêt clairsemée : trois sapins KayKit isolés."),
@@ -618,13 +621,13 @@ TILES = {
                                       L("ht:flowerYellow:2.8", 58, 56, "flower", ("spring",)), L("ht:flowerWhite:2.8", 86, 112, "flower", ("spring",))],
                  base_kind="dirt", base_mirror=True, note="Terre en miroir + 2 flaques + 3 roseaux ; fleurs au printemps."),
     # --- roches : pierre + rochers gris (neige sur les sommets en hiver)
-    "rock_1": T("rock", "stone_07", [L("kay:bloc_grand", 60, 98, "rock", width=118), L("kay:bloc_petit", 28, 100, "rock", width=52),
-                                     L("kay:bloc_petit2", 94, 86, "rock", width=44)], base_kind="stone", note="Gros bloc du pack Forest + deux petits."),
-    "rock_2": T("rock", "stone_07", [L("kay:bloc_double", 46, 90, "rock", width=80), L("kay:bloc_moyen", 82, 100, "rock", width=76),
-                                     L("kay:bloc_petit2", 30, 108, "rock", width=40)], base_kind="stone", note="Deux blocs moyens du pack Forest + un petit."),
-    "rock_3": T("rock", "stone_07", [L("kay:bloc_petit", 38, 76, "rock", width=50), L("kay:bloc_petit3", 76, 70, "rock", width=46),
-                                     L("kay:bloc_petit2", 56, 98, "rock", width=42), L("kay:bloc_moyen2", 84, 100, "rock", width=52)],
-                base_kind="stone", base_mirror=True, note="Éboulis : quatre blocs du pack Forest."),
+    "rock_1": T("rock", "stone_07", [L("kay:massif_A", 60, 100, "rock", width=150), L("kay:caillou_A", 26, 102, "rock", width=46),
+                                     L("kay:caillou_C", 98, 88, "rock", width=38)], base_kind="stone", note="Massif KayKit (mountain_C) + deux cailloux."),
+    "rock_2": T("rock", "stone_07", [L("kay:massif_B", 48, 94, "rock", width=104), L("kay:massif_C", 86, 104, "rock", width=88),
+                                     L("kay:caillou_B", 28, 108, "rock", width=40)], base_kind="stone", note="Deux massifs KayKit + un caillou."),
+    "rock_3": T("rock", "stone_07", [L("kay:caillou_A", 38, 76, "rock", width=48), L("kay:caillou_D", 76, 70, "rock", width=44),
+                                     L("kay:caillou_B", 56, 98, "rock", width=44), L("kay:bloc_grand", 86, 102, "rock", width=62)],
+                base_kind="stone", base_mirror=True, note="Éboulis : trois cailloux et un bloc."),
     # --- sable (pas de saison)
     "sand_1": T("sand", "sand_07", base_kind="sand", note="Sable uni (sand_07)."),
     "sand_2": T("sand", "sand_07", [L("kay:bloc_brun", 84, 98, "rock", width=40)], base_kind="sand", base_mirror=True, base_rot=180,
@@ -645,14 +648,14 @@ TILES = {
     # --- collines (dès l'île 7) : hillGrass des Hexagon Tiles, recolorée comme l'herbe
     "hill_1": T("hill", "grass_17", [L(KROUND_S, 42, 74, height=58), L(KPINE, 82, 68, "foliage", scale=0.5), L("ht:bushGrass:2.2", 62, 92, "reed")],
                 note="Colline : tuile surélevée grass_17 recolorée par saison + un feuillu et un sapin KayKit + touffe."),
-    "hill_2": T("hill", "grass_17", [L(KPINE, 36, 78, "foliage", scale=0.5), L("kay:bloc_petit2", 88, 74, "rock", width=40), L(KROUND_S, 66, 88, height=54), L("ht:bushGrass:2.2", 96, 96, "reed")],
+    "hill_2": T("hill", "grass_17", [L(KPINE, 36, 78, "foliage", scale=0.5), L("kay:caillou_C", 88, 74, "rock", width=38), L(KROUND_S, 66, 88, height=54), L("ht:bushGrass:2.2", 96, 96, "reed")],
                 base_mirror=True, note="Colline en miroir + sapin et feuillu KayKit, petit rocher et touffe."),
     # --- landes (dès l'île 9) : sol ocre + bruyère (bushGrass recolorées en violet)
     "heath_1": T("heath", "grass_05", [L("ht:bushGrass:2.5", 36, 82, "heather"), L("ht:bushGrass:2.5", 78, 70, "heather"), L("ht:bushGrass:2.5", 60, 108, "heather"),
-                                       L("ht:bushGrass:2.3", 94, 104, "heather"), L("kay:bloc_petit2", 28, 104, "rock", width=40)],
+                                       L("ht:bushGrass:2.3", 94, 104, "heather"), L("kay:caillou_B", 28, 104, "rock", width=40)],
                  base_kind="heath", note="Lande : sol ocre (grass_05 recolorée) + quatre touffes de bruyère + petit rocher."),
     "heath_2": T("heath", "grass_05", [L("ht:bushGrass:2.5", 44, 72, "heather"), L("ht:bushGrass:2.5", 88, 84, "heather"), L("ht:bushGrass:2.5", 52, 110, "heather"),
-                                       L(KPINE, 94, 112, "foliage", scale=0.42), L("kay:bloc_petit4", 26, 98, "rock", width=44)],
+                                       L(KPINE, 94, 112, "foliage", scale=0.42), L("kay:caillou_D", 26, 98, "rock", width=42)],
                  base_kind="heath", base_mirror=True, note="Lande en miroir : trois touffes de bruyère + pin nain + rocher."),
     # --- rares tardives
     "granary": T("rare", "grass_05", [L("kay:lumbermill", 60, 92, scale=0.68), L("kay:sack", 32, 100, scale=2.6), L("kay:sack", 86, 104, scale=2.6)],
@@ -1082,13 +1085,14 @@ class Builder:
         obj("obj_lily", L("ht:flowerGreen:2.0", 0, 0), "summer", "Nénuphar (flowerGreen ×2.0) : lacs et étangs en été.", pack=HT)
         obj("obj_basket", L("obj:box1", 0, 0), "autumn", "Caisse de récolte (box1) : vergers en automne, cueillette.")
         # rochers : blocs 3D KayKit (les largeurs reprennent celles des sprites plats remplacés)
-        for name, model, w in (("rockGrey_large", "bloc_grand", 130), ("rockGrey_medium1", "bloc_double", 86),
-                               ("rockGrey_medium2", "bloc_moyen", 82), ("rockGrey_medium3", "bloc_moyen2", 98),
-                               ("rockGrey_small1", "bloc_petit", 58), ("rockGrey_small2", "bloc_petit3", 54),
-                               ("rockGrey_small3", "bloc_petit2", 40), ("rockGrey_small4", "bloc_petit4", 48),
+        for name, model, w in (("rockGrey_large", "massif_A", 150), ("rockGrey_large2", "massif_B", 138),
+                               ("rockGrey_large3", "massif_C", 132), ("rockGrey_medium1", "massif_B", 96),
+                               ("rockGrey_medium2", "massif_C", 90), ("rockGrey_medium3", "bloc_grand", 84),
+                               ("rockGrey_small1", "caillou_A", 54), ("rockGrey_small2", "caillou_B", 50),
+                               ("rockGrey_small3", "caillou_C", 42), ("rockGrey_small4", "caillou_D", 46),
                                ("rockBrown_small", "bloc_brun", 40)):
-            kobj(f"obj_{name}", model, "summer", w, "rock", f"Rocher {name} : bloc 3D du pack Forest.")
-            kobj(f"obj_{name}_winter", model, "winter", w, "rock", f"Rocher {name} enneigé : bloc 3D du pack Forest.")
+            kobj(f"obj_{name}", model, "summer", w, "rock", f"Rocher {name} : massif ou bloc 3D KayKit.")
+            kobj(f"obj_{name}_winter", model, "winter", w, "rock", f"Rocher {name} enneigé.")
         # Bâtiments du décor composé : modèles 3D KayKit. Les largeurs de la table sont celles des
         # sprites plats qu'ils remplacent ; BUILD_SCALE les ramène à l'échelle voulue, car un modèle
         # KayKit est bien plus dense à l'œil qu'un sprite Kenney de même largeur (retour du
