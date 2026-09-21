@@ -169,6 +169,11 @@ KAY_MODELS = {
     "nenuphar": "decoration/nature/waterlily_A",
     # --- la variété qui ne coûte rien : une seconde silhouette de récolte et trois massettes d'eau
     "botte_ronde": "extra/decoration/props/haybale",
+    # L'épouvantail posait un sprite plat Kenney qui est en réalité un MARTEAU DE FORGERON couché
+    # (36 × 32 unités monde) : c'est lui qu'on voyait en travers des rangs de culture. Aucun des trois
+    # packs ne contient d'épouvantail ; le piquet à chiffon en est la silhouette la plus proche, et il
+    # est vertical.
+    "piquet": "decoration/props/flag_red",
     # --- la tente du campement et l'écurie : deux sprites plats Kenney de moins
     "tente": "extra/buildings/red/building_tent_red",
     "ecurie": "extra/buildings/red/building_stables_red",
@@ -224,8 +229,6 @@ KAY_MODELS = {
     "ruin": "buildings/neutral/building_destroyed",
     "scaffolding": "buildings/neutral/building_scaffolding",
     "stage": "buildings/neutral/building_stage_C",
-    "fence_wood": "buildings/neutral/fence_wood_straight",
-    "fence_stone": "buildings/neutral/fence_stone_straight",
     "mountain_A": "decoration/nature/mountain_A",
     "mountain_B": "decoration/nature/mountain_B",
     "mountain_C": "decoration/nature/mountain_C",
@@ -300,6 +303,15 @@ SEASONS = ("spring", "summer", "autumn", "winter")
 # ---------------------------------------------------------------------------
 SNOW = "#eef2f6"
 SNOW_SHADOW = "#c9d6e2"
+# Trois silhouettes de flaque : chacune est une union d'ellipses (décalage x, décalage y, largeur,
+# hauteur — en fractions du rayon nominal). La première ellipse porte la masse, les autres mordent
+# dessus pour casser le cercle.
+FLAQUES = (
+    ((0, 0, 0.74, 0.80), (0.52, 0.12, 0.48, 0.52), (-0.46, -0.16, 0.42, 0.46), (-0.10, 0.34, 0.50, 0.40)),
+    ((-0.08, 0, 0.70, 0.84), (0.55, -0.10, 0.45, 0.44), (0.30, 0.34, 0.44, 0.40), (-0.52, 0.16, 0.40, 0.42)),
+    ((0.05, -0.06, 0.78, 0.72), (-0.50, 0.10, 0.44, 0.50), (0.46, 0.26, 0.40, 0.44), (-0.16, 0.36, 0.46, 0.34)),
+)
+
 COLORS = {
     "grass": {"spring": "#77c96a", "summer": "#4f9e4a", "autumn": "#c9a45a", "winter": SNOW},
     "foliage": {"spring": "#5fae4f", "summer": "#3f8a3d", "autumn": ("#d9823a", "#b5532a"), "winter": "#dfe8ef"},
@@ -685,7 +697,7 @@ TILES = {
     # --- vergers : deux rangs de feuillus + clôture / haie, fruits en été et en automne
     "orchard_1": T("orchard", "grass_05", [L(KPOMMIER, 38, 72, height=64, fruits=True), L(KPOMMIER, 61, 68, height=64, fruits=True),
                                            L(KPOMMIER, 84, 72, height=64, fruits=True), L(KPOMMIER, 49, 92, height=64, fruits=True),
-                                           L(KPOMMIER, 72, 92, height=64, fruits=True), L("kay:fence_wood", 46, 104, scale=0.45), L("kay:fence_wood", 76, 104, scale=0.45)],
+                                           L(KPOMMIER, 72, 92, height=64, fruits=True)],
                   note="Verger : 5 feuillus du pack Forest en deux rangs (fleurs au printemps, arbres nus en hiver) + 2 clôtures ; fruits dessinés en été/automne."),
     "orchard_2": T("orchard", "grass_05", [L(KPOMMIER, 42, 68, height=58, fruits=True), L(KPOMMIER, 78, 68, height=58, fruits=True),
                                            L(KPOMMIER, 33, 90, height=58, fruits=True), L(KPOMMIER, 60, 84, height=58, fruits=True),
@@ -702,15 +714,15 @@ TILES = {
                                       L("kay:ble", 60, 70, "field", width=240, flat=True, mirror=True, seasons=["summer", "autumn", "winter"])]
                  + [L("ht:bushGrass:1.9", x, y, "crop") for (x, y) in
                     [(44, 66), (80, 66), (34, 82), (70, 82), (26, 98), (62, 98), (98, 98), (52, 114)]]
-                 + [L("kay:botte_ronde", 36, 112, scale=0.85), L("obj:fence", 96, 118)],
+                 + [L("kay:botte_ronde", 36, 112, scale=0.85), L("kay:crate", 90, 104, scale=1.1)],
                  base_kind="dirt", base_mirror=True, note="Champ : la même parcelle en miroir, rangs de culture, botte ronde et clôture."),
     # --- hameaux (bâtiments inchangés par la saison)
-    "hamlet_1": T("hamlet", "grass_05", [L("kay:home_A_jaune", 58, 90, scale=0.94), L("kay:barrel", 90, 98, scale=1.2), L("kay:fence_wood", 40, 94, scale=0.45)],
+    "hamlet_1": T("hamlet", "grass_05", [L("kay:home_A_jaune", 58, 90, scale=0.94), L("kay:barrel", 90, 98, scale=1.2), L("kay:crate", 38, 98, scale=1.1)],
                   note="Hameau : maison KayKit + tonneau + clôture."),
     "hamlet_2": T("hamlet", "grass_05", [L("kay:home_B", 60, 98, scale=0.81), L("kay:sack", 30, 102, scale=1.6), L("kay:wheelbarrow", 88, 98, scale=1.2)],
                   note="Village : maison à étage KayKit + sac de grain + brouette."),
     "hamlet_3": T("hamlet", "grass_05", [L("kay:home_B_vert", 50, 94, scale=0.70), L("kay:home_A_jaune", 86, 106, scale=0.66),
-                                         L("kay:crate", 30, 100, scale=1.3), L("kay:fence_wood", 92, 78, scale=0.6)],
+                                         L("kay:crate", 30, 100, scale=1.3), L("kay:barrel", 92, 86, scale=1.1)],
                   note="Bourg : deux maisons KayKit + caisse + clôture."),
     # --- eau (base hexagonale pleine, vagues Hexagon Tiles ×3.7) — identique aux 4 saisons
     "water_1": T("water", "water", [L("ht:waveWater:3.7", 40, 60, "wave"), L("ht:waveWater:3.7", 78, 90, "wave"),
@@ -719,12 +731,12 @@ TILES = {
     "water_2": T("water", "water", [L("ht:waveWater:3.7", 72, 56, "wave"), L("ht:waveWater:3.7", 36, 96, "wave", mirror=True)],
                  base_kind="water", note="Hexagone plein #5aa7d6 + 2 vagues."),
     # --- marais : terre + flaques + roseaux (+ fleurs au printemps, flaques gelées en hiver)
-    "marsh_1": T("marsh", "dirt_06", [L("draw:puddle", 44, 70, "puddle", rx=18, ry=10), L("draw:puddle", 82, 94, "puddle", rx=14, ry=8),
-                                      L("draw:puddle", 72, 50, "puddle", rx=9, ry=5), L("ht:bushGrass:3", 28, 100, "reed"),
+    "marsh_1": T("marsh", "dirt_06", [L("draw:puddle", 44, 70, "puddle", rx=14, ry=8, forme=0), L("draw:puddle", 82, 94, "puddle", rx=11, ry=6, forme=1),
+                                      L("draw:puddle", 72, 50, "puddle", rx=8, ry=4, forme=2), L("ht:bushGrass:3", 28, 100, "reed"),
                                       L("ht:bushGrass:3", 96, 72, "reed"), L("ht:bushGrass:3", 62, 116, "reed"),
                                       L("ht:flowerWhite:2.8", 60, 90, "flower", ("spring",)), L("ht:flowerYellow:2.8", 30, 62, "flower", ("spring",))],
                  base_kind="dirt", note="Terre (dirt_06) + 3 flaques + 3 roseaux (bushGrass ×3) ; fleurs au printemps ; flaques gelées en hiver."),
-    "marsh_2": T("marsh", "dirt_06", [L("draw:puddle", 76, 74, "puddle", rx=20, ry=11), L("draw:puddle", 40, 98, "puddle", rx=12, ry=7),
+    "marsh_2": T("marsh", "dirt_06", [L("draw:puddle", 76, 74, "puddle", rx=15, ry=9, forme=2), L("draw:puddle", 40, 98, "puddle", rx=10, ry=6, forme=0),
                                       L("ht:bushGrass:3", 92, 102, "reed"), L("ht:bushGrass:3", 34, 68, "reed"), L("ht:bushGrass:3", 56, 118, "reed", mirror=True),
                                       L("ht:flowerYellow:2.8", 58, 56, "flower", ("spring",)), L("ht:flowerWhite:2.8", 86, 112, "flower", ("spring",))],
                  base_kind="dirt", base_mirror=True, note="Terre en miroir + 2 flaques + 3 roseaux ; fleurs au printemps."),
@@ -741,13 +753,13 @@ TILES = {
     "sand_2": T("sand", "sand_07", [L("kay:bloc_brun", 84, 98, "rock", width=40)], base_kind="sand", base_mirror=True, base_rot=180,
                 note="Sable uni tourné + petit rocher brun."),
     # --- tuiles rares
-    "mill": T("rare", "grass_05", [L("kay:windmill", 60, 88, scale=0.85), L("kay:sack", 28, 104, scale=1.6), L("kay:fence_wood", 94, 100, scale=0.8)],
+    "mill": T("rare", "grass_05", [L("kay:windmill", 60, 88, scale=0.85), L("kay:sack", 28, 104, scale=1.6), L("kay:barrel", 94, 98, scale=1.2)],
               note="Moulin à vent KayKit + sac de grain + clôture."),
-    "chapel": T("rare", "grass_05", [L("kay:church", 60, 92, scale=0.81), L("kay:fence_stone", 26, 102, scale=0.9), L(KPINE, 98, 78, "foliage", scale=0.5)],
+    "chapel": T("rare", "grass_05", [L("kay:church", 60, 92, scale=0.81), L(KPINE, 26, 98, "foliage", scale=0.4), L(KPINE, 98, 78, "foliage", scale=0.5)],
                 note="Église KayKit + muret de pierre + sapin."),
     "watchtower": T("rare", "grass_05", [L("kay:tower", 60, 96, scale=0.66), L("kay:wall", 32, 96, scale=0.55), L(KPINE, 96, 80, "foliage", scale=0.45)],
                     note="Tour de guet KayKit + pan de muraille + sapin."),
-    "well": T("rare", "grass_05", [L("kay:well", 60, 88, scale=1.1), L("kay:fence_wood", 40, 94, scale=0.45), L("kay:fence_wood", 82, 94, scale=0.45)] + FLOWERS_SPRING + FLOWERS_SUMMER,
+    "well": T("rare", "grass_05", [L("kay:well", 60, 88, scale=1.1), L("kay:bucket", 36, 104, scale=1.3)] + FLOWERS_SPRING + FLOWERS_SUMMER,
               note="Puits KayKit + 2 clôtures + fleurs (printemps, été)."),
     "camp": T("rare", "grass_05", [L("obj:campingTent", 44, 86), L("obj:fire", 82, 92), L("kay:lumber", 84, 108, scale=0.9), L(KPINE, 30, 100, "foliage", scale=0.45)],
               note="Campement : tente et feu Kenney + rondins et sapin KayKit."),
@@ -768,7 +780,7 @@ TILES = {
     # --- rares tardives
     "granary": T("rare", "grass_05", [L("kay:lumbermill", 60, 92, scale=0.68), L("kay:sack", 32, 100, scale=2.6), L("kay:sack", 86, 104, scale=2.6)],
                  note="Grenier : bâtiment de bois KayKit + deux sacs de grain."),
-    "fountain": T("rare", "grass_05", [L("obj:fountain", 60, 94), L("kay:fence_stone", 40, 94, scale=0.5), L("kay:fence_stone", 82, 94, scale=0.5)] + FLOWERS_SPRING + FLOWERS_SUMMER,
+    "fountain": T("rare", "grass_05", [L("obj:fountain", 60, 94)] + FLOWERS_SPRING + FLOWERS_SUMMER,
                   note="Fontaine + clôtures + fleurs au printemps et en été."),
     # --- tuiles d'événement (dès l'île 5) et rares tardives (dès l'île 8)
     "market": T("rare", "grass_05", [L("kay:market", 60, 90, scale=0.77), L("kay:charrette_marchand", 88, 104, width=52), L("kay:crate_open", 26, 104, scale=1.3)],
@@ -780,7 +792,7 @@ TILES = {
                  note="Chantier KayKit : échafaudage et palette (devient la famille majoritaire autour d'elle)."),
     "tavern": T("rare", "grass_05", [L("kay:tavern", 60, 90, scale=0.81), L("kay:barrel", 26, 102, scale=1.4), L("kay:barrel", 94, 106, scale=1.2)],
                 note="Taverne KayKit + deux tonneaux."),
-    "trough": T("rare", "grass_05", [L("kay:abreuvoir", 60, 94, width=56), L("kay:fence_wood", 40, 94, scale=0.45), L("kay:fence_wood", 82, 94, scale=0.45), L("kay:bucket", 92, 104, scale=1.4)] + FLOWERS_SPRING,
+    "trough": T("rare", "grass_05", [L("kay:abreuvoir", 60, 94, width=56), L("kay:bucket", 92, 104, scale=1.4)] + FLOWERS_SPRING,
                 note="Abreuvoir + clôtures KayKit + seau + fleurs au printemps."),
     "archway": T("rare", "grass_05", [L("kay:gate", 60, 94, scale=0.68), L("kay:wall", 28, 96, scale=0.5), L("kay:wall", 92, 96, scale=0.5)],
                  note="Porte fortifiée KayKit + deux pans de muraille."),
@@ -917,14 +929,25 @@ class Composer:
         return im
 
     def draw_puddle(self, canvas, layer, season):
-        """Flaque (ellipse eau + liseré) dessinée sur un calque puis composée (l'alpha de la base est préservé)."""
+        """Flaque : l'UNION de quelques ellipses décalées, posée sur un calque puis composée.
+
+        Une ellipse seule se lit comme une pastille d'interface, et une flaque parfaitement ronde
+        n'existe pas dans la nature. On en superpose trois ou quatre, de tailles et de centres
+        différents : le contour devient lobé sans qu'on ait rien dessiné de plus qu'avant.
+        `forme` choisit l'un des jeux de lobes de FLAQUES, pour que deux flaques voisines diffèrent.
+        """
         cx, cy = layer["x"] * SCALE, layer["y"] * SCALE
         rx, ry = layer["rx"] * SCALE, layer["ry"] * SCALE
         fill, edge = (COLORS["ice"], COLORS["ice_edge"]) if season == "winter" else (COLORS["water"][season], COLORS["water_edge"][season])
+        lobes = FLAQUES[layer.get("forme", 0) % len(FLAQUES)]
         lay = Image.new("RGBA", canvas.size, (0, 0, 0, 0))
         d = ImageDraw.Draw(lay)
-        d.ellipse((cx - rx, cy - ry, cx + rx, cy + ry), fill=hex2rgb(edge) + (255,))
-        d.ellipse((cx - rx + 2, cy - ry + 1, cx + rx - 2, cy + ry - 3), fill=hex2rgb(fill) + (255,))
+        for creux in (0, 1):
+            col = hex2rgb(fill if creux else edge) + (255,)
+            mx, my, dy = (2, 1, 2) if creux else (0, 0, 0)
+            for ox, oy, kx, ky in lobes:
+                ax, ay = cx + ox * rx, cy + oy * ry
+                d.ellipse((ax - rx * kx + mx, ay - ry * ky + my, ax + rx * kx - mx, ay + ry * ky - my - dy), fill=col)
         if season == "winter":  # fines fissures
             d.line((cx - rx * 0.6, cy - ry * 0.2, cx - rx * 0.1, cy + ry * 0.1, cx + rx * 0.5, cy - ry * 0.4), fill=(255, 255, 255, 200), width=2)
             d.line((cx - rx * 0.1, cy + ry * 0.1, cx + rx * 0.2, cy + ry * 0.55), fill=(255, 255, 255, 170), width=2)
@@ -1270,7 +1293,6 @@ class Builder:
                 ("obj_castle_small", "barracks", 200, "Petite forteresse."),
                 ("obj_wall_small", "wall", 140, "Pan de muraille."),
                 ("obj_wall", "wall", 180, "Muraille."),
-                ("obj_fence", "fence_wood", 52, "Clôture de bois."),
                 ("obj_logPile", "lumber", 74, "Tas de rondins."),
                 ("obj_log", "lumber", 56, "Rondin."),
                 ("obj_barrel", "barrel", 45, "Tonneau."),
@@ -1279,6 +1301,7 @@ class Builder:
                 # détail. À 15 unités il redevient un sac posé à côté d'un bâtiment.
                 ("obj_sack", "sack", 40, "Sac de grain."),
                 ("obj_wheelbarrow", "wheelbarrow", 58, "Brouette."),
+                ("obj_stake", "piquet", 46, "Piquet à chiffon : l'épouvantail."),
                 ("obj_tent", "tente", 96, "Tente ronde de campement."),
                 ("obj_stables", "ecurie", 160, "Écurie (stalles, bottes, clôture)."),
                 ("obj_crate", "crate", 34, "Caisse."),
@@ -1307,8 +1330,11 @@ class Builder:
         # « hay » et « campingTent » ont disparu : la meule plate Kenney se lisait comme un jeton
         # d'interface (32 unités monde, plus grosse que le puits), et la tente était un triangle bleu
         # sans volume. La botte ronde et la tente ronde KayKit les remplacent.
+        # Deux sprites plats de plus s'en vont : le maillet couché ci-dessus, et le poteau blanc de
+        # 18 × 40 qui se lit comme le chiffre 1 planté au milieu d'un village — c'est très
+        # probablement lui, et non le puits, que deux testeurs ont signalé.
         for name in ("fire", "towerRuin", "ruinsCorner", "ruins_brick1",
-                     "lightpost", "banner", "medieval_doorway", "pole", "box2"):
+                     "banner", "medieval_doorway", "box2"):
             obj(f"obj_{name}", L(f"obj:{name}", 0, 0), "summer", f"Objet {name} (Hexagon Pack).")
         for name in ("flowerWhite", "flowerYellow", "flowerRed"):
             obj(f"obj_{name}", L(f"ht:{name}:2.8", 0, 0), "summer", f"Fleur {name} (Hexagon Tiles ×2.8).", pack=HT)
@@ -1318,10 +1344,18 @@ class Builder:
                 im = Image.open(self.src.path(NK, f"Isometric/{kind}_{o}.png")).convert("RGBA")
                 im = im.crop(im.split()[3].getbbox())
                 self.emit(f"obj_{kind}_{o}", "deco", im, NK, f"Isometric/{kind}_{o}.png", f"{fr}, orientation {o} (Nature Kit, rendu isométrique, taille native).", anchor="bottom")
-        for season, k in (("summer", "obj_puddle"), ("winter", "obj_puddle_winter")):
-            lay = Image.new("RGBA", (80, 50), (0, 0, 0, 0))
-            comp.draw_puddle(lay, {"x": 20, "y": 12, "rx": 16, "ry": 9}, season)
-            self.emit(k, "deco", lay, HP, "grass_05 (alpha)", "Flaque d'eau" + (" gelée" if season == "winter" else "") + " (ellipse dessinée, liseré sombre).", anchor="bottom")
+        # Trois formes, et surtout ROGNÉES : le calque gardait une marge transparente au-dessus de
+        # l'ellipse, or le sprite est ancré par son BAS — la flaque flottait donc de huit pixels
+        # au-dessus du sol. Réduites au passage de 32 à 22 unités monde : une flaque n'occupe pas
+        # le quart d'une tuile.
+        for i in range(len(FLAQUES)):
+            for season, suff in (("summer", ""), ("winter", "_winter")):
+                lay = Image.new("RGBA", (80, 50), (0, 0, 0, 0))
+                comp.draw_puddle(lay, {"x": 20, "y": 16, "rx": 11, "ry": 6, "forme": i}, season)
+                bb = lay.split()[3].getbbox()
+                self.emit(f"obj_puddle{i + 1}{suff}", "deco", lay.crop(bb), HP, "grass_05 (alpha)",
+                          f"Flaque d'eau{' gelée' if season == 'winter' else ''}, silhouette {i + 1} sur {len(FLAQUES)} (union d'ellipses, liseré sombre).",
+                          anchor="bottom")
 
     # --- B. faune
     def build_fauna(self):
@@ -1456,7 +1490,7 @@ class Builder:
             "la-source": ("water_1_spring", [("obj_rockGrey_medium1", 60, 150, 1.08)]),
             "jusqu-a-la-mer": ("ground_sand_summer", [("sea_wave_1", 120, 170, 1.4), ("sea_wave_2", 80, 200, 1.2)]),
             "le-lac": ("water_2_summer", [("obj_lily", 90, 150, 1.62), ("obj_lily", 150, 185, 1.49)]),
-            "veillee": ("water_frozen", [("obj_lightpost", 120, 210, 1.9)]),
+            "veillee": ("water_frozen", [("obj_shrine", 120, 212, 1.5)]),
             "quatre-saisons": ("ground_grass_autumn", [("icon_sun", 120, 190, ICON, True)]),
             "grande-foire": ("orchard_1_autumn", [("obj_basket", 120, 215, 1.35)]),
             "compagnie": ("ground_grass_summer", [("fauna_rabbit", 86, 205, 1.0), ("fauna_duck", 156, 205, 1.0)]),
@@ -1468,7 +1502,7 @@ class Builder:
             "charpentier": ("ground_field_summer", [("obj_logPile", 100, 205, 1.49), ("obj_haybale", 165, 200, 2.0)]),
             "signature": ("ground_grass_summer", [("obj_church", 120, 215, 1.35)]),
             "le-cahier-complet": ("ground_stone_summer", [("obj_castle_small", 120, 210, 1.35)]),
-            "port-d-attache": ("ground_water_summer", [("obj_house_small", 84, 200, 1.35), ("obj_pole", 160, 205, 1.35), ("sea_wave_1", 150, 160, 1.0)]),
+            "port-d-attache": ("ground_water_summer", [("obj_house_small", 84, 200, 1.35), ("obj_rockGrey_medium1", 164, 206, 1.0), ("sea_wave_1", 150, 160, 1.0)]),
             "bien-place": ("ground_grass_summer", [("obj_box2", 120, 205, 1.35), ("obj_flowerYellow", 80, 205, 1.35), ("obj_flowerWhite", 160, 205, 1.35)]),
             "frais-du-jour": ("ground_grass_spring", [("obj_treeRound_blossom_large", 120, 220, 1.5)]),
             "chapitre-clos": ("ground_grass_summer", [("icon_trophy", 120, 190, ICON, True)]),
@@ -1541,7 +1575,7 @@ class Builder:
         self.emit("icon_sun", "ui", draw_sun(), "generated", "dessin (tools/build_images.py)", "Soleil (été) — dessiné : disque + 8 rayons, blanc, 100 px")
         self.emit("icon_wind", "ui", draw_wind(), "generated", "dessin (tools/build_images.py)", "Vent (souffles) — dessiné : trois traits bouclés, blanc, 100 px")
         # décor d'UI : objets du Hexagon Pack en 2×
-        for name, note in (("banner", "Bannière rouge"), ("sign", "Panneau bleu"), ("log", "Bûche"), ("fence", "Clôture")):
+        for name, note in (("banner", "Bannière rouge"), ("sign", "Panneau bleu"), ("log", "Bûche")):
             im = self.src.hp(name)
             self.emit(name, "ui", im, HP, self.src.hp_original(name), note + f" (Hexagon Pack, 2× {self.src.methods[name]})")
         for key, f, note in [("panel_grey", "grey_panel", "Panneau 9-slice gris (bords 10 px)"),

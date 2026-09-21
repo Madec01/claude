@@ -245,6 +245,7 @@ Tutoriel pour le commanditaire : `docs/FIREBASE_TUTO.pdf`. Règles : `firestore.
 | Passe de performance (60 fps sur portable modeste) | Budget de fluidité, temps de première image < 3 s | plus tard (audit vers 10) |
 | Reprendre une partie laissée en plan | Île en cours rangée dans le navigateur, bouton « Reprendre » au menu | fait (journal 57) |
 | La mer visible autour de l'île | Profondeur, écume de côte, vagues selon saison et météo, voilier, baleine — sans hexagone dans l'eau | fait (journal 65) |
+| L'épouvantail est un piquet à chiffon, faute de mieux | Aucun des trois packs KayKit ne contient d'épouvantail. Le piquet est vertical et lisible, mais il dit « drapeau » plutôt que « épouvantail ». À revoir si une autre banque libre en fournit un | à surveiller |
 | Le vieux sprite `obj_bushGrass` (Kenney, plat) domine encore les prés | Une fois les herbes hautes posées à côté, sa silhouette en flamme paraît plate. 65 poses par île. À remplacer par une troisième famille du pack Forest | à faire |
 | Une fontaine en volume | Aucun des trois packs KayKit n'en contient. Il faudrait une autre banque libre, ou composer un bassin à partir de pièces existantes | à décider |
 | Lisière qui s'éteint (n'éclairer que les cases près du doigt) | Proposée par l'agent ; **refusée** par le commanditaire : la forme de l'île lisible dès le début est ce qui fait la lisibilité du jeu | écarté |

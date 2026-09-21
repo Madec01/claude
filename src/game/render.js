@@ -13,8 +13,17 @@ import { pathShapes } from './paths.js';
 // arête i (sommet i → i+1 de corners()) → indice dans DIRS du voisin de l'autre côté ; mesuré, pas deviné
 const EDGE_DIR = [1, 0, 5, 4, 3, 2];
 /** Décors déjà posés à plat sur le sol : ils ne reçoivent pas d'ombre de contact. */
-const PLAT = new Set(['obj_puddle', 'obj_leafpile', 'obj_snowdrift', 'obj_moss', 'obj_lily',
-  'obj_flowerWhite', 'obj_flowerRed', 'obj_flowerBlue', 'obj_flowerYellow']);
+const PLAT = new Set(['obj_puddle1', 'obj_puddle2', 'obj_puddle3', 'obj_leafpile', 'obj_snowdrift',
+  'obj_moss', 'obj_lily', 'obj_flowerWhite', 'obj_flowerRed', 'obj_flowerBlue', 'obj_flowerYellow']);
+/**
+ * Un objet est-il à plat au sol (donc sans ombre de contact) ?
+ *
+ * Le test portait sur `o.tpl`, c'est-à-dire le GABARIT — et le gabarit d'une flaque est
+ * `obj_puddle2{w}`, qui n'est évidemment dans aucun ensemble. Les flaques recevaient donc l'ombre
+ * des objets debout : une flaque qui projette une ombre, c'est une flaque qui vole. On compare
+ * maintenant le gabarit débarrassé de ses marques de saison et d'hiver.
+ */
+const estPlat = (tpl) => PLAT.has(tpl.replace(/\{[sw]\}/g, ''));
 
 /** Sols en relief : falaise (roche) et talus (colline). */
 const RELIEF = new Set(['stone', 'hill']);
@@ -442,7 +451,7 @@ export class IslandRenderer {
       // Ombre de contact : sans elle un arbre a l'air collé en autocollant AU-DESSUS du sol — les
       // animaux en avaient une, pas le décor, et c'est ce qui faisait flotter tout le reste. Rien
       // qui soit déjà à plat n'en reçoit (flaque, feuilles, congère, fleurs, mousse, vague).
-      if (!o.wave && !PLAT.has(o.tpl) && h * sc > 9) {
+      if (!o.wave && !estPlat(o.tpl) && h * sc > 9) {
         ctx.globalAlpha = (o.alpha || 1) * 0.16; ctx.fillStyle = '#000';
         ctx.beginPath(); ctx.ellipse(c.x, c.y + dy, w * sc * 0.30, w * sc * 0.11, 0, 0, TAU); ctx.fill();
       }

@@ -56,7 +56,7 @@ Toutes les œuvres ci-dessous appartiennent à leurs auteurs et sont utilisées 
 ## Graphismes
 
 - **Hexagon Pack** — Kenney (kenney.nl) — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://kenney.nl/assets/hexagon-pack) — [miroir utilisé](https://github.com/ETdoFresh/kenney.nl)
-  - Fichiers : 272
+  - Fichiers : 273
 - **Hexagon Tiles** — Kenney (kenney.nl) — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://kenney.nl/assets/hexagon-tiles) — [miroir utilisé](https://github.com/ETdoFresh/kenney.nl)
   - Fichiers : 100
 - **Animal Pack Redux** — Kenney (kenney.nl) — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://kenney.nl/assets/animal-pack-redux) — [miroir utilisé](https://github.com/ETdoFresh/kenney.nl)
@@ -78,7 +78,7 @@ Toutes les œuvres ci-dessous appartiennent à leurs auteurs et sont utilisées 
 - **Pirate Pack** — Kenney (kenney.nl) — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://kenney.nl/assets/pirate-pack) — [miroir utilisé](https://github.com/ETdoFresh/kenney.nl)
   - Fichiers : sea/sea_boat_1.png, sea/sea_boat_2.png
 - **KayKit : Medieval Hexagon Pack (1.0)** — Kay Lousberg — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://kaylousberg.itch.io/kaykit-medieval-hexagon) — [miroir utilisé](https://github.com/KayKit-Game-Assets/KayKit-Medieval-Hexagon-Pack-1.0)
-  - Fichiers : 54
+  - Fichiers : 53
 - **KayKit : Forest Nature Pack (1.0)** — Kay Lousberg — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://kaylousberg.itch.io/forest-nature-pack) — [miroir utilisé](fourni par le commanditaire (téléchargement direct))
   - Fichiers : 51
 - **KayKit : Medieval Hexagon Pack EXTRA (1.0)** — Kay Lousberg — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://kaylousberg.itch.io/kaykit-medieval-hexagon) — [miroir utilisé](fourni par le commanditaire (téléchargement direct))
