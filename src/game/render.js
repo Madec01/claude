@@ -25,12 +25,43 @@ const SEA = { spring: ['#8fc8e6', '#5f9fc8'], summer: ['#7fc0e4', '#4f93c2'], au
 // `bank` : l'ombre de la berge, posée SOUS l'eau et débordant vers le bas — c'est elle qui fait que l'eau
 // est creusée dans le terrain au lieu d'être peinte dessus. `shoal` : les bas-fonds, un anneau clair au
 // contact de la terre. `deep` : le fond, vers lequel le dégradé descend. Une seule famille de teintes.
-const WATER = {
-  spring: { fill: '#5aa7d6', deep: '#4e99c8', shoal: '#74bade', edge: '#448cba', foam: 'rgba(255,255,255,0.55)' },
-  summer: { fill: '#4f9ed2', deep: '#4390c4', shoal: '#6bb3dc', edge: '#3d85b4', foam: 'rgba(255,255,255,0.5)' },
-  autumn: { fill: '#5b95bd', deep: '#4f87ae', shoal: '#7dadc9', edge: '#457a9e', foam: 'rgba(255,255,255,0.45)' },
-  winter: { fill: '#6f9fc0', deep: '#6291b3', shoal: '#8db5cf', edge: '#5483a3', foam: 'rgba(255,255,255,0.4)' },
+/**
+ * Un seul bleu pour toute l'eau de l'île.
+ *
+ * La mer et les lacs parlaient deux langues : la mer est un dégradé d'écran tiré de `SEA`, les lacs
+ * avaient leurs quatre teintes écrites à la main — plus saturées, d'une autre famille. À côté l'une de
+ * l'autre, on lisait deux matières. La palette d'un lac se DÉDUIT donc maintenant de celle de la mer :
+ * son plan d'eau prend la couleur de la mer à mi-hauteur, et le creux se construit autour.
+ *
+ * Le creux reste, lui : c'est lui qui dit « trou dans la terre » plutôt que « flaque posée dessus ».
+ * En relevant les anciennes teintes on a trouvé qu'il tenait dans trois rapports, presque identiques
+ * aux quatre saisons (écart maximal 0,03) — on les garde donc tels quels, appliqués à la mer.
+ */
+/**
+ * La ride : un seul rythme de pointillé pour toute l'eau intérieure (lac, étang, rivière). Le lac
+ * pointillait en 10/26, la rivière en 8/22, et à deux cases d'écart cela suffisait à les faire lire
+ * comme deux matières. La VITESSE, elle, reste différente à dessein : une rivière coule, un lac non.
+ */
+const RIDE = { tirets: [10, 26], trait: 2.2 };
+const CREUX = { deep: [0.87, 0.91, 0.93], shoal: [1.32, 1.14, 1.05], edge: [0.76, 0.83, 0.85] };
+// La SURFACE moyenne d'une nappe : son dégradé va de `fill` à `shoal`, donc le ton qu'on lit vraiment
+// est entre les deux. C'est lui que le pipeline recopie pour les flaques du marais et pour la carte de
+// la tuile d'eau, qui sont des aplats : sans quoi une flaque prend le point le plus SOMBRE du lac et
+// paraît d'un autre bleu, alors que la famille est la bonne.
+const SURFACE = CREUX.shoal.map((k) => (1 + k) / 2);
+const hexRgb = (h) => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
+const rgbHex = (c) => `#${c.map((v) => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, '0')).join('')}`;
+const teinter = (rgb, k) => rgbHex(rgb.map((v, i) => v * k[i]));
+const nappeDe = (saison) => {
+  const [haut, bas] = SEA[saison];
+  const mid = hexRgb(haut).map((v, i) => (v + hexRgb(bas)[i]) / 2);   // la mer à mi-écran
+  return {
+    fill: rgbHex(mid), deep: teinter(mid, CREUX.deep), shoal: teinter(mid, CREUX.shoal), edge: teinter(mid, CREUX.edge),
+    // la même écume que le trait de côte de `drawShallows` : une seule blancheur pour toute l'île
+    foam: `rgba(255,255,255,${saison === 'winter' ? 0.4 : 0.52})`,
+  };
 };
+const WATER = { spring: nappeDe('spring'), summer: nappeDe('summer'), autumn: nappeDe('autumn'), winter: nappeDe('winter') };
 const ICE = { fill: '#dbe9f4', deep: '#cfe0ee', shoal: '#e8f2fa', edge: '#bdd2e2', foam: 'rgba(255,255,255,0.8)' };
 
 export class IslandRenderer {
@@ -491,7 +522,7 @@ export class IslandRenderer {
       ctx.fillStyle = pal.edge; this.blob(ctx, c.x, c.y, rr * 1.03, c0); ctx.fill();
       ctx.fillStyle = pal.deep; this.blob(ctx, c.x, c.y, rr, c0); ctx.fill();
       ctx.fillStyle = pal.shoal; this.blob(ctx, c.x, c.y + 3.5 * z, rr * 0.92, c0); ctx.fill();
-      if (!frozen) { ctx.strokeStyle = pal.foam; ctx.lineWidth = 1.5 * z; ctx.beginPath(); ctx.ellipse(c.x - rr * 0.2, c.y - rr * 0.25, rr * 0.35, rr * 0.16, -0.4, 0, TAU); ctx.stroke(); }
+      if (!frozen) { ctx.strokeStyle = pal.foam; ctx.lineWidth = RIDE.trait * 0.7 * z; ctx.beginPath(); ctx.ellipse(c.x - rr * 0.2, c.y - rr * 0.25, rr * 0.35, rr * 0.16, -0.4, 0, TAU); ctx.stroke(); }
       else this.drawCracks(ctx, [c], z);
     }
     const ordered = [...bodies].sort((a, b) => (a.kind === 'river') - (b.kind === 'river'));   // nappes d'abord, rubans par-dessus (la rivière se jette dans le lac)
@@ -519,7 +550,7 @@ export class IslandRenderer {
         tapered(sp, wAt, 1, pal.deep);
         ctx.save(); ctx.translate(0, 2.5 * z); tapered(sp, wAt, 0.88, pal.shoal); ctx.restore();
         if (mouth) { const m = S(mouth); ctx.fillStyle = pal.fill; ctx.beginPath(); ctx.ellipse(m.x, m.y, 26 * z, 16 * z, 0, 0, TAU); ctx.fill(); }
-        if (!frozen) { ctx.strokeStyle = pal.foam; ctx.lineWidth = (this.finale ? 3 : 1.5) * z; ctx.setLineDash([8 * z, 22 * z]); ctx.lineDashOffset = -this.time * (this.finale ? 120 : 40) * z; trace(sp); ctx.stroke(); ctx.setLineDash([]); }
+        if (!frozen) { ctx.strokeStyle = pal.foam; ctx.lineWidth = (this.finale ? 3 : RIDE.trait) * z; ctx.setLineDash(RIDE.tirets.map((v) => v * z)); ctx.lineDashOffset = -this.time * (this.finale ? 120 : 40) * z; trace(sp); ctx.stroke(); ctx.setLineDash([]); }
         else this.drawCracks(ctx, sp, z);
       } else if (body.kind === 'pond') {
         const c = S(c0); if (!vis(c)) continue;
@@ -532,7 +563,7 @@ export class IslandRenderer {
           if (!b.isSea(nq, nr)) continue;
           this.bras(ctx, c0, d, mer, z, S, body.cells[0]);
         }
-        if (!frozen) { ctx.strokeStyle = pal.foam; ctx.lineWidth = 1.5 * z; ctx.beginPath(); ctx.ellipse(c.x - rr * 0.2, c.y - rr * 0.25, rr * 0.35, rr * 0.16, -0.4, 0, TAU); ctx.stroke(); }
+        if (!frozen) { ctx.strokeStyle = pal.foam; ctx.lineWidth = RIDE.trait * 0.7 * z; ctx.beginPath(); ctx.ellipse(c.x - rr * 0.2, c.y - rr * 0.25, rr * 0.35, rr * 0.16, -0.4, 0, TAU); ctx.stroke(); }
       } else {
         // lac : union de mares arrondies (une par case, forme irrégulière) reliées par des ponts arrondis entre cases voisines ;
         // tout est de la même couleur, donc aucune couture : le lac devient une nappe organique aux rives lobées
@@ -559,12 +590,12 @@ export class IslandRenderer {
         if (!frozen) {
           // la rive scintille : un liseré clair qui court le long du contour, et qui BOUGE — sans
           // l'animation ce n'est qu'un trait peint, et c'est ce mouvement qui fait lire « de l'eau »
-          ctx.save(); ctx.strokeStyle = pal.foam; ctx.lineWidth = 2.2 * z;
-          ctx.setLineDash([10 * z, 26 * z]); ctx.lineDashOffset = -this.time * 12 * z;
+          ctx.save(); ctx.strokeStyle = pal.foam; ctx.lineWidth = RIDE.trait * z;
+          ctx.setLineDash(RIDE.tirets.map((v) => v * z)); ctx.lineDashOffset = -this.time * 12 * z;
           for (const c of cs) { this.blob(ctx, c.s.x, c.s.y, SIZE * 0.9 * z, c.w); ctx.stroke(); }
           ctx.restore();
           // reflets : une ride par case, placée de façon déterministe
-          ctx.strokeStyle = pal.foam; ctx.lineWidth = 1.5 * z; ctx.beginPath();
+          ctx.strokeStyle = pal.foam; ctx.lineWidth = RIDE.trait * 0.7 * z; ctx.beginPath();
           for (const c of cs) { const j = jit(c.w, { x: 1, y: 1 }); const rr = SIZE * 0.86 * z; ctx.moveTo(c.s.x - rr * 0.3 + j * rr * 0.4, c.s.y - rr * 0.2 + j * rr * 0.3); ctx.bezierCurveTo(c.s.x - rr * 0.1, c.s.y - rr * 0.35 + j * rr * 0.3, c.s.x + rr * 0.1, c.s.y - rr * 0.05 + j * rr * 0.3, c.s.x + rr * 0.3, c.s.y - rr * 0.2 + j * rr * 0.3); }
           ctx.stroke();
         // Bras de mer : une nappe qui touche le bord de l'île n'est pas un lac fermé, c'est une
