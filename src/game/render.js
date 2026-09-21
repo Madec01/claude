@@ -3,6 +3,7 @@ import { Assets } from '../core/assets.js';
 import { toWorld, corners, parse, key, DIRS, edgeMid, TILE_W, TILE_H, SIZE } from './hex.js';
 import { FAMILY_COLORS, SEASONS } from '../data/tiles.js';
 import { STORY } from '../data/story.js';
+import { FAUNA_SIZE } from './fauna.js';
 import { clamp, lerp, TAU, easeOutCubic, rnd } from '../core/math.js';
 
 import { STAGE } from '../core/stage.js';
@@ -811,6 +812,7 @@ export class IslandRenderer {
     const cam = this.cam;
     const sheet = Assets.img(`fauna_${species}_side`);
     const m = sheet ? (Assets.manifest().images || {})[`fauna_${species}_side`] : null;
+    s *= FAUNA_SIZE[species] || 0.5;   // échelle commune : sans elle, chaque espèce fait la taille de son rendu
     const w = m ? (m.frame_w / 2) * cam.zoom * s : 44 * cam.zoom * s;
     const k = 1 - Math.min(0.3, Math.abs(lift) / Math.max(1, 70 * cam.zoom));   // l'ombre rétrécit un peu quand il se soulève
     ctx.save();

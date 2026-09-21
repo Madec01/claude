@@ -15,7 +15,10 @@ export const FUSION_DECOR = {
   port:   [{ tpl: 'obj_house_small', dx: -26, dy: 20 }, { tpl: 'obj_ship', dx: 20, dy: 4 }, { tpl: 'obj_boat', dx: -6, dy: 42 }, { tpl: 'obj_boatrack', dx: 34, dy: 40 }, { tpl: 'obj_anchor', dx: -34, dy: 44 }, { tpl: 'obj_pole', dx: 6, dy: 32 }],
   paddy:  [{ tpl: 'obj_crop_{s}', dx: -20, dy: 10 }, { tpl: 'obj_crop_{s}', dx: 0, dy: 20 }, { tpl: 'obj_crop_{s}', dx: 20, dy: 10 }, { tpl: 'obj_crop_{s}', dx: -10, dy: 34 }, { tpl: 'obj_crop_{s}', dx: 12, dy: 36 }, { tpl: 'obj_lily', dx: -26, dy: 30, seasons: ['summer'] }],
   farm:   [{ tpl: 'obj_farm', dx: 0, dy: 30 }, { tpl: 'obj_silo1', dx: -34, dy: 22 }, { tpl: 'obj_fence', dx: 32, dy: 40 }, { tpl: 'obj_haybale', dx: 30, dy: 12 }, { tpl: 'obj_hay', dx: 8, dy: 46 }, { tpl: 'obj_crop_{s}', dx: -28, dy: 44 }],
-  fort:   [{ tpl: 'obj_castle_small', dx: 0, dy: 30 }, { tpl: 'obj_wall_small', dx: -34, dy: 34 }, { tpl: 'obj_rockGrey_small1{w}', dx: 32, dy: 36 }],
+  // le château faisait 75 × 84 sur un hexagone large de 120 : il mangeait sa case et débordait, et le
+  // bout de rempart posé à côté n'était accroché à rien. Réduit à la taille d'une petite maison, avec
+  // deux maisonnettes blotties dessous : on lit un hameau fortifié, pas un donjon tombé là.
+  fort:   [{ tpl: 'obj_castle_small', dx: 0, dy: 26, scale: 0.6 }, { tpl: 'obj_tinyBuilding', dx: -30, dy: 40, scale: 0.9 }, { tpl: 'obj_tinyBuilding_jaune', dx: 26, dy: 42, scale: 0.85 }, { tpl: 'obj_rockGrey_small1{w}', dx: 34, dy: 24, scale: 0.7 }],
   falls:  [{ tpl: 'obj_rockGrey_large{w}', dx: -10, dy: 34, scale: 1.15 }, { tpl: 'obj_rockGrey_medium2{w}', dx: 28, dy: 18 }, { tpl: 'sea_wave_1', dx: 2, dy: 14, wave: true }, { tpl: 'obj_moss', dx: -28, dy: 20, seasons: ['spring'] }],
   cave:   [{ tpl: 'obj_rockGrey_large{w}', dx: 0, dy: 40, scale: 1.3 }, { tpl: 'obj_medieval_doorway', dx: 0, dy: 44, scale: 0.8 }, { tpl: 'obj_treePine_small_{s}', dx: -34, dy: 22 }, { tpl: 'obj_treePine_small_{s}', dx: 34, dy: 26 }],
   lagoon: [{ tpl: 'obj_rockBrown_small{w}', dx: -30, dy: 32 }, { tpl: 'sea_wave_2', dx: 8, dy: 6, wave: true }, { tpl: 'obj_bushGrass_dry', dx: 30, dy: 30 }],

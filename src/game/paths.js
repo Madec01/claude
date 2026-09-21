@@ -1,7 +1,7 @@
 // Sentiers : ruelles entre hameaux voisins et sentiers automatiques entre deux hameaux séparés par de la terre ouverte.
 // Rien n'est posé par le joueur : les chemins se déduisent du plateau et se redessinent à chaque changement.
 import { Board } from './board.js';
-import { key, parse, neighbors, toWorld, SIZE } from './hex.js';
+import { key, parse, neighbors, toWorld, edgeMid, DIRS, SIZE } from './hex.js';
 
 const OPEN = new Set(['meadow', 'field', 'orchard', 'heath', 'hill']);
 export const MAX_PATH = 3;   // nombre maximal de tuiles de terre ouverte entre deux hameaux
@@ -92,20 +92,55 @@ function waypoint(board, k, maison) {
 }
 
 /** Points de contrôle d'un chemin, de bout en bout, en coordonnées monde. */
-function shape(board, cells) {
-  const n = cells.length;
-  const pts = cells.map((k) => { const [q, r] = parse(k); return waypoint(board, k, isHamlet(board.get(q, r))); });
-  if (n === 1) return pts;
-  // lissage léger : un point de contrôle par segment, à peine décalé (le gros du hasard est déjà par case)
-  const out = [pts[0]];
-  for (let i = 0; i < pts.length - 1; i++) {
-    const a = pts[i], b = pts[i + 1];
-    const dx = b.x - a.x, dy = b.y - a.y, len = Math.hypot(dx, dy) || 1;
-    const j = wobble(cells[i], 3 + i);
-    out.push({ x: a.x + dx * 0.5 + (-dy / len) * j * 9, y: a.y + dy * 0.5 + (dx / len) * j * 9 });
-    out.push(b);
+/**
+ * Arrondi de Chaikin : chaque coin d'une polyligne est remplacé par deux points au quart et aux trois
+ * quarts du segment. Deux passes suffisent à faire d'une ligne brisée une courbe. Les extrémités ne
+ * bougent pas — un chemin doit rester devant la façade où on l'a posé.
+ */
+function chaikin(pts, passes = 2) {
+  let cur = pts;
+  for (let p = 0; p < passes; p++) {
+    if (cur.length < 3) return cur;
+    const out = [cur[0]];
+    for (let i = 0; i < cur.length - 1; i++) {
+      const a = cur[i], b = cur[i + 1];
+      out.push({ x: a.x * 0.75 + b.x * 0.25, y: a.y * 0.75 + b.y * 0.25 });
+      out.push({ x: a.x * 0.25 + b.x * 0.75, y: a.y * 0.25 + b.y * 0.75 });
+    }
+    out.push(cur[cur.length - 1]);
+    cur = out;
   }
-  return out;
+  return cur;
+}
+
+/** Le milieu de l'arête partagée par deux cases voisines, un peu décalé au hasard de la paire. */
+function passage(ka, kb) {
+  const [qa, ra] = parse(ka), [qb, rb] = parse(kb);
+  const c = toWorld(qa, ra);
+  for (let d = 0; d < 6; d++) {
+    const [dq, dr] = DIRS[d];
+    if (qa + dq !== qb || ra + dr !== rb) continue;
+    const m = edgeMid(c.x, c.y, d);
+    const j = wobble(ka, 7) * SIZE * 0.14, j2 = wobble(kb, 11) * SIZE * 0.1;
+    return { x: m.x + j, y: m.y + j2 };
+  }
+  return null;   // cases non adjacentes (ne devrait pas arriver)
+}
+
+/**
+ * Le tracé d'un chemin. Un seul point par case faisait couper les coins : la courbe n'avait aucune
+ * raison de tourner là où elle tournait, et elle mordait sur les cases voisines. On passe donc aussi
+ * par le milieu de chaque arête réellement franchie, puis on arrondit le tout (Chaikin).
+ */
+function shape(board, cells) {
+  if (cells.length === 1) { const [q, r] = parse(cells[0]); return [waypoint(board, cells[0], isHamlet(board.get(q, r)))]; }
+  const brut = [];
+  for (let i = 0; i < cells.length; i++) {
+    const k = cells[i]; const [q, r] = parse(k);
+    brut.push(waypoint(board, k, isHamlet(board.get(q, r))));
+    if (i < cells.length - 1) { const m = passage(k, cells[i + 1]); if (m) brut.push(m); }
+  }
+  return chaikin(brut, 2);
 }
 
 /**
