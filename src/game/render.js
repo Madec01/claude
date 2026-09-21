@@ -12,24 +12,6 @@ import { Decor, groundOf, groundKey, GROUND_COLORS, spriteKey } from './decor.js
 import { pathShapes } from './paths.js';
 // arête i (sommet i → i+1 de corners()) → indice dans DIRS du voisin de l'autre côté ; mesuré, pas deviné
 const EDGE_DIR = [1, 0, 5, 4, 3, 2];
-/** Les composantes d'une couleur hexadécimale. */
-function rgb(hex) {
-  const h = hex.replace('#', '');
-  const n = parseInt(h.length === 3 ? h.split('').map((c) => c + c).join('') : h, 16);
-  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
-}
-/** La même couleur, avec une opacité : sert aux dégradés qui se dissolvent. */
-function hexA(hex, a) { const [r, g, b] = rgb(hex); return `rgba(${r},${g},${b},${a})`; }
-/** Le mélange de deux couleurs hexadécimales, `t` = 0 pour la première, 1 pour la seconde. */
-function mix(x, y, t) {
-  const p = rgb(x), q = rgb(y);
-  return [Math.round(p[0] + (q[0] - p[0]) * t), Math.round(p[1] + (q[1] - p[1]) * t), Math.round(p[2] + (q[2] - p[2]) * t)];
-}
-/** Idem, rendu en hexadécimal (pour pouvoir remélanger ensuite). */
-function mixHexStr(x, y, t) { return `#${mix(x, y, t).map((n) => n.toString(16).padStart(2, '0')).join('')}`; }
-/** Idem, rendu en rgba avec une opacité. */
-function mixHex(x, y, t, a = 1) { const c = mix(x, y, t); return `rgba(${c[0]},${c[1]},${c[2]},${a})`; }
-
 /** Décors déjà posés à plat sur le sol : ils ne reçoivent pas d'ombre de contact. */
 const PLAT = new Set(['obj_puddle', 'obj_leafpile', 'obj_snowdrift', 'obj_moss', 'obj_lily',
   'obj_flowerWhite', 'obj_flowerRed', 'obj_flowerBlue', 'obj_flowerYellow']);
@@ -486,7 +468,13 @@ export class IslandRenderer {
     // La mer est un dégradé vertical d'écran (voir `drawSea`) : on sait donc sa couleur à n'importe
     // quelle hauteur, et un bras de mer peut virer exactement à la teinte qu'il rejoint.
     const seaCols = (this.isl.climate && this.isl.climate.sea) || SEA[this.isl.season] || SEA.spring;
-    const mer = (y) => mixHexStr(seaCols[0], seaCols[1], Math.max(0, Math.min(1, y / STAGE.H)));
+    let merGrd = null;
+    const mer = () => {
+      if (merGrd) return merGrd;
+      merGrd = ctx.createLinearGradient(0, 0, 0, STAGE.H);
+      merGrd.addColorStop(0, seaCols[0]); merGrd.addColorStop(1, seaCols[1]);
+      return merGrd;
+    };
     ctx.save(); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
     for (const h of this.decor.holes || []) {
       // lagune : une mare comme un étang, gelée en hiver
@@ -535,7 +523,7 @@ export class IslandRenderer {
         for (let d = 0; d < 6; d++) {   // mare ouverte sur la mer : elle devient une crique
           const cell = body.cells[0]; const nq = cell.q + DIRS[d][0], nr = cell.r + DIRS[d][1];
           if (!b.isSea(nq, nr)) continue;
-          this.bras(ctx, c0, d, pal, mer, z, S);
+          this.bras(ctx, c0, d, mer, z, S);
         }
         if (!frozen) { ctx.strokeStyle = pal.foam; ctx.lineWidth = 1.5 * z; ctx.beginPath(); ctx.ellipse(c.x - rr * 0.2, c.y - rr * 0.25, rr * 0.35, rr * 0.16, -0.4, 0, TAU); ctx.stroke(); }
       } else {
@@ -561,15 +549,6 @@ export class IslandRenderer {
         nappe(pal.edge, 2);            // la lèvre : un liseré sombre au contact de la terre, sans débord
         nappe(pal.deep, 0);            // le fond, à l'ombre
         nappe(grad, -4, 4 * z);        // le plan d'eau, un peu rétréci et descendu : ombre fine sous la lèvre
-        // Bras de mer : une nappe qui touche le bord de l'île n'est pas un lac fermé, c'est une
-        // échancrure. Du côté ouvert on efface la lèvre et on prolonge l'eau vers le large.
-        // Le prolongement se DISSOUT : peint en aplat, il faisait des taches pâles sur la mer, qui
-        // n'a pas la même teinte. Un dégradé vers le transparent laisse la mer reprendre la main.
-        for (const c of cs) for (let d = 0; d < 6; d++) {
-          const nq = c.cell.q + DIRS[d][0], nr = c.cell.r + DIRS[d][1];
-          if (!b.isSea(nq, nr)) continue;
-          this.bras(ctx, c.w, d, pal, mer, z, S);
-        }
         if (!frozen) {
           // la rive scintille : un liseré clair qui court le long du contour, et qui BOUGE — sans
           // l'animation ce n'est qu'un trait peint, et c'est ce mouvement qui fait lire « de l'eau »
@@ -581,6 +560,14 @@ export class IslandRenderer {
           ctx.strokeStyle = pal.foam; ctx.lineWidth = 1.5 * z; ctx.beginPath();
           for (const c of cs) { const j = jit(c.w, { x: 1, y: 1 }); const rr = SIZE * 0.86 * z; ctx.moveTo(c.s.x - rr * 0.3 + j * rr * 0.4, c.s.y - rr * 0.2 + j * rr * 0.3); ctx.bezierCurveTo(c.s.x - rr * 0.1, c.s.y - rr * 0.35 + j * rr * 0.3, c.s.x + rr * 0.1, c.s.y - rr * 0.05 + j * rr * 0.3, c.s.x + rr * 0.3, c.s.y - rr * 0.2 + j * rr * 0.3); }
           ctx.stroke();
+        // Bras de mer : une nappe qui touche le bord de l'île n'est pas un lac fermé, c'est une
+        // échancrure. Dessiné EN DERNIER, après l'écume et les rides : sinon le liseré du lac se
+        // prolongeait dans la mer et redessinait la lèvre qu'on venait d'ouvrir.
+        for (const c of cs) for (let d = 0; d < 6; d++) {
+          const nq = c.cell.q + DIRS[d][0], nr = c.cell.r + DIRS[d][1];
+          if (!b.isSea(nq, nr)) continue;
+          this.bras(ctx, c.w, d, mer, z, S);
+        }
         } else this.drawCracks(ctx, cs.map((c) => c.s), z);
       }
     }
@@ -645,16 +632,15 @@ export class IslandRenderer {
    * est alors invisible par construction, et l'opacité recouvre ce qui traînait au milieu (liseré de
    * côte, coin de terre). Seul le tout début, encore dans la nappe, garde son ton de bas-fond.
    */
-  bras(ctx, w, d, pal, mer, z, S) {
+  bras(ctx, w, d, mer, z, S) {
     const m = edgeMid(w.x, w.y, d);
     const vers = (t) => ({ x: w.x + (m.x - w.x) * t, y: w.y + (m.y - w.y) * t });
-    const a = S(vers(0.45)), fin = S(vers(2.0));
-    const bleu = mer(S(vers(1.3)).y);
-    const grd = ctx.createLinearGradient(a.x, a.y, fin.x, fin.y);
-    // le virage se fait tôt : les disques débordent aussi SUR LES CÔTÉS, et un ton de bas-fond qui
-    // s'étale latéralement redessine exactement le lobe pâle qu'on cherchait à supprimer
-    grd.addColorStop(0, pal.shoal); grd.addColorStop(0.22, bleu); grd.addColorStop(1, bleu);
-    ctx.fillStyle = grd;
+    // Le dégradé de la mer, repris à l'identique : même axe (vertical, plein écran), mêmes bornes.
+    // Une couleur plate ne pouvait pas marcher — la mer est un dégradé, donc une teinte unique ne
+    // coïncide que sur une ligne et se voit au-dessus et au-dessous. Avec le même dégradé, l'échancrure
+    // est de l'eau de mer où qu'elle soit, et la jointure ne peut plus se voir. (Mesuré : la mer fait
+    // (110, 172, 209) au ras de l'île, le lac (98, 173, 216) — un cheveu d'écart, invisible.)
+    ctx.fillStyle = mer();
     // quatre disques qui se chevauchent franchement : aucun interstice ne peut subsister entre eux
     for (const [t, r] of [[0.55, 0.55], [0.95, 0.55], [1.4, 0.5], [1.85, 0.4]]) {
       const p = S(vers(t));
