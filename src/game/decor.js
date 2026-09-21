@@ -13,7 +13,7 @@ const FUSION_GROUND = { farm: 'field', fort: 'stone', cave: 'stone' };
 /** Décor des tuiles composées : objets posés autour du centre (dx, dy en unités monde). */
 export const FUSION_DECOR = {
   paddy:  [{ tpl: 'obj_crop_{s}', dx: -20, dy: 10 }, { tpl: 'obj_crop_{s}', dx: 0, dy: 20 }, { tpl: 'obj_crop_{s}', dx: 20, dy: 10 }, { tpl: 'obj_crop_{s}', dx: -10, dy: 34 }, { tpl: 'obj_crop_{s}', dx: 12, dy: 36 }, { tpl: 'obj_lily', dx: -26, dy: 30, seasons: ['summer'] }],
-  farm:   [{ tpl: 'obj_farm', dx: 0, dy: 30 }, { tpl: 'obj_silo1', dx: -34, dy: 22 }, { tpl: 'obj_fence', dx: 32, dy: 40 }, { tpl: 'obj_haybale', dx: 30, dy: 12 }, { tpl: 'obj_hay', dx: 8, dy: 46 }, { tpl: 'obj_crop_{s}', dx: -28, dy: 44 }],
+  farm:   [{ tpl: 'obj_farm', dx: 0, dy: 30 }, { tpl: 'obj_silo1', dx: -34, dy: 22 }, { tpl: 'obj_fence', dx: 32, dy: 40 }, { tpl: 'obj_haybale', dx: 30, dy: 12 }, { tpl: 'obj_wheelbarrow', dx: 8, dy: 46, scale: 0.9 }, { tpl: 'obj_crop_{s}', dx: -28, dy: 44 }],
   // le château faisait 75 × 84 sur un hexagone large de 120 : il mangeait sa case et débordait, et le
   // bout de rempart posé à côté n'était accroché à rien. Réduit à la taille d'une petite maison, avec
   // deux maisonnettes blotties dessous : on lit un hameau fortifié, pas un donjon tombé là.
@@ -32,22 +32,22 @@ export const FUSION_DECOR = {
  * Coordonnées en unités monde depuis le centre de la case.
  */
 export const RARE_DECOR = {
-  mill:       [{ tpl: 'obj_windmill_complete', dx: 0, dy: 22, scale: 0.85 }, { tpl: 'obj_sack', dx: -30, dy: 34, scale: 1.6 }, { tpl: 'obj_fence', dx: 34, dy: 30, scale: 0.8 }],
+  mill:       [{ tpl: 'obj_windmill_complete', dx: 0, dy: 22, scale: 0.85 }, { tpl: 'obj_sack', dx: -30, dy: 34, scale: 1 }, { tpl: 'obj_fence', dx: 34, dy: 30, scale: 0.8 }],
   chapel:     [{ tpl: 'obj_church', dx: 0, dy: 24, scale: 0.8 }, { tpl: 'obj_fence', dx: -34, dy: 32, scale: 0.75 }, { tpl: 'obj_treePine_small_{s}', dx: 36, dy: 12, scale: 0.75 }],
   watchtower: [{ tpl: 'obj_tower', dx: 0, dy: 26, scale: 0.75 }, { tpl: 'obj_wall_small', dx: -30, dy: 28, scale: 0.6 }, { tpl: 'obj_treePine_small_{s}', dx: 34, dy: 12, scale: 0.7 }],
   well:       [{ tpl: 'obj_well', dx: 0, dy: 20, scale: 1.3 }, { tpl: 'obj_fence', dx: -26, dy: 26, scale: 0.6 }, { tpl: 'obj_fence', dx: 26, dy: 26, scale: 0.6 }, { tpl: 'obj_bushGrass_{s}', dx: 32, dy: 8, scale: 0.8 }],
-  camp:       [{ tpl: 'obj_campingTent', dx: -12, dy: 20 }, { tpl: 'obj_fire', dx: 24, dy: 24 }, { tpl: 'obj_logPile', dx: 26, dy: 38, scale: 0.9 }, { tpl: 'obj_treePine_small_{s}', dx: -32, dy: 34, scale: 0.7 }],
+  camp:       [{ tpl: 'obj_tent', dx: -12, dy: 22 }, { tpl: 'obj_fire', dx: 24, dy: 24 }, { tpl: 'obj_logPile', dx: 26, dy: 38, scale: 0.9 }, { tpl: 'obj_treePine_small_{s}', dx: -32, dy: 34, scale: 0.7 }],
   ruins:      [{ tpl: 'obj_towerRuin', dx: -2, dy: 24, scale: 0.9 }, { tpl: 'obj_logPile', dx: -28, dy: 32, scale: 0.95 }, { tpl: 'obj_ruins_brick1', dx: 28, dy: 30, scale: 0.9 }],
-  granary:    [{ tpl: 'obj_farm', dx: 0, dy: 26, scale: 0.85 }, { tpl: 'obj_silo1', dx: -32, dy: 20, scale: 0.9 }, { tpl: 'obj_sack', dx: 26, dy: 34, scale: 2.2 }, { tpl: 'obj_hay', dx: 32, dy: 14, scale: 0.8 }],
+  granary:    [{ tpl: 'obj_farm', dx: 0, dy: 26, scale: 0.85 }, { tpl: 'obj_silo1', dx: -32, dy: 20, scale: 0.9 }, { tpl: 'obj_sack', dx: 26, dy: 34, scale: 1 }, { tpl: 'obj_crate', dx: 34, dy: 36, scale: 0.85 }, { tpl: 'obj_haybale', dx: 32, dy: 14, scale: 0.9 }],
   fountain:   [{ tpl: 'obj_fountain', dx: 0, dy: 24 }, { tpl: 'obj_fence', dx: -30, dy: 26, scale: 0.6 }, { tpl: 'obj_fence', dx: 30, dy: 26, scale: 0.6 }],
-  market:     [{ tpl: 'obj_shop', dx: 0, dy: 22 }, { tpl: 'obj_cart', dx: 30, dy: 36, scale: 0.8 }, { tpl: 'obj_crate', dx: -32, dy: 34, scale: 1.2 }, { tpl: 'obj_barrel', dx: -24, dy: 16, scale: 1.1 }],
-  fete:       [{ tpl: 'obj_stage', dx: 0, dy: 24, scale: 0.8 }, { tpl: 'obj_barrel', dx: -30, dy: 32, scale: 1.2 }, { tpl: 'obj_barrel', dx: 30, dy: 34, scale: 1.1 }, { tpl: 'obj_banner', dx: -34, dy: 10, scale: 0.9 }],
+  market:     [{ tpl: 'obj_shop', dx: 0, dy: 22 }, { tpl: 'obj_cart', dx: 30, dy: 36, scale: 0.8 }, { tpl: 'obj_crate', dx: -32, dy: 34, scale: 1.2 }, { tpl: 'obj_barrel', dx: -24, dy: 16, scale: 0.85 }],
+  fete:       [{ tpl: 'obj_stage', dx: 0, dy: 24, scale: 0.8 }, { tpl: 'obj_barrel', dx: -30, dy: 32, scale: 0.92 }, { tpl: 'obj_barrel', dx: 30, dy: 34, scale: 0.85 }, { tpl: 'obj_banner', dx: -34, dy: 10, scale: 0.9 }],
   restore:    [{ tpl: 'obj_scaffolding', dx: 0, dy: 26, scale: 0.9 }, { tpl: 'obj_ladder', dx: 30, dy: 30, scale: 0.9 }, { tpl: 'obj_crate', dx: -32, dy: 34, scale: 1.2 }],
-  tavern:     [{ tpl: 'obj_tavern', dx: 0, dy: 24, scale: 0.75 }, { tpl: 'obj_barrel', dx: -32, dy: 32, scale: 1.3 }, { tpl: 'obj_barrel', dx: 34, dy: 36, scale: 1.1 }],
-  trough:     [{ tpl: 'obj_horseTrough', dx: 0, dy: 24, scale: 1.4 }, { tpl: 'obj_fence', dx: -30, dy: 26, scale: 0.6 }, { tpl: 'obj_fence', dx: 30, dy: 26, scale: 0.6 }, { tpl: 'obj_bushGrass_{s}', dx: 30, dy: 8, scale: 0.8 }],
+  tavern:     [{ tpl: 'obj_tavern', dx: 0, dy: 24, scale: 0.75 }, { tpl: 'obj_barrel', dx: -32, dy: 32, scale: 1 }, { tpl: 'obj_barrel', dx: 34, dy: 36, scale: 0.85 }],
+  trough:     [{ tpl: 'obj_horseTrough', dx: 0, dy: 24, scale: 1 }, { tpl: 'obj_fence', dx: -30, dy: 26, scale: 0.6 }, { tpl: 'obj_fence', dx: 30, dy: 26, scale: 0.6 }, { tpl: 'obj_bushGrass_{s}', dx: 30, dy: 8, scale: 0.8 }],
   archway:    [{ tpl: 'obj_archway', dx: 0, dy: 24, scale: 0.95 }, { tpl: 'obj_wall_small', dx: -32, dy: 26, scale: 0.55 }, { tpl: 'obj_wall_small', dx: 32, dy: 26, scale: 0.55, flip: true }],
   mine:       [{ tpl: 'obj_mine', dx: 0, dy: 24 }, { tpl: 'obj_logPile', dx: -30, dy: 32 }, { tpl: 'obj_rockGrey_small2{w}', dx: 32, dy: 28, scale: 0.8 }],
-  oven:       [{ tpl: 'obj_oven', dx: 0, dy: 24 }, { tpl: 'obj_logPile', dx: -30, dy: 32 }, { tpl: 'obj_sack', dx: 30, dy: 30, scale: 1.6 }],
+  oven:       [{ tpl: 'obj_oven', dx: 0, dy: 24 }, { tpl: 'obj_logPile', dx: -30, dy: 32 }, { tpl: 'obj_sack', dx: 30, dy: 30, scale: 1 }],
 };
 /** Les rares qui portent un massif de fleurs au printemps et en été (les points d'eau du village). */
 const RARE_FLEURIES = new Set(['well', 'fountain', 'trough']);
@@ -57,11 +57,11 @@ const FLEURS = ['obj_flowerWhite', 'obj_flowerRed', 'obj_flowerBlue', 'obj_flowe
 /** Décor des ouvrages posés sur une tuile. */
 export const WORK_DECOR = {
   hive:      [{ tpl: 'obj_box2', dx: 18, dy: 20, scale: 0.7 }, { tpl: 'obj_flowerYellow', dx: 32, dy: 30 }, { tpl: 'obj_flowerWhite', dx: 6, dy: 30 }],
-  scarecrow: [{ tpl: 'obj_pole', dx: 0, dy: 18, scale: 0.9 }, { tpl: 'obj_hay', dx: 0, dy: 26, scale: 0.6 }],
+  scarecrow: [{ tpl: 'obj_pole', dx: 0, dy: 18, scale: 0.9 }, { tpl: 'obj_haybale', dx: 4, dy: 28, scale: 0.7 }],
   nestbox:   [{ tpl: 'obj_tinyBuilding', dx: 24, dy: 4, scale: 0.55 }],
   campfire:  [{ tpl: 'obj_fire', dx: 0, dy: 22 }, { tpl: 'obj_log', dx: 22, dy: 30, scale: 0.8 }],
   menhir:    [{ tpl: 'obj_shrine', dx: 0, dy: 28 }],   // pierre gravée et bougies (KayKit EXTRA) : c'était une pierre TOMBALE de 24 px
-  compost:   [{ tpl: 'obj_logPile', dx: 0, dy: 24, scale: 0.9 }, { tpl: 'obj_hay', dx: 22, dy: 30, scale: 0.7 }],
+  compost:   [{ tpl: 'obj_logPile', dx: 0, dy: 24, scale: 0.9 }, { tpl: 'obj_haybale', dx: 22, dy: 30, scale: 0.8 }],
 };
 
 export function groundOf(t) {
@@ -319,6 +319,13 @@ export class Decor {
       const cen = centroidOf(reg);
       const closed = board.regionPaid(reg);
       const hasRare = reg.cells.some((c) => c.rare && (c.family === 'fountain' || c.family === 'chapel' || c.family === 'well'));
+      // Un bourg assez gros posé contre un pré mérite son écurie : c'est du décor pur, aucune règle
+      // ne la connaît. Une par bourg, à la place d'une maison, et seulement si le pré est là — sinon
+      // on aurait des chevaux au milieu des rochers.
+      const preVoisin = reg.cells.some((c) => neighbors(c.q, c.r).some(([a, b2]) => {
+        const n = board.get(a, b2); return n && !n.rare && Board.isFamily(n, 'meadow');
+      }));
+      let ecurieFaite = !(preVoisin && poids >= 4);
       let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
       for (const c of reg.cells) { const w = toWorld(c.q, c.r); x0 = Math.min(x0, w.x); x1 = Math.max(x1, w.x); y0 = Math.min(y0, w.y); y1 = Math.max(y1, w.y); }
       const bati = [];
@@ -353,6 +360,7 @@ export class Decor {
           continue;
         }
         if (r < 0.82) pave();
+        if (!ecurieFaite && r >= 0.44 && r < 0.74) { ecurieFaite = true; met('obj_stables', 0.62); continue; }
         if (r < 0.44) met(`obj_tinyBuilding${roof(rng)}`, 1);
         else if (r < 0.66) met(`obj_house_small${roof(rng)}`, 0.78);
         else if (r < 0.74) met(gros ? `obj_house${roof(rng)}` : `obj_house_small${roof(rng)}`, gros ? 0.62 : 0.86);
@@ -361,7 +369,7 @@ export class Decor {
           // les annexes : ce sont elles qui font la cour, pas la façade
           const q = rng();
           if (q < 0.26) met('obj_logPile', 0.8);
-          else if (q < 0.46) met('obj_hay', 0.7);
+          else if (q < 0.46) met('obj_haybale', 0.9);
           else if (q < 0.62) met('obj_basket', 0.8);
           else if (q < 0.78) met('obj_cart', 0.7);
           else if (q < 0.9) met('obj_well', 0.8);
@@ -429,7 +437,11 @@ export class Decor {
               const d = distBord(p, ck, keys);
               if (rng() > Math.max(0.3, Math.min(0.92, 0.95 - d / 110))) continue;
               placed.push(p); const r2 = rng(); const w = wild(rng, 0.85, 1.15);
-              if (r2 < 0.40) push(p, 'obj_bushGrass_{s}', w);
+              // Les herbes hautes du pack Forest : ce sont elles qui donnent enfin de la hauteur au pré.
+              // (Les variantes « _A » et « _B » du pack sont des brins isolés de 37 px, illisibles seuls ;
+              // on prend les « _C » et « _D », qui sont de vraies touffes.)
+              if (r2 < 0.38) push(p, rng() < 0.6 ? 'obj_tallGrass_{s}' : 'obj_tallGrass2_{s}', w);
+              else if (r2 < 0.46) push(p, 'obj_bushGrass_{s}', w);
               else if (r2 < 0.56) push(p, rng() < 0.5 ? 'obj_bush_{s}' : 'obj_bush2_{s}', Object.assign({ scale: (w.scale || 1) * 0.8 }, { flip: w.flip }));
               else if (r2 < 0.74) fleurir(p, ck, rng, 3);
               else if (r2 < 0.83) push(p, `obj_rockGrey_small${VAR3(rng)}{w}`, Object.assign({ scale: (w.scale || 1) * 0.45 }, { flip: w.flip }));
@@ -438,9 +450,9 @@ export class Decor {
               // (`obj_hedge` a été essayé ici : ce n'est pas un segment de haie mais un ENCLOS carré,
               // qui à cette taille se lit comme un rectangle vide posé sur l'herbe.)
               else if (d < 26) push(p, rng() < 0.65 ? 'obj_treeRound_small_{s}' : 'obj_fence', { scale: (w.scale || 1) * 0.62, flip: w.flip });
-              else push(p, 'obj_bushGrass_{s}', Object.assign({ scale: (w.scale || 1) * 0.8 }, { flip: w.flip }));
+              else push(p, 'obj_tallGrass_{s}', Object.assign({ scale: (w.scale || 1) * 0.85 }, { flip: w.flip }));
             }
-            if (rng() < 0.5) for (const p of sample(rng, cell, keys, 1, { minDist: 28, margin: 12, placed })) { placed.push(p); push(p, 'obj_hay', { seasons: ['autumn'] }); }
+            if (rng() < 0.5) for (const p of sample(rng, cell, keys, 1, { minDist: 28, margin: 12, placed })) { placed.push(p); push(p, 'obj_haybale', { seasons: ['autumn'] }); }
             for (const p of sample(rng, cell, keys, 2, { minDist: 24, margin: 10, placed: [] })) push(p, 'obj_leafpile', { seasons: ['autumn'], alpha: 0.9 });
             for (const p of sample(rng, cell, keys, 2, { minDist: 26, margin: 10, placed: [] })) push(p, 'obj_snowdrift', { seasons: ['winter'] });
             for (const p of sample(rng, cell, keys, 1, { minDist: 26, margin: 12, placed: [] })) push(p, 'obj_puddle', { weathers: ['storm'] });
@@ -454,8 +466,10 @@ export class Decor {
               if (surChemin(p, 11)) continue;   // on ne sème pas au milieu du chemin
               push(p, 'obj_crop_{s}');
             }
-            // deux silhouettes de récolte, tirées au sort : la meule conique et la botte ronde du pack EXTRA
-            const botte = () => (rng() < 0.5 ? 'obj_hay' : 'obj_haybale');
+            // Deux silhouettes de récolte, tirées au sort. C'était la meule conique Kenney et la botte
+            // ronde ; la meule était un aplat sans volume, plus large que le puits, et se lisait comme
+            // un jeton d'interface. C'est maintenant la botte et la brouette.
+            const botte = () => (rng() < 0.5 ? 'obj_haybale' : 'obj_wheelbarrow');
             if (rng() < 0.45) for (const p of sample(rng, cell, keys, 1, { minDist: 30, margin: 12, placed, radius: 0.7 })) { placed.push(p); push(p, botte(), wild(rng, 0.9, 1.1)); }
             for (const p of sample(rng, cell, keys, L2(cell) ? 2 : 1, { minDist: 30, margin: 12, placed, radius: 0.75 })) { placed.push(p); push(p, botte(), Object.assign({ seasons: ['autumn'] }, wild(rng, 0.9, 1.1))); }
             for (const p of sample(rng, cell, keys, 1, { minDist: 26, margin: 12, placed: [] })) push(p, 'obj_puddle', { weathers: ['storm'] });
@@ -539,7 +553,10 @@ export class Decor {
               placed.push(p); const r2 = rng(); const w = wild(rng, 0.85, 1.15);
               if (r2 < 0.56) { const n = 1 + Math.floor(rng() * 3); for (let i = 0; i < n; i++) push({ x: p.x + (rng() - 0.5) * 22, y: p.y + (rng() - 0.5) * 13 }, 'obj_heather_{s}', wild(rng, 0.8, 1.1)); }
               else if (r2 < 0.72) push(p, `obj_rockGrey_small${VAR3(rng)}{w}`, Object.assign({ scale: (w.scale || 1) * 0.55 }, { flip: w.flip }));
-              else if (r2 < 0.86) push(p, rng() < 0.5 ? 'obj_bush_{s}' : 'obj_bush2_{s}', Object.assign({ scale: (w.scale || 1) * 0.78 }, { flip: w.flip }));
+              else if (r2 < 0.80) push(p, rng() < 0.5 ? 'obj_bush_{s}' : 'obj_bush2_{s}', Object.assign({ scale: (w.scale || 1) * 0.78 }, { flip: w.flip }));
+              // la touffe à feuilles larges (Grass_1_C) : plus trapue que la graminée du pré, c'est elle
+              // qui dit « lande » plutôt que « pelouse »
+              else if (r2 < 0.90) push(p, 'obj_grassClump_{s}', w);
               else if (d < 26) push(p, 'obj_rockGrey_medium2{w}', { scale: (w.scale || 1) * 0.6, flip: w.flip });
               else push(p, 'obj_bushGrass_{s}', Object.assign({ scale: (w.scale || 1) * 0.75 }, { flip: w.flip }));
             }
