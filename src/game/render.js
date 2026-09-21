@@ -66,7 +66,10 @@ const estPlat = (tpl) => PLAT.has(tpl.replace(/\{[sw]\}/g, ''));
  * du sprite : un dégradé, pas une image dessinée. La tente du campement en est, elle aussi — on y
  * veille à la lampe.
  */
-const LUMIERE = new Set(['obj_house', 'obj_villa', 'obj_farm', 'obj_church', 'obj_tavern', 'obj_tower', 'obj_windmill', 'obj_tent']);
+// Reconnus par PRÉFIXE : le décor décline les maisons en variantes (`obj_house_small_vert`, `_jaune`,
+// `obj_windmill_complete`…) et une liste de noms exacts n'en attrapait aucune — on a livré une nuit
+// sans une seule lumière avant de compter les objets. La tour en ruine, elle, reste éteinte.
+const estHabite = (tpl) => /^obj_(house|villa|farm|church|tavern|windmill|tent|tower(?!Ruin))/.test(tpl);
 
 /** Sols en relief : falaise (roche) et talus (colline). */
 const RELIEF = new Set(['stone', 'hill']);
@@ -405,16 +408,16 @@ export class IslandRenderer {
     // les maisons habitées : pas des fenêtres allumées (le sprite ne s'y prête pas) mais une flaque de
     // lumière chaude AU PIED de chaque bâtiment, aplatie sur le sol, discrète — elle s'allume derrière
     // le front du soir avec trois dixièmes de retard (on n'allume pas au premier nuage) et s'éteint
-    // derrière celui du matin. Mesuré : au plus 0,3 d'alpha au centre, rien au-delà de 34 unités.
+    // derrière celui du matin. Mesuré : 0,42 d'alpha au centre, rien au-delà de 40 unités.
     ctx.save(); ctx.globalCompositeOperation = 'lighter';
     for (const o of this.decor.objects) {
-      if (!LUMIERE.has(o.tpl)) continue;
+      if (!estHabite(o.tpl)) continue;
       const p = cam.toScreen(o.x, o.y + 4);
       if (p.x < -80 || p.x > W + 80 || p.y < -80 || p.y > STAGE.H + 80) continue;
       const veille = clamp((this.nuitA(p.x) - 0.3) / 0.5, 0, 1); if (veille <= 0) continue;
-      const rx = 34 * z, ry = 14 * z; const a = veille * (0.3 + 0.05 * Math.sin(this.time * 1.9 + o.x * 0.031 + o.y * 0.017));
+      const rx = 40 * z, ry = 17 * z; const a = veille * (0.42 + 0.05 * Math.sin(this.time * 1.9 + o.x * 0.031 + o.y * 0.017));
       const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, rx);
-      g.addColorStop(0, `rgba(255,208,130,${a.toFixed(3)})`); g.addColorStop(0.5, `rgba(255,184,96,${(a * 0.35).toFixed(3)})`); g.addColorStop(1, 'rgba(255,170,70,0)');
+      g.addColorStop(0, `rgba(255,214,140,${a.toFixed(3)})`); g.addColorStop(0.45, `rgba(255,186,96,${(a * 0.45).toFixed(3)})`); g.addColorStop(1, 'rgba(255,170,70,0)');
       ctx.save(); ctx.translate(p.x, p.y); ctx.scale(1, ry / rx); ctx.translate(-p.x, -p.y);
       ctx.fillStyle = g; ctx.beginPath(); ctx.arc(p.x, p.y, rx, 0, TAU); ctx.fill(); ctx.restore();
     }
