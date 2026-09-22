@@ -3,6 +3,8 @@
 // puis capture les écrans principaux dans tests/output/mobile-*.png.
 // Usage : node tests/mobile.js   (serveur statique sur http://127.0.0.1:8765/ requis)
 const { chromium, devices } = require('/opt/node22/lib/node_modules/playwright');
+// La carte postale de fin attend un geste (pas de minuterie) : on clique « Voir le récapitulatif » quand elle est là.
+const passerLaCarte = async (page, t = 50000) => { try { await page.waitForFunction(() => window.CS.scenes.currentName === 'results' || document.querySelector('.carte-actions .btn-primary'), null, { timeout: t }); await page.evaluate(() => { const b = document.querySelector('.carte-actions .btn-primary'); if (b) b.click(); }); } catch (_) { /* pas de carte : on laisse l'attente suivante le dire */ } };
 const path = require('path');
 const fs = require('fs');
 const OUT = path.join(__dirname, 'output'); fs.mkdirSync(OUT, { recursive: true });
@@ -138,6 +140,7 @@ async function touchDrag(cdp, pts) {
     await page.tap('.panel-pause .btn-primary'); await page.waitForTimeout(300);
     // bilan
     await page.evaluate(() => window.CS.scenes.current.isl.finish('full')); await page.waitForTimeout(1500);
+    await passerLaCarte(page);
     await page.waitForFunction(() => window.CS.scenes.currentName === 'results', null, { timeout: 30000 }).catch(() => errors.push(`${name} : pas de bilan`));
     await page.waitForTimeout(800); await page.screenshot({ path: path.join(OUT, `mobile-${tag}-results.png`) });
     await page.evaluate(() => window.CS.scenes.go('workshop', { onContinue: () => window.CS.Game.showMenu() })); await page.waitForTimeout(900); await page.screenshot({ path: path.join(OUT, `mobile-${tag}-workshop.png`) });

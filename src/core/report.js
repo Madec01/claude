@@ -44,6 +44,51 @@ export function envoyesAujourdhui(add = 0) {
   return d.n;
 }
 
+// ---------------------------------------------------------------------------------------------------
+// Le journal des envois : la seule trace qui reste au joueur.
+//
+// Le code ne s'affiche qu'UNE fois, sur l'écran de remerciement, et le carnet où le rapport arrive est privé —
+// le jeu ne peut pas le relire, ni savoir si le pépin a été corrigé. Sans cette liste, celui qui a signalé
+// quelque chose la semaine dernière n'a plus rien : ni le code, ni la date, ni même la certitude d'avoir envoyé.
+// On garde donc sur l'appareil de quoi reconnaître ses rapports et en reparler, et rien de plus.
+// ---------------------------------------------------------------------------------------------------
+
+const JOURNAL_KEY = 'cent-saisons.pepin.journal';
+const JOURNAL_MAX = 20;        // au-delà, ce serait une archive, plus un aide-mémoire
+
+/** Ce que l'appareil garde des rapports partis d'ici, le plus récent d'abord. */
+export function journalEnvois() {
+  try {
+    const d = JSON.parse(localStorage.getItem(JOURNAL_KEY) || 'null');
+    return d && Array.isArray(d.list) ? d.list : [];
+  } catch (_) { return []; }   // illisible : une liste vide vaut mieux qu'un écran qui plante
+}
+
+/**
+ * Note un rapport qui vient de partir. Appelé par l'écran, APRÈS l'envoi : lui seul connaît le sort du rapport
+ * (le nuage ou le fichier), et `envoyerRapport` se rappelle une fois quand le rapport est trop gros — noter
+ * là-dedans compterait deux fois le même envoi.
+ */
+export function noterEnvoi(rapport, resultat = {}) {
+  const e = {
+    code: rapport.code,
+    mode: rapport.mode === 'idee' ? 'idee' : 'pepin',
+    at: Date.now(),
+    mot: String(rapport.mot || '').replace(/\s+/g, ' ').trim().slice(0, 120),
+    tuiles: [...(rapport.tuiles || [])],
+    voie: resultat.voie === 'nuage' ? 'nuage' : 'fichier',
+    raison: resultat.raison || null,
+  };
+  const list = [e, ...journalEnvois()].slice(0, JOURNAL_MAX);
+  try { localStorage.setItem(JOURNAL_KEY, JSON.stringify({ v: 1, list })); } catch (_) { /* stockage plein : le code reste affiché à l'écran */ }
+  return e;
+}
+
+/** Le joueur efface sa liste. Elle ne vit que sur son appareil : il n'y a rien à prévenir ailleurs. */
+export function oublierEnvois() {
+  try { localStorage.removeItem(JOURNAL_KEY); } catch (_) { /* rien de plus à faire */ }
+}
+
 const SAISONS = { spring: 'printemps', summer: 'été', autumn: 'automne', winter: 'hiver' };
 
 /** Ce que le jeu sait de lui-même, et que le joueur n'aurait pas à taper. */

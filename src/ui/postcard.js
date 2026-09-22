@@ -1,6 +1,23 @@
 // Aperçu de la carte postale : l'image, Télécharger, Partager (téléphone, quand le navigateur sait partager un fichier), Retour.
 import { h, button, append } from './dom.js';
 
+/**
+ * Enregistre la carte : partage sur téléphone quand le navigateur le permet (la feuille de partage,
+ * qui sait aussi « enregistrer l'image »), téléchargement sinon. Servi par la tournée finale.
+ */
+export function exporterCarte(canvas, filename) {
+  return new Promise((res) => canvas.toBlob(async (blob) => {
+    const url = URL.createObjectURL(blob);
+    try {
+      if (typeof navigator.canShare === 'function' && typeof File === 'function') {
+        const file = new File([blob], filename, { type: 'image/png' });
+        if (navigator.canShare({ files: [file] })) { try { await navigator.share({ files: [file], title: 'Cent Saisons' }); } catch (_) { /* annulé */ } res(); return; }
+      }
+      const a = document.createElement('a'); a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove();
+    } finally { setTimeout(() => URL.revokeObjectURL(url), 2000); res(); }
+  }, 'image/png'));
+}
+
 export function buildPostcard({ canvas, filename, onBack }) {
   const root = h('div', { class: 'panel panel-postcard' });
   const img = h('img', { class: 'postcard-img', alt: 'Carte postale de l’île' });

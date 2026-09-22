@@ -3,6 +3,8 @@
 // Usage : node tests/autoplay.js [islands=1-12,infinite,garden] [pauseMs=60]
 // Prérequis : serveur statique sur http://127.0.0.1:8765/ (python3 -m http.server 8765 à la racine).
 const { chromium } = require('/opt/node22/lib/node_modules/playwright');
+// La carte postale de fin attend un geste (pas de minuterie) : on clique « Voir le récapitulatif » quand elle est là.
+const passerLaCarte = async (page, t = 50000) => { try { await page.waitForFunction(() => window.CS.scenes.currentName === 'results' || document.querySelector('.carte-actions .btn-primary'), null, { timeout: t }); await page.evaluate(() => { const b = document.querySelector('.carte-actions .btn-primary'); if (b) b.click(); }); } catch (_) { /* pas de carte : on laisse l'attente suivante le dire */ } };
 const path = require('path');
 const fs = require('fs');
 
@@ -89,6 +91,7 @@ function parseList(s) {
       if (ticks > 400) { errors.push(`[timeout] île ${id}`); break; }
     }
     // Bilan
+    await passerLaCarte(page);
     await page.waitForFunction(() => window.CS.scenes.currentName === 'results', null, { timeout: 30000 }).catch(() => errors.push(`[flow] pas de bilan pour l'île ${id}`));
     await page.screenshot({ path: path.join(OUT, `results-${id}.png`) });
     const res = await page.evaluate(() => (document.querySelector('.panel-results') || {}).innerText || '');

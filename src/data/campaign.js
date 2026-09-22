@@ -2,7 +2,7 @@
 // leur chapitre ; les trente-huit autres sont générées ici (masque, file, vœux tirés d'une réserve, textes courts).
 // Chaque mécanique arrive à une île précise (MECH_AT) ; les climats arrivent avec les archipels (chapitres 5 à 8).
 // Une carte de tutoriel propre au climat s'affiche à chaque île dont le climat diffère de la précédente (climateCardFor).
-import { ISLANDS, WEIGHTS, generateMask } from './islands.js';
+import { ISLANDS, WEIGHTS, generateMask, enclosedHoles } from './islands.js';
 import { CAMPAIGN_TEXTS } from './campaign_texts.js';
 import { CAMPAIGN_STARS } from './campaign_stars.js';
 import { SIGNATURE_OF, applySignature } from './signatures.js';
@@ -200,6 +200,7 @@ export function islandCells(def) {
   const mask = generateMask(def.seed, def.cells, { roughness: def.roughness, holes: def.holes });
   for (const [q, r] of def.ensure || []) mask.add(`${q},${r}`);
   for (const t of def.start || []) mask.add(`${t.q},${t.r}`);
+  for (const c of enclosedHoles(mask)) mask.add(`${c.q},${c.r}`);   // une lagune est une case de l'île, avec sa tuile d'eau
   cellsCache.set(def.id, mask.size);
   return mask.size;
 }

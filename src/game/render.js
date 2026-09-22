@@ -59,12 +59,20 @@ const PLAT = new Set(['obj_puddle1', 'obj_puddle2', 'obj_puddle3', 'obj_leafpile
  * des objets debout : une flaque qui projette une ombre, c'est une flaque qui vole. On compare
  * maintenant le gabarit débarrassé de ses marques de saison et d'hiver.
  */
-const estPlat = (tpl) => PLAT.has(tpl.replace(/\{[sw]\}/g, ''));
+// Les collines et les monts sont POSÉS : l'ellipse d'ombre au pied, faite pour qu'un arbre ne flotte pas,
+// faisait justement flotter une colline (retour du commanditaire). Un relief n'en reçoit pas.
+const estPlat = (tpl) => PLAT.has(tpl.replace(/\{[sw]\}/g, '')) || /^obj_(colline|collines|mont|mont_roc)_/.test(tpl);
 
 /** Sols en relief : falaise (roche) et talus (colline). */
-const RELIEF = new Set(['stone', 'hill']);
+const RELIEF = new Set(['stone']);   // la colline n'est plus un sol surélevé : c'est un objet posé sur l'herbe (journal 102)
 /** Deux sols qui se touchent par une arête franche plutôt que par un fondu. */
-const areteFranche = (a, b) => (RELIEF.has(a) || RELIEF.has(b)) && (a === 'grass' || b === 'grass' || (RELIEF.has(a) && RELIEF.has(b)));
+// Qui déborde sur qui. Un seul des deux sols franchit l'arête, en langue irrégulière ; l'autre s'arrête
+// net dessous. Deux fondus croisés (chacun débordant sur l'autre) faisaient un flou symétrique qui, sur
+// un damier de champs et de prés, redessinait la grille en hexagones flous. Le relief passe sur tout,
+// le sable et la terre sur les cultures, les cultures et la lande sur l'herbe.
+const PRIORITE_SOL = ['stone', 'sand', 'dirt', 'field', 'heath', 'dry', 'grass'];
+const rang = (g) => { const i = PRIORITE_SOL.indexOf(g); return i < 0 ? 99 : i; };
+const deborde = (gn, g) => rang(gn) < rang(g);
 const FAUNA_GROUND = 10;   // un animal se tient un peu en avant du centre de sa tuile, comme le décor
 const SEA = { spring: ['#8fc8e6', '#5f9fc8'], summer: ['#7fc0e4', '#4f93c2'], autumn: ['#8cb9d3', '#5d8fb3'], winter: ['#a9c7db', '#7aa2bf'] };
 // `bank` : l'ombre de la berge, posée SOUS l'eau et débordant vers le bas — c'est elle qui fait que l'eau
@@ -121,7 +129,9 @@ export class IslandRenderer {
     this.hexMask = Assets.img('hex_mask'); this.hexOutline = Assets.img('hex_outline'); this.hexShadow = Assets.img('hex_shadow');
     this.lowFx = false;         // posé par la scène quand les i/s baissent : on coupe la profondeur et l'écume large
     this._sea = null;           // géométrie de la mer (centre, rayon, côte, vagues), recalculée si l'île change de forme
-    this._life = null;          // le voilier et la baleine
+    // la vie du large est montée ici plutôt qu'à la première image : la tournée finale doit pouvoir
+    // y poser son voilier avant même que `drawSeaLife` ait tourné une fois
+    this._life = { boat: null, whale: null, nextBoat: rnd(5, 18), nextWhale: rnd(45, 100), season: island.season };   // le voilier et la baleine
     this.faunaPos = new Map();  // clé -> { x, y, bob }
     this.decor = new Decor((island.def && island.def.seed) || 1);
     this.weather = null; this.flash = 0; this.rain = [];
@@ -281,7 +291,7 @@ export class IslandRenderer {
 
   drawSeaLife(ctx, dt) {
     const sea = this.seaGeometry(); const cam = this.cam, z = cam.zoom; const storm = this.weather === 'storm';
-    const life = this._life || (this._life = { boat: null, whale: null, nextBoat: rnd(5, 18), nextWhale: rnd(45, 100), season: this.isl.season });
+    const life = this._life;
     if (life.season !== this.isl.season) { life.season = this.isl.season; life.nextBoat = Math.min(life.nextBoat, rnd(4, 14)); }   // à chaque saison, un bateau ne tarde pas
     // --- le voilier : une ligne tangente à l'île, au large, d'un bord du champ à l'autre
     if (!life.boat) {
@@ -338,6 +348,40 @@ export class IslandRenderer {
         }
       }
     }
+  }
+
+  /**
+   * Fait partir un voilier du large vers l'horizon, pour la tournée finale. Le point de départ est
+   * choisi parmi seize directions autour de `vers` (un point du monde, le village par exemple) : la
+   * première qui tombe DANS le champ est gardée, parce qu'un bateau qu'on ne voit pas ne sert à rien.
+   */
+  envoyerVoilier(vers = null, duree = 3.4) {
+    const sea = this.seaGeometry(), cam = this.cam;
+    const a0 = vers ? Math.atan2(vers.y - sea.cy, vers.x - sea.cx) : Math.PI * 0.75;
+    let best = null;
+    for (let i = 0; i < 16 && !best; i++) {
+      const a = a0 + (i % 2 ? 1 : -1) * Math.ceil(i / 2) * (TAU / 16);
+      const x = sea.cx + Math.cos(a) * sea.R * 1.04, y = sea.cy + Math.sin(a) * sea.R * 1.04;
+      const p = cam.toScreen(x, y);
+      if (p.x > 40 && p.x < STAGE.W - 40 && p.y > 50 && p.y < STAGE.H - 50) best = { a, x, y };
+    }
+    if (!best) return false;
+    const len = sea.R * 1.1;
+    this._life.boat = { x: best.x, y: best.y, dir: best.a, dist: 0, len, speed: len / duree, img: Math.random() < 0.5 ? 'sea_boat_1' : 'sea_boat_2', t: 0 };
+    this._life.nextBoat = 999;   // celui-là suffit : pas d'autre bateau par-dessus
+    return true;
+  }
+
+  /** Fait surface une baleine, au large mais dans le champ. Même règle : on la place là où elle se voit. */
+  souffleBaleine(duree = 5.5) {
+    const sea = this.seaGeometry(), cam = this.cam;
+    for (let k = 0; k < 16; k++) {
+      const a = rnd(0, TAU), rr = sea.R * rnd(1.05, 1.35);
+      const x = sea.cx + Math.cos(a) * rr, y = sea.cy + Math.sin(a) * rr;
+      const p = cam.toScreen(x, y);
+      if (p.x > 90 && p.x < STAGE.W - 90 && p.y > 110 && p.y < STAGE.H - 110) { this._life.whale = { x, y, t: 0, life: duree, flip: Math.random() < 0.5, spouted: false }; this._life.nextWhale = 999; return true; }
+    }
+    return false;
   }
 
   /**
@@ -462,18 +506,6 @@ export class IslandRenderer {
       const zz = z * d.s, cy = c.y + d.dy * z;
       if (img) ctx.drawImage(img, c.x - TILE_W * zz / 2, cy - TILE_H * zz / 2, TILE_W * zz, TILE_H * zz);
       else this.drawTileAt(ctx, t, c.x, cy, d.s, 1);
-      // la grille s'efface : le sol de chaque voisine de terre déborde en fondu le long du bord partagé.
-      // La roche et la colline sont des reliefs : elles gardent une arête franche contre l'herbe, où la
-      // falaise et le talus se lisent, mais se fondent contre un champ, une lande, du sable ou de la terre.
-      // (Tout leur refuser alignait leurs six arêtes d'une case à l'autre et redessinait la grille ;
-      // l'eau, elle, compose déjà ses rives.)
-      if (!this.noLens && t.family !== 'water' && d.s === 1 && d.dy === 0) {
-        for (let dir = 0; dir < 6; dir++) {
-          const n = b.get(t.q + DIRS[dir][0], t.r + DIRS[dir][1]); if (!n || n.family === 'water') continue;
-          const gn = this.decor.groundFor(n); if (gn === g || areteFranche(g, gn)) continue;
-          const lens = this.groundLens(gn, season, dir); if (lens) ctx.drawImage(lens, c.x - TILE_W * z / 2, c.y - TILE_H * z / 2, TILE_W * z, TILE_H * z);
-        }
-      }
     }
     // L'OURLET des sols de bord. Chaque image de sol porte son propre liseré (le rebord ombré du
     // marais, la bordure du champ, l'arête claire du pré) : là où la côte érodée dépasse l'hexagone,
@@ -490,7 +522,7 @@ export class IslandRenderer {
       const k = key(t.q, t.r); if (dropping.has(k)) continue;
       const season = this.seasonFor(w.x);
       const col = GROUND_COLORS[g] || (images[groundKey(g, season)] || {}).ground_color; if (!col) continue;
-      const dedans = corners(c.x, c.y, SIZE * z * 0.86), dehors = corners(c.x, c.y, SIZE * z * 1.5);
+      const dedans = corners(c.x, c.y, SIZE * z * 0.86);
       for (let i = 0; i < 6; i++) {
         const [dq, dr] = DIRS[EDGE_DIR[i]]; const nk = key(t.q + dq, t.r + dr); if (b.tiles.has(nk) && !anses.has(nk)) continue;
         const face = this.estMer(t.q + dq, t.r + dr) ? 1 : nu; if (face <= 0.002) continue;
@@ -498,8 +530,14 @@ export class IslandRenderer {
         // la bande déborde de trois unités de chaque côté : deux bandes voisines tracées bord à bord
         // laissaient passer, par l'anticrénelage, un fil de la couleur du dessous
         const ex = (dedans[j][0] - dedans[i][0]), ey = (dedans[j][1] - dedans[i][1]), el = Math.hypot(ex, ey) || 1, ux = ex / el * 3 * z, uy = ey / el * 3 * z;
+        // une bande DROITE, parallèle à l'arête, poussée vers le large de trois quarts de rayon (la côte
+        // érodée avance d'au plus 24 unités). Le trapèze radial d'avant s'élargissait vers le large et
+        // débordait de côté sur la terre gagnée de la voisine : un lac à berge d'herbe peignait du blanc
+        // sur la côte du marais, en hiver, avec des arêtes droites
+        const mx = (dedans[i][0] + dedans[j][0]) / 2 - c.x, my = (dedans[i][1] + dedans[j][1]) / 2 - c.y, ml = Math.hypot(mx, my) || 1;
+        const px = mx / ml * SIZE * z * 0.75, py = my / ml * SIZE * z * 0.75;
         ctx.globalAlpha = face; ctx.fillStyle = col; ctx.beginPath();
-        ctx.moveTo(dedans[i][0] - ux, dedans[i][1] - uy); ctx.lineTo(dedans[j][0] + ux, dedans[j][1] + uy); ctx.lineTo(dehors[j][0] + ux, dehors[j][1] + uy); ctx.lineTo(dehors[i][0] - ux, dehors[i][1] - uy); ctx.closePath(); ctx.fill();
+        ctx.moveTo(dedans[i][0] - ux, dedans[i][1] - uy); ctx.lineTo(dedans[j][0] + ux, dedans[j][1] + uy); ctx.lineTo(dedans[j][0] + ux + px, dedans[j][1] + uy + py); ctx.lineTo(dedans[i][0] - ux + px, dedans[i][1] - uy + py); ctx.closePath(); ctx.fill();
       }
     }
     ctx.restore();
@@ -513,14 +551,16 @@ export class IslandRenderer {
     const half = SIZE * 0.46, e = 7;
     for (const t of tiles) {
       const k = key(t.q, t.r); if (dropping.has(k)) continue;
-      const g = this.decor.groundFor(t); if (g === 'hill') continue;
+      const g = this.decor.groundFor(t);
       const w = toWorld(t.q, t.r);
       for (let d = 0; d < 3; d++) {
         const n = b.get(t.q + DIRS[d][0], t.r + DIRS[d][1]);
         if (!n || dropping.has(key(n.q, n.r))) continue;
         // avec une tuile d'eau voisine, la rive du côté concerné est déjà dans notre sol : on raccorde aussi
         if (anses.has(key(n.q, n.r))) continue;   // vers une anse, c'est la côte, pas une couture
-        const gn = this.decor.groundFor(n); if (gn !== g && !(n.family === 'water' && g !== 'water')) continue;
+        // seulement entre deux sols IDENTIQUES (la berge d'une case d'eau compte pour son sol) : contre une
+        // eau dont la berge est d'un autre sol, la bande unie traversait la langue de sol en bande droite
+        const gn = this.decor.groundFor(n); if (gn !== g) continue;
         if (t.family === 'water' && n.family === 'water') continue;
         const season = this.seasonFor(w.x);
         const col = GROUND_COLORS[g] || (images[groundKey(g, season)] || {}).ground_color; if (!col) continue;
@@ -531,6 +571,30 @@ export class IslandRenderer {
       }
     }
     ctx.restore();
+    // LES LANGUES DE SOL. La grille s'efface : le sol d'une voisine de terre déborde sur la case le
+    // long du bord partagé, en langue ronde et irrégulière (`masqueLentille`). Les reliefs aussi : la
+    // roche et la colline gardaient une arête franche contre l'herbe (« une falaise a le droit de
+    // surplomber »), mais cela laissait à chaque massif ses six arêtes et ses six coins ; une roche
+    // qui mord un peu sur l'herbe se lit comme un éboulis. (L'eau, elle, compose déjà ses rives.)
+    // Cette passe vient APRÈS l'ourlet et les cache-coutures : les langues dépassent les sommets,
+    // et un cache-couture peint par-dessus y faisait un rectangle plein.
+    if (!this.noLens) {
+      for (const t of tiles) {
+        // les cases d'eau aussi : leur BERGE (le sol dessiné sous le plan d'eau) est un hexagone plein,
+        // et contre un marais, en hiver, on voyait ses six arêtes autour de chaque mare gelée
+        const k = key(t.q, t.r); if (dropping.has(k) || anses.has(k)) continue;
+        const w = toWorld(t.q, t.r); const c = cam.toScreen(w.x, w.y); if (!vis(c)) continue;
+        const season = this.seasonFor(w.x); const g = this.decor.groundFor(t);
+        for (let dir = 0; dir < 6; dir++) {
+          // une voisine d'eau déborde par sa BERGE : une rizière à berge de terre contre une rivière à
+          // berge d'herbe laissait sinon une arête droite entre les deux (visible en hiver, terre contre neige)
+          const n = b.get(t.q + DIRS[dir][0], t.r + DIRS[dir][1]); if (!n) continue;
+          const gn = this.decor.groundFor(n); if (gn === g || !deborde(gn, g)) continue;
+          const h = hash2(t.q * 7 + dir, t.r * 13);
+          const lens = this.groundLens(gn, season, dir, h < 1 / 3 ? 0 : h < 2 / 3 ? 1 : 2); if (lens) ctx.drawImage(lens, c.x - TILE_W * z / 2, c.y - TILE_H * z / 2, TILE_W * z, TILE_H * z);
+        }
+      }
+    }
     ctx.restore();   // fin du masque de l'île
     this.drawCourts(ctx, dropping);
     this.drawWater(ctx, dropping);
@@ -770,30 +834,79 @@ export class IslandRenderer {
   }
 
   /**
-   * Lentille de sol : l'image du sol `g` masquée par un dégradé perpendiculaire au bord `d` (opaque sur le bord, effacé
-   * à un tiers de l'apothème), limitée au trapèze de ce bord. Dessinée sur la tuile voisine, elle efface la couture.
-   * Cache par sol, saison et direction (au plus quelques dizaines de petites images).
+   * LE FONDU ENTRE DEUX SOLS. Sur la case, le sol de la voisine déborde par l'arête partagée et
+   * s'efface vers le centre. Il était droit : un trapèze et un dégradé linéaire — et un hexagone qui
+   * s'estompe reste un hexagone. Le commanditaire voyait les champs et les landes « faire tache ».
+   *
+   * Le bord du fondu suit donc un BRUIT : la voisine mord en langues irrégulières, sur une largeur
+   * qui varie d'une arête à l'autre (`variante`, choisie par case et par direction), et plus profond
+   * qu'avant (la moitié du rayon). Calculé pixel par pixel en 1× (la lentille est floue par nature,
+   * la pleine résolution ne lui apporterait rien) et gardé en cache : six directions × trois
+   * variantes par sol et par saison. Le liseré d'un pixel qu'on voyait encore à l'arête venait de
+   * l'anticrénelage du bord de la lentille : elle déborde maintenant de trois unités sur la voisine,
+   * dans la couleur moyenne du sol, ce qui est invisible chez elle et couvre le bord chez nous.
    */
-  groundLens(g, season, d) {
-    const k = `${g}|${season}|${d}`; this._lens = this._lens || new Map();
+  /**
+   * Le masque d'une lentille : pour la direction `d` et la variante, l'opacité de chaque pixel (0 à
+   * 255) et, au-delà de l'arête, la marque du débord (255 dans un second tableau). Il ne dépend ni du
+   * sol ni de la saison : dix-huit masques au plus, calculés une fois — c'est le bruit pixel par pixel
+   * qui coûte, pas l'application. Sans ce partage, un changement de saison figeait l'image le temps
+   * de refaire une trentaine de lentilles.
+   */
+  masqueLentille(d, variante) {
+    const k = `${d}|${variante}`; this._masques = this._masques || new Map();
+    const hit = this._masques.get(k); if (hit) return hit;
+    // le masque est calculé au 2×, la résolution des images de sol : au 1×, la lisière
+    // se voyait en marches d'escalier dès qu'on s'approchait
+    const S = 2, W = TILE_W * S, H = TILE_H * S, n = W * H;
+    const alpha = new Uint8Array(n), debord = new Uint8Array(n);
+    // géométrie en unités monde (= pixels en 1×) : normales sortantes des six arêtes
+    const normales = []; for (let e = 0; e < 6; e++) { const m = edgeMid(0, 0, e); normales.push([m.x / 60, m.y / 60]); }
+    const APOTHEME = 60, DEMI = SIZE / 2, PROF = 0.6 * APOTHEME, DEBORD = 3;
+    const [nx, ny] = normales[d], tx = -ny, ty = nx;   // repère de l'arête : normale, tangente
+    const sx = 31.7 * (variante + 1), sy = -12.3 * (variante + 1) + 57.1;
+    const lisse = (t) => t * t * (3 - 2 * t);
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+      const wx = (x - W / 2) / S, wy = (y - H / 2) / S, i = y * W + x;
+      // dans l'hexagone (avec un débord de trois unités au-delà de l'arête concernée seulement)
+      let dedans = true; for (let e = 0; e < 6; e++) { const v = wx * normales[e][0] + wy * normales[e][1]; if (v > APOTHEME + (e === d ? DEBORD : 0.5)) { dedans = false; break; } }
+      if (!dedans) continue;
+      const dist = APOTHEME - (wx * nx + wy * ny);   // distance à l'arête, vers l'intérieur
+      const u = Math.abs(wx * tx + wy * ty);           // position le long de l'arête, depuis son milieu
+      if (dist < 0) { if (u <= DEMI + DEBORD) { alpha[i] = 255; debord[i] = 255; } continue; }
+      // Une langue de sol, pas un biseau : la distance est prise au SEGMENT (bouts arrondis au-delà
+      // des sommets), sa profondeur ondule lentement avec le bruit (14 à 36 px), s'amenuise vers
+      // les sommets pour finir en lobe, et la lisière est adoucie sur dix pixels. Les langues
+      // coupées en biais aux coins des tuiles finissaient en pointes ; les arêtes droites ressortaient.
+      const dc = u <= DEMI ? dist : Math.hypot(u - DEMI, dist);
+      const xs = x / S, ys = y / S;
+      const bruit = 2 * (0.7 * valeur(xs / 30 + sx, ys / 30 + sy) + 0.3 * valeur(xs / 13 + sy, ys / 13 - sx)) - 1;
+      const bout = 0.45 + 0.55 * (1 - lisse(clamp((u - (DEMI - 18)) / 22, 0, 1)));
+      const seuil = PROF * (0.7 + 0.3 * bruit) * bout;
+      alpha[i] = Math.round(255 * (1 - lisse(clamp((dc - seuil) / 10 + 0.5, 0, 1))));
+    }
+    const m = { alpha, debord }; this._masques.set(k, m); return m;
+  }
+
+  groundLens(g, season, d, variante = 0) {
+    const k = `${g}|${season}|${d}|${variante}`; this._lens = this._lens || new Map();
     const hit = this._lens.get(k); if (hit !== undefined) return hit;
-    const img = Assets.img(groundKey(g, season)); if (!img) { this._lens.set(k, null); return null; }
-    const W = img.width, H = img.height, sc = W / TILE_W;
+    const key0 = groundKey(g, season); const img = Assets.img(key0); if (!img) { this._lens.set(k, null); return null; }
+    const W = TILE_W * 2, H = TILE_H * 2; const { alpha, debord } = this.masqueLentille(d, variante);   // au 2×, comme le masque
     const cv = document.createElement('canvas'); cv.width = W; cv.height = H; const c = cv.getContext('2d');
-    const c0 = { x: 0, y: 0 }; const pts = corners(0, 0, SIZE); const m = edgeMid(0, 0, d);
-    const P = (x, y) => [W / 2 + x * sc, H / 2 + y * sc];
-    const a = pts[d], bpt = pts[(d + 1) % 6]; const depth = 0.42;
-    const ia = [a[0] * (1 - depth), a[1] * (1 - depth)], ib = [bpt[0] * (1 - depth), bpt[1] * (1 - depth)];
-    c.beginPath(); c.moveTo(...P(a[0], a[1])); c.lineTo(...P(bpt[0], bpt[1])); c.lineTo(...P(ib[0], ib[1])); c.lineTo(...P(ia[0], ia[1])); c.closePath(); c.clip();
-    c.drawImage(img, 0, 0);
-    const [mx, my] = P(m.x, m.y); const [cx, cy] = P(c0.x, c0.y);
-    const grad = c.createLinearGradient(mx, my, mx + (cx - mx) * depth, my + (cy - my) * depth);
-    grad.addColorStop(0, 'rgba(0,0,0,0.95)'); grad.addColorStop(0.35, 'rgba(0,0,0,0.7)'); grad.addColorStop(1, 'rgba(0,0,0,0)');
-    c.globalCompositeOperation = 'destination-in'; c.fillStyle = grad; c.fillRect(0, 0, W, H);
+    // la couleur moyenne du sol, pour le débord au-delà de l'arête (l'image y est transparente)
+    const col = GROUND_COLORS[g] || ((Assets.manifest().images || {})[key0] || {}).ground_color || '#000';
+    c.fillStyle = col; c.fillRect(0, 0, W, H); const fond = c.getImageData(0, 0, W, H).data;
+    c.clearRect(0, 0, W, H); c.drawImage(img, 0, 0, W, H);
+    const id = c.getImageData(0, 0, W, H), px = id.data;
+    for (let i = 0, j = 0; i < alpha.length; i++, j += 4) {
+      if (debord[i]) { px[j] = fond[j]; px[j + 1] = fond[j + 1]; px[j + 2] = fond[j + 2]; px[j + 3] = alpha[i]; }
+      else px[j + 3] = (px[j + 3] * alpha[i] + 127) / 255 | 0;
+    }
+    c.putImageData(id, 0, 0);
     this._lens.set(k, cv); return cv;
   }
 
-  /** Voile de climat (multiplication d'une teinte claire sur l'île seulement) : ocre au chaud, vert d'eau à l'humide, bleu pâle au froid. */
   drawClimateTint(ctx) {
     const cl = this.isl.climate; if (!cl || !cl.tint) return;
     const cam = this.cam, b = this.isl.board; ctx.save(); ctx.globalCompositeOperation = 'multiply'; ctx.fillStyle = cl.tint; ctx.beginPath();
@@ -950,8 +1063,13 @@ export class IslandRenderer {
 
   /** Le sol de RIVE d'une case d'eau : la terre de ses voisines, à défaut du sable. */
   riveDe(t) {
+    // la berge que le décor a choisie (le sol majoritaire des voisines), pas la première voisine venue :
+    // au bord d'un lac entouré de marais, la première voisine pouvait être un pré, et l'hexagone de rive
+    // sortait blanc en hiver au milieu de la terre, avec ses six arêtes
+    const g = this.decor.groundFor(t);
+    if (g && g !== 'water' && g !== 'ice') return g === 'hill' ? 'grass' : g;
     const b = this.isl.board;
-    for (const [dq, dr] of DIRS) { const n = b.get(t.q + dq, t.r + dr); if (n && n.family !== 'water') { const g = this.decor.groundFor(n); return g === 'hill' ? 'grass' : g; } }
+    for (const [dq, dr] of DIRS) { const n = b.get(t.q + dq, t.r + dr); if (n && n.family !== 'water') { const gn = this.decor.groundFor(n); return gn === 'hill' ? 'grass' : gn; } }
     return 'sand';
   }
 
@@ -1024,10 +1142,28 @@ export class IslandRenderer {
   }
 
   /**
-   * Ruelles entre hameaux voisins et sentiers entre villages, tracés en courbes douces sous les objets.
+   * Le motif de terre battue d'un chemin, par saison : le cœur de l'image de sol « terre » (là où
+   * elle n'a pas de liseré), teinté de la couleur du chemin. On ne dessine pas de texture : on en
+   * découpe une dans une image de banque, et on la colore.
+   */
+  motifChemin(season) {
+    this._motifs = this._motifs || new Map(); const hit = this._motifs.get(season); if (hit !== undefined) return hit;
+    const col = { spring: '#c9a570', summer: '#d1ab74', autumn: '#bf9463', winter: '#dcd2c3' }[season] || '#c9a570';
+    const img = Assets.img(`ground_dirt_${season}`); if (!img) { this._motifs.set(season, null); return null; }
+    const D = 96; const cv = document.createElement('canvas'); cv.width = D; cv.height = D; const c = cv.getContext('2d');
+    c.drawImage(img, 72, 92, D, D, 0, 0, D, D);
+    c.globalCompositeOperation = 'source-atop'; c.globalAlpha = 0.74; c.fillStyle = col; c.fillRect(0, 0, D, D);
+    this._motifs.set(season, cv); return cv;
+  }
+
+  /**
+   * Ruelles entre hameaux voisins et sentiers entre villages, tracés sous les objets.
    * La géométrie vient de `pathShapes` (partagée avec le décor, qui l'évite) : le chemin s'arrête devant
    * la maison au lieu de la traverser, et son hésitation est tirée par case, si bien que deux chemins
-   * n'ondulent plus de la même façon.
+   * n'ondulent plus de la même façon. Chaque chemin est un RUBAN (`ruban` dans paths.js) : largeur qui
+   * ondule, bords effilochés, bouts qui s'amenuisent — un trait d'épaisseur constante lisait comme un
+   * tracé de carte, pas comme de la terre battue. Deux passes globales (bordure sombre, puis terre
+   * texturée) pour que les croisements restent propres.
    */
   drawPaths(ctx) {
     const b = this.isl.board, cam = this.cam, z = cam.zoom;
@@ -1036,15 +1172,22 @@ export class IslandRenderer {
     const season = this.isl.season;
     const col = { spring: '#c9a570', summer: '#d1ab74', autumn: '#bf9463', winter: '#dcd2c3' }[season] || '#c9a570';
     const dark = { spring: '#a37f4c', summer: '#ab864f', autumn: '#966f42', winter: '#b7ab9a' }[season] || '#a37f4c';
-    ctx.save(); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-    const trace = (sp) => { ctx.beginPath(); ctx.moveTo(sp[0].x, sp[0].y); if (sp.length === 2) ctx.lineTo(sp[1].x, sp[1].y); else { for (let i = 1; i < sp.length - 1; i++) { const mx = (sp[i].x + sp[i + 1].x) / 2, my = (sp[i].y + sp[i + 1].y) / 2; ctx.quadraticCurveTo(sp[i].x, sp[i].y, mx, my); } ctx.lineTo(sp[sp.length - 1].x, sp[sp.length - 1].y); } };
-    const all = shapes.map((s) => ({ sp: s.pts.map((p) => cam.toScreen(p.x, p.y)), width: s.kind === 'lane' ? 6 : 9 }))
-      .filter((o) => !o.sp.every((p) => p.x < -200 || p.x > STAGE.W + 200 || p.y < -200 || p.y > STAGE.H + 200));
-    // deux passes globales (bordure sombre puis terre) pour que les croisements restent propres.
-    // Le pointillé blanc du milieu est parti : c'était un marquage routier dans un jeu qui n'a pas de routes.
-    ctx.globalAlpha = 0.5; ctx.strokeStyle = dark; for (const o of all) { ctx.lineWidth = (o.width + 4) * z; trace(o.sp); ctx.stroke(); }
-    ctx.globalAlpha = 1; ctx.strokeStyle = col; for (const o of all) { ctx.lineWidth = o.width * z; trace(o.sp); ctx.stroke(); }
-    if (this.finale) { ctx.globalAlpha = 0.35 + 0.3 * Math.sin(this.time * 5); ctx.strokeStyle = '#ffd77a'; ctx.lineWidth = 4 * z; ctx.setLineDash([14 * z, 10 * z]); ctx.lineDashOffset = -this.time * 60 * z; for (const o of all) { trace(o.sp); ctx.stroke(); } ctx.setLineDash([]); }
+    const hors = (pts) => pts.every((p) => p.x < -200 || p.x > STAGE.W + 200 || p.y < -200 || p.y > STAGE.H + 200);
+    const polygone = (r) => {
+      const g = r.gauche.map((p) => cam.toScreen(p.x, p.y)), d = r.droite.map((p) => cam.toScreen(p.x, p.y));
+      if (hors(g)) return false;
+      ctx.beginPath(); ctx.moveTo(g[0].x, g[0].y);
+      for (let i = 1; i < g.length; i++) ctx.lineTo(g[i].x, g[i].y);
+      for (let i = d.length - 1; i >= 0; i--) ctx.lineTo(d[i].x, d[i].y);
+      ctx.closePath(); return true;
+    };
+    ctx.save(); ctx.lineJoin = 'round';
+    ctx.globalAlpha = 0.5; ctx.fillStyle = dark; for (const s of shapes) if (polygone(s.bordure)) ctx.fill();
+    ctx.globalAlpha = 1;
+    // la terre : le motif est accroché au monde (il suit la caméra), pas à l'écran
+    const motif = this.motifChemin(season); let fill = col;
+    if (motif && typeof DOMMatrix === 'function') { const pat = ctx.createPattern(motif, 'repeat'); const o = cam.toScreen(0, 0); if (pat && pat.setTransform) { pat.setTransform(new DOMMatrix([z, 0, 0, z, o.x, o.y])); fill = pat; } }
+    ctx.fillStyle = fill; for (const s of shapes) if (polygone(s.ruban)) ctx.fill();
     ctx.restore();
   }
 

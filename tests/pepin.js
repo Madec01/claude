@@ -55,6 +55,7 @@ async function openSection(page) {
   check(await page.$('.rep-tabs'), 'le sélecteur de mode est là, « Un pépin » d’abord');
   check(await page.$eval('.rep-tab.on', (e) => e.textContent.trim()) === 'Un pépin', 'le mode par défaut est « Un pépin » : signaler ne coûte aucun toucher de plus');
   check((await page.$$('.rep-chip')).length === 4, 'quatre raccourcis en accès direct');
+  check(await page.$eval('.rep-histo', (e) => e.classList.contains('hidden')), '« Tes envois » ne s’affiche pas tant qu’on n’a rien envoyé');
 
   // --- l'entonnoir : trois niveaux au plus, et le fil d'Ariane remonte
   await page.click('.rep-tile:has-text("Graphisme")');
@@ -166,7 +167,7 @@ async function openSection(page) {
   // --- la partie à joindre : un pépin se raconte souvent l'île finie, et c'est la partie d'AVANT qu'il faut montrer
   await page.click('.rep-tab:has-text("Un pépin")');
   await page.waitForTimeout(150);
-  await page.click('.rep-details > summary');
+  await page.click('.rep-pli > summary');
   await page.waitForTimeout(150);
   const choix = await page.$$eval('.rep-select option', (a) => a.map((o) => o.textContent));
   check(choix.length === 2, `les parties déjà jouées sont proposées (${choix.length})`);
@@ -210,6 +211,7 @@ async function openSection(page) {
   await page.waitForSelector('.rep-code', { timeout: 10000 });
   const code = await page.$eval('.rep-code', (e) => e.textContent.trim());
   check(/^PÉPIN-[A-Z0-9]{4}$/.test(code), `le code court est affiché (${code})`);
+  check((await page.$eval('.rep-thanks', (e) => e.textContent)).includes('Tes envois'), 'le merci dit où le code se retrouve, au lieu de compter sur la mémoire du joueur');
 
   // --- le contenu du rapport : ce qu'il faut, et rien qui dise qui il est
   const rapport = await page.evaluate(async () => {
@@ -254,6 +256,35 @@ async function openSection(page) {
     return n;
   });
   check(bb === 1, `la même erreur répétée ne compte qu’une fois (${bb})`);
+
+  // --- « Tes envois » : le code ne s'affiche qu'une fois, et le carnet où le rapport arrive est privé. Sans cette
+  // liste, celui qui a signalé quelque chose la semaine dernière n'a plus rien. On recharge la page pour être sûr
+  // qu'elle survit à la fermeture de l'onglet, et pas seulement à l'écran courant.
+  const note = await page.evaluate(async () => {
+    const m = await import('/src/core/report.js');
+    const l = m.journalEnvois();
+    return l.length ? { n: l.length, code: l[0].code, voie: l[0].voie, mode: l[0].mode } : null;
+  });
+  check(note && note.n === 1, `l’envoi est noté sur l’appareil (${note ? note.n : 0})`);
+  check(note && `PÉPIN-${note.code}` === code, 'la note porte le code affiché au joueur');
+  check(note && note.voie === 'fichier', `elle retient qu’il n’est pas parti en ligne (${note && note.voie})`);
+
+  await openSection(page);
+  check(!(await page.$eval('.rep-histo', (e) => e.classList.contains('hidden'))), 'après un envoi, « Tes envois » est là au rechargement suivant');
+  await page.click('.rep-histo > summary');
+  await page.waitForTimeout(200);
+  const carte = await page.$eval('.rep-histo-item', (e) => e.textContent);
+  check(carte.includes(code), `la carte porte le code (${code})`);
+  check(/Gardé sur ton appareil/.test(carte), 'et l’état que l’appareil connaît : gardé ici, pas parti au carnet');
+  check(/Textes/.test(carte), 'avec le sujet choisi, pour reconnaître de quoi il s’agissait');
+  check(/ne peut pas dire si c’est corrigé/.test(await page.$eval('.rep-histo-list', (e) => e.textContent)),
+    'la liste dit franchement ce qu’elle ne sait pas : le carnet est privé, le jeu ne peut pas le relire');
+  const debordeHisto = await page.evaluate(() => document.querySelector('.panel-report').scrollWidth > window.innerWidth + 2);
+  check(!debordeHisto, 'la liste ne déborde pas au pouce');
+  await page.screenshot({ path: path.join(OUT, 'pepin-mobile-envois.png') });
+  await page.click('.rep-histo-foot .btn');
+  await page.waitForTimeout(200);
+  check(await page.$eval('.rep-histo', (e) => e.classList.contains('hidden')), 'et le joueur peut l’oublier : elle ne vit que sur son appareil');
 
   check(consoleErrors.length === 0, `aucune erreur console (${consoleErrors.slice(0, 2).join(' | ')})`);
   await browser.close();

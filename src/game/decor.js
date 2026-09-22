@@ -71,7 +71,8 @@ export function groundOf(t) {
   if (t.rare) return t.family === 'ruins' || t.family === 'mine' ? 'stone' : 'grass';
   if (t.family === 'meadow' && t.dry) return 'dry';
   if (t.family === 'water' && t.frozen) return 'ice';
-  return { meadow: 'grass', forest: 'grass', field: 'field', hamlet: 'grass', orchard: 'grass', water: 'water', marsh: 'dirt', rock: 'stone', sand: 'sand', hill: 'hill', heath: 'heath' }[t.family] || 'grass';
+  // la colline est de l'herbe : son relief est un objet posé dessus (journal 102), plus un sol surélevé
+  return { meadow: 'grass', forest: 'grass', field: 'field', hamlet: 'grass', orchard: 'grass', water: 'water', marsh: 'dirt', rock: 'stone', sand: 'sand', hill: 'grass', heath: 'heath' }[t.family] || 'grass';
 }
 export const groundKey = (g, season) => (g === 'dry' ? 'ground_dry' : g === 'ice' ? 'water_frozen' : `ground_${g}_${season}`);
 
@@ -499,6 +500,9 @@ export class Decor {
               const p = { x: x + (rng() - 0.5) * 3, y: y + (rng() - 0.5) * 2 };
               if (inRegion(p, keys) !== ck || !edgeOk(p, ck, keys, 5)) continue;
               if (surChemin(p, 11)) continue;   // on ne sème pas au milieu du chemin
+              // la lisière du champ s'effiloche : les rangs coupés net au bord de la tuile redessinaient
+              // l'hexagone que les fondus entre sols viennent d'effacer
+              const d = distBord(p, ck, keys); if (d < 24 && rng() < 0.9 * (1 - d / 24)) continue;
               push(p, 'obj_crop_{s}');
             }
             // Deux silhouettes de récolte, tirées au sort. C'était la meule conique Kenney et la botte
@@ -541,8 +545,17 @@ export class Decor {
             const dc = Math.hypot(c.x - cen.x, c.y - cen.y);
             const seul = cells.length === 1;
             const peak = !seul && (deg >= 3 || dc < 40);
-            push({ x: c.x + (rng() - 0.5) * 12, y: c.y + (seul ? 38 : 44) }, peak || seul ? `obj_rockGrey_large${VAR(rng)}{w}` : PICK(rng, ['obj_rockGrey_medium1{w}', 'obj_rockGrey_medium2{w}', 'obj_rockGrey_medium3{w}']),
-              Object.assign(wild(rng, 0.9, 1.1), { scale: (seul ? 1.0 : peak ? 1.35 + Math.min(0.5, cells.length * 0.06) : 1.15) + (L2(cell) ? 0.35 : 0) }));
+            // Le sommet est un MONT du pack EXTRA (retour du commanditaire : « ces reliefs-là ») : roche nue
+            // au sommet d'un massif, un alpage (sommet d'herbe) au cœur des grands massifs ; les crêtes et
+            // l'éboulis autour restent des blocs, pour que la montagne ne s'arrête pas au bord de la case.
+            if (peak || seul) {
+              const alpage = !seul && cells.length >= 5 && dc < 40 && rng() < 0.5;
+              const tpl = alpage ? `obj_mont_${PICK(rng, ['A', 'B', 'C'])}_{s}` : `obj_mont_roc_${PICK(rng, ['A', 'B', 'C'])}_{s}`;
+              push({ x: c.x + (rng() - 0.5) * 12, y: c.y + (seul ? 30 : 34) }, tpl, { flip: rng() < 0.5, scale: (seul ? 0.72 : 0.9 + Math.min(0.3, cells.length * 0.04)) + (L2(cell) ? 0.2 : 0) });
+            } else {
+              push({ x: c.x + (rng() - 0.5) * 12, y: c.y + 44 }, PICK(rng, ['obj_rockGrey_medium1{w}', 'obj_rockGrey_medium2{w}', 'obj_rockGrey_medium3{w}']),
+                Object.assign(wild(rng, 0.9, 1.1), { scale: 1.15 + (L2(cell) ? 0.35 : 0) }));
+            }
             if (!seul) for (let d = 0; d < 6; d++) { const nk = key(cell.q + DIRS[d][0], cell.r + DIRS[d][1]); if (!keys.has(nk) || d >= 3) continue; const m = edgeMid(c.x, c.y, d); push({ x: m.x + (rng() - 0.5) * 10, y: m.y + 26 }, PICK(rng, ['obj_rockGrey_medium2{w}', 'obj_rockGrey_medium3{w}', `obj_rockGrey_large${VAR(rng)}{w}`]), Object.assign(wild(rng, 0.9, 1.15), { scale: 1.05 })); }
             // éboulis : deux passes, les blocs moyens d'abord (espacés), puis les pierres qui comblent les creux
             const blocs = Math.round((seul ? 5 : 5 + deg * 0.5) * (L2(cell) ? 1.5 : 1));
@@ -576,9 +589,61 @@ export class Decor {
             }
             for (const p of sample(rng, cell, keys, 1, { minDist: 26, margin: 12, placed: [] })) push(p, `obj_puddle${VAR3(rng)}`, { weathers: ['storm'] });
           } else if (family === 'hill') {
-            for (const p of sample(rng, cell, keys, L2(cell) ? 5 : 2, { minDist: L2(cell) ? 18 : 26, margin: 12, placed, yMax: 8, radius: 0.7 })) { placed.push(p); push(p, PICK(rng, ['obj_treePine_small_{s}', 'obj_treeRound_small_{s}', 'obj_bushGrass_{s}'])); }
-            for (const p of sample(rng, cell, keys, 2, { minDist: 22, margin: 12, placed: [], yMax: 8, radius: 0.7 })) push(p, PICK(rng, ['obj_flowerYellow', 'obj_flowerBlue']), { seasons: ['spring'] });
-            for (const p of sample(rng, cell, keys, 1, { minDist: 26, margin: 12, placed: [], yMax: 8, radius: 0.7 })) push(p, 'obj_snowdrift', { seasons: ['winter'] });
+            // Des collines EN VOLUME (modèles du pack EXTRA) sur un sol d'herbe plat. La tuile surélevée
+            // d'avant (grass_17) était un bloc hexagonal à flancs bruns qui ne se fondait avec rien ; un
+            // seul gros modèle au centre de la case se lisait ensuite comme un accessoire posé (« un gros
+            // bloc seul au milieu »). Chaque case porte donc une COMPOSITION : un mamelon principal un peu
+            // décalé, un ou deux petits satellites poussés vers les collines voisines (la région se lit
+            // comme une chaîne, les reliefs se chevauchent d'une case à l'autre), des rochers au pied.
+            // Une chaîne (hills, parfois boisée) dès deux voisines, un mont au centre des grandes régions.
+            const voisines = degreeOf(cell, keys);
+            const vers = []; for (const [a, b] of neighbors(cell.q, cell.r)) if (keys.has(key(a, b))) { const w = toWorld(a, b); vers.push({ x: w.x - c.x, y: w.y - c.y }); }
+            // Les monts herbeux (roche grise, sommet d'herbe) aussi sur les collines (« pour les collines
+            // aussi ») : toujours au centre des grandes régions, une fois sur deux au cœur d'une chaîne,
+            // une fois sur trois — petit — sur une colline isolée : la roche affleure sous l'herbe.
+            let principal, ech; const mont = `obj_mont_${PICK(rng, ['A', 'B', 'C'])}_{s}`;
+            if (cells.length >= 5 && cell === center) { principal = mont; ech = 0.9; }
+            else if (voisines >= 2) { if (rng() < 0.5) { principal = mont; ech = 0.72; } else { principal = `obj_collines_${PICK(rng, ['A', 'B', 'C', 'B_arbres', 'C_arbres'])}_{s}`; ech = 0.8; } }
+            else if (rng() < 0.34) { principal = mont; ech = 0.56; }
+            else { principal = `obj_colline_${PICK(rng, ['A', 'B', 'C'])}_{s}`; ech = 0.78; }
+            const p = { x: c.x + (rng() - 0.5) * 16, y: c.y + 20 + (rng() - 0.5) * 10 };
+            placed.push(p); push(p, principal, { flip: rng() < 0.5, scale: ech * (0.94 + rng() * 0.12) });
+            // les satellites : vers une voisine de colline quand il y en a, sinon au hasard, toujours à côté
+            const n = 1 + (rng() < (voisines ? 0.6 : 0.4) ? 1 : 0);
+            for (let i = 0; i < n; i++) {
+              let dx, dy;
+              if (vers.length && rng() < 0.75) { const v = PICK(rng, vers); const t = 0.42 + rng() * 0.16; dx = v.x * t + (rng() - 0.5) * 14; dy = v.y * t + (rng() - 0.5) * 10; }
+              else { const a = rng() * Math.PI * 2; dx = Math.cos(a) * (34 + rng() * 10); dy = Math.sin(a) * (22 + rng() * 8); }
+              const q = { x: c.x + dx, y: c.y + dy + 14 };
+              placed.push(q); push(q, `obj_colline_${PICK(rng, ['A', 'B', 'C'])}_{s}`, { flip: rng() < 0.5, scale: 0.4 + rng() * 0.16 });
+            }
+            // au pied : cailloux et touffes, pour que le relief soit posé et non collé
+            for (const p2 of sample(rng, cell, keys, 2, { minDist: 22, margin: 8, placed: [], yMin: 26, radius: 0.85 })) push(p2, rng() < 0.55 ? `obj_rockGrey_small${VAR3(rng)}{w}` : 'obj_bushGrass_{s}', { scale: 0.5 + rng() * 0.15, flip: rng() < 0.5 });
+            // Piste C : les falaises côtières. Le sol de colline est de l'herbe plate partout (journal 102) ;
+            // sur le flanc qui plonge dans la MER — pas un étang ni un lac, qui restent doux — un amas de
+            // rochers prend le pied du relief là où l'herbe cède. Les écueils (plus haut dans ce fichier)
+            // posent déjà des rochers AU LARGE, au-delà de l'arête ; ceux-ci restent EN DEÇÀ (t < 1, jamais
+            // sur l'arête elle-même), pour ne pas doubler ce système et se lire comme la base du massif.
+            for (let d = 0; d < 6; d++) {
+              if (!board.isSea(cell.q + DIRS[d][0], cell.r + DIRS[d][1])) continue;
+              const ex = edgeMid(c.x, c.y, d).x - c.x, ey = edgeMid(c.x, c.y, d).y - c.y;
+              const len = Math.hypot(ex, ey) || 1, px = -ey / len, py = ex / len;   // le long du rivage
+              for (let i = 0; i < 2; i++) {
+                const t = 0.5 + rng() * 0.32, dec = (rng() - 0.5) * 30;
+                push({ x: c.x + ex * t + px * dec, y: c.y + ey * t + py * dec + 6 }, PICK(rng, ['obj_rockGrey_medium1{w}', 'obj_rockGrey_medium2{w}', `obj_rockGrey_large${VAR(rng)}{w}`]), Object.assign(wild(rng, 0.85, 1.15), { scale: 0.95 }));
+              }
+            }
+            // Piste D : un repère au sommet de la région (la case la plus centrale, une seule par région,
+            // déjà calculée pour le hameau) pour qu'on la distingue au premier regard du reste de la chaîne —
+            // un rocher isolé ou un arbre esseulé, IMMOBILE (la chèvre, elle, se déplace : pas de faune figée
+            // ici). Sauf si la case a déjà sa pièce maîtresse de niveau 3 (LANDMARK, plus haut) : pas deux
+            // repères sur la même case.
+            if (cell === center && (cell.level || 1) < 3) {
+              const a = rng() * Math.PI * 2, dd = 28 + rng() * 10;
+              const sp = { x: p.x + Math.cos(a) * dd, y: p.y + Math.sin(a) * dd * 0.55 - 4 };
+              if (rng() < 0.55) push(sp, `obj_rockGrey_large${VAR(rng)}{w}`, { scale: 0.5 + rng() * 0.15, flip: rng() < 0.5 });
+              else push(sp, rng() < 0.5 ? 'obj_treePine_small_{s}' : 'obj_treeRound_small_{s}', { scale: 0.55 + rng() * 0.12, flip: rng() < 0.5 });
+            }
           } else if (family === 'heath') {
             // La bruyère poussait en solitaires régulièrement espacées : on la met en TOUFFES, et on
             // sème entre elles ce qui fait une lande — cailloux affleurants, ajoncs, herbe rase.
@@ -600,6 +665,22 @@ export class Decor {
           // bourrasque : congères sur toutes les tuiles de terre
           if (family !== 'water') for (const p of sample(rng, cell, keys, 1, { minDist: 30, margin: 12, placed: [] })) push(p, 'obj_snowdrift', { weathers: ['blizzard'] });
         }
+      }
+    }
+    // Des pierres et des touffes au bord des chemins : un chemin de terre n'est pas posé sur l'herbe,
+    // il y est usé, et ce sont les cailloux dégagés et l'herbe qui repousse au bord qui le disent.
+    let ic = 0;
+    for (const s of pathShapes(board)) {
+      const rng = mulberry(cellSeed(this.seed, ic++, 977, 5)); const rb = s.ruban; if (!rb) continue;
+      for (let i = 5; i < rb.gauche.length - 5; i += 8) {
+        if (rng() < 0.6) continue;
+        const gauche = rng() < 0.5; const e = gauche ? rb.gauche[i] : rb.droite[i], o = gauche ? rb.droite[i] : rb.gauche[i];
+        const dx = e.x - o.x, dy = e.y - o.y; const d = Math.hypot(dx, dy) || 1; const recul = 3 + rng() * 4;
+        const p = { x: e.x + dx / d * recul, y: e.y + dy / d * recul };
+        const c = fromWorld(p.x, p.y); const t = board.get(c.q, c.r); if (!t || Board.isFamily(t, 'water')) continue;
+        if (Board.isFamily(t, 'hamlet') && rng() < 0.6) continue;   // dans la rue, moins de cailloux
+        if (rng() < 0.55) add({ x: p.x, y: p.y, tpl: `obj_rockGrey_small${VAR3(rng)}{w}`, cell: key(c.q, c.r), scale: 0.3 + rng() * 0.15, flip: rng() < 0.5 });
+        else add({ x: p.x, y: p.y, tpl: 'obj_bushGrass_{s}', cell: key(c.q, c.r), scale: 0.5 + rng() * 0.2, flip: rng() < 0.5 });
       }
     }
     out.sort((a, b) => a.y - b.y);
