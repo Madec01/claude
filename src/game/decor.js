@@ -619,6 +619,31 @@ export class Decor {
             }
             // au pied : cailloux et touffes, pour que le relief soit posé et non collé
             for (const p2 of sample(rng, cell, keys, 2, { minDist: 22, margin: 8, placed: [], yMin: 26, radius: 0.85 })) push(p2, rng() < 0.55 ? `obj_rockGrey_small${VAR3(rng)}{w}` : 'obj_bushGrass_{s}', { scale: 0.5 + rng() * 0.15, flip: rng() < 0.5 });
+            // Piste C : les falaises côtières. Le sol de colline est de l'herbe plate partout (journal 102) ;
+            // sur le flanc qui plonge dans la MER — pas un étang ni un lac, qui restent doux — un amas de
+            // rochers prend le pied du relief là où l'herbe cède. Les écueils (plus haut dans ce fichier)
+            // posent déjà des rochers AU LARGE, au-delà de l'arête ; ceux-ci restent EN DEÇÀ (t < 1, jamais
+            // sur l'arête elle-même), pour ne pas doubler ce système et se lire comme la base du massif.
+            for (let d = 0; d < 6; d++) {
+              if (!board.isSea(cell.q + DIRS[d][0], cell.r + DIRS[d][1])) continue;
+              const ex = edgeMid(c.x, c.y, d).x - c.x, ey = edgeMid(c.x, c.y, d).y - c.y;
+              const len = Math.hypot(ex, ey) || 1, px = -ey / len, py = ex / len;   // le long du rivage
+              for (let i = 0; i < 2; i++) {
+                const t = 0.5 + rng() * 0.32, dec = (rng() - 0.5) * 30;
+                push({ x: c.x + ex * t + px * dec, y: c.y + ey * t + py * dec + 6 }, PICK(rng, ['obj_rockGrey_medium1{w}', 'obj_rockGrey_medium2{w}', `obj_rockGrey_large${VAR(rng)}{w}`]), Object.assign(wild(rng, 0.85, 1.15), { scale: 0.95 }));
+              }
+            }
+            // Piste D : un repère au sommet de la région (la case la plus centrale, une seule par région,
+            // déjà calculée pour le hameau) pour qu'on la distingue au premier regard du reste de la chaîne —
+            // un rocher isolé ou un arbre esseulé, IMMOBILE (la chèvre, elle, se déplace : pas de faune figée
+            // ici). Sauf si la case a déjà sa pièce maîtresse de niveau 3 (LANDMARK, plus haut) : pas deux
+            // repères sur la même case.
+            if (cell === center && (cell.level || 1) < 3) {
+              const a = rng() * Math.PI * 2, dd = 28 + rng() * 10;
+              const sp = { x: p.x + Math.cos(a) * dd, y: p.y + Math.sin(a) * dd * 0.55 - 4 };
+              if (rng() < 0.55) push(sp, `obj_rockGrey_large${VAR(rng)}{w}`, { scale: 0.5 + rng() * 0.15, flip: rng() < 0.5 });
+              else push(sp, rng() < 0.5 ? 'obj_treePine_small_{s}' : 'obj_treeRound_small_{s}', { scale: 0.55 + rng() * 0.12, flip: rng() < 0.5 });
+            }
           } else if (family === 'heath') {
             // La bruyère poussait en solitaires régulièrement espacées : on la met en TOUFFES, et on
             // sème entre elles ce qui fait une lande — cailloux affleurants, ajoncs, herbe rase.
