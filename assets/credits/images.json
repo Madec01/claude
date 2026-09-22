@@ -920,5 +920,16 @@
    "archetypes/archetype-littorale.png",
    "archetypes/archetype-nourriciere.png"
   ]
+ },
+ {
+  "pack": "Icône de l'application (capture du jeu)",
+  "author": "Cent Saisons",
+  "license": "Voir les packs ci-dessus",
+  "attribution": "L'icône est une photographie de l'île 13 jouée jusqu'au bout par le bot des tests (tools/capture_partie.js), recadrée au carré. Tout ce qu'on y voit vient des packs d'images crédités plus haut ; rien n'a été dessiné pour elle.",
+  "files": [
+   "ui/app_icon_192.png",
+   "ui/app_icon_512.png",
+   "ui/app_icon_512_maskable.png"
+  ]
  }
 ]

@@ -96,6 +96,9 @@ Toutes les œuvres ci-dessous appartiennent à leurs auteurs et sont utilisées 
 - **Généré par IA (ChatGPT, OpenAI)** — OpenAI — licence Conditions d'utilisation d'OpenAI (voir la page ci-dessous) — [source](https://openai.com/policies/usage-policies)
   - Attribution : Insignes d'archétype d'île « hameaux » et « aquatique », générés à partir d'un prompt écrit pour le projet (détail dans manifest.json), à la demande du commanditaire.
   - Fichiers : archetypes/archetype-hameaux.png, archetypes/archetype-aquatique.png, archetypes/archetype-montagneuse.png, archetypes/archetype-sauvage.png, archetypes/archetype-littorale.png, archetypes/archetype-nourriciere.png
+- **Icône de l'application (capture du jeu)** — Cent Saisons — licence Voir les packs ci-dessus
+  - Attribution : L'icône est une photographie de l'île 13 jouée jusqu'au bout par le bot des tests (tools/capture_partie.js), recadrée au carré. Tout ce qu'on y voit vient des packs d'images crédités plus haut ; rien n'a été dessiné pour elle.
+  - Fichiers : ui/app_icon_192.png, ui/app_icon_512.png, ui/app_icon_512_maskable.png
 
 ## Polices
 
