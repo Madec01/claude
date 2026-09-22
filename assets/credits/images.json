@@ -9,6 +9,12 @@
   "mirrorPath": "hexagon-pack",
   "licenseFile": "https://github.com/ETdoFresh/kenney.nl/blob/main/hexagon-pack/License.txt",
   "files": [
+   "archetypes/archetype-aquatique.png",
+   "archetypes/archetype-hameaux.png",
+   "archetypes/archetype-littorale.png",
+   "archetypes/archetype-montagneuse.png",
+   "archetypes/archetype-nourriciere.png",
+   "archetypes/archetype-sauvage.png",
    "deco/obj_banner.png",
    "deco/obj_basket.png",
    "deco/obj_box2.png",
@@ -406,6 +412,8 @@
   "mirrorPath": "kenney_animalpackredux",
   "licenseFile": "https://github.com/ETdoFresh/kenney.nl/blob/main/kenney_animalpackredux/License.txt",
   "files": [
+   "archetypes/archetype-aquatique.png",
+   "archetypes/archetype-sauvage.png",
    "fauna/fauna_bear.png",
    "fauna/fauna_chick.png",
    "fauna/fauna_chicken.png",

@@ -1581,6 +1581,52 @@ class Builder:
             self.emit(bid, "succes", im, packs if len(packs) > 1 else packs[0], base + "".join(" + " + l[0] for l in layers),
                       "Vignette de succès composée à partir des tuiles et sprites du jeu.", badge=True)
 
+    def build_archetype_badges(self):
+        """Insignes d'archétype d'île (à ne pas confondre avec les vignettes de succès, ci-dessus) : un par
+        famille dominante regroupée (hameaux, aquatique, sauvage, montagneuse, nourricière, littorale), posés
+        sur l'île après une partie selon ce qu'on y a le plus bâti. Même recette que les vignettes de succès
+        (une image existante + un sprite existant, jamais rien dessiné) mais dans leur propre dossier, car
+        c'est une mécanique distincte."""
+        def load(key):
+            e = self.manifest.get(key)
+            if not e:
+                raise KeyError(f"insigne : image absente {key}")
+            return Image.open(self.img_root / e["file"]).convert("RGBA")
+        def sprite(key, x, y, scale=1.0):
+            im = load(key)
+            if scale != 1.0:
+                im = im.resize((max(1, round(im.width * scale)), max(1, round(im.height * scale))), Image.LANCZOS)
+            return im, x, y   # ancré bas-centre en (x, y)
+        def pack_of(key):
+            pk = self.manifest[key]["source"]
+            return pk if isinstance(pk, str) else pk[0]
+        A = {
+            # hameau : la famille a déjà sa voix (resultsBy/memoryVoice) — l'insigne reprend le même thème
+            "archetype-hameaux": ("ground_grass_summer", [("obj_tinyBuilding_jaune", 88, 210, 1.05), ("obj_tinyBuilding_vert", 158, 200, 0.95)]),
+            "archetype-aquatique": ("ground_water_summer", [("fauna_duck", 88, 206, 1.05), ("obj_lily", 160, 210, 1.4)]),
+            # sauvage : forêt + marais + lande — un hibou dans les pins dit « sans-toi » mieux qu'un arbre seul
+            "archetype-sauvage": ("ground_grass_autumn", [("obj_treePine_small_autumn", 90, 216, 1.3), ("fauna_owl", 158, 206, 0.9)]),
+            # montagneuse : roche + colline — le mont de roche nue du pack EXTRA (journal 106), déjà le
+            # sommet des massifs et des grandes collines en jeu
+            "archetype-montagneuse": ("ground_stone_summer", [("obj_mont_roc_A_summer", 120, 216, 0.95)]),
+            # nourricière : champ + verger + prairie
+            "archetype-nourriciere": ("ground_field_summer", [("obj_treeRound_fruit_summer", 88, 216, 1.7), ("obj_haybale", 164, 210, 1.1)]),
+            # littorale : sable seul — bois flotté et galet, pour rester distinct de « jusqu'à la mer »
+            # (vagues) et « le lac » (nénuphars), déjà pris par les succès existants
+            "archetype-littorale": ("ground_sand_summer", [("obj_log", 88, 208, 1.1), ("obj_rockBrown_small", 160, 210, 0.9)]),
+        }
+        for bid, (base, layers) in A.items():
+            im = load(base).copy()
+            objs = []
+            for key, x, y, scale in layers:
+                sp, x, y = sprite(key, x, y, scale)
+                objs.append((y, sp, x))
+            for y, sp, x in sorted(objs, key=lambda o: o[0]):
+                im.alpha_composite(sp, (int(x - sp.width / 2), int(y - sp.height)))
+            packs = sorted({pack_of(base)} | {pack_of(k) for k, *_ in layers})
+            self.emit(bid, "archetypes", im, packs if len(packs) > 1 else packs[0], base + "".join(" + " + k for k, *_ in layers),
+                      "Insigne d'archétype d'île, composé à partir des tuiles et sprites du jeu.", badge=True)
+
     def build_ui(self):
         icons = [
             ("icon_gear", GI, "gear", "Engrenage (options)"), ("icon_audio_on", GI, "audioOn", "Son activé"),
@@ -1868,6 +1914,7 @@ def main():
     b.build_fx()
     b.build_ui()
     b.build_badges()
+    b.build_archetype_badges()
     if args.sheets:
         b.contact_sheets()
     b.finish()

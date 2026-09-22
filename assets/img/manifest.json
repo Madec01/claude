@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-22T09:34:13+00:00",
+ "generated": "2026-09-22T13:31:50+00:00",
  "generator": "tools/build_images.py",
  "conventions": {
   "hex": {
@@ -7346,6 +7346,86 @@
    ],
    "original": "ground_grass_summer + icon_save",
    "note": "Vignette de succès composée à partir des tuiles et sprites du jeu.",
+   "badge": true
+  },
+  "archetype-hameaux": {
+   "file": "archetypes/archetype-hameaux.png",
+   "w": 240,
+   "h": 280,
+   "bytes": 17990,
+   "source": [
+    "hexagon-pack",
+    "kaykit"
+   ],
+   "original": "ground_grass_summer + obj_tinyBuilding_jaune + obj_tinyBuilding_vert",
+   "note": "Insigne d'archétype d'île, composé à partir des tuiles et sprites du jeu.",
+   "badge": true
+  },
+  "archetype-aquatique": {
+   "file": "archetypes/archetype-aquatique.png",
+   "w": 240,
+   "h": 280,
+   "bytes": 23767,
+   "source": [
+    "hexagon-pack",
+    "kaykit",
+    "kenney_animalpackredux"
+   ],
+   "original": "ground_water_summer + fauna_duck + obj_lily",
+   "note": "Insigne d'archétype d'île, composé à partir des tuiles et sprites du jeu.",
+   "badge": true
+  },
+  "archetype-sauvage": {
+   "file": "archetypes/archetype-sauvage.png",
+   "w": 240,
+   "h": 280,
+   "bytes": 24316,
+   "source": [
+    "hexagon-pack",
+    "kaykit",
+    "kenney_animalpackredux"
+   ],
+   "original": "ground_grass_autumn + obj_treePine_small_autumn + fauna_owl",
+   "note": "Insigne d'archétype d'île, composé à partir des tuiles et sprites du jeu.",
+   "badge": true
+  },
+  "archetype-montagneuse": {
+   "file": "archetypes/archetype-montagneuse.png",
+   "w": 240,
+   "h": 280,
+   "bytes": 30932,
+   "source": [
+    "hexagon-pack",
+    "kaykit"
+   ],
+   "original": "ground_stone_summer + obj_mont_roc_A_summer",
+   "note": "Insigne d'archétype d'île, composé à partir des tuiles et sprites du jeu.",
+   "badge": true
+  },
+  "archetype-nourriciere": {
+   "file": "archetypes/archetype-nourriciere.png",
+   "w": 240,
+   "h": 280,
+   "bytes": 18219,
+   "source": [
+    "hexagon-pack",
+    "kaykit"
+   ],
+   "original": "ground_field_summer + obj_treeRound_fruit_summer + obj_haybale",
+   "note": "Insigne d'archétype d'île, composé à partir des tuiles et sprites du jeu.",
+   "badge": true
+  },
+  "archetype-littorale": {
+   "file": "archetypes/archetype-littorale.png",
+   "w": 240,
+   "h": 280,
+   "bytes": 34478,
+   "source": [
+    "hexagon-pack",
+    "kaykit"
+   ],
+   "original": "ground_sand_summer + obj_log + obj_rockBrown_small",
+   "note": "Insigne d'archétype d'île, composé à partir des tuiles et sprites du jeu.",
    "badge": true
   }
  }
