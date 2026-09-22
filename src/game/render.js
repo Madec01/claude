@@ -1144,7 +1144,6 @@ export class IslandRenderer {
     // Le pointillé blanc du milieu est parti : c'était un marquage routier dans un jeu qui n'a pas de routes.
     ctx.globalAlpha = 0.5; ctx.strokeStyle = dark; for (const o of all) { ctx.lineWidth = (o.width + 4) * z; trace(o.sp); ctx.stroke(); }
     ctx.globalAlpha = 1; ctx.strokeStyle = col; for (const o of all) { ctx.lineWidth = o.width * z; trace(o.sp); ctx.stroke(); }
-    if (this.finale) { ctx.globalAlpha = 0.35 + 0.3 * Math.sin(this.time * 5); ctx.strokeStyle = '#ffd77a'; ctx.lineWidth = 4 * z; ctx.setLineDash([14 * z, 10 * z]); ctx.lineDashOffset = -this.time * 60 * z; for (const o of all) { trace(o.sp); ctx.stroke(); } ctx.setLineDash([]); }
     ctx.restore();
   }
 
