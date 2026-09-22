@@ -33,12 +33,23 @@ export function computeLinks(board) {
       }
     }
   }
-  // sentiers : plus court chemin (≤ MAX_PATH tuiles ouvertes) entre deux régions de hameaux différentes
-  const best = new Map();   // "regA|regB" -> { cells, len }
+  // sentiers : plus court chemin (≤ MAX_PATH tuiles ouvertes) entre deux régions de hameaux différentes.
+  // Entre plusieurs chemins de même longueur, on garde le plus DROIT : un parcours en largeur qui prend
+  // le premier venu faisait des crochets par une case de côté, et le sentier partait vers la côte
+  // pour revenir (retour du commanditaire : « des itinéraires assez bizarres »).
+  const best = new Map();   // "regA|regB" -> { cells, detour }
+  const centre = (k) => { const [q, r] = parse(k); return toWorld(q, r); };
+  // l'écart d'un chemin à la ligne droite : la somme des distances de ses cases intermédiaires à la corde
+  const detour = (cells) => {
+    const a = centre(cells[0]), b = centre(cells[cells.length - 1]); const dx = b.x - a.x, dy = b.y - a.y; const L = Math.hypot(dx, dy) || 1;
+    let s = 0; for (let i = 1; i < cells.length - 1; i++) { const c = centre(cells[i]); s += Math.abs((c.x - a.x) * dy - (c.y - a.y) * dx) / L; }
+    return s;
+  };
   for (const t of board.tiles.values()) {
     if (!isHamlet(t)) continue;
     const start = key(t.q, t.r), ra = regionOf.get(start);
-    const queue = [[start, [start]]]; const dist = new Map([[start, 0]]);
+    // tous les chemins les plus courts vers chaque case (pas seulement le premier trouvé), bornés
+    const queue = [[start, [start]]]; const dist = new Map([[start, 0]]); const vus = new Map([[start, 1]]);
     while (queue.length) {
       const [k, path] = queue.shift(); const d = dist.get(k);
       const [q, r] = parse(k);
@@ -48,12 +59,14 @@ export function computeLinks(board) {
           const rb = regionOf.get(nk);
           if (rb === ra || d === 0) continue;
           const pk = ra < rb ? `${ra}|${rb}` : `${rb}|${ra}`;
-          const cells = [...path, nk]; const cur = best.get(pk);
-          if (!cur || cells.length < cur.cells.length) best.set(pk, { a: ra, b: rb, cells });
+          const cells = [...path, nk]; const cur = best.get(pk); const e = detour(cells);
+          if (!cur || cells.length < cur.cells.length || (cells.length === cur.cells.length && e < cur.detour - 1e-6)) best.set(pk, { a: ra, b: rb, cells, detour: e });
           continue;
         }
-        if (!isOpen(n) || d + 1 > (board.linkMax || MAX_PATH) || dist.has(nk)) continue;
-        dist.set(nk, d + 1); queue.push([nk, [...path, nk]]);
+        if (!isOpen(n) || d + 1 > (board.linkMax || MAX_PATH)) continue;
+        if (dist.has(nk) && dist.get(nk) < d + 1) continue;          // déjà atteinte en moins de pas
+        const nv = (vus.get(nk) || 0) + 1; if (nv > 6) continue;    // six chemins de même longueur suffisent
+        vus.set(nk, nv); dist.set(nk, d + 1); queue.push([nk, [...path, nk]]);
       }
     }
   }
@@ -137,7 +150,14 @@ function shape(board, cells) {
   const brut = [];
   for (let i = 0; i < cells.length; i++) {
     const k = cells[i]; const [q, r] = parse(k);
-    brut.push(waypoint(board, k, isHamlet(board.get(q, r))));
+    let w = waypoint(board, k, isHamlet(board.get(q, r)));
+    // une case traversée : le chemin la COUPE, il ne va pas visiter son centre. Le point de passage
+    // est tiré vers le milieu des deux arêtes franchies — sinon chaque case faisait un crochet
+    if (i > 0 && i < cells.length - 1) {
+      const e1 = passage(cells[i - 1], k), e2 = passage(k, cells[i + 1]);
+      if (e1 && e2) { const mx = (e1.x + e2.x) / 2, my = (e1.y + e2.y) / 2; w = { x: w.x * 0.45 + mx * 0.55, y: w.y * 0.45 + my * 0.55 }; }
+    }
+    brut.push(w);
     if (i < cells.length - 1) { const m = passage(k, cells[i + 1]); if (m) brut.push(m); }
   }
   return chaikin(brut, 2);
@@ -188,11 +208,12 @@ export function ruban(pts, largeur, seed, marge = 0) {
     const a = p[Math.max(0, i - 1)], b = p[Math.min(p.length - 1, i + 1)];
     let tx = b.x - a.x, ty = b.y - a.y; const d = Math.hypot(tx, ty) || 1; tx /= d; ty /= d;
     const nx = -ty, ny = tx;
-    // effilé aux deux bouts sur 22 px, largeur qui ondule lentement (± 15 %), bords qui s'effilochent
-    // chacun à leur rythme (± 35 % sur 9 px) — deux bruits différents, sinon le chemin ne fait qu'onduler
+    // effilé aux deux bouts sur 22 px, largeur qui ondule lentement (± 8 %), bords qui s'effilochent
+    // chacun à leur rythme (± 18 % sur 12 px) — deux bruits différents, sinon le chemin ne fait
+    // qu'onduler. (± 35 % sur 9 px, la première fois : « trop prononcé », dit le commanditaire.)
     const bout = Math.min(1, s / 22, (L - s) / 22); const effile = 0.45 + 0.55 * bout * bout * (3 - 2 * bout);
-    const w = (largeur / 2) * effile * (0.85 + 0.15 * bruit1d(seed, s, 26)) + marge;
-    const gl = 1 + 0.35 * bruit1d(seed + 3, s, 9), gr = 1 + 0.35 * bruit1d(seed + 7, s, 9);
+    const w = (largeur / 2) * effile * (0.92 + 0.08 * bruit1d(seed, s, 30)) + marge;
+    const gl = 1 + 0.18 * bruit1d(seed + 3, s, 12), gr = 1 + 0.18 * bruit1d(seed + 7, s, 12);
     gauche.push({ x: p[i].x + nx * w * gl, y: p[i].y + ny * w * gl });
     droite.push({ x: p[i].x - nx * w * gr, y: p[i].y - ny * w * gr });
   }
