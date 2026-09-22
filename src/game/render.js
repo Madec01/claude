@@ -1252,18 +1252,6 @@ export class IslandRenderer {
       const m = edgeMid(w.x, w.y, e.d); const s = cam.toScreen(m.x, m.y);
       this.pill(ctx, s.x, s.y, (e.pts > 0 ? '+' : '') + e.pts, e.pts > 0 ? (e.pts >= 2 ? '#e0a33a' : '#2f9e8f') : '#d95f4b');
     }
-    // LA LAGUNE N'EST PAS UNE TUILE. Un trou du masque est peint comme un étang (journal 21), avec la même
-    // mare et la même rive : le joueur y lit une case d'eau, pose un marais contre elle et ne comprend pas
-    // son « +0 » — aucune pastille ne s'affiche sur un bord qui ne rapporte rien. On nomme donc ce bord-là,
-    // en gris : la mer intérieure ne compte pas, et le joueur sait enfin pourquoi.
-    if (!pv.work) {
-      for (const h of this.decor.holes || []) {
-        const d = DIRS.findIndex(([dq, dr]) => hv.q + dq === h.q && hv.r + dr === h.r);
-        if (d < 0) continue;
-        const m = edgeMid(w.x, w.y, d); const s = cam.toScreen(m.x, m.y);
-        this.pill(ctx, s.x, s.y, '0 · lagune', '#6b6a66');
-      }
-    }
     for (let i = 0; i < pv.base.length; i++) { const bs = pv.base[i]; this.pill(ctx, c.x, c.y + (30 + i * 22) * z, `+${bs.pts} ${bs.label}`, '#5aa7d6'); }
     for (const cl of pv.closes) this.pill(ctx, c.x, c.y - (64) * z, `région close +${cl.bonus}`, '#e0a33a');
     if (pv.blight) this.pill(ctx, c.x, c.y - 64 * z, '✗ en friche : ne rapportera plus rien', '#d95f4b');
