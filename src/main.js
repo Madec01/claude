@@ -47,7 +47,7 @@ import { Cloud, moreAdvanced, signInProblem } from './core/cloud.js';
 import { buildSignIn } from './ui/signin.js';
 import { buildCloudConflict } from './ui/cloud_conflict.js';
 import { buildPrivacy } from './ui/privacy.js';
-import { buildReportPanel } from './ui/report.js';
+import { buildReportPanel, buildEnvoisPanel } from './ui/report.js';
 import { BlackBox } from './core/blackbox.js';
 import { setVersion, rafraichirEtats, nouveautesEtats, noterEtatsVus, ETATS } from './core/report.js';
 import { VERSION } from './ui/menu.js';
@@ -211,10 +211,10 @@ const Game = {
       onWipe: Cloud.user ? async () => { const ok = await Cloud.wipe(); this.toast(ok ? 'Tes données en ligne sont effacées.' : 'Impossible d’effacer pour l’instant.'); } : null }));
   },
   /** L'écran « Pépins et idées ». `scenes.current` donne l'île en cours, quand il y en a une. */
-  showReport(onBack, mode = 'pepin', { envois = false } = {}) {
+  showReport(onBack, mode = 'pepin') {
     this.showPanel(buildReportPanel({
       onBack: onBack || (() => this.showMenu()),
-      scene: scenes.current, sceneName: scenes.currentName, mode, ouvrirEnvois: envois,
+      scene: scenes.current, sceneName: scenes.currentName, mode,
     }));
   },
   /**
@@ -255,10 +255,12 @@ const Game = {
           ? `Il ${etat}, et ${reste} autre${reste > 1 ? 's' : ''} ${reste > 1 ? 'ont' : 'a'} bougé. Touche ici.`
           : `Il ${etat}. Touche ici pour revoir tes envois.`,
         iconName: 'icon_info',
-        onClick: () => this.showReport(null, 'pepin', { envois: true }),
+        onClick: () => this.showEnvois(),
       }), 2600);   // après la bannière d'erreur, jamais en même temps qu'elle
     } catch (e) { console.warn('états des pépins', e); }
   },
+  /** L'état des envois : un écran à part, parce qu'on vient y prendre des nouvelles, pas signaler. */
+  showEnvois(onBack) { this.showPanel(buildEnvoisPanel({ onBack: onBack || (() => this.showMenu()) })); },
   showPanel(node) { showUI(node, 'panel-wrap'); },
   showMenu() { scenes.go('menu', {}, { fade: 0.25 }); },
   showOptions(onBack) { this.showPanel(buildOptions({ onBack: onBack || (() => this.showMenu()), game: this })); },
