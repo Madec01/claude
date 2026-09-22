@@ -143,9 +143,66 @@ function shape(board, cells) {
   return chaikin(brut, 2);
 }
 
+// ---------------------------------------------------------------------------
+// Le ruban : un chemin n'est pas un trait d'épaisseur constante aux bords nets, c'est de la terre
+// battue, mangée par l'herbe. Sa largeur ondule, ses deux bords s'effilochent chacun de leur côté,
+// et il s'amenuise aux deux bouts — devant la porte, le chemin se perd dans la cour.
+// ---------------------------------------------------------------------------
+
+/** Bruit 1D lisse et déterministe, dans [-1, 1], le long d'une abscisse `s` (longueur d'onde `lambda`). */
+function bruit1d(seed, s, lambda) {
+  const x = s / lambda, i = Math.floor(x), f = x - i, t = f * f * (3 - 2 * f);
+  const h = (k) => { const v = Math.sin(k * 127.1 + seed * 311.7) * 43758.5453; return v - Math.floor(v); };
+  const a = h(i), b = h(i + 1);
+  return (a + (b - a) * t) * 2 - 1;
+}
+
+/** Rééchantillonnage d'une polyligne à pas constant (les bords irréguliers ont besoin de points serrés). */
+function resample(pts, pas) {
+  if (pts.length < 2) return pts.slice();
+  const out = [pts[0]]; let reste = pas;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const a = pts[i], b = pts[i + 1]; const d = Math.hypot(b.x - a.x, b.y - a.y); let t = reste;
+    while (t <= d) { out.push({ x: a.x + (b.x - a.x) * (t / d), y: a.y + (b.y - a.y) * (t / d) }); t += pas; }
+    reste = t - d;
+  }
+  const fin = pts[pts.length - 1], der = out[out.length - 1];
+  if (Math.hypot(fin.x - der.x, fin.y - der.y) > pas * 0.4) out.push(fin); else out[out.length - 1] = fin;
+  return out;
+}
+
+export const LARGEUR = { lane: 7, link: 10 };   // largeur nominale d'une ruelle et d'un sentier, en px monde
+
 /**
- * Tous les chemins de l'île, prêts à tracer : { kind, cells, pts }.
- * `kind` vaut 'lane' (ruelle d'un village) ou 'link' (sentier entre deux villages).
+ * Les deux bords d'un chemin, en coordonnées monde. `marge` élargit le ruban d'autant de chaque côté
+ * (pour la bordure sombre) sans changer ses irrégularités : la bordure suit le bord clair.
+ * @returns {{ gauche: Array<{x:number,y:number}>, droite: Array<{x:number,y:number}> }}
+ */
+export function ruban(pts, largeur, seed, marge = 0) {
+  const p = resample(pts, 5);
+  const gauche = [], droite = [];
+  let L = 0; for (let i = 1; i < p.length; i++) L += Math.hypot(p[i].x - p[i - 1].x, p[i].y - p[i - 1].y);
+  let s = 0;
+  for (let i = 0; i < p.length; i++) {
+    if (i > 0) s += Math.hypot(p[i].x - p[i - 1].x, p[i].y - p[i - 1].y);
+    const a = p[Math.max(0, i - 1)], b = p[Math.min(p.length - 1, i + 1)];
+    let tx = b.x - a.x, ty = b.y - a.y; const d = Math.hypot(tx, ty) || 1; tx /= d; ty /= d;
+    const nx = -ty, ny = tx;
+    // effilé aux deux bouts sur 22 px, largeur qui ondule lentement (± 15 %), bords qui s'effilochent
+    // chacun à leur rythme (± 35 % sur 9 px) — deux bruits différents, sinon le chemin ne fait qu'onduler
+    const bout = Math.min(1, s / 22, (L - s) / 22); const effile = 0.45 + 0.55 * bout * bout * (3 - 2 * bout);
+    const w = (largeur / 2) * effile * (0.85 + 0.15 * bruit1d(seed, s, 26)) + marge;
+    const gl = 1 + 0.35 * bruit1d(seed + 3, s, 9), gr = 1 + 0.35 * bruit1d(seed + 7, s, 9);
+    gauche.push({ x: p[i].x + nx * w * gl, y: p[i].y + ny * w * gl });
+    droite.push({ x: p[i].x - nx * w * gr, y: p[i].y - ny * w * gr });
+  }
+  return { gauche, droite };
+}
+
+/**
+ * Tous les chemins de l'île, prêts à tracer : { kind, cells, pts, ruban, bordure }.
+ * `kind` vaut 'lane' (ruelle d'un village) ou 'link' (sentier entre deux villages) ; `ruban` et
+ * `bordure` sont les deux bords du chemin et ceux de sa bordure sombre (voir `ruban`).
  */
 export function pathShapes(board) {
   if (board._shapes && board._shapesVersion === board.version) return board._shapes;
@@ -153,6 +210,7 @@ export function pathShapes(board) {
   const out = [];
   for (const [a, b] of lanes) out.push({ kind: 'lane', cells: [a, b], pts: shape(board, [a, b]) });
   for (const l of links) out.push({ kind: 'link', cells: l.cells, pts: shape(board, l.cells) });
+  out.forEach((o, i) => { o.ruban = ruban(o.pts, LARGEUR[o.kind], i); o.bordure = ruban(o.pts, LARGEUR[o.kind], i, 2); });
   board._shapes = out; board._shapesVersion = board.version;
   return out;
 }

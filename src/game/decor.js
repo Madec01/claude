@@ -605,6 +605,22 @@ export class Decor {
         }
       }
     }
+    // Des pierres et des touffes au bord des chemins : un chemin de terre n'est pas posé sur l'herbe,
+    // il y est usé, et ce sont les cailloux dégagés et l'herbe qui repousse au bord qui le disent.
+    let ic = 0;
+    for (const s of pathShapes(board)) {
+      const rng = mulberry(cellSeed(this.seed, ic++, 977, 5)); const rb = s.ruban; if (!rb) continue;
+      for (let i = 5; i < rb.gauche.length - 5; i += 8) {
+        if (rng() < 0.6) continue;
+        const gauche = rng() < 0.5; const e = gauche ? rb.gauche[i] : rb.droite[i], o = gauche ? rb.droite[i] : rb.gauche[i];
+        const dx = e.x - o.x, dy = e.y - o.y; const d = Math.hypot(dx, dy) || 1; const recul = 3 + rng() * 4;
+        const p = { x: e.x + dx / d * recul, y: e.y + dy / d * recul };
+        const c = fromWorld(p.x, p.y); const t = board.get(c.q, c.r); if (!t || Board.isFamily(t, 'water')) continue;
+        if (Board.isFamily(t, 'hamlet') && rng() < 0.6) continue;   // dans la rue, moins de cailloux
+        if (rng() < 0.55) add({ x: p.x, y: p.y, tpl: `obj_rockGrey_small${VAR3(rng)}{w}`, cell: key(c.q, c.r), scale: 0.3 + rng() * 0.15, flip: rng() < 0.5 });
+        else add({ x: p.x, y: p.y, tpl: 'obj_bushGrass_{s}', cell: key(c.q, c.r), scale: 0.5 + rng() * 0.2, flip: rng() < 0.5 });
+      }
+    }
     out.sort((a, b) => a.y - b.y);
     return out;
   }

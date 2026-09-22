@@ -1124,10 +1124,28 @@ export class IslandRenderer {
   }
 
   /**
-   * Ruelles entre hameaux voisins et sentiers entre villages, tracés en courbes douces sous les objets.
+   * Le motif de terre battue d'un chemin, par saison : le cœur de l'image de sol « terre » (là où
+   * elle n'a pas de liseré), teinté de la couleur du chemin. On ne dessine pas de texture : on en
+   * découpe une dans une image de banque, et on la colore.
+   */
+  motifChemin(season) {
+    this._motifs = this._motifs || new Map(); const hit = this._motifs.get(season); if (hit !== undefined) return hit;
+    const col = { spring: '#c9a570', summer: '#d1ab74', autumn: '#bf9463', winter: '#dcd2c3' }[season] || '#c9a570';
+    const img = Assets.img(`ground_dirt_${season}`); if (!img) { this._motifs.set(season, null); return null; }
+    const D = 96; const cv = document.createElement('canvas'); cv.width = D; cv.height = D; const c = cv.getContext('2d');
+    c.drawImage(img, 72, 92, D, D, 0, 0, D, D);
+    c.globalCompositeOperation = 'source-atop'; c.globalAlpha = 0.74; c.fillStyle = col; c.fillRect(0, 0, D, D);
+    this._motifs.set(season, cv); return cv;
+  }
+
+  /**
+   * Ruelles entre hameaux voisins et sentiers entre villages, tracés sous les objets.
    * La géométrie vient de `pathShapes` (partagée avec le décor, qui l'évite) : le chemin s'arrête devant
    * la maison au lieu de la traverser, et son hésitation est tirée par case, si bien que deux chemins
-   * n'ondulent plus de la même façon.
+   * n'ondulent plus de la même façon. Chaque chemin est un RUBAN (`ruban` dans paths.js) : largeur qui
+   * ondule, bords effilochés, bouts qui s'amenuisent — un trait d'épaisseur constante lisait comme un
+   * tracé de carte, pas comme de la terre battue. Deux passes globales (bordure sombre, puis terre
+   * texturée) pour que les croisements restent propres.
    */
   drawPaths(ctx) {
     const b = this.isl.board, cam = this.cam, z = cam.zoom;
@@ -1136,14 +1154,22 @@ export class IslandRenderer {
     const season = this.isl.season;
     const col = { spring: '#c9a570', summer: '#d1ab74', autumn: '#bf9463', winter: '#dcd2c3' }[season] || '#c9a570';
     const dark = { spring: '#a37f4c', summer: '#ab864f', autumn: '#966f42', winter: '#b7ab9a' }[season] || '#a37f4c';
-    ctx.save(); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-    const trace = (sp) => { ctx.beginPath(); ctx.moveTo(sp[0].x, sp[0].y); if (sp.length === 2) ctx.lineTo(sp[1].x, sp[1].y); else { for (let i = 1; i < sp.length - 1; i++) { const mx = (sp[i].x + sp[i + 1].x) / 2, my = (sp[i].y + sp[i + 1].y) / 2; ctx.quadraticCurveTo(sp[i].x, sp[i].y, mx, my); } ctx.lineTo(sp[sp.length - 1].x, sp[sp.length - 1].y); } };
-    const all = shapes.map((s) => ({ sp: s.pts.map((p) => cam.toScreen(p.x, p.y)), width: s.kind === 'lane' ? 6 : 9 }))
-      .filter((o) => !o.sp.every((p) => p.x < -200 || p.x > STAGE.W + 200 || p.y < -200 || p.y > STAGE.H + 200));
-    // deux passes globales (bordure sombre puis terre) pour que les croisements restent propres.
-    // Le pointillé blanc du milieu est parti : c'était un marquage routier dans un jeu qui n'a pas de routes.
-    ctx.globalAlpha = 0.5; ctx.strokeStyle = dark; for (const o of all) { ctx.lineWidth = (o.width + 4) * z; trace(o.sp); ctx.stroke(); }
-    ctx.globalAlpha = 1; ctx.strokeStyle = col; for (const o of all) { ctx.lineWidth = o.width * z; trace(o.sp); ctx.stroke(); }
+    const hors = (pts) => pts.every((p) => p.x < -200 || p.x > STAGE.W + 200 || p.y < -200 || p.y > STAGE.H + 200);
+    const polygone = (r) => {
+      const g = r.gauche.map((p) => cam.toScreen(p.x, p.y)), d = r.droite.map((p) => cam.toScreen(p.x, p.y));
+      if (hors(g)) return false;
+      ctx.beginPath(); ctx.moveTo(g[0].x, g[0].y);
+      for (let i = 1; i < g.length; i++) ctx.lineTo(g[i].x, g[i].y);
+      for (let i = d.length - 1; i >= 0; i--) ctx.lineTo(d[i].x, d[i].y);
+      ctx.closePath(); return true;
+    };
+    ctx.save(); ctx.lineJoin = 'round';
+    ctx.globalAlpha = 0.5; ctx.fillStyle = dark; for (const s of shapes) if (polygone(s.bordure)) ctx.fill();
+    ctx.globalAlpha = 1;
+    // la terre : le motif est accroché au monde (il suit la caméra), pas à l'écran
+    const motif = this.motifChemin(season); let fill = col;
+    if (motif && typeof DOMMatrix === 'function') { const pat = ctx.createPattern(motif, 'repeat'); const o = cam.toScreen(0, 0); if (pat && pat.setTransform) { pat.setTransform(new DOMMatrix([z, 0, 0, z, o.x, o.y])); fill = pat; } }
+    ctx.fillStyle = fill; for (const s of shapes) if (polygone(s.ruban)) ctx.fill();
     ctx.restore();
   }
 
