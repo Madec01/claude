@@ -520,7 +520,7 @@ export class IslandRenderer {
       const k = key(t.q, t.r); if (dropping.has(k)) continue;
       const season = this.seasonFor(w.x);
       const col = GROUND_COLORS[g] || (images[groundKey(g, season)] || {}).ground_color; if (!col) continue;
-      const dedans = corners(c.x, c.y, SIZE * z * 0.86), dehors = corners(c.x, c.y, SIZE * z * 1.5);
+      const dedans = corners(c.x, c.y, SIZE * z * 0.86);
       for (let i = 0; i < 6; i++) {
         const [dq, dr] = DIRS[EDGE_DIR[i]]; const nk = key(t.q + dq, t.r + dr); if (b.tiles.has(nk) && !anses.has(nk)) continue;
         const face = this.estMer(t.q + dq, t.r + dr) ? 1 : nu; if (face <= 0.002) continue;
@@ -528,8 +528,14 @@ export class IslandRenderer {
         // la bande déborde de trois unités de chaque côté : deux bandes voisines tracées bord à bord
         // laissaient passer, par l'anticrénelage, un fil de la couleur du dessous
         const ex = (dedans[j][0] - dedans[i][0]), ey = (dedans[j][1] - dedans[i][1]), el = Math.hypot(ex, ey) || 1, ux = ex / el * 3 * z, uy = ey / el * 3 * z;
+        // une bande DROITE, parallèle à l'arête, poussée vers le large de trois quarts de rayon (la côte
+        // érodée avance d'au plus 24 unités). Le trapèze radial d'avant s'élargissait vers le large et
+        // débordait de côté sur la terre gagnée de la voisine : un lac à berge d'herbe peignait du blanc
+        // sur la côte du marais, en hiver, avec des arêtes droites
+        const mx = (dedans[i][0] + dedans[j][0]) / 2 - c.x, my = (dedans[i][1] + dedans[j][1]) / 2 - c.y, ml = Math.hypot(mx, my) || 1;
+        const px = mx / ml * SIZE * z * 0.75, py = my / ml * SIZE * z * 0.75;
         ctx.globalAlpha = face; ctx.fillStyle = col; ctx.beginPath();
-        ctx.moveTo(dedans[i][0] - ux, dedans[i][1] - uy); ctx.lineTo(dedans[j][0] + ux, dedans[j][1] + uy); ctx.lineTo(dehors[j][0] + ux, dehors[j][1] + uy); ctx.lineTo(dehors[i][0] - ux, dehors[i][1] - uy); ctx.closePath(); ctx.fill();
+        ctx.moveTo(dedans[i][0] - ux, dedans[i][1] - uy); ctx.lineTo(dedans[j][0] + ux, dedans[j][1] + uy); ctx.lineTo(dedans[j][0] + ux + px, dedans[j][1] + uy + py); ctx.lineTo(dedans[i][0] - ux + px, dedans[i][1] - uy + py); ctx.closePath(); ctx.fill();
       }
     }
     ctx.restore();
@@ -550,7 +556,9 @@ export class IslandRenderer {
         if (!n || dropping.has(key(n.q, n.r))) continue;
         // avec une tuile d'eau voisine, la rive du côté concerné est déjà dans notre sol : on raccorde aussi
         if (anses.has(key(n.q, n.r))) continue;   // vers une anse, c'est la côte, pas une couture
-        const gn = this.decor.groundFor(n); if (gn !== g && !(n.family === 'water' && g !== 'water')) continue;
+        // seulement entre deux sols IDENTIQUES (la berge d'une case d'eau compte pour son sol) : contre une
+        // eau dont la berge est d'un autre sol, la bande unie traversait la langue de sol en bande droite
+        const gn = this.decor.groundFor(n); if (gn !== g) continue;
         if (t.family === 'water' && n.family === 'water') continue;
         const season = this.seasonFor(w.x);
         const col = GROUND_COLORS[g] || (images[groundKey(g, season)] || {}).ground_color; if (!col) continue;
@@ -570,12 +578,15 @@ export class IslandRenderer {
     // et un cache-couture peint par-dessus y faisait un rectangle plein.
     if (!this.noLens) {
       for (const t of tiles) {
-        if (t.family === 'water') continue;
+        // les cases d'eau aussi : leur BERGE (le sol dessiné sous le plan d'eau) est un hexagone plein,
+        // et contre un marais, en hiver, on voyait ses six arêtes autour de chaque mare gelée
         const k = key(t.q, t.r); if (dropping.has(k) || anses.has(k)) continue;
         const w = toWorld(t.q, t.r); const c = cam.toScreen(w.x, w.y); if (!vis(c)) continue;
         const season = this.seasonFor(w.x); const g = this.decor.groundFor(t);
         for (let dir = 0; dir < 6; dir++) {
-          const n = b.get(t.q + DIRS[dir][0], t.r + DIRS[dir][1]); if (!n || n.family === 'water') continue;
+          // une voisine d'eau déborde par sa BERGE : une rizière à berge de terre contre une rivière à
+          // berge d'herbe laissait sinon une arête droite entre les deux (visible en hiver, terre contre neige)
+          const n = b.get(t.q + DIRS[dir][0], t.r + DIRS[dir][1]); if (!n) continue;
           const gn = this.decor.groundFor(n); if (gn === g || !deborde(gn, g)) continue;
           const h = hash2(t.q * 7 + dir, t.r * 13);
           const lens = this.groundLens(gn, season, dir, h < 1 / 3 ? 0 : h < 2 / 3 ? 1 : 2); if (lens) ctx.drawImage(lens, c.x - TILE_W * z / 2, c.y - TILE_H * z / 2, TILE_W * z, TILE_H * z);
@@ -1050,8 +1061,13 @@ export class IslandRenderer {
 
   /** Le sol de RIVE d'une case d'eau : la terre de ses voisines, à défaut du sable. */
   riveDe(t) {
+    // la berge que le décor a choisie (le sol majoritaire des voisines), pas la première voisine venue :
+    // au bord d'un lac entouré de marais, la première voisine pouvait être un pré, et l'hexagone de rive
+    // sortait blanc en hiver au milieu de la terre, avec ses six arêtes
+    const g = this.decor.groundFor(t);
+    if (g && g !== 'water' && g !== 'ice') return g === 'hill' ? 'grass' : g;
     const b = this.isl.board;
-    for (const [dq, dr] of DIRS) { const n = b.get(t.q + dq, t.r + dr); if (n && n.family !== 'water') { const g = this.decor.groundFor(n); return g === 'hill' ? 'grass' : g; } }
+    for (const [dq, dr] of DIRS) { const n = b.get(t.q + dq, t.r + dr); if (n && n.family !== 'water') { const gn = this.decor.groundFor(n); return gn === 'hill' ? 'grass' : gn; } }
     return 'sand';
   }
 
