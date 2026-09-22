@@ -64,7 +64,6 @@ const estPlat = (tpl) => PLAT.has(tpl.replace(/\{[sw]\}/g, ''));
 /** Sols en relief : falaise (roche) et talus (colline). */
 const RELIEF = new Set(['stone', 'hill']);
 /** Deux sols qui se touchent par une arête franche plutôt que par un fondu. */
-const areteFranche = (a, b) => (RELIEF.has(a) || RELIEF.has(b)) && (a === 'grass' || b === 'grass' || (RELIEF.has(a) && RELIEF.has(b)));
 // Qui déborde sur qui. Un seul des deux sols franchit l'arête, en langue irrégulière ; l'autre s'arrête
 // net dessous. Deux fondus croisés (chacun débordant sur l'autre) faisaient un flou symétrique qui, sur
 // un damier de champs et de prés, redessinait la grille en hexagones flous. Le relief passe sur tout,
@@ -505,18 +504,6 @@ export class IslandRenderer {
       const zz = z * d.s, cy = c.y + d.dy * z;
       if (img) ctx.drawImage(img, c.x - TILE_W * zz / 2, cy - TILE_H * zz / 2, TILE_W * zz, TILE_H * zz);
       else this.drawTileAt(ctx, t, c.x, cy, d.s, 1);
-      // la grille s'efface : le sol de chaque voisine de terre déborde en fondu le long du bord partagé.
-      // La roche et la colline sont des reliefs : elles gardent une arête franche contre l'herbe, où la
-      // falaise et le talus se lisent, mais se fondent contre un champ, une lande, du sable ou de la terre.
-      // (Tout leur refuser alignait leurs six arêtes d'une case à l'autre et redessinait la grille ;
-      // l'eau, elle, compose déjà ses rives.)
-      if (!this.noLens && t.family !== 'water' && d.s === 1 && d.dy === 0) {
-        for (let dir = 0; dir < 6; dir++) {
-          const n = b.get(t.q + DIRS[dir][0], t.r + DIRS[dir][1]); if (!n || n.family === 'water') continue;
-          const gn = this.decor.groundFor(n); if (gn === g || areteFranche(g, gn) || !deborde(gn, g)) continue;
-          const lens = this.groundLens(gn, season, dir, hash2(t.q * 7 + dir, t.r * 13) < 1 / 3 ? 0 : hash2(t.q * 7 + dir, t.r * 13) < 2 / 3 ? 1 : 2); if (lens) ctx.drawImage(lens, c.x - TILE_W * z / 2, c.y - TILE_H * z / 2, TILE_W * z, TILE_H * z);
-        }
-      }
     }
     // L'OURLET des sols de bord. Chaque image de sol porte son propre liseré (le rebord ombré du
     // marais, la bordure du champ, l'arête claire du pré) : là où la côte érodée dépasse l'hexagone,
@@ -574,6 +561,27 @@ export class IslandRenderer {
       }
     }
     ctx.restore();
+    // LES LANGUES DE SOL. La grille s'efface : le sol d'une voisine de terre déborde sur la case le
+    // long du bord partagé, en langue ronde et irrégulière (`masqueLentille`). Les reliefs aussi : la
+    // roche et la colline gardaient une arête franche contre l'herbe (« une falaise a le droit de
+    // surplomber »), mais cela laissait à chaque massif ses six arêtes et ses six coins ; une roche
+    // qui mord un peu sur l'herbe se lit comme un éboulis. (L'eau, elle, compose déjà ses rives.)
+    // Cette passe vient APRÈS l'ourlet et les cache-coutures : les langues dépassent les sommets,
+    // et un cache-couture peint par-dessus y faisait un rectangle plein.
+    if (!this.noLens) {
+      for (const t of tiles) {
+        if (t.family === 'water') continue;
+        const k = key(t.q, t.r); if (dropping.has(k) || anses.has(k)) continue;
+        const w = toWorld(t.q, t.r); const c = cam.toScreen(w.x, w.y); if (!vis(c)) continue;
+        const season = this.seasonFor(w.x); const g = this.decor.groundFor(t);
+        for (let dir = 0; dir < 6; dir++) {
+          const n = b.get(t.q + DIRS[dir][0], t.r + DIRS[dir][1]); if (!n || n.family === 'water') continue;
+          const gn = this.decor.groundFor(n); if (gn === g || !deborde(gn, g)) continue;
+          const h = hash2(t.q * 7 + dir, t.r * 13);
+          const lens = this.groundLens(gn, season, dir, h < 1 / 3 ? 0 : h < 2 / 3 ? 1 : 2); if (lens) ctx.drawImage(lens, c.x - TILE_W * z / 2, c.y - TILE_H * z / 2, TILE_W * z, TILE_H * z);
+        }
+      }
+    }
     ctx.restore();   // fin du masque de l'île
     this.drawCourts(ctx, dropping);
     this.drawWater(ctx, dropping);
@@ -835,28 +843,34 @@ export class IslandRenderer {
   masqueLentille(d, variante) {
     const k = `${d}|${variante}`; this._masques = this._masques || new Map();
     const hit = this._masques.get(k); if (hit) return hit;
-    // le masque est calculé au 2×, la résolution des images de sol : au 1×, la lisière franche
+    // le masque est calculé au 2×, la résolution des images de sol : au 1×, la lisière
     // se voyait en marches d'escalier dès qu'on s'approchait
     const S = 2, W = TILE_W * S, H = TILE_H * S, n = W * H;
     const alpha = new Uint8Array(n), debord = new Uint8Array(n);
     // géométrie en unités monde (= pixels en 1×) : normales sortantes des six arêtes
     const normales = []; for (let e = 0; e < 6; e++) { const m = edgeMid(0, 0, e); normales.push([m.x / 60, m.y / 60]); }
-    const APOTHEME = 60, PROF = 0.55 * APOTHEME, DEBORD = 3;
+    const APOTHEME = 60, DEMI = SIZE / 2, PROF = 0.6 * APOTHEME, DEBORD = 3;
+    const [nx, ny] = normales[d], tx = -ny, ty = nx;   // repère de l'arête : normale, tangente
     const sx = 31.7 * (variante + 1), sy = -12.3 * (variante + 1) + 57.1;
     const lisse = (t) => t * t * (3 - 2 * t);
     for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
       const wx = (x - W / 2) / S, wy = (y - H / 2) / S, i = y * W + x;
-      // la case appartient à l'arête dont la normale la « voit » le plus : les six quartiers de l'hexagone
-      let best = 0, bi = 0; for (let e = 0; e < 6; e++) { const v = wx * normales[e][0] + wy * normales[e][1]; if (v > best) { best = v; bi = e; } }
-      if (bi !== d) continue;
-      const dist = APOTHEME - best;   // distance à l'arête, vers l'intérieur
-      if (dist < -DEBORD) continue;
-      if (dist < 0) { alpha[i] = 255; debord[i] = 255; continue; }
-      // une lisière franche mais irrégulière : la langue de sol avance de 6 à 33 px selon le bruit,
-      // avec 5 px d'adoucissement — pas un dégradé (il laissait transparaître la couture de la tuile)
-      const bruit = 2 * (0.62 * valeur(x / S / 23 + sx, y / S / 23 + sy) + 0.38 * valeur(x / S / 9 + sy, y / S / 9 - sx)) - 1;
-      const seuil = PROF * (0.6 + 0.4 * bruit);
-      alpha[i] = Math.round(255 * (1 - lisse(clamp((dist - seuil) / 5 + 0.5, 0, 1))));
+      // dans l'hexagone (avec un débord de trois unités au-delà de l'arête concernée seulement)
+      let dedans = true; for (let e = 0; e < 6; e++) { const v = wx * normales[e][0] + wy * normales[e][1]; if (v > APOTHEME + (e === d ? DEBORD : 0.5)) { dedans = false; break; } }
+      if (!dedans) continue;
+      const dist = APOTHEME - (wx * nx + wy * ny);   // distance à l'arête, vers l'intérieur
+      const u = Math.abs(wx * tx + wy * ty);           // position le long de l'arête, depuis son milieu
+      if (dist < 0) { if (u <= DEMI + DEBORD) { alpha[i] = 255; debord[i] = 255; } continue; }
+      // Une langue de sol, pas un biseau : la distance est prise au SEGMENT (bouts arrondis au-delà
+      // des sommets), sa profondeur ondule lentement avec le bruit (14 à 36 px), s'amenuise vers
+      // les sommets pour finir en lobe, et la lisière est adoucie sur dix pixels. Les langues
+      // coupées en biais aux coins des tuiles finissaient en pointes ; les arêtes droites ressortaient.
+      const dc = u <= DEMI ? dist : Math.hypot(u - DEMI, dist);
+      const xs = x / S, ys = y / S;
+      const bruit = 2 * (0.7 * valeur(xs / 30 + sx, ys / 30 + sy) + 0.3 * valeur(xs / 13 + sy, ys / 13 - sx)) - 1;
+      const bout = 0.45 + 0.55 * (1 - lisse(clamp((u - (DEMI - 18)) / 22, 0, 1)));
+      const seuil = PROF * (0.7 + 0.3 * bruit) * bout;
+      alpha[i] = Math.round(255 * (1 - lisse(clamp((dc - seuil) / 10 + 0.5, 0, 1))));
     }
     const m = { alpha, debord }; this._masques.set(k, m); return m;
   }
