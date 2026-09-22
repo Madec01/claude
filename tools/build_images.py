@@ -670,9 +670,9 @@ def L(sprite, x, y, kind="static", seasons=None, mirror=False, scale=1.0, order=
     return dict(sprite=sprite, x=x, y=y, kind=kind, seasons=seasons, mirror=mirror, scale=scale, order=order, **extra)
 
 
-def T(family, base, layers=(), base_kind="grass", base_mirror=False, base_rot=0, note=""):
+def T(family, base, layers=(), base_kind="grass", base_mirror=False, base_rot=0, note="", base_zoom=1.0):
     return dict(family=family, base=base, layers=list(layers), base_kind=base_kind,
-                base_mirror=base_mirror, base_rot=base_rot, note=note)
+                base_mirror=base_mirror, base_rot=base_rot, note=note, base_zoom=base_zoom)
 
 
 PINE, PINE_S, ROUND, ROUND_S = "obj:treePine_large", "obj:treePine_small", "obj:treeRound_large", "obj:treeRound_small"
@@ -749,8 +749,8 @@ TILES = {
                                      L("kay:caillou_B", 56, 98, "rock", width=44), L("kay:bloc_grand", 86, 102, "rock", width=62)],
                 base_kind="stone", base_mirror=True, note="Éboulis : trois cailloux et un bloc."),
     # --- sable (pas de saison)
-    "sand_1": T("sand", "sand_07", base_kind="sand", note="Sable uni (sand_07)."),
-    "sand_2": T("sand", "sand_07", [L("kay:bloc_brun", 84, 98, "rock", width=40)], base_kind="sand", base_mirror=True, base_rot=180,
+    "sand_1": T("sand", "sand_07", base_kind="sand", base_zoom=1.08, note="Sable uni (sand_07), agrandi de 8 % et rogné : son liseré clair tombe dehors."),
+    "sand_2": T("sand", "sand_07", [L("kay:bloc_brun", 84, 98, "rock", width=40)], base_kind="sand", base_mirror=True, base_rot=180, base_zoom=1.08,
                 note="Sable uni tourné + petit rocher brun."),
     # --- tuiles rares
     "mill": T("rare", "grass_05", [L("kay:windmill", 60, 88, scale=0.85), L("kay:sack", 28, 104, scale=1.6), L("kay:barrel", 94, 98, scale=1.2)],
@@ -842,8 +842,16 @@ class Composer:
             if spec["base_rot"]:
                 t = t.rotate(spec["base_rot"], expand=False)
             im.alpha_composite(t)
-        # même hexagone pour toutes les tuiles : l'alpha de bord est aligné sur celui de grass_05 (référence)
-        im.putalpha(ImageChops.lighter(im.split()[3], self.hex_alpha))
+        if spec.get("base_zoom", 1.0) != 1.0:
+            # base agrandie autour de son centre puis rognée à l'hexagone : le liseré clair que le sprite
+            # porte à son bord (sand_07) tombe dehors — entre deux tuiles de sable, il dessinait la couture
+            zf = spec["base_zoom"]; W, H = im.size; big = im.resize((round(W * zf), round(H * zf)), Image.LANCZOS)
+            ox, oy = (big.width - W) // 2, (big.height - H) // 2
+            im = big.crop((ox, oy, ox + W, oy + H))
+            im.putalpha(self.hex_alpha)   # la base agrandie couvre tout l'hexagone : son alpha est celui de référence
+        else:
+            # même hexagone pour toutes les tuiles : l'alpha de bord est aligné sur celui de grass_05 (référence)
+            im.putalpha(ImageChops.lighter(im.split()[3], self.hex_alpha))
         if kind == "grass":
             im = snowify(im) if season == "winter" else recolor(im, COLORS["grass"][season])
         elif kind == "dry":
@@ -1144,7 +1152,7 @@ class Builder:
                    "sand": ("sand_07", "sand"), "hill": ("grass_17", "grass"), "heath": ("grass_05", "heath")}
         for kind, (base, bk) in GROUNDS.items():
             for season in SEASONS:
-                im = comp.base_for(T(kind, base, [], base_kind=bk), season)
+                im = comp.base_for(T(kind, base, [], base_kind=bk, base_zoom=1.08 if kind == "sand" else 1.0), season)
                 arr = np.asarray(im)[120:170, 95:145, :3].reshape(-1, 3).mean(0)
                 col = "#%02x%02x%02x" % tuple(int(v) for v in arr)
                 self.emit(f"ground_{kind}_{season}", "tiles", im, HP, self.src.hp_original(base), f"Sol « {kind} » ({season}) pour le décor composé par région.",
