@@ -178,6 +178,23 @@ Seconde réponse de l'auditeur, « que faudrait-il pour approcher 10/10 » (`doc
 | Atelier à branches exclusives | P4 | écarté | l'Atelier par chapitre vient d'être refait |
 | Assets originaux commandés, serveur | — | écarté | déconseillés par l'auditeur lui-même |
 
+## Audit de simplification du 22 septembre (rapport : `docs/AUDIT_SIMPLIFICATION_2026-09-22.md`)
+
+Demande du commanditaire : « beaucoup de fonctionnalités, le jeu est complexe et illisible ; deux agents pour déterminer ce qu'on retire et ce qu'on garde, ton avis, un compte rendu ». Deux agents (l'œil du nouveau joueur ; les systèmes et les mesures sur 200 parties de bot) et l'avis du lead, arbitrés dans le rapport. Constat : ~38 systèmes, ~170 règles nommées à l'île 40 ; trois sources font 71 % du score (faune 32 %, affinités 27 %, fermetures 12 %), seize mécaniques pèsent moins de 1,5 %. Proposition : ~70 règles, aucune île ni famille retirée.
+
+| Mécanique | Proposition | Décision du commanditaire | Statut |
+|---|---|---|---|
+| Cinq anomalies (vœu `c_port` impossible, îles annoncées à tort dans le Guide, faune non verrouillée, règles liées à la météo, port dans le README) | corriger quoi qu'on décide (lot S0) | | à trancher |
+| Contrats d'archipel, faucille, effets de série, étoile d'or dans le HUD, tuiles d'événement, rares des paliers 2 et 3, 12 améliorations | retirer (lot S1, −1,7 % mesuré) | | à trancher |
+| Météo + règles de saison variables | une seule « surprise de saison » par saison, 8 au lieu de 17, découplée du drapeau météo (lot S2) | | à trancher |
+| Souffles, main, poche, remise | 3 pouvoirs, 2 sources, main dès l'île 6 (lot S3) | | à trancher |
+| **Ouvrages + remise** | retirer, ruche et menhir passent rares (lot S4, recalibrage obligatoire) — ou les six ouvrages en rares sans remise | | **à trancher** |
+| Niveau 3 | garder le geste, une règle, signatures en étiquettes (lot S5) | | à trancher |
+| **Croissance** | caractère du chapitre 9 (« ici, le temps bâtit seul ») plutôt que mécanique cumulée | | **à trancher** |
+| Fusions | garder recettes et Cahier, retirer la récompense de découverte (+23,7 % sur le calibrage) | | à trancher |
+| Interface | un canal de message, 4 blocs, 2 écrans entre deux îles (lot S6) | | à trancher |
+| **Régime de calibrage** | recettes connues (actuel) ou première traversée | | **à trancher** |
+
 ## Croissance des tuiles (idée du commanditaire, 19 septembre)
 
 Une tuile bien entourée des siennes grandit d'elle-même : le hameau devient un village, la forêt s'épaissit. Livrée à
@@ -247,6 +264,8 @@ Tutoriel pour le commanditaire : `docs/FIREBASE_TUTO.pdf`. Règles : `firestore.
 | La mer visible autour de l'île | Profondeur, écume de côte, vagues selon saison et météo, voilier, baleine — sans hexagone dans l'eau | fait (journal 65) |
 | Retours de test sur la tournée | La carte postale reste affichée sans minuterie, avec « Voir le récapitulatif → » et « Enregistrer la carte ». Le tour de cadran (nuit en fronts, halos) a été essayé puis **retiré** à la demande du commanditaire | fait (journal 91, 92) |
 | Tournée finale réécrite | Trois ou quatre plans nommés au lieu de douze étapes égales, vague qui salue le reste, fronts de saison habités, carte postale qui se fabrique autour du paysage, voilier qui part, toucher qui accélère avant de passer, version courte aux reprises | fait (journal 90) |
+| Champs et landes trop hexagonaux | Dalle du champ rendue plus large et rognée à l'hexagone (pipeline, `rogne=True`) ; fondus entre sols à **sens unique** et en langue irrégulière (un sol gagne, l'autre s'arrête) ; rangs de culture qui s'effilochent en lisière | fait (journal 93) |
+| Eau gelée en hexagones pleins (hiver) | Les nappes gelées gardent leurs six arêtes contre les sols voisins, là où les rives d'été sont composées en silhouette. À traiter comme les rives : même contour, glace dedans | à faire |
 | Littoral naturel | Contour global de l'île (arêtes de bord enchaînées en boucles), lissé puis érodé au bruit fBM le long de la normale ; découpe des sols, écume, halo, ombre portée et teinte de climat sur ce seul contour. Les étangs et lacs qui touchent la mer deviennent des anses | fait (journal 85) |
 | Littoral : masque d'érosion fBM (alpha clipping, `globalCompositeOperation`) | Proposé par le commanditaire. Écarté : un calque hors écran par tuile recomposé à chaque image, et surtout une texture **dessinée par le code**, ce que le projet s'interdit. L'érosion s'obtient en géométrie, sur le contour global | écarté |
 | L'épouvantail est un piquet à chiffon, faute de mieux | Aucun des trois packs KayKit ne contient d'épouvantail. Le piquet est vertical et lisible, mais il dit « drapeau » plutôt que « épouvantail ». À revoir si une autre banque libre en fournit un | à surveiller |
