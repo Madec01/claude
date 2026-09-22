@@ -245,10 +245,15 @@ const Game = {
       const n = neuves[0];
       const prefixe = n.mode === 'idee' ? 'IDÉE' : 'PÉPIN';
       const reste = neuves.length - 1;
+      // le titre ne porte QUE le code : la bannière est étroite au téléphone, et « PÉPIN-G6HX attend d'être
+      // lu » s'y casse en trois lignes. L'état tient très bien dans la phrase du dessous.
+      const etat = ETATS[n.etat].court;
       setTimeout(() => celebrateThing({
         kicker: 'Des nouvelles du carnet',
-        name: `${prefixe}-${n.code} ${ETATS[n.etat].court}`,
-        desc: reste ? `Et ${reste} autre${reste > 1 ? 's' : ''}. Touche ici pour les voir.` : 'Merci de nous l’avoir dit. Touche ici pour revoir tes envois.',
+        name: `${prefixe}-${n.code}`,
+        desc: reste
+          ? `Il ${etat}, et ${reste} autre${reste > 1 ? 's' : ''} ${reste > 1 ? 'ont' : 'a'} bougé. Touche ici.`
+          : `Il ${etat}. Touche ici pour revoir tes envois.`,
         iconName: 'icon_info',
         onClick: () => this.showReport(),
       }), 2600);   // après la bannière d'erreur, jamais en même temps qu'elle

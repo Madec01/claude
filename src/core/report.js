@@ -103,7 +103,10 @@ const ETATS_KEY = 'cent-saisons.pepin.etats';
 
 /** Ce que chaque état veut dire, dans la voix du jeu. L'ordre va du plus frais au plus abouti. */
 export const ETATS = {
-  recu:    { texte: 'Arrivé au carnet', court: 'est bien arrivé' },
+  // « Arrivé au carnet » doublonnait avec le « ✓ Parti au carnet » que l'appareil affiche juste au-dessus.
+  // L'information utile n'est pas qu'il soit parti — ça, l'appareil le sait — c'est que personne ne l'ait
+  // encore regardé.
+  recu:    { texte: 'Pas encore lu', court: 'attend d’être lu' },
   lu:      { texte: 'Lu', court: 'a été lu' },
   encours: { texte: 'En cours de correction', court: 'est en cours de correction' },
   corrige: { texte: 'Corrigé', court: 'a été corrigé' },
