@@ -3,7 +3,10 @@
 import { Board } from './board.js';
 import { key, parse, neighbors, toWorld, edgeMid, DIRS, SIZE } from './hex.js';
 
-const OPEN = new Set(['meadow', 'field', 'orchard', 'heath', 'hill']);
+// La colline n'est plus une terre ouverte : depuis qu'elle est un relief en volume (journal 102), un
+// sentier qui la traversait passait dedans, ou grimpait dessus comme une rampe — « très bizarre »,
+// dit le commanditaire. Le sentier la contourne, ou n'existe pas. (Score recalibré, journal 105.)
+const OPEN = new Set(['meadow', 'field', 'orchard', 'heath']);
 export const MAX_PATH = 3;   // nombre maximal de tuiles de terre ouverte entre deux hameaux
 
 const isHamlet = (t) => Board.isFamily(t, 'hamlet');
