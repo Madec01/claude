@@ -112,7 +112,10 @@ html.compact .menu-title { left: 16px; right: 16px; top: 16px; width: auto; text
 html.compact .menu-title h1 { font-size: 46px; white-space: normal; margin: 2px 0 0; }
 html.compact .menu-kicker { font-size: 14px; }
 html.compact .menu-sub { font-size: 13px; margin-top: 4px; }
-html.compact .menu-nav { left: 16px; right: 16px; width: auto; top: 150px; gap: 6px; }
+/* Le menu a désormais plus d'entrées que certains téléphones n'ont de hauteur : le bloc du carnet poussait
+   « Plein écran » sur le pied de page. On le borne et on le laisse défiler, plutôt que de rogner sur ce qu'il
+   contient — la prochaine entrée ajoutée ne repassera pas par ce problème. */
+html.compact .menu-nav { left: 16px; right: 16px; width: auto; top: 150px; bottom: 56px; gap: 6px; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; padding-bottom: 4px; }
 html.compact .menu-nav .btn { font-size: 15px; padding: 9px 14px; }
 html.compact .menu-nav .btn-big { font-size: 17px; padding: 11px 16px; }
 /* « Reprendre » : le rappel de la partie passe sous le titre, l'écran est trop étroit pour les deux de front */

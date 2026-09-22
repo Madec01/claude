@@ -325,6 +325,19 @@ async function openSection(page) {
   check(nouv.avant.length === 1 && nouv.avant[0] === 'corrige', `un changement d’état est une nouvelle à annoncer (${nouv.avant.join(',')})`);
   check(nouv.apres === 0, 'dit une fois, plus jamais : on ne réveille pas le joueur deux fois pour la même nouvelle');
 
+  // ---- ouvrir la liste force la relecture : le cache d'une journée est fait pour la relecture SILENCIEUSE,
+  // pas pour celle qu'on demande. Sans ça, un joueur qui vient voir où ça en est lit la veille (retour du
+  // commanditaire : « l'état ne change pas, ça fait dix minutes »).
+  const frais = await page.evaluate(async () => {
+    const m = await import('/src/core/report.js');
+    const c = m.etatsCache();
+    // cache vieux d'une heure : trop frais pour la relecture de fond, assez vieux pour celle qu'on demande
+    localStorage.setItem('cent-saisons.pepin.etats', JSON.stringify({ v: 1, at: Date.now() - 3600000, map: c.map, vus: c.vus, lus: c.lus }));
+    const silencieuse = await m.rafraichirEtats();          // doit renoncer : le cache est jeune
+    return { silencieuse };
+  });
+  check(frais.silencieuse === false, 'la relecture de fond respecte le cache du jour');
+
   // ---- hors ligne par choix, on ne lit rien : il a décliné le nuage, ce n'est pas à nous d'y aller
   const horsLigne = await page.evaluate(async () => {
     const { Save } = await import('/src/core/save.js');

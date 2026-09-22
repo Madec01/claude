@@ -117,9 +117,9 @@ export const ETATS = {
 export function etatsCache() {
   try {
     const d = JSON.parse(localStorage.getItem(ETATS_KEY) || 'null');
-    if (!d || d.v !== 1) return { at: 0, map: {}, vus: {} };
-    return { at: d.at || 0, map: d.map || {}, vus: d.vus || {} };
-  } catch (_) { return { at: 0, map: {}, vus: {} }; }
+    if (!d || d.v !== 1) return { at: 0, map: {}, vus: {}, lus: {} };
+    return { at: d.at || 0, map: d.map || {}, vus: d.vus || {}, lus: d.lus || {} };
+  } catch (_) { return { at: 0, map: {}, vus: {}, lus: {} }; }
 }
 
 const ecrireCache = (c) => { try { localStorage.setItem(ETATS_KEY, JSON.stringify({ v: 1, ...c })); } catch (_) { /* stockage plein : on s'en passe */ } };
@@ -138,7 +138,9 @@ export async function rafraichirEtats({ force = false } = {}) {
   if (!journalEnvois().length) return false;
   if ((Save.data.cloud || {}).choice === 'none') return false;
   const cache = etatsCache();
-  if (!force && Date.now() - cache.at < CLOUD.etatsFraisMs) return false;
+  // deux fraîcheurs : la relecture de fond attend le lendemain, celle qu'on demande attend une minute.
+  const seuil = force ? (CLOUD.etatsMinMs || 60000) : CLOUD.etatsFraisMs;
+  if (Date.now() - cache.at < seuil) return false;
   if (!Cloud.online()) return false;
   try {
     if (!await Cloud.load()) return false;
@@ -148,7 +150,7 @@ export async function rafraichirEtats({ force = false } = {}) {
     // on ne garde que ce qui ressemble à un état connu : le document est public, autant ne pas le croire sur parole
     const propre = {};
     for (const [code, etat] of Object.entries(map)) if (typeof etat === 'string' && ETATS[etat]) propre[code] = etat;
-    ecrireCache({ at: Date.now(), map: propre, vus: cache.vus });
+    ecrireCache({ ...cache, at: Date.now(), map: propre });
     return true;
   } catch (e) {
     console.warn('états des pépins non relus', e);
@@ -168,10 +170,25 @@ export function nouveautesEtats() {
   return out;
 }
 
-/** « C'est vu » : on ne le redira pas au prochain lancement. */
+/**
+ * « C'est annoncé » : la bannière du lancement ne le redira pas. Attention, annoncé n'est pas regardé — la
+ * pastille du menu, elle, s'appuie sur `lus`, et reste tant qu'il n'a pas ouvert la liste pour de bon.
+ */
 export function noterEtatsVus() {
   const c = etatsCache();
   ecrireCache({ ...c, vus: { ...c.map } });
+}
+
+/** « C'est regardé » : il a ouvert la liste. Éteint la pastille du menu, et l'annonce avec. */
+export function noterEtatsLus() {
+  const c = etatsCache();
+  ecrireCache({ ...c, vus: { ...c.map }, lus: { ...c.map } });
+}
+
+/** Combien de ses rapports ont changé d'état depuis qu'il a regardé la liste. Sert la pastille du menu. */
+export function etatsNonLus() {
+  const { map, lus } = etatsCache();
+  return journalEnvois().filter((e) => map[e.code] && map[e.code] !== lus[e.code]).length;
 }
 
 /** Le joueur efface sa liste. Elle ne vit que sur son appareil : il n'y a rien à prévenir ailleurs. */
