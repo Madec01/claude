@@ -531,7 +531,8 @@ for (const def of ISLANDS.slice(0, 4)) {
   for (let n = 36; n <= 49; n++) { const d = campaignIsland(n); check(!!d.signature && d.intro[1].toLowerCase().includes(d.signature.name.toLowerCase().split(' ')[0]) || !!d.signature, `île ${n} : signature « ${d.signature && d.signature.name} »`); }
   check(!campaignIsland(44).weights.rock && !campaignIsland(44).wishes.some((w) => w.type === 'river'), 'Sans une pierre : ni roche ni vœu de rivière');
   check(campaignIsland(49).tilesRatio < 0.8 && campaignIsland(46).seasonLength === campaignIsland(48).seasonLength - 4, 'file courte, saisons brèves et longues');
-  for (let n = 36; n <= 49; n++) { const d = campaignIsland(n); const i2 = new Island(d, { ...islandOptions(d) }); check(i2.board.placed === d.start.length, `île ${n} : ${d.start.length} tuiles de départ posées`); }
+  // les tuiles de départ de la signature sont posées ; les tuiles en plus ne peuvent être que des lagunes (eau)
+  for (let n = 36; n <= 49; n++) { const d = campaignIsland(n); const i2 = new Island(d, { ...islandOptions(d) }); const sk = new Set(d.start.map((t) => `${t.q},${t.r}`)); const extra = [...i2.board.tiles.values()].filter((t) => !sk.has(`${t.q},${t.r}`)); check(d.start.every((t) => !!i2.board.get(t.q, t.r)) && extra.every((t) => t.family === 'water' && t.start), `île ${n} : ${d.start.length} tuiles de départ posées${extra.length ? ` + ${extra.length} lagune(s)` : ''}`); }
   check(STORY.resultsBy.hamlet[3].length > 0 && STORY.memoryVoice.water.length > 0, 'textes de voix par dominante présents');
 }
 // --- croissance : une tuile bien entourée des siennes monte au niveau 2 toute seule
@@ -560,6 +561,22 @@ for (const def of ISLANDS.slice(0, 4)) {
   // une tuile poussée par le temps ne compte ni pour le vœu « bâtir » ni pour le contrat des bâtisseurs
   check(isl.stats.built === 0 && isl.stats.grown >= 1, `ce que le temps fait ne compte pas dans les tuiles bâties (bâties=${isl.stats.built}, poussées=${isl.stats.grown})`);
   check(progressOf({ def: { type: 'level', count: 2 } }, { board: b }) === 0, 'le vœu « deux tuiles de niveau 2 » ignore les tuiles poussées par le temps');
+}
+// --- lagunes : un trou cerné par l'île est de l'eau, pas de la mer (pépin G6HX)
+{
+  // la situation du rapport : Île infinie, trou en 1,-1, un marais posé en 2,-1 contre la mare
+  const isl = new Island(INFINITE);
+  const lagune = isl.board.get(1, -1);
+  check(!!lagune && lagune.family === 'water' && lagune.start, 'Île infinie : la lagune de 1,-1 est une tuile d’eau posée au départ');
+  const pv = isl.preview(2, -1, { family: 'marsh', variant: 1 });
+  check(pv.total === 2 && pv.edges.some((e) => e.q === 1 && e.r === -1 && e.pts === 2), `un marais contre la lagune vaut ses deux points (${pv.total})`);
+  // plus aucun trou cerné, sur aucune île : ce qui ressemble à une mare EST une mare
+  const cerne = (b) => { for (const k of b.mask) { const [q, r] = k.split(',').map(Number); for (const [a, bb] of neighbors(q, r)) if (!b.has(a, bb) && neighbors(a, bb).every(([x, y]) => b.has(x, y))) return `${a},${bb}`; } return null; };
+  for (const d of [INFINITE, GARDEN, ...[5, 12, 26, 40, 50].map(campaignIsland)]) check(!cerne(new Island(d, { ...islandOptions(d) }).board), `île ${d.id} : aucun trou cerné au départ`);
+  // l'Île infinie s'agrandit sans jamais laisser de trou derrière elle
+  const inf = new Island(INFINITE); let n = 0;
+  while (!inf.ended && n++ < 120) { const c = inf.board.legalCells()[0]; if (!c) break; inf.place(c.q, c.r); }
+  check(!cerne(inf.board), `Île infinie : aucun trou cerné après ${n} poses (${inf.board.cells} cases)`);
 }
 console.log(failures ? `${failures} échec(s)` : 'Tous les tests passent.');
 process.exit(failures ? 1 : 0);

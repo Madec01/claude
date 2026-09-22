@@ -1,5 +1,5 @@
-// Tournée finale : l'île finie traverse un jour et une nuit pendant que la caméra recule, s'arrête sur
-// trois ou quatre endroits qui ont fait la partie, salue tout le reste d'une seule vague, laisse l'année
+// Tournée finale : la caméra recule sur l'île finie, s'arrête sur trois ou quatre endroits qui ont fait
+// la partie, salue tout le reste d'une seule vague, laisse l'année
 // tourner d'un trait, puis fabrique la carte postale autour du paysage — le nom s'écrit, les étoiles se
 // posent, un voilier s'en va — et la carte reste là, tant que le joueur n'a pas choisi : voir le
 // récapitulatif, ou l'enregistrer. Un toucher presse le pas, un second saute à la carte.
@@ -8,6 +8,10 @@
 // s'approchait jamais vraiment (trois dixièmes vers la cible) et un bandeau plein écran qui cachait l'île
 // au moment où elle était la plus belle. La tournée d'avant est gardée mot pour mot dans
 // `finale_classique.js` : l'option `finaleClassique` y revient sans rien changer d'autre.
+//
+// Il y a eu un tour de cadran (jour, nuit, jour) pendant le recul, d'abord en fondu, puis en fronts qui
+// traversaient l'île, avec des halos au pied des maisons. Le commanditaire l'a trouvé bizarre et l'a
+// fait retirer entièrement (journal 92) : le recul est un recul, rien d'autre.
 import { toWorld, key } from './hex.js';
 import { STORY } from '../data/story.js';
 import { STAGE } from '../core/stage.js';
@@ -29,19 +33,12 @@ const ANIMAL_LINE = { rabbit: 'les lapins y courent', moose: 'l’élan y passe'
 /**
  * Le tempo, en secondes. `long` : la première fois qu'on termine une île, on prend le temps.
  * `court` : les fois suivantes — le joueur connaît le paysage, il veut son bilan : un seul plan, des
- * saisons rapides. La nuit reste (raccourcie) : c'est ce qu'on voit le mieux, et une reprise sans
- * elle donnait l'impression que rien n'avait changé.
+ * saisons rapides.
  */
 const DUREE = {
-  long: { reveil: 7.2, plan: 1.8, vague: 1.5, saison: 1.15, titre: 4 },
-  court: { reveil: 4.6, plan: 1.5, vague: 1.2, saison: 0.7, titre: 2.8 },
+  long: { reveil: 2.6, plan: 1.8, vague: 1.5, saison: 1.15, titre: 4 },
+  court: { reveil: 1.6, plan: 1.5, vague: 1.2, saison: 0.7, titre: 2.8 },
 };
-/**
- * Le tour du cadran, en fractions du recul : le soir traverse l'écran, la nuit tient, le matin
- * traverse à son tour, et il reste un souffle de plein jour avant la visite. Chaque front va un peu
- * plus loin que l'écran (1,3) pour que sa bande de couchant ait le temps de sortir par la droite.
- */
-const CADRAN = { soir: [0, 0.36], plein: [0.36, 0.58], matin: [0.58, 0.94] };
 
 const doux = (t) => t * t * (3 - 2 * t);
 const maj = (s) => s.charAt(0).toUpperCase() + s.slice(1);
@@ -74,7 +71,6 @@ export class Finale {
 
     this.r.finale = true; this.r.hover = null;
     this.r.nu = true;    // la grille des cases vides et le contour autour du vide s'effacent
-    this.r.cadran = null;
   }
 
   /** Les bornes du monde de l'île : elles servent à semer les particules sur le front des saisons. */
@@ -154,7 +150,7 @@ export class Finale {
     if (this.done) return;
     this.done = true;
     this.isl.season = this.season0; this.isl.board.touch();
-    this.r.transition = null; this.r.transitionSpeed = 1; this.r.finale = false; this.r.nu = false; this.r.cadran = null;
+    this.r.transition = null; this.r.transitionSpeed = 1; this.r.finale = false; this.r.nu = false;
     if (this.boutons) { hideUI(); this.boutons = null; }
     this.sc.onFinaleDone();
   }
@@ -165,10 +161,10 @@ export class Finale {
     this.camA = this.instantane();
     if (p === 'vague') { this.camB = this.centre; this.lancerVague(); }
     else if (p === 'saisons') { this.camB = this.centre; this.sweepIdx = -1; }
-    else if (p === 'titre') { this.camB = this.cadre; this.bandes = 0; this.lettres = 0; this.r.cadran = null; }
+    else if (p === 'titre') { this.camB = this.cadre; this.bandes = 0; this.lettres = 0; }
     else if (p === 'carte') {
       // la carte est là, entière, et elle reste : le paysage continue de vivre dessous
-      this.camB = this.cadre; this.majCamera(1); this.bandes = 1; this.lettres = 1; this.starsShown = this.stars; this.r.cadran = null; this.r.transition = null;
+      this.camB = this.cadre; this.majCamera(1); this.bandes = 1; this.lettres = 1; this.starsShown = this.stars; this.r.transition = null;
       this.montrerBoutons();
     }
   }
@@ -190,7 +186,6 @@ export class Finale {
     const D = this.D;
     if (this.phase === 'reveil') {
       this.majCamera(doux(clamp(this.stepT / D.reveil, 0, 1)));
-      this.cycleJour(clamp(this.stepT / D.reveil, 0, 1));
       if (this.stepT >= D.reveil) this.entrer('tour');
     } else if (this.phase === 'tour') {
       if (this.idx < 0 || this.stepT >= D.plan) {
@@ -224,22 +219,6 @@ export class Finale {
       this.majCamera(1);   // et rien d'autre : pas de minuterie, la carte attend le joueur
     }
     this.majScore();
-  }
-
-  /**
-   * Un jour et une nuit pendant le recul, en FRONTS qui traversent l'île d'ouest en est — comme les
-   * saisons plus loin, et pour la même raison : un fondu global, on le prend pour un bogue. Le soir
-   * balaye l'écran (couchant sur sa largeur, nuit derrière), la nuit tient, le matin balaye à son
-   * tour, et le paysage est rendu au plein jour avant qu'on le visite.
-   */
-  cycleJour(u) {
-    const part = (a, b) => clamp((u - a) / (b - a), 0, 1);
-    const soir = 1.3 * part(...CADRAN.soir), matin = u >= CADRAN.matin[0] ? 1.3 * part(...CADRAN.matin) : 0;
-    this.r.cadran = u >= CADRAN.matin[1] ? null : { soir, matin };
-    if (!this.hibou && soir >= 1) { this.hibou = true; this.sc.playSfx('fauna_owl', 0.3); }
-    // au retour du jour, la note de la faune qui arrive : la banque n'a pas de coq, et `playSfx`
-    // avale silencieusement une clé absente — une aube muette ne se serait pas vue au test.
-    if (!this.aube && matin >= 1) { this.aube = true; this.sc.playSfx('fauna_arrive', 0.3); }
   }
 
   entrerPlan() {

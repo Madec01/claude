@@ -61,6 +61,11 @@ function corps(r, urlImage) {
   L.push(`| Nuage | ${r.nuage?.mode || '—'} (${r.nuage?.etat || '—'}) |`);
   L.push('');
   if (urlImage) L.push(`[Voir l'écran au moment du pépin](${urlImage})`, '');
+  // Les pistes de code : déduites des tuiles que le joueur a touchées, et invisibles pour lui. C'est le
+  // renseignement qui fait gagner le plus de temps — savoir OÙ regarder avant d'avoir à le chercher.
+  if (r.pistes && r.pistes.length) {
+    L.push('**Où regarder** — d’après les tuiles choisies :', '', ...r.pistes.map((f) => `- \`${f}\``), '');
+  }
   if (r.questions && r.questions.length) L.push('<details><summary>Questions posées</summary>', '', ...r.questions.map((q) => `- ${q}`), '', '</details>', '');
   if (r.erreurs && r.erreurs.length) {
     L.push('### Erreurs relevées par le jeu', '');
@@ -92,8 +97,52 @@ async function ouvrirIssue(titre, body, labels) {
   return (await res.json()).number;
 }
 
+/**
+ * LE TABLEAU DES ÉTATS : le seul retour possible vers celui qui a signalé quelque chose.
+ *
+ * Rien ne part avec un rapport qui permettrait de le joindre — ni nom, ni adresse, ni identifiant : c'est la
+ * règle, et elle ne bouge pas. On ne peut donc rien lui POUSSER. Le seul fil qui le relie à son pépin est le
+ * code gardé sur son appareil, et c'est par là que passe la réponse : on publie un document public
+ * `code → état`, le jeu le croise avec sa propre liste, et lui seul y reconnaît quelque chose.
+ *
+ * Ce document ne porte QUE des codes et des états. Jamais un titre, jamais la phrase d'un joueur : le carnet
+ * est privé exprès — pour que les mots du testeur, son téléphone et ses réglages ne soient pas sur la place
+ * publique. Y ajouter un titre « pour faire plus clair » annulerait cette décision sans qu'on s'en aperçoive.
+ * C'est la seule chose à ne pas faire dans cette fonction.
+ */
+async function publierEtats() {
+  const etat = (i) => {
+    if (i.state === 'closed') return i.state_reason === 'not_planned' ? 'ecarte' : 'corrige';
+    const labels = (i.labels || []).map((l) => (typeof l === 'string' ? l : l.name));
+    if (labels.includes('claude')) return 'encours';   // le commanditaire l'a confié à Claude
+    return i.comments > 0 ? 'lu' : 'recu';             // quelqu'un a répondu, ou rien encore
+  };
+  const table = {};
+  for (let page = 1; page <= 10; page++) {
+    const res = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/issues?state=all&per_page=100&page=${page}`, {
+      headers: { Authorization: `Bearer ${TOKEN}`, Accept: 'application/vnd.github+json' },
+    });
+    if (!res.ok) throw new Error(`GitHub ${res.status} : ${court(await res.text(), 200)}`);
+    const lot = await res.json();
+    for (const i of lot) {
+      if (i.pull_request) continue;                    // une PR n'est pas un rapport
+      const m = /^(?:PÉPIN|IDÉE)-([A-Z0-9]{4})/.exec(i.title || '');
+      if (m) table[m[1]] = etat(i);
+    }
+    if (lot.length < 100) break;
+  }
+  await db.collection('etats').doc('tableau').set(table);   // set, pas merge : un code retiré doit disparaître
+  console.log(`états publiés : ${Object.keys(table).length} code(s).`);
+}
+
 const snap = await db.collection('pepins').orderBy('at').limit(PAR_PASSAGE).get();
-if (snap.empty) { console.log('Aucun pépin à relever.'); process.exit(0); }
+// même sans rapport neuf, les états ont pu changer depuis le tour d'avant : une issue fermée, une étiquette
+// posée. C'est le cas le plus fréquent, et c'était celui qui sautait la publication.
+if (snap.empty) {
+  console.log('Aucun pépin à relever.');
+  try { await publierEtats(); } catch (e) { console.error(`états non publiés : ${e.message}`); }
+  process.exit(0);
+}
 console.log(`${snap.size} rapport(s) à relever.`);
 
 // 1. les images, puis UN commit pour tout le lot : l'URL de l'image n'est valable qu'une fois poussée
@@ -136,4 +185,7 @@ for (const { doc, r, chemin } of lots) {
   }
 }
 console.log(`${ok}/${lots.length} relevé(s).`);
+// en dernier, pour que les issues qui viennent d'être ouvertes y figurent déjà. Un échec ici ne doit pas faire
+// passer la relève au rouge : les rapports, eux, sont bien arrivés.
+try { await publierEtats(); } catch (e) { console.error(`états non publiés : ${e.message}`); }
 process.exit(ok === lots.length ? 0 : 1);

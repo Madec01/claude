@@ -1,6 +1,6 @@
-// Tournée finale : le tour du cadran pendant le recul, trois ou quatre plans nommés, la vague, l'année
-// qui tourne, puis la carte postale qui se fabrique autour du paysage. On vérifie que la tournée va
-// jusqu'au bout sans erreur, qu'elle rend la scène propre (saison d'origine, nuit levée), que le toucher
+// Tournée finale : le recul, trois ou quatre plans nommés, la vague, l'année qui tourne, puis la carte
+// postale qui se fabrique autour du paysage et attend. On vérifie que la tournée va jusqu'à la carte
+// sans erreur, qu'elle rend la scène propre (saison d'origine), que le toucher
 // presse le pas avant de passer, et que la version courte s'applique quand l'île a déjà été terminée.
 // Usage : node tests/finale.js   (serveur statique sur http://127.0.0.1:8765/ requis)
 const { chromium } = require('/opt/node22/lib/node_modules/playwright');
@@ -60,20 +60,17 @@ ${(e.stack || '').split('\n').slice(0, 5).join('\n')}`));
   check(info.plans.every((p) => p.titre && p.titre.length > 2), 'chaque plan porte un nom');
   check(new Set(info.plans.map((p) => p.titre)).size === info.plans.length, 'deux plans ne portent pas le même nom');
 
-  // on suit la tournée en relevant ce qu'elle traverse (la nuit, les phases, le cadre de la carte),
+  // on suit la tournée en relevant ce qu'elle traverse (les phases, la caméra, le cadre de la carte),
   // jusqu'à la carte — qui attend, sans minuterie
   const suivi = await page.evaluate(() => new Promise((res) => {
-    const sc = window.CS.scenes.current; const f = sc.finale, r = sc.renderer; const W = window.CS.STAGE.W;
-    const vu = { phases: [], nuitMax: 0, frontMax: 0, chaleurMax: 0, bandesMax: 0, lettresMax: 0, zoomMax: 0, voilier: false };
+    const sc = window.CS.scenes.current; const f = sc.finale, r = sc.renderer;
+    const vu = { phases: [], bandesMax: 0, lettresMax: 0, zoomMax: 0, voilier: false };
     const t0 = performance.now(); let surCarte = 0;
     const tick = () => {
       if (!f || f.done) return res({ ...vu, finieSeule: true });
       if (f.phase === 'carte' && ++surCarte > 120) return res(vu);   // deux secondes sur la carte : elle tient
       if (performance.now() - t0 > 60000) return res({ ...vu, bloquee: true });
       if (vu.phases[vu.phases.length - 1] !== f.phase) vu.phases.push(f.phase);
-      vu.nuitMax = Math.max(vu.nuitMax, r.nuitA(W / 2));
-      vu.frontMax = Math.max(vu.frontMax, Math.abs(r.nuitA(120) - r.nuitA(W - 120)));   // un front : la gauche et la droite ne sont pas dans la même heure
-      vu.chaleurMax = Math.max(vu.chaleurMax, r.chaleurA(W / 2));
       vu.bandesMax = Math.max(vu.bandesMax, f.bandes || 0);
       vu.lettresMax = Math.max(vu.lettresMax, f.lettres || 0);
       vu.zoomMax = Math.max(vu.zoomMax, sc.cam.zoom / f.centre.z);
@@ -84,9 +81,6 @@ ${(e.stack || '').split('\n').slice(0, 5).join('\n')}`));
   }));
   check(!suivi.bloquee && !suivi.finieSeule, 'la tournée s’arrête sur la carte et attend (pas de minuterie)');
   check(suivi.phases.join(' → ') === 'reveil → tour → vague → saisons → titre → carte', `elle passe par ses six temps (${suivi.phases.join(' → ')})`);
-  check(suivi.nuitMax > 0.9, `la nuit tombe pour de bon pendant le recul (${suivi.nuitMax.toFixed(2)})`);
-  check(suivi.frontMax > 0.6, `la nuit traverse l’île en front, pas en fondu global (écart gauche/droite ${suivi.frontMax.toFixed(2)})`);
-  check(suivi.chaleurMax > 0.9, `le soleil se couche sur le passage du front (chaleur ${suivi.chaleurMax.toFixed(2)})`);
   check(suivi.zoomMax > 1.5, `la caméra s'approche vraiment d'un plan (×${suivi.zoomMax.toFixed(2)} du cadrage d'ensemble)`);
   check(suivi.bandesMax > 0.99 && suivi.lettresMax > 0.99, 'la carte postale se pose entièrement et le nom s’écrit en entier');
   check(suivi.voilier, 'un voilier part pendant le titre');
@@ -104,10 +98,9 @@ ${(e.stack || '').split('\n').slice(0, 5).join('\n')}`));
   check(carte.fini && !carte.ui, 'le bouton « Voir le récapitulatif » mène au bilan et retire les boutons');
   const apres = await page.evaluate(() => {
     const sc = window.CS.scenes.current, r = sc.renderer, f = sc.finale;
-    return { cadran: r.cadran, nu: r.nu, finale: r.finale, transition: !!r.transition, saison: sc.isl.season, saison0: f.season0, fini: f.done };
+    return { nu: r.nu, finale: r.finale, transition: !!r.transition, saison: sc.isl.season, saison0: f.season0, fini: f.done };
   });
   check(apres.fini && !apres.finale && !apres.nu && !apres.transition, 'la tournée rend la scène : plus de mode finale, plus d’île nue, plus de balayage');
-  check(apres.cadran === null, 'le jour est revenu (cadran remis à plat)');
   check(apres.saison === apres.saison0, `l’île retrouve sa saison (${apres.saison})`);
 
   // --- 3. un toucher presse le pas, un second passe

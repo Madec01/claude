@@ -50,7 +50,13 @@
   intuition non vérifiée : l'échelle des étoiles et la projection des tuiles.
 - Toute modification qui touche au score impose un recalibrage :
   `node tools/calibrate.js 4 1-50 --write`.
-- La suite de tests avant chaque poussée. Serveur statique requis pour les tests
-  navigateur : `python3 -m http.server 8765`.
+- Les tests en deux vitesses, par `tools/suite.sh` :
+  - **`tools/suite.sh court`** (~3 min) avant **chaque** poussée : les quatre tests Node
+    (règles, événements, nuage, reprise) et `gate.js` comme test de fumée — il charge tout
+    le jeu dans Chromium et joue quelques îles, donc un module cassé s'y voit.
+  - **`tools/suite.sh complet`** (~25 min) quand le changement touche les règles, le score,
+    la sauvegarde, l'interface ou la tournée finale, et une fois par séance de travail avant
+    la dernière poussée.
+  - Le script lance lui-même le serveur statique du port 8765 s'il manque.
 - Pour juger un rendu, `node tools/capture_partie.js <île> <fichier>` joue une partie
   entière et photographie le paysage seul.

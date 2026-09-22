@@ -8,7 +8,7 @@
 | # | Idée | Décision de design | Statut |
 |---|---|---|---|
 | 1 | **Tuiles qui s'assemblent / décor par région** | Deux calques par tuile (sol / décor) produits par le pipeline ; entre deux tuiles de même famille, un raccord de sol qui efface la couture et un petit élément posé sur l'arête (arbre, touffe, roseau, vague, rocher, clôture…), tiré de la banque Kenney. Rendu : sols → raccords → décors triés par ligne. Forêts denses, massifs reliés, villages avec puits et ruelles. | **fait** |
-| 2 | **Sentiers automatiques** | Aucune tuile « chemin » : un sentier se dessine tout seul entre deux hameaux séparés d'au plus trois tuiles de terre ouverte (prairie, champ, verger, lande, colline). Tracé courbe passant par les milieux d'arêtes, texture terre recolorée par saison, cailloux Kenney. Bonus : +1 point par saison par liaison. | **fait** |
+| 2 | **Sentiers automatiques** | Aucune tuile « chemin » : un sentier se dessine tout seul entre deux hameaux séparés d'au plus trois tuiles de terre ouverte (prairie, champ, verger, lande ; la colline ne l'est plus depuis le journal 105). Tracé courbe passant par les milieux d'arêtes, texture terre recolorée par saison, cailloux Kenney. Bonus : +1 point par saison par liaison. | **fait** |
 | 3 | **Météo** | Un événement annoncé une saison à l'avance, déclenché à mi-saison, dès l'île 4 : orage (printemps), canicule (été), grand vent (automne), bourrasque ou redoux (hiver). Effets visuels (pluie, brume, rafales, neige), sons CC0 (pluie, tonnerre, vent), et une règle temporaire chacun. | **fait** |
 | 4 | **Tuiles d'événement** | Marché (choisir sa tuile pendant trois poses), Fête (bannière : hameaux voisins +2 à la saison suivante), Ruine restaurée (adopte la famille majoritaire autour d'elle). Une par île, offerte par un vœu ou trouvée dans la file. | **fait** |
 | 5 | **Vie sur les tuiles** | Fumée des cheminées en hiver, animaux qui se déplacent dans leur région (canards sur l'eau, lapins dans les prés), reflets sur l'eau, feuilles et pétales localisés, neige qui tombe des arbres à la pose. | **fait** |
@@ -23,7 +23,7 @@
 | 9 | **Règles de saison variables** | Trois règles par saison tirées dès l'île 4 (et sur l'Île infinie / l'Île du jour), annoncées dans le HUD, le journal et une bulle sur téléphone. | **fait** |
 | 10 | **Eau : étang / lac / rivière** | Classification par forme (une tuile = étang ; tas = lac ; ligne partant d'une roche ou d'une colline = rivière, +3 à l'embouchure ; tas contre la roche = lac de montagne). Rives qui reprennent le sol des voisines, ruban de rivière courbe, nappe continue. | **fait** |
 | 11 | **Tuiles qui évoluent** | Objets de décor filtrés par saison, règle et météo pour toutes les familles : fleurs et arbres en fleurs, nénuphars, tas de feuilles, paniers, cultures dorées, congères, bannières de foire, bois de grand froid, flaques d'orage, touffes sèches de canicule. | **fait** |
-| 12 | **Tournée finale** | À la fin d'une île : un jour et une nuit pendant le recul, trois ou quatre plans nommés (la grande forêt, le village, là où la rivière rejoint la mer, l'animal), une vague qui salue tout le reste, l'année qui tourne en quatre fronts habités, puis la carte postale qui se fabrique autour du paysage — le nom s'écrit, les étoiles se posent, un voilier s'en va — et qui **attend** le joueur : « Voir le récapitulatif → » ou « Enregistrer la carte », sans minuterie. La nuit traverse l'île en front (couchant, nuit, aube), comme les saisons. Un toucher accélère, un second saute à la carte ; version courte aux reprises. | **fait** |
+| 12 | **Tournée finale** | À la fin d'une île : le recul, trois ou quatre plans nommés (la grande forêt, le village, là où la rivière rejoint la mer, l'animal), une vague qui salue tout le reste, l'année qui tourne en quatre fronts habités, puis la carte postale qui se fabrique autour du paysage — le nom s'écrit, les étoiles se posent, un voilier s'en va — et qui **attend** le joueur : « Voir le récapitulatif → » ou « Enregistrer la carte », sans minuterie. Un toucher accélère, un second saute à la carte ; version courte aux reprises. | **fait** |
 | 13 | **Recalibrage des étoiles** | Seuils mesurés avec un bot plus fort (≈ 55 / 80 / 100 % de son score, affichés dans le HUD. | **fait** |
 
 ## Lot 4 (idées du commanditaire : niveaux, superposition, ouvrages)
@@ -178,6 +178,23 @@ Seconde réponse de l'auditeur, « que faudrait-il pour approcher 10/10 » (`doc
 | Atelier à branches exclusives | P4 | écarté | l'Atelier par chapitre vient d'être refait |
 | Assets originaux commandés, serveur | — | écarté | déconseillés par l'auditeur lui-même |
 
+## Audit de simplification du 22 septembre (rapport : `docs/AUDIT_SIMPLIFICATION_2026-09-22.md`)
+
+Demande du commanditaire : « beaucoup de fonctionnalités, le jeu est complexe et illisible ; deux agents pour déterminer ce qu'on retire et ce qu'on garde, ton avis, un compte rendu ». Deux agents (l'œil du nouveau joueur ; les systèmes et les mesures sur 200 parties de bot) et l'avis du lead, arbitrés dans le rapport. Constat : ~38 systèmes, ~170 règles nommées à l'île 40 ; trois sources font 71 % du score (faune 32 %, affinités 27 %, fermetures 12 %), seize mécaniques pèsent moins de 1,5 %. Proposition : ~70 règles, aucune île ni famille retirée.
+
+| Mécanique | Proposition | Décision du commanditaire | Statut |
+|---|---|---|---|
+| Cinq anomalies (vœu `c_port` impossible, îles annoncées à tort dans le Guide, faune non verrouillée, règles liées à la météo, port dans le README) | corriger quoi qu'on décide (lot S0) | | à trancher |
+| Contrats d'archipel, faucille, effets de série, étoile d'or dans le HUD, tuiles d'événement, rares des paliers 2 et 3, 12 améliorations | retirer (lot S1, −1,7 % mesuré) | | à trancher |
+| Météo + règles de saison variables | une seule « surprise de saison » par saison, 8 au lieu de 17, découplée du drapeau météo (lot S2) | | à trancher |
+| Souffles, main, poche, remise | 3 pouvoirs, 2 sources, main dès l'île 6 (lot S3) | | à trancher |
+| **Ouvrages + remise** | retirer, ruche et menhir passent rares (lot S4, recalibrage obligatoire) — ou les six ouvrages en rares sans remise | | **à trancher** |
+| Niveau 3 | garder le geste, une règle, signatures en étiquettes (lot S5) | | à trancher |
+| **Croissance** | caractère du chapitre 9 (« ici, le temps bâtit seul ») plutôt que mécanique cumulée | | **à trancher** |
+| Fusions | garder recettes et Cahier, retirer la récompense de découverte (+23,7 % sur le calibrage) | | à trancher |
+| Interface | un canal de message, 4 blocs, 2 écrans entre deux îles (lot S6) | | à trancher |
+| **Régime de calibrage** | recettes connues (actuel) ou première traversée | | **à trancher** |
+
 ## Croissance des tuiles (idée du commanditaire, 19 septembre)
 
 Une tuile bien entourée des siennes grandit d'elle-même : le hameau devient un village, la forêt s'épaissit. Livrée à
@@ -245,8 +262,14 @@ Tutoriel pour le commanditaire : `docs/FIREBASE_TUTO.pdf`. Règles : `firestore.
 | Passe de performance (60 fps sur portable modeste) | Budget de fluidité, temps de première image < 3 s | plus tard (audit vers 10) |
 | Reprendre une partie laissée en plan | Île en cours rangée dans le navigateur, bouton « Reprendre » au menu | fait (journal 57) |
 | La mer visible autour de l'île | Profondeur, écume de côte, vagues selon saison et météo, voilier, baleine — sans hexagone dans l'eau | fait (journal 65) |
-| Retours de test sur la tournée | La nuit en fronts qui balayent l'île (couchant, nuit, aube, ombres qui s'allongent) au lieu d'un fondu global pris pour un bogue ; la carte postale reste affichée sans minuterie, avec « Voir le récapitulatif → » et « Enregistrer la carte » | fait (journal 91) |
-| Tournée finale réécrite | Jour et nuit pendant le recul, trois ou quatre plans nommés au lieu de douze étapes égales, vague qui salue le reste, fronts de saison habités, carte postale qui se fabrique autour du paysage, voilier qui part, toucher qui accélère avant de passer, version courte aux reprises | fait (journal 90) |
+| Retours de test sur la tournée | La carte postale reste affichée sans minuterie, avec « Voir le récapitulatif → » et « Enregistrer la carte ». Le tour de cadran (nuit en fronts, halos) a été essayé puis **retiré** à la demande du commanditaire | fait (journal 91, 92) |
+| Tournée finale réécrite | Trois ou quatre plans nommés au lieu de douze étapes égales, vague qui salue le reste, fronts de saison habités, carte postale qui se fabrique autour du paysage, voilier qui part, toucher qui accélère avant de passer, version courte aux reprises | fait (journal 90) |
+| Champs et landes trop hexagonaux, arêtes trop pointues | Dalle du champ rendue plus large et rognée à l'hexagone (pipeline, `rogne=True`) ; fondus entre sols à **sens unique**, en langues **rondes** (distance au segment, lobes aux sommets, lisière douce) ; les reliefs se fondent aussi ; rangs de culture qui s'effilochent en lisière | fait (journal 93, 95) |
+| Chemins plus naturels | Itinéraires : le plus droit des plus courts, le chemin coupe la case ; ondulation discrète (journal 98). Rubans de terre battue : largeur qui ondule, bords effilochés, bouts effilés, motif de terre découpé dans l'image de sol, cailloux et touffes au bord. Le pointillé doré qui clignotait dans la tournée est retiré | fait (journal 96, 97) |
+| Marques claires sur les champs | Reliefs éclairés de la dalle KayKit (monticules, cubes d'épis) : sol de champ remplacé par une terre unie recolorée par saison, les rangs de culture font le champ | fait (journal 101) |
+| Collines à flancs bruns (« tuiles de falaises ») | Piste A retenue : sol d'herbe plat + collines, chaînes et monts en volume du pack EXTRA posés dessus, sommets recolorés par saison. Les trois monts du pack coiffent les massifs de roche (version roche nue) et se mêlent aux collines (version enherbée) ; une colline côtière montre ses rochers au pied côté mer (piste C), la case centrale de chaque région porte un repère immobile (piste D). Les cartes en main de colline et de roche montrent maintenant les mêmes monts. Reste la piste E (éboulis des massifs) | fait (journal 102, 104, 106, 108, 109) — piste E à décider |
+| Liseré clair des images de sable | Base agrandie de 8 % et rognée à l'hexagone (`base_zoom`) : plus de couture entre deux sables | fait (journal 100) |
+| Arêtes droites d'hiver autour des mares (dites « glace en hexagones ») | Ce n'était pas la glace : berge des cases d'eau sans langue de sol, cache-couture terre/eau, ourlet en trapèze qui débordait de côté. Les trois corrigés | fait (journal 99) |
 | Littoral naturel | Contour global de l'île (arêtes de bord enchaînées en boucles), lissé puis érodé au bruit fBM le long de la normale ; découpe des sols, écume, halo, ombre portée et teinte de climat sur ce seul contour. Les étangs et lacs qui touchent la mer deviennent des anses | fait (journal 85) |
 | Littoral : masque d'érosion fBM (alpha clipping, `globalCompositeOperation`) | Proposé par le commanditaire. Écarté : un calque hors écran par tuile recomposé à chaque image, et surtout une texture **dessinée par le code**, ce que le projet s'interdit. L'érosion s'obtient en géométrie, sur le contour global | écarté |
 | L'épouvantail est un piquet à chiffon, faute de mieux | Aucun des trois packs KayKit ne contient d'épouvantail. Le piquet est vertical et lisible, mais il dit « drapeau » plutôt que « épouvantail ». À revoir si une autre banque libre en fournit un | à surveiller |

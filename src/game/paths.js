@@ -3,7 +3,10 @@
 import { Board } from './board.js';
 import { key, parse, neighbors, toWorld, edgeMid, DIRS, SIZE } from './hex.js';
 
-const OPEN = new Set(['meadow', 'field', 'orchard', 'heath', 'hill']);
+// La colline n'est plus une terre ouverte : depuis qu'elle est un relief en volume (journal 102), un
+// sentier qui la traversait passait dedans, ou grimpait dessus comme une rampe — « très bizarre »,
+// dit le commanditaire. Le sentier la contourne, ou n'existe pas. (Score recalibré, journal 105.)
+const OPEN = new Set(['meadow', 'field', 'orchard', 'heath']);
 export const MAX_PATH = 3;   // nombre maximal de tuiles de terre ouverte entre deux hameaux
 
 const isHamlet = (t) => Board.isFamily(t, 'hamlet');
@@ -33,12 +36,23 @@ export function computeLinks(board) {
       }
     }
   }
-  // sentiers : plus court chemin (≤ MAX_PATH tuiles ouvertes) entre deux régions de hameaux différentes
-  const best = new Map();   // "regA|regB" -> { cells, len }
+  // sentiers : plus court chemin (≤ MAX_PATH tuiles ouvertes) entre deux régions de hameaux différentes.
+  // Entre plusieurs chemins de même longueur, on garde le plus DROIT : un parcours en largeur qui prend
+  // le premier venu faisait des crochets par une case de côté, et le sentier partait vers la côte
+  // pour revenir (retour du commanditaire : « des itinéraires assez bizarres »).
+  const best = new Map();   // "regA|regB" -> { cells, detour }
+  const centre = (k) => { const [q, r] = parse(k); return toWorld(q, r); };
+  // l'écart d'un chemin à la ligne droite : la somme des distances de ses cases intermédiaires à la corde
+  const detour = (cells) => {
+    const a = centre(cells[0]), b = centre(cells[cells.length - 1]); const dx = b.x - a.x, dy = b.y - a.y; const L = Math.hypot(dx, dy) || 1;
+    let s = 0; for (let i = 1; i < cells.length - 1; i++) { const c = centre(cells[i]); s += Math.abs((c.x - a.x) * dy - (c.y - a.y) * dx) / L; }
+    return s;
+  };
   for (const t of board.tiles.values()) {
     if (!isHamlet(t)) continue;
     const start = key(t.q, t.r), ra = regionOf.get(start);
-    const queue = [[start, [start]]]; const dist = new Map([[start, 0]]);
+    // tous les chemins les plus courts vers chaque case (pas seulement le premier trouvé), bornés
+    const queue = [[start, [start]]]; const dist = new Map([[start, 0]]); const vus = new Map([[start, 1]]);
     while (queue.length) {
       const [k, path] = queue.shift(); const d = dist.get(k);
       const [q, r] = parse(k);
@@ -48,12 +62,14 @@ export function computeLinks(board) {
           const rb = regionOf.get(nk);
           if (rb === ra || d === 0) continue;
           const pk = ra < rb ? `${ra}|${rb}` : `${rb}|${ra}`;
-          const cells = [...path, nk]; const cur = best.get(pk);
-          if (!cur || cells.length < cur.cells.length) best.set(pk, { a: ra, b: rb, cells });
+          const cells = [...path, nk]; const cur = best.get(pk); const e = detour(cells);
+          if (!cur || cells.length < cur.cells.length || (cells.length === cur.cells.length && e < cur.detour - 1e-6)) best.set(pk, { a: ra, b: rb, cells, detour: e });
           continue;
         }
-        if (!isOpen(n) || d + 1 > (board.linkMax || MAX_PATH) || dist.has(nk)) continue;
-        dist.set(nk, d + 1); queue.push([nk, [...path, nk]]);
+        if (!isOpen(n) || d + 1 > (board.linkMax || MAX_PATH)) continue;
+        if (dist.has(nk) && dist.get(nk) < d + 1) continue;          // déjà atteinte en moins de pas
+        const nv = (vus.get(nk) || 0) + 1; if (nv > 6) continue;    // six chemins de même longueur suffisent
+        vus.set(nk, nv); dist.set(nk, d + 1); queue.push([nk, [...path, nk]]);
       }
     }
   }
@@ -137,15 +153,80 @@ function shape(board, cells) {
   const brut = [];
   for (let i = 0; i < cells.length; i++) {
     const k = cells[i]; const [q, r] = parse(k);
-    brut.push(waypoint(board, k, isHamlet(board.get(q, r))));
+    let w = waypoint(board, k, isHamlet(board.get(q, r)));
+    // une case traversée : le chemin la COUPE, il ne va pas visiter son centre. Le point de passage
+    // est tiré vers le milieu des deux arêtes franchies — sinon chaque case faisait un crochet
+    if (i > 0 && i < cells.length - 1) {
+      const e1 = passage(cells[i - 1], k), e2 = passage(k, cells[i + 1]);
+      if (e1 && e2) { const mx = (e1.x + e2.x) / 2, my = (e1.y + e2.y) / 2; w = { x: w.x * 0.45 + mx * 0.55, y: w.y * 0.45 + my * 0.55 }; }
+    }
+    brut.push(w);
     if (i < cells.length - 1) { const m = passage(k, cells[i + 1]); if (m) brut.push(m); }
   }
   return chaikin(brut, 2);
 }
 
+// ---------------------------------------------------------------------------
+// Le ruban : un chemin n'est pas un trait d'épaisseur constante aux bords nets, c'est de la terre
+// battue, mangée par l'herbe. Sa largeur ondule, ses deux bords s'effilochent chacun de leur côté,
+// et il s'amenuise aux deux bouts — devant la porte, le chemin se perd dans la cour.
+// ---------------------------------------------------------------------------
+
+/** Bruit 1D lisse et déterministe, dans [-1, 1], le long d'une abscisse `s` (longueur d'onde `lambda`). */
+function bruit1d(seed, s, lambda) {
+  const x = s / lambda, i = Math.floor(x), f = x - i, t = f * f * (3 - 2 * f);
+  const h = (k) => { const v = Math.sin(k * 127.1 + seed * 311.7) * 43758.5453; return v - Math.floor(v); };
+  const a = h(i), b = h(i + 1);
+  return (a + (b - a) * t) * 2 - 1;
+}
+
+/** Rééchantillonnage d'une polyligne à pas constant (les bords irréguliers ont besoin de points serrés). */
+function resample(pts, pas) {
+  if (pts.length < 2) return pts.slice();
+  const out = [pts[0]]; let reste = pas;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const a = pts[i], b = pts[i + 1]; const d = Math.hypot(b.x - a.x, b.y - a.y); let t = reste;
+    while (t <= d) { out.push({ x: a.x + (b.x - a.x) * (t / d), y: a.y + (b.y - a.y) * (t / d) }); t += pas; }
+    reste = t - d;
+  }
+  const fin = pts[pts.length - 1], der = out[out.length - 1];
+  if (Math.hypot(fin.x - der.x, fin.y - der.y) > pas * 0.4) out.push(fin); else out[out.length - 1] = fin;
+  return out;
+}
+
+export const LARGEUR = { lane: 7, link: 10 };   // largeur nominale d'une ruelle et d'un sentier, en px monde
+
 /**
- * Tous les chemins de l'île, prêts à tracer : { kind, cells, pts }.
- * `kind` vaut 'lane' (ruelle d'un village) ou 'link' (sentier entre deux villages).
+ * Les deux bords d'un chemin, en coordonnées monde. `marge` élargit le ruban d'autant de chaque côté
+ * (pour la bordure sombre) sans changer ses irrégularités : la bordure suit le bord clair.
+ * @returns {{ gauche: Array<{x:number,y:number}>, droite: Array<{x:number,y:number}> }}
+ */
+export function ruban(pts, largeur, seed, marge = 0) {
+  const p = resample(pts, 5);
+  const gauche = [], droite = [];
+  let L = 0; for (let i = 1; i < p.length; i++) L += Math.hypot(p[i].x - p[i - 1].x, p[i].y - p[i - 1].y);
+  let s = 0;
+  for (let i = 0; i < p.length; i++) {
+    if (i > 0) s += Math.hypot(p[i].x - p[i - 1].x, p[i].y - p[i - 1].y);
+    const a = p[Math.max(0, i - 1)], b = p[Math.min(p.length - 1, i + 1)];
+    let tx = b.x - a.x, ty = b.y - a.y; const d = Math.hypot(tx, ty) || 1; tx /= d; ty /= d;
+    const nx = -ty, ny = tx;
+    // effilé aux deux bouts sur 22 px, largeur qui ondule lentement (± 8 %), bords qui s'effilochent
+    // chacun à leur rythme (± 18 % sur 12 px) — deux bruits différents, sinon le chemin ne fait
+    // qu'onduler. (± 35 % sur 9 px, la première fois : « trop prononcé », dit le commanditaire.)
+    const bout = Math.min(1, s / 22, (L - s) / 22); const effile = 0.45 + 0.55 * bout * bout * (3 - 2 * bout);
+    const w = (largeur / 2) * effile * (0.92 + 0.08 * bruit1d(seed, s, 30)) + marge;
+    const gl = 1 + 0.18 * bruit1d(seed + 3, s, 12), gr = 1 + 0.18 * bruit1d(seed + 7, s, 12);
+    gauche.push({ x: p[i].x + nx * w * gl, y: p[i].y + ny * w * gl });
+    droite.push({ x: p[i].x - nx * w * gr, y: p[i].y - ny * w * gr });
+  }
+  return { gauche, droite };
+}
+
+/**
+ * Tous les chemins de l'île, prêts à tracer : { kind, cells, pts, ruban, bordure }.
+ * `kind` vaut 'lane' (ruelle d'un village) ou 'link' (sentier entre deux villages) ; `ruban` et
+ * `bordure` sont les deux bords du chemin et ceux de sa bordure sombre (voir `ruban`).
  */
 export function pathShapes(board) {
   if (board._shapes && board._shapesVersion === board.version) return board._shapes;
@@ -153,6 +234,7 @@ export function pathShapes(board) {
   const out = [];
   for (const [a, b] of lanes) out.push({ kind: 'lane', cells: [a, b], pts: shape(board, [a, b]) });
   for (const l of links) out.push({ kind: 'link', cells: l.cells, pts: shape(board, l.cells) });
+  out.forEach((o, i) => { o.ruban = ruban(o.pts, LARGEUR[o.kind], i); o.bordure = ruban(o.pts, LARGEUR[o.kind], i, 2); });
   board._shapes = out; board._shapesVersion = board.version;
   return out;
 }
