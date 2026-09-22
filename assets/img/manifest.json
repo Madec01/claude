@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-21T15:05:11+00:00",
+ "generated": "2026-09-22T05:11:59+00:00",
  "generator": "tools/build_images.py",
  "conventions": {
   "hex": {
@@ -513,7 +513,7 @@
    "file": "tiles/field_1_spring.png",
    "w": 240,
    "h": 280,
-   "bytes": 38188,
+   "bytes": 31094,
    "source": [
     "hexagon-pack",
     "hexagontiles"
@@ -529,7 +529,7 @@
    "file": "tiles/field_1_summer.png",
    "w": 240,
    "h": 280,
-   "bytes": 20814,
+   "bytes": 16359,
    "source": [
     "hexagon-pack",
     "hexagontiles"
@@ -545,7 +545,7 @@
    "file": "tiles/field_1_autumn.png",
    "w": 240,
    "h": 280,
-   "bytes": 20455,
+   "bytes": 16104,
    "source": [
     "hexagon-pack",
     "hexagontiles"
@@ -561,7 +561,7 @@
    "file": "tiles/field_1_winter.png",
    "w": 240,
    "h": 280,
-   "bytes": 21811,
+   "bytes": 17242,
    "source": [
     "hexagon-pack",
     "hexagontiles"
@@ -577,7 +577,7 @@
    "file": "tiles/field_2_spring.png",
    "w": 240,
    "h": 280,
-   "bytes": 38553,
+   "bytes": 30609,
    "source": [
     "hexagon-pack",
     "hexagontiles"
@@ -593,7 +593,7 @@
    "file": "tiles/field_2_summer.png",
    "w": 240,
    "h": 280,
-   "bytes": 23945,
+   "bytes": 19619,
    "source": [
     "hexagon-pack",
     "hexagontiles"
@@ -609,7 +609,7 @@
    "file": "tiles/field_2_autumn.png",
    "w": 240,
    "h": 280,
-   "bytes": 23633,
+   "bytes": 19122,
    "source": [
     "hexagon-pack",
     "hexagontiles"
@@ -625,7 +625,7 @@
    "file": "tiles/field_2_winter.png",
    "w": 240,
    "h": 280,
-   "bytes": 25227,
+   "bytes": 20633,
    "source": [
     "hexagon-pack",
     "hexagontiles"
@@ -2913,19 +2913,19 @@
    "file": "tiles/ground_field_spring.png",
    "w": 240,
    "h": 280,
-   "bytes": 30922,
+   "bytes": 23262,
    "source": "hexagon-pack",
    "original": "PNG/Tiles/Terrain/Dirt/dirt_06.png",
    "note": "Sol de champ (spring) : terre labourée (dalle hexagonale du pack EXTRA, rendue à la verticale) ; les rangs de culture sont ajoutés par région.",
    "ground": "field",
    "season": "spring",
-   "ground_color": "#ac6955"
+   "ground_color": "#ac6954"
   },
   "ground_field_summer": {
    "file": "tiles/ground_field_summer.png",
    "w": 240,
    "h": 280,
-   "bytes": 15699,
+   "bytes": 11456,
    "source": "hexagon-pack",
    "original": "PNG/Tiles/Terrain/Dirt/dirt_06.png",
    "note": "Sol de champ (summer) : blé (dalle hexagonale du pack EXTRA, rendue à la verticale) ; les rangs de culture sont ajoutés par région.",
@@ -2937,7 +2937,7 @@
    "file": "tiles/ground_field_autumn.png",
    "w": 240,
    "h": 280,
-   "bytes": 15242,
+   "bytes": 10897,
    "source": "hexagon-pack",
    "original": "PNG/Tiles/Terrain/Dirt/dirt_06.png",
    "note": "Sol de champ (autumn) : blé (dalle hexagonale du pack EXTRA, rendue à la verticale) ; les rangs de culture sont ajoutés par région.",
@@ -2949,7 +2949,7 @@
    "file": "tiles/ground_field_winter.png",
    "w": 240,
    "h": 280,
-   "bytes": 16560,
+   "bytes": 11851,
    "source": "hexagon-pack",
    "original": "PNG/Tiles/Terrain/Dirt/dirt_06.png",
    "note": "Sol de champ (winter) : blé (dalle hexagonale du pack EXTRA, rendue à la verticale) ; les rangs de culture sont ajoutés par région.",
@@ -6623,7 +6623,7 @@
    "file": "succes/charpentier.png",
    "w": 240,
    "h": 280,
-   "bytes": 27630,
+   "bytes": 23362,
    "source": [
     "hexagon-pack",
     "kaykit"

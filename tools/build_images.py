@@ -704,14 +704,14 @@ TILES = {
                                            L(KPOMMIER, 87, 90, height=58, fruits=True), L(KPOMMIER, 60, 108, height=58, fruits=True)],
                   note="Verger : 6 feuillus du pack Forest ; fruits dessinés en été/automne."),
     # --- champs : parcelles en quinconce + foin + clôture
-    "field_1": T("field", "dirt_06", [L("kay:terre", 60, 70, "field", width=236, flat=True, seasons=["spring"]),
-                                      L("kay:ble", 60, 70, "field", width=240, flat=True, seasons=["summer", "autumn", "winter"])]
+    "field_1": T("field", "dirt_06", [L("kay:terre", 60, 70, "field", width=306, flat=True, rogne=True, seasons=["spring"]),
+                                      L("kay:ble", 60, 70, "field", width=312, flat=True, rogne=True, seasons=["summer", "autumn", "winter"])]
                  + [L("ht:bushGrass:1.9", x, y, "crop") for (x, y) in
                     [(34, 68), (70, 68), (26, 84), (62, 84), (98, 84), (44, 100), (80, 100), (62, 116)]]
                  + [L("kay:botte_ronde", 96, 112, scale=0.85)],
                  base_kind="dirt", note="Champ : la parcelle de blé du pack EXTRA (dalle hexagonale rendue à la verticale, recolorée par saison), quelques rangs de culture et une botte ronde en volume."),
-    "field_2": T("field", "dirt_06", [L("kay:terre", 60, 70, "field", width=236, flat=True, mirror=True, seasons=["spring"]),
-                                      L("kay:ble", 60, 70, "field", width=240, flat=True, mirror=True, seasons=["summer", "autumn", "winter"])]
+    "field_2": T("field", "dirt_06", [L("kay:terre", 60, 70, "field", width=306, flat=True, rogne=True, mirror=True, seasons=["spring"]),
+                                      L("kay:ble", 60, 70, "field", width=312, flat=True, rogne=True, mirror=True, seasons=["summer", "autumn", "winter"])]
                  + [L("ht:bushGrass:1.9", x, y, "crop") for (x, y) in
                     [(44, 66), (80, 66), (34, 82), (70, 82), (26, 98), (62, 98), (98, 98), (52, 114)]]
                  + [L("kay:botte_ronde", 36, 112, scale=0.85), L("kay:crate", 90, 104, scale=1.1)],
@@ -973,6 +973,14 @@ class Composer:
             else:
                 x = layer["x"] * SCALE - im.width // 2
                 y = layer["y"] * SCALE - im.height
+            if layer.get("rogne"):
+                # calque volontairement plus large que la tuile, rogné à l'hexagone : c'est ainsi qu'une dalle
+                # KayKit perd son liseré et ses coins biseautés (cuits dans le modèle), qui tombent dehors
+                full = Image.new("RGBA", (TILE_W, TILE_H), (0, 0, 0, 0))
+                full.paste(im, (x, y), im)
+                full.putalpha(ImageChops.multiply(full.split()[3], self.hex_alpha))
+                canvas.alpha_composite(full)
+                continue
             # vérification : rien ne dépasse de l'hexagone
             probe = Image.new("L", (TILE_W, TILE_H), 0)
             probe.paste(im.split()[3], (x, y))
@@ -1142,12 +1150,14 @@ class Builder:
                 self.emit(f"ground_{kind}_{season}", "tiles", im, HP, self.src.hp_original(base), f"Sol « {kind} » ({season}) pour le décor composé par région.",
                           ground=kind, season=season, ground_color=col)
         # Sol de champ : les deux dalles hexagonales du pack EXTRA, rendues à la verticale, recolorées par saison —
-        # le labour au printemps, le blé le reste de l'année. Les rangs de culture restent posés par région
+        # le labour au printemps, le blé le reste de l'année. La dalle est rendue un peu plus large que la tuile
+        # et rognée à l'hexagone : son liseré de terre et ses coins biseautés dessinaient un hexagone net
+        # sur l'île, là où les fondus entre sols effacent partout ailleurs la grille. Les rangs de culture restent posés par région
         # (obj_crop_*) : ils donnent les sillons, la dalle donne la terre et les épis.
         for season in SEASONS:
             # la dalle de terre est plus étroite que celle de blé : à largeur égale elle dépasserait en hauteur
             spec = T("field", "dirt_06", [L("kay:terre" if season == "spring" else "kay:ble", 60, 70, "field",
-                                            width=236 if season == "spring" else 240, flat=True,
+                                            width=306 if season == "spring" else 312, flat=True, rogne=True,
                                             mirror=(season == "autumn"))], base_kind="dirt")
             base = comp.compose(f"ground_field_{season}", spec, season)
             arr = np.asarray(base)[120:170, 95:145, :3].reshape(-1, 3).mean(0)

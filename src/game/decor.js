@@ -499,6 +499,9 @@ export class Decor {
               const p = { x: x + (rng() - 0.5) * 3, y: y + (rng() - 0.5) * 2 };
               if (inRegion(p, keys) !== ck || !edgeOk(p, ck, keys, 5)) continue;
               if (surChemin(p, 11)) continue;   // on ne sème pas au milieu du chemin
+              // la lisière du champ s'effiloche : les rangs coupés net au bord de la tuile redessinaient
+              // l'hexagone que les fondus entre sols viennent d'effacer
+              const d = distBord(p, ck, keys); if (d < 24 && rng() < 0.9 * (1 - d / 24)) continue;
               push(p, 'obj_crop_{s}');
             }
             // Deux silhouettes de récolte, tirées au sort. C'était la meule conique Kenney et la botte

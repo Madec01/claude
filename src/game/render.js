@@ -65,6 +65,13 @@ const estPlat = (tpl) => PLAT.has(tpl.replace(/\{[sw]\}/g, ''));
 const RELIEF = new Set(['stone', 'hill']);
 /** Deux sols qui se touchent par une arête franche plutôt que par un fondu. */
 const areteFranche = (a, b) => (RELIEF.has(a) || RELIEF.has(b)) && (a === 'grass' || b === 'grass' || (RELIEF.has(a) && RELIEF.has(b)));
+// Qui déborde sur qui. Un seul des deux sols franchit l'arête, en langue irrégulière ; l'autre s'arrête
+// net dessous. Deux fondus croisés (chacun débordant sur l'autre) faisaient un flou symétrique qui, sur
+// un damier de champs et de prés, redessinait la grille en hexagones flous. Le relief passe sur tout,
+// le sable et la terre sur les cultures, les cultures et la lande sur l'herbe.
+const PRIORITE_SOL = ['stone', 'hill', 'sand', 'dirt', 'field', 'heath', 'dry', 'grass'];
+const rang = (g) => { const i = PRIORITE_SOL.indexOf(g); return i < 0 ? 99 : i; };
+const deborde = (gn, g) => rang(gn) < rang(g);
 const FAUNA_GROUND = 10;   // un animal se tient un peu en avant du centre de sa tuile, comme le décor
 const SEA = { spring: ['#8fc8e6', '#5f9fc8'], summer: ['#7fc0e4', '#4f93c2'], autumn: ['#8cb9d3', '#5d8fb3'], winter: ['#a9c7db', '#7aa2bf'] };
 // `bank` : l'ombre de la berge, posée SOUS l'eau et débordant vers le bas — c'est elle qui fait que l'eau
@@ -506,8 +513,8 @@ export class IslandRenderer {
       if (!this.noLens && t.family !== 'water' && d.s === 1 && d.dy === 0) {
         for (let dir = 0; dir < 6; dir++) {
           const n = b.get(t.q + DIRS[dir][0], t.r + DIRS[dir][1]); if (!n || n.family === 'water') continue;
-          const gn = this.decor.groundFor(n); if (gn === g || areteFranche(g, gn)) continue;
-          const lens = this.groundLens(gn, season, dir); if (lens) ctx.drawImage(lens, c.x - TILE_W * z / 2, c.y - TILE_H * z / 2, TILE_W * z, TILE_H * z);
+          const gn = this.decor.groundFor(n); if (gn === g || areteFranche(g, gn) || !deborde(gn, g)) continue;
+          const lens = this.groundLens(gn, season, dir, hash2(t.q * 7 + dir, t.r * 13) < 1 / 3 ? 0 : hash2(t.q * 7 + dir, t.r * 13) < 2 / 3 ? 1 : 2); if (lens) ctx.drawImage(lens, c.x - TILE_W * z / 2, c.y - TILE_H * z / 2, TILE_W * z, TILE_H * z);
         }
       }
     }
@@ -806,30 +813,73 @@ export class IslandRenderer {
   }
 
   /**
-   * Lentille de sol : l'image du sol `g` masquée par un dégradé perpendiculaire au bord `d` (opaque sur le bord, effacé
-   * à un tiers de l'apothème), limitée au trapèze de ce bord. Dessinée sur la tuile voisine, elle efface la couture.
-   * Cache par sol, saison et direction (au plus quelques dizaines de petites images).
+   * LE FONDU ENTRE DEUX SOLS. Sur la case, le sol de la voisine déborde par l'arête partagée et
+   * s'efface vers le centre. Il était droit : un trapèze et un dégradé linéaire — et un hexagone qui
+   * s'estompe reste un hexagone. Le commanditaire voyait les champs et les landes « faire tache ».
+   *
+   * Le bord du fondu suit donc un BRUIT : la voisine mord en langues irrégulières, sur une largeur
+   * qui varie d'une arête à l'autre (`variante`, choisie par case et par direction), et plus profond
+   * qu'avant (la moitié du rayon). Calculé pixel par pixel en 1× (la lentille est floue par nature,
+   * la pleine résolution ne lui apporterait rien) et gardé en cache : six directions × trois
+   * variantes par sol et par saison. Le liseré d'un pixel qu'on voyait encore à l'arête venait de
+   * l'anticrénelage du bord de la lentille : elle déborde maintenant de trois unités sur la voisine,
+   * dans la couleur moyenne du sol, ce qui est invisible chez elle et couvre le bord chez nous.
    */
-  groundLens(g, season, d) {
-    const k = `${g}|${season}|${d}`; this._lens = this._lens || new Map();
+  /**
+   * Le masque d'une lentille : pour la direction `d` et la variante, l'opacité de chaque pixel (0 à
+   * 255) et, au-delà de l'arête, la marque du débord (255 dans un second tableau). Il ne dépend ni du
+   * sol ni de la saison : dix-huit masques au plus, calculés une fois — c'est le bruit pixel par pixel
+   * qui coûte, pas l'application. Sans ce partage, un changement de saison figeait l'image le temps
+   * de refaire une trentaine de lentilles.
+   */
+  masqueLentille(d, variante) {
+    const k = `${d}|${variante}`; this._masques = this._masques || new Map();
+    const hit = this._masques.get(k); if (hit) return hit;
+    // le masque est calculé au 2×, la résolution des images de sol : au 1×, la lisière franche
+    // se voyait en marches d'escalier dès qu'on s'approchait
+    const S = 2, W = TILE_W * S, H = TILE_H * S, n = W * H;
+    const alpha = new Uint8Array(n), debord = new Uint8Array(n);
+    // géométrie en unités monde (= pixels en 1×) : normales sortantes des six arêtes
+    const normales = []; for (let e = 0; e < 6; e++) { const m = edgeMid(0, 0, e); normales.push([m.x / 60, m.y / 60]); }
+    const APOTHEME = 60, PROF = 0.55 * APOTHEME, DEBORD = 3;
+    const sx = 31.7 * (variante + 1), sy = -12.3 * (variante + 1) + 57.1;
+    const lisse = (t) => t * t * (3 - 2 * t);
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+      const wx = (x - W / 2) / S, wy = (y - H / 2) / S, i = y * W + x;
+      // la case appartient à l'arête dont la normale la « voit » le plus : les six quartiers de l'hexagone
+      let best = 0, bi = 0; for (let e = 0; e < 6; e++) { const v = wx * normales[e][0] + wy * normales[e][1]; if (v > best) { best = v; bi = e; } }
+      if (bi !== d) continue;
+      const dist = APOTHEME - best;   // distance à l'arête, vers l'intérieur
+      if (dist < -DEBORD) continue;
+      if (dist < 0) { alpha[i] = 255; debord[i] = 255; continue; }
+      // une lisière franche mais irrégulière : la langue de sol avance de 6 à 33 px selon le bruit,
+      // avec 5 px d'adoucissement — pas un dégradé (il laissait transparaître la couture de la tuile)
+      const bruit = 2 * (0.62 * valeur(x / S / 23 + sx, y / S / 23 + sy) + 0.38 * valeur(x / S / 9 + sy, y / S / 9 - sx)) - 1;
+      const seuil = PROF * (0.6 + 0.4 * bruit);
+      alpha[i] = Math.round(255 * (1 - lisse(clamp((dist - seuil) / 5 + 0.5, 0, 1))));
+    }
+    const m = { alpha, debord }; this._masques.set(k, m); return m;
+  }
+
+  groundLens(g, season, d, variante = 0) {
+    const k = `${g}|${season}|${d}|${variante}`; this._lens = this._lens || new Map();
     const hit = this._lens.get(k); if (hit !== undefined) return hit;
-    const img = Assets.img(groundKey(g, season)); if (!img) { this._lens.set(k, null); return null; }
-    const W = img.width, H = img.height, sc = W / TILE_W;
+    const key0 = groundKey(g, season); const img = Assets.img(key0); if (!img) { this._lens.set(k, null); return null; }
+    const W = TILE_W * 2, H = TILE_H * 2; const { alpha, debord } = this.masqueLentille(d, variante);   // au 2×, comme le masque
     const cv = document.createElement('canvas'); cv.width = W; cv.height = H; const c = cv.getContext('2d');
-    const c0 = { x: 0, y: 0 }; const pts = corners(0, 0, SIZE); const m = edgeMid(0, 0, d);
-    const P = (x, y) => [W / 2 + x * sc, H / 2 + y * sc];
-    const a = pts[d], bpt = pts[(d + 1) % 6]; const depth = 0.42;
-    const ia = [a[0] * (1 - depth), a[1] * (1 - depth)], ib = [bpt[0] * (1 - depth), bpt[1] * (1 - depth)];
-    c.beginPath(); c.moveTo(...P(a[0], a[1])); c.lineTo(...P(bpt[0], bpt[1])); c.lineTo(...P(ib[0], ib[1])); c.lineTo(...P(ia[0], ia[1])); c.closePath(); c.clip();
-    c.drawImage(img, 0, 0);
-    const [mx, my] = P(m.x, m.y); const [cx, cy] = P(c0.x, c0.y);
-    const grad = c.createLinearGradient(mx, my, mx + (cx - mx) * depth, my + (cy - my) * depth);
-    grad.addColorStop(0, 'rgba(0,0,0,0.95)'); grad.addColorStop(0.35, 'rgba(0,0,0,0.7)'); grad.addColorStop(1, 'rgba(0,0,0,0)');
-    c.globalCompositeOperation = 'destination-in'; c.fillStyle = grad; c.fillRect(0, 0, W, H);
+    // la couleur moyenne du sol, pour le débord au-delà de l'arête (l'image y est transparente)
+    const col = GROUND_COLORS[g] || ((Assets.manifest().images || {})[key0] || {}).ground_color || '#000';
+    c.fillStyle = col; c.fillRect(0, 0, W, H); const fond = c.getImageData(0, 0, W, H).data;
+    c.clearRect(0, 0, W, H); c.drawImage(img, 0, 0, W, H);
+    const id = c.getImageData(0, 0, W, H), px = id.data;
+    for (let i = 0, j = 0; i < alpha.length; i++, j += 4) {
+      if (debord[i]) { px[j] = fond[j]; px[j + 1] = fond[j + 1]; px[j + 2] = fond[j + 2]; px[j + 3] = alpha[i]; }
+      else px[j + 3] = (px[j + 3] * alpha[i] + 127) / 255 | 0;
+    }
+    c.putImageData(id, 0, 0);
     this._lens.set(k, cv); return cv;
   }
 
-  /** Voile de climat (multiplication d'une teinte claire sur l'île seulement) : ocre au chaud, vert d'eau à l'humide, bleu pâle au froid. */
   drawClimateTint(ctx) {
     const cl = this.isl.climate; if (!cl || !cl.tint) return;
     const cam = this.cam, b = this.isl.board; ctx.save(); ctx.globalCompositeOperation = 'multiply'; ctx.fillStyle = cl.tint; ctx.beginPath();
