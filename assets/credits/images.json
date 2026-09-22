@@ -9,8 +9,6 @@
   "mirrorPath": "hexagon-pack",
   "licenseFile": "https://github.com/ETdoFresh/kenney.nl/blob/main/hexagon-pack/License.txt",
   "files": [
-   "archetypes/archetype-littorale.png",
-   "archetypes/archetype-nourriciere.png",
    "deco/obj_banner.png",
    "deco/obj_basket.png",
    "deco/obj_box2.png",
@@ -918,7 +916,9 @@
    "archetypes/archetype-hameaux.png",
    "archetypes/archetype-aquatique.png",
    "archetypes/archetype-montagneuse.png",
-   "archetypes/archetype-sauvage.png"
+   "archetypes/archetype-sauvage.png",
+   "archetypes/archetype-littorale.png",
+   "archetypes/archetype-nourriciere.png"
   ]
  }
 ]

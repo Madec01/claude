@@ -56,7 +56,7 @@ Toutes les œuvres ci-dessous appartiennent à leurs auteurs et sont utilisées 
 ## Graphismes
 
 - **Hexagon Pack** — Kenney (kenney.nl) — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://kenney.nl/assets/hexagon-pack) — [miroir utilisé](https://github.com/ETdoFresh/kenney.nl)
-  - Fichiers : 275
+  - Fichiers : 273
 - **Hexagon Tiles** — Kenney (kenney.nl) — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://kenney.nl/assets/hexagon-tiles) — [miroir utilisé](https://github.com/ETdoFresh/kenney.nl)
   - Fichiers : 100
 - **Animal Pack Redux** — Kenney (kenney.nl) — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://kenney.nl/assets/animal-pack-redux) — [miroir utilisé](https://github.com/ETdoFresh/kenney.nl)
@@ -95,7 +95,7 @@ Toutes les œuvres ci-dessous appartiennent à leurs auteurs et sont utilisées 
   - Fichiers : assets/fonts/quicksand-normal-400-700-latin-ext.woff2, assets/fonts/quicksand-normal-400-700-latin.woff2
 - **Généré par IA (ChatGPT, OpenAI)** — OpenAI — licence Conditions d'utilisation d'OpenAI (voir la page ci-dessous) — [source](https://openai.com/policies/usage-policies)
   - Attribution : Insignes d'archétype d'île « hameaux » et « aquatique », générés à partir d'un prompt écrit pour le projet (détail dans manifest.json), à la demande du commanditaire.
-  - Fichiers : archetypes/archetype-hameaux.png, archetypes/archetype-aquatique.png, archetypes/archetype-montagneuse.png, archetypes/archetype-sauvage.png
+  - Fichiers : archetypes/archetype-hameaux.png, archetypes/archetype-aquatique.png, archetypes/archetype-montagneuse.png, archetypes/archetype-sauvage.png, archetypes/archetype-littorale.png, archetypes/archetype-nourriciere.png
 
 ## Polices
 

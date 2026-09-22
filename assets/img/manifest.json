@@ -7394,29 +7394,25 @@
   },
   "archetype-nourriciere": {
    "file": "archetypes/archetype-nourriciere.png",
-   "w": 240,
-   "h": 280,
-   "bytes": 18219,
-   "source": [
-    "hexagon-pack",
-    "kaykit"
-   ],
-   "original": "ground_field_summer + obj_treeRound_fruit_summer + obj_haybale",
-   "note": "Insigne d'archétype d'île, composé à partir des tuiles et sprites du jeu.",
-   "badge": true
+   "w": 480,
+   "h": 560,
+   "bytes": 274065,
+   "source": "ia-generee",
+   "original": "ChatGPT (OpenAI), génération d'image à partir d'un prompt",
+   "note": "Insigne d'archétype d'île : généré par IA à la demande du commanditaire (les insignes composés à partir des sprites du jeu ne lui plaisaient pas), recadré et redimensionné sans autre retouche. Prompt : « Insigne de jeu vidéo hexagonal, illustration plate façon jeu de plateau familial, un pommier chargé de fruits rouges à côté d'une botte de foin dorée, fond de champ vert-jaune en dégradé doux, liseré doré fin autour du bord, style chaleureux et simple, sans texte, sans rendu 3D réaliste, couleurs franches. »",
+   "badge": true,
+   "generated_ai": true
   },
   "archetype-littorale": {
    "file": "archetypes/archetype-littorale.png",
-   "w": 240,
-   "h": 280,
-   "bytes": 34478,
-   "source": [
-    "hexagon-pack",
-    "kaykit"
-   ],
-   "original": "ground_sand_summer + obj_log + obj_rockBrown_small",
-   "note": "Insigne d'archétype d'île, composé à partir des tuiles et sprites du jeu.",
-   "badge": true
+   "w": 480,
+   "h": 560,
+   "bytes": 236120,
+   "source": "ia-generee",
+   "original": "ChatGPT (OpenAI), génération d'image à partir d'un prompt",
+   "note": "Insigne d'archétype d'île : généré par IA à la demande du commanditaire (les insignes composés à partir des sprites du jeu ne lui plaisaient pas), recadré et redimensionné sans autre retouche. Prompt : « Insigne de jeu vidéo hexagonal, illustration plate façon jeu de plateau familial, un morceau de bois flotté et un galet posés sur du sable, fond sable beige clair en dégradé doux, liseré doré fin autour du bord, style chaleureux et simple, sans texte, sans rendu 3D réaliste, couleurs franches. »",
+   "badge": true,
+   "generated_ai": true
   }
  }
 }

@@ -1582,47 +1582,13 @@ class Builder:
                       "Vignette de succès composée à partir des tuiles et sprites du jeu.", badge=True)
 
     def build_archetype_badges(self):
-        """Insignes d'archétype d'île (à ne pas confondre avec les vignettes de succès, ci-dessus) : un par
-        famille dominante regroupée (hameaux, aquatique, sauvage, montagneuse, nourricière, littorale), posés
-        sur l'île après une partie selon ce qu'on y a le plus bâti. Même recette que les vignettes de succès
-        (une image existante + un sprite existant, jamais rien dessiné) mais dans leur propre dossier, car
-        c'est une mécanique distincte."""
-        def load(key):
-            e = self.manifest.get(key)
-            if not e:
-                raise KeyError(f"insigne : image absente {key}")
-            return Image.open(self.img_root / e["file"]).convert("RGBA")
-        def sprite(key, x, y, scale=1.0):
-            im = load(key)
-            if scale != 1.0:
-                im = im.resize((max(1, round(im.width * scale)), max(1, round(im.height * scale))), Image.LANCZOS)
-            return im, x, y   # ancré bas-centre en (x, y)
-        def pack_of(key):
-            pk = self.manifest[key]["source"]
-            return pk if isinstance(pk, str) else pk[0]
-        # « hameaux », « aquatique », « sauvage » et « montagneuse » ne sont plus composés ici : le
-        # commanditaire n'aimait pas le style des insignes et a demandé des images générées à part (prompts
-        # donnés en conversation), déjà en place dans assets/img/archetypes/ avec leurs entrées manuelles
-        # dans manifest.json et les crédits. Cette fonction ne doit plus les toucher, sous peine de les
-        # écraser au prochain passage du pipeline.
-        A = {
-            # nourricière : champ + verger + prairie
-            "archetype-nourriciere": ("ground_field_summer", [("obj_treeRound_fruit_summer", 88, 216, 1.7), ("obj_haybale", 164, 210, 1.1)]),
-            # littorale : sable seul — bois flotté et galet, pour rester distinct de « jusqu'à la mer »
-            # (vagues) et « le lac » (nénuphars), déjà pris par les succès existants
-            "archetype-littorale": ("ground_sand_summer", [("obj_log", 88, 208, 1.1), ("obj_rockBrown_small", 160, 210, 0.9)]),
-        }
-        for bid, (base, layers) in A.items():
-            im = load(base).copy()
-            objs = []
-            for key, x, y, scale in layers:
-                sp, x, y = sprite(key, x, y, scale)
-                objs.append((y, sp, x))
-            for y, sp, x in sorted(objs, key=lambda o: o[0]):
-                im.alpha_composite(sp, (int(x - sp.width / 2), int(y - sp.height)))
-            packs = sorted({pack_of(base)} | {pack_of(k) for k, *_ in layers})
-            self.emit(bid, "archetypes", im, packs if len(packs) > 1 else packs[0], base + "".join(" + " + k for k, *_ in layers),
-                      "Insigne d'archétype d'île, composé à partir des tuiles et sprites du jeu.", badge=True)
+        """Insignes d'archétype d'île (hameaux, aquatique, sauvage, montagneuse, nourricière, littorale) :
+        composés au départ depuis les sprites du jeu, comme les vignettes de succès ci-dessus. Le
+        commanditaire n'aimait pas ce style et a demandé, pour les six, des images générées à part (prompts
+        donnés en conversation) — elles sont en place dans assets/img/archetypes/ avec leurs entrées
+        manuelles dans manifest.json et les crédits (pack « Généré par IA »). Rien à composer ici tant que
+        ça reste le cas ; laissé en place pour l'historique et au cas où il faudrait revenir en arrière."""
+        pass
 
     def build_ui(self):
         icons = [
