@@ -759,8 +759,9 @@ TILES = {
                                       L("ht:flowerYellow:2.8", 58, 56, "flower", ("spring",)), L("ht:flowerWhite:2.8", 86, 112, "flower", ("spring",))],
                  base_kind="dirt", base_mirror=True, note="Terre en miroir + 2 flaques + 3 roseaux ; fleurs au printemps."),
     # --- roches : pierre + rochers gris (neige sur les sommets en hiver)
-    "rock_1": T("rock", "stone_07", [L("kay:massif_A", 60, 100, "rock", width=150), L("kay:caillou_A", 26, 102, "rock", width=46),
-                                     L("kay:caillou_C", 98, 88, "rock", width=38)], base_kind="stone", note="Massif KayKit (mountain_C) + deux cailloux."),
+    "rock_1": T("rock", "stone_07", [L("kay:mont_A", 60, 96, "rock", width=150), L("kay:caillou_A", 26, 106, "rock", width=46),
+                                     L("kay:caillou_C", 98, 92, "rock", width=38)], base_kind="stone",
+                note="Mont de roche nue du pack EXTRA (mountain_A), le même qui coiffe maintenant les massifs en jeu (journal 106) + deux cailloux."),
     "rock_2": T("rock", "stone_07", [L("kay:massif_B", 48, 94, "rock", width=104), L("kay:massif_C", 86, 104, "rock", width=88),
                                      L("kay:caillou_B", 28, 108, "rock", width=40)], base_kind="stone", note="Deux massifs KayKit + un caillou."),
     "rock_3": T("rock", "stone_07", [L("kay:caillou_A", 38, 76, "rock", width=48), L("kay:caillou_D", 76, 70, "rock", width=44),
@@ -786,8 +787,8 @@ TILES = {
     # --- collines (dès l'île 7) : hillGrass des Hexagon Tiles, recolorée comme l'herbe
     "hill_1": T("hill", "grass_05", [L("kay:colline_A", 60, 82, "hill", width=150), L("ht:bushGrass:2.2", 34, 104, "reed")],
                 note="Colline : herbe plate + colline en volume du pack EXTRA (hill_single_A), sommet recoloré par saison, touffe au pied."),
-    "hill_2": T("hill", "grass_05", [L("kay:colline_B", 60, 82, "hill", width=150, mirror=True), L("kay:caillou_C", 92, 100, "rock", width=30), L("ht:bushGrass:2.2", 30, 100, "reed")],
-                base_mirror=True, note="Colline en miroir + sapin et feuillu KayKit, petit rocher et touffe."),
+    "hill_2": T("hill", "grass_05", [L("kay:mont_A_herbe", 60, 80, "hill", width=150, mirror=True), L("kay:caillou_C", 92, 100, "rock", width=30), L("ht:bushGrass:2.2", 30, 100, "reed")],
+                base_mirror=True, note="Mont herbeux du pack EXTRA (mountain_A_grass), le même qui coiffe les grandes régions en jeu (journal 106), sommet recoloré par saison + rocher et touffe."),
     # --- landes (dès l'île 9) : sol ocre + bruyère (bushGrass recolorées en violet)
     "heath_1": T("heath", "grass_05", [L("ht:bushGrass:2.5", 36, 82, "heather"), L("ht:bushGrass:2.5", 78, 70, "heather"), L("ht:bushGrass:2.5", 60, 108, "heather"),
                                        L("ht:bushGrass:2.3", 94, 104, "heather"), L("kay:caillou_B", 28, 104, "rock", width=40)],
