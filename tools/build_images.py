@@ -212,6 +212,9 @@ KAY_MODELS = {
     "mont_A_herbe": "extra/decoration/nature/mountain_A_grass",
     "mont_B_herbe": "extra/decoration/nature/mountain_B_grass",
     "mont_C_herbe": "extra/decoration/nature/mountain_C_grass",
+    "mont_A": "extra/decoration/nature/mountain_A",     # les mêmes, sans herbe : les sommets des massifs de roche
+    "mont_B": "extra/decoration/nature/mountain_B",
+    "mont_C": "extra/decoration/nature/mountain_C",
     "caillou_D": "decoration/nature/rock_single_D",
     "caillou_E": "decoration/nature/rock_single_E",
     "bloc_brun": "forest/Color5/Rock_5_C_Color5",
@@ -1225,6 +1228,10 @@ class Builder:
         for v in ("B", "C"):
             for season in SEASONS:
                 kobj(f"obj_collines_{v}_arbres_{season}", f"collines_{v}_arbres", season, 252, "hill", f"Chaîne de collines boisée (hills_{v}_trees, pack EXTRA), sommets de {season}.")
+        # les monts de roche nue : le sommet des massifs (faces claires blanchies l'hiver, comme les blocs)
+        for v in ("A", "B", "C"):
+            for season in SEASONS:
+                kobj(f"obj_mont_roc_{v}_{season}", f"mont_{v}", season, 262, "rock", f"Mont de roche nue (mountain_{v}, pack EXTRA) : le sommet d'un massif ({season}).")
         # arbres : modèles 3D KayKit, feuillage recoloré par saison (les largeurs reprennent celles des sprites plats
         # qu'ils remplacent, pour que le décor composé garde ses proportions)
         for name, model, w in (("treePine_large", "pine_big", 56), ("treePine_small", "pine_big", 40)):

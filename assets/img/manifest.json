@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-22T07:28:25+00:00",
+ "generated": "2026-09-22T08:27:56+00:00",
  "generator": "tools/build_images.py",
  "conventions": {
   "hex": {
@@ -3406,6 +3406,126 @@
    "source": "kaykit",
    "original": "extra/decoration/nature/hills_C_trees.gltf",
    "note": "Chaîne de collines boisée (hills_C_trees, pack EXTRA), sommets de winter.",
+   "anchor": "bottom"
+  },
+  "obj_mont_roc_A_spring": {
+   "file": "deco/obj_mont_roc_A_spring.png",
+   "w": 262,
+   "h": 235,
+   "bytes": 29923,
+   "source": "kaykit",
+   "original": "extra/decoration/nature/mountain_A.gltf",
+   "note": "Mont de roche nue (mountain_A, pack EXTRA) : le sommet d'un massif (spring).",
+   "anchor": "bottom"
+  },
+  "obj_mont_roc_A_summer": {
+   "file": "deco/obj_mont_roc_A_summer.png",
+   "w": 262,
+   "h": 235,
+   "bytes": 29923,
+   "source": "kaykit",
+   "original": "extra/decoration/nature/mountain_A.gltf",
+   "note": "Mont de roche nue (mountain_A, pack EXTRA) : le sommet d'un massif (summer).",
+   "anchor": "bottom"
+  },
+  "obj_mont_roc_A_autumn": {
+   "file": "deco/obj_mont_roc_A_autumn.png",
+   "w": 262,
+   "h": 235,
+   "bytes": 29923,
+   "source": "kaykit",
+   "original": "extra/decoration/nature/mountain_A.gltf",
+   "note": "Mont de roche nue (mountain_A, pack EXTRA) : le sommet d'un massif (autumn).",
+   "anchor": "bottom"
+  },
+  "obj_mont_roc_A_winter": {
+   "file": "deco/obj_mont_roc_A_winter.png",
+   "w": 262,
+   "h": 235,
+   "bytes": 30232,
+   "source": "kaykit",
+   "original": "extra/decoration/nature/mountain_A.gltf",
+   "note": "Mont de roche nue (mountain_A, pack EXTRA) : le sommet d'un massif (winter).",
+   "anchor": "bottom"
+  },
+  "obj_mont_roc_B_spring": {
+   "file": "deco/obj_mont_roc_B_spring.png",
+   "w": 262,
+   "h": 295,
+   "bytes": 35997,
+   "source": "kaykit",
+   "original": "extra/decoration/nature/mountain_B.gltf",
+   "note": "Mont de roche nue (mountain_B, pack EXTRA) : le sommet d'un massif (spring).",
+   "anchor": "bottom"
+  },
+  "obj_mont_roc_B_summer": {
+   "file": "deco/obj_mont_roc_B_summer.png",
+   "w": 262,
+   "h": 295,
+   "bytes": 35997,
+   "source": "kaykit",
+   "original": "extra/decoration/nature/mountain_B.gltf",
+   "note": "Mont de roche nue (mountain_B, pack EXTRA) : le sommet d'un massif (summer).",
+   "anchor": "bottom"
+  },
+  "obj_mont_roc_B_autumn": {
+   "file": "deco/obj_mont_roc_B_autumn.png",
+   "w": 262,
+   "h": 295,
+   "bytes": 35997,
+   "source": "kaykit",
+   "original": "extra/decoration/nature/mountain_B.gltf",
+   "note": "Mont de roche nue (mountain_B, pack EXTRA) : le sommet d'un massif (autumn).",
+   "anchor": "bottom"
+  },
+  "obj_mont_roc_B_winter": {
+   "file": "deco/obj_mont_roc_B_winter.png",
+   "w": 262,
+   "h": 295,
+   "bytes": 36564,
+   "source": "kaykit",
+   "original": "extra/decoration/nature/mountain_B.gltf",
+   "note": "Mont de roche nue (mountain_B, pack EXTRA) : le sommet d'un massif (winter).",
+   "anchor": "bottom"
+  },
+  "obj_mont_roc_C_spring": {
+   "file": "deco/obj_mont_roc_C_spring.png",
+   "w": 262,
+   "h": 254,
+   "bytes": 36997,
+   "source": "kaykit",
+   "original": "extra/decoration/nature/mountain_C.gltf",
+   "note": "Mont de roche nue (mountain_C, pack EXTRA) : le sommet d'un massif (spring).",
+   "anchor": "bottom"
+  },
+  "obj_mont_roc_C_summer": {
+   "file": "deco/obj_mont_roc_C_summer.png",
+   "w": 262,
+   "h": 254,
+   "bytes": 36997,
+   "source": "kaykit",
+   "original": "extra/decoration/nature/mountain_C.gltf",
+   "note": "Mont de roche nue (mountain_C, pack EXTRA) : le sommet d'un massif (summer).",
+   "anchor": "bottom"
+  },
+  "obj_mont_roc_C_autumn": {
+   "file": "deco/obj_mont_roc_C_autumn.png",
+   "w": 262,
+   "h": 254,
+   "bytes": 36997,
+   "source": "kaykit",
+   "original": "extra/decoration/nature/mountain_C.gltf",
+   "note": "Mont de roche nue (mountain_C, pack EXTRA) : le sommet d'un massif (autumn).",
+   "anchor": "bottom"
+  },
+  "obj_mont_roc_C_winter": {
+   "file": "deco/obj_mont_roc_C_winter.png",
+   "w": 262,
+   "h": 254,
+   "bytes": 37571,
+   "source": "kaykit",
+   "original": "extra/decoration/nature/mountain_C.gltf",
+   "note": "Mont de roche nue (mountain_C, pack EXTRA) : le sommet d'un massif (winter).",
    "anchor": "bottom"
   },
   "obj_treePine_large_spring": {

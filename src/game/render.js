@@ -61,7 +61,7 @@ const PLAT = new Set(['obj_puddle1', 'obj_puddle2', 'obj_puddle3', 'obj_leafpile
  */
 // Les collines et les monts sont POSÉS : l'ellipse d'ombre au pied, faite pour qu'un arbre ne flotte pas,
 // faisait justement flotter une colline (retour du commanditaire). Un relief n'en reçoit pas.
-const estPlat = (tpl) => PLAT.has(tpl.replace(/\{[sw]\}/g, '')) || /^obj_(colline|collines|mont)_/.test(tpl);
+const estPlat = (tpl) => PLAT.has(tpl.replace(/\{[sw]\}/g, '')) || /^obj_(colline|collines|mont|mont_roc)_/.test(tpl);
 
 /** Sols en relief : falaise (roche) et talus (colline). */
 const RELIEF = new Set(['stone']);   // la colline n'est plus un sol surélevé : c'est un objet posé sur l'herbe (journal 102)

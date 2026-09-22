@@ -545,8 +545,17 @@ export class Decor {
             const dc = Math.hypot(c.x - cen.x, c.y - cen.y);
             const seul = cells.length === 1;
             const peak = !seul && (deg >= 3 || dc < 40);
-            push({ x: c.x + (rng() - 0.5) * 12, y: c.y + (seul ? 38 : 44) }, peak || seul ? `obj_rockGrey_large${VAR(rng)}{w}` : PICK(rng, ['obj_rockGrey_medium1{w}', 'obj_rockGrey_medium2{w}', 'obj_rockGrey_medium3{w}']),
-              Object.assign(wild(rng, 0.9, 1.1), { scale: (seul ? 1.0 : peak ? 1.35 + Math.min(0.5, cells.length * 0.06) : 1.15) + (L2(cell) ? 0.35 : 0) }));
+            // Le sommet est un MONT du pack EXTRA (retour du commanditaire : « ces reliefs-là ») : roche nue
+            // au sommet d'un massif, un alpage (sommet d'herbe) au cœur des grands massifs ; les crêtes et
+            // l'éboulis autour restent des blocs, pour que la montagne ne s'arrête pas au bord de la case.
+            if (peak || seul) {
+              const alpage = !seul && cells.length >= 5 && dc < 40 && rng() < 0.5;
+              const tpl = alpage ? `obj_mont_${PICK(rng, ['A', 'B', 'C'])}_{s}` : `obj_mont_roc_${PICK(rng, ['A', 'B', 'C'])}_{s}`;
+              push({ x: c.x + (rng() - 0.5) * 12, y: c.y + (seul ? 30 : 34) }, tpl, { flip: rng() < 0.5, scale: (seul ? 0.72 : 0.9 + Math.min(0.3, cells.length * 0.04)) + (L2(cell) ? 0.2 : 0) });
+            } else {
+              push({ x: c.x + (rng() - 0.5) * 12, y: c.y + 44 }, PICK(rng, ['obj_rockGrey_medium1{w}', 'obj_rockGrey_medium2{w}', 'obj_rockGrey_medium3{w}']),
+                Object.assign(wild(rng, 0.9, 1.1), { scale: 1.15 + (L2(cell) ? 0.35 : 0) }));
+            }
             if (!seul) for (let d = 0; d < 6; d++) { const nk = key(cell.q + DIRS[d][0], cell.r + DIRS[d][1]); if (!keys.has(nk) || d >= 3) continue; const m = edgeMid(c.x, c.y, d); push({ x: m.x + (rng() - 0.5) * 10, y: m.y + 26 }, PICK(rng, ['obj_rockGrey_medium2{w}', 'obj_rockGrey_medium3{w}', `obj_rockGrey_large${VAR(rng)}{w}`]), Object.assign(wild(rng, 0.9, 1.15), { scale: 1.05 })); }
             // éboulis : deux passes, les blocs moyens d'abord (espacés), puis les pierres qui comblent les creux
             const blocs = Math.round((seul ? 5 : 5 + deg * 0.5) * (L2(cell) ? 1.5 : 1));
@@ -589,9 +598,13 @@ export class Decor {
             // Une chaîne (hills, parfois boisée) dès deux voisines, un mont au centre des grandes régions.
             const voisines = degreeOf(cell, keys);
             const vers = []; for (const [a, b] of neighbors(cell.q, cell.r)) if (keys.has(key(a, b))) { const w = toWorld(a, b); vers.push({ x: w.x - c.x, y: w.y - c.y }); }
-            let principal, ech;
-            if (cells.length >= 5 && cell === center) { principal = `obj_mont_${PICK(rng, ['A', 'B', 'C'])}_{s}`; ech = 0.9; }
-            else if (voisines >= 2) { principal = `obj_collines_${PICK(rng, ['A', 'B', 'C', 'B_arbres', 'C_arbres'])}_{s}`; ech = 0.8; }
+            // Les monts herbeux (roche grise, sommet d'herbe) aussi sur les collines (« pour les collines
+            // aussi ») : toujours au centre des grandes régions, une fois sur deux au cœur d'une chaîne,
+            // une fois sur trois — petit — sur une colline isolée : la roche affleure sous l'herbe.
+            let principal, ech; const mont = `obj_mont_${PICK(rng, ['A', 'B', 'C'])}_{s}`;
+            if (cells.length >= 5 && cell === center) { principal = mont; ech = 0.9; }
+            else if (voisines >= 2) { if (rng() < 0.5) { principal = mont; ech = 0.72; } else { principal = `obj_collines_${PICK(rng, ['A', 'B', 'C', 'B_arbres', 'C_arbres'])}_{s}`; ech = 0.8; } }
+            else if (rng() < 0.34) { principal = mont; ech = 0.56; }
             else { principal = `obj_colline_${PICK(rng, ['A', 'B', 'C'])}_{s}`; ech = 0.78; }
             const p = { x: c.x + (rng() - 0.5) * 16, y: c.y + 20 + (rng() - 0.5) * 10 };
             placed.push(p); push(p, principal, { flip: rng() < 0.5, scale: ech * (0.94 + rng() * 0.12) });
