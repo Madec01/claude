@@ -26,6 +26,15 @@ service cloud.firestore {
         && (!('image' in request.resource.data) || request.resource.data.image.size() < 300000);
       allow read, update, delete: if false;
     }
+    // l'état des rapports : lisible par tous, écrit par personne. C'est la relève qui le réécrit, par le SDK
+    // d'administration, qui n'est pas soumis à ces règles. Public sans risque PARCE QU'il ne contient que des
+    // codes et des états : un code de quatre caractères ne dit rien à qui ne l'a pas envoyé. Y mettre un titre
+    // ou la phrase d'un joueur rendrait public ce que le carnet privé protège — c'est la seule chose à ne pas
+    // faire ici. (Les trois cas restent séparés : cf. le piège de `request.resource` en tête de fichier.)
+    match /etats/{doc} {
+      allow read: if true;
+      allow create, update, delete: if false;
+    }
     // tout le reste est refusé
     match /{document=**} { allow read, write: if false; }
   }

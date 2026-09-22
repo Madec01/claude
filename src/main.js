@@ -49,7 +49,7 @@ import { buildCloudConflict } from './ui/cloud_conflict.js';
 import { buildPrivacy } from './ui/privacy.js';
 import { buildReportPanel } from './ui/report.js';
 import { BlackBox } from './core/blackbox.js';
-import { setVersion } from './core/report.js';
+import { setVersion, rafraichirEtats, nouveautesEtats, noterEtatsVus, ETATS } from './core/report.js';
 import { VERSION } from './ui/menu.js';
 import { renderPostcard, postcardName } from './game/postcard.js';
 import { h, showUI, hideUI } from './ui/dom.js';
@@ -131,6 +131,7 @@ const Game = {
     const boot = document.getElementById('boot'); boot.classList.add('off'); setTimeout(() => boot.remove(), 700);
     await this.bootCloud();
     this.proposeReport();
+    this.proposeEtats();
   },
 
   // ---- sauvegarde en ligne ----------------------------------------------------------------
@@ -228,6 +229,30 @@ const Game = {
       desc: 'Touche ici pour nous raconter — nous avons gardé ce qu’il faut.', iconName: 'icon_info',
       onClick: () => this.showReport(),
     }), 1400);
+  },
+  /**
+   * Des nouvelles du carnet. C'est le SEUL retour possible vers celui qui a signalé quelque chose : rien ne
+   * part avec un rapport qui permettrait de le joindre — ni nom, ni adresse — et c'est très bien ainsi. On ne
+   * peut donc rien lui pousser : on le lui dit quand il revient, une fois, sobrement.
+   * Ne coûte qu'une lecture par appareil et par jour, et rien du tout s'il n'a jamais rien envoyé.
+   */
+  async proposeEtats() {
+    try {
+      await rafraichirEtats();
+      const neuves = nouveautesEtats();
+      if (!neuves.length) return;
+      noterEtatsVus();   // dit une fois, pas à chaque lancement
+      const n = neuves[0];
+      const prefixe = n.mode === 'idee' ? 'IDÉE' : 'PÉPIN';
+      const reste = neuves.length - 1;
+      setTimeout(() => celebrateThing({
+        kicker: 'Des nouvelles du carnet',
+        name: `${prefixe}-${n.code} ${ETATS[n.etat].court}`,
+        desc: reste ? `Et ${reste} autre${reste > 1 ? 's' : ''}. Touche ici pour les voir.` : 'Merci de nous l’avoir dit. Touche ici pour revoir tes envois.',
+        iconName: 'icon_info',
+        onClick: () => this.showReport(),
+      }), 2600);   // après la bannière d'erreur, jamais en même temps qu'elle
+    } catch (e) { console.warn('états des pépins', e); }
   },
   showPanel(node) { showUI(node, 'panel-wrap'); },
   showMenu() { scenes.go('menu', {}, { fade: 0.25 }); },
