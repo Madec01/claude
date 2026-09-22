@@ -8,7 +8,7 @@ import { transition, nextSeason } from './seasons.js';
 import { evaluate as evalFauna, reconcile } from './fauna.js';
 import { initWishes, updateWishes } from './wishes.js';
 import { TileQueue } from './queue.js';
-import { generateMask } from '../data/islands.js';
+import { generateMask, enclosedHoles } from '../data/islands.js';
 import { BALANCE } from '../data/balance.js';
 import { computeLinks } from './paths.js';
 import { pickWeather } from './weather.js';
@@ -60,6 +60,7 @@ export class Island {
       const t = this.board.place(s.q, s.r, { family: s.family, variant: 1, rare: s.family === 'ruins', id: 0, start: true });
       t.start = true;
     }
+    this.fillEnclosedHoles();   // les trous cernés par l'île sont des mares : de vraies tuiles d'eau, posées au départ
     const total = Number.isFinite(def.tilesRatio) ? Math.round(def.cells * def.tilesRatio) - def.start.length : Infinity;
     const visible = BALANCE.queue.visible[this.upgrades.sight || 0] + (this.upgrades.spyglass || 0);   // Regard + Longue-vue
     this.queue = new TileQueue(seed * 3 + 11, def.weights, total, visible);
@@ -99,6 +100,22 @@ export class Island {
     this.freeChoice = 0;          // marché : nombre de poses où l'on choisit sa tuile
     this.scheduleWeather(0.5);
     this.updateFauna();
+  }
+
+  /**
+   * UNE LAGUNE EST DE L'EAU. Un trou du masque cerné par six cases de l'île était une « mer intérieure » :
+   * le rendu le peignait en étang (journal 21) mais rien ne s'y posait et il ne donnait aucun bord — un
+   * joueur y a posé un marais et n'a pas compris son « +0 » (pépin G6HX). Le trou entre donc dans le masque
+   * et reçoit une vraie tuile d'eau, posée au départ comme le hameau ou la roche.
+   * @returns {Array<object>} les tuiles posées
+   */
+  fillEnclosedHoles() {
+    const out = [];
+    for (const { q, r } of enclosedHoles(this.board.mask)) {
+      this.board.mask.add(key(q, r));
+      out.push(this.board.place(q, r, { family: 'water', variant: 1, rare: false, id: 0, start: true }));
+    }
+    return out;
   }
 
   /** Modificateurs de règles (améliorations + météo active). */
@@ -308,6 +325,7 @@ export class Island {
     if (!this.garden && this.inSeason >= this.seasonLength) this.advanceSeason();
     if (this.infinite && this.placements % BALANCE.infinite.growEvery === 0 && this.board.cells < BALANCE.infinite.maxCells) {
       const added = this.board.grow(BALANCE.infinite.growCells, this.rng);
+      this.fillEnclosedHoles();   // la bordure neuve peut cerner une case : elle devient une mare, pas un trou
       if (added.length) this.emit({ type: 'grow', cells: added });
     }
     this.checkEnd();
@@ -376,6 +394,7 @@ export class Island {
     if (!s || s.v !== 1) return false;
     this.longSeasonDone = !!s.longSeasonDone; this.refunds = s.refunds || 0; this.shed = (s.shed || []).map((t) => ({ ...t }));
     this.rng.s = s.rngS; this.board.restore(s.board); this.queue.restore(s.queue);
+    this.fillEnclosedHoles();   // une partie commencée avant le correctif garde son trou : la mare devient l'eau qu'elle a toujours eu l'air d'être
     this.restrict = s.restrict ? new Set(s.restrict) : null; this.pendingOpening = [...(s.pendingOpening || [])];
     this.season = s.season; this.inSeason = s.inSeason; this.placements = s.placements; this.seasonsPassed = [...(s.seasonsPassed || [])];
     this.score = s.score; this.breaths = s.breaths; this.freeChoice = s.freeChoice || 0;
