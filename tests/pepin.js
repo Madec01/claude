@@ -48,10 +48,30 @@ async function openSection(page) {
   await page.waitForSelector('.panel-signin, .menu', { timeout: 30000 });
   if (await page.$('.panel-signin')) { await page.click('.signin-card.ghost'); await page.waitForTimeout(900); }
   await page.waitForSelector('.menu', { timeout: 20000 });
+  await ouvrirOptions(page);
+  await porte(page, 'Un pépin à déclarer', '.panel-report');
+}
+
+/** Les Options, d'où partent les trois portes du carnet. */
+async function ouvrirOptions(page) {
+  if (!(await page.$('.menu'))) { await page.goto(URL); await page.waitForSelector('.menu', { timeout: 20000 }); }
   await page.click('.menu-row .btn:has-text("Options")');
   await page.waitForSelector('.panel-options', { timeout: 10000 });
-  await page.click('.opt-group:has-text("Pépins et idées") .btn:has-text("Ouvrir")');
-  await page.waitForSelector('.panel-report', { timeout: 10000 });
+}
+
+/** Une des trois portes. Elles ne partagent plus d'écran : chacune ouvre le sien. */
+async function porte(page, libelle, attendu) {
+  await page.click(`.opt-carnet-row .btn:has-text("${libelle}")`);
+  await page.waitForSelector(attendu, { timeout: 10000 });
+  await page.waitForTimeout(150);
+}
+
+/** L'écran du suivi, depuis le menu. */
+async function ouvrirSuivi(page) {
+  await page.goto(URL);
+  await page.waitForSelector('.menu', { timeout: 20000 });
+  await ouvrirOptions(page);
+  await porte(page, 'État des envois', '.panel-envois');
 }
 
 (async () => {
@@ -63,10 +83,16 @@ async function openSection(page) {
   page.on('pageerror', (e) => consoleErrors.push(e.message));
 
   await openSection(page);
-  check(await page.$('.rep-tabs'), 'le sélecteur de mode est là, « Un pépin » d’abord');
-  check(await page.$eval('.rep-tab.on', (e) => e.textContent.trim()) === 'Un pépin', 'le mode par défaut est « Un pépin » : signaler ne coûte aucun toucher de plus');
+  check(await page.$eval('.panel-report .panel-title', (e) => e.textContent) === 'Un pépin à déclarer', 'l’écran dit ce qu’on y fait, sans onglet à comprendre');
+  check(!(await page.$('.rep-tabs')) && !(await page.$('.rep-histo')), 'ni sélecteur de mode ni tiroir : un geste, un écran');
   check((await page.$$('.rep-chip')).length === 4, 'quatre raccourcis en accès direct');
-  check(await page.$eval('.rep-histo', (e) => e.classList.contains('hidden')), '« Tes envois » ne s’affiche pas tant qu’on n’a rien envoyé');
+  const portes = await page.evaluate(async () => {
+    document.querySelector('.panel-actions .btn-ghost').click();
+    await new Promise((r) => setTimeout(r, 400));
+    return [...document.querySelectorAll('.opt-carnet-row .btn')].map((e) => e.textContent.trim());
+  });
+  check(portes.length === 2 && !portes.some((t) => /État des envois/.test(t)), `rien envoyé : pas de porte vers une liste vide (${portes.join(' | ')})`);
+  await porte(page, 'Un pépin à déclarer', '.panel-report');
 
   // --- l'entonnoir : trois niveaux au plus, et le fil d'Ariane remonte
   await page.click('.rep-tile:has-text("Graphisme")');
@@ -132,14 +158,21 @@ async function openSection(page) {
   check(chips === 4, `le sujet plafonne à quatre tuiles (${chips})`);
   check((await page.$eval('.rep-state', (e) => e.textContent)).includes('Quatre'), 'et le jeu le dit gentiment au lieu de refuser en silence');
 
-  // --- le mode « idée » : mêmes tuiles, autres raccourcis, autres questions
-  await page.click('.rep-tab:has-text("Une idée")');
-  await page.waitForTimeout(250);
+  // --- l'écran « idée » : même arbre, autres raccourcis, autres questions. C'est un ÉCRAN à part depuis que
+  // chaque geste a sa porte : le sujet ne se transporte plus de l'un à l'autre, et c'est voulu.
+  await page.click('.panel-actions .btn-ghost');
+  await page.waitForSelector('.panel-options', { timeout: 10000 });
+  await porte(page, 'Une idée à proposer', '.panel-report');
+  check(await page.$eval('.panel-report .panel-title', (e) => e.textContent) === 'Une idée à proposer', 'l’écran des idées porte son propre titre');
   const chipsIdee = await page.$$eval('.rep-chip', (a) => a.map((x) => x.textContent));
   check(chipsIdee.some((c) => c.includes('pas compris')), 'les raccourcis changent avec le mode (« Je n’ai pas compris »)');
+  await page.click('.rep-tile:has-text("Textes")');
+  await page.waitForTimeout(120);
+  await page.click('.rep-tile.rep-all');          // embarquer la branche entière, sans descendre aux feuilles
+  await page.waitForTimeout(150);
   const texteIdee = await page.$eval('.rep-text', (e) => e.value);
   check(texteIdee.includes('Qu’est-ce que tu aimerais ?'), 'le trio commun du mode idée est déposé');
-  check((await page.$eval('.rep-subject-list', (e) => e.textContent)).includes('Textes'), 'l’arbre et le sujet sont partagés entre les deux modes');
+  check((await page.$eval('.rep-subject-list', (e) => e.textContent)).includes('Textes'), 'le même arbre sert aux deux écrans');
   check(await page.$eval('.rep-subject-head', (e) => e.textContent.includes('idée')), 'le sujet se renomme (« Sujet de ton idée »)');
   check(await page.$eval('.rep-check:has-text("Joindre la partie")', (e) => getComputedStyle(e).display === 'none'), 'la partie rejouable ne part pas avec une idée : il n’y a rien à rejouer');
   await page.screenshot({ path: path.join(OUT, 'pepin-mobile-idee.png') });
@@ -150,7 +183,7 @@ async function openSection(page) {
     return p.scrollWidth > window.innerWidth + 2;
   });
   check(!over, 'aucun débordement horizontal en portrait');
-  const petits = await page.$$eval('.rep-tile, .rep-chip, .rep-tab', (a) => a.filter((e) => e.getBoundingClientRect().height < 40).length);
+  const petits = await page.$$eval('.rep-tile, .rep-chip', (a) => a.filter((e) => e.getBoundingClientRect().height < 40).length);
   check(petits === 0, `toutes les tuiles font au moins 40 px de haut (${petits} trop petites)`);
 
   // --- on doit pouvoir défiler : le panneau compact est une colonne à overflow caché (css/mobile.css), il lui
@@ -176,8 +209,11 @@ async function openSection(page) {
   check(envoiVisible, 'le bouton « Envoyer » reste posé en bas, sans avoir à défiler');
 
   // --- la partie à joindre : un pépin se raconte souvent l'île finie, et c'est la partie d'AVANT qu'il faut montrer
-  await page.click('.rep-tab:has-text("Un pépin")');
-  await page.waitForTimeout(150);
+  await page.click('.panel-actions .btn-ghost');
+  await page.waitForSelector('.panel-options', { timeout: 10000 });
+  await porte(page, 'Un pépin à déclarer', '.panel-report');
+  await page.click('.rep-tile:has-text("Textes")'); await page.waitForTimeout(120);
+  await page.click('.rep-tile.rep-all'); await page.waitForTimeout(120);   // un sujet, pour que la carte le montre
   await page.click('.rep-pli > summary');
   await page.waitForTimeout(150);
   const choix = await page.$$eval('.rep-select option', (a) => a.map((o) => o.textContent));
@@ -222,7 +258,7 @@ async function openSection(page) {
   await page.waitForSelector('.rep-code', { timeout: 10000 });
   const code = await page.$eval('.rep-code', (e) => e.textContent.trim());
   check(/^PÉPIN-[A-Z0-9]{4}$/.test(code), `le code court est affiché (${code})`);
-  check((await page.$eval('.rep-thanks', (e) => e.textContent)).includes('Tes envois'), 'le merci dit où le code se retrouve, au lieu de compter sur la mémoire du joueur');
+  check((await page.$eval('.rep-thanks', (e) => e.textContent)).includes('État des envois'), 'le merci dit où le code se retrouve, au lieu de compter sur la mémoire du joueur');
 
   // --- le contenu du rapport : ce qu'il faut, et rien qui dise qui il est
   const rapport = await page.evaluate(async () => {
@@ -280,15 +316,14 @@ async function openSection(page) {
   check(note && `PÉPIN-${note.code}` === code, 'la note porte le code affiché au joueur');
   check(note && note.voie === 'fichier', `elle retient qu’il n’est pas parti en ligne (${note && note.voie})`);
 
-  await openSection(page);
-  check(!(await page.$eval('.rep-histo', (e) => e.classList.contains('hidden'))), 'après un envoi, « Tes envois » est là au rechargement suivant');
-  await page.click('.rep-histo > summary');
-  await page.waitForTimeout(200);
+  // On recharge : la porte du suivi n'apparaît dans les Options QUE s'il y a quelque chose à suivre.
+  await ouvrirSuivi(page);
+  check(await page.$eval('.panel-envois .panel-title', (e) => e.textContent) === 'État des envois', 'après un envoi, la porte du suivi s’ouvre sur son propre écran');
   const carte = await page.$eval('.rep-histo-item', (e) => e.textContent);
   check(carte.includes(code), `la carte porte le code (${code})`);
   check(/Gardé sur ton appareil/.test(carte), 'et l’état que l’appareil connaît : gardé ici, pas parti au carnet');
   check(/Textes/.test(carte), 'avec le sujet choisi, pour reconnaître de quoi il s’agissait');
-  check(/rien de ce que tu as écrit n’en ressort/.test(await page.$eval('.rep-histo-list', (e) => e.textContent)),
+  check(/rien de ce que tu as écrit n’en ressort/.test(await page.$eval('.panel-envois .rep-histo-list', (e) => e.textContent)),
     'la liste dit ce que le carnet renvoie, et surtout ce qu’il ne renvoie pas');
 
   // ---- l'état du carnet : la pastille n'apparaît que pour un code connu, et le mot est celui du jeu
@@ -301,10 +336,7 @@ async function openSection(page) {
   });
   // on recharge plutôt que de chercher un bouton de retour : « Oublier cette liste » porte les mêmes classes
   // que le retour, et un sélecteur trop large effacerait le journal qu'on s'apprête à lire
-  await page.reload();
-  await openSection(page);
-  await page.click('.rep-histo > summary');
-  await page.waitForTimeout(200);
+  await ouvrirSuivi(page);
   const pastilles = await page.$$eval('.rep-histo-suivi', (a) => a.map((e) => e.textContent));
   check(pastilles.length === 1 && pastilles[0] === 'Corrigé', `l’état du carnet s’affiche, et seulement pour SES codes (${pastilles.join(', ') || 'aucune'})`);
 
@@ -350,8 +382,9 @@ async function openSection(page) {
   check(!debordeHisto, 'la liste ne déborde pas au pouce');
   await page.screenshot({ path: path.join(OUT, 'pepin-mobile-envois.png') });
   await page.click('.rep-histo-foot .btn');
-  await page.waitForTimeout(200);
-  check(await page.$eval('.rep-histo', (e) => e.classList.contains('hidden')), 'et le joueur peut l’oublier : elle ne vit que sur son appareil');
+  await page.waitForTimeout(250);
+  check(/encore rien envoyé/.test(await page.$eval('.panel-envois .rep-histo-list', (e) => e.textContent)),
+    'et le joueur peut l’oublier : elle ne vit que sur son appareil');
 
   check(consoleErrors.length === 0, `aucune erreur console (${consoleErrors.slice(0, 2).join(' | ')})`);
   await browser.close();
