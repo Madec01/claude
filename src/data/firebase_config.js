@@ -38,5 +38,8 @@ export const CLOUD = {
   etats: true,
   etatsCollection: 'etats',
   etatsDoc: 'tableau',
-  etatsFraisMs: 20 * 3600 * 1000,   // au-delà on relit : une lecture par appareil et par jour, sur 50 000
+  etatsFraisMs: 20 * 3600 * 1000,   // relecture SILENCIEUSE : une par appareil et par jour, sur 50 000
+  // Quand le joueur ouvre la liste, il demande MAINTENANT : on relit, quel que soit l'âge du cache. Ce
+  // plancher n'est là que pour qu'un doigt qui ouvre et referme dix fois ne fasse pas dix lectures.
+  etatsMinMs: 60000,
 };

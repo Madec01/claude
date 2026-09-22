@@ -11,7 +11,7 @@ import { h, button, icon, append } from './dom.js';
 import { AudioSys } from '../core/audio.js';
 import { BlackBox } from '../core/blackbox.js';
 import { TREE, RACCOURCIS, nodeAt, labelOf, questionsFor, search } from '../data/bug_tree.js';
-import { buildReport, captureImage, imageFichier, partiesPossibles, envoyerRapport, raisonTexte, journalEnvois, noterEnvoi, oublierEnvois, etatDe, ETATS, rafraichirEtats, noterEtatsVus } from '../core/report.js';
+import { buildReport, captureImage, imageFichier, partiesPossibles, envoyerRapport, raisonTexte, journalEnvois, noterEnvoi, oublierEnvois, etatDe, ETATS, rafraichirEtats, noterEtatsLus } from '../core/report.js';
 
 const MAX_TUILES = 4;
 
@@ -20,7 +20,7 @@ const ACCROCHE = {
   idee: 'Tu vois quelque chose qui nous manque ? Dis-le-nous : nous avons tout notre temps.',
 };
 
-export function buildReportPanel({ onBack, scene = null, sceneName = null, mode = 'pepin' }) {
+export function buildReportPanel({ onBack, scene = null, sceneName = null, mode = 'pepin', ouvrirEnvois = false }) {
   const state = {
     mode,
     chemin: [],            // la descente en cours : ['graphisme', 'sprites']
@@ -64,11 +64,17 @@ export function buildReportPanel({ onBack, scene = null, sceneName = null, mode 
   const histoListe = h('div', { class: 'rep-histo-list' });
   const histoTitre = h('summary', {}, 'Tes envois');
   const histo = h('details', { class: 'rep-details rep-histo hidden' }, histoTitre, histoListe);
+  histo.addEventListener('toggle', () => {
+    if (!histo.open) return;
+    noterEtatsLus();
+    rafraichirEtats({ force: true }).then((relu) => { if (relu) { renderHisto(); noterEtatsLus(); } });
+  });
 
   const renderHisto = () => {
     const envois = journalEnvois();
     histo.classList.toggle('hidden', !envois.length);
     if (!envois.length) { histo.open = false; return; }
+    if (ouvrirEnvois) histo.open = true;   // il vient POUR ça : on ne lui fait pas ouvrir un tiroir de plus
     histoTitre.textContent = envois.length > 1 ? `Tes envois · ${envois.length}` : 'Ton envoi';
     histoListe.innerHTML = '';
     histoListe.appendChild(h('p', { class: 'rep-privacy' },
@@ -412,7 +418,7 @@ export function buildReportPanel({ onBack, scene = null, sceneName = null, mode 
   // Le joueur ouvre la section : c'est le bon moment pour relire le tableau des états (au plus une fois par
   // jour, la fonction s'en charge). Et ce qu'il voit ici, il l'a vu : on ne le lui annoncera pas au prochain
   // lancement. On ne bloque pas l'écran pour ça — la liste se redessine si quelque chose arrive.
-  rafraichirEtats().then((relu) => { if (relu) renderHisto(); noterEtatsVus(); });
+  rafraichirEtats({ force: ouvrirEnvois }).then((relu) => { if (relu) renderHisto(); if (histo.open) noterEtatsLus(); });
   // le clavier ne doit pas monter tout seul sur téléphone : il mangerait la moitié de l'écran avant qu'il ait lu
   if (!document.documentElement.classList.contains('touch')) setTimeout(() => zone.focus({ preventScroll: true }), 80);
   return root;

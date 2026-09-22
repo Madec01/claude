@@ -74,6 +74,13 @@
 .panel.panel-workshop .ws-desc { font-size: 13px; }
 .panel.panel-workshop .ws-head-row { margin-bottom: 8px; }
 .panel.panel-workshop .panel-actions { margin-top: 10px; }
+/* Le carnet : un bloc à part dans le menu, parce que ce n'est pas un mode de jeu. Un filet à gauche et un
+   intertitre suffisent à le séparer — pas de cadre, le menu est déjà chargé. */
+.menu-block { display: flex; flex-direction: column; gap: 6px; padding-left: 10px; margin-top: 4px; border-left: 2px solid rgba(224,163,58,0.45); }
+.menu-block-title { font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: #a3701f; font-weight: 700; }
+.menu-block > .btn { justify-content: flex-start; }   /* comme les autres entrées du menu, pas centré */
+.btn-carnet-neuf { border-color: rgba(224,163,58,0.7); background: rgba(224,163,58,0.1); }
+
 .menu-row { display: flex; gap: 6px; flex-wrap: wrap; }
 .menu-row .btn { flex: 1 1 0; justify-content: center; padding: 9px 8px; font-size: 16px; min-width: 0; }
 .menu-row .btn span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

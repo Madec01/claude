@@ -211,10 +211,10 @@ const Game = {
       onWipe: Cloud.user ? async () => { const ok = await Cloud.wipe(); this.toast(ok ? 'Tes données en ligne sont effacées.' : 'Impossible d’effacer pour l’instant.'); } : null }));
   },
   /** L'écran « Pépins et idées ». `scenes.current` donne l'île en cours, quand il y en a une. */
-  showReport(onBack, mode = 'pepin') {
+  showReport(onBack, mode = 'pepin', { envois = false } = {}) {
     this.showPanel(buildReportPanel({
       onBack: onBack || (() => this.showMenu()),
-      scene: scenes.current, sceneName: scenes.currentName, mode,
+      scene: scenes.current, sceneName: scenes.currentName, mode, ouvrirEnvois: envois,
     }));
   },
   /**
@@ -255,7 +255,7 @@ const Game = {
           ? `Il ${etat}, et ${reste} autre${reste > 1 ? 's' : ''} ${reste > 1 ? 'ont' : 'a'} bougé. Touche ici.`
           : `Il ${etat}. Touche ici pour revoir tes envois.`,
         iconName: 'icon_info',
-        onClick: () => this.showReport(),
+        onClick: () => this.showReport(null, 'pepin', { envois: true }),
       }), 2600);   // après la bannière d'erreur, jamais en même temps qu'elle
     } catch (e) { console.warn('états des pépins', e); }
   },
