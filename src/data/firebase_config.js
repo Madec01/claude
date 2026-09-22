@@ -30,4 +30,13 @@ export const CLOUD = {
   pepins: true,
   pepinsCollection: 'pepins',
   pepinsMaxParJour: 5,    // par appareil : un doigt qui s'emballe ne peut pas entamer le budget de la sauvegarde
+
+  // L'état des rapports, dans l'autre sens : UN document public que la relève réécrit et que le jeu lit, au plus
+  // une fois par jour et par appareil. Il ne porte que des codes et des états — jamais le titre d'un pépin ni la
+  // phrase du joueur, qui n'ont rien à faire sur un document ouvert à tous (c'est pour ça que le carnet est privé).
+  // `etats: false` coupe la lecture en un commit : le jeu retombe sur ce que l'appareil sait, comme avant.
+  etats: true,
+  etatsCollection: 'etats',
+  etatsDoc: 'tableau',
+  etatsFraisMs: 20 * 3600 * 1000,   // au-delà on relit : une lecture par appareil et par jour, sur 50 000
 };

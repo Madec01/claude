@@ -17,6 +17,29 @@ const PARTIES_JOUEES = [
 ];
 
 /** Ouvre le jeu hors ligne (rien ne doit partir pendant un test) et arrive à la section. */
+// ---- les pistes de code, vérifiées côté Node : chaque fichier cité doit exister pour de bon.
+// Une piste morte est pire que pas de piste — elle envoie le correcteur sur une fausse route, et il la suit
+// d'autant plus volontiers qu'elle a l'air d'un renseignement sûr.
+{
+  const src = fs.readFileSync(path.join(__dirname, '..', 'src/data/bug_tree.js'), 'utf8');
+  const bloc = src.slice(src.indexOf('export const CODE = {'), src.indexOf('/** Les pistes de code'));
+  const fichiers = [...bloc.matchAll(/'([^']*?\.(?:js|json|css|rules|html))(?: \([^)]*\))?'/g)].map((m) => m[1]);
+  const morts = [...new Set(fichiers)].filter((f) => !fs.existsSync(path.join(__dirname, '..', f)));
+  check(fichiers.length > 40, `les pistes de code sont renseignées (${fichiers.length} fichiers cités)`);
+  check(morts.length === 0, `toutes les pistes pointent un fichier qui existe${morts.length ? ` — introuvables : ${morts.join(', ')}` : ''}`);
+}
+
+// ---- le tableau des états : ce qu'on publie ne doit JAMAIS porter autre chose que des codes et des états.
+// Le carnet est privé exprès ; un titre ou la phrase d'un joueur sur un document lisible par tous annulerait
+// cette décision sans bruit. On lit donc la fonction qui l'écrit, et on vérifie ce qu'elle y met.
+{
+  const src = fs.readFileSync(path.join(__dirname, '..', 'docs/releve/releve.mjs'), 'utf8');
+  const bloc = src.slice(src.indexOf('async function publierEtats'), src.indexOf('const snap = await db'));
+  check(/table\[m\[1\]\] = etat\(i\)/.test(bloc), 'le tableau des états n’associe qu’un code à un état');
+  check(!/i\.title|i\.body|r\.mot/.test(bloc.replace(/exec\(i\.title[^)]*\)/g, '')), 'aucun titre ni aucune phrase de joueur ne part dans le tableau public');
+  check(/\.set\(table\)/.test(bloc), 'le document est remplacé, pas fusionné : un code retiré disparaît');
+}
+
 async function openSection(page) {
   await page.addInitScript((list) => {
     try { localStorage.setItem('cent-saisons.runs', JSON.stringify({ v: 1, list })); } catch (_) { /* sans importance */ }
@@ -265,8 +288,51 @@ async function openSection(page) {
   check(carte.includes(code), `la carte porte le code (${code})`);
   check(/Gardé sur ton appareil/.test(carte), 'et l’état que l’appareil connaît : gardé ici, pas parti au carnet');
   check(/Textes/.test(carte), 'avec le sujet choisi, pour reconnaître de quoi il s’agissait');
-  check(/ne peut pas dire si c’est corrigé/.test(await page.$eval('.rep-histo-list', (e) => e.textContent)),
-    'la liste dit franchement ce qu’elle ne sait pas : le carnet est privé, le jeu ne peut pas le relire');
+  check(/rien de ce que tu as écrit n’en ressort/.test(await page.$eval('.rep-histo-list', (e) => e.textContent)),
+    'la liste dit ce que le carnet renvoie, et surtout ce qu’il ne renvoie pas');
+
+  // ---- l'état du carnet : la pastille n'apparaît que pour un code connu, et le mot est celui du jeu
+  await page.evaluate(() => {
+    const j = JSON.parse(localStorage.getItem('cent-saisons.pepin.journal') || '{}');
+    const code = ((j.list || [])[0] || {}).code;
+    localStorage.setItem('cent-saisons.pepin.etats', JSON.stringify({
+      v: 1, at: Date.now(), map: { [code]: 'corrige', ZZZZ: 'ecarte' }, vus: {},
+    }));
+  });
+  // on recharge plutôt que de chercher un bouton de retour : « Oublier cette liste » porte les mêmes classes
+  // que le retour, et un sélecteur trop large effacerait le journal qu'on s'apprête à lire
+  await page.reload();
+  await openSection(page);
+  await page.click('.rep-histo > summary');
+  await page.waitForTimeout(200);
+  const pastilles = await page.$$eval('.rep-histo-suivi', (a) => a.map((e) => e.textContent));
+  check(pastilles.length === 1 && pastilles[0] === 'Corrigé', `l’état du carnet s’affiche, et seulement pour SES codes (${pastilles.join(', ') || 'aucune'})`);
+
+  // ---- et ce qu'on annonce au lancement.
+  // Ouvrir la liste vaut avoir vu : rien ne doit plus être annoncé après. C'est vrai à cet instant précis,
+  // puisqu'on vient de la lire — on le vérifie avant de remettre le compteur à zéro pour la suite.
+  const dejaVu = await page.evaluate(async () => (await import('/src/core/report.js')).nouveautesEtats().length);
+  check(dejaVu === 0, 'ce qu’il a vu dans la liste ne lui sera pas réannoncé au lancement');
+
+  const nouv = await page.evaluate(async () => {
+    const m = await import('/src/core/report.js');
+    const c = m.etatsCache();
+    localStorage.setItem('cent-saisons.pepin.etats', JSON.stringify({ v: 1, at: c.at, map: c.map, vus: {} }));
+    const avant = m.nouveautesEtats().map((e) => e.etat);
+    m.noterEtatsVus();
+    return { avant, apres: m.nouveautesEtats().length };
+  });
+  check(nouv.avant.length === 1 && nouv.avant[0] === 'corrige', `un changement d’état est une nouvelle à annoncer (${nouv.avant.join(',')})`);
+  check(nouv.apres === 0, 'dit une fois, plus jamais : on ne réveille pas le joueur deux fois pour la même nouvelle');
+
+  // ---- hors ligne par choix, on ne lit rien : il a décliné le nuage, ce n'est pas à nous d'y aller
+  const horsLigne = await page.evaluate(async () => {
+    const { Save } = await import('/src/core/save.js');
+    const m = await import('/src/core/report.js');
+    Save.data.cloud = { ...(Save.data.cloud || {}), choice: 'none' };
+    return m.rafraichirEtats({ force: true });
+  });
+  check(horsLigne === false, 'le joueur qui a décliné le nuage ne déclenche aucune lecture');
   const debordeHisto = await page.evaluate(() => document.querySelector('.panel-report').scrollWidth > window.innerWidth + 2);
   check(!debordeHisto, 'la liste ne déborde pas au pouce');
   await page.screenshot({ path: path.join(OUT, 'pepin-mobile-envois.png') });

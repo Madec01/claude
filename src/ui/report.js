@@ -11,7 +11,7 @@ import { h, button, icon, append } from './dom.js';
 import { AudioSys } from '../core/audio.js';
 import { BlackBox } from '../core/blackbox.js';
 import { TREE, RACCOURCIS, nodeAt, labelOf, questionsFor, search } from '../data/bug_tree.js';
-import { buildReport, captureImage, imageFichier, partiesPossibles, envoyerRapport, raisonTexte, journalEnvois, noterEnvoi, oublierEnvois } from '../core/report.js';
+import { buildReport, captureImage, imageFichier, partiesPossibles, envoyerRapport, raisonTexte, journalEnvois, noterEnvoi, oublierEnvois, etatDe, ETATS, rafraichirEtats, noterEtatsVus } from '../core/report.js';
 
 const MAX_TUILES = 4;
 
@@ -72,7 +72,7 @@ export function buildReportPanel({ onBack, scene = null, sceneName = null, mode 
     histoTitre.textContent = envois.length > 1 ? `Tes envois · ${envois.length}` : 'Ton envoi';
     histoListe.innerHTML = '';
     histoListe.appendChild(h('p', { class: 'rep-privacy' },
-      'Le jeu ne peut pas dire si c’est corrigé : le carnet où tes rapports arrivent est privé. Ce que tu vois ici, c’est ce que ton appareil sait — ce qui est parti, et ce qui attend encore. Le code sert à en reparler.'));
+      'Ton appareil dit ce qui est parti ; le carnet dit où ça en est. Il ne renvoie qu’un état par code — rien de ce que tu as écrit n’en ressort. Le code sert à en reparler.'));
     for (const e of envois) {
       const parti = e.voie === 'nuage';
       const sujet = (e.tuiles || []).map(labelOf).filter(Boolean).join(' · ');
@@ -84,7 +84,10 @@ export function buildReportPanel({ onBack, scene = null, sceneName = null, mode 
         sujet ? h('div', { class: 'rep-histo-sujet' }, sujet) : null,
         h('div', { class: `rep-histo-etat ${parti ? 'on' : ''}` },
           h('span', {}, parti ? '✓ Parti au carnet' : '↓ Gardé sur ton appareil'),
-          parti ? null : h('small', {}, 'Les deux fichiers ont été téléchargés : rien n’est perdu.'))));
+          parti ? null : h('small', {}, 'Les deux fichiers ont été téléchargés : rien n’est perdu.')),
+        // ce que le carnet en dit, quand il en dit quelque chose. Absent tant qu'on n'a pas relu le tableau,
+        // ou si le rapport n'y est pas encore : on ne met pas de pastille vide pour faire joli.
+        etatDe(e.code) ? h('div', { class: `rep-histo-suivi etat-${etatDe(e.code)}` }, ETATS[etatDe(e.code)].texte) : null));
     }
     histoListe.appendChild(h('div', { class: 'rep-histo-foot' },
       button('Oublier cette liste', () => { oublierEnvois(); renderHisto(); }, { cls: 'btn-small btn-ghost' })));
@@ -406,6 +409,10 @@ export function buildReportPanel({ onBack, scene = null, sceneName = null, mode 
   blocPartie.classList.toggle('hidden', state.mode === 'idee' || !parties.length);
   blocChoix.classList.toggle('hidden', state.mode === 'idee' || parties.length < 2);
   renderHisto(); renderErreur(); renderRaccourcis(); renderArbre(); renderSujet();
+  // Le joueur ouvre la section : c'est le bon moment pour relire le tableau des états (au plus une fois par
+  // jour, la fonction s'en charge). Et ce qu'il voit ici, il l'a vu : on ne le lui annoncera pas au prochain
+  // lancement. On ne bloque pas l'écran pour ça — la liste se redessine si quelque chose arrive.
+  rafraichirEtats().then((relu) => { if (relu) renderHisto(); noterEtatsVus(); });
   // le clavier ne doit pas monter tout seul sur téléphone : il mangerait la moitié de l'écran avant qu'il ait lu
   if (!document.documentElement.classList.contains('touch')) setTimeout(() => zone.focus({ preventScroll: true }), 80);
   return root;

@@ -172,6 +172,7 @@ Un objet JSON, `version: 1`. Champ par champ :
 | `reglages` | `Save.options` | `Save.options` | « Chez moi le relevé de saison ne s'affiche pas » : la réponse est souvent là. |
 | `progression` | `{ ile_debloquee, etoiles, graines, ameliorations, contrats }` | résumé de `Save.campaign` | Un pépin de déblocage se lit ici. **Résumé, pas la sauvegarde entière.** |
 | `partie` | le `RunSave` complet (`{ where, title, isl }`) | la partie du moment (`RunSave.read()`, ou `isl.serialize()` en direct), **ou l'une des trois dernières jouées** (`RunSave.history()`) | **La pièce qui permet de rejouer.** Décochable, et choisie dans une liste dès qu'il y en a plusieurs : un pépin se raconte souvent l'île finie, quand la partie du moment est vide. |
+| `pistes` | les fichiers où regarder, déduits des tuiles choisies (`CODE` de `bug_tree.js`) | `pistesFor(tuiles)` | **Jamais montré au joueur.** C'est du renseignement pour qui corrigera : le relevé en fait la section « Où regarder » de l'issue, et ça fait gagner la demi-heure passée à chercher le bon fichier. |
 | `nuage` | `{ mode, etat }` : `google` / `anon` / `none`, et `ready` / `quota` / `error` | `Cloud.status()` | Comprendre un pépin de sauvegarde, sans identifiant. |
 
 **Ce qui n'y est jamais :** aucune adresse e-mail, aucun nom Google, aucun `uid` Firebase, aucune position, aucun
@@ -343,6 +344,55 @@ Pour chaque document de `pepins`, du plus ancien au plus récent, vingt au maxim
 > activité**. Un dépôt de rapports peut très bien rester muet deux mois. Deux parades : la relève à la demande
 > (qui réveille tout), ou un commit automatique mensuel dans le même workflow. À décider à l'usage ; le signaler
 > dans le README du dépôt privé suffit pour commencer.
+
+---
+
+## 9 bis. Le retour au joueur : le tableau des états
+
+**On ne sait pas qui a envoyé quoi, et c'est le point de départ.** Aucun nom, aucune adresse, aucun identifiant
+ne part avec un rapport — c'est la règle du § 12, et elle ne bouge pas. Il n'existe donc **aucun moyen de
+pousser** quoi que ce soit vers celui qui a signalé quelque chose : ni courriel, ni notification. Le seul canal
+de retour est le jeu lui-même, quand il l'ouvre.
+
+Le seul fil qui reste est le **code**, gardé sur son appareil dans `cent-saisons.pepin.journal`. C'est par là
+que passe la réponse.
+
+**Le mécanisme.** La relève publie, à chaque passage, un document public :
+
+```
+etats/tableau  →  { "7K3Q": "corrige", "CJ64": "encours", "G6HX": "recu", … }
+```
+
+Le jeu le lit et le croise avec sa propre liste. Personne d'autre n'en tire rien : un code de quatre caractères
+ne dit rien à qui ne l'a pas envoyé.
+
+> **La seule chose à ne pas faire ici.** Ce document ne porte **que** des codes et des états. Jamais un titre,
+> jamais la phrase d'un joueur. Le carnet est privé exprès — pour que les mots du testeur, son téléphone et sa
+> progression ne soient pas sur la place publique (§ 9). Y ajouter un titre « pour faire plus clair »
+> annulerait cette décision sans qu'on s'en aperçoive. `tests/pepin.js` lit la fonction qui écrit le tableau et
+> refuse qu'elle y mette autre chose.
+
+| État | Ce qui le déclenche, côté carnet |
+|---|---|
+| `recu` | l'issue existe, personne n'a encore répondu |
+| `lu` | au moins un commentaire |
+| `encours` | l'étiquette `claude` est posée |
+| `corrige` | issue fermée *completed* |
+| `ecarte` | issue fermée *not planned* |
+
+**Ce que le joueur voit.** Une pastille sobre dans « Tes envois », et — c'est le vrai retour — une bannière au
+lancement quand un de ses rapports a changé d'état, **dite une fois** puis plus jamais. Ouvrir la liste vaut
+l'avoir vue : on ne l'annonce pas deux fois.
+
+**Ce que ça coûte.** Une lecture par appareil et par jour (`CLOUD.etatsFraisMs`), sur les 50 000 du palier
+gratuit — et **aucune** si le joueur n'a jamais rien envoyé, ou s'il a décliné le nuage : il a dit non, ce
+n'est pas à nous d'y aller quand même. Côté écriture, une par passage de la relève, soit vingt-quatre par jour
+sur les 20 000.
+
+**Les règles.** `etats/{doc}` est le seul document public du projet : `read: if true`, tout le reste refusé.
+Seule la relève écrit, par le SDK d'administration, qui n'est pas soumis aux règles. Vérifié dans l'émulateur
+par `tests/firestore_rules.mjs` — lecture permise sans être connecté, écriture et effacement refusés à tous.
+Comme toujours : **à republier à la main** dans la console Firebase.
 
 ---
 

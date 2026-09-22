@@ -13,7 +13,7 @@ import { RunSave } from './run.js';
 import { STAGE } from './stage.js';
 import { BlackBox } from './blackbox.js';
 import { CLOUD } from '../data/firebase_config.js';
-import { questionsFor } from '../data/bug_tree.js';
+import { questionsFor, pistesFor } from '../data/bug_tree.js';
 
 const PAPER = '#fbf7ee', INK = '#2b2a26';
 const JOURNAL_LINES = 30;      // au-delà, le rapport grossit sans rien apprendre
@@ -84,6 +84,96 @@ export function noterEnvoi(rapport, resultat = {}) {
   return e;
 }
 
+// ---------------------------------------------------------------------------------------------------
+// L'ÉTAT DES RAPPORTS : la seule chose que le carnet renvoie au joueur.
+//
+// On ne sait PAS qui a envoyé quoi, et c'est voulu : aucun nom, aucune adresse, aucun identifiant ne part
+// avec un rapport. Rien ne peut donc être POUSSÉ vers le joueur — pas de courriel, pas de notification. Le
+// seul fil qui le relie à son pépin est le code gardé sur son appareil, dans la liste ci-dessus.
+//
+// D'où ce sens de lecture : la relève publie un tableau public `code → état`, et le jeu le croise avec sa
+// propre liste. Personne d'autre n'en tire rien — un code de quatre caractères ne dit rien à qui ne l'a pas
+// envoyé. Et ce tableau ne porte QUE des codes, des états et une date : jamais un titre, jamais la phrase du
+// joueur. Le carnet est privé exprès ; publier ses mots ici annulerait cette décision sans qu'on s'en aperçoive.
+//
+// Une lecture par appareil et par jour, mise en cache. Le palier gratuit offre 50 000 lectures par jour.
+// ---------------------------------------------------------------------------------------------------
+
+const ETATS_KEY = 'cent-saisons.pepin.etats';
+
+/** Ce que chaque état veut dire, dans la voix du jeu. L'ordre va du plus frais au plus abouti. */
+export const ETATS = {
+  // « Arrivé au carnet » doublonnait avec le « ✓ Parti au carnet » que l'appareil affiche juste au-dessus.
+  // L'information utile n'est pas qu'il soit parti — ça, l'appareil le sait — c'est que personne ne l'ait
+  // encore regardé.
+  recu:    { texte: 'Pas encore lu', court: 'attend d’être lu' },
+  lu:      { texte: 'Lu', court: 'a été lu' },
+  encours: { texte: 'En cours de correction', court: 'est en cours de correction' },
+  corrige: { texte: 'Corrigé', court: 'a été corrigé' },
+  ecarte:  { texte: 'Écarté', court: 'a été écarté' },
+};
+
+/** Le tableau tel que l'appareil l'a gardé : `{ at, map, vus }`. Illisible ou absent : un objet vide. */
+export function etatsCache() {
+  try {
+    const d = JSON.parse(localStorage.getItem(ETATS_KEY) || 'null');
+    if (!d || d.v !== 1) return { at: 0, map: {}, vus: {} };
+    return { at: d.at || 0, map: d.map || {}, vus: d.vus || {} };
+  } catch (_) { return { at: 0, map: {}, vus: {} }; }
+}
+
+const ecrireCache = (c) => { try { localStorage.setItem(ETATS_KEY, JSON.stringify({ v: 1, ...c })); } catch (_) { /* stockage plein : on s'en passe */ } };
+
+/** L'état connu d'un code, ou null. */
+export function etatDe(code) { return etatsCache().map[code] || null; }
+
+/**
+ * Relit le tableau si le cache a vieilli. Ne lit rien si le joueur a choisi de rester hors ligne — il a
+ * décliné le nuage, ce n'est pas à nous d'y aller quand même — ni s'il n'a jamais rien envoyé : il n'y
+ * aurait rien à y croiser, et ce serait une lecture pour personne.
+ * @returns {Promise<boolean>} vrai si le tableau vient d'être relu
+ */
+export async function rafraichirEtats({ force = false } = {}) {
+  if (CLOUD.etats === false) return false;
+  if (!journalEnvois().length) return false;
+  if ((Save.data.cloud || {}).choice === 'none') return false;
+  const cache = etatsCache();
+  if (!force && Date.now() - cache.at < CLOUD.etatsFraisMs) return false;
+  if (!Cloud.online()) return false;
+  try {
+    if (!await Cloud.load()) return false;
+    const { S, db } = Cloud.sdk;
+    const snap = await S.getDoc(S.doc(db, CLOUD.etatsCollection, CLOUD.etatsDoc));
+    const map = (snap.exists && snap.exists() ? snap.data() : null) || {};
+    // on ne garde que ce qui ressemble à un état connu : le document est public, autant ne pas le croire sur parole
+    const propre = {};
+    for (const [code, etat] of Object.entries(map)) if (typeof etat === 'string' && ETATS[etat]) propre[code] = etat;
+    ecrireCache({ at: Date.now(), map: propre, vus: cache.vus });
+    return true;
+  } catch (e) {
+    console.warn('états des pépins non relus', e);
+    ecrireCache({ ...cache, at: Date.now() });   // on ne retente pas avant demain : inutile d'insister
+    return false;
+  }
+}
+
+/** Les rapports de CET appareil dont l'état a changé depuis la dernière fois qu'on le lui a montré. */
+export function nouveautesEtats() {
+  const { map, vus } = etatsCache();
+  const out = [];
+  for (const e of journalEnvois()) {
+    const etat = map[e.code];
+    if (etat && etat !== vus[e.code]) out.push({ ...e, etat });
+  }
+  return out;
+}
+
+/** « C'est vu » : on ne le redira pas au prochain lancement. */
+export function noterEtatsVus() {
+  const c = etatsCache();
+  ecrireCache({ ...c, vus: { ...c.map } });
+}
+
 /** Le joueur efface sa liste. Elle ne vit que sur son appareil : il n'y a rien à prévenir ailleurs. */
 export function oublierEnvois() {
   try { localStorage.removeItem(JOURNAL_KEY); } catch (_) { /* rien de plus à faire */ }
@@ -142,6 +232,10 @@ export function buildReport({ mode = 'pepin', tuiles = [], raccourci = null, mot
     mot: (mot || '').trim() || '(sans commentaire)',
     tuiles: [...tuiles], raccourci,
     questions: questionsFor(tuiles, mode),
+    // Où regarder dans le code, déduit des tuiles touchées. Le joueur ne voit jamais ce champ : c'est du
+    // renseignement pour celui qui corrigera, et c'est ce qui lui fait gagner le plus de temps — savoir OÙ
+    // chercher avant d'avoir à le chercher. Le relevé en fait la section « Où regarder » de l'issue.
+    pistes: pistesFor(tuiles),
     jeu: VERSION_JEU(),
     ...ctx,
   };

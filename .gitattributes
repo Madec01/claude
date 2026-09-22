@@ -1,0 +1,7 @@
+# JOURNAL_DE_BORD.md est le seul fichier que TOUTE modification du jeu doit toucher : la règle du projet
+# veut une ligne par changement, et chaque branche l'écrit au même endroit — la dernière ligne du même tableau.
+# Deux branches ouvertes en même temps entrent donc en conflit à tous les coups, sur un fichier qui ne contient
+# pourtant aucun code. « union » garde les deux côtés, ce qui est exactement la résolution qu'on applique à la
+# main à chaque fois. Ça ne sait pas renuméroter : deux entrées peuvent porter le même numéro, et c'est bien
+# moins gênant qu'une fusion bloquée.
+JOURNAL_DE_BORD.md merge=union

@@ -77,6 +77,12 @@
 .rep-histo-etat { margin-top: 5px; font-size: 13px; font-weight: 600; color: var(--ink-2); }
 .rep-histo-etat.on { color: var(--breath); }
 .rep-histo-etat small { display: block; font-size: 12px; font-weight: 500; opacity: 0.7; color: var(--ink-2); }
+/* Ce que le carnet en dit. Une pastille sobre, pas un feu tricolore : « écarté » n'est pas un échec, et
+   « corrigé » n'a pas besoin de crier. */
+.rep-histo-suivi { display: inline-block; margin-top: 6px; padding: 3px 9px; border-radius: 999px; font-size: 12px; font-weight: 700; border: 1px solid var(--line); background: rgba(43,42,38,0.05); color: var(--ink-2); }
+.rep-histo-suivi.etat-lu,
+.rep-histo-suivi.etat-encours { border-color: rgba(224,163,58,0.5); background: rgba(224,163,58,0.12); color: #8a6412; }
+.rep-histo-suivi.etat-corrige { border-color: rgba(58,157,124,0.5); background: rgba(58,157,124,0.12); color: #2c7358; }
 .rep-histo-foot { display: flex; justify-content: flex-end; }
 
 /* ---- quelle partie joindre, et l'image qu'on apporte : alignées sous leur case à cocher ---- */
