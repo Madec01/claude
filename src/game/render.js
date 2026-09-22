@@ -59,7 +59,9 @@ const PLAT = new Set(['obj_puddle1', 'obj_puddle2', 'obj_puddle3', 'obj_leafpile
  * des objets debout : une flaque qui projette une ombre, c'est une flaque qui vole. On compare
  * maintenant le gabarit débarrassé de ses marques de saison et d'hiver.
  */
-const estPlat = (tpl) => PLAT.has(tpl.replace(/\{[sw]\}/g, ''));
+// Les collines et les monts sont POSÉS : l'ellipse d'ombre au pied, faite pour qu'un arbre ne flotte pas,
+// faisait justement flotter une colline (retour du commanditaire). Un relief n'en reçoit pas.
+const estPlat = (tpl) => PLAT.has(tpl.replace(/\{[sw]\}/g, '')) || /^obj_(colline|collines|mont)_/.test(tpl);
 
 /** Sols en relief : falaise (roche) et talus (colline). */
 const RELIEF = new Set(['stone']);   // la colline n'est plus un sol surélevé : c'est un objet posé sur l'herbe (journal 102)
@@ -628,6 +630,11 @@ export class IslandRenderer {
       else ctx.drawImage(img, c.x - w * sc / 2, c.y + dy - h * sc, w * sc, h * sc);
       ctx.restore();
     }
+    // Les sentiers qui traversent une colline sont redessinés par-dessus elle : dessinés sous les
+    // objets, ils entraient dans le relief d'un côté pour ressortir de l'autre (« les chemins passent
+    // au travers »). Le sentier grimpe la colline : c'est un sentier de colline
+    const collines = new Set(); for (const t of tiles) if (t.family === 'hill') collines.add(key(t.q, t.r));
+    if (collines.size) this.drawPaths(ctx, collines);
     for (const t of tiles) if (t.bloom) { const w = toWorld(t.q, t.r); const c = cam.toScreen(w.x, w.y); if (vis(c)) this.drawBloom(ctx, c.x, c.y); }
     // option « Grille discrète » : fin contour sur les tuiles posées, par-dessus les sols et les objets (sinon les fondus le couvrent)
     if (Save.options.grid) {
@@ -1163,10 +1170,18 @@ export class IslandRenderer {
    * tracé de carte, pas comme de la terre battue. Deux passes globales (bordure sombre, puis terre
    * texturée) pour que les croisements restent propres.
    */
-  drawPaths(ctx) {
+  drawPaths(ctx, cellules = null) {
     const b = this.isl.board, cam = this.cam, z = cam.zoom;
-    const shapes = pathShapes(b);
+    let shapes = pathShapes(b);
+    // `cellules` : seulement les chemins qui traversent ces cases, découpés à leurs hexagones
+    // (les sentiers de colline, redessinés par-dessus le relief)
+    if (cellules) shapes = shapes.filter((s) => s.cells.some((k) => cellules.has(k)));
     if (!shapes.length) return;
+    if (cellules) {
+      ctx.save(); ctx.beginPath();
+      for (const k of cellules) { const [q, r] = parse(k); const w = toWorld(q, r); const c = cam.toScreen(w.x, w.y); const pts = corners(c.x, c.y, SIZE * z * 0.99); ctx.moveTo(pts[0][0], pts[0][1]); for (let i = 1; i < 6; i++) ctx.lineTo(pts[i][0], pts[i][1]); ctx.closePath(); }
+      ctx.clip();
+    }
     const season = this.isl.season;
     const col = { spring: '#c9a570', summer: '#d1ab74', autumn: '#bf9463', winter: '#dcd2c3' }[season] || '#c9a570';
     const dark = { spring: '#a37f4c', summer: '#ab864f', autumn: '#966f42', winter: '#b7ab9a' }[season] || '#a37f4c';
@@ -1187,6 +1202,7 @@ export class IslandRenderer {
     if (motif && typeof DOMMatrix === 'function') { const pat = ctx.createPattern(motif, 'repeat'); const o = cam.toScreen(0, 0); if (pat && pat.setTransform) { pat.setTransform(new DOMMatrix([z, 0, 0, z, o.x, o.y])); fill = pat; } }
     ctx.fillStyle = fill; for (const s of shapes) if (polygone(s.ruban)) ctx.fill();
     ctx.restore();
+    if (cellules) ctx.restore();
   }
 
   /** Voiles et pluie de la météo active (espace écran). */
