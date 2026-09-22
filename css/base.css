@@ -63,6 +63,9 @@ button { font-family: inherit; }
 .panel-actions { display: flex; gap: 12px; justify-content: center; margin-top: 22px; flex-wrap: wrap; }
 .panel-actions.column { flex-direction: column; align-items: center; }
 .panel-actions.column .btn { width: 320px; justify-content: center; }
+/* la carte postale de fin : les deux boutons flottent au bas du paysage, au-dessus du bandeau */
+.carte-actions { position: absolute; left: 0; right: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; padding: 0 16px; pointer-events: auto; animation: carte-in 0.5s ease both; }
+@keyframes carte-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 .res-kicker { text-align: center; text-transform: uppercase; letter-spacing: 0.25em; font-size: 13px; opacity: 0.6; font-weight: 700; }
 
 /* Options */

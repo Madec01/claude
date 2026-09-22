@@ -61,6 +61,16 @@ const PLAT = new Set(['obj_puddle1', 'obj_puddle2', 'obj_puddle3', 'obj_leafpile
  */
 const estPlat = (tpl) => PLAT.has(tpl.replace(/\{[sw]\}/g, ''));
 
+/**
+ * Les bâtiments dont les fenêtres s'allument la nuit (tournée finale). Un halo chaud posé au-dessus
+ * du sprite : un dégradé, pas une image dessinée. La tente du campement en est, elle aussi — on y
+ * veille à la lampe.
+ */
+// Reconnus par PRÉFIXE : le décor décline les maisons en variantes (`obj_house_small_vert`, `_jaune`,
+// `obj_windmill_complete`…) et une liste de noms exacts n'en attrapait aucune — on a livré une nuit
+// sans une seule lumière avant de compter les objets. La tour en ruine, elle, reste éteinte.
+const estHabite = (tpl) => /^obj_(house|villa|farm|church|tavern|windmill|tent|tower(?!Ruin))/.test(tpl);
+
 /** Sols en relief : falaise (roche) et talus (colline). */
 const RELIEF = new Set(['stone', 'hill']);
 /** Deux sols qui se touchent par une arête franche plutôt que par un fondu. */
@@ -121,7 +131,10 @@ export class IslandRenderer {
     this.hexMask = Assets.img('hex_mask'); this.hexOutline = Assets.img('hex_outline'); this.hexShadow = Assets.img('hex_shadow');
     this.lowFx = false;         // posé par la scène quand les i/s baissent : on coupe la profondeur et l'écume large
     this._sea = null;           // géométrie de la mer (centre, rayon, côte, vagues), recalculée si l'île change de forme
-    this._life = null;          // le voilier et la baleine
+    this.cadran = null;         // tour du cadran (tournée finale) : { soir, matin }, l'avancée des deux fronts ; null = plein jour
+    // la vie du large est montée ici plutôt qu'à la première image : la tournée finale doit pouvoir
+    // y poser son voilier avant même que `drawSeaLife` ait tourné une fois
+    this._life = { boat: null, whale: null, nextBoat: rnd(5, 18), nextWhale: rnd(45, 100), season: island.season };   // le voilier et la baleine
     this.faunaPos = new Map();  // clé -> { x, y, bob }
     this.decor = new Decor((island.def && island.def.seed) || 1);
     this.weather = null; this.flash = 0; this.rain = [];
@@ -168,6 +181,7 @@ export class IslandRenderer {
     this.drawFauna(ctx, dt);
     this.drawWorkMarks(ctx);
     this.particlesWorld(ctx, 1);
+    this.drawNuit(ctx);
     this.drawTexts(ctx);
     this.drawWeather(ctx, dt);
     this.drawTransition(ctx);
@@ -281,7 +295,7 @@ export class IslandRenderer {
 
   drawSeaLife(ctx, dt) {
     const sea = this.seaGeometry(); const cam = this.cam, z = cam.zoom; const storm = this.weather === 'storm';
-    const life = this._life || (this._life = { boat: null, whale: null, nextBoat: rnd(5, 18), nextWhale: rnd(45, 100), season: this.isl.season });
+    const life = this._life;
     if (life.season !== this.isl.season) { life.season = this.isl.season; life.nextBoat = Math.min(life.nextBoat, rnd(4, 14)); }   // à chaque saison, un bateau ne tarde pas
     // --- le voilier : une ligne tangente à l'île, au large, d'un bord du champ à l'autre
     if (!life.boat) {
@@ -338,6 +352,110 @@ export class IslandRenderer {
         }
       }
     }
+  }
+
+  /**
+   * LE TOUR DU CADRAN. Le soir ne tombe pas d'un coup sur toute l'île — un fondu global passait pour
+   * un bogue d'affichage (retour de test) : il TRAVERSE la carte, d'ouest en est, exactement comme
+   * le front d'une saison (même direction, même formule de balayage), et le matin le suit par le
+   * même chemin. Devant le front du soir c'est le jour ; sur sa largeur, le soleil se couche — teinte
+   * chaude, puis mauve, puis bleu nuit — et derrière, la nuit. Le front du matin fait l'inverse.
+   *
+   * `cadran` : `{ soir, matin }`, l'avancée de chaque front (0 = pas parti, 1 = a traversé l'écran,
+   * comme `transition.t / 1.6` pour les saisons) ; null = plein jour. Tout est en repère écran, un
+   * seul dégradé horizontal en multiplication — mer comprise, elle ne fait pas exception — puis les
+   * fenêtres qui s'allument derrière le soir et s'éteignent derrière le matin.
+   */
+  /** L'abscisse écran du front d'avancée `p` : la même formule que le balayage des saisons. */
+  front(p) { return -200 + p * (STAGE.W + 400); }
+  /** La largeur sur laquelle le soleil se couche (ou se lève) : près de la moitié de l'écran, pour que ça se lise. */
+  get bandeCadran() { return STAGE.W * 0.45; }
+  /** Le niveau de nuit (0 jour, 1 nuit) à l'abscisse écran `sx`. */
+  nuitA(sx) {
+    const c = this.cadran; if (!c) return 0;
+    const B = this.bandeCadran, lisse = (t) => t * t * (3 - 2 * t);
+    if (c.matin > 0) return 1 - lisse(clamp((this.front(c.matin) - sx) / B, 0, 1));
+    return lisse(clamp((this.front(c.soir) - sx) / B, 0, 1));
+  }
+  /** La chaleur du couchant ou de l'aube à `sx` (0 → 1 → 0 sur la largeur du front) : sert aux ombres qui s'allongent. */
+  chaleurA(sx) {
+    const c = this.cadran; if (!c) return 0;
+    const B = this.bandeCadran;
+    const p = c.matin > 0 ? c.matin : c.soir; if (p <= 0) return 0;
+    const d = clamp((this.front(p) - sx) / B, 0, 1);
+    return Math.sin(Math.PI * clamp(d / 0.75, 0, 1));
+  }
+
+  drawNuit(ctx) {
+    const c = this.cadran; if (!c || c.soir <= 0) return;
+    const cam = this.cam, z = cam.zoom, W = STAGE.W, B = this.bandeCadran;
+    const NUIT = 'rgb(74,88,150)';
+    ctx.save();
+    ctx.globalCompositeOperation = 'multiply';
+    if (c.matin > 0) {
+      // le matin : jour derrière le front, nuit devant, l'aube rosée entre les deux
+      const x = this.front(c.matin); const g = ctx.createLinearGradient(x - B, 0, x, 0);
+      g.addColorStop(0, '#ffffff'); g.addColorStop(0.35, 'rgb(255,204,168)'); g.addColorStop(0.7, 'rgb(172,140,172)'); g.addColorStop(1, NUIT);
+      ctx.fillStyle = g;
+    } else if (c.soir < 1.3) {
+      // le soir : jour devant le front, nuit derrière, le couchant entre les deux
+      const x = this.front(c.soir); const g = ctx.createLinearGradient(x, 0, x - B, 0);
+      g.addColorStop(0, '#ffffff'); g.addColorStop(0.3, 'rgb(255,184,120)'); g.addColorStop(0.62, 'rgb(178,118,150)'); g.addColorStop(1, NUIT);
+      ctx.fillStyle = g;
+    } else ctx.fillStyle = NUIT;   // la nuit pleine, entre les deux fronts
+    ctx.fillRect(0, 0, W, STAGE.H);
+    ctx.restore();
+    // les maisons habitées : pas des fenêtres allumées (le sprite ne s'y prête pas) mais une flaque de
+    // lumière chaude AU PIED de chaque bâtiment, aplatie sur le sol, discrète — elle s'allume derrière
+    // le front du soir avec trois dixièmes de retard (on n'allume pas au premier nuage) et s'éteint
+    // derrière celui du matin. Mesuré : 0,42 d'alpha au centre, rien au-delà de 40 unités.
+    ctx.save(); ctx.globalCompositeOperation = 'lighter';
+    for (const o of this.decor.objects) {
+      if (!estHabite(o.tpl)) continue;
+      const p = cam.toScreen(o.x, o.y + 4);
+      if (p.x < -80 || p.x > W + 80 || p.y < -80 || p.y > STAGE.H + 80) continue;
+      const veille = clamp((this.nuitA(p.x) - 0.3) / 0.5, 0, 1); if (veille <= 0) continue;
+      const rx = 40 * z, ry = 17 * z; const a = veille * (0.42 + 0.05 * Math.sin(this.time * 1.9 + o.x * 0.031 + o.y * 0.017));
+      const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, rx);
+      g.addColorStop(0, `rgba(255,214,140,${a.toFixed(3)})`); g.addColorStop(0.45, `rgba(255,186,96,${(a * 0.45).toFixed(3)})`); g.addColorStop(1, 'rgba(255,170,70,0)');
+      ctx.save(); ctx.translate(p.x, p.y); ctx.scale(1, ry / rx); ctx.translate(-p.x, -p.y);
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(p.x, p.y, rx, 0, TAU); ctx.fill(); ctx.restore();
+    }
+    ctx.restore();
+  }
+
+  /**
+   * Fait partir un voilier du large vers l'horizon, pour la tournée finale. Le point de départ est
+   * choisi parmi seize directions autour de `vers` (un point du monde, le village par exemple) : la
+   * première qui tombe DANS le champ est gardée, parce qu'un bateau qu'on ne voit pas ne sert à rien.
+   */
+  envoyerVoilier(vers = null, duree = 3.4) {
+    const sea = this.seaGeometry(), cam = this.cam;
+    const a0 = vers ? Math.atan2(vers.y - sea.cy, vers.x - sea.cx) : Math.PI * 0.75;
+    let best = null;
+    for (let i = 0; i < 16 && !best; i++) {
+      const a = a0 + (i % 2 ? 1 : -1) * Math.ceil(i / 2) * (TAU / 16);
+      const x = sea.cx + Math.cos(a) * sea.R * 1.04, y = sea.cy + Math.sin(a) * sea.R * 1.04;
+      const p = cam.toScreen(x, y);
+      if (p.x > 40 && p.x < STAGE.W - 40 && p.y > 50 && p.y < STAGE.H - 50) best = { a, x, y };
+    }
+    if (!best) return false;
+    const len = sea.R * 1.1;
+    this._life.boat = { x: best.x, y: best.y, dir: best.a, dist: 0, len, speed: len / duree, img: Math.random() < 0.5 ? 'sea_boat_1' : 'sea_boat_2', t: 0 };
+    this._life.nextBoat = 999;   // celui-là suffit : pas d'autre bateau par-dessus
+    return true;
+  }
+
+  /** Fait surface une baleine, au large mais dans le champ. Même règle : on la place là où elle se voit. */
+  souffleBaleine(duree = 5.5) {
+    const sea = this.seaGeometry(), cam = this.cam;
+    for (let k = 0; k < 16; k++) {
+      const a = rnd(0, TAU), rr = sea.R * rnd(1.05, 1.35);
+      const x = sea.cx + Math.cos(a) * rr, y = sea.cy + Math.sin(a) * rr;
+      const p = cam.toScreen(x, y);
+      if (p.x > 90 && p.x < STAGE.W - 90 && p.y > 110 && p.y < STAGE.H - 110) { this._life.whale = { x, y, t: 0, life: duree, flip: Math.random() < 0.5, spouted: false }; this._life.nextWhale = 999; return true; }
+    }
+    return false;
   }
 
   /**
@@ -557,8 +675,10 @@ export class IslandRenderer {
       // animaux en avaient une, pas le décor, et c'est ce qui faisait flotter tout le reste. Rien
       // qui soit déjà à plat n'en reçoit (flaque, feuilles, congère, fleurs, mousse, vague).
       if (!o.wave && !estPlat(o.tpl) && h * sc > 9) {
-        ctx.globalAlpha = (o.alpha || 1) * 0.16; ctx.fillStyle = '#000';
-        ctx.beginPath(); ctx.ellipse(c.x, c.y + dy, w * sc * 0.30, w * sc * 0.11, 0, 0, TAU); ctx.fill();
+        // soleil bas (couchant ou aube de la tournée finale) : l'ombre s'allonge et fuit la lumière
+        const bas = this.cadran ? this.chaleurA(c.x) : 0; const sens = this.cadran && this.cadran.matin > 0 ? -1 : 1;
+        ctx.globalAlpha = (o.alpha || 1) * (0.16 + 0.06 * bas); ctx.fillStyle = '#000';
+        ctx.beginPath(); ctx.ellipse(c.x + sens * w * sc * 0.28 * bas, c.y + dy, w * sc * (0.30 + 0.5 * bas), w * sc * 0.11, 0, 0, TAU); ctx.fill();
       }
       ctx.globalAlpha = 1;
       if (o.alpha) ctx.globalAlpha = o.alpha;

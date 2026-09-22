@@ -187,6 +187,7 @@ node tests/signin.js              # écran de connexion : pas de boucle au retou
 node tests/gate.js                # déblocage : une île terminée ouvre la suivante, portes de chapitre à deux clés
 node tests/feel.js                # retours sensoriels : notes sobres sur téléphone, étoile franchie, vibrations
 node tests/calm.js                # mode repos (interface qui s'efface, vue qui respire) et vague de fermeture
+node tests/finale.js              # tournée finale : jour et nuit, plans nommés, carte postale, version courte
 
 # règles de sécurité Firestore, dans l'émulateur Firebase (outillage hors du jeu, à installer une fois) :
 mkdir -p /tmp/fb && cd /tmp/fb && npm i firebase-tools@13 @firebase/rules-unit-testing@3 firebase
