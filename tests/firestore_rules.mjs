@@ -51,6 +51,19 @@ check(!await passe(setDoc(maFiche(moi), fiche('x'.repeat(200001)))), 'une fiche 
 check(await passe(setDoc(maFiche(moi), fiche('x'.repeat(150000)))), 'une fiche de 150 Ko passe');
 check(!await passe(setDoc(maFiche(moi), { save: 42, hash: 'a', at: 1, v: 2 })), 'une fiche dont la sauvegarde n’est pas du texte est refusée');
 
+// --- le tableau des états : lisible par tous, écrit par personne.
+// C'est le seul document public du projet. Il l'est parce qu'il ne contient que des codes et des états ; la
+// règle doit donc surtout garantir qu'aucun joueur ne peut y écrire — sans quoi n'importe qui annoncerait à
+// n'importe qui que son pépin est corrigé. Seule la relève écrit, par le SDK d'administration, hors règles.
+const tableau = (db) => doc(db, 'etats/tableau');
+await env.withSecurityRulesDisabled((ctx) => setDoc(doc(ctx.firestore(), 'etats/tableau'), { AB12: 'corrige' }));
+check(await passe(getDoc(tableau(anonyme))), 'le tableau des états se lit SANS être connecté');
+check(await passe(getDoc(tableau(moi))), 'et connecté aussi');
+check(await passe(getDoc(doc(anonyme, 'etats/pas-la'))), 'lire un tableau qui n’existe pas est permis');
+check(!await passe(setDoc(tableau(moi), { AB12: 'corrige' })), 'un joueur connecté n’écrit pas dans le tableau');
+check(!await passe(setDoc(tableau(anonyme), { AB12: 'corrige' })), 'un anonyme non plus');
+check(!await passe(deleteDoc(tableau(moi))), 'et personne ne l’efface');
+
 await env.cleanup();
 console.log(failures ? `\n${failures} échec(s)` : '\nRègles Firestore : tout est bon.');
 process.exit(failures ? 1 : 0);

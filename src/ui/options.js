@@ -2,6 +2,7 @@
 import { h, button, icon, append } from './dom.js';
 import { AudioSys } from '../core/audio.js';
 import { Save } from '../core/save.js';
+import { journalEnvois, etatsNonLus } from '../core/report.js';
 import { Cloud, signInProblem } from '../core/cloud.js';
 
 function slider(label, key, onChange) {
@@ -99,12 +100,20 @@ export function buildOptions({ onBack, game }) {
     cloudBtns);
 
   // la porte des pépins hors partie : depuis l'accueil comme depuis la pause, les Options mènent ici
-  const reportGroup = h('div', { class: 'opt-group' },
-    h('h3', {}, icon('icon_info'), 'Pépins et idées'),
-    h('p', { class: 'opt-note' }, 'Quelque chose ne va pas, ou tu as une idée ? Dis-le en deux touchers : le jeu joint tout seul l’île, ce que tu venais de faire et l’erreur s’il y en a eu une.'),
-    h('div', { class: 'opt-row opt-btnrow' },
-      h('span', { class: 'opt-label' }, 'Nous le raconter', h('small', {}, 'Rien ne part sans toi, et rien ne dit qui tu es.')),
-      button('Ouvrir', () => game.showReport(() => game.showOptions(onBack)), { cls: 'btn-primary btn-small', iconName: 'icon_info' })));
+  // Le carnet : trois portes, une par geste. Le suivi était jusqu'ici dans un pli replié en tête du
+  // formulaire — donc invisible, personne n'ouvre un tiroir qu'on ne lui annonce pas (retour du commanditaire).
+  // Consulter et signaler sont deux gestes, à deux moments : ils ont deux entrées, et chacune son écran.
+  const retour = () => game.showOptions(onBack);
+  const nonLus = etatsNonLus();
+  const reportGroup = h('div', { class: 'opt-group opt-carnet' },
+    h('h3', {}, icon('icon_info'), 'Le carnet'),
+    h('p', { class: 'opt-note' }, 'Quelque chose ne va pas, ou tu as une idée ? Dis-le en deux touchers : le jeu joint tout seul l’île, ce que tu venais de faire et l’erreur s’il y en a eu une. Rien ne part sans toi, et rien ne dit qui tu es.'),
+    h('div', { class: 'opt-row opt-btnrow opt-carnet-row' },
+      // pas d'état à suivre tant que rien n'est parti : on ne propose pas une liste vide
+      journalEnvois().length ? button(nonLus ? `État des envois · ${nonLus} nouvelle${nonLus > 1 ? 's' : ''}` : 'État des envois',
+        () => game.showEnvois(retour), { cls: `btn-small ${nonLus ? 'btn-primary' : ''}`, iconName: 'icon_info' }) : null,
+      button('Un pépin à déclarer', () => game.showReport(retour, 'pepin'), { cls: 'btn-small', iconName: 'icon_question' }),
+      button('Une idée à proposer', () => game.showReport(retour, 'idee'), { cls: 'btn-small', iconName: 'icon_leaf' })));
 
   const saveGroup = h('div', { class: 'opt-group opt-save' },
     h('h3', {}, icon('icon_save'), 'Sauvegarde'),

@@ -36,6 +36,29 @@ export function generateMask(seed, cells, { roughness = 0.35, holes = 0 } = {}) 
   return mask;
 }
 
+/**
+ * Les trous cernés par six cases de l'île — les « lagunes » du journal 21, à ne pas confondre avec la fusion
+ * sable + eau qui porte le même nom. `generateMask` les creuse et le rendu les peint comme des étangs : ce
+ * sont donc de VRAIES tuiles d'eau, posées au départ comme le hameau ou la roche, et non une « mer
+ * intérieure » qui ne rapporte rien (pépin G6HX : un marais posé contre la mare ne donnait aucun point).
+ * Une seule passe suffit : un trou voisin d'un autre trou n'en est pas un (il a un voisin hors masque), donc
+ * combler les trous ne peut jamais en créer de nouveaux.
+ * @returns {Array<{q:number,r:number}>}
+ */
+export function enclosedHoles(mask) {
+  const out = [], seen = new Set();
+  for (const k of mask) {
+    const [q, r] = k.split(',').map(Number);
+    for (const [a, b] of neighbors(q, r)) {
+      const hk = key(a, b);
+      if (mask.has(hk) || seen.has(hk)) continue;
+      seen.add(hk);
+      if (neighbors(a, b).every(([x, y]) => mask.has(key(x, y)))) out.push({ q: a, r: b });
+    }
+  }
+  return out;
+}
+
 const W = {
   gentle:  { meadow: 22, forest: 20, field: 12, hamlet: 10, orchard: 8, water: 12, marsh: 5, rock: 7, sand: 4 },
   rivers:  { meadow: 18, forest: 16, field: 10, hamlet: 10, orchard: 6, water: 20, marsh: 8, rock: 8, sand: 4 },

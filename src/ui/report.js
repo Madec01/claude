@@ -11,9 +11,41 @@ import { h, button, icon, append } from './dom.js';
 import { AudioSys } from '../core/audio.js';
 import { BlackBox } from '../core/blackbox.js';
 import { TREE, RACCOURCIS, nodeAt, labelOf, questionsFor, search } from '../data/bug_tree.js';
-import { buildReport, captureImage, imageFichier, partiesPossibles, envoyerRapport, raisonTexte, journalEnvois, noterEnvoi, oublierEnvois } from '../core/report.js';
+import { buildReport, captureImage, imageFichier, partiesPossibles, envoyerRapport, raisonTexte, journalEnvois, noterEnvoi, oublierEnvois, etatDe, ETATS, rafraichirEtats, noterEtatsLus } from '../core/report.js';
 
 const MAX_TUILES = 4;
+
+const MOIS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+// l'année n'apparaît que si ce n'est pas celle-ci : « 21 septembre » se lit mieux, et vingt envois tiennent
+// rarement sur plus d'une saison
+const quand = (ms) => {
+  const d = new Date(ms || 0);
+  if (!ms || Number.isNaN(d.getTime())) return '';
+  const an = d.getFullYear() === new Date().getFullYear() ? '' : ` ${d.getFullYear()}`;
+  return `${d.getDate()} ${MOIS[d.getMonth()]}${an}`;
+};
+
+/** Une carte de la liste des envois. Partagée par l'écran du suivi et par rien d'autre — mais elle vivait
+ * dans le constructeur du formulaire, où elle n'avait plus rien à faire une fois le suivi séparé. */
+function carteEnvoi(e) {
+  const parti = e.voie === 'nuage';
+  const sujet = (e.tuiles || []).map(labelOf).filter(Boolean).join(' · ');
+  const etat = etatDe(e.code);
+  return h('div', { class: 'rep-histo-item' },
+    h('div', { class: 'rep-histo-head' },
+      h('b', { class: 'rep-histo-code' }, `${e.mode === 'idee' ? 'IDÉE' : 'PÉPIN'}-${e.code}`),
+      h('span', { class: 'rep-histo-date' }, quand(e.at))),
+    e.mot && e.mot !== '(sans commentaire)' ? h('div', { class: 'rep-histo-mot' }, `« ${e.mot} »`) : null,
+    sujet ? h('div', { class: 'rep-histo-sujet' }, sujet) : null,
+    h('div', { class: `rep-histo-etat ${parti ? 'on' : ''}` },
+      h('span', {}, parti ? '✓ Parti au carnet' : '↓ Gardé sur ton appareil'),
+      parti ? null : h('small', {}, 'Les deux fichiers ont été téléchargés : rien n’est perdu.')),
+    // ce que le carnet en dit, quand il en dit quelque chose. Absent tant qu'on n'a pas relu le tableau, ou si
+    // le rapport n'y est pas encore : on ne met pas de pastille vide pour faire joli.
+    etat ? h('div', { class: `rep-histo-suivi etat-${etat}` }, ETATS[etat].texte) : null);
+}
+
+const TITRES = { pepin: 'Un pépin à déclarer', idee: 'Une idée à proposer' };
 
 const ACCROCHE = {
   pepin: 'Il nous arrive de trébucher. Raconte-nous ce que tu as vu : nous emportons le reste.',
@@ -36,14 +68,9 @@ export function buildReportPanel({ onBack, scene = null, sceneName = null, mode 
     envoye: false,
   };
 
-  const root = h('div', { class: 'panel panel-report' });
+  const root = h('div', { class: `panel panel-report panel-${state.mode}` });
   const erreurs = BlackBox.pending();
   state.avecErreur = !!(erreurs && erreurs.length) && mode === 'pepin';
-
-  // ---- le sélecteur de mode : pas un écran de plus, et « Un pépin » est déjà dessus
-  const ongletPepin = h('button', { class: 'rep-tab', type: 'button' }, 'Un pépin');
-  const ongletIdee = h('button', { class: 'rep-tab', type: 'button' }, 'Une idée');
-  const onglets = h('div', { class: 'rep-tabs', role: 'tablist' }, ongletPepin, ongletIdee);
 
   const accroche = h('p', { class: 'ws-intro' }, ACCROCHE[state.mode]);
 
@@ -51,45 +78,6 @@ export function buildReportPanel({ onBack, scene = null, sceneName = null, mode 
   // Le code ne s'affiche qu'une fois, à l'envoi ; le carnet où le rapport arrive est privé et le jeu ne peut pas
   // le relire. Cette liste dit donc ce que l'appareil SAIT — ce qui est parti, ce qui attend encore — et ne
   // prétend jamais savoir ce qu'il ne sait pas : si le pépin a été corrigé.
-  const MOIS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
-  // l'année n'apparaît que si ce n'est pas celle-ci : « 21 septembre » se lit mieux, et vingt envois tiennent
-  // rarement sur plus d'une saison
-  const quand = (ms) => {
-    const d = new Date(ms || 0);
-    if (!ms || Number.isNaN(d.getTime())) return '';
-    const an = d.getFullYear() === new Date().getFullYear() ? '' : ` ${d.getFullYear()}`;
-    return `${d.getDate()} ${MOIS[d.getMonth()]}${an}`;
-  };
-
-  const histoListe = h('div', { class: 'rep-histo-list' });
-  const histoTitre = h('summary', {}, 'Tes envois');
-  const histo = h('details', { class: 'rep-details rep-histo hidden' }, histoTitre, histoListe);
-
-  const renderHisto = () => {
-    const envois = journalEnvois();
-    histo.classList.toggle('hidden', !envois.length);
-    if (!envois.length) { histo.open = false; return; }
-    histoTitre.textContent = envois.length > 1 ? `Tes envois · ${envois.length}` : 'Ton envoi';
-    histoListe.innerHTML = '';
-    histoListe.appendChild(h('p', { class: 'rep-privacy' },
-      'Le jeu ne peut pas dire si c’est corrigé : le carnet où tes rapports arrivent est privé. Ce que tu vois ici, c’est ce que ton appareil sait — ce qui est parti, et ce qui attend encore. Le code sert à en reparler.'));
-    for (const e of envois) {
-      const parti = e.voie === 'nuage';
-      const sujet = (e.tuiles || []).map(labelOf).filter(Boolean).join(' · ');
-      histoListe.appendChild(h('div', { class: 'rep-histo-item' },
-        h('div', { class: 'rep-histo-head' },
-          h('b', { class: 'rep-histo-code' }, `${e.mode === 'idee' ? 'IDÉE' : 'PÉPIN'}-${e.code}`),
-          h('span', { class: 'rep-histo-date' }, quand(e.at))),
-        e.mot && e.mot !== '(sans commentaire)' ? h('div', { class: 'rep-histo-mot' }, `« ${e.mot} »`) : null,
-        sujet ? h('div', { class: 'rep-histo-sujet' }, sujet) : null,
-        h('div', { class: `rep-histo-etat ${parti ? 'on' : ''}` },
-          h('span', {}, parti ? '✓ Parti au carnet' : '↓ Gardé sur ton appareil'),
-          parti ? null : h('small', {}, 'Les deux fichiers ont été téléchargés : rien n’est perdu.'))));
-    }
-    histoListe.appendChild(h('div', { class: 'rep-histo-foot' },
-      button('Oublier cette liste', () => { oublierEnvois(); renderHisto(); }, { cls: 'btn-small btn-ghost' })));
-  };
-
   // ---- le rapport que le jeu a émis tout seul
   const carteErreur = h('div', { class: 'rep-error' });
   const renderErreur = () => {
@@ -364,7 +352,7 @@ export function buildReportPanel({ onBack, scene = null, sceneName = null, mode 
   const dire = (t) => { etat.textContent = t; };
 
   const corps = h('div', { class: 'rep-body' },
-    histo, accroche, carteErreur, barreRaccourcis,
+    accroche, carteErreur, barreRaccourcis,
     h('div', { class: 'rep-or' }, 'ou cherche'),
     recherche, filAriane, grille, sujetBloc, zone, pli, etat);
 
@@ -377,36 +365,55 @@ export function buildReportPanel({ onBack, scene = null, sceneName = null, mode 
         h('p', {}, r.voie === 'nuage'
           ? `C’est parti. Ton ${mot} porte ce code — garde-le si tu veux en reparler.`
           : raisonTexte(r.raison)),
-        h('p', { class: 'rep-privacy' }, 'Tu le retrouveras dans « Tes envois », en haut de cet écran.')));
+        h('p', { class: 'rep-privacy' }, 'Tu le retrouveras dans Options → « État des envois », avec ce que le carnet en dira.')));
     actions.innerHTML = '';
     actions.appendChild(button('Retour', onBack, { cls: 'btn-primary', iconName: 'icon_return' }));
   }
 
   const actions = h('div', { class: 'panel-actions' }, envoyer, button('Retour', onBack, { cls: 'btn-ghost', iconName: 'icon_return' }));
 
-  const setMode = (m) => {
-    if (state.mode === m || state.envoye) return;
-    state.mode = m;
-    ongletPepin.classList.toggle('on', m === 'pepin');
-    ongletIdee.classList.toggle('on', m === 'idee');
-    state.raccourci = null;
-    accroche.textContent = ACCROCHE[m];
-    zone.placeholder = m === 'idee' ? 'Raconte…' : 'Qu’est-ce qui s’est passé ?';
-    blocPartie.classList.toggle('hidden', m === 'idee' || !parties.length);
-    blocChoix.classList.toggle('hidden', m === 'idee' || parties.length < 2);
-    renderErreur(); renderRaccourcis(); renderSujet();
-    if (state.sujet.length) poserQuestions(questionsFor(state.sujet, m));
-  };
-  ongletPepin.addEventListener('click', () => { AudioSys.play('ui_click', { volume: 0.4 }); setMode('pepin'); });
-  ongletIdee.addEventListener('click', () => { AudioSys.play('ui_click', { volume: 0.4 }); setMode('idee'); });
-
-  append(root, h('h2', { class: 'panel-title' }, 'Pépins et idées'), onglets, corps, actions);
-  ongletPepin.classList.toggle('on', state.mode === 'pepin');
-  ongletIdee.classList.toggle('on', state.mode === 'idee');
+  append(root, h('h2', { class: 'panel-title' }, TITRES[state.mode]), corps, actions);
   blocPartie.classList.toggle('hidden', state.mode === 'idee' || !parties.length);
   blocChoix.classList.toggle('hidden', state.mode === 'idee' || parties.length < 2);
-  renderHisto(); renderErreur(); renderRaccourcis(); renderArbre(); renderSujet();
+  renderErreur(); renderRaccourcis(); renderArbre(); renderSujet();
   // le clavier ne doit pas monter tout seul sur téléphone : il mangerait la moitié de l'écran avant qu'il ait lu
   if (!document.documentElement.classList.contains('touch')) setTimeout(() => zone.focus({ preventScroll: true }), 80);
+  return root;
+}
+
+/**
+ * L'ÉTAT DES ENVOIS, sur son propre écran.
+ *
+ * Il vivait dans un pli replié en tête du formulaire. « Personne ne va aller l'ouvrir sauf sans faire exprès »,
+ * et c'était vrai : on n'ouvre l'écran des pépins que pour en déclarer un, jamais pour prendre des nouvelles.
+ * Consulter et signaler sont deux gestes différents, à deux moments différents ; ils ont maintenant deux portes.
+ */
+export function buildEnvoisPanel({ onBack }) {
+  const root = h('div', { class: 'panel panel-report panel-envois' });
+  const liste = h('div', { class: 'rep-histo-list' });
+  const corps = h('div', { class: 'rep-body' }, liste);
+
+  const render = () => {
+    const envois = journalEnvois();
+    liste.innerHTML = '';
+    if (!envois.length) {
+      liste.appendChild(h('p', { class: 'rep-privacy' },
+        'Tu n’as encore rien envoyé. Quand tu nous auras raconté un pépin ou proposé une idée, tu le retrouveras ici, avec ce que le carnet en dit.'));
+      return;
+    }
+    liste.appendChild(h('p', { class: 'rep-privacy' },
+      'Ton appareil dit ce qui est parti ; le carnet dit où ça en est. Il ne renvoie qu’un état par code — rien de ce que tu as écrit n’en ressort. Le code sert à en reparler.'));
+    for (const e of envois) liste.appendChild(carteEnvoi(e));
+    liste.appendChild(h('div', { class: 'rep-histo-foot' },
+      button('Oublier cette liste', () => { oublierEnvois(); render(); }, { cls: 'btn-small btn-ghost' })));
+  };
+
+  const actions = h('div', { class: 'panel-actions' }, button('Retour', onBack, { cls: 'btn-primary', iconName: 'icon_return' }));
+  append(root, h('h2', { class: 'panel-title' }, 'État des envois'), corps, actions);
+  render();
+  // Il vient POUR ça : on relit maintenant, sans attendre la relecture du lendemain. Et ce qu'il voit, il l'a
+  // vu — la pastille des Options s'éteint. On ne bloque pas l'écran : la liste se redessine si ça arrive.
+  noterEtatsLus();
+  rafraichirEtats({ force: true }).then((relu) => { if (relu) { render(); noterEtatsLus(); } });
   return root;
 }

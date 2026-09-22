@@ -128,7 +128,11 @@ html.compact:not(.landscape) .menu-row .btn span:last-child { overflow: visible;
 @keyframes achGlow { 0% { opacity: 0; transform: scale(0.6); } 40% { opacity: 1; } 100% { opacity: 0; transform: scale(1.5); } }
 .ach-banner::after { content: ''; position: absolute; inset: 0; border-radius: 16px; background: linear-gradient(110deg, transparent 30%, rgba(255,255,255,0.75) 50%, transparent 70%); background-size: 250% 100%; animation: achShine 1.2s ease-in-out 0.5s 1; pointer-events: none; }
 @keyframes achShine { 0% { background-position: 120% 0; } 100% { background-position: -120% 0; } }
-html.compact .ach-banner { bottom: 70px; gap: 10px; padding: 8px 14px 8px 10px; max-width: 94vw; }
+/* `max-width` laissait la bannière se dimensionner sur son contenu : le bloc de texte tombait à sa largeur
+   minimale, c'est-à-dire son mot le plus long, et « PÉPIN-G6HX » se cassait au trait d'union. On lui donne
+   la largeur, elle n'a de toute façon rien à partager l'écran avec. Vaut aussi pour la bannière de plantage. */
+html.compact .ach-banner { bottom: 70px; gap: 10px; padding: 8px 14px 8px 10px; width: 94vw; box-sizing: border-box; }
+html.compact .ach-banner-text { flex: 1 1 auto; min-width: 0; }
 html.compact .ach-banner-img { width: 56px; height: 64px; }
 html.compact .ach-name { font-size: 18px; }
 
