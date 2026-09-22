@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-22T07:15:27+00:00",
+ "generated": "2026-09-22T07:28:25+00:00",
  "generator": "tools/build_images.py",
  "conventions": {
   "hex": {
@@ -1637,13 +1637,13 @@
    "file": "tiles/hill_1_spring.png",
    "w": 240,
    "h": 280,
-   "bytes": 16822,
+   "bytes": 20403,
    "source": [
     "hexagon-pack",
     "hexagontiles"
    ],
-   "original": "PNG/Tiles/Terrain/Grass/grass_17.png + hexagontiles/Tiles/bushGrass.png",
-   "note": "Colline : tuile surélevée grass_17 recolorée par saison + un feuillu et un sapin KayKit + touffe. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
+   "original": "PNG/Tiles/Terrain/Grass/grass_05.png + hexagontiles/Tiles/bushGrass.png",
+   "note": "Colline : herbe plate + colline en volume du pack EXTRA (hill_single_A), sommet recoloré par saison, touffe au pied. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
    "season": "spring",
    "family": "hill",
    "tile": "hill_1",
@@ -1653,13 +1653,13 @@
    "file": "tiles/hill_1_summer.png",
    "w": 240,
    "h": 280,
-   "bytes": 16514,
+   "bytes": 20188,
    "source": [
     "hexagon-pack",
     "hexagontiles"
    ],
-   "original": "PNG/Tiles/Terrain/Grass/grass_17.png + hexagontiles/Tiles/bushGrass.png",
-   "note": "Colline : tuile surélevée grass_17 recolorée par saison + un feuillu et un sapin KayKit + touffe. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
+   "original": "PNG/Tiles/Terrain/Grass/grass_05.png + hexagontiles/Tiles/bushGrass.png",
+   "note": "Colline : herbe plate + colline en volume du pack EXTRA (hill_single_A), sommet recoloré par saison, touffe au pied. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
    "season": "summer",
    "family": "hill",
    "tile": "hill_1",
@@ -1669,13 +1669,13 @@
    "file": "tiles/hill_1_autumn.png",
    "w": 240,
    "h": 280,
-   "bytes": 16493,
+   "bytes": 20186,
    "source": [
     "hexagon-pack",
     "hexagontiles"
    ],
-   "original": "PNG/Tiles/Terrain/Grass/grass_17.png + hexagontiles/Tiles/bushGrass.png",
-   "note": "Colline : tuile surélevée grass_17 recolorée par saison + un feuillu et un sapin KayKit + touffe. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
+   "original": "PNG/Tiles/Terrain/Grass/grass_05.png + hexagontiles/Tiles/bushGrass.png",
+   "note": "Colline : herbe plate + colline en volume du pack EXTRA (hill_single_A), sommet recoloré par saison, touffe au pied. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
    "season": "autumn",
    "family": "hill",
    "tile": "hill_1",
@@ -1685,13 +1685,13 @@
    "file": "tiles/hill_1_winter.png",
    "w": 240,
    "h": 280,
-   "bytes": 15929,
+   "bytes": 20091,
    "source": [
     "hexagon-pack",
     "hexagontiles"
    ],
-   "original": "PNG/Tiles/Terrain/Grass/grass_17.png + hexagontiles/Tiles/bushGrass.png",
-   "note": "Colline : tuile surélevée grass_17 recolorée par saison + un feuillu et un sapin KayKit + touffe. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
+   "original": "PNG/Tiles/Terrain/Grass/grass_05.png + hexagontiles/Tiles/bushGrass.png",
+   "note": "Colline : herbe plate + colline en volume du pack EXTRA (hill_single_A), sommet recoloré par saison, touffe au pied. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
    "season": "winter",
    "family": "hill",
    "tile": "hill_1",
@@ -1701,12 +1701,12 @@
    "file": "tiles/hill_2_spring.png",
    "w": 240,
    "h": 280,
-   "bytes": 17952,
+   "bytes": 17415,
    "source": [
     "hexagon-pack",
     "hexagontiles"
    ],
-   "original": "PNG/Tiles/Terrain/Grass/grass_17.png + hexagontiles/Tiles/bushGrass.png",
+   "original": "PNG/Tiles/Terrain/Grass/grass_05.png + hexagontiles/Tiles/bushGrass.png",
    "note": "Colline en miroir + sapin et feuillu KayKit, petit rocher et touffe. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
    "season": "spring",
    "family": "hill",
@@ -1717,12 +1717,12 @@
    "file": "tiles/hill_2_summer.png",
    "w": 240,
    "h": 280,
-   "bytes": 17612,
+   "bytes": 17139,
    "source": [
     "hexagon-pack",
     "hexagontiles"
    ],
-   "original": "PNG/Tiles/Terrain/Grass/grass_17.png + hexagontiles/Tiles/bushGrass.png",
+   "original": "PNG/Tiles/Terrain/Grass/grass_05.png + hexagontiles/Tiles/bushGrass.png",
    "note": "Colline en miroir + sapin et feuillu KayKit, petit rocher et touffe. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
    "season": "summer",
    "family": "hill",
@@ -1733,12 +1733,12 @@
    "file": "tiles/hill_2_autumn.png",
    "w": 240,
    "h": 280,
-   "bytes": 17694,
+   "bytes": 17269,
    "source": [
     "hexagon-pack",
     "hexagontiles"
    ],
-   "original": "PNG/Tiles/Terrain/Grass/grass_17.png + hexagontiles/Tiles/bushGrass.png",
+   "original": "PNG/Tiles/Terrain/Grass/grass_05.png + hexagontiles/Tiles/bushGrass.png",
    "note": "Colline en miroir + sapin et feuillu KayKit, petit rocher et touffe. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
    "season": "autumn",
    "family": "hill",
@@ -1749,12 +1749,12 @@
    "file": "tiles/hill_2_winter.png",
    "w": 240,
    "h": 280,
-   "bytes": 16715,
+   "bytes": 17339,
    "source": [
     "hexagon-pack",
     "hexagontiles"
    ],
-   "original": "PNG/Tiles/Terrain/Grass/grass_17.png + hexagontiles/Tiles/bushGrass.png",
+   "original": "PNG/Tiles/Terrain/Grass/grass_05.png + hexagontiles/Tiles/bushGrass.png",
    "note": "Colline en miroir + sapin et feuillu KayKit, petit rocher et touffe. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
    "season": "winter",
    "family": "hill",
@@ -2817,9 +2817,9 @@
    "file": "tiles/ground_hill_spring.png",
    "w": 240,
    "h": 280,
-   "bytes": 10943,
+   "bytes": 8350,
    "source": "hexagon-pack",
-   "original": "PNG/Tiles/Terrain/Grass/grass_17.png",
+   "original": "PNG/Tiles/Terrain/Grass/grass_05.png",
    "note": "Sol « hill » (spring) pour le décor composé par région.",
    "ground": "hill",
    "season": "spring",
@@ -2829,9 +2829,9 @@
    "file": "tiles/ground_hill_summer.png",
    "w": 240,
    "h": 280,
-   "bytes": 10782,
+   "bytes": 8278,
    "source": "hexagon-pack",
-   "original": "PNG/Tiles/Terrain/Grass/grass_17.png",
+   "original": "PNG/Tiles/Terrain/Grass/grass_05.png",
    "note": "Sol « hill » (summer) pour le décor composé par région.",
    "ground": "hill",
    "season": "summer",
@@ -2841,25 +2841,25 @@
    "file": "tiles/ground_hill_autumn.png",
    "w": 240,
    "h": 280,
-   "bytes": 10808,
+   "bytes": 8435,
    "source": "hexagon-pack",
-   "original": "PNG/Tiles/Terrain/Grass/grass_17.png",
+   "original": "PNG/Tiles/Terrain/Grass/grass_05.png",
    "note": "Sol « hill » (autumn) pour le décor composé par région.",
    "ground": "hill",
    "season": "autumn",
-   "ground_color": "#c9a153"
+   "ground_color": "#c9a253"
   },
   "ground_hill_winter": {
    "file": "tiles/ground_hill_winter.png",
    "w": 240,
    "h": 280,
-   "bytes": 10539,
+   "bytes": 8103,
    "source": "hexagon-pack",
-   "original": "PNG/Tiles/Terrain/Grass/grass_17.png",
+   "original": "PNG/Tiles/Terrain/Grass/grass_05.png",
    "note": "Sol « hill » (winter) pour le décor composé par région.",
    "ground": "hill",
    "season": "winter",
-   "ground_color": "#edf2f6"
+   "ground_color": "#eef2f6"
   },
   "ground_heath_spring": {
    "file": "tiles/ground_heath_spring.png",
@@ -2967,6 +2967,446 @@
    "note": "Sol de prairie sèche (été).",
    "ground": "dry",
    "ground_color": "#cdb961"
+  },
+  "obj_colline_A_spring": {
+   "file": "deco/obj_colline_A_spring.png",
+   "w": 196,
+   "h": 136,
+   "bytes": 19587,
+   "source": "kaykit",
+   "original": "extra/decoration/nature/hill_single_A.gltf",
+   "note": "Colline isolée en volume (hill_single_A, pack EXTRA), sommet de spring.",
+   "anchor": "bottom"
+  },
+  "obj_collines_A_spring": {
+   "file": "deco/obj_collines_A_spring.png",
+   "w": 252,
+   "h": 183,
+   "bytes": 36616,
+   "source": "kaykit",
+   "original": "extra/decoration/nature/hills_A.gltf",
+   "note": "Chaîne de collines en volume (hills_A, pack EXTRA), sommets de spring.",
+   "anchor": "bottom"
+  },
+  "obj_mont_A_spring": {
+   "file": "deco/obj_mont_A_spring.png",
+   "w": 262,
+   "h": 236,
+   "bytes": 43427,
+   "source": "kaykit",
+   "original": "extra/decoration/nature/mountain_A_grass.gltf",
+   "note": "Mont herbeux en volume (mountain_A_grass, pack EXTRA), sommet de spring.",
+   "anchor": "bottom"
+  },
+  "obj_colline_A_summer": {
+   "file": "deco/obj_colline_A_summer.png",
+   "w": 196,
+   "h": 136,
+   "bytes": 19316,
+   "source": "kaykit",
+   "original": "extra/decoration/nature/hill_single_A.gltf",
+   "note": "Colline isolée en volume (hill_single_A, pack EXTRA), sommet de summer.",
+   "anchor": "bottom"
+  },
+  "obj_collines_A_summer": {
+   "file": "deco/obj_collines_A_summer.png",
+   "w": 252,
+   "h": 183,
+   "bytes": 36323,
+   "source": "kaykit",
+   "original": "extra/decoration/nature/hills_A.gltf",
+   "note": "Chaîne de collines en volume (hills_A, pack EXTRA), sommets de summer.",
+   "anchor": "bottom"
+  },
+  "obj_mont_A_summer": {
+   "file": "deco/obj_mont_A_summer.png",
+   "w": 262,
+   "h": 236,
+   "bytes": 43467,
+   "source": "kaykit",
+   "original": "extra/decoration/nature/mountain_A_grass.gltf",
+   "note": "Mont herbeux en volume (mountain_A_grass, pack EXTRA), sommet de summer.",
+   "anchor": "bottom"
+  },
+  "obj_colline_A_autumn": {
+   "file": "deco/obj_colline_A_autumn.png",
+   "w": 196,
+   "h": 136,
+   "bytes": 19483,
+   "source": "kaykit",
+   "original": "extra/decoration/nature/hill_single_A.gltf",
+   "note": "Colline isolée en volume (hill_single_A, pack EXTRA), sommet de autumn.",
+   "anchor": "bottom"
+  },
+  "obj_collines_A_autumn": {
+   "file": "deco/obj_collines_A_autumn.png",
+   "w": 252,
+   "h": 183,
+   "bytes": 36534,
+   "source": "kaykit",
+   "original": "extra/decoration/nature/hills_A.gltf",
+   "note": "Chaîne de collines en volume (hills_A, pack EXTRA), sommets de autumn.",
+   "anchor": "bottom"
+  },
+  "obj_mont_A_autumn": {
+   "file": "deco/obj_mont_A_autumn.png",
+   "w": 262,
+   "h": 236,
+   "bytes": 43285,
+   "source": "kaykit",
+   "original": "extra/decoration/nature/mountain_A_grass.gltf",
+   "note": "Mont herbeux en volume (mountain_A_grass, pack EXTRA), sommet de autumn.",
+   "anchor": "bottom"
+  },
+  "obj_colline_A_winter": {
+   "file": "deco/obj_colline_A_winter.png",
+   "w": 196,
+   "h": 136,
+   "bytes": 18576,
+   "source": "kaykit",
+   "original": "extra/decoration/nature/hill_single_A.gltf",
+   "note": "Colline isolée en volume (hill_single_A, pack EXTRA), sommet de winter.",
+   "anchor": "bottom"
+  },
+  "obj_collines_A_winter": {
+   "file": "deco/obj_collines_A_winter.png",
+   "w": 252,
+   "h": 183,
+   "bytes": 34997,
+   "source": "kaykit",
+   "original": "extra/decoration/nature/hills_A.gltf",
+   "note": "Chaîne de collines en volume (hills_A, pack EXTRA), sommets de winter.",
+   "anchor": "bottom"
+  },
+  "obj_mont_A_winter": {
+   "file": "deco/obj_mont_A_winter.png",
+   "w": 262,
+   "h": 236,
+   "bytes": 41916,
+   "source": "kaykit",
+   "original": "extra/decoration/nature/mountain_A_grass.gltf",
+   "note": "Mont herbeux en volume (mountain_A_grass, pack EXTRA), sommet de winter.",
+   "anchor": "bottom"
+  },
+  "obj_colline_B_spring": {
+   "file": "deco/obj_colline_B_spring.png",
+   "w": 196,
+   "h": 136,
+   "bytes": 15019,
+   "source": "kaykit",
+   "original": "extra/decoration/nature/hill_single_B.gltf",
+   "note": "Colline isolée en volume (hill_single_B, pack EXTRA), sommet de spring.",
+   "anchor": "bottom"
+  },
+  "obj_collines_B_spring": {
+   "file": "deco/obj_collines_B_spring.png",
+   "w": 252,
+   "h": 177,
+   "bytes": 31362,
+   "source": "kaykit",
+   "original": "extra/decoration/nature/hills_B.gltf",
+   "note": "Chaîne de collines en volume (hills_B, pack EXTRA), sommets de spring.",
+   "anchor": "bottom"
+  },
+  "obj_mont_B_spring": {
+   "file": "deco/obj_mont_B_spring.png",
+   "w": 262,
+   "h": 298,
+   "bytes": 53100,
+   "source": "kaykit",
+   "original": "extra/decoration/nature/mountain_B_grass.gltf",
+   "note": "Mont herbeux en volume (mountain_B_grass, pack EXTRA), sommet de spring.",
+   "anchor": "bottom"
+  },
+  "obj_colline_B_summer": {
+   "file": "deco/obj_colline_B_summer.png",
+   "w": 196,
+   "h": 136,
+   "bytes": 14875,
+   "source": "kaykit",
+   "original": "extra/decoration/nature/hill_single_B.gltf",
+   "note": "Colline isolée en volume (hill_single_B, pack EXTRA), sommet de summer.",
+   "anchor": "bottom"
+  },
+  "obj_collines_B_summer": {
+   "file": "deco/obj_collines_B_summer.png",
+   "w": 252,
+   "h": 177,
+   "bytes": 31150,
+   "source": "kaykit",
+   "original": "extra/decoration/nature/hills_B.gltf",
+   "note": "Chaîne de collines en volume (hills_B, pack EXTRA), sommets de summer.",
+   "anchor": "bottom"
+  },
+  "obj_mont_B_summer": {
+   "file": "deco/obj_mont_B_summer.png",
+   "w": 262,
+   "h": 298,
+   "bytes": 52802,
+   "source": "kaykit",
+   "original": "extra/decoration/nature/mountain_B_grass.gltf",
+   "note": "Mont herbeux en volume (mountain_B_grass, pack EXTRA), sommet de summer.",
+   "anchor": "bottom"
+  },
+  "obj_colline_B_autumn": {
+   "file": "deco/obj_colline_B_autumn.png",
+   "w": 196,
+   "h": 136,
+   "bytes": 14989,
+   "source": "kaykit",
+   "original": "extra/decoration/nature/hill_single_B.gltf",
+   "note": "Colline isolée en volume (hill_single_B, pack EXTRA), sommet de autumn.",
+   "anchor": "bottom"
+  },
+  "obj_collines_B_autumn": {
+   "file": "deco/obj_collines_B_autumn.png",
+   "w": 252,
+   "h": 177,
+   "bytes": 31318,
+   "source": "kaykit",
+   "original": "extra/decoration/nature/hills_B.gltf",
+   "note": "Chaîne de collines en volume (hills_B, pack EXTRA), sommets de autumn.",
+   "anchor": "bottom"
+  },
+  "obj_mont_B_autumn": {
+   "file": "deco/obj_mont_B_autumn.png",
+   "w": 262,
+   "h": 298,
+   "bytes": 52874,
+   "source": "kaykit",
+   "original": "extra/decoration/nature/mountain_B_grass.gltf",
+   "note": "Mont herbeux en volume (mountain_B_grass, pack EXTRA), sommet de autumn.",
+   "anchor": "bottom"
+  },
+  "obj_colline_B_winter": {
+   "file": "deco/obj_colline_B_winter.png",
+   "w": 196,
+   "h": 136,
+   "bytes": 14844,
+   "source": "kaykit",
+   "original": "extra/decoration/nature/hill_single_B.gltf",
+   "note": "Colline isolée en volume (hill_single_B, pack EXTRA), sommet de winter.",
+   "anchor": "bottom"
+  },
+  "obj_collines_B_winter": {
+   "file": "deco/obj_collines_B_winter.png",
+   "w": 252,
+   "h": 177,
+   "bytes": 30974,
+   "source": "kaykit",
+   "original": "extra/decoration/nature/hills_B.gltf",
+   "note": "Chaîne de collines en volume (hills_B, pack EXTRA), sommets de winter.",
+   "anchor": "bottom"
+  },
+  "obj_mont_B_winter": {
+   "file": "deco/obj_mont_B_winter.png",
+   "w": 262,
+   "h": 298,
+   "bytes": 51387,
+   "source": "kaykit",
+   "original": "extra/decoration/nature/mountain_B_grass.gltf",
+   "note": "Mont herbeux en volume (mountain_B_grass, pack EXTRA), sommet de winter.",
+   "anchor": "bottom"
+  },
+  "obj_colline_C_spring": {
+   "file": "deco/obj_colline_C_spring.png",
+   "w": 196,
+   "h": 166,
+   "bytes": 17358,
+   "source": "kaykit",
+   "original": "extra/decoration/nature/hill_single_C.gltf",
+   "note": "Colline isolée en volume (hill_single_C, pack EXTRA), sommet de spring.",
+   "anchor": "bottom"
+  },
+  "obj_collines_C_spring": {
+   "file": "deco/obj_collines_C_spring.png",
+   "w": 252,
+   "h": 184,
+   "bytes": 34052,
+   "source": "kaykit",
+   "original": "extra/decoration/nature/hills_C.gltf",
+   "note": "Chaîne de collines en volume (hills_C, pack EXTRA), sommets de spring.",
+   "anchor": "bottom"
+  },
+  "obj_mont_C_spring": {
+   "file": "deco/obj_mont_C_spring.png",
+   "w": 262,
+   "h": 261,
+   "bytes": 53924,
+   "source": "kaykit",
+   "original": "extra/decoration/nature/mountain_C_grass.gltf",
+   "note": "Mont herbeux en volume (mountain_C_grass, pack EXTRA), sommet de spring.",
+   "anchor": "bottom"
+  },
+  "obj_colline_C_summer": {
+   "file": "deco/obj_colline_C_summer.png",
+   "w": 196,
+   "h": 166,
+   "bytes": 17189,
+   "source": "kaykit",
+   "original": "extra/decoration/nature/hill_single_C.gltf",
+   "note": "Colline isolée en volume (hill_single_C, pack EXTRA), sommet de summer.",
+   "anchor": "bottom"
+  },
+  "obj_collines_C_summer": {
+   "file": "deco/obj_collines_C_summer.png",
+   "w": 252,
+   "h": 184,
+   "bytes": 33883,
+   "source": "kaykit",
+   "original": "extra/decoration/nature/hills_C.gltf",
+   "note": "Chaîne de collines en volume (hills_C, pack EXTRA), sommets de summer.",
+   "anchor": "bottom"
+  },
+  "obj_mont_C_summer": {
+   "file": "deco/obj_mont_C_summer.png",
+   "w": 262,
+   "h": 261,
+   "bytes": 54173,
+   "source": "kaykit",
+   "original": "extra/decoration/nature/mountain_C_grass.gltf",
+   "note": "Mont herbeux en volume (mountain_C_grass, pack EXTRA), sommet de summer.",
+   "anchor": "bottom"
+  },
+  "obj_colline_C_autumn": {
+   "file": "deco/obj_colline_C_autumn.png",
+   "w": 196,
+   "h": 166,
+   "bytes": 17336,
+   "source": "kaykit",
+   "original": "extra/decoration/nature/hill_single_C.gltf",
+   "note": "Colline isolée en volume (hill_single_C, pack EXTRA), sommet de autumn.",
+   "anchor": "bottom"
+  },
+  "obj_collines_C_autumn": {
+   "file": "deco/obj_collines_C_autumn.png",
+   "w": 252,
+   "h": 184,
+   "bytes": 34084,
+   "source": "kaykit",
+   "original": "extra/decoration/nature/hills_C.gltf",
+   "note": "Chaîne de collines en volume (hills_C, pack EXTRA), sommets de autumn.",
+   "anchor": "bottom"
+  },
+  "obj_mont_C_autumn": {
+   "file": "deco/obj_mont_C_autumn.png",
+   "w": 262,
+   "h": 261,
+   "bytes": 53832,
+   "source": "kaykit",
+   "original": "extra/decoration/nature/mountain_C_grass.gltf",
+   "note": "Mont herbeux en volume (mountain_C_grass, pack EXTRA), sommet de autumn.",
+   "anchor": "bottom"
+  },
+  "obj_colline_C_winter": {
+   "file": "deco/obj_colline_C_winter.png",
+   "w": 196,
+   "h": 166,
+   "bytes": 17092,
+   "source": "kaykit",
+   "original": "extra/decoration/nature/hill_single_C.gltf",
+   "note": "Colline isolée en volume (hill_single_C, pack EXTRA), sommet de winter.",
+   "anchor": "bottom"
+  },
+  "obj_collines_C_winter": {
+   "file": "deco/obj_collines_C_winter.png",
+   "w": 252,
+   "h": 184,
+   "bytes": 32343,
+   "source": "kaykit",
+   "original": "extra/decoration/nature/hills_C.gltf",
+   "note": "Chaîne de collines en volume (hills_C, pack EXTRA), sommets de winter.",
+   "anchor": "bottom"
+  },
+  "obj_mont_C_winter": {
+   "file": "deco/obj_mont_C_winter.png",
+   "w": 262,
+   "h": 261,
+   "bytes": 51671,
+   "source": "kaykit",
+   "original": "extra/decoration/nature/mountain_C_grass.gltf",
+   "note": "Mont herbeux en volume (mountain_C_grass, pack EXTRA), sommet de winter.",
+   "anchor": "bottom"
+  },
+  "obj_collines_B_arbres_spring": {
+   "file": "deco/obj_collines_B_arbres_spring.png",
+   "w": 252,
+   "h": 281,
+   "bytes": 46358,
+   "source": "kaykit",
+   "original": "extra/decoration/nature/hills_B_trees.gltf",
+   "note": "Chaîne de collines boisée (hills_B_trees, pack EXTRA), sommets de spring.",
+   "anchor": "bottom"
+  },
+  "obj_collines_B_arbres_summer": {
+   "file": "deco/obj_collines_B_arbres_summer.png",
+   "w": 252,
+   "h": 281,
+   "bytes": 47318,
+   "source": "kaykit",
+   "original": "extra/decoration/nature/hills_B_trees.gltf",
+   "note": "Chaîne de collines boisée (hills_B_trees, pack EXTRA), sommets de summer.",
+   "anchor": "bottom"
+  },
+  "obj_collines_B_arbres_autumn": {
+   "file": "deco/obj_collines_B_arbres_autumn.png",
+   "w": 252,
+   "h": 281,
+   "bytes": 45943,
+   "source": "kaykit",
+   "original": "extra/decoration/nature/hills_B_trees.gltf",
+   "note": "Chaîne de collines boisée (hills_B_trees, pack EXTRA), sommets de autumn.",
+   "anchor": "bottom"
+  },
+  "obj_collines_B_arbres_winter": {
+   "file": "deco/obj_collines_B_arbres_winter.png",
+   "w": 252,
+   "h": 281,
+   "bytes": 43169,
+   "source": "kaykit",
+   "original": "extra/decoration/nature/hills_B_trees.gltf",
+   "note": "Chaîne de collines boisée (hills_B_trees, pack EXTRA), sommets de winter.",
+   "anchor": "bottom"
+  },
+  "obj_collines_C_arbres_spring": {
+   "file": "deco/obj_collines_C_arbres_spring.png",
+   "w": 252,
+   "h": 207,
+   "bytes": 39884,
+   "source": "kaykit",
+   "original": "extra/decoration/nature/hills_C_trees.gltf",
+   "note": "Chaîne de collines boisée (hills_C_trees, pack EXTRA), sommets de spring.",
+   "anchor": "bottom"
+  },
+  "obj_collines_C_arbres_summer": {
+   "file": "deco/obj_collines_C_arbres_summer.png",
+   "w": 252,
+   "h": 207,
+   "bytes": 40602,
+   "source": "kaykit",
+   "original": "extra/decoration/nature/hills_C_trees.gltf",
+   "note": "Chaîne de collines boisée (hills_C_trees, pack EXTRA), sommets de summer.",
+   "anchor": "bottom"
+  },
+  "obj_collines_C_arbres_autumn": {
+   "file": "deco/obj_collines_C_arbres_autumn.png",
+   "w": 252,
+   "h": 207,
+   "bytes": 39800,
+   "source": "kaykit",
+   "original": "extra/decoration/nature/hills_C_trees.gltf",
+   "note": "Chaîne de collines boisée (hills_C_trees, pack EXTRA), sommets de autumn.",
+   "anchor": "bottom"
+  },
+  "obj_collines_C_arbres_winter": {
+   "file": "deco/obj_collines_C_arbres_winter.png",
+   "w": 252,
+   "h": 207,
+   "bytes": 38329,
+   "source": "kaykit",
+   "original": "extra/decoration/nature/hills_C_trees.gltf",
+   "note": "Chaîne de collines boisée (hills_C_trees, pack EXTRA), sommets de winter.",
+   "anchor": "bottom"
   },
   "obj_treePine_large_spring": {
    "file": "deco/obj_treePine_large_spring.png",
@@ -6769,7 +7209,7 @@
    "file": "succes/sans-fin.png",
    "w": 240,
    "h": 280,
-   "bytes": 16514,
+   "bytes": 20188,
    "source": "hexagon-pack",
    "original": "hill_1_summer",
    "note": "Vignette de succès composée à partir des tuiles et sprites du jeu.",

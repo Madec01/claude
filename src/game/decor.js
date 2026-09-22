@@ -71,7 +71,8 @@ export function groundOf(t) {
   if (t.rare) return t.family === 'ruins' || t.family === 'mine' ? 'stone' : 'grass';
   if (t.family === 'meadow' && t.dry) return 'dry';
   if (t.family === 'water' && t.frozen) return 'ice';
-  return { meadow: 'grass', forest: 'grass', field: 'field', hamlet: 'grass', orchard: 'grass', water: 'water', marsh: 'dirt', rock: 'stone', sand: 'sand', hill: 'hill', heath: 'heath' }[t.family] || 'grass';
+  // la colline est de l'herbe : son relief est un objet posé dessus (journal 102), plus un sol surélevé
+  return { meadow: 'grass', forest: 'grass', field: 'field', hamlet: 'grass', orchard: 'grass', water: 'water', marsh: 'dirt', rock: 'stone', sand: 'sand', hill: 'grass', heath: 'heath' }[t.family] || 'grass';
 }
 export const groundKey = (g, season) => (g === 'dry' ? 'ground_dry' : g === 'ice' ? 'water_frozen' : `ground_${g}_${season}`);
 
@@ -579,9 +580,20 @@ export class Decor {
             }
             for (const p of sample(rng, cell, keys, 1, { minDist: 26, margin: 12, placed: [] })) push(p, `obj_puddle${VAR3(rng)}`, { weathers: ['storm'] });
           } else if (family === 'hill') {
-            for (const p of sample(rng, cell, keys, L2(cell) ? 5 : 2, { minDist: L2(cell) ? 18 : 26, margin: 12, placed, yMax: 8, radius: 0.7 })) { placed.push(p); push(p, PICK(rng, ['obj_treePine_small_{s}', 'obj_treeRound_small_{s}', 'obj_bushGrass_{s}'])); }
-            for (const p of sample(rng, cell, keys, 2, { minDist: 22, margin: 12, placed: [], yMax: 8, radius: 0.7 })) push(p, PICK(rng, ['obj_flowerYellow', 'obj_flowerBlue']), { seasons: ['spring'] });
-            for (const p of sample(rng, cell, keys, 1, { minDist: 26, margin: 12, placed: [], yMax: 8, radius: 0.7 })) push(p, 'obj_snowdrift', { seasons: ['winter'] });
+            // Une colline EN VOLUME par case (modèles du pack EXTRA), sur un sol d'herbe plat. La tuile
+            // surélevée d'avant (grass_17) était un bloc hexagonal à flancs bruns qui ne se fondait avec
+            // rien. Isolée en bordure de région, en chaîne dès deux voisines de colline (au cœur d'une région,
+            // parfois boisée), un mont au centre des grandes régions ; miroir et taille tirés par case.
+            // Rien d'autre sur la case : le modèle la couvre, et ses arbres sont dans ses variantes.
+            const voisines = degreeOf(cell, keys);
+            let tpl;
+            if (cells.length >= 5 && cell === center) tpl = `obj_mont_${PICK(rng, ['A', 'B', 'C'])}_{s}`;
+            else if (voisines >= 2) tpl = `obj_collines_${PICK(rng, ['A', 'B', 'C', 'B_arbres', 'C_arbres'])}_{s}`;
+            else tpl = `obj_colline_${PICK(rng, ['A', 'B', 'C'])}_{s}`;
+            const p = { x: c.x + (rng() - 0.5) * 6, y: c.y + 24 + (rng() - 0.5) * 4 };   // le pied sous le centre : l'objet couvre la case
+            placed.push(p); push(p, tpl, { flip: rng() < 0.5, scale: 0.94 + rng() * 0.12 });
+            // au pied, devant : une touffe ou un caillou, pour que la colline soit posée et non collée
+            for (const p2 of sample(rng, cell, keys, 1, { minDist: 26, margin: 10, placed: [], yMin: 34, radius: 0.8 })) push(p2, rng() < 0.6 ? 'obj_bushGrass_{s}' : `obj_rockGrey_small${VAR3(rng)}{w}`, { scale: 0.55 + rng() * 0.15, flip: rng() < 0.5 });
           } else if (family === 'heath') {
             // La bruyère poussait en solitaires régulièrement espacées : on la met en TOUFFES, et on
             // sème entre elles ce qui fait une lande — cailloux affleurants, ajoncs, herbe rase.

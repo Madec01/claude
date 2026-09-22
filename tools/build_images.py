@@ -199,6 +199,19 @@ KAY_MODELS = {
     "caillou_A": "decoration/nature/rock_single_A",
     "caillou_B": "decoration/nature/rock_single_B",
     "caillou_C": "decoration/nature/rock_single_C",
+    # --- collines et monts du pack EXTRA (CC0) : des reliefs en volume, posés sur un sol d'herbe plat,
+    # à la place de la tuile surélevée grass_17 (un bloc hexagonal à flancs bruns qui ne se fondait pas)
+    "colline_A": "extra/decoration/nature/hill_single_A",
+    "colline_B": "extra/decoration/nature/hill_single_B",
+    "colline_C": "extra/decoration/nature/hill_single_C",
+    "collines_A": "extra/decoration/nature/hills_A",
+    "collines_B": "extra/decoration/nature/hills_B",
+    "collines_C": "extra/decoration/nature/hills_C",
+    "collines_B_arbres": "extra/decoration/nature/hills_B_trees",
+    "collines_C_arbres": "extra/decoration/nature/hills_C_trees",
+    "mont_A_herbe": "extra/decoration/nature/mountain_A_grass",
+    "mont_B_herbe": "extra/decoration/nature/mountain_B_grass",
+    "mont_C_herbe": "extra/decoration/nature/mountain_C_grass",
     "caillou_D": "decoration/nature/rock_single_D",
     "caillou_E": "decoration/nature/rock_single_E",
     "bloc_brun": "forest/Color5/Rock_5_C_Color5",
@@ -389,6 +402,8 @@ def mask_select(kind, h, s, v):
         return np.ones_like(h, dtype=bool)
     if kind == "light":       # faces claires peu saturées (sommets des rochers)
         return (v > 0.74) & (s < 0.15)
+    if kind == "sommet":      # herbe jaune-verte des collines KayKit (teinte ≈ 60°), flancs bruns et roche exclus
+        return (h > 0.11) & (h < 0.47) & (s > 0.28)
     raise ValueError(kind)
 
 
@@ -766,9 +781,9 @@ TILES = {
     "ruins": T("rare", "stone_07", [L("kay:ruin", 58, 92, scale=0.85), L("kay:lumber", 32, 100, scale=0.95)],
                base_kind="stone", note="Ruines KayKit (bâtiment effondré) sur pierre."),
     # --- collines (dès l'île 7) : hillGrass des Hexagon Tiles, recolorée comme l'herbe
-    "hill_1": T("hill", "grass_17", [L(KROUND_S, 42, 74, height=58), L(KPINE, 82, 68, "foliage", scale=0.5), L("ht:bushGrass:2.2", 62, 92, "reed")],
-                note="Colline : tuile surélevée grass_17 recolorée par saison + un feuillu et un sapin KayKit + touffe."),
-    "hill_2": T("hill", "grass_17", [L(KPINE, 36, 78, "foliage", scale=0.5), L("kay:caillou_C", 88, 74, "rock", width=38), L(KROUND_S, 66, 88, height=54), L("ht:bushGrass:2.2", 96, 96, "reed")],
+    "hill_1": T("hill", "grass_05", [L("kay:colline_A", 60, 82, "hill", width=150), L("ht:bushGrass:2.2", 34, 104, "reed")],
+                note="Colline : herbe plate + colline en volume du pack EXTRA (hill_single_A), sommet recoloré par saison, touffe au pied."),
+    "hill_2": T("hill", "grass_05", [L("kay:colline_B", 60, 82, "hill", width=150, mirror=True), L("kay:caillou_C", 92, 100, "rock", width=30), L("ht:bushGrass:2.2", 30, 100, "reed")],
                 base_mirror=True, note="Colline en miroir + sapin et feuillu KayKit, petit rocher et touffe."),
     # --- landes (dès l'île 9) : sol ocre + bruyère (bushGrass recolorées en violet)
     "heath_1": T("heath", "grass_05", [L("ht:bushGrass:2.5", 36, 82, "heather"), L("ht:bushGrass:2.5", 78, 70, "heather"), L("ht:bushGrass:2.5", 60, 108, "heather"),
@@ -916,7 +931,8 @@ class Composer:
         elif kind == "blossom":
             im = recolor(im, COLORS["blossom"])
         elif kind == "hill":
-            im = snowify(im) if season == "winter" else recolor(im, COLORS["grass"][season])
+            # les sommets KayKit sont jaune-vert (≈ 60°), hors du masque « green » : masque dédié
+            im = snowify(im, mask="sommet") if season == "winter" else recolor(im, COLORS["grass"][season], mask="sommet")
         elif kind == "dry":
             im = recolor(im, COLORS["dry"], mask="all")
         elif kind == "rock" and season == "winter":
@@ -1152,7 +1168,7 @@ class Builder:
     def build_deco(self):
         comp = Composer(self.src)
         GROUNDS = {"grass": ("grass_05", "grass"), "water": ("grass_05", "water"), "dirt": ("dirt_06", "dirt"), "stone": ("stone_07", "stone"),
-                   "sand": ("sand_07", "sand"), "hill": ("grass_17", "grass"), "heath": ("grass_05", "heath")}
+                   "sand": ("sand_07", "sand"), "hill": ("grass_05", "grass"), "heath": ("grass_05", "heath")}
         for kind, (base, bk) in GROUNDS.items():
             for season in SEASONS:
                 im = comp.base_for(T(kind, base, [], base_kind=bk, base_zoom=1.08 if kind == "sand" else 1.0), season)
@@ -1198,6 +1214,17 @@ class Builder:
                 im = im.crop((bb[0], bb[1], bb[2], im.height))
             self.emit(keyname, "deco", im, "kaykit", f"{KAY_MODELS[model]}.gltf", note, anchor="bottom")
 
+        # collines et monts en volume (pack EXTRA) : sommet d'herbe recoloré par saison (neige l'hiver),
+        # flancs de terre ou de roche inchangés. Une colline isolée couvre une case, une chaîne un peu plus,
+        # un mont davantage encore : c'est le décor qui choisit selon la place de la case dans sa région.
+        for v in ("A", "B", "C"):
+            for season in SEASONS:
+                kobj(f"obj_colline_{v}_{season}", f"colline_{v}", season, 196, "hill", f"Colline isolée en volume (hill_single_{v}, pack EXTRA), sommet de {season}.")
+                kobj(f"obj_collines_{v}_{season}", f"collines_{v}", season, 252, "hill", f"Chaîne de collines en volume (hills_{v}, pack EXTRA), sommets de {season}.")
+                kobj(f"obj_mont_{v}_{season}", f"mont_{v}_herbe", season, 262, "hill", f"Mont herbeux en volume (mountain_{v}_grass, pack EXTRA), sommet de {season}.")
+        for v in ("B", "C"):
+            for season in SEASONS:
+                kobj(f"obj_collines_{v}_arbres_{season}", f"collines_{v}_arbres", season, 252, "hill", f"Chaîne de collines boisée (hills_{v}_trees, pack EXTRA), sommets de {season}.")
         # arbres : modèles 3D KayKit, feuillage recoloré par saison (les largeurs reprennent celles des sprites plats
         # qu'ils remplacent, pour que le décor composé garde ses proportions)
         for name, model, w in (("treePine_large", "pine_big", 56), ("treePine_small", "pine_big", 40)):

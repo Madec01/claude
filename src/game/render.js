@@ -62,13 +62,13 @@ const PLAT = new Set(['obj_puddle1', 'obj_puddle2', 'obj_puddle3', 'obj_leafpile
 const estPlat = (tpl) => PLAT.has(tpl.replace(/\{[sw]\}/g, ''));
 
 /** Sols en relief : falaise (roche) et talus (colline). */
-const RELIEF = new Set(['stone', 'hill']);
+const RELIEF = new Set(['stone']);   // la colline n'est plus un sol surélevé : c'est un objet posé sur l'herbe (journal 102)
 /** Deux sols qui se touchent par une arête franche plutôt que par un fondu. */
 // Qui déborde sur qui. Un seul des deux sols franchit l'arête, en langue irrégulière ; l'autre s'arrête
 // net dessous. Deux fondus croisés (chacun débordant sur l'autre) faisaient un flou symétrique qui, sur
 // un damier de champs et de prés, redessinait la grille en hexagones flous. Le relief passe sur tout,
 // le sable et la terre sur les cultures, les cultures et la lande sur l'herbe.
-const PRIORITE_SOL = ['stone', 'hill', 'sand', 'dirt', 'field', 'heath', 'dry', 'grass'];
+const PRIORITE_SOL = ['stone', 'sand', 'dirt', 'field', 'heath', 'dry', 'grass'];
 const rang = (g) => { const i = PRIORITE_SOL.indexOf(g); return i < 0 ? 99 : i; };
 const deborde = (gn, g) => rang(gn) < rang(g);
 const FAUNA_GROUND = 10;   // un animal se tient un peu en avant du centre de sa tuile, comme le décor
@@ -549,7 +549,7 @@ export class IslandRenderer {
     const half = SIZE * 0.46, e = 7;
     for (const t of tiles) {
       const k = key(t.q, t.r); if (dropping.has(k)) continue;
-      const g = this.decor.groundFor(t); if (g === 'hill') continue;
+      const g = this.decor.groundFor(t);
       const w = toWorld(t.q, t.r);
       for (let d = 0; d < 3; d++) {
         const n = b.get(t.q + DIRS[d][0], t.r + DIRS[d][1]);
