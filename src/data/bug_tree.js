@@ -77,7 +77,7 @@ export const TREE = [
         f('vol', 'Points qui volent (changement de saison)', 'L’étincelle part-elle de la bonne tuile ?', 'Il en reste en l’air ?'),
         f('onde', 'Onde de fermeture de région', 'L’onde couvre-t-elle toute la région ?', 'Part-elle de la mauvaise case ?'),
         f('transition', 'Transition de saison (le balayage)', 'Une bande reste figée ?', 'Des tuiles restent dans l’ancienne saison ?'),
-        f('finale', 'Tournée finale', 'À quel moment (la nuit, un plan, la vague, une saison, la carte postale) ?', 'La caméra va-t-elle au bon endroit ?'),
+        f('finale', 'Tournée finale', 'À quel moment (le recul, un plan, la vague, une saison, la carte postale) ?', 'La caméra va-t-elle au bon endroit ?'),
         f('tremblement', 'Tremblement de l’écran', 'Trop fort, trop fréquent ?', 'L’option est-elle coupée ?'),
         autre('Quel effet cloche, et à quel moment ?'),
       ] },
