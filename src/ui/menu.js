@@ -10,7 +10,6 @@ import { RunSave } from '../core/run.js';
 import { ISLANDS } from '../data/islands.js';
 import { STORY } from '../data/story.js';
 import { dailyKey, dailyLabel } from '../data/daily.js';
-import { journalEnvois, etatsNonLus } from '../core/report.js';
 
 export const VERSION = 'v1.0';
 
@@ -57,31 +56,8 @@ export function buildMenu({ game }) {
       navButton('Succès', () => game.showAchievements(), { iconName: 'icon_medal', sub: `${achCount()} / ${ACHIEVEMENTS.length}` }),
       navButton('Crédits', () => game.showCredits(), { iconName: 'icon_info' }),
     ),
-    // ---- Le carnet. Il était jusqu'ici derrière Options, puis dans un tiroir replié de la section — donc
-    // invisible : personne n'ouvre un pli qu'on ne lui a pas annoncé (retour du commanditaire). Le voici au
-    // menu, avec le suivi devant, parce que c'est ce qu'on revient voir ; signaler, on le fait une fois.
-    carnetBloc(),
     navButton('Plein écran', () => game.toggleFullscreen(), { cls: 'btn-ghost', iconName: 'icon_fullscreen' }),
   );
-
-  function carnetBloc() {
-    const envois = journalEnvois();
-    const neuves = etatsNonLus();
-    return h('div', { class: 'menu-block' },
-      h('div', { class: 'menu-block-title' }, 'Le carnet'),
-      // rien envoyé, rien à suivre : on ne propose pas une liste vide
-      envois.length ? navButton('États de mes envois', () => game.showReport(null, 'pepin', { envois: true }), {
-        iconName: 'icon_info',
-        cls: neuves ? 'btn-carnet-neuf' : '',
-        sub: neuves ? `${neuves} nouvelle${neuves > 1 ? 's' : ''}` : `${envois.length} envoi${envois.length > 1 ? 's' : ''}`,
-        subClass: neuves ? 'btn-new' : '',
-      }) : null,
-      h('div', { class: 'menu-row' },
-        navButton('+ Nouveau pépin', () => game.showReport(null, 'pepin'), { iconName: 'icon_question', title: 'Quelque chose ne va pas ?' }),
-        navButton('+ Nouvelle idée', () => game.showReport(null, 'idee'), { iconName: 'icon_leaf', title: 'Quelque chose nous manque ?' }),
-      ),
-    );
-  }
   const foot = h('div', { class: 'menu-foot' },
     h('div', { class: 'foot-left' },
       testMode ? h('span', { class: 'foot-test' }, 'Mode test actif') : null,
