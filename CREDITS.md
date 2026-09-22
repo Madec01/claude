@@ -56,7 +56,7 @@ Toutes les œuvres ci-dessous appartiennent à leurs auteurs et sont utilisées 
 ## Graphismes
 
 - **Hexagon Pack** — Kenney (kenney.nl) — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://kenney.nl/assets/hexagon-pack) — [miroir utilisé](https://github.com/ETdoFresh/kenney.nl)
-  - Fichiers : 273
+  - Fichiers : 275
 - **Hexagon Tiles** — Kenney (kenney.nl) — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://kenney.nl/assets/hexagon-tiles) — [miroir utilisé](https://github.com/ETdoFresh/kenney.nl)
   - Fichiers : 100
 - **Animal Pack Redux** — Kenney (kenney.nl) — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://kenney.nl/assets/animal-pack-redux) — [miroir utilisé](https://github.com/ETdoFresh/kenney.nl)
@@ -82,7 +82,7 @@ Toutes les œuvres ci-dessous appartiennent à leurs auteurs et sont utilisées 
 - **KayKit : Forest Nature Pack (1.0)** — Kay Lousberg — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://kaylousberg.itch.io/forest-nature-pack) — [miroir utilisé](fourni par le commanditaire (téléchargement direct))
   - Fichiers : 51
 - **KayKit : Medieval Hexagon Pack EXTRA (1.0)** — Kay Lousberg — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://kaylousberg.itch.io/kaykit-medieval-hexagon) — [miroir utilisé](fourni par le commanditaire (téléchargement direct))
-  - Fichiers : 16
+  - Fichiers : 30
 - **Animaux 3D (attribution)** — Baby chick by Poly by Google, Bear by Poly by Google, Duck by Poly by Google, Goat by Poly by Google, Great horned owl by Poly by Google, Hen by Poly by Google, Penguin by Poly by Google — licence CC BY 3.0 ([texte](https://creativecommons.org/licenses/by/3.0/)) — [source](https://poly.pizza/) — [miroir utilisé](https://github.com/i3w-learn/3DVR_PIPELINE)
   - Fichiers : 7
 - **Animaux 3D (attribution)** — Rabbit by Poly by Google — licence CC BY 3.0 ([texte](https://creativecommons.org/licenses/by/3.0/)) — [source](https://poly.pizza/) — [miroir utilisé](https://github.com/tedgoddard/google_poly)
@@ -93,6 +93,9 @@ Toutes les œuvres ci-dessous appartiennent à leurs auteurs et sont utilisées 
   - Fichiers : assets/fonts/lora-italic-400-latin-ext.woff2, assets/fonts/lora-italic-400-latin.woff2, assets/fonts/lora-normal-400-600-latin-ext.woff2, assets/fonts/lora-normal-400-600-latin.woff2
 - **Quicksand** — Andrew Paglinawan — licence SIL Open Font License 1.1 ([texte](https://openfontlicense.org/open-font-license-official-text/)) — [source](https://fonts.google.com/specimen/Quicksand) — [miroir utilisé](https://fonts.gstatic.com)
   - Fichiers : assets/fonts/quicksand-normal-400-700-latin-ext.woff2, assets/fonts/quicksand-normal-400-700-latin.woff2
+- **Généré par IA (ChatGPT, OpenAI)** — OpenAI — licence Conditions d'utilisation d'OpenAI (voir la page ci-dessous) — [source](https://openai.com/policies/usage-policies)
+  - Attribution : Insignes d'archétype d'île « hameaux » et « aquatique », générés à partir d'un prompt écrit pour le projet (détail dans manifest.json), à la demande du commanditaire.
+  - Fichiers : archetypes/archetype-hameaux.png, archetypes/archetype-aquatique.png, archetypes/archetype-montagneuse.png, archetypes/archetype-sauvage.png
 
 ## Polices
 

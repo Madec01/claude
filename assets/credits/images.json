@@ -9,12 +9,8 @@
   "mirrorPath": "hexagon-pack",
   "licenseFile": "https://github.com/ETdoFresh/kenney.nl/blob/main/hexagon-pack/License.txt",
   "files": [
-   "archetypes/archetype-aquatique.png",
-   "archetypes/archetype-hameaux.png",
    "archetypes/archetype-littorale.png",
-   "archetypes/archetype-montagneuse.png",
    "archetypes/archetype-nourriciere.png",
-   "archetypes/archetype-sauvage.png",
    "deco/obj_banner.png",
    "deco/obj_basket.png",
    "deco/obj_box2.png",
@@ -412,8 +408,6 @@
   "mirrorPath": "kenney_animalpackredux",
   "licenseFile": "https://github.com/ETdoFresh/kenney.nl/blob/main/kenney_animalpackredux/License.txt",
   "files": [
-   "archetypes/archetype-aquatique.png",
-   "archetypes/archetype-sauvage.png",
    "fauna/fauna_bear.png",
    "fauna/fauna_chick.png",
    "fauna/fauna_chicken.png",
@@ -912,6 +906,19 @@
   "files": [
    "assets/fonts/quicksand-normal-400-700-latin-ext.woff2",
    "assets/fonts/quicksand-normal-400-700-latin.woff2"
+  ]
+ },
+ {
+  "pack": "Généré par IA (ChatGPT, OpenAI)",
+  "author": "OpenAI",
+  "license": "Conditions d'utilisation d'OpenAI (voir la page ci-dessous)",
+  "url": "https://openai.com/policies/usage-policies",
+  "attribution": "Insignes d'archétype d'île « hameaux » et « aquatique », générés à partir d'un prompt écrit pour le projet (détail dans manifest.json), à la demande du commanditaire.",
+  "files": [
+   "archetypes/archetype-hameaux.png",
+   "archetypes/archetype-aquatique.png",
+   "archetypes/archetype-montagneuse.png",
+   "archetypes/archetype-sauvage.png"
   ]
  }
 ]

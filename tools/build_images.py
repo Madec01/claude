@@ -1600,15 +1600,12 @@ class Builder:
         def pack_of(key):
             pk = self.manifest[key]["source"]
             return pk if isinstance(pk, str) else pk[0]
+        # « hameaux », « aquatique », « sauvage » et « montagneuse » ne sont plus composés ici : le
+        # commanditaire n'aimait pas le style des insignes et a demandé des images générées à part (prompts
+        # donnés en conversation), déjà en place dans assets/img/archetypes/ avec leurs entrées manuelles
+        # dans manifest.json et les crédits. Cette fonction ne doit plus les toucher, sous peine de les
+        # écraser au prochain passage du pipeline.
         A = {
-            # hameau : la famille a déjà sa voix (resultsBy/memoryVoice) — l'insigne reprend le même thème
-            "archetype-hameaux": ("ground_grass_summer", [("obj_tinyBuilding_jaune", 88, 210, 1.05), ("obj_tinyBuilding_vert", 158, 200, 0.95)]),
-            "archetype-aquatique": ("ground_water_summer", [("fauna_duck", 88, 206, 1.05), ("obj_lily", 160, 210, 1.4)]),
-            # sauvage : forêt + marais + lande — un hibou dans les pins dit « sans-toi » mieux qu'un arbre seul
-            "archetype-sauvage": ("ground_grass_autumn", [("obj_treePine_small_autumn", 90, 216, 1.3), ("fauna_owl", 158, 206, 0.9)]),
-            # montagneuse : roche + colline — le mont de roche nue du pack EXTRA (journal 106), déjà le
-            # sommet des massifs et des grandes collines en jeu
-            "archetype-montagneuse": ("ground_stone_summer", [("obj_mont_roc_A_summer", 120, 216, 0.95)]),
             # nourricière : champ + verger + prairie
             "archetype-nourriciere": ("ground_field_summer", [("obj_treeRound_fruit_summer", 88, 216, 1.7), ("obj_haybale", 164, 210, 1.1)]),
             # littorale : sable seul — bois flotté et galet, pour rester distinct de « jusqu'à la mer »

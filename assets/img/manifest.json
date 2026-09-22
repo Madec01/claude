@@ -7350,57 +7350,47 @@
   },
   "archetype-hameaux": {
    "file": "archetypes/archetype-hameaux.png",
-   "w": 240,
-   "h": 280,
-   "bytes": 17990,
-   "source": [
-    "hexagon-pack",
-    "kaykit"
-   ],
-   "original": "ground_grass_summer + obj_tinyBuilding_jaune + obj_tinyBuilding_vert",
-   "note": "Insigne d'archétype d'île, composé à partir des tuiles et sprites du jeu.",
-   "badge": true
+   "w": 480,
+   "h": 560,
+   "bytes": 260727,
+   "source": "ia-generee",
+   "original": "ChatGPT (OpenAI), génération d'image à partir d'un prompt",
+   "note": "Insigne d'archétype d'île : généré par IA à la demande du commanditaire (les insignes composés à partir des sprites du jeu ne lui plaisaient pas), recadré et redimensionné sans autre retouche. Prompt : « Insigne de jeu vidéo hexagonal, illustration plate façon jeu de plateau familial, deux petites maisons de village aux toits colorés (orange et vert) serrées l'une contre l'autre, une fine fumée de cheminée, sur fond d'herbe unie vert tendre avec un léger dégradé, liseré doré fin autour du bord, style chaleureux et simple, sans texte, sans rendu 3D réaliste, couleurs franches. »",
+   "badge": true,
+   "generated_ai": true
   },
   "archetype-aquatique": {
    "file": "archetypes/archetype-aquatique.png",
-   "w": 240,
-   "h": 280,
-   "bytes": 23767,
-   "source": [
-    "hexagon-pack",
-    "kaykit",
-    "kenney_animalpackredux"
-   ],
-   "original": "ground_water_summer + fauna_duck + obj_lily",
-   "note": "Insigne d'archétype d'île, composé à partir des tuiles et sprites du jeu.",
-   "badge": true
+   "w": 480,
+   "h": 560,
+   "bytes": 240099,
+   "source": "ia-generee",
+   "original": "ChatGPT (OpenAI), génération d'image à partir d'un prompt",
+   "note": "Insigne d'archétype d'île : généré par IA à la demande du commanditaire (les insignes composés à partir des sprites du jeu ne lui plaisaient pas), recadré et redimensionné sans autre retouche. Prompt : « Insigne de jeu vidéo hexagonal, illustration plate façon jeu de plateau familial, un canard stylisé au centre d'une étendue d'eau bleue avec un nénuphar à côté, léger reflet ondulé, fond bleu uni en dégradé doux, liseré doré fin autour du bord, style chaleureux et simple, sans texte, sans rendu 3D réaliste, couleurs franches. »",
+   "badge": true,
+   "generated_ai": true
   },
   "archetype-sauvage": {
    "file": "archetypes/archetype-sauvage.png",
-   "w": 240,
-   "h": 280,
-   "bytes": 24316,
-   "source": [
-    "hexagon-pack",
-    "kaykit",
-    "kenney_animalpackredux"
-   ],
-   "original": "ground_grass_autumn + obj_treePine_small_autumn + fauna_owl",
-   "note": "Insigne d'archétype d'île, composé à partir des tuiles et sprites du jeu.",
-   "badge": true
+   "w": 480,
+   "h": 560,
+   "bytes": 257539,
+   "source": "ia-generee",
+   "original": "ChatGPT (OpenAI), génération d'image à partir d'un prompt",
+   "note": "Insigne d'archétype d'île : généré par IA à la demande du commanditaire (les insignes composés à partir des sprites du jeu ne lui plaisaient pas), recadré et redimensionné sans autre retouche. Prompt : « Insigne de jeu vidéo hexagonal, illustration plate façon jeu de plateau familial, un hibou perché à côté d'un petit sapin, tons d'automne (brun, ocre, vert sombre), fond de sous-bois uni en dégradé doux, liseré doré fin autour du bord, style chaleureux et simple, sans texte, sans rendu 3D réaliste, couleurs franches. »",
+   "badge": true,
+   "generated_ai": true
   },
   "archetype-montagneuse": {
    "file": "archetypes/archetype-montagneuse.png",
-   "w": 240,
-   "h": 280,
-   "bytes": 30932,
-   "source": [
-    "hexagon-pack",
-    "kaykit"
-   ],
-   "original": "ground_stone_summer + obj_mont_roc_A_summer",
-   "note": "Insigne d'archétype d'île, composé à partir des tuiles et sprites du jeu.",
-   "badge": true
+   "w": 480,
+   "h": 560,
+   "bytes": 211716,
+   "source": "ia-generee",
+   "original": "ChatGPT (OpenAI), génération d'image à partir d'un prompt",
+   "note": "Insigne d'archétype d'île : généré par IA à la demande du commanditaire (les insignes composés à partir des sprites du jeu ne lui plaisaient pas), recadré et redimensionné sans autre retouche. Prompt : « Insigne de jeu vidéo hexagonal, illustration plate façon jeu de plateau familial, un pic rocheux gris avec une touche de neige au sommet, silhouette anguleuse simple, fond de pierre gris clair en dégradé doux, liseré doré fin autour du bord, style chaleureux et simple, sans texte, sans rendu 3D réaliste, couleurs franches. »",
+   "badge": true,
+   "generated_ai": true
   },
   "archetype-nourriciere": {
    "file": "archetypes/archetype-nourriciere.png",
