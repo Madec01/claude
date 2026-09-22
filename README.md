@@ -179,6 +179,10 @@ Elle est oubliée quand l'île se termine, quand on recommence, quand on ouvre u
 
 ## Tests
 
+Deux vitesses : `tools/suite.sh court` (~3 min, les quatre tests Node et `gate.js` en fumée) avant chaque
+poussée ; `tools/suite.sh complet` (~25 min, toute la suite navigateur en plus) quand le changement touche
+les règles, le score, la sauvegarde, l'interface ou la tournée finale. Le détail, test par test :
+
 ```bash
 node tests/rules.test.js          # règles, fermetures, couverture narrative, bot glouton sur les 14 îles, bot fort sur les premières
 node tests/run.test.js            # reprise d'une partie laissée en plan (sérialisation, file de tuiles, rangement local)
