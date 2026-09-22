@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-22T06:37:33+00:00",
+ "generated": "2026-09-22T07:15:27+00:00",
  "generator": "tools/build_images.py",
  "conventions": {
   "hex": {
@@ -2913,22 +2913,22 @@
    "file": "tiles/ground_field_spring.png",
    "w": 240,
    "h": 280,
-   "bytes": 23262,
+   "bytes": 6488,
    "source": "hexagon-pack",
    "original": "PNG/Tiles/Terrain/Dirt/dirt_06.png",
-   "note": "Sol de champ (spring) : terre labourée (dalle hexagonale du pack EXTRA, rendue à la verticale) ; les rangs de culture sont ajoutés par région.",
+   "note": "Sol de champ (spring) : terre labourée, terre unie recolorée ; les rangs de culture sont ajoutés par région.",
    "ground": "field",
    "season": "spring",
-   "ground_color": "#ac6954"
+   "ground_color": "#a8743f"
   },
   "ground_field_summer": {
    "file": "tiles/ground_field_summer.png",
    "w": 240,
    "h": 280,
-   "bytes": 11456,
+   "bytes": 6605,
    "source": "hexagon-pack",
    "original": "PNG/Tiles/Terrain/Dirt/dirt_06.png",
-   "note": "Sol de champ (summer) : blé (dalle hexagonale du pack EXTRA, rendue à la verticale) ; les rangs de culture sont ajoutés par région.",
+   "note": "Sol de champ (summer) : blé, terre unie recolorée ; les rangs de culture sont ajoutés par région.",
    "ground": "field",
    "season": "summer",
    "ground_color": "#a9c24a"
@@ -2937,10 +2937,10 @@
    "file": "tiles/ground_field_autumn.png",
    "w": 240,
    "h": 280,
-   "bytes": 10897,
+   "bytes": 6434,
    "source": "hexagon-pack",
    "original": "PNG/Tiles/Terrain/Dirt/dirt_06.png",
-   "note": "Sol de champ (autumn) : blé (dalle hexagonale du pack EXTRA, rendue à la verticale) ; les rangs de culture sont ajoutés par région.",
+   "note": "Sol de champ (autumn) : blé, terre unie recolorée ; les rangs de culture sont ajoutés par région.",
    "ground": "field",
    "season": "autumn",
    "ground_color": "#d8a43f"
@@ -2949,10 +2949,10 @@
    "file": "tiles/ground_field_winter.png",
    "w": 240,
    "h": 280,
-   "bytes": 11851,
+   "bytes": 6579,
    "source": "hexagon-pack",
    "original": "PNG/Tiles/Terrain/Dirt/dirt_06.png",
-   "note": "Sol de champ (winter) : blé (dalle hexagonale du pack EXTRA, rendue à la verticale) ; les rangs de culture sont ajoutés par région.",
+   "note": "Sol de champ (winter) : blé, terre unie recolorée ; les rangs de culture sont ajoutés par région.",
    "ground": "field",
    "season": "winter",
    "ground_color": "#eef2f6"
@@ -6623,7 +6623,7 @@
    "file": "succes/charpentier.png",
    "w": 240,
    "h": 280,
-   "bytes": 23362,
+   "bytes": 18517,
    "source": [
     "hexagon-pack",
     "kaykit"

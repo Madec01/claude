@@ -862,6 +862,9 @@ class Composer:
             im = blend_toward(im, COLORS["stone_winter"], 0.45)
         elif kind == "dirt" and season == "winter":
             im = blend_toward(im, COLORS["dirt_winter"], 0.55)
+        elif kind == "field":
+            # sol de champ uni, recoloré par saison : la texture, ce sont les rangs de culture du décor
+            im = snowify(im, mask="brownfield") if season == "winter" else recolor(im, COLORS["field"][season], mask="brownfield")
         return im
 
     # --- calques
@@ -1157,22 +1160,17 @@ class Builder:
                 col = "#%02x%02x%02x" % tuple(int(v) for v in arr)
                 self.emit(f"ground_{kind}_{season}", "tiles", im, HP, self.src.hp_original(base), f"Sol « {kind} » ({season}) pour le décor composé par région.",
                           ground=kind, season=season, ground_color=col)
-        # Sol de champ : les deux dalles hexagonales du pack EXTRA, rendues à la verticale, recolorées par saison —
-        # le labour au printemps, le blé le reste de l'année. La dalle est rendue un peu plus large que la tuile
-        # et rognée à l'hexagone : son liseré de terre et ses coins biseautés dessinaient un hexagone net
-        # sur l'île, là où les fondus entre sols effacent partout ailleurs la grille. Les rangs de culture restent posés par région
-        # (obj_crop_*) : ils donnent les sillons, la dalle donne la terre et les épis.
+        # Sol de champ : la terre unie (dirt_06) recolorée par saison — labour brun au printemps, blé
+        # vert puis or, neige l'hiver. Les dalles KayKit (terre, blé) ont été essayées ici : leurs
+        # reliefs éclairés (monticules ronds du labour, petits cubes d'épis) faisaient des taches
+        # claires sur l'île (retour du commanditaire), et les rangs de culture sont de toute façon
+        # posés par le décor, région par région : c'est eux qui font le champ.
         for season in SEASONS:
-            # la dalle de terre est plus étroite que celle de blé : à largeur égale elle dépasserait en hauteur
-            spec = T("field", "dirt_06", [L("kay:terre" if season == "spring" else "kay:ble", 60, 70, "field",
-                                            width=306 if season == "spring" else 312, flat=True, rogne=True,
-                                            mirror=(season == "autumn"))], base_kind="dirt")
-            base = comp.compose(f"ground_field_{season}", spec, season)
+            base = comp.base_for(T("field", "dirt_06", [], base_kind="field"), season)
             arr = np.asarray(base)[120:170, 95:145, :3].reshape(-1, 3).mean(0)
             quoi = "terre labourée" if season == "spring" else "blé"
-            # le pack déclaré est celui du fond (dirt_06) ; la dalle KayKit est créditée d'elle-même (kay_used)
             self.emit(f"ground_field_{season}", "tiles", base, HP, self.src.hp_original("dirt_06"),
-                      f"Sol de champ ({season}) : {quoi} (dalle hexagonale du pack EXTRA, rendue à la verticale) ; les rangs de culture sont ajoutés par région.",
+                      f"Sol de champ ({season}) : {quoi}, terre unie recolorée ; les rangs de culture sont ajoutés par région.",
                       ground="field", season=season, ground_color="#%02x%02x%02x" % tuple(int(v) for v in arr))
         im = comp.base_for(T("dry", "grass_05", [], base_kind="dry"), "summer")
         arr = np.asarray(im)[120:170, 95:145, :3].reshape(-1, 3).mean(0)
