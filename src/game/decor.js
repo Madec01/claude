@@ -580,20 +580,32 @@ export class Decor {
             }
             for (const p of sample(rng, cell, keys, 1, { minDist: 26, margin: 12, placed: [] })) push(p, `obj_puddle${VAR3(rng)}`, { weathers: ['storm'] });
           } else if (family === 'hill') {
-            // Une colline EN VOLUME par case (modèles du pack EXTRA), sur un sol d'herbe plat. La tuile
-            // surélevée d'avant (grass_17) était un bloc hexagonal à flancs bruns qui ne se fondait avec
-            // rien. Isolée en bordure de région, en chaîne dès deux voisines de colline (au cœur d'une région,
-            // parfois boisée), un mont au centre des grandes régions ; miroir et taille tirés par case.
-            // Rien d'autre sur la case : le modèle la couvre, et ses arbres sont dans ses variantes.
+            // Des collines EN VOLUME (modèles du pack EXTRA) sur un sol d'herbe plat. La tuile surélevée
+            // d'avant (grass_17) était un bloc hexagonal à flancs bruns qui ne se fondait avec rien ; un
+            // seul gros modèle au centre de la case se lisait ensuite comme un accessoire posé (« un gros
+            // bloc seul au milieu »). Chaque case porte donc une COMPOSITION : un mamelon principal un peu
+            // décalé, un ou deux petits satellites poussés vers les collines voisines (la région se lit
+            // comme une chaîne, les reliefs se chevauchent d'une case à l'autre), des rochers au pied.
+            // Une chaîne (hills, parfois boisée) dès deux voisines, un mont au centre des grandes régions.
             const voisines = degreeOf(cell, keys);
-            let tpl;
-            if (cells.length >= 5 && cell === center) tpl = `obj_mont_${PICK(rng, ['A', 'B', 'C'])}_{s}`;
-            else if (voisines >= 2) tpl = `obj_collines_${PICK(rng, ['A', 'B', 'C', 'B_arbres', 'C_arbres'])}_{s}`;
-            else tpl = `obj_colline_${PICK(rng, ['A', 'B', 'C'])}_{s}`;
-            const p = { x: c.x + (rng() - 0.5) * 6, y: c.y + 24 + (rng() - 0.5) * 4 };   // le pied sous le centre : l'objet couvre la case
-            placed.push(p); push(p, tpl, { flip: rng() < 0.5, scale: 0.94 + rng() * 0.12 });
-            // au pied, devant : une touffe ou un caillou, pour que la colline soit posée et non collée
-            for (const p2 of sample(rng, cell, keys, 1, { minDist: 26, margin: 10, placed: [], yMin: 34, radius: 0.8 })) push(p2, rng() < 0.6 ? 'obj_bushGrass_{s}' : `obj_rockGrey_small${VAR3(rng)}{w}`, { scale: 0.55 + rng() * 0.15, flip: rng() < 0.5 });
+            const vers = []; for (const [a, b] of neighbors(cell.q, cell.r)) if (keys.has(key(a, b))) { const w = toWorld(a, b); vers.push({ x: w.x - c.x, y: w.y - c.y }); }
+            let principal, ech;
+            if (cells.length >= 5 && cell === center) { principal = `obj_mont_${PICK(rng, ['A', 'B', 'C'])}_{s}`; ech = 0.9; }
+            else if (voisines >= 2) { principal = `obj_collines_${PICK(rng, ['A', 'B', 'C', 'B_arbres', 'C_arbres'])}_{s}`; ech = 0.8; }
+            else { principal = `obj_colline_${PICK(rng, ['A', 'B', 'C'])}_{s}`; ech = 0.78; }
+            const p = { x: c.x + (rng() - 0.5) * 16, y: c.y + 20 + (rng() - 0.5) * 10 };
+            placed.push(p); push(p, principal, { flip: rng() < 0.5, scale: ech * (0.94 + rng() * 0.12) });
+            // les satellites : vers une voisine de colline quand il y en a, sinon au hasard, toujours à côté
+            const n = 1 + (rng() < (voisines ? 0.6 : 0.4) ? 1 : 0);
+            for (let i = 0; i < n; i++) {
+              let dx, dy;
+              if (vers.length && rng() < 0.75) { const v = PICK(rng, vers); const t = 0.42 + rng() * 0.16; dx = v.x * t + (rng() - 0.5) * 14; dy = v.y * t + (rng() - 0.5) * 10; }
+              else { const a = rng() * Math.PI * 2; dx = Math.cos(a) * (34 + rng() * 10); dy = Math.sin(a) * (22 + rng() * 8); }
+              const q = { x: c.x + dx, y: c.y + dy + 14 };
+              placed.push(q); push(q, `obj_colline_${PICK(rng, ['A', 'B', 'C'])}_{s}`, { flip: rng() < 0.5, scale: 0.4 + rng() * 0.16 });
+            }
+            // au pied : cailloux et touffes, pour que le relief soit posé et non collé
+            for (const p2 of sample(rng, cell, keys, 2, { minDist: 22, margin: 8, placed: [], yMin: 26, radius: 0.85 })) push(p2, rng() < 0.55 ? `obj_rockGrey_small${VAR3(rng)}{w}` : 'obj_bushGrass_{s}', { scale: 0.5 + rng() * 0.15, flip: rng() < 0.5 });
           } else if (family === 'heath') {
             // La bruyère poussait en solitaires régulièrement espacées : on la met en TOUFFES, et on
             // sème entre elles ce qui fait une lande — cailloux affleurants, ajoncs, herbe rase.
