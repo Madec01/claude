@@ -37,7 +37,7 @@
 .qtile.current .qname { font-size: 17px; }
 .qtile.next { opacity: 0.85; } .qtile.next img { width: 40px; height: 47px; }
 .qtile.rare::after { content: 'rare'; position: absolute; right: 8px; top: 6px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--gold); font-weight: 800; }
-.qtile.swappable, .qtile.pocketable, .qtile.pocketed, .qtile.shedable, .qtile.pickable { cursor: pointer; }
+.qtile.pocketed, .qtile.shedable, .qtile.pickable { cursor: pointer; }
 .qtile.pickable:hover { transform: translateX(3px); border-color: var(--gold); }
 .qtile.shedable { border-style: dashed; }
 .shed .qlvl.warn { color: var(--bad, #d95f4b); }
@@ -59,7 +59,7 @@ html.compact .q-onto { font-size: 9px; padding: 1px 5px; left: 4px; bottom: 4px;
 .q-help { position: absolute; left: 6px; top: 6px; width: 22px; height: 22px; border-radius: 50%; border: 1px solid rgba(43,42,38,0.18); background: rgba(255,253,248,0.95); color: var(--ink-2); font-family: inherit; font-weight: 800; font-size: 13px; line-height: 20px; padding: 0; cursor: pointer; box-shadow: 0 2px 6px rgba(30,50,70,0.15); }
 .q-help.on { background: var(--breath); color: #fff; border-color: var(--breath); }
 html.compact .q-help { width: 20px; height: 20px; font-size: 12px; line-height: 18px; left: 4px; top: 4px; }
-.qtile.swappable:hover, .qtile.pocketable:hover, .qtile.pocketed:hover, .qtile.shedable:hover { transform: translateX(3px); border-color: var(--breath); }
+.qtile.pocketed:hover, .qtile.shedable:hover { transform: translateX(3px); border-color: var(--breath); }
 .qempty { font-size: 14px; opacity: 0.6; padding: 6px; } .qempty.small { font-size: 12px; }
 .pocket-list { display: flex; flex-direction: column; gap: 6px; min-height: 30px; }
 .powers { display: flex; gap: 6px; }
@@ -97,7 +97,6 @@ html.compact .q-help { width: 20px; height: 20px; font-size: 12px; line-height: 
 .hud-note.good { border-left-color: var(--breath); } .hud-note.warn { border-left-color: var(--loss); } .hud-note.gold, .hud-note.rare { border-left-color: var(--gold); } .hud-note.wish { border-left-color: var(--wish); } .hud-note.season { border-left-color: var(--autumn); font-family: var(--font-title); font-weight: 500; font-size: 18px; } .hud-note.fauna { border-left-color: var(--spring); } .hud-note.special { border-left-color: var(--ink); }
 @keyframes noteIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
 @keyframes noteOut { to { opacity: 0; } }
-.hud-bud-hint { position: absolute; left: 50%; bottom: 60px; transform: translateX(-50%); background: var(--ink); color: #fff; padding: 8px 18px; border-radius: 20px; font-size: 15px; font-weight: 600; }
 
 /* Tutoriel */
 .tuto-card { position: absolute; left: 50%; bottom: 60px; transform: translate(-50%, 20px); width: 620px; padding: 14px 20px; background: #fffdf8; color: var(--ink); border-radius: 14px; border: 1px solid rgba(43,42,38,0.12); box-shadow: 0 12px 40px rgba(30,50,70,0.2); opacity: 0; transition: opacity 0.4s ease, transform 0.4s ease; pointer-events: none; display: flex; align-items: center; gap: 16px; font-size: 17px; line-height: 1.35; font-weight: 500; }

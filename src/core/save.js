@@ -57,7 +57,7 @@ const defaults = () => ({
   campaign: {
     recipes: [],   // fusions découvertes (Cahier)
     unlockedIsland: 1, stars: {}, gold: {}, best: {}, plays: {}, seeds: 0, seedsTotal: 0,   // gold : étoile d'or par île (cosmétique) ; plays : parties terminées par île (déblocage et porte de chapitre)
-    upgrades: { sight: 0, pocket: 0, breath: 0, patience: 0, rare: 0, memory: 0 },
+    upgrades: { sight: 0, breath: 0, patience: 0, rare: 0 },
     prologueSeen: false, completed: false, islandsPlayed: 0, memoriesRead: [],
     announced: [],   // déblocages déjà annoncés par une bannière (modes de jeu, chapitre d'Atelier) : chacun ne passe qu'une fois
   },

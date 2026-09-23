@@ -81,18 +81,8 @@ export function playStrong(def, o = {}) {
       for (let i = 1; i < isl.queue.list.length; i++) { if (!isl.canPick(i) || isl.queue.list[i].work) continue; let q = -Infinity; for (const c of isl.board.legalCells()) { const sc = evalMove(isl, isl.queue.list[i], c.q, c.r, rng, false); if (sc > q) q = sc; } if (q > bq) { bq = q; bi = i; } }
       if (bi > 0) { const m = bestMove(isl, isl.queue.list[bi], rng); if (m.cell && m.score > mv.score + 0.5 && isl.pick(bi)) { picked = true; continue; } }
     }
-    // souffles : échanger avec une meilleure tuile visible, défausser une tuile sans avenir, bourgeonner un pré entouré de forêt
-    if (isl.breaths >= 1 && isl.queue.list.length > 1) {
-      let bi = -1, bsc = mv.score + 1.5;
-      for (let i = 1; i < isl.queue.list.length; i++) { if (!isl.canSwap(i)) continue; const m = bestMove(isl, isl.queue.list[i], rng); if (m.cell && m.score > bsc) { bsc = m.score; bi = i; } }
-      if (bi > 0 && isl.swap(bi)) continue;
-    }
-    if (mv.score <= 0 && isl.breaths >= 4 && isl.canDiscard()) { isl.discard(); continue; }
-    if (isl.breaths >= 5) {
-      let bud = null, bb = 2.5;
-      for (const t of isl.board.tiles.values()) { if (!isl.canBud(t.q, t.r)) continue; const f = neighbors(t.q, t.r).filter(([a, c]) => Board.isFamily(isl.board.get(a, c), 'forest')).length; if (f > bb) { bb = f; bud = t; } }
-      if (bud) { isl.bud(bud.q, bud.r, 'forest'); continue; }
-    }
+    // souffles : défausser une tuile sans avenir (l'échange et le bourgeon ont été retirés, la main les remplace)
+    if (mv.score <= 0 && isl.breaths >= 3 && isl.canDiscard()) { isl.discard(); continue; }
     // bâtir : si une tuile de même famille bien placée rapporte plus que la meilleure pose (retour de tuile compté 3, souffle compté 1)
     if (isl.buildOn && isl.breaths >= 2) {
       let bb = null, bbs = mv.score + 1;

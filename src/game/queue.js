@@ -9,8 +9,6 @@ export class TileQueue {
     this.total = total;             // nombre de tuiles restantes à générer (Infinity = infinie)
     this.visible = visible;
     this.list = [];
-    this.pocket = [];
-    this.pocketSize = 0;
     this.generated = 0;
     this.fill();
   }
@@ -49,12 +47,10 @@ export class TileQueue {
   /** Injecte une tuile en tête (rare). */
   inject(tile, front = true) { if (front) this.list.unshift(tile); else this.list.splice(Math.min(1, this.list.length), 0, tile); }
 
-  /** Poche : déplace la tuile courante en poche, ou reprend une tuile de la poche en tête. */
-  toPocket() { if (this.pocket.length >= this.pocketSize || !this.list.length) return false; this.pocket.push(this.list.shift()); this.fill(); return true; }
-  fromPocket(i = 0) { if (!this.pocket.length) return false; const t = this.pocket.splice(i, 1)[0]; this.list.unshift(t); return true; }
 
   setVisible(n) { this.visible = n; this.fill(); }
 
-  snapshot() { return { list: this.list.map((t) => ({ ...t })), pocket: this.pocket.map((t) => ({ ...t })), total: this.total, generated: this.generated, s: this.rng.s }; }
-  restore(s) { this.list = s.list.map((t) => ({ ...t })); this.pocket = s.pocket.map((t) => ({ ...t })); this.total = s.total; this.generated = s.generated; this.rng.s = s.s; }
+  snapshot() { return { list: this.list.map((t) => ({ ...t })), total: this.total, generated: this.generated, s: this.rng.s }; }
+  // une partie sauvée avant le retrait de la poche : ses tuiles en poche reviennent en tête de la main
+  restore(s) { this.list = [...(s.pocket || []), ...s.list].map((t) => ({ ...t })); this.total = s.total; this.generated = s.generated; this.rng.s = s.s; }
 }

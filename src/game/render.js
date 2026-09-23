@@ -122,7 +122,6 @@ export class IslandRenderer {
     this.isl = island; this.cam = camera; this.fx = effects; this.p = particles;
     this.time = 0;
     this.hover = null;          // { q, r, preview }
-    this.budMode = false;
     this.transition = null;     // { from, to, t }
     this.waveImgs = Assets.keysStarting('sea_wave_').map((k) => Assets.img(k));
     this.faunaImgs = {};
@@ -1225,12 +1224,6 @@ export class IslandRenderer {
     const cam = this.cam;
     const w = toWorld(hv.q, hv.r); const c = cam.toScreen(w.x, w.y);
     const z = cam.zoom;
-    if (this.budMode) {
-      const t = this.isl.board.get(hv.q, hv.r);
-      const ok = this.isl.canBud(hv.q, hv.r);
-      this.outline(ctx, c.x, c.y, ok ? '#2f9e8f' : '#d95f4b', 0.9);
-      return;
-    }
     if (!hv.preview) {
       if (this.isl.board.has(hv.q, hv.r) && !this.isl.board.get(hv.q, hv.r)) this.outline(ctx, c.x, c.y, '#d95f4b', 0.6);
       else if (this.isl.board.get(hv.q, hv.r)) { const pts = corners(c.x, c.y, SIZE * z * 0.97); ctx.save(); ctx.globalAlpha = 0.55; ctx.strokeStyle = '#fffdf8'; ctx.lineWidth = 1.5; ctx.setLineDash([5, 5]); ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]); for (let i = 1; i < 6; i++) ctx.lineTo(pts[i][0], pts[i][1]); ctx.closePath(); ctx.stroke(); ctx.restore(); }

@@ -67,7 +67,7 @@ export const STORY = {
         'Au printemps, la glace est partie. Personne n’a été triste : on savait qu’elle reviendrait.',
       ],
       tutorial: [
-        { id: 'breath', text: 'Chaque région fermée te donne un souffle. Dépense-les : échanger la tuile avec la suivante (1), la défausser (2), faire bourgeonner une prairie (3), annuler la dernière pose (4).' },
+        { id: 'breath', text: 'Chaque région fermée te donne un souffle, chaque vœu exaucé deux. Dépense-les : défausser la tuile (1), annuler la dernière pose (3, une fois par saison).' },
       ],
     },
     4: {
@@ -583,11 +583,9 @@ export const STORY = {
   },
 
   breaths: {
-    swap: 'Échanger (1 souffle) : la tuile obligatoire prend la place de l’une des deux suivantes.',
-    discard: 'Défausser (2 souffles) : la tuile obligatoire s’en va et ne revient pas.',
-    bud: 'Bourgeon (3 souffles) : une prairie déjà posée devient forêt ou verger.',
-    undo: 'Souvenir (4 souffles, une fois par saison) : la dernière tuile posée revient dans ta main.',
-    pocket: 'Poche : mets la tuile de côté et reprends-la quand la bonne case apparaît.',
+    discard: 'Défausser (1 souffle) : la tuile du moment s’en va et ne revient pas.',
+    undo: 'Annuler (3 souffles, une fois par saison) : la dernière tuile posée revient dans ta main.',
+    build: 'Bâtir ou fusionner (1 souffle) : poser la tuile sur une tuile déjà posée, de sa famille ou d’une famille qui fait recette.',
   },
 
   results: {
@@ -677,7 +675,7 @@ export const STORY = {
     season: 'Quand la ligne de saison est pleine, la saison change et une règle avec elle. Chaque île traverse les quatre saisons.',
     fauna: 'La faune s’installe quand un habitat existe (lapin dans les prés, canard sur l’eau, ours près de la roche…) et rapporte des points à chaque saison.',
     wish: 'Les vœux des habitants (à droite) donnent des objectifs à échéance : exaucés, ils rapportent des points, des souffles et une tuile rare.',
-    breath: 'Les souffles se gagnent en fermant des régions : échanger la tuile, la défausser, faire bourgeonner un pré, annuler la dernière pose.',
+    breath: 'Les souffles se gagnent en fermant des régions et en exauçant des vœux. Ils servent à défausser une tuile (1) ou à annuler la dernière pose (3, une fois par saison) ; plus tard, à bâtir.',
     rare: 'Tuiles rares : le moulin vaut champ et hameau, la chapelle réchauffe l’hiver, la tour clôt malgré un trou, le puits garde l’eau, le campement attire.',
     surprise: 'Surprise de saison : à chaque saison qui arrive, la règle de base peut laisser place à l’une de ses deux surprises (semailles ou nichées au printemps, grandes chaleurs ou feux en été, foire ou chasse en automne, grand froid ou hiver doux). Elle s’écrit sous la saison et dure jusqu’à la suivante.',
     hill: 'La colline aime le pré et la forêt ; deux collines qui se touchent attirent le cheval. Une rivière peut en naître.',
@@ -691,7 +689,7 @@ export const STORY = {
     riverLake: 'Ta rivière s’élargit : le tronc depuis la montagne reste une rivière (+2 par tuile), la suite devient un lac dans lequel elle se jette (+1 par tuile). Un ponton posé sur la rivière y reste.',
     growth: 'Croissance : une tuile entourée d’assez des siennes pendant deux saisons grandit toute seule. Le hameau devient un village, la forêt s’épaissit, le verger se remplit. Une saison avant, de jeunes pousses l’annoncent : tu peux encore l’empêcher en posant autre chose à côté. Le temps épaissit ; le niveau 3 et les signatures, eux, restent à bâtir.',
     blight: 'Friche : une tuile posée qui coûte des points (bords et contraintes) devient une friche, une ruine ou un lit asséché. Elle ne rapporte plus rien et ne compte plus pour sa famille. Bâtir dessus la remet en état (1 souffle).',
-    hand: 'Main de saison : la file devient une main. Clique sur n’importe quelle tuile visible pour la jouer maintenant, sans souffle. L’échange disparaît, le Regard agrandit la main.',
+    hand: 'Main de saison : la file devient une main. Clique sur n’importe quelle tuile visible pour la jouer maintenant. Le Regard de l’Atelier agrandit la main.',
     semis: 'Semis : avant chaque île, tu choisis ce que la file donnera plutôt. Terres hautes, fonds humides, pays habité ou au gré des saisons. Un choix, pas une garantie : la file reste tirée au sort.',
     build3: 'Niveau 3 : une tuile de niveau 2 qui a traversé une saison se bâtit encore (2 souffles). Elle prend sa signature et rapporte +1 par saison.',
   },

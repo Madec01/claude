@@ -12,9 +12,9 @@ export const CAMPAIGN_SIZE = 50;
 /** Mécaniques introduites par île (cumulatives). */
 export const MECH_AT = {
   1: ['affinity', 'close', 'fauna'], 2: ['river', 'season'], 4: ['semis'],
-  6: ['wish'], 7: ['breath'], 8: ['rare'],
+  6: ['wish', 'hand'], 7: ['breath'], 8: ['rare'],
   11: ['surprise'], 12: ['hill'], 13: ['rare2'], 14: ['heath'],
-  16: ['build', 'hand'],
+  16: ['build'],
   21: ['climate', 'fuse'], 26: ['work'], 31: ['build3'], 41: ['growth'],
 };
 export const MECH_NAMES = { river: 'rivière', season: 'saisons', fauna: 'faune', semis: 'semis', wish: 'vœux', breath: 'souffles', rare: 'tuiles rares', surprise: 'surprises de saison', hill: 'collines', rare2: 'grenier', heath: 'lande', build: 'bâtir', hand: 'main de saison', climate: 'climats', fuse: 'fusions', work: 'ouvrages', build3: 'niveau 3' , growth: 'croissance'};

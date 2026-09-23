@@ -15,10 +15,6 @@ html.touch .pause-controls { display: none; }
 .hud-place.neg { background: var(--loss); }
 .hud-fs { margin-left: 6px; }
 .wish-toggle { display: none; }
-.hud-bud-hint { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: center; pointer-events: all; }
-.hud-bud-hint button { font-family: inherit; font-weight: 700; font-size: 13px; padding: 4px 10px; border-radius: 9px; border: 1px solid rgba(255,255,255,0.5); background: rgba(255,255,255,0.15); color: #fff; cursor: pointer; }
-.hud-bud-hint button:hover { background: rgba(255,255,255,0.3); }
-.hud-bud-hint.hidden { display: none; }
 
 /* ---------- HUD compact ---------- */
 html.compact .hud-top { padding: 5px 6px; gap: 5px; padding-left: max(6px, env(safe-area-inset-left)); padding-right: max(6px, env(safe-area-inset-right)); }
@@ -42,8 +38,6 @@ html.compact .fauna-chip img { width: 18px; height: 18px; }
 html.compact .tuto-card { width: calc(100% - 16px); padding: 8px 10px; font-size: 13px; gap: 8px; border-radius: 10px; }
 html.compact .tuto-ok { font-size: 12px; padding: 4px 9px; }
 html.compact .tuto-hint { display: none; }
-html.compact .hud-bud-hint { font-size: 12px; padding: 6px 10px; width: calc(100% - 16px); }
-html.compact .hud-bud-hint button { font-size: 12px; padding: 3px 8px; }
 /* file de tuiles */
 html.compact .queue-title { display: none; }
 html.compact .qtile { padding: 4px 6px; gap: 4px; border-radius: 9px; }
@@ -85,7 +79,6 @@ html.compact.portrait .garden-pick { position: absolute; left: 6px; right: 6px; 
 html.compact.portrait .hud-fauna { left: 6px; right: 6px; bottom: 124px; max-width: none; gap: 4px; }
 html.compact.portrait .hud-place { bottom: 156px; }
 html.compact.portrait .tuto-card { bottom: 160px; }
-html.compact.portrait .hud-bud-hint { bottom: 130px; }
 /* paysage : colonne étroite à gauche */
 html.compact.landscape .hud-queue { left: max(6px, env(safe-area-inset-left)); top: 46px; bottom: 6px; width: 118px; gap: 4px; overflow: hidden; }
 /* même principe en paysage, sur la hauteur : la colonne des tuiles défile, les souffles gardent leur place en bas
@@ -104,7 +97,6 @@ html.compact.landscape .hud-fauna { left: 132px; right: 50px; bottom: 6px; max-w
 html.compact.landscape .hud-place { bottom: 8px; left: auto; right: max(10px, env(safe-area-inset-right)); transform: none; }
 html.compact.landscape .tuto-card { bottom: auto; top: 46px; width: calc(100% - 300px); left: calc(50% + 30px); }
 html.compact.landscape .tuto-card.on { transform: translate(-50%, 0); }
-html.compact.landscape .hud-bud-hint { bottom: 40px; left: calc(50% + 60px); width: auto; max-width: calc(100% - 150px); }
 
 /* ---------- Menu et panneaux compacts ---------- */
 html.compact .menu-veil { background: linear-gradient(180deg, rgba(244,239,230,0.94) 0%, rgba(244,239,230,0.8) 55%, rgba(244,239,230,0.35) 100%); }

@@ -10,7 +10,7 @@ export const ACHIEVEMENTS = [
   { id: 'grand-domaine', cat: 'start', name: 'Grand domaine', desc: 'Fermer une région de dix tuiles ou plus.' },
   { id: 'coup-de-maitre', cat: 'start', name: 'Coup de maître', desc: 'Réussir dix « Coup de maître ! » en tout.', target: 10, counter: 'masters' },
   { id: 'sans-faute', cat: 'start', name: 'Sans faute', desc: 'Huit bons coups d’affilée.' },
-  { id: 'sans-regret', cat: 'start', name: 'Sans regret', desc: 'Finir une île de campagne sans utiliser Souvenir.', hidden: true },
+  { id: 'sans-regret', cat: 'start', name: 'Sans regret', desc: 'Finir une île de campagne sans rien annuler.', hidden: true },
   // eau et saisons
   { id: 'la-source', cat: 'water', name: 'La source', desc: 'Faire une rivière de six tuiles.' },
   { id: 'jusqu-a-la-mer', cat: 'water', name: 'Jusqu’à la mer', desc: 'Une rivière qui atteint la mer.' },

@@ -34,9 +34,9 @@ Navigateurs pris en charge : Chrome, Firefox et Edge à jour sur ordinateur, Chr
 12. Dès l'île 21, on peut **fusionner** : poser une tuile sur une tuile d'une autre famille quand une recette existe (champ + eau = rizière, hameau + champ = ferme, hameau + roche = fortin, roche + eau = cascade, forêt + roche = grotte, sable + eau = lagune). La tuile composée compte pour ses deux familles et rapporte à chaque saison ; la première réalisation d'une recette rend une tuile et une rare, et s'écrit dans le Cahier du Guide.
 13. Une rivière qui s'élargit ne devient plus un lac d'un bloc : le tronc depuis la montagne reste une **rivière** (jusqu'à la première fourche incluse) et la suite devient un **lac** dans lequel elle se jette. Le pont ne se pose bien que sur une rivière entre deux hameaux ; la jetée du ponton part de la rive du hameau (sprites du Nature Kit de Kenney, CC0).
 14. Dès l'île 26, des **ouvrages** arrivent dans la file (un toutes les seize poses, parfois en récompense d'un vœu) : ruche, épouvantail, ponton, pont, nichoir, feu de camp, menhir, compost. Chacun a sa bonne place, qui rapporte à chaque saison, et sa mauvaise place, qui coûte une saison, moitié la suivante, puis l'ouvrage s'efface. Posé tout de suite, il est **frais** (+1 par saison). Sans bonne place, on le met en **remise** (touche R), où il attend douze poses avant d'expirer, ou on le défausse gratuitement ; un second ouvrage remplace le premier.
-15. Les **souffles** sont des pouvoirs limités, gagnés en fermant des régions, en exauçant des vœux, grâce à la faune (un souffle pour deux animaux à chaque saison) ; ils sont rares, chaque pouvoir est un renoncement : échanger la tuile avec la suivante, la défausser, faire bourgeonner une prairie en forêt ou en verger, annuler la dernière pose, garder une tuile en poche.
+15. Les **souffles** sont des pouvoirs limités, gagnés en fermant des régions (un) et en exauçant des vœux (deux) ; ils sont rares, chaque pouvoir est un renoncement : défausser la tuile (un), annuler la dernière pose (trois, une fois par saison), bâtir ou fusionner (un).
 16. Dès l'île 4, avant chaque île, on choisit un **semis** : au gré des saisons (file telle quelle), terres hautes (plus de roche et de collines), fonds humides (plus d'eau et de marais) ou pays habité (plus de hameaux et de champs). Un penchant, pas une garantie : la file reste tirée au sort.
-17. Dès l'île 16, la file devient une **main** : on joue n'importe quelle tuile visible en cliquant dessus (ou touches `2` à `5`), sans souffle. L'échange disparaît ; le Regard et la Longue-vue agrandissent la main.
+17. Dès l'île 6, la file devient une **main** : on joue n'importe quelle tuile visible en cliquant dessus (ou touches `2` à `5`), sans souffle. Le Regard de l'Atelier agrandit la main.
 18. Une pose qui **coûte des points** (bords et contraintes, total négatif) laisse une **friche** : ruine pour un hameau, lit asséché pour l'eau, terre morte ailleurs. Elle ne rapporte plus rien, ne compte plus pour sa famille (régions, vœux, faune) et ses bords ne valent rien pour les voisines. Bâtir dessus avec une tuile de la même famille la remet en état (1 souffle) : seuls ses bons voisins comptent alors, et elle peut fermer une région.
 24. Dès l'île 41, les tuiles **grandissent toutes seules** : une tuile entourée d'assez de voisines de sa propre famille pendant deux saisons passe au niveau 2 sans rien coûter. Le hameau devient un village (trois voisins suffisent), le verger se remplit (trois), la forêt, le champ et la prairie s'épaississent (quatre). Une saison avant, de jeunes pousses l'annoncent sur la tuile, et poser autre chose à côté annule la croissance. Au plus deux tuiles par changement de saison, jamais deux dans la même région. Le temps épaissit ; le niveau 3 et les signatures restent réservés à **bâtir**, et une tuile poussée par le temps ne compte pas pour le vœu qui demande de bâtir.
 21. Les îles générées de la fin de campagne (36 à 49) portent chacune une **signature**, une contrainte écrite et annoncée à l'intro : les dunes, deux sources, les pierres dressées, le sud est un marais, un lac au milieu, les champs ouverts, une rivière la traverse déjà, la forêt profonde, sans une pierre, le pays des vergers, les saisons passent vite, deux villages qui se regardent, les saisons s'attardent, la file est courte. Leurs textes d'intro et de souvenir en parlent, et la voix du bilan et du souvenir tient compte de ce qu'on a bâti (une île de hameaux, d'eau ou de forêt).
@@ -54,12 +54,9 @@ Chaque pose reçoit un mot selon sa qualité par rapport au meilleur emplacement
 | Poser un ouvrage (dès l'île 26) | survol d'une tuile posée puis clic gauche (deux touchers sur téléphone) ; R ou clic sur l'ouvrage : remise |
 | Fusionner (dès l'île 21) | survol d'une tuile d'une autre famille avec une recette, puis clic gauche (deux touchers sur téléphone) |
 | Déplacer la vue / zoomer | clic droit glissé / molette |
-| Échanger avec la 2e ou 3e tuile (avant l'île 16) | `2` / `3` |
-| Jouer une tuile de la main (dès l'île 16) | clic sur la tuile, ou `2` à `5` |
+| Jouer une tuile de la main (dès l'île 6) | clic sur la tuile, ou `2` à `5` |
 | Défausser | `X` |
-| Bourgeonner une prairie | `B`, puis `F` (forêt) ou `V` (verger) |
 | Annuler la dernière pose | `Z` |
-| Mettre en poche / reprendre | `P` |
 | Journal des événements | `J` (ou le bouton ⓘ en haut) |
 | Fiche de la tuile à poser | `H` (ou l'option Fiche de la tuile) |
 | Pause | `Échap` |
@@ -71,7 +68,7 @@ Chaque pose reçoit un mot selon sa qualité par rapport au meilleur emplacement
 - **Île infinie** : l'île grandit à chaque pose, sans fin ; le score et le nombre de saisons sont enregistrés.
 - **Île du jour** : une île générée depuis la date, la même pour tout le monde, trois vœux tirés au sort, surprises de saison ; meilleur score du jour et série de jours conservés.
 - **Jardin** : pose libre, choix de la tuile, sans saisons ni score : pour composer.
-- **Atelier des saisons** : des améliorations permanentes achetées en graines, ouvertes chapitre par chapitre (regard et patience au chapitre 1 ; souffle de départ, poche et semence rare au 2 ; source, refuge et almanach au 3 ; charpente et seconde chance au 4 ; alambic et manteau au 5 ; talisman, grande remise et fraîcheur au 6 ; maître d'œuvre au 7 ; longue-vue et étoile du soir ensuite). Les suivantes restent visibles, grisées, avec leur chapitre.
+- **Atelier des saisons** : des améliorations permanentes achetées en graines, ouvertes chapitre par chapitre (regard et patience au chapitre 1 ; souffle de départ et semence rare au 2 ; source, refuge et almanach au 3 ; charpente au 4 ; alambic et manteau au 5 ; talisman, grande remise et fraîcheur au 6 ; maître d'œuvre au 7 ; étoile du soir ensuite). Les suivantes restent visibles, grisées, avec leur chapitre.
 - **Guide** : depuis le menu ou la pause, toutes les tuiles avec leurs bonnes et mauvaises paires, les saisons, la faune, les tuiles rares, les souffles, les vœux et les graines.
 
 ## Options et mode test
@@ -168,7 +165,7 @@ Quitter l'application au milieu d'une île ne fait plus perdre la partie. Dès l
 (téléphone verrouillé, appel, application fermée) et toutes les cinq secondes en jeu, l'île en cours est rangée dans le navigateur
 (clé `cent-saisons.run`, 4 à 12 Ko). Au retour, le menu propose **« Reprendre »** avec le nom de l'île et le nombre de tuiles posées :
 le plateau, la saison, le score, les souffles, les vœux, la faune et **les tuiles à venir** sont exactement ceux qu'on avait laissés.
-Seule l'ardoise du Souvenir (annulation) repart vide. La partie gardée reste sur l'appareil : elle n'est **jamais** envoyée en ligne.
+Seule l'ardoise des annulations repart vide. La partie gardée reste sur l'appareil : elle n'est **jamais** envoyée en ligne.
 Elle est oubliée quand l'île se termine, quand on recommence, quand on ouvre une autre île, au bout d'un mois, ou si l'île ne peut plus
 être reconstruite (l'Île du jour de la veille).
 

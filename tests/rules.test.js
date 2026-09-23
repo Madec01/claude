@@ -119,7 +119,7 @@ check(affinity('meadow', 'water') === 0, 'prairie-eau = 0');
   const placeOne = () => { if (isl.current.work) return false; const c = isl.board.legalCells()[0]; isl.place(c.q, c.r); return true; };
   isl.giveWork('scarecrow'); placeOne();
   check(!!isl.current && isl.current.work && isl.discardCost() === 0 && isl.canDiscard(), 'un ouvrage en tête de file se défausse gratuitement');
-  check(isl.canShed() && !isl.canPocket(), 'un ouvrage va en remise, pas en poche');
+  check(isl.canShed() && isl.canPocket === undefined, 'un ouvrage va en remise ; la poche n’existe plus');
   const before = isl.queue.list.length;
   check(isl.toShed() && isl.shed.length === 1 && isl.shedLeft(isl.shed[0]) === 12 && isl.queue.list.length === before, 'mise en remise : 12 poses devant lui, la file continue');
   for (let i = 0; i < 5; i++) placeOne();
@@ -158,8 +158,8 @@ check(affinity('meadow', 'water') === 0, 'prairie-eau = 0');
   for (const u of UPGRADES) { check(u.chapter >= prevCh && u.chapter >= 1 && u.chapter <= 10, `amélioration ${u.id} : chapitre croissant`); prevCh = u.chapter; if (u.requires) { const at = mechIsland(u.requires); check(at !== null && Math.ceil(at / 5) <= u.chapter, `amélioration ${u.id} : sa mécanique (${u.requires}, île ${at}) arrive avant son chapitre ${u.chapter}`); } check(u.levels.length === u.costs.length + 1, `amélioration ${u.id} : niveaux et coûts`); }
   check(playerChapter(1) === 1 && playerChapter(5) === 1 && playerChapter(6) === 2 && playerChapter(50) === 10, 'chapitre du joueur');
   const d = campaignIsland(31);
-  const a = new Island(d, { ...islandOptions(d) }), b = new Island(d, { ...islandOptions(d), upgrades: { spyglass: 2, shed: 1, fresh: 1, master: 1, still: 1, cloak: 1 } });
-  check(b.queue.visible === a.queue.visible + 2 && b.shedSize === 2, 'Longue-vue et Grande remise');
+  const a = new Island(d, { ...islandOptions(d) }), b = new Island(d, { ...islandOptions(d), upgrades: { sight: 2, shed: 1, fresh: 1, master: 1, still: 1, cloak: 1 } });
+  check(b.queue.visible === a.queue.visible + 2 && b.shedSize === 2, 'Regard (la Longue-vue y est fondue) et Grande remise');
   const c31 = new Island(d, { ...islandOptions(d), upgrades: { talisman: 1 } });
   check(c31.queue.list.some((t) => t.work), 'Talisman : l’île démarre avec un ouvrage dans la file');
   check(b.fusionCost() === 0 && a.fusionCost() === 1, 'Alambic : première fusion offerte');
@@ -262,11 +262,23 @@ check(affinity('meadow', 'water') === 0, 'prairie-eau = 0');
   check(ev.length === 0 && isl.stats.bestStreak >= 3, `la série se mesure encore (${isl.stats.bestStreak}) mais ne déclenche plus rien (${ev.join(',')})`);
 }
 
-// --- main de saison : choisir librement la tuile visible, l'échange payant disparaît
+// --- main de saison dès l'île 6 : choisir librement la tuile visible ; plus d'échange, de bourgeon ni de poche
 {
-  const d = campaignIsland(16); const isl = new Island(d, { ...islandOptions(d) });
-  const second = isl.queue.list[1]; check(isl.canPick(1) && !isl.canSwap(1) && isl.pick(1) && isl.current === second, 'la deuxième tuile devient la tuile courante, gratuitement');
-  const d15 = campaignIsland(15); const i15 = new Island(d15, { ...islandOptions(d15) }); check(!i15.canPick(1), 'pas de main avant l’île 16');
+  const d = campaignIsland(6); const isl = new Island(d, { ...islandOptions(d) });
+  const second = isl.queue.list[1]; check(isl.canPick(1) && isl.canSwap === undefined && isl.pick(1) && isl.current === second, 'la deuxième tuile devient la tuile courante, gratuitement');
+  const d5 = campaignIsland(5); const i5 = new Island(d5, { ...islandOptions(d5) }); check(!i5.canPick(1), 'pas de main avant l’île 6');
+  check(isl.canBud === undefined && isl.toPocket === undefined, 'bourgeon et poche retirés');
+}
+// --- souffles : deux sources (fermer, exaucer), trois usages (défausser 1, annuler 3 une fois par saison, bâtir ou fusionner)
+{
+  const d = campaignIsland(20); const isl = new Island(d, { ...islandOptions(d) });
+  let attendu = 0; isl.on((e) => { if (e.type === 'close') attendu += BALANCE.breaths.close; if (e.type === 'wish' && e.kind === 'done') attendu += BALANCE.breaths.wish; });
+  let g = 0, depense = 0; while (!isl.ended && g++ < 200) { if (isl.current && isl.current.work) { const c0 = isl.discardCost(); isl.discard(); depense += c0; continue; } const c = isl.board.legalCells()[0]; if (!c) break; isl.place(c.q, c.r); }
+  check(isl.breaths === attendu - depense, `les souffles ne viennent que des fermetures et des vœux (${isl.breaths} = ${attendu} − ${depense})`);
+  check(BALANCE.breaths.discard === 1 && BALANCE.breaths.undo === 3 && isl.undoCost === 3, 'défausser coûte 1, annuler 3');
+  const { tidyCampaign } = await import('../src/core/save.js');
+  const data = { campaign: { seeds: 0, upgrades: { pocket: 2, memory: 1, spyglass: 1, sight: 1 } } };
+  check(tidyCampaign(data) === 5 + 10 + 4 + 12 && !('pocket' in data.campaign.upgrades) && data.campaign.upgrades.sight === 1, 'Poche, Seconde chance et Longue-vue remboursées');
 }
 
 
@@ -300,9 +312,9 @@ for (const w of CAMPAIGN_WISHES) check(!!STORY.wishes[w.id], `texte du vœu de c
     check(!!(d.story ? STORY.islands[d.story] : d.name && d.intro && d.intro.length === 2), `textes de l'île de campagne ${n}`);
     for (const w of d.wishes) check(!!STORY.wishes[w.id] && (!w.deadline || w.deadline.placements > 5 || w.deadline.season), `vœu ${w.id} sur l'île ${n}`);
     prev = d.mech.size;
-    // déblocage des mécaniques : rien avant son île (bâtir 16, fusions 21, ouvrages 26, niveau 3 31, surprises 11, vœux 6, collines 12, lande 14, rares 8/13)
+    // déblocage des mécaniques : rien avant son île (main 6, bâtir 16, fusions 21, ouvrages 26, niveau 3 31, surprises 11, vœux 6, collines 12, lande 14, rares 8/13)
     const isl = new Island(d, { ...islandOptions(d) });
-    const exp = { buildOn: n >= 16, handOn: n >= 16, fuseOn: n >= 21, workOn: n >= 26, level3On: n >= 31, surpriseOn: n >= 11 };
+    const exp = { buildOn: n >= 16, handOn: n >= 6, fuseOn: n >= 21, workOn: n >= 26, level3On: n >= 31, surpriseOn: n >= 11 };
     for (const [k, v] of Object.entries(exp)) check(!!isl[k] === v, `île ${n} : ${k} devrait valoir ${v}`);
     check((isl.wishes.length > 0) === (n >= 6) || (n >= 6 && isl.wishes.length === 0 && d.story === 1), `île ${n} : vœux ${n >= 6 ? 'attendus' : 'interdits'} (${isl.wishes.length})`);
     check((n >= 12 || !d.weights.hill) && (n >= 14 || !d.weights.heath), `île ${n} : pas de colline avant 12 ni de lande avant 14`);
@@ -348,7 +360,6 @@ function playGreedy(def, upgrades = {}) {
       if (s > bestScore) { bestScore = s; best = c; }
     }
     if (!best) { isl.checkEnd(); break; }
-    if (isl.breaths >= 1 && bestScore < 0 && isl.canSwap(1)) { isl.swap(1); continue; }
     isl.place(best.q, best.r);
     if (def.infinite && isl.placements > 150) isl.finish('test');
   }

@@ -71,8 +71,6 @@ function parseList(s) {
           if (s > bs) { bs = s; best = c; }
         }
         if (!best) return { stuck: true };
-        // souffles : échanger si le meilleur coup est mauvais
-        if (bs < 0 && isl.canSwap(1)) { isl.swap(1); return { swapped: true }; }
         if (isl.garden && isl.placements % 7 === 0) sc.hud.onGardenPick(['forest', 'meadow', 'water', 'hamlet', 'field'][isl.placements % 5]);
         const S = 69.28; const w = { x: S * Math.sqrt(3) * (best.q + best.r / 2), y: S * 1.5 * best.r };
         const p = sc.cam.toScreen(w.x, w.y);

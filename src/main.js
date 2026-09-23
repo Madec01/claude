@@ -531,25 +531,19 @@ class IslandScene {
     this.armed = null;   // tactile : case « armée » (aperçu affiché) en attente d'une seconde touche
     this.particles = new ParticleSystem(1500); this.fx = new Effects(this.particles); this.shake = new Shake(); this.shake.enabled = Save.options.shake !== false;
     this.renderer = new IslandRenderer(isl, this.cam, this.fx, this.particles);
-    this.paused = false; this.budMode = false; this.endTimer = 0; this.finished = false; this.finale = null;
+    this.paused = false; this.endTimer = 0; this.finished = false; this.finale = null;
     const name = def.story && STORY.islands[def.story] ? STORY.islands[def.story].name : def.infinite ? 'Île infinie' : def.garden ? 'Jardin' : (def.name || 'Île');
     this.title = name;
     this.hud = new Hud(document.getElementById('hud'), isl, {
       title: name, mechanics: mech,
       onPause: () => this.togglePause(),
-      onSwap: (i) => { if (isl.swap(i)) AudioSys.play('tile_swap', { volume: 0.6 }); else AudioSys.play('ui_error', { volume: 0.4 }); },
       onPick: (i) => { if (isl.pick(i)) { AudioSys.play('tile_swap', { volume: 0.5 }); this.tutorial.onEvent('hand'); } },
       onDiscard: () => { if (isl.discard()) AudioSys.play('tile_discard', { volume: 0.6 }); else AudioSys.play('ui_error', { volume: 0.4 }); },
-      onBud: () => this.setBud(!this.budMode),
-      onUndo: () => { if (isl.undo()) { AudioSys.play('tile_undo', { volume: 0.6 }); this.hud.notify('Souvenir : la dernière pose est annulée', 'info'); } else AudioSys.play('ui_error', { volume: 0.4 }); },
-      onPocket: () => { if (isl.toPocket()) AudioSys.play('tile_pocket', { volume: 0.6 }); },
-      onPocketOut: (i) => { if (isl.fromPocket(i)) AudioSys.play('tile_pocket', { volume: 0.6 }); },
+      onUndo: () => { if (isl.undo()) { AudioSys.play('tile_undo', { volume: 0.6 }); this.hud.notify('La dernière pose est annulée', 'info'); } else AudioSys.play('ui_error', { volume: 0.4 }); },
       onShed: () => { if (isl.toShed()) AudioSys.play('tile_pocket', { volume: 0.6 }); },
       onShedOut: (i) => { if (isl.fromShed(i)) AudioSys.play('tile_pocket', { volume: 0.6 }); },
       onGardenPick: (fam) => { isl.setGardenTile(fam); AudioSys.play('ui_click', { volume: 0.4 }); },
       onPlace: () => this.placeArmed(),
-      onBudChoice: (fam) => { if (this.budMode && this.budTarget && isl.bud(this.budTarget.q, this.budTarget.r, fam)) this.setBud(false); },
-      onBudCancel: () => this.setBud(false),
       onFullscreen: () => Game.toggleFullscreen(),
       compact: STAGE.compact,
     });
@@ -770,7 +764,6 @@ class IslandScene {
       const lines = seasonLines(e, isl);
       if (this.hud.recapMode === 'full') { this.hud.onTick = null; setTimeout(() => this.hud.seasonRecap({ from: e.from, to: e.to, lines, total: e.pts }), 900 + flights.length * stagger + 1900); }
       else if (e.pts) setTimeout(() => this.hud.bumpScore(e.pts), 900 + flights.length * stagger + 2000);
-      if (e.faunaBreaths && this.mech.has('breath')) setTimeout(() => this.hud.ribbon(`+${e.faunaBreaths} souffle${e.faunaBreaths > 1 ? 's' : ''} (faune)`, '#3a9c8a', 1600, 'streak'), 1400 + flights.length * stagger);
       this.tutorial.onEvent('season');
       this.updateAmbience();
     } else if (e.type === 'fauna') {
@@ -787,8 +780,7 @@ class IslandScene {
       if (e.kind === 'done') { AudioSys.play('wish_done', { volume: 0.8 }); setTimeout(() => AudioSys.play('rare_tile', { volume: 0.6 }), 600); this.hud.notify(`Vœu exaucé — ${s.done}`, 'gold'); this.hud.notify(`Une tuile rare rejoint la file : ${(STORY.tiles[e.rare] || {}).name || e.rare}`, 'rare'); }
       else { AudioSys.play('wish_failed', { volume: 0.6 }); this.hud.notify(`Vœu manqué (échéance dépassée) : ${s.title} — ${s.failed}`, 'warn'); }
     } else if (e.type === 'breath') {
-      if (e.kind === 'bud') { const w = toWorld(e.q, e.r); fx.drop(key(e.q, e.r)); fx.placeBurst(w.x, w.y, true); AudioSys.play('bud', { volume: 0.7 }); }
-      else if (e.kind !== 'undo' && !e.free) AudioSys.play('breath_spend', { volume: 0.5 });
+      if (e.kind !== 'undo' && !e.free) AudioSys.play('breath_spend', { volume: 0.5 });
       if (!e.free) this.tutorial.onEvent('breath');
     } else if (e.type === 'work' && e.kind === 'arrive') {
       this.hud.notify(`Un ouvrage arrive : ${(STORY.tiles[e.tile.family] || {}).name || e.tile.family}. Pose-le tout de suite (frais : +1 par saison), mets-le en remise (R) ou défausse-le, c’est gratuit`, 'info');
@@ -810,7 +802,7 @@ class IslandScene {
   /** Tournée finale (HUD masqué, caméra libre) puis bilan. */
   startFinale() {
     if (this.finale) return;
-    this.armed = null; this.hud.setPlaceButton(null); this.setBud(false);
+    this.armed = null; this.hud.setPlaceButton(null);
     document.getElementById('hud').classList.add('finale'); document.getElementById('tutorial').classList.add('finale');
     // l'option `finaleClassique` rend la tournée d'avant sans rien changer d'autre : elle est lue ici,
     // à chaque île, pour qu'un aller-retour ne demande pas de recharger la page
@@ -820,19 +812,12 @@ class IslandScene {
   playSfx(key, volume = 0.6) { if (AudioSys.has(key)) AudioSys.play(key, { volume }); }
   onFinaleDone() { document.getElementById('hud').classList.remove('finale'); document.getElementById('tutorial').classList.remove('finale'); this.finished = true; this.endTimer = 10; }
 
-  setBud(on) { if (on && !this.mech.has('breath')) return; this.budMode = on; this.renderer.budMode = on; this.hud.setBudMode(on, false); this.budTarget = null; if (on) { this.armed = null; this.hud.setPlaceButton(null); } }
-
   onMouseDown(b, x, y) {
     if (this.finale && !this.finale.done) { if (b === 0) this.finale.skip(); return; }
     if (this.paused || this.hold || !this.isl || this.isl.ended) return;
     if (b === 2 || b === 1) { this.drag = { x, y, moved: 0 }; return; }
     if (b !== 0) return;
     const w = this.cam.toWorldPoint(x, y); const { q, r } = fromWorld(w.x, w.y);
-    if (this.budMode) {
-      if (this.isl.canBud(q, r)) { this.budTarget = { q, r }; this.hud.setBudMode(true, true); }
-      else { this.setBud(false); }
-      return;
-    }
     if (this.isl.canPlace(q, r)) { this.isl.place(q, r); this.renderer.hover = null; }
     else if (this.isl.canBuild(q, r)) { this.isl.build(q, r); this.renderer.hover = null; }
     else if (this.isl.board.has(q, r) && !this.isl.board.get(q, r)) { AudioSys.play('tile_invalid', { volume: 0.5 }); this.hud.notify(this.isl.restrict ? 'Pose la tuile sur la case qui brille' : 'Une tuile doit toucher une tuile posée', 'warn'); }
@@ -845,11 +830,6 @@ class IslandScene {
     if (this.finale && !this.finale.done) { this.finale.skip(); return; }
     if (this.paused || this.hold || !this.isl || this.isl.ended) return;
     const w = this.cam.toWorldPoint(x, y); const { q, r } = fromWorld(w.x, w.y);
-    if (this.budMode) {
-      if (this.isl.canBud(q, r)) { this.budTarget = { q, r }; this.hud.setBudMode(true, true); AudioSys.play('tile_hover', { volume: 0.3 }); }
-      else this.setBud(false);
-      return;
-    }
     if (this.isl.board.get(q, r)) {
       // toucher une tuile posée : bâtir si c'est possible (même double toucher que la pose)
       if (!this.isl.canBuild(q, r)) { this.armed = null; this.hud.setPlaceButton(null); return; }
@@ -869,22 +849,19 @@ class IslandScene {
   }
   onKey(k) {
     if (this.finale && !this.finale.done) { if (k !== 'KeyM') this.finale.skip(k); return; }
-    if (k === 'Escape') { if (this.budMode) { this.setBud(false); return; } this.togglePause(); return; }
+    if (k === 'Escape') { this.togglePause(); return; }
     if (k === 'KeyM') { const m = AudioSys.toggleMute(); Save.options.muted = m; Save.save(); return; }
     if (this.paused || this.hold || !this.isl || this.isl.ended) return;
     const isl = this.isl;
-    if (k === 'Digit2' || k === 'Numpad2') { if (isl.handOn) this.hud.onPick(1); else this.hud.onSwap(1); }
-    if (k === 'Digit3' || k === 'Numpad3') { if (isl.handOn) this.hud.onPick(2); else this.hud.onSwap(2); }
+    if (k === 'Digit2' || k === 'Numpad2') { if (isl.handOn) this.hud.onPick(1); }
+    if (k === 'Digit3' || k === 'Numpad3') { if (isl.handOn) this.hud.onPick(2); }
     if (k === 'Digit4' || k === 'Numpad4') { if (isl.handOn) this.hud.onPick(3); }
     if (k === 'Digit5' || k === 'Numpad5') { if (isl.handOn) this.hud.onPick(4); }
     if (k === 'KeyX') { if (this.mech.has('breath')) { if (isl.discard()) AudioSys.play('tile_discard', { volume: 0.6 }); } }
-    if (k === 'KeyB') this.setBud(!this.budMode);
     if (k === 'KeyJ') this.hud.toggleLog();
     if (k === 'KeyH') this.hud.setTileHelp(this.hud.helpHidden || Save.options.tileHelp === false);
     if (k === 'KeyZ') { if (this.mech.has('breath') && isl.undo()) AudioSys.play('tile_undo', { volume: 0.6 }); }
-    if (k === 'KeyP') { if (isl.toPocket()) AudioSys.play('tile_pocket', { volume: 0.6 }); else if (isl.queue.pocket.length) { isl.fromPocket(0); AudioSys.play('tile_pocket', { volume: 0.6 }); } }
     if (k === 'KeyR') { if (isl.toShed()) AudioSys.play('tile_pocket', { volume: 0.6 }); else if (isl.shed.length) { isl.fromShed(0); AudioSys.play('tile_pocket', { volume: 0.6 }); } }
-    if (this.budMode && this.budTarget && (k === 'KeyF' || k === 'KeyV')) { if (isl.bud(this.budTarget.q, this.budTarget.r, k === 'KeyF' ? 'forest' : 'orchard')) this.setBud(false); }
     if (Game.testMode) {
       if (k === 'F1') { if (this.debugEl) { this.debugEl.remove(); this.debugEl = null; } else { this.debugEl = h('div', { class: 'debug' }); document.getElementById('app').appendChild(this.debugEl); } }
       if (k === 'F2') { isl.queue.total = Infinity; isl.queue.fill(); this.hud.notify('File infinie', 'special'); }
@@ -917,7 +894,7 @@ class IslandScene {
     const pan = 320 * dt; if (input.isDown('ArrowLeft')) this.cam.pan(pan, 0); if (input.isDown('ArrowRight')) this.cam.pan(-pan, 0); if (input.isDown('ArrowUp')) this.cam.pan(0, pan); if (input.isDown('ArrowDown')) this.cam.pan(0, -pan);
     this.cam.update(dt);
     // survol
-    if (!isl.ended && input.lastPointer === 'touch' && !this.budMode) {
+    if (!isl.ended && input.lastPointer === 'touch') {
       if (this.armed && this.armed.build && isl.canBuild(this.armed.q, this.armed.r)) { const pv = isl.previewBuild(this.armed.q, this.armed.r); this.renderer.hover = { q: this.armed.q, r: this.armed.r, preview: pv }; this.hud.setPlaceButton(pv ? pv.total : null, pv && pv.work ? 'work' : pv && pv.fuse ? 'fuse' : 'build'); }
       else if (this.armed && !this.armed.build && isl.canPlace(this.armed.q, this.armed.r)) { const pv = isl.preview(this.armed.q, this.armed.r); this.renderer.hover = { q: this.armed.q, r: this.armed.r, preview: pv }; this.hud.setPlaceButton(pv ? pv.total : null); }
       else { this.armed = null; this.renderer.hover = null; this.hud.setPlaceButton(null); }
@@ -935,7 +912,7 @@ class IslandScene {
     // d'hystérésis pour ne pas clignoter autour du seuil
     if (loop.fps < 42) this.renderer.lowFx = true; else if (loop.fps > 52) this.renderer.lowFx = false;
     // mode repos : après huit secondes sans geste, l'interface s'efface et la vue respire ; tout geste rétablit
-    const resting = Save.options.rest !== false && input.idleSeconds > 8 && !this.armed && !this.budMode && !this.finale && !isl.ended;
+    const resting = Save.options.rest !== false && input.idleSeconds > 8 && !this.armed && !this.finale && !isl.ended;
     this.hud.setResting(resting); this.cam.breathe(resting ? 1 : 0, dt);
     const objs = this.renderer.decor.objects;
     if (this._srcV !== isl.board.version) { this._srcV = isl.board.version; this._sources = objs.filter((o) => o.tpl && (o.tpl.startsWith('obj_tree'))).map((o) => ({ x: o.x, y: o.y })); this._tiles = [...isl.board.tiles.values()].map((t) => { const w = toWorld(t.q, t.r); return { family: t.family, frozen: t.frozen, rare: t.rare, wx: w.x, wy: w.y }; }); }
