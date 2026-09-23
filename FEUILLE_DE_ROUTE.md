@@ -185,7 +185,7 @@ Demande du commanditaire : « beaucoup de fonctionnalités, le jeu est complexe 
 | Mécanique | Proposition | Décision du commanditaire | Statut |
 |---|---|---|---|
 | Cinq anomalies (vœu `c_port` impossible, îles annoncées à tort dans le Guide, faune non verrouillée, règles liées à la météo, port dans le README) | corriger quoi qu'on décide (lot S0) | d'accord (23 septembre) | **fait** (lot S0) |
-| Contrats d'archipel, faucille, effets de série, étoile d'or dans le HUD, tuiles d'événement, rares des paliers 2 et 3, 12 améliorations | retirer (lot S1, −1,7 % mesuré) | d'accord, mais l'Atelier garde **12** améliorations et non 8 | en cours |
+| Contrats d'archipel, faucille, effets de série, étoile d'or dans le HUD, tuiles d'événement, rares des paliers 2 et 3, 12 améliorations | retirer (lot S1, −1,7 % mesuré) | d'accord, mais l'Atelier garde **12** améliorations et non 8 | **fait** (lot S1 ; Atelier à 18, les six autres partent avec les lots S3 et S4) |
 | Météo + règles de saison variables | une seule « surprise de saison » par saison, 8 au lieu de 17, découplée du drapeau météo (lot S2) | d'accord | à faire |
 | Souffles, main, poche, remise | 3 pouvoirs, 2 sources, main dès l'île 6 (lot S3) | d'accord | à faire |
 | **Ouvrages + remise** | retirer, ruche et menhir passent rares (lot S4, recalibrage obligatoire) — ou les six ouvrages en rares sans remise | retirer | à faire |
