@@ -1,7 +1,6 @@
 // HUD d'une île (DOM) : saison, score, souffles, file de tuiles, poche, vœux, pouvoirs, notifications.
 import { STAGE } from '../core/stage.js';
 import { STORY } from '../data/story.js';
-import { CHAPTERS } from '../data/campaign.js';
 import { BALANCE } from '../data/balance.js';
 import { TALLY_LABELS } from '../ui/results.js';
 import { FAMILY_COLORS, FAMILIES, affinity, RARE_AS } from '../data/tiles.js';
@@ -12,15 +11,16 @@ import { AudioSys } from '../core/audio.js';
 import { RARE_DECOR, spriteKey } from './decor.js';
 
 const icon = (name, cls = '') => `<img class="hud-icon ${cls}" src="assets/img/ui/${name}.png" alt="">`;
+/** Les messages qui passent aussi dans le ruban (les autres ne vont qu'au journal), avec leur couleur. */
+const RIBBON_KINDS = { warn: '#b5523f', wish: '#8e6bb5', gold: '#b8862b', rare: '#8a6fb5', special: '#2f7f74' };
 const SEASON_ICON = { spring: 'icon_leaf', summer: 'icon_sun', autumn: 'icon_wind', winter: 'icon_snow' };
 
 export class Hud {
-  constructor(root, island, { title, onPause, onPick, onDiscard, onUndo, onGardenPick, onPlace, onFullscreen, compact = false, mechanics }) {
+  constructor(root, island, { title, onPause, onPick, onDiscard, onUndo, onGardenPick, onPlace, compact = false, mechanics }) {
     this.root = root; this.isl = island; this.mech = mechanics;
     const m = mechanics;
     root.innerHTML = `
       <div class="hud-top" data-ref="top">
-        <div class="hud-block hud-title"><div class="hud-island">${title}</div><div class="hud-arch" data-ref="arch"></div></div>
         <div class="hud-block hud-season" data-ref="seasonBox" title="Règle de la saison">
           <span class="season-icon" data-ref="seasonIcon"></span>
           <div class="season-txt"><b data-ref="seasonName">—</b><span class="season-rule" data-ref="seasonRule"></span></div>
@@ -29,13 +29,10 @@ export class Hud {
         </div>
         <div class="hud-block hud-score"><span class="hud-label">Points</span><b data-ref="score">0</b><span class="score-delta" data-ref="scoreDelta"></span><span class="hud-stars" data-ref="starsLine" title="Seuils des étoiles"></span><div class="score-pop hidden" data-ref="scorePop"></div></div>
         <div class="hud-block hud-breaths ${m.has('breath') ? '' : 'hidden'}" title="Souffles"><span class="hud-label">Souffles</span><b data-ref="breaths">0</b></div>
-        <div class="hud-block hud-left-tiles"><span class="hud-label">Tuiles</span><b data-ref="left">0</b></div>
-        <button class="hud-pause" data-ref="pause" title="Pause (Échap)">${icon('icon_pause')}</button>
-        <button class="hud-pause hud-log" data-ref="logBtn" title="Journal des événements (J)">${icon('icon_info')}<b class="log-badge hidden" data-ref="logBadge"></b></button>
-        <button class="hud-pause hud-fs" data-ref="fs" title="Plein écran">${icon('icon_fullscreen')}</button>
+        <button class="hud-pause" data-ref="pause" title="Pause (Échap) : journal, plein écran, options">${icon('icon_pause')}</button>
       </div>
       <div class="hud-queue" data-ref="queue">
-        <div class="queue-title" data-ref="queueTitle">${island.handOn ? 'Main · choisis ta tuile' : 'À poser'}</div>
+        <div class="queue-title"><span>${island.handOn ? 'Main · choisis ta tuile' : 'À poser'}</span><span class="queue-left" data-ref="left" title="Tuiles qui restent"></span></div>
         <div class="queue-list" data-ref="queueList"></div>
         <div class="powers ${m.has('breath') ? '' : 'hidden'}" data-ref="powers">
           <button class="pw" data-ref="pwDiscard" title="Défausser la tuile (X)">${icon('icon_cross')}<span>Défausser</span><em>${BALANCE.breaths.discard}</em></button>
@@ -49,8 +46,6 @@ export class Hud {
       <div class="tile-help hidden" data-ref="tileHelp"><div class="th-head"><b data-ref="thName"></b><button class="th-close" data-ref="thClose" title="Masquer la fiche (H)">✕</button></div><p class="th-blurb" data-ref="thBlurb"></p><div class="th-pairs" data-ref="thPairs"></div></div>
       <div class="hud-fauna" data-ref="fauna"></div>
       <div class="hud-ribbon" data-ref="ribbon" aria-live="polite"></div>
-      <div class="hud-recap hidden" data-ref="recap" role="status"></div>
-      <div class="hud-notify" data-ref="notify"></div>
     `;
     this.r = {};
     root.querySelectorAll('[data-ref]').forEach((el) => { this.r[el.dataset.ref] = el; });
@@ -60,22 +55,17 @@ export class Hud {
     { const box = this.r.score.parentNode; box.title = 'D’où viennent les points (toucher)'; box.style.cursor = 'pointer'; box.addEventListener('click', (e) => { e.stopPropagation(); this.toggleScorePop(); }); }
     this.r.pwDiscard.addEventListener('click', (e) => { e.stopPropagation(); onDiscard(); });
     this.r.pwUndo.addEventListener('click', (e) => { e.stopPropagation(); onUndo(); });
-    this.r.fs.addEventListener('click', (e) => { e.stopPropagation(); onFullscreen && onFullscreen(); });
     this.log = []; this.unread = 0;
     this.r.thClose.addEventListener('click', (e) => { e.stopPropagation(); this.setTileHelp(false); });
     // Sur téléphone la fiche est repliée à deux lignes : un appui la déplie en entier (les tuiles bavardes — l'eau, la
     // lande — disent leurs effets passifs en cinq lignes). Le choix tient jusqu'à la fin de l'île, pas au-delà.
     this.r.tileHelp.addEventListener('click', (e) => { e.stopPropagation(); this.helpOpen = !this.helpOpen; this.r.tileHelp.classList.toggle('open', this.helpOpen); });
-    this.r.logBtn.addEventListener('click', (e) => { e.stopPropagation(); this.toggleLog(); });
     this.r.logClose.addEventListener('click', (e) => { e.stopPropagation(); this.toggleLog(false); });
     this.r.placeBtn.addEventListener('click', (e) => { e.stopPropagation(); onPlace && onPlace(); });
     this.r.wishToggle.addEventListener('click', (e) => { e.stopPropagation(); this.r.wishes.classList.toggle('collapsed'); });
     this.onPick = onPick || (() => {}); this.onGardenPick = onGardenPick;
     this.last = {};
     this.notes = [];
-    const d = island.def; const ch = d.chapter ? CHAPTERS[d.chapter - 1] : null;
-    this.arch = ch ? { name: `Chapitre ${ch.id}`, sub: ch.name } : STORY.archipelagos[d.arch];
-    if (this.arch) this.r.arch.textContent = `${this.arch.name} · ${this.arch.sub}${d.climate && d.climate !== 'temperate' && STORY.climates && STORY.climates[d.climate] ? ` · ${STORY.climates[d.climate].name}` : ''}`;
     this.buildGardenPick();
     this.renderQueue(); this.renderWishes(); this.renderFauna();
   }
@@ -196,9 +186,6 @@ export class Hud {
 
   set(key, value) { if (this.last[key] !== value) { this.last[key] = value; this.r[key].textContent = value; } }
 
-  /** Mode du relevé de saison : full, brief ou none (auto : complet sur ordinateur, bref sur téléphone). */
-  get recapMode() { const m = Save.options.recap || 'auto'; return m === 'auto' ? 'brief' : m; }   // automatique : le plan de saison (étincelles) suffit, le badge « +N » en plus
-
   /**
    * Ruban des commentaires : les mots (« Coup de maître ! », séries, verdicts d'ouvrage, de fusion, de construction)
    * s'affichent ici, sous la boîte de saison, un à la fois. Les chiffres restent sur la case.
@@ -229,7 +216,7 @@ export class Hud {
   /** Le bandeau de saison se signale (la règle s'y écrit une seule fois). */
   seasonTurn() { const b = this.r.seasonBox; b.classList.remove('turn'); void b.offsetWidth; b.classList.add('turn'); }
   /** Entrée du journal sans bulle à l'écran. */
-  logOnly(text, kind = 'info') { const isl = this.isl; const s = STORY.seasons[isl.season] || { name: isl.season }; this.log.push({ text, kind, when: `${s.name} · pose ${isl.placements}` }); if (this.log.length > 200) this.log.shift(); if (this.r.logPanel.classList.contains('hidden')) { this.unread++; this.r.logBadge.textContent = this.unread > 99 ? '99+' : String(this.unread); this.r.logBadge.classList.remove('hidden'); } else this.renderLog(); }
+  logOnly(text, kind = 'info') { const isl = this.isl; const s = STORY.seasons[isl.season] || { name: isl.season }; this.log.push({ text, kind, when: `${s.name} · pose ${isl.placements}` }); if (this.log.length > 200) this.log.shift(); if (this.r.logPanel.classList.contains('hidden')) this.unread++; else this.renderLog(); }
   /** Le compteur de points monte en tic-tac vers la vraie valeur ; le badge « +N » flotte à côté. */
   bumpScore(delta) {
     if (!delta) return; const d = this.r.scoreDelta;
@@ -238,47 +225,19 @@ export class Hud {
   }
 
   /**
-   * Relevé de saison : une carte sous la boîte de saison, les lignes s'écrivent une à une avec un tic, le total en gras à
-   * la fin. Ne bloque rien : un toucher la replie, sinon elle se range seule. En mode bref, seul le badge « +N » reste.
+   * Un seul canal : tout message entre au journal de l'île (Pause → Journal, ou J) ; seuls ceux qui demandent un regard —
+   * une pose refusée, un vœu, une rare, un gain marquant — passent aussi dans le ruban, un à la fois. Il y avait une pile de
+   * quatre bulles en plus du ruban : au changement de saison, quatre voix parlaient en même temps.
    */
-  seasonRecap({ from, to, lines, total }) {
-    const mode = this.recapMode; this.bumpScore(total);
-    if (mode !== 'full' || !lines.length) return;
-    const box = this.r.recap; const sn = (k) => (STORY.seasons[k] || { name: k }).name;
-    box.innerHTML = `<div class="recap-head">${sn(from)} → ${sn(to)}</div><div class="recap-lines"></div><div class="recap-total"></div>`;
-    box.className = `hud-recap on s-${to}`;
-    const list = box.querySelector('.recap-lines'); const tot = box.querySelector('.recap-total');
-    clearTimeout(this._recapT); this._recapTimers = (this._recapTimers || []).map(clearTimeout) && [];
-    const close = () => { box.classList.remove('on'); box.classList.add('hidden'); this.r.notify.classList.remove('shifted'); };
-    this.r.notify.classList.add('shifted');   // les notifications se décalent à gauche le temps du relevé
-    box.onclick = (e) => { e.stopPropagation(); close(); };
-    lines.forEach((ln, i) => this._recapTimers.push(setTimeout(() => {
-      const el = document.createElement('div'); el.className = `recap-line ${ln.pts < 0 ? 'neg' : ''}`; el.innerHTML = `<span>${ln.label}</span><b>${ln.pts > 0 ? '+' : ''}${ln.pts}</b>`; list.appendChild(el);
-      if (this.onTick) this.onTick(i);
-    }, 260 + i * 230)));
-    this._recapTimers.push(setTimeout(() => { tot.innerHTML = `<span>Saison</span><b>${total > 0 ? '+' : ''}${total}</b>`; tot.classList.add('on'); }, 260 + lines.length * 230 + 120));
-    this._recapT = setTimeout(close, 260 + lines.length * 230 + 3400);
-  }
-
   notify(text, kind = 'info') {
-    const el = document.createElement('div'); el.className = `hud-note ${kind}`; el.textContent = text;
-    this.r.notify.appendChild(el);
-    const life = kind === 'season' || kind === 'gold' || kind === 'rare' || kind === 'wish' ? 4800 : 3200;   // jamais plus de cinq secondes
-    setTimeout(() => el.remove(), life);
-    while (this.r.notify.children.length > 4) this.r.notify.firstChild.remove();
-    // journal consultable
-    const isl = this.isl; const s = STORY.seasons[isl.season] || { name: isl.season };
-    this.log.push({ text, kind, when: `${s.name} · pose ${isl.placements}` });
-    if (this.log.length > 200) this.log.shift();
-    if (this.r.logPanel.classList.contains('hidden')) { this.unread++; this.r.logBadge.textContent = this.unread > 99 ? '99+' : String(this.unread); this.r.logBadge.classList.remove('hidden'); }
-    else this.renderLog();
+    this.logOnly(text, kind);
+    if (RIBBON_KINDS[kind]) this.ribbon(text, RIBBON_KINDS[kind], Math.min(4200, 1600 + text.length * 28), `msg ${kind}`);
   }
 
   toggleLog(force) {
     const open = force !== undefined ? force : this.r.logPanel.classList.contains('hidden');
     this.r.logPanel.classList.toggle('hidden', !open);
-    this.r.logBtn.classList.toggle('active', open);
-    if (open) { this.unread = 0; this.r.logBadge.classList.add('hidden'); this.renderLog(); }
+    if (open) { this.unread = 0; this.renderLog(); }
   }
 
   renderLog() {
@@ -330,7 +289,7 @@ export class Hud {
       else if (shownReached > this.last.reached) { this.last.reached = shownReached; this.starReached(shownReached); }
     }
     this.set('breaths', String(isl.breaths));
-    this.set('left', isl.infinite || isl.garden ? '∞' : String(isl.queue.remaining));
+    this.set('left', isl.infinite || isl.garden ? '' : `${isl.queue.remaining} restante${isl.queue.remaining > 1 ? 's' : ''}`);
     r.pwDiscard.disabled = !isl.canDiscard();
     r.pwUndo.disabled = !isl.canUndo();
     this.renderQueue(); this.renderWishes(); this.renderFauna(); this.renderTileHelp();

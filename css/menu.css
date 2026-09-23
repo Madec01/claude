@@ -75,6 +75,13 @@
 .panel.panel-workshop .ws-head-row { margin-bottom: 8px; }
 .panel.panel-workshop .panel-actions { margin-top: 10px; }
 .menu-row { display: flex; gap: 6px; flex-wrap: wrap; }
+.menu-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.menu-pair .btn { min-width: 0; gap: 8px; }
+.menu-pair .btn .btn-sub { font-size: 11px; letter-spacing: 0.04em; white-space: nowrap; }
+.menu-pair .btn .btn-sub.btn-new { padding: 2px 7px; }
+html.compact:not(.landscape) .menu-pair .btn { padding: 9px 10px; }
+html.compact:not(.landscape) .menu-pair .btn .btn-sub { font-size: 10px; letter-spacing: 0.02em; }
+html.compact.landscape .menu-pair { grid-column: 1 / -1; }
 .menu-row .btn { flex: 1 1 0; justify-content: center; padding: 9px 8px; font-size: 16px; min-width: 0; }
 .menu-row .btn span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 html.compact .menu-row .btn { font-size: 14px; padding: 8px 6px; }
@@ -160,6 +167,10 @@ html.compact .ach-name { font-size: 18px; }
 .nc-stars.gold .nc-best { color: var(--gold, #e0a33a); font-weight: 800; }
 /* contrat d'archipel */
 .prep-signature { margin: 0 0 6px; font-size: 14px; } .prep-signature b { color: var(--gold, #e0a33a); }
+.panel-wishes-intro .res-kicker { margin-bottom: 2px; }
+.prep-sub { text-align: center; margin: -4px 0 8px; font-size: 14px; opacity: 0.7; }
+.prep-story { margin: 4px auto 10px; max-width: 620px; font-family: var(--font-title); font-style: italic; font-size: 17px; line-height: 1.45; text-align: center; }
+.prep-story p { margin: 0 0 6px; }
 /* carte postale */
 .panel-postcard { max-width: 900px; }
 .postcard-wrap { margin: 8px 0 12px; border: 1px solid rgba(43,42,38,0.14); border-radius: 8px; overflow: hidden; box-shadow: 0 10px 30px rgba(30,50,70,0.2); background: #fbf7ee; }

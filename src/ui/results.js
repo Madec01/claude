@@ -4,7 +4,7 @@ import { STORY } from '../data/story.js';
 import { AudioSys } from '../core/audio.js';
 import { Save } from '../core/save.js';
 
-export function buildResults({ result, def, onContinue, onRetry, onMenu, onPostcard = null, newRecord, seedsGained, daily }) {
+export function buildResults({ result, def, onContinue, onRetry, onMenu, onPostcard = null, newRecord, seedsGained, daily, memory = [] }) {
   const { stars, score, thresholds } = result;
   const special = result.island === 'infinite' || result.island === 'garden';
   const name = def && def.story && STORY.islands[def.story] ? STORY.islands[def.story].name : result.island === 'infinite' ? 'Île infinie' : result.island === 'garden' ? 'Jardin' : (def && def.name) || `Île ${result.island}`;
@@ -19,6 +19,8 @@ export function buildResults({ result, def, onContinue, onRetry, onMenu, onPostc
     h('h2', { class: 'panel-title' }, special ? 'L’île se repose' : stars === 0 ? 'L’île attend encore' : 'L’île se souvient'),
     special ? null : starsEl,
     h('p', { class: 'res-line' }, line),
+    // le souvenir de l'île se lit ici : il avait son propre écran, entre le bilan et l'Atelier
+    memory.length ? h('div', { class: 'res-memory' }, h('div', { class: 'res-memory-k' }, 'Souvenir'), ...memory.map((t) => h('p', {}, t))) : null,
     !special && result.goldThreshold && stars >= 2 ? h('p', { class: 'res-gold' }, result.gold ? 'Étoile d’or : la mémoire de l’île est complète.' : stars >= 3 ? `L’étoile d’or attend ${result.goldThreshold} points.` : `Au-delà des trois étoiles il en existe une quatrième : l’étoile d’or, à ${result.goldThreshold} points. Elle vaut une graine et fait briller l’île sur la carte.`) : null,
     h('div', { class: 'res-grid' },
       row('Points', fmtInt(score), 'score'),
@@ -30,7 +32,6 @@ export function buildResults({ result, def, onContinue, onRetry, onMenu, onPostc
       result.stats.fusions ? row('Fusions', result.stats.fusions, 'gold') : null,
       result.stats.built ? row('Tuiles bâties', `${result.stats.built}${result.stats.refunds ? ` (${result.stats.refunds} rendue${result.stats.refunds > 1 ? 's' : ''})` : ''}`, 'good') : null,
       result.stats.perfect ? row('Coups parfaits', result.stats.perfect, 'good') : null,
-      result.stats.bestStreak >= 3 ? row('Meilleure série', `${result.stats.bestStreak} bons coups`, 'gold') : null,
       row('Animaux (au plus)', result.stats.faunaMax, result.stats.faunaMax ? 'good' : ''),
       result.wishesTotal ? row('Vœux exaucés', `${result.wishesDone} / ${result.wishesTotal}`, result.wishesDone === result.wishesTotal ? 'gold' : '') : null,
       row('Saisons traversées', result.seasons),
@@ -41,7 +42,7 @@ export function buildResults({ result, def, onContinue, onRetry, onMenu, onPostc
     result.tally ? whyBlock(result) : null,
     // sans étoile, l'île est terminée quand même : plus personne n'est muré sur une île (les étoiles ne gardent que les portes de chapitre)
     !special && !daily && stars === 0 ? h('p', { class: 'res-note' }, 'L’île est terminée : la suivante s’ouvre quand même. Les étoiles ne gardent que les portes de chapitre, et elles se rattrapent quand tu veux.') : null,
-    daily ? h('p', { class: 'res-note' }, 'Île du jour : la même île pour tout le monde, un meilleur score par jour. Demain, une autre île.') : special ? null : h('p', { class: 'res-note' }, Save.options.testMode ? 'Mode test : les graines et les étoiles ne sont pas enregistrées.' : seedsGained ? 'Graines : 1 par nouvelle étoile, 1 par vœu exaucé et 2 pour l’île, la première fois. Elles se dépensent dans l’Atelier des saisons.' : 'Pas de nouvelle graine : elles viennent des nouvelles étoiles, des vœux exaucés et de la première fois qu’une île est terminée.'),
+    daily ? h('p', { class: 'res-note' }, 'Île du jour : la même île pour tout le monde, un meilleur score par jour. Demain, une autre île.') : special ? null : h('p', { class: 'res-note' }, Save.options.testMode ? 'Mode test : les graines et les étoiles ne sont pas enregistrées.' : seedsGained ? 'Graines : 1 par nouvelle étoile, 1 par vœu exaucé et 2 pour l’île, la première fois. Elles se dépensent dans l’Atelier des saisons, depuis le menu.' : 'Pas de nouvelle graine : elles viennent des nouvelles étoiles, des vœux exaucés et de la première fois qu’une île est terminée.'),
     newRecord ? h('div', { class: 'res-record' }, 'Nouveau record !') : null,
     h('div', { class: 'panel-actions' },
       button(special ? 'Rejouer' : 'Continuer', onContinue, { cls: 'btn-primary', iconName: 'icon_arrow_right' }),
@@ -60,7 +61,10 @@ export function buildResults({ result, def, onContinue, onRetry, onMenu, onPostc
 }
 
 /** D'où viennent les points : une barre par source, et le meilleur coup de la partie. */
-export const TALLY_LABELS = { edges: 'Bords et affinités', closes: 'Régions fermées', seasons: 'Saisons (récoltes, veillées, sentiers…)', fauna: 'Faune', wishes: 'Vœux', base: 'Rivières et primes de pose', build: 'Bâtir', fusions: 'Fusions', works: 'Ouvrages (anciennes parties)', streak: 'Séries (anciennes parties)' };
+export const TALLY_LABELS = { edges: 'Bords et affinités', closes: 'Régions fermées', fauna: 'Faune', wishes: 'Vœux', base: 'Rivières et primes de pose', build: 'Bâtir', fusions: 'Fusions', paths: 'Sentiers entre villages',
+  // les primes de saison, une par nature (anciennement toutes sous « Saisons »)
+  s_harvest: 'Récoltes', s_veillee: 'Veillées d’hiver', s_bloom: 'Marais en fleurs', s_heather: 'Lande en fleurs', s_pond: 'Étangs', s_mild: 'Hiver doux', s_cold: 'Grand froid', s_firewood: 'Bois de chauffage', s_fair: 'Grande foire', s_hunt: 'Chasse et cueillette', s_rare: 'Tuiles rares', s_level3: 'Niveau 3', s_fusion: 'Fusions (primes de saison)',
+  seasons: 'Autres primes de saison', works: 'Ouvrages (anciennes parties)', streak: 'Séries (anciennes parties)' };
 export function tallyLines(tally) {
   const total = Object.values(tally).reduce((a, b) => a + Math.max(0, b), 0) || 1;
   return Object.entries(tally).filter(([, v]) => v).map(([k, v]) => ({ key: k, label: TALLY_LABELS[k] || k, pts: v, share: Math.max(0, v) / total })).sort((a, b) => b.pts - a.pts);

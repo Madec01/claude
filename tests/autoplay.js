@@ -46,9 +46,9 @@ function parseList(s) {
   for (const id of parseList(arg)) {
     const t0 = Date.now();
     await page.evaluate((id) => { const G = window.CS.Game; if (id === 'infinite') G.startInfinite(); else if (id === 'garden') G.startGarden(); else if (id === 'daily') G.startDaily(); else G.startIsland(id, { skipIntro: true }); }, id);
-    // passer l'intro des modes spéciaux (bouton « Passer »), puis attendre l'île attendue (le changement de scène passe par un fondu)
+    // passer l'intro de l'Île infinie et du Jardin (bouton « Passer » ; l'île du jour a un écran de départ, comme la campagne), puis attendre l'île attendue (le changement de scène passe par un fondu)
     const isMine = (id) => { const sc = window.CS.scenes.current, isl = sc && sc.isl; return window.CS.scenes.currentName === 'island' && isl && (id === 'garden' ? isl.garden : id === 'infinite' ? isl.infinite : id === 'daily' ? isl.def.daily : isl.def.id === id); };
-    if (id === 'infinite' || id === 'garden' || id === 'daily') {
+    if (id === 'infinite' || id === 'garden') {
       await page.waitForFunction(() => window.CS.scenes.currentName === 'story' && document.querySelector('.story-actions button'), null, { timeout: 15000 });
       await page.waitForTimeout(300); await page.click('.story-actions button');
     }
@@ -93,14 +93,14 @@ function parseList(s) {
     const res = await page.evaluate(() => (document.querySelector('.panel-results') || {}).innerText || '');
     report.push({ id, seconds: ((Date.now() - t0) / 1000).toFixed(0), summary: res.replace(/\s+/g, ' ').slice(0, 170) });
     console.log(`Île ${id} (${report[report.length - 1].seconds}s) :: ${report[report.length - 1].summary}`);
-    // Continuer : bilan → souvenir → atelier
+    // Continuer : bilan → écran de départ de l'île suivante (ou récit de fin après la dernière)
     if (id === 'infinite' || id === 'garden' || id === 'daily') { await page.evaluate(() => window.CS.scenes.go('menu')); await page.waitForTimeout(800); }
     else if (await page.$('.panel-results .btn-primary')) {
       await page.click('.panel-results .btn-primary'); await page.waitForTimeout(700);
       for (let g = 0; g < 6; g++) {
         const name = await page.evaluate(() => window.CS.scenes.currentName);
         if (name === 'story') { await page.keyboard.press('Escape'); await page.waitForTimeout(600); }
-        else if (name === 'workshop') { await page.screenshot({ path: path.join(OUT, `workshop-${id}.png`) }); break; }
+        else if (name === 'prep') { await page.screenshot({ path: path.join(OUT, `depart-${id + 1}.png`) }); break; }
         else if (name === 'ending') { await page.screenshot({ path: path.join(OUT, 'ending.png') }); break; }
         else break;
       }

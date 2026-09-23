@@ -1,9 +1,6 @@
 /* HUD, tutoriel, écrans narratifs, bilan, atelier, pause. */
 .hud-top { position: absolute; top: 0; left: 0; right: 0; display: flex; align-items: stretch; padding: 10px 14px; gap: 8px; }
 .hud-block { position: relative; display: flex; align-items: center; gap: 10px; background: rgba(255,253,248,0.92); border: 1px solid rgba(43,42,38,0.12); border-radius: 12px; padding: 6px 14px; pointer-events: none; box-shadow: 0 4px 14px rgba(30,50,70,0.12); }
-.hud-title { flex-direction: column; align-items: flex-start; gap: 0; min-width: 190px; }
-.hud-island { font-family: var(--font-title); font-size: 19px; line-height: 1.1; }
-.hud-arch { font-size: 12px; opacity: 0.6; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; }
 .hud-season { min-width: 330px; }
 .hud-season .season-icon .hud-icon { width: 28px; height: 28px; filter: invert(0.25); }
 .hud-season.s-spring { border-color: var(--spring); } .hud-season.s-summer { border-color: var(--summer); } .hud-season.s-autumn { border-color: var(--autumn); } .hud-season.s-winter { border-color: var(--winter); }
@@ -12,7 +9,7 @@
 .season-pips { display: flex; gap: 3px; margin-left: auto; flex-wrap: wrap; max-width: 60px; }
 .season-pips i { width: 8px; height: 8px; border-radius: 50%; background: rgba(43,42,38,0.15); }
 .season-pips i.on { background: var(--breath); }
-.hud-score b, .hud-breaths b, .hud-left-tiles b { font-size: 24px; font-weight: 700; }
+.hud-score b, .hud-breaths b { font-size: 24px; font-weight: 700; }
 .hud-breaths b { color: var(--breath); }
 .hud-score { position: relative; }
 .hud-stars { display: block; font-size: 11px; font-weight: 700; color: var(--gold); letter-spacing: 0.04em; line-height: 1; margin-top: -2px; white-space: nowrap; }
@@ -27,6 +24,8 @@
 /* File de tuiles */
 .hud-queue { position: absolute; left: 14px; top: 84px; width: 190px; display: flex; flex-direction: column; gap: 8px; pointer-events: all; }
 .queue-title { font-size: 12px; text-transform: uppercase; letter-spacing: 0.12em; opacity: 0.6; font-weight: 700; padding-left: 4px; }
+.hud-queue > .queue-title { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; column-gap: 8px; }
+.queue-left { letter-spacing: 0.04em; text-transform: none; font-size: 12px; white-space: nowrap; }
 .queue-list { display: flex; flex-direction: column; gap: 6px; }
 .qtile { position: relative; display: flex; align-items: center; gap: 8px; background: rgba(255,253,248,0.94); border: 1px solid rgba(43,42,38,0.12); border-radius: 12px; padding: 6px 10px; box-shadow: 0 4px 14px rgba(30,50,70,0.1); transition: transform 0.15s, box-shadow 0.2s; }
 .qtile img { width: 54px; height: 63px; object-fit: contain; }
@@ -81,9 +80,6 @@ html.compact .q-help { width: 20px; height: 20px; font-size: 12px; line-height: 
 .fauna-chip img { width: 24px; height: 24px; object-fit: contain; }
 
 /* Notifications */
-.hud-notify { position: absolute; left: 50%; top: 78px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 5px; pointer-events: none; }
-.hud-note { font-size: 16px; font-weight: 600; padding: 5px 16px; border-radius: 20px; background: rgba(255,253,248,0.95); border: 1px solid rgba(43,42,38,0.12); border-left: 5px solid var(--breath); box-shadow: 0 6px 16px rgba(30,50,70,0.12); animation: noteIn 0.35s var(--ease-out) both, noteOut 0.5s ease 2.8s both; max-width: 620px; text-align: center; }
-.hud-note.good { border-left-color: var(--breath); } .hud-note.warn { border-left-color: var(--loss); } .hud-note.gold, .hud-note.rare { border-left-color: var(--gold); } .hud-note.wish { border-left-color: var(--wish); } .hud-note.season { border-left-color: var(--autumn); font-family: var(--font-title); font-weight: 500; font-size: 18px; } .hud-note.fauna { border-left-color: var(--spring); } .hud-note.special { border-left-color: var(--ink); }
 @keyframes noteIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
 @keyframes noteOut { to { opacity: 0; } }
 
@@ -121,6 +117,9 @@ html.compact .q-help { width: 20px; height: 20px; font-size: 12px; line-height: 
 .star .icon { width: 38px; height: 38px; opacity: 0.15; transform: scale(0.7); filter: invert(0.3); transition: transform 0.35s cubic-bezier(.2,1.6,.4,1), opacity 0.3s, filter 0.3s; }
 .star.on.pop .icon { opacity: 1; transform: scale(1); filter: sepia(1) saturate(4) brightness(1.05) drop-shadow(0 0 8px rgba(224,163,58,0.6)); }
 .res-line { font-family: var(--font-title); font-style: italic; font-size: 19px; opacity: 0.85; margin: 0 0 8px; }
+.res-memory { margin: 0 auto 10px; max-width: 600px; padding: 8px 14px; border-left: 3px solid var(--gold, #e0a33a); background: rgba(255,255,255,0.45); border-radius: 0 10px 10px 0; }
+.res-memory-k { text-transform: uppercase; letter-spacing: 0.2em; font-size: 11px; font-weight: 700; opacity: 0.55; margin-bottom: 2px; }
+.res-memory p { margin: 0 0 4px; font-family: var(--font-title); font-style: italic; font-size: 15.5px; line-height: 1.4; }
 .res-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 30px; margin: 10px 0; text-align: left; }
 .res-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px dotted var(--line); font-size: 16px; opacity: 0; transform: translateX(-8px); transition: opacity 0.4s, transform 0.4s; }
 .res-row.in { opacity: 1; transform: none; }
@@ -165,12 +164,6 @@ html.compact .q-help { width: 20px; height: 20px; font-size: 12px; line-height: 
 .gpick-list { display: flex; flex-wrap: wrap; gap: 4px; }
 
 /* Journal des événements */
-.hud-log { position: relative; margin-left: 6px; }
-.hud-log.active { border-color: var(--breath); box-shadow: 0 0 0 2px rgba(47,158,143,0.25); }
-.log-badge { position: absolute; top: -4px; right: -4px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: var(--loss); color: #fff; font-size: 11px; font-weight: 800; display: flex; align-items: center; justify-content: center; }
-.log-badge.hidden { display: none; }
-.hud-logpanel { position: absolute; right: 14px; top: 84px; width: 380px; max-height: 560px; display: flex; flex-direction: column; background: rgba(255,253,248,0.97); border: 1px solid rgba(43,42,38,0.12); border-radius: 14px; box-shadow: 0 12px 40px rgba(30,50,70,0.22); pointer-events: all; z-index: 5; overflow: hidden; }
-.hud-logpanel.hidden { display: none; }
 .log-head { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; font-family: var(--font-title); font-size: 18px; border-bottom: 1px solid var(--line); }
 .log-close { border: none; background: transparent; font-size: 16px; cursor: pointer; color: var(--ink-2); padding: 2px 6px; }
 .log-list { overflow: auto; padding: 6px 10px; -webkit-overflow-scrolling: touch; touch-action: pan-y; }
@@ -178,7 +171,8 @@ html.compact .q-help { width: 20px; height: 20px; font-size: 12px; line-height: 
 .log-item.warn { border-left-color: var(--loss); } .log-item.gold, .log-item.rare { border-left-color: var(--gold); } .log-item.wish { border-left-color: var(--wish); } .log-item.season { border-left-color: var(--autumn); font-family: var(--font-title); font-size: 14px; }
 .log-when { font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.55; font-weight: 700; margin-bottom: 1px; }
 .log-empty { padding: 14px; font-size: 13px; opacity: 0.6; font-style: italic; }
-html.compact .hud-log { width: 30px; height: 30px; margin-left: 2px; }
+.hud-logpanel { position: absolute; right: 14px; top: 84px; width: 380px; max-height: 560px; display: flex; flex-direction: column; background: rgba(255,253,248,0.97); border: 1px solid rgba(43,42,38,0.12); border-radius: 14px; box-shadow: 0 12px 40px rgba(30,50,70,0.22); pointer-events: all; z-index: 5; overflow: hidden; }
+.hud-logpanel.hidden { display: none; }
 html.compact .hud-logpanel { left: 6px; right: 6px; top: 46px; width: auto; max-height: 60vh; }
 html.compact.portrait .hud-logpanel { max-height: calc(100vh - 220px); }
 html.compact .log-item { font-size: 12px; }
@@ -202,7 +196,6 @@ html.compact .th-blurb { display: -webkit-box; -webkit-box-orient: vertical; -we
 html.compact .tile-help { cursor: pointer; }
 html.compact .tile-help.open .th-blurb { display: block; overflow: visible; }
 html.compact.portrait .tile-help { left: 6px; right: 124px; width: auto; bottom: auto; top: 46px; }
-html.compact.portrait .hud-notify { top: 96px; }
 html.compact.landscape .tile-help { left: 132px; width: 260px; bottom: 36px; }
 
 /* Règle de saison en surimpression (boîte de saison cliquable) */
@@ -226,25 +219,15 @@ html.compact .hud-season::after { content: 'ⓘ'; font-size: 11px; opacity: 0.5;
 .hud-ribbon.streak { background: linear-gradient(180deg, #fffaf0, #fff0cc); }
 .hud-ribbon.meh { font-size: 18px; font-weight: 600; opacity: 0.9; }
 .hud-ribbon.bad { background: rgba(255,246,244,0.96); }
-.hud-notify { top: auto; bottom: 62px; max-width: 620px; flex-direction: column-reverse; }
-.hud-notify.shifted { left: 50%; }
-.hud-note { max-width: 100%; }
+/* les messages (pose refusée, vœu, rare) passent par le même ruban, en texte courant sur deux lignes au plus */
+.hud-ribbon.msg { font-family: inherit; font-size: 16px; font-weight: 600; color: var(--ink, #2b2a26); border-left-width: 6px; border-radius: 14px; white-space: normal; text-align: center; line-height: 1.3; max-width: min(620px, 86vw); padding: 6px 16px; }
 .score-delta { position: absolute; right: 10px; top: -12px; font-weight: 800; font-size: 15px; color: var(--breath, #2f9e8f); opacity: 0; transform: translateY(6px); transition: opacity 0.25s, transform 0.25s; pointer-events: none; }
 .score-delta.on { opacity: 1; transform: translateY(0); }
 .score-delta.neg { color: var(--loss, #d95f4b); }
 .hud-score { position: relative; }
-.hud-recap { position: absolute; left: calc(50% + 112px); top: 100px; transform: translate(0, -12px); width: 280px; max-width: 92vw; background: rgba(255,253,248,0.97); border: 1.5px solid rgba(43,42,38,0.14); border-top: 4px solid var(--breath); border-radius: 14px; box-shadow: 0 14px 34px rgba(20,30,40,0.22); padding: 8px 12px 10px; opacity: 0; transition: opacity 0.25s, transform 0.3s; pointer-events: all; cursor: pointer; z-index: 13; font-size: 14px; }
-.hud-recap.on { opacity: 1; transform: translate(0, 0); }
-.hud-recap.s-spring { border-top-color: var(--spring); } .hud-recap.s-summer { border-top-color: var(--summer); } .hud-recap.s-autumn { border-top-color: var(--autumn); } .hud-recap.s-winter { border-top-color: var(--winter); }
-.recap-head { font-family: 'Fraunces', serif; font-size: 17px; margin-bottom: 4px; }
-.recap-line { display: flex; justify-content: space-between; padding: 2px 0; border-bottom: 1px dashed rgba(43,42,38,0.12); animation: recapIn 0.25s ease both; }
-.recap-line b { color: var(--gold); } .recap-line.neg b { color: var(--loss); }
-.recap-total { display: flex; justify-content: space-between; margin-top: 6px; font-size: 16px; opacity: 0; transition: opacity 0.3s; }
-.recap-total.on { opacity: 1; } .recap-total b { font-size: 20px; color: var(--ink); }
-@keyframes recapIn { from { opacity: 0; transform: translateX(-8px); } to { opacity: 1; transform: none; } }
 html.compact .hud-ribbon { font-size: 17px; top: 88px; padding: 4px 12px; } html.compact .hud-ribbon.master { font-size: 20px; }
-html.compact .hud-recap { top: 118px; width: 240px; left: auto; right: 12px; font-size: 13px; }
-html.compact.portrait .hud-ribbon { top: 118px; } html.compact.portrait .hud-recap { top: 146px; left: 50%; right: auto; transform: translate(-50%, -12px); } html.compact.portrait .hud-recap.on { transform: translate(-50%, 0); } html.compact.portrait .hud-notify { top: 150px; }
+html.compact.portrait .hud-ribbon { top: 118px; }
+html.compact .hud-ribbon.msg { font-size: 13px; padding: 4px 10px; }
 
 /* la saison en plan : le bandeau se signale au changement, le compteur bat à chaque étincelle reçue */
 @keyframes season-turn { 0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(224,163,58,0); } 30% { transform: scale(1.06); box-shadow: 0 0 0 6px rgba(224,163,58,0.35); } 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(224,163,58,0); } }
@@ -274,5 +257,5 @@ html.compact.portrait .hud-ribbon { top: 118px; } html.compact.portrait .hud-rec
 
 /* Mode repos : après quelques secondes sans geste, les panneaux périphériques s'effacent à 35 % (la file, le score et la
    saison restent) ; la remontée est rapide, l'effacement lent. */
-.hud-wishes, .hud-fauna, .powers, .hud-log, .tile-help, .hud-arch { transition: opacity 0.35s ease; }
-#hud.resting .hud-wishes, #hud.resting .hud-fauna, #hud.resting .powers, #hud.resting .hud-log, #hud.resting .tile-help, #hud.resting .hud-arch { opacity: 0.35; transition: opacity 1.6s ease; }
+.hud-wishes, .hud-fauna, .powers, .tile-help { transition: opacity 0.35s ease; }
+#hud.resting .hud-wishes, #hud.resting .hud-fauna, #hud.resting .powers, #hud.resting .tile-help { opacity: 0.35; transition: opacity 1.6s ease; }

@@ -3,10 +3,11 @@ import { h, button } from './dom.js';
 
 const key = (k) => h('span', { class: 'key' }, k);
 
-export function buildPause({ onResume, onRestart, onOptions, onGuide, onFullscreen, onMenu, onPostcard = null, onReport = null, title, controls = true, kept = true }) {
+export function buildPause({ onResume, onRestart, onOptions, onGuide, onFullscreen, onMenu, onPostcard = null, onReport = null, onJournal = null, journalCount = 0, title, sub = '', controls = true, kept = true }) {
   const root = h('div', { class: 'panel panel-pause' },
-    h('div', { class: 'res-kicker' }, title || ''),
-    h('h2', { class: 'panel-title' }, 'Pause'),
+    // le nom de l'île et son chapitre : ils occupaient un bloc de la barre du haut pendant toute la partie
+    sub ? h('div', { class: 'res-kicker' }, sub) : null,
+    h('h2', { class: 'panel-title' }, title || 'Pause'),
     controls ? h('div', { class: 'pause-controls' },
       h('div', {}, key('Souris'), h('span', {}, 'survoler pour voir les points, cliquer pour poser')),
       h('div', {}, key('Clic droit'), h('span', {}, 'glisser pour déplacer la vue')),
@@ -21,6 +22,7 @@ export function buildPause({ onResume, onRestart, onOptions, onGuide, onFullscre
     ) : null,
     h('div', { class: 'panel-actions column' },
       button('Reprendre', onResume, { cls: 'btn-primary', iconName: 'icon_play' }),
+      onJournal ? button(journalCount ? `Journal de l’île · ${journalCount} nouveau${journalCount > 1 ? 'x' : ''}` : 'Journal de l’île', onJournal, { iconName: 'icon_info' }) : null,
       button('Recommencer l’île', onRestart, { iconName: 'icon_return' }),
       h('div', { class: 'pause-row' }, button('Guide', onGuide, { iconName: 'icon_question' }), button('Options', onOptions, { iconName: 'icon_gear' }), onPostcard ? button('Carte postale', onPostcard, { iconName: 'icon_save' }) : null),
       onReport ? button('Pépins et idées', onReport, { cls: 'btn-ghost', iconName: 'icon_info' }) : null,

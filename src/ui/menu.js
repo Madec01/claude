@@ -9,6 +9,8 @@ import { RunSave } from '../core/run.js';
 import { ISLANDS } from '../data/islands.js';
 import { STORY } from '../data/story.js';
 import { dailyKey, dailyLabel } from '../data/daily.js';
+import { UPGRADES, upgradeCost, playerChapter } from '../data/upgrades.js';
+import { campaignMechanics } from '../data/campaign.js';
 
 export const VERSION = 'v1.0';
 
@@ -38,6 +40,8 @@ export function buildMenu({ game }) {
     : { sub: quand.text, subClass: 'btn-locked-sub' };
   // une partie laissée en plan attend sur l'appareil : elle passe devant tout le reste
   // (sauf si l'île ne peut plus être reconstruite : l'île du jour d'hier, par exemple)
+  // une amélioration ouverte, pas au maximum, que les graines paient
+  const atPortee = () => { const chap = playerChapter(c.unlockedIsland), mech = campaignMechanics(Math.max(1, c.unlockedIsland || 1)); return UPGRADES.some((u) => { const cost = upgradeCost(u, c.upgrades[u.id] || 0); return u.chapter <= chap && (!u.requires || mech.has(u.requires)) && cost !== null && c.seeds >= cost; }); };
   const run = (() => { const d = RunSave.describe(); return d && game.defFromWhere(d.where) ? d : null; })();
   append(nav, 
     run ? navButton('Reprendre', () => game.resumeRun(), { cls: 'btn-primary btn-big btn-resume', iconName: 'icon_return', title: `${run.title} · ${run.placements} tuile${run.placements > 1 ? 's' : ''} posée${run.placements > 1 ? 's' : ''} · ${SEASON_FR[run.season] || ''} · laissée ${run.when}`, sub: `${run.title} · ${run.placements} tuile${run.placements > 1 ? 's' : ''}` }) : null,
@@ -47,8 +51,13 @@ export function buildMenu({ game }) {
       mode(Save.data.infinite.unlocked || c.unlockedIsland > 10 || testMode, { key: 'mode_infinite', text: 's’ouvre après l’île 10' }, Save.data.infinite.best ? `${Save.data.infinite.best} pts` : ''))),
     navButton('Île du jour', () => game.startDaily(), Object.assign({ iconName: 'icon_sun', disabled: !(c.unlockedIsland >= 8 || testMode), title: `Se déverrouille après l’île 7 · ${dailyLabel(dailyKey())}` },
       mode(c.unlockedIsland >= 8 || testMode, { key: 'mode_daily', text: 's’ouvre après l’île 7' }, (Save.data.daily && Save.data.daily.best[dailyKey()]) ? `${Save.data.daily.best[dailyKey()]} pts` : (Save.data.daily && Save.data.daily.streak ? `${Save.data.daily.streak} j` : '')))),
-    navButton('Jardin', () => game.startGarden(), Object.assign({ iconName: 'icon_leaf', disabled: !(started || testMode), title: 'Pose libre, sans score' },
-      mode(started || testMode, { key: 'mode_garden', text: 's’ouvre à la première île finie' }, 'pose libre, sans score'))),
+    // le Jardin et l'Atelier partagent une ligne. L'Atelier se visite depuis le menu (il n'est plus un écran entre
+    // deux îles) : ses graines s'allument quand une amélioration est à portée.
+    h('div', { class: 'menu-pair' },
+      navButton('Jardin', () => game.startGarden(), Object.assign({ iconName: 'icon_leaf', disabled: !(started || testMode), title: 'Pose libre, sans score' },
+        mode(started || testMode, { key: 'mode_garden', text: 'après l’île 1' }, 'sans score'))),
+      navButton('Atelier', () => game.showWorkshop(), Object.assign({ iconName: 'icon_gear', disabled: !(started || testMode), title: 'L’Atelier des saisons : les graines en améliorations' },
+        started || testMode ? { sub: `${c.seeds} graine${c.seeds > 1 ? 's' : ''}`, subClass: atPortee() ? 'btn-new' : '' } : { sub: 'après l’île 1', subClass: 'btn-locked-sub' }))),
     h('div', { class: 'menu-row' },
       navButton('Guide', () => game.showGuide(), { iconName: 'icon_question', title: 'Tuiles, saisons, faune, souffles, graines' }),
       navButton('Options', () => game.showOptions(), { iconName: 'icon_gear' }),

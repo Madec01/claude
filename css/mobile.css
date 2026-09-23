@@ -9,16 +9,14 @@ html.compact #stage { border-radius: 0; box-shadow: none; }
 .toast { position: absolute; left: 50%; bottom: 28px; transform: translateX(-50%); z-index: 60; max-width: 92%; background: var(--ink); color: #fff; padding: 10px 16px; border-radius: 12px; font-size: 14px; line-height: 1.35; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.25); animation: noteIn 0.3s ease; pointer-events: none; }
 
 /* Éléments réservés au tactile */
-html:not(.touch) .hud-place, html:not(.touch) .hud-fs { display: none !important; }
+html:not(.touch) .hud-place { display: none !important; }
 html.touch .pause-controls { display: none; }
 .hud-place { position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); pointer-events: all; z-index: 3; background: var(--breath); color: #fff; font-family: inherit; font-weight: 800; font-size: 17px; padding: 12px 26px; border-radius: 28px; border: 2px solid #fff; box-shadow: 0 10px 26px rgba(30,50,70,0.3); cursor: pointer; white-space: nowrap; }
 .hud-place.neg { background: var(--loss); }
-.hud-fs { margin-left: 6px; }
 .wish-toggle { display: none; }
 
 /* ---------- HUD compact ---------- */
 html.compact .hud-top { padding: 5px 6px; gap: 5px; padding-left: max(6px, env(safe-area-inset-left)); padding-right: max(6px, env(safe-area-inset-right)); }
-html.compact .hud-title { display: none; }
 html.compact .hud-block { padding: 4px 8px; gap: 5px; border-radius: 9px; box-shadow: 0 2px 8px rgba(30,50,70,0.12); }
 html.compact .hud-season { min-width: 0; flex: 1 1 auto; }
 html.compact .season-rule { display: none; }
@@ -27,12 +25,10 @@ html.compact .hud-season .season-icon .hud-icon { width: 20px; height: 20px; }
 html.compact .season-pips { max-width: 44px; gap: 2px; }
 html.compact .season-pips i { width: 6px; height: 6px; }
 html.compact .hud-label { font-size: 9px; letter-spacing: 0.06em; }
-html.compact .hud-score b, html.compact .hud-breaths b, html.compact .hud-left-tiles b { font-size: 16px; }
+html.compact .hud-score b, html.compact .hud-breaths b { font-size: 16px; }
 html.compact .hud-stars { font-size: 9px; }
 html.compact .hud-pause { width: 34px; height: 34px; }
 html.compact .hud-pause .hud-icon { width: 13px; height: 13px; }
-html.compact .hud-notify { top: auto; bottom: 40px; gap: 3px; width: 94%; }
-html.compact .hud-note { font-size: 12px; padding: 3px 10px; max-width: 100%; }
 html.compact .fauna-chip { font-size: 11px; padding: 2px 7px 2px 2px; gap: 4px; }
 html.compact .fauna-chip img { width: 18px; height: 18px; }
 html.compact .tuto-card { width: calc(100% - 16px); padding: 8px 10px; font-size: 13px; gap: 8px; border-radius: 10px; }
@@ -40,6 +36,12 @@ html.compact .tuto-ok { font-size: 12px; padding: 4px 9px; }
 html.compact .tuto-hint { display: none; }
 /* file de tuiles */
 html.compact .queue-title { display: none; }
+/* au téléphone, le titre de la file s'efface mais le compte des tuiles reste, en étiquette au-dessus de la file */
+html.compact .hud-queue > .queue-title { display: block; position: absolute; left: 10px; bottom: 100%; margin-bottom: 4px; padding: 1px 8px; border-radius: 10px; background: rgba(255,253,248,0.85); opacity: 0.85; pointer-events: none; }
+html.compact .hud-queue > .queue-title > span:first-child { display: none; }
+html.compact .hud-queue > .queue-title:has(.queue-left:empty) { display: none; }
+html.compact.landscape .hud-queue > .queue-title { position: static; margin: 0; align-self: flex-start; }
+html.compact.portrait .hud-queue > .queue-title { bottom: auto; top: 10px; left: auto; right: 10px; margin: 0; }
 html.compact .qtile { padding: 4px 6px; gap: 4px; border-radius: 9px; }
 html.compact .qtile.rare::after { font-size: 8px; right: 4px; top: 2px; }
 html.compact .pw { padding: 3px 4px; font-size: 10px; gap: 1px; border-radius: 8px; }
@@ -149,6 +151,8 @@ html.compact .opt-val { text-align: right; }
 html.compact .opt-group { padding: 8px 10px; }
 html.compact .res-kicker { font-size: 11px; }
 html.compact .res-line { font-size: 15px; }
+html.compact .res-memory p { font-size: 13.5px; }
+html.compact .prep-story { font-size: 14.5px; margin-bottom: 6px; }
 html.compact .res-grid { gap: 2px 18px; }
 html.compact.portrait .res-grid { grid-template-columns: 1fr; }
 html.compact .res-row { font-size: 14px; padding: 4px 0; } html.compact .res-row b { font-size: 15px; }
@@ -193,12 +197,8 @@ html.compact .season-txt { min-width: 0; }
 html.compact .season-txt b { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
 html.compact .season-pips { flex: 0 0 auto; width: 38px; max-width: 38px; margin-left: 4px; }
 html.compact .hud-label { font-size: 8px; }
-html.compact .hud-score b, html.compact .hud-breaths b, html.compact .hud-left-tiles b { font-size: 15px; }
+html.compact .hud-score b, html.compact .hud-breaths b { font-size: 15px; }
 html.compact .hud-pause { width: 30px; height: 30px; flex: 0 0 auto; }
-html.compact .hud-fs { margin-left: 2px; }
-html.compact .hud-notify { top: auto; bottom: 40px; }
-html.compact.landscape .hud-notify { top: auto; bottom: 40px; left: 130px; right: 130px; width: auto; transform: none; }
-html.compact.landscape .hud-note { font-size: 11px; }
 html.compact.landscape .panel-title { font-size: 20px; margin-bottom: 4px; }
 html.compact.landscape .panel-results .stars { margin: 2px 0 4px; }
 html.compact.landscape .panel-results .star .icon { width: 26px; height: 26px; }
@@ -212,9 +212,6 @@ html.compact.landscape .panel { padding: 10px 14px; }
 html.compact .hud-season { position: relative; padding-bottom: 8px; }
 html.compact .season-pips { position: absolute; left: 8px; right: 8px; bottom: 3px; width: auto; max-width: none; margin: 0; gap: 2px; flex-wrap: nowrap; }
 html.compact .season-pips i { flex: 1 1 0; width: auto; height: 3px; border-radius: 2px; }
-html.compact.portrait .hud-fs { display: none !important; }
-html.compact.portrait .hud-notify { top: auto; bottom: 150px; }
-html.compact.landscape .hud-notify { right: 230px; }
 
 /* panneaux compacts : les actions (Retour, Continuer…) restent visibles, seule la zone centrale défile */
 html.compact .panel { display: flex; flex-direction: column; overflow: hidden; }
@@ -232,11 +229,9 @@ html.compact.portrait .hud-top { flex-wrap: wrap; row-gap: 4px; }
 html.compact.portrait .hud-season { order: 10; flex: 1 1 100%; overflow: visible; padding-right: 22px; }
 html.compact.portrait .season-txt b { font-size: 13px; }
 html.compact.portrait .hud-season { flex: 1 1 calc(100% - 44px); min-width: 0; }   /* la saison passe à la ligne et la partage avec le journal (ⓘ) */
-html.compact.portrait .hud-log { order: 11; }
 html.compact.portrait .tile-help { top: calc(var(--hud-top-h, 96px) + 6px); }
 html.compact.portrait .hud-wishes { top: calc(var(--hud-top-h, 96px) + 6px); }
 /* jauge de série : sur téléphone, un filet sous le compteur, sans élargir la boîte */
-html.compact.portrait .hud-notify { top: auto; bottom: 150px; }
 html.compact.landscape .hud-season { padding-right: 22px; }
 .season-pop { z-index: 40; }
 html.compact.landscape .hud-queue { top: 64px; }

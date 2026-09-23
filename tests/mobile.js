@@ -134,7 +134,7 @@ async function touchDrag(cdp, pts) {
     await page.tap('.wish-toggle'); await page.waitForTimeout(300); await page.screenshot({ path: path.join(OUT, `mobile-${tag}-wishes.png`) }); await page.tap('.wish-toggle');
     // pause
     { const d = await hudDehors(); check(d.length === 0, `${name} : les souffles et les boutons du jeu restent dans l’écran${d.length ? ` (dehors : ${d.join(', ')})` : ''}`); }
-    await page.tap('.hud-log'); await page.waitForTimeout(400); await page.screenshot({ path: path.join(OUT, `mobile-${tag}-log.png`) }); check(await page.evaluate(() => document.querySelectorAll('.log-item').length > 0), `${name} : journal des événements ouvert avec des entrées`); await page.tap('.log-close'); await page.waitForTimeout(200);
+    await page.tap('[data-ref="pause"]'); await page.waitForTimeout(400); await page.evaluate(() => [...document.querySelectorAll('.panel-pause button')].find((b) => b.textContent.includes('Journal')).click()); await page.waitForTimeout(400);   // le journal s'ouvre depuis la pause await page.screenshot({ path: path.join(OUT, `mobile-${tag}-log.png`) }); check(await page.evaluate(() => document.querySelectorAll('.log-item').length > 0), `${name} : journal des événements ouvert avec des entrées`); await page.tap('.log-close'); await page.waitForTimeout(200);
     await page.tap('[data-ref="pause"]'); await page.waitForTimeout(500); await page.screenshot({ path: path.join(OUT, `mobile-${tag}-pause.png`) });
     check(await page.$('.panel-pause'), `${name} : pause ouverte au toucher`);
     await page.tap('.panel-pause .btn-primary'); await page.waitForTimeout(300);

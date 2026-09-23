@@ -27,7 +27,7 @@ import { buildGuide } from './ui/guide.js';
 import { dailyDef, dailyKey, yesterdayKey } from './data/daily.js';
 import { Finale } from './game/finale.js';
 import { FinaleClassique } from './game/finale_classique.js';   // la tournée d'avant, gardée au cas où (option `finaleClassique`)
-import { campaignIsland, campaignMechanics, islandOptions, CAMPAIGN_SIZE, MECH_AT, climateCardFor, unlockedUpTo, gateText, restarFromBest } from './data/campaign.js';
+import { campaignIsland, campaignMechanics, islandOptions, CAMPAIGN_SIZE, MECH_AT, climateCardFor, unlockedUpTo, gateText, restarFromBest, CHAPTERS } from './data/campaign.js';
 import { GRADES, streakMilestone } from './game/feedback.js';
 import { computeLinks } from './game/paths.js';
 import { waterBodies } from './game/water.js';
@@ -77,19 +77,6 @@ resize();
 const SEASON_MUSIC = { spring: 'spring', summer: 'summer', autumn: 'autumn', winter: 'winter' };
 // le printemps garde toujours « Morning » (préférence du commanditaire) ; les autres saisons alternent entre deux pistes
 const seasonMusic = (season, nth = 1) => { const alt = `${SEASON_MUSIC[season]}_2`; return nth >= 2 && nth % 2 === 0 && AudioSys.has(alt, 'music') ? alt : SEASON_MUSIC[season]; };
-
-/** Lignes du relevé de saison : les événements groupés par nature, avec les cases concernées. */
-const SEASON_LABELS = { harvest: 'Récoltes', veillee: 'Veillée', pond: 'Étangs', mill: 'Moulins', rare: 'Tuiles rares', level3: 'Niveau 3', fusion: 'Fusions', hunt: 'Chasse', firewood: 'Bois de chauffage', fair: 'Grande foire', mild: 'Hiver doux', cold: 'Grand froid', bloom: 'Marais en fleurs', heather: 'Lande en fleurs' };
-function seasonLines(e, isl) {
-  const by = new Map();
-  for (const ev of e.events || []) { if (!ev.pts) continue; const k = ev.type; const g = by.get(k) || { label: SEASON_LABELS[ev.type] || ev.type, pts: 0, cells: [] }; g.pts += ev.pts; g.cells.push({ q: ev.q, r: ev.r }); by.set(k, g); }
-  const lines = [...by.values()];
-  if (e.links) lines.push({ label: `Sentiers (${e.links})`, pts: e.links * BALANCE.points.pathSeason, cells: [] });
-  if (e.faunaBonus) lines.push({ label: `Faune (${e.faunaBonus})`, pts: e.faunaBonus * (BALANCE.points.faunaSeason + (isl.mods.refuge || 0)), cells: [...isl.fauna.values()].map((a) => ({ q: a.q, r: a.r })) });
-  const listed = lines.reduce((s, l) => s + l.pts, 0); const rest = (e.pts || 0) - listed;
-  if (rest) lines.push({ label: 'Autres primes', pts: rest, cells: [] });
-  return lines.sort((a, b) => b.pts - a.pts);
-}
 
 /** Les étincelles d'une saison : une par tuile qui rapporte (couleur selon la nature), les sentiers depuis leur milieu, la faune depuis chaque animal, le reste depuis le centre. */
 const FLIGHT_COLORS = { harvest: '#e0a33a', bloom: '#d98cb3', vigil: '#f2c08a', level3: '#e0a33a', fusion: '#b8862b', rare: '#8a6fb5', path: '#c9a26b', fauna: '#3a9c8a', other: '#e0a33a' };
@@ -306,15 +293,14 @@ const Game = {
   },
   startIsland(id, { skipIntro = false } = {}) {
     const def = campaignIsland(id); const cc = climateCardFor(def.id); def.introduces = [...(cc ? [cc] : []), ...(MECH_AT[def.id] || []).filter((m) => !(cc && m === 'climate'))];   // la carte de climat d'abord (elle n'attend rien), la carte générique cède la place à la carte du climat
-    if (skipIntro) { this.prepIsland(def); return; }
-    scenes.go('story', { screens: islandIntroScreens(def), onDone: () => this.prepIsland(def) });
+    this.prepIsland(def, skipIntro ? [] : islandIntroScreens(def));   // « Rejouer l'île » : pas de récit, on l'a déjà lu
   },
-  /** Semis et vœux avant la première pose ; sans rien à choisir ni à lire, l'île démarre directement. */
-  prepIsland(def) {
+  /** L'écran de départ : récit, semis et vœux sur un seul écran. Sans rien à lire ni à choisir, l'île démarre directement. */
+  prepIsland(def, screens = []) {
     const semis = !!(def.mech && def.mech.has('semis')) && !def.daily;
     const go = (semisId) => { const d2 = semisId && semisId !== 'saisons' ? { ...def, weights: applySemis(def.weights, semisId), semis: semisId } : def; hideUI(); scenes.go('island', { def: d2, skipWishes: true }, { fade: 0.5 }); };
-    if (!semis && !(def.wishes && def.wishes.length)) { go(null); return; }
-    this.showPanel(buildIslandPrep({ def, semis, onStart: (id) => { AudioSys.play('ui_confirm', { volume: 0.5 }); go(id); } }));
+    if (!semis && !(def.wishes && def.wishes.length) && !screens.length) { go(null); return; }
+    scenes.go('prep', { node: buildIslandPrep({ def, semis, screens, onStart: (id) => { AudioSys.play('ui_confirm', { volume: 0.5 }); go(id); }, onBack: () => this.showMenu() }) });
   },
   // ----- Partie en cours gardée sur l'appareil -----
   /** De quoi retrouver l'île plus tard : le strict nécessaire pour la reconstruire à l'identique. */
@@ -348,7 +334,7 @@ const Game = {
   /** Un mode essayé cesse d'être « nouveau » au menu. */
   noteMode(k) { Save.data.seen = Save.data.seen || {}; if (!Save.data.seen[k]) { Save.data.seen[k] = true; Save.save(); } },
   startInfinite() { this.noteMode('mode_infinite'); scenes.go('story', { screens: infiniteScreens(), onDone: () => scenes.go('island', { def: INFINITE }, { fade: 0.5 }) }); },
-  startDaily() { this.noteMode('mode_daily'); const def = dailyDef(); scenes.go('story', { screens: dailyScreens(def), onDone: () => this.prepIsland(def) }); },
+  startDaily() { this.noteMode('mode_daily'); const def = dailyDef(); this.prepIsland(def, dailyScreens(def)); },
   startGarden() { this.noteMode('mode_garden'); scenes.go('story', { screens: gardenScreens(), onDone: () => scenes.go('island', { def: GARDEN }, { fade: 0.5 }) }); },
 
   /**
@@ -369,7 +355,7 @@ const Game = {
     const chap = playerChapter(c.unlockedIsland);
     if (chap >= 2) {
       const neuves = UPGRADES.filter((u) => u.chapter === chap);
-      if (neuves.length) n += say(`atelier_ch${chap}`, { kicker: 'Atelier des saisons', name: `Chapitre ${chap}`, desc: `${neuves.length} nouvelle${neuves.length > 1 ? 's' : ''} amélioration${neuves.length > 1 ? 's' : ''} : ${neuves.map((u) => u.name).join(', ')}.`, iconName: 'icon_gear' }) ? 1 : 0;
+      if (neuves.length) n += say(`atelier_ch${chap}`, { kicker: 'Atelier des saisons', name: `Chapitre ${chap}`, desc: `${neuves.length} nouvelle${neuves.length > 1 ? 's' : ''} amélioration${neuves.length > 1 ? 's' : ''} : ${neuves.map((u) => u.name).join(', ')}. Depuis le menu.`, iconName: 'icon_gear' }) ? 1 : 0;
     }
     if (n) Save.save();
     return n;
@@ -409,6 +395,7 @@ const Game = {
       const firstTime = !c.memoriesRead.includes(def.id);
       seedsGained = Math.max(0, result.stars - prevStars) * (BALANCE.seeds.star + (c.upgrades.evening || 0)) + (result.gold && !prevGold ? 1 : 0) + (firstTime ? result.wishesDone * BALANCE.seeds.wish + BALANCE.seeds.island : 0) + (BALANCE.upgrades.almanac[c.upgrades.almanac || 0] || 0);
       c.seeds += seedsGained; c.seedsTotal += seedsGained;
+      if (firstTime) c.memoriesRead.push(def.id);   // le souvenir se lit au bilan : il est acquis dès maintenant, même si l'on part par « Menu »
       // déblocage recalculé depuis les étoiles : l'étoile qui manquait à la porte compte même si on l'a décrochée
       // sur une île déjà jouée. `Math.max` pour ne jamais retirer ce qui était ouvert (mode test, anciennes sauvegardes).
       c.unlockedIsland = Math.max(c.unlockedIsland, unlockedUpTo(c));
@@ -432,17 +419,16 @@ const Game = {
     if (def.garden) { this.startGarden(); return; }
     if (def.daily) { this.showMenu(); return; }
     const c = Save.campaign;
-    const memory = islandMemoryScreens(def, result);
-    // Terminer une île suffit : elle ouvre la suivante et livre sa mémoire, avec ou sans étoile. Les étoiles
-    // ne gardent plus que les portes de chapitre — et une porte a deux clés (voir gateOpen).
-    const next = () => {
-      if (def.id === CAMPAIGN_SIZE) { scenes.go('story', { screens: endingScreens(), skippable: false, onDone: () => scenes.go('ending') }); return; }
-      scenes.go('workshop', { onContinue: () => { if (c.unlockedIsland > def.id) this.startIsland(def.id + 1); else { this.showMenu(); const t = gateText(c, Math.ceil(def.id / 5)); if (t) this.toast(t, 7000); } } });
-    };
-    if (!c.memoriesRead.includes(def.id)) { c.memoriesRead.push(def.id); Save.save(); }
+    // Terminer une île suffit : elle ouvre la suivante, avec ou sans étoile. Les étoiles ne gardent plus que les
+    // portes de chapitre — et une porte a deux clés (voir gateOpen). Le souvenir s'est lu au bilan : du bilan on
+    // passe directement à l'écran de départ de l'île suivante ; l'Atelier attend au menu.
     this.remindBackup();
-    scenes.go('story', { screens: memory, onDone: next });
+    if (def.id === CAMPAIGN_SIZE) { scenes.go('story', { screens: endingScreens(), skippable: false, onDone: () => scenes.go('ending') }); return; }
+    if (c.unlockedIsland > def.id) this.startIsland(def.id + 1);
+    else { this.showMenu(); const t = gateText(c, Math.ceil(def.id / 5)); if (t) this.toast(t, 7000); }
   },
+  /** L'Atelier des saisons, depuis le menu. */
+  showWorkshop() { scenes.go('workshop', { onContinue: () => this.showMenu() }); },
 };
 window.CS = { Game, Save, scenes, AudioSys, ISLANDS, BALANCE, STORY, STAGE, input, campaignIsland, Cloud };
 onResizeHook = () => Game.onResize();
@@ -542,7 +528,6 @@ class IslandScene {
       onUndo: () => { if (isl.undo()) { AudioSys.play('tile_undo', { volume: 0.6 }); this.hud.notify('La dernière pose est annulée', 'info'); } else AudioSys.play('ui_error', { volume: 0.4 }); },
       onGardenPick: (fam) => { isl.setGardenTile(fam); AudioSys.play('ui_click', { volume: 0.4 }); },
       onPlace: () => this.placeArmed(),
-      onFullscreen: () => Game.toggleFullscreen(),
       compact: STAGE.compact,
     });
     document.getElementById('hud').classList.add('on');
@@ -754,9 +739,7 @@ class IslandScene {
         const seen = Save.data.seen || (Save.data.seen = {});
         if (!seen.growth) { seen.growth = true; Save.save(); setTimeout(() => this.tutorial.pushCard('growth', STORY.mechCards.growth), t0 + 400); }
       }
-      const lines = seasonLines(e, isl);
-      if (this.hud.recapMode === 'full') { this.hud.onTick = null; setTimeout(() => this.hud.seasonRecap({ from: e.from, to: e.to, lines, total: e.pts }), 900 + flights.length * stagger + 1900); }
-      else if (e.pts) setTimeout(() => this.hud.bumpScore(e.pts), 900 + flights.length * stagger + 2000);
+      if (e.pts) setTimeout(() => this.hud.bumpScore(e.pts), 900 + flights.length * stagger + 2000);   // le détail par source attend au bilan (et sous le compteur, au toucher)
       this.tutorial.onEvent('season');
       this.updateAmbience();
     } else if (e.type === 'fauna') {
@@ -857,6 +840,12 @@ class IslandScene {
     }
   }
 
+  /** La ligne sous le nom de l'île, en pause : chapitre, île, climat. */
+  pauseSub() {
+    const d = this.def; const ch = d.chapter ? CHAPTERS[d.chapter - 1] : null;
+    const cl = d.climate && d.climate !== 'temperate' && STORY.climates && STORY.climates[d.climate] ? ` · ${STORY.climates[d.climate].name}` : '';
+    return ch ? `Chapitre ${ch.id} · ${ch.name} · île ${d.id}${cl}` : d.daily ? 'Île du jour' : d.infinite ? 'Île infinie' : d.garden ? 'Jardin' : '';
+  }
   togglePause(force) {
     if (!this.isl || this.isl.ended) return;
     this.paused = force !== undefined ? force : !this.paused;
@@ -864,7 +853,7 @@ class IslandScene {
     if (this.paused) {
       AudioSys.play('ui_open', { volume: 0.5 });
       this.saveRun(true);
-      const build = () => buildPause({ title: this.title, kept: !Game.testMode, onResume: () => this.togglePause(false), onRestart: () => { RunSave.clear(); scenes.go('island', { def: this.def }, { fade: 0.5 }); }, onOptions: () => Game.showOptions(() => showUI(build(), 'pause-wrap')), onGuide: () => Game.showGuide(() => showUI(build(), 'pause-wrap')), onFullscreen: () => { Game.toggleFullscreen(); setTimeout(() => { if (this.paused) showUI(build(), 'pause-wrap'); }, 400); }, onMenu: () => scenes.go('menu'), onPostcard: () => { try { showUI(buildPostcard({ canvas: renderPostcard(this), filename: postcardName(this), onBack: () => showUI(build(), 'pause-wrap') }), 'panel-wrap'); } catch (e) { console.warn('carte postale', e); } }, onReport: () => Game.showReport(() => showUI(build(), 'pause-wrap')) });
+      const build = () => buildPause({ title: this.title, sub: this.pauseSub(), kept: !Game.testMode, onResume: () => this.togglePause(false), onJournal: () => { this.togglePause(false); this.hud.toggleLog(true); }, journalCount: this.hud.unread, onRestart: () => { RunSave.clear(); scenes.go('island', { def: this.def }, { fade: 0.5 }); }, onOptions: () => Game.showOptions(() => showUI(build(), 'pause-wrap')), onGuide: () => Game.showGuide(() => showUI(build(), 'pause-wrap')), onFullscreen: () => { Game.toggleFullscreen(); setTimeout(() => { if (this.paused) showUI(build(), 'pause-wrap'); }, 400); }, onMenu: () => scenes.go('menu'), onPostcard: () => { try { showUI(buildPostcard({ canvas: renderPostcard(this), filename: postcardName(this), onBack: () => showUI(build(), 'pause-wrap') }), 'panel-wrap'); } catch (e) { console.warn('carte postale', e); } }, onReport: () => Game.showReport(() => showUI(build(), 'pause-wrap')) });
       showUI(build(), 'pause-wrap');
     } else { hideUI(); AudioSys.play('ui_close', { volume: 0.5 }); }
   }
@@ -923,11 +912,18 @@ class ResultsScene {
   async enter({ result, def, newRecord, seedsGained, daily }) {
     AudioSys.playMusic('results', { fade: 1.5 });
     this.bg = scenes.scenes.get('menu').ensureBg();
-    const show = () => showUI(buildResults({ result, def, newRecord, seedsGained, daily, onContinue: () => Game.afterResults(result, def), onRetry: () => Game.startIsland(def.id, { skipIntro: true }), onMenu: () => scenes.go('menu'), onPostcard: result.postcard ? () => showUI(buildPostcard({ canvas: result.postcard.canvas, filename: result.postcard.filename, onBack: show }), 'panel-wrap') : null }), 'results-wrap'); show();
+    const show = () => showUI(buildResults({ result, def, newRecord, seedsGained, daily, memory: def.daily || def.infinite || def.garden ? [] : islandMemoryScreens(def, result).map((x) => x.text), onContinue: () => Game.afterResults(result, def), onRetry: () => Game.startIsland(def.id, { skipIntro: true }), onMenu: () => scenes.go('menu'), onPostcard: result.postcard ? () => showUI(buildPostcard({ canvas: result.postcard.canvas, filename: result.postcard.filename, onBack: show }), 'panel-wrap') : null }), 'results-wrap'); show();
   }
   exit() { hideUI(); }
   update(dt) { this.bg.update(dt); input.endFrame(); }
   render(ctx, alpha, dt) { this.bg.render(ctx, alpha, dt); ctx.fillStyle = 'rgba(244,239,230,0.5)'; ctx.fillRect(0, 0, STAGE.W, STAGE.H); }
+}
+/** L'écran de départ d'une île (récit, semis, vœux), sur le fond du menu. */
+class PrepScene {
+  async enter({ node }) { this.bg = scenes.scenes.get('menu').ensureBg(); showUI(node, 'panel-wrap'); }
+  exit() { hideUI(); }
+  update(dt) { this.bg.update(dt); input.endFrame(); }
+  render(ctx, alpha, dt) { this.bg.render(ctx, alpha, dt); ctx.fillStyle = 'rgba(244,239,230,0.45)'; ctx.fillRect(0, 0, STAGE.W, STAGE.H); }
 }
 class WorkshopScene {
   async enter({ onContinue }) { AudioSys.playMusic('results', { fade: 1.5 }); this.bg = scenes.scenes.get('menu').ensureBg(); showUI(buildWorkshop({ onContinue }), 'workshop-wrap'); }
@@ -953,6 +949,7 @@ scenes.register('menu', new MenuScene());
 scenes.register('story', new StoryScene());
 scenes.register('island', new IslandScene());
 scenes.register('results', new ResultsScene());
+scenes.register('prep', new PrepScene());
 scenes.register('workshop', new WorkshopScene());
 scenes.register('ending', new EndingScene());
 

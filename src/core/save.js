@@ -18,6 +18,9 @@ function migrate(data, from) {
   // qui la rallume ensuite volontairement.
   if (!data.fixes) data.fixes = {};
   if (!data.fixes.gridOff) { data.fixes.gridOff = true; if (data.options) data.options.grid = false; }
+  // La fiche de la tuile à poser était affichée en permanence : une béquille qui couvrait le plateau au téléphone.
+  // Elle se masque désormais par défaut (touche H, ou le « ? » de la file) ; on la replie une fois pour tous.
+  if (!data.fixes.tileHelpOff) { data.fixes.tileHelpOff = true; if (data.options) { data.options.tileHelp = false; delete data.options.recap; } }
   tidyCampaign(data);
   return data;
 }
@@ -53,7 +56,7 @@ export function tidyCampaign(data) {
 }
 const defaults = () => ({
   version: VERSION,
-  options: { master: 0.8, music: 0.7, ambience: 0.8, sfx: 0.9, muted: false, shake: true, testMode: false, skipTutorial: false, showFps: false, tileHelp: true, grid: false, recap: 'auto', notes: 'auto', haptics: true, rest: true, finaleClassique: false },   // relevé de saison : auto (complet sur ordinateur, bref sur téléphone), full, brief, none ; notes : auto (sobres sur téléphone, toutes sur ordinateur), all, sober ; haptics : vibrations
+  options: { master: 0.8, music: 0.7, ambience: 0.8, sfx: 0.9, muted: false, shake: true, testMode: false, skipTutorial: false, showFps: false, tileHelp: false, grid: false, notes: 'auto', haptics: true, rest: true, finaleClassique: false },   // notes : auto (sobres sur téléphone, toutes sur ordinateur), all, sober ; haptics : vibrations
   campaign: {
     recipes: [],   // fusions découvertes (Cahier)
     unlockedIsland: 1, stars: {}, gold: {}, best: {}, plays: {}, seeds: 0, seedsTotal: 0,   // gold : étoile d'or par île (cosmétique) ; plays : parties terminées par île (déblocage et porte de chapitre)

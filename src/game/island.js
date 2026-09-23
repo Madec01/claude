@@ -407,7 +407,13 @@ export class Island {
     // faune : chaque animal présent donne des souffles et des points
     const faunaBonus = [...this.fauna.values()].filter((a) => !a.noBonus).length;
     pts += faunaBonus * (BALANCE.points.faunaSeason + this.mods.refuge);
-    this.tally.fauna += faunaBonus * (BALANCE.points.faunaSeason + this.mods.refuge); this.tally.seasons += pts - faunaBonus * (BALANCE.points.faunaSeason + this.mods.refuge);
+    // le cumul par source garde chaque nature de prime à part (récoltes, veillées, sentiers…) : le bilan les montre une à une
+    // au lieu d'une ligne « Saisons » qui en agrégeait une douzaine
+    const faunaPts = faunaBonus * (BALANCE.points.faunaSeason + this.mods.refuge); let listed = faunaPts;
+    this.tally.fauna += faunaPts;
+    if (links) { this.tally.paths = (this.tally.paths || 0) + links * BALANCE.points.pathSeason; listed += links * BALANCE.points.pathSeason; }
+    for (const e of ev) if (e.pts) { const k = `s_${e.type}`; this.tally[k] = (this.tally[k] || 0) + e.pts; listed += e.pts; }
+    if (pts - listed) this.tally.seasons += pts - listed;
     this.score += pts;
     const grown = this.growTiles();
     this.emit({ type: 'season', from, to: this.season, events: ev, pts, faunaBonus, links, rule: this.rule, prevRule, grown });

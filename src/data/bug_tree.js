@@ -185,7 +185,6 @@ export const TREE = [
         f('primes', 'Les points de fin de saison', 'Quelle source manquait au relevé ?'),
         f('retard', 'Points en retard d’une saison', 'Chasse (animaux de forêt) ou Grand vent (moulins) ? Ils paient la saison suivante.'),
         f('longue', 'Saison longue (climat chaud ou froid)', 'Quelle saison s’est répétée ?', 'Combien de fois ?'),
-        f('releve', 'Relevé de saison', 'Quel réglage ?', 'Le total colle-t-il à la somme des lignes ?'),
         autre('Quel problème de saison ?'),
       ] },
       { id: 'climat', n: 'Climat et surprises de saison', q: [], e: [

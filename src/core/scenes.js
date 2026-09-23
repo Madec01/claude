@@ -6,8 +6,11 @@ export class SceneManager {
 
   /** Change de scène avec un fondu au noir (via #fade). */
   async go(name, params = {}, { fade = 0.45 } = {}) {
-    if (this._switching) return;
-    this._switching = true;
+    // Pendant un fondu, une demande vers une AUTRE scène attend la fin du fondu au lieu d'être perdue : l'écran de départ
+    // d'une île apparaît pendant son propre fondu, et un « C'est parti » touché aussitôt restait sans effet. Une demande
+    // vers la scène déjà en route (double toucher) reste ignorée.
+    if (this._switching) { if (name !== this._target) this._pending = [name, params, { fade }]; return; }
+    this._switching = true; this._target = name;
     const next = this.scenes.get(name);
     if (!next) { this._switching = false; throw new Error(`Scène inconnue : ${name}`); }
     const el = document.getElementById('fade');
@@ -24,8 +27,9 @@ export class SceneManager {
       console.error(`Erreur à l'entrée de la scène ${name}`, e);
     } finally {
       if (fade > 0) { await wait(30); el.classList.remove('on'); }
-      this._switching = false;
+      this._switching = false; this._target = null;
     }
+    if (this._pending) { const p = this._pending; this._pending = null; this.go(...p); }
   }
 
   update(dt) { if (this.current && this.current.update) this.current.update(dt); }
