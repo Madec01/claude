@@ -25,9 +25,29 @@ button { font-family: inherit; }
 :focus-visible { outline: 2px solid var(--breath); outline-offset: 2px; }
 
 /* Chargement */
+/* L'écran de chargement montre une vraie île du jeu (photographiée par `tools/capture_partie.js`, comme l'icône).
+   L'image est posée en fond et non dans le HTML : elle se charge à part, sans retarder l'apparition de l'écran.
+   Un voile de papier par-dessus garde le titre et la barre lisibles — sans lui, l'encre sombre se perd dans le vert. */
 #boot { position: fixed; inset: 0; z-index: 100; background: var(--paper); display: flex; align-items: center; justify-content: center; transition: opacity 0.6s ease; }
+#boot::before { content: ''; position: absolute; inset: 0;
+  background: url('../assets/img/ui/boot_island.jpg') center / cover no-repeat; }
+/* Deux cadrages, pas un seul redimensionné : « cover » sur l'image paysage zoome dans l'île jusqu'à
+   n'en montrer qu'un bout, et « contain » la réduit à un timbre au milieu d'un grand vide. Le second
+   fichier est une capture prise en écran de téléphone, l'île déjà à sa place. Le navigateur ne charge
+   que celui dont la requête média est vraie : deux fichiers, un seul téléchargé (~32 Ko en JPEG,
+   contre 210 Ko en PNG — c'est la toute première image du jeu, elle doit arriver avant tout). */
+/* un simple voile, pas de halo plein écran : le halo était réglé pour l'image paysage et, sur un écran
+   haut, il débordait de l'île en posant une brume laiteuse au milieu de la mer. La lisibilité vient
+   maintenant du bloc de texte lui-même, qui porte son propre halo — il le suit quelle que soit la forme
+   de l'écran. */
+#boot::after { content: ''; position: absolute; inset: 0;
+  background: linear-gradient(rgba(244,239,230,0.16), rgba(244,239,230,0.16)); }
+@media (max-aspect-ratio: 1/1) { #boot::before { background-image: url('../assets/img/ui/boot_island_portrait.jpg'); } }
 #boot.off { opacity: 0; pointer-events: none; }
-.boot-inner { text-align: center; width: 380px; }
+/* le halo est ici, au ras du texte, et le liseré par-dessus : l'encre sombre tient sur le vert de l'île */
+.boot-inner { position: relative; z-index: 1; text-align: center; width: min(400px, 94vw); padding: 34px 14px 30px;
+  background: radial-gradient(66% 60% at 50% 50%, rgba(244,239,230,0.88), rgba(244,239,230,0.52) 52%, rgba(244,239,230,0) 84%);
+  text-shadow: 0 1px 10px rgba(244,239,230,0.95), 0 0 26px rgba(244,239,230,0.85); }
 .boot-title { font-family: var(--font-title); font-size: 46px; color: var(--ink); letter-spacing: 0.02em; }
 .boot-sub { font-style: italic; opacity: 0.7; margin: 4px 0 26px; font-size: 18px; font-family: var(--font-title); }
 .boot-bar { height: 6px; background: rgba(43,42,38,0.1); border-radius: 3px; overflow: hidden; }

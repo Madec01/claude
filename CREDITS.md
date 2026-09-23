@@ -96,9 +96,9 @@ Toutes les œuvres ci-dessous appartiennent à leurs auteurs et sont utilisées 
 - **Généré par IA (ChatGPT, OpenAI)** — OpenAI — licence Conditions d'utilisation d'OpenAI (voir la page ci-dessous) — [source](https://openai.com/policies/usage-policies)
   - Attribution : Insignes d'archétype d'île « hameaux » et « aquatique », générés à partir d'un prompt écrit pour le projet (détail dans manifest.json), à la demande du commanditaire.
   - Fichiers : archetypes/archetype-hameaux.png, archetypes/archetype-aquatique.png, archetypes/archetype-montagneuse.png, archetypes/archetype-sauvage.png, archetypes/archetype-littorale.png, archetypes/archetype-nourriciere.png
-- **Icône de l'application (capture du jeu)** — Cent Saisons — licence Voir les packs ci-dessus
-  - Attribution : L'icône est une photographie de l'île 13 jouée jusqu'au bout par le bot des tests (tools/capture_partie.js), recadrée au carré. Tout ce qu'on y voit vient des packs d'images crédités plus haut ; rien n'a été dessiné pour elle.
-  - Fichiers : ui/app_icon_192.png, ui/app_icon_512.png, ui/app_icon_512_maskable.png
+- **Icône et écran de chargement (captures du jeu)** — Cent Saisons — licence Voir les packs ci-dessus
+  - Attribution : L'icône et le fond de l'écran de chargement sont des photographies de l'île 13, jouée jusqu'au bout par le bot des tests (tools/capture_partie.js) : l'icône recadrée au carré, le fond en deux cadrages, paysage et portrait. Tout ce qu'on y voit vient des packs d'images crédités plus haut ; rien n'a été dessiné pour elles.
+  - Fichiers : ui/app_icon_192.png, ui/app_icon_512.png, ui/app_icon_512_maskable.png, ui/boot_island.jpg, ui/boot_island_portrait.jpg
 
 ## Polices
 

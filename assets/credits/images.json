@@ -922,14 +922,16 @@
   ]
  },
  {
-  "pack": "Icône de l'application (capture du jeu)",
+  "pack": "Icône et écran de chargement (captures du jeu)",
   "author": "Cent Saisons",
   "license": "Voir les packs ci-dessus",
-  "attribution": "L'icône est une photographie de l'île 13 jouée jusqu'au bout par le bot des tests (tools/capture_partie.js), recadrée au carré. Tout ce qu'on y voit vient des packs d'images crédités plus haut ; rien n'a été dessiné pour elle.",
+  "attribution": "L'icône et le fond de l'écran de chargement sont des photographies de l'île 13, jouée jusqu'au bout par le bot des tests (tools/capture_partie.js) : l'icône recadrée au carré, le fond en deux cadrages, paysage et portrait. Tout ce qu'on y voit vient des packs d'images crédités plus haut ; rien n'a été dessiné pour elles.",
   "files": [
    "ui/app_icon_192.png",
    "ui/app_icon_512.png",
-   "ui/app_icon_512_maskable.png"
+   "ui/app_icon_512_maskable.png",
+   "ui/boot_island.jpg",
+   "ui/boot_island_portrait.jpg"
   ]
  }
 ]
