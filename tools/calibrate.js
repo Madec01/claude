@@ -7,7 +7,7 @@ import { writeFileSync } from 'node:fs';
 import { Island } from '../src/game/island.js';
 import { playStrong } from '../tests/bot.js';
 import { FUSIONS } from '../src/data/tiles.js';
-const KNOWN = new Set(FUSIONS.map((f) => f.id));   // régime de croisière : recettes déjà découvertes (les découvertes ne rendent des tuiles qu'une fois par campagne)
+const KNOWN = new Set(FUSIONS.map((f) => f.id));   // recettes connues ou non, c'est désormais pareil : une découverte ne rend plus ni tuile ni rare (audit de simplification, lot S5)
 
 const N = Number(process.argv[2] || 6);
 const range = (process.argv[3] || `1-${CAMPAIGN_SIZE}`).split('-').map(Number);

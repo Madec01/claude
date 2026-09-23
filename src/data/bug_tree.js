@@ -228,7 +228,7 @@ export const TREE = [
       { id: 'batir', n: 'Bâtir et fusionner', q: [], e: [
         f('niveau2', 'Bâtir (niveau 2)', 'Même famille exactement ?', 'Les bords ont-ils gagné +1 ?', 'La région a-t-elle grandi de 2 ?'),
         f('bienbati', 'Bien bâtie (la tuile qui revient)', 'Quelle raison affichée ?', 'Une tuile était-elle déjà revenue cette saison ?'),
-        f('niveau3', 'Niveau 3 et signature', 'Depuis combien de saisons au niveau 2 ?', 'Quelle signature annoncée ?'),
+        f('niveau3', 'Niveau 3', 'Depuis combien de saisons au niveau 2 ?', 'Le +1 par saison est-il tombé ?'),
         f('croissance', 'Croissance naturelle (dès l’île 41)', 'Combien de voisines de sa famille ?', 'As-tu vu les jeunes pousses ?', 'Qu’as-tu posé à côté ?'),
         f('fusion', 'Fusion', 'Quelles deux familles ?', 'La case était-elle surlignée ?', 'Le souffle a-t-il été débité ?'),
         f('prime', 'La prime d’une fusion', 'Quelle recette ?', 'Combien de voisines comptées ?', 'Chaque saison ou une fois ?'),
@@ -524,7 +524,7 @@ export const MOTS = {
   'regles/voeux': ['objectif', 'quete', 'demande', 'habitant', 'promesse'],
   'regles/souffles': ['pouvoir', 'energie', 'annuler', 'defausser', 'batir'],
   'regles/file': ['main', 'tuiles a venir', 'prochaine tuile'],
-  'regles/batir': ['construire', 'niveau 2', 'niveau 3', 'fusion', 'fusionner', 'signature', 'croissance'],
+  'regles/batir': ['construire', 'niveau 2', 'niveau 3', 'fusion', 'fusionner', 'croissance'],
   'regles/rares': ['moulin', 'chapelle', 'puits', 'campement', 'grenier', 'tour de guet'],
   'regles/etoiles': ['graine', 'atelier', 'amelioration', 'seuil', 'etoile d or'],
   'regles/campagne': ['chapitre', 'porte', 'archipel', 'semis', 'debloquer', 'verrouille', 'ile suivante'],

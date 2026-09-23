@@ -83,7 +83,7 @@ check(affinity('meadow', 'water') === 0, 'prairie-eau = 0');
   const h = [...isl.board.tiles.values()].find((t) => !t.rare && t.family === 'hamlet');
   if (h) { isl.queue.list[0] = isl.queue.makeTile('field'); const before = isl.queue.list.length; const res = isl.build(h.q, h.r);
     check(!!res && isl.board.get(h.q, h.r).family === 'farm' && isl.board.get(h.q, h.r).fusion && isl.stats.fusions === 1 && isl.known.has('farm'), 'fusion sur l’île 8 : ferme découverte');
-    check(isl.queue.list.length >= before + 1, 'découverte : une tuile et une rare reviennent dans la file'); }
+    check(isl.queue.list.length <= before && !isl.queue.list.some((t) => t.rare), 'découverte : la recette s’écrit dans le Cahier, sans tuile ni rare en retour (elles faussaient le calibrage)'); }
 }
 
 // --- niveau 3 : mûrir une saison, 2 souffles, bords +2, signature
@@ -100,6 +100,17 @@ check(affinity('meadow', 'water') === 0, 'prairie-eau = 0');
   check(isl.board.get(f.q, f.r).level === 3 && isl.breaths === b0 - 2 && isl.stats.level3 === 1, 'niveau 3 bâti');
 }
 
+// --- niveau 3 : une seule règle (bords +2, triple dans sa région, +1 par saison) ; les noms par famille n'ont plus d'effet
+{
+  const { STORY: ST } = await import('../src/data/story.js');
+  check(Object.values(ST.level3).every((l) => l.name && !l.short), 'les signatures du niveau 3 ne sont plus que des noms');
+  const d = campaignIsland(31); const isl = new Island(d, { ...islandOptions(d) });
+  const f = [...isl.board.tiles.values()].find((t) => !t.rare && t.family === 'hamlet'); f.level = 3; isl.board.touch();
+  isl.inSeason = isl.seasonLength - 1; const c = isl.board.legalCells()[0]; isl.place(c.q, c.r);
+  const ev = isl.lastEvents.filter((e) => e.type === 'season').pop();
+  const l3 = ev ? ev.events.filter((x) => x.type === 'level3') : [];
+  check(l3.length === 1 && l3[0].pts === BALANCE.build.level3Season, `niveau 3 : +${BALANCE.build.level3Season} par saison, rien de plus (${l3.map((x) => x.pts).join(',')})`);
+}
 // --- les ouvrages sont retirés : la ruche et le menhir sont des rares qui se posent sur une case vide et rapportent à chaque saison
 {
   const { RARE, RARE_SEASONAL } = await import('../src/data/tiles.js');

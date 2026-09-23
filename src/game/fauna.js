@@ -58,11 +58,9 @@ export function evaluate(board, season, rule = null) {
     if (alive >= F.rabbit) add('rabbit', reg);
   }
   for (const reg of board.regions('forest')) {
-    const ancient = reg.cells.some((c) => (c.level || 1) >= 3 && !c.rare);   // forêt ancienne : ours et hibou même sans roche ni hameau, à l'abri des feux
-    if (!ancient && rule === 'feux' && board.regionNeighbors(reg).filter((n) => n.family === 'meadow' && n.dry).length >= 2) continue;   // feux de broussaille : la forêt se vide
+    if (rule === 'feux' && board.regionNeighbors(reg).filter((n) => n.family === 'meadow' && n.dry).length >= 2) continue;   // feux de broussaille : la forêt se vide
     if (reg.size >= F.moose) add('moose', reg);
-    if (reg.size >= F.bear && (board.regionTouches(reg, 'rock') || ancient)) add('bear', reg);
-    if (ancient && !board.regionTouches(reg, 'hamlet')) add('owl', reg);
+    if (reg.size >= F.bear && board.regionTouches(reg, 'rock')) add('bear', reg);
     if (reg.size >= F.owl && board.regionTouches(reg, 'hamlet')) {
       const c = reg.cells.find((t) => neighbors(t.q, t.r).some(([a, b]) => { const n = board.get(a, b); return n && Board.isFamily(n, 'hamlet'); }));
       add('owl', reg, c);
@@ -92,8 +90,6 @@ export function evaluate(board, season, rule = null) {
     if (alive >= F.cow && board.regionTouches(reg, 'heath')) add('cow', reg, reg.cells.find((t) => !t.dry && neighbors(t.q, t.r).some(([a, b]) => { const n = board.get(a, b); return n && Board.isFamily(n, 'heath'); })) || undefined);
   }
   for (const t of board.tiles.values()) if (t.family === 'camp') out.set(`goat@camp:${t.q},${t.r}`, { species: 'goat', q: t.q, r: t.r, regionId: `camp:${t.q},${t.r}` });
-  // pâturages (prairie de niveau 3) : vache et cheval
-  for (const t of board.tiles.values()) if (t.family === 'meadow' && (t.level || 1) >= 3 && !t.rare) { const reg = { id: `pasture:${key(t.q, t.r)}`, cells: [t] }; add('cow', reg, t); add('horse', reg, t); }
   // fusions : chaque tuile composée accueille son animal
   for (const t of board.tiles.values()) {
     if (!t.fusion) continue; const reg = { id: `${t.family}:${key(t.q, t.r)}`, cells: [t] };

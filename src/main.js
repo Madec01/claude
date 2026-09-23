@@ -687,7 +687,7 @@ class IslandScene {
         setTimeout(() => { fx.floatText(w.x, w.y - 44, `${e.result.total >= 0 ? '+' : ''}${e.result.total}`, '#e0a33a', 26, 1.6); this.hud.ribbon(`${ft} ${nm}`, '#e0a33a', 1800, 'master'); this.hud.bumpScore(e.result.total); fx.closeBurst(w.x, w.y - 10, 6); this.shake.trigger(0.1); AudioSys.play('region_big', { volume: 0.6 }); }, 90 * i + 60);
         if (e.first) { setTimeout(() => { this.hud.ribbon(STORY.fusion.discovery.replace('{n}', nm), '#2f9e8f', 2200, 'streak'); AudioSys.play('star_1', { volume: 0.6 }); }, 90 * i + 600); if (!Save.data.campaign.recipes.includes(e.recipe)) { Save.data.campaign.recipes.push(e.recipe); Save.save(); } }
         const from = (STORY.tiles[e.tile.from ? e.tile.from[0] : ''] || {}).name || '';
-        this.hud.notify(`${nm} (${from.toLowerCase()} + ${fam.toLowerCase()}) : ${e.result.total >= 0 ? '+' : ''}${e.result.total}${e.first ? ` · recette découverte, une ${fam.toLowerCase()} et une ${((STORY.tiles[e.rare] || {}).name || 'rare').toLowerCase()} reviennent dans la file` : ''}`, 'gold');
+        this.hud.notify(`${nm} (${from.toLowerCase()} + ${fam.toLowerCase()}) : ${e.result.total >= 0 ? '+' : ''}${e.result.total}${e.first ? ' · recette découverte, elle s’écrit dans le Cahier' : ''}`, 'gold');
         this.tutorial.onEvent('fuse');
       } else {
         const sig = e.level >= 3 && STORY.level3[e.tile.family];

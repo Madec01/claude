@@ -2,7 +2,7 @@
 // Modèle pur (sans DOM ni canvas) : utilisable en Node pour les tests et le bot.
 import { Board } from './board.js';
 import { preview, apply, previewBuild, canBuild as ruleCanBuild, canFuse, previewFuse, fusedTile } from './rules.js';
-import { FUSION_BY_ID, LEVEL3_SEASONAL, RETIRED_RARE, RETIRED_WORKS, RARE_SEASONAL } from '../data/tiles.js';
+import { FUSION_BY_ID, RETIRED_RARE, RETIRED_WORKS, RARE_SEASONAL } from '../data/tiles.js';
 import { climateOf } from '../data/climates.js';
 import { transition, nextSeason } from './seasons.js';
 import { evaluate as evalFauna, reconcile } from './fauna.js';
@@ -181,7 +181,7 @@ export class Island {
     if (this.fuseOn && canFuse(this.board, q, r, tile)) {
       const pv = previewFuse(this.board, q, r, tile, this.season, this.mods); if (!pv) return null;
       const first = !this.known.has(pv.fuse.id);
-      pv.refund = first ? { ok: true, reason: 'discovery' } : { ok: false, reason: 'none' }; pv.cost = this.fusionCost(); pv.first = first;
+      pv.refund = { ok: false, reason: 'none' }; pv.cost = this.fusionCost(); pv.first = first;
       return pv;
     }
     if (!ruleCanBuild(this.board, q, r, tile)) return null;
@@ -211,7 +211,7 @@ export class Island {
       placed = fusedTile(target, pv.fuse); this.board.tiles.set(key(q, r), placed); this.board.touch();
       for (const c of pv.closes) { this.board.payRegion(c); this.stats.closed++; this.stats.closedThisSeason++; this.breaths += BALANCE.breaths.close; this.stats.biggestRegion = Math.max(this.stats.biggestRegion, c.size); }
       this.breaths -= this.fusionCost(); this.stats.fusions++;
-      if (pv.first) { this.known.add(pv.fuse.id); this.queue.inject(this.queue.makeTile(tile.family), false); rare = this.pickRare(); this.queue.inject(this.queue.makeRare(rare), false); this.stats.refunds++; }
+      if (pv.first) this.known.add(pv.fuse.id);   // la recette s'écrit dans le Cahier ; plus de tuile ni de rare en retour (elles faussaient le calibrage de 23 %)
     } else if (pv.restore) {
       target.blighted = false; this.board.touch(); this.breaths -= BALANCE.build.cost; this.stats.restored = (this.stats.restored || 0) + 1;
       for (const c of pv.closes) { this.board.payRegion(c); this.stats.closed++; this.stats.closedThisSeason++; this.breaths += BALANCE.breaths.close; }
@@ -390,14 +390,12 @@ export class Island {
       const p = Math.min(rs.cap, n) * rs.pts + (this.season === 'spring' ? rs.spring || 0 : 0);
       if (p) ev.push({ type: 'rare', q: t.q, r: t.r, pts: p, id: t.family });
     }
-    // niveau 3 : +1 par saison et signature de la famille
+    // niveau 3 : +1 par saison, et c'est tout (ses bords valent +2 et il compte triple dans sa région : voir rules.js).
+    // Les « signatures » par famille (forêt ancienne, pâturage, domaine…) ne sont plus que des noms.
     for (const t of this.board.tiles.values()) {
-      if ((t.level || 1) < 3 || t.rare) continue; let p = BALANCE.build.level3Season; const sp = LEVEL3_SEASONAL[t.family];
-      if (sp) { if (sp.family) p += Math.min(sp.cap || 3, neighbors(t.q, t.r).filter(([a, b]) => Board.isFamily(this.board.get(a, b), sp.family)).length) * sp.pts; else if (sp.season === this.season) p += sp.pts; }
+      if ((t.level || 1) < 3 || t.rare) continue; const p = BALANCE.build.level3Season;
       if (p) ev.push({ type: 'level3', q: t.q, r: t.r, pts: p, family: t.family });
     }
-    // bourgs (hameau de niveau 3) : chaque sentier qui touche leur village rapporte +1 de plus
-    { const bourgs = new Set(this.board.regions('hamlet').filter((reg) => reg.cells.some((c) => (c.level || 1) >= 3 && !c.rare)).map((reg) => reg.id)); if (bourgs.size) pts += computeLinks(this.board).links.filter((l) => bourgs.has(l.a) || bourgs.has(l.b)).length; }
     // fusions : prime de saison (+pts par voisine d'une famille, plafonnée, ou +pts fixes dans une saison)
     for (const t of this.board.tiles.values()) {
       if (!t.fusion) continue; const rec = FUSION_BY_ID[t.family]; if (!rec || !rec.seasonal) continue; const sp = rec.seasonal; let p = 0;

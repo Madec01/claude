@@ -17,7 +17,7 @@ function edgePoints(tile, other, season, rule = null, climate = null) {
   const fa = Board.familiesOf(tile), fb = Board.familiesOf(other);
   let best = 0, bestKey = null;
   for (const x of fa) for (const y of fb) {
-    if ((season === 'winter' || (season === 'autumn' && climate && climate.fieldsDormantAutumn)) && rule !== 'doux' && ((x === 'field' && y === 'hamlet') || (x === 'hamlet' && y === 'field')) && tile.family !== 'granary' && other.family !== 'granary' && (tile.level || 1) < 3 && (other.level || 1) < 3) continue; // champs dormants (sauf grenier, hiver doux, domaine de niveau 3 ; dès l'automne en climat froid)
+    if ((season === 'winter' || (season === 'autumn' && climate && climate.fieldsDormantAutumn)) && rule !== 'doux' && ((x === 'field' && y === 'hamlet') || (x === 'hamlet' && y === 'field')) && tile.family !== 'granary' && other.family !== 'granary') continue; // champs dormants (sauf grenier et hiver doux ; dès l'automne en climat froid)
     const v = affinity(x, y);
     if (Math.abs(v) > Math.abs(best)) { best = v; bestKey = pairKey(x, y); }
   }
