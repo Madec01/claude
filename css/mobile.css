@@ -6,7 +6,7 @@ html, body { overscroll-behavior: none; -webkit-tap-highlight-color: transparent
 html.touch #hud, html.touch #ui, html.touch #tutorial { -webkit-user-select: none; user-select: none; }
 html.compact #app { background: #dfe8ec; }
 html.compact #stage { border-radius: 0; box-shadow: none; }
-.toast { position: absolute; left: 50%; bottom: 28px; transform: translateX(-50%); z-index: 60; max-width: 92%; background: var(--ink); color: #fff; padding: 10px 16px; border-radius: 12px; font-size: 14px; line-height: 1.35; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.25); animation: noteIn 0.3s ease; pointer-events: none; }
+.toast { position: absolute; left: 50%; bottom: 28px; transform: translateX(-50%); z-index: 60; width: max-content; max-width: min(92%, 560px); background: var(--ink); color: #fff; padding: 10px 16px; border-radius: 12px; font-size: 14px; line-height: 1.35; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.25); animation: noteIn 0.3s ease; pointer-events: none; }
 
 /* Éléments réservés au tactile */
 html:not(.touch) .hud-place { display: none !important; }
@@ -245,3 +245,12 @@ html.compact .panel-signin, html.compact .panel-conflict, html.compact .panel-pr
 html.compact .conflict-list { grid-template-columns: 1fr; }
 html.compact .signin-card b { font-size: 15px; } html.compact .signin-card span { font-size: 12px; }
 html.compact .panel-signin .panel-actions, html.compact .panel-privacy .panel-actions { position: sticky; bottom: -12px; background: rgba(255,253,248,0.97); padding: 8px 0 10px; z-index: 2; }
+
+/* ---- bilan compact : le bloc « D'où viennent les points » (.res-why), ajouté après coup, ne figurait pas dans la liste
+   des zones qui rétrécissent. En paysage il prenait toute la hauteur : la grille des résultats tombait à 0 px et la rangée
+   de boutons sortait du panneau (overflow: hidden), « Continuer » hors d'atteinte. Le panneau défile en entier, la rangée
+   de boutons reste collée en bas, comme sur les autres panneaux longs. ---- */
+html.compact .panel.panel-results { overflow-y: auto; -webkit-overflow-scrolling: touch; }
+html.compact .panel.panel-results > .res-grid { flex: 0 0 auto; overflow: visible; }
+html.compact .panel-results .panel-actions { position: sticky; bottom: -12px; z-index: 2; margin-top: 8px; padding: 8px 0 10px; background: rgba(255,253,248,0.97); box-shadow: 0 -8px 12px -8px rgba(30,50,70,0.2); }
+html.compact.landscape .panel-results .panel-actions { bottom: -10px; }

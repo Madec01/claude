@@ -213,7 +213,7 @@ html.compact .hud-season::after { content: 'ⓘ'; font-size: 11px; opacity: 0.5;
 .season-pop .pop-climate { margin-top: 6px; padding-top: 6px; border-top: 1px dashed rgba(43,42,38,0.2); font-size: 12px; line-height: 1.35; }
 
 /* ---- ruban des commentaires (les mots), relevé de saison, badge +N ---- */
-.hud-ribbon { position: absolute; left: 50%; top: 100px; transform: translate(-50%, -8px) scale(0.92); opacity: 0; pointer-events: none; font-family: 'Fraunces', serif; font-weight: 700; font-size: 22px; color: var(--rc, #2b2a26); background: rgba(255,253,248,0.94); border: 1.5px solid var(--rc, #2b2a26); padding: 5px 18px; border-radius: 22px; box-shadow: 0 8px 22px rgba(20,30,40,0.18); transition: transform 0.22s cubic-bezier(0.2, 1.3, 0.4, 1), opacity 0.2s; white-space: nowrap; max-width: 90vw; overflow: hidden; text-overflow: ellipsis; z-index: 12; }
+.hud-ribbon { position: absolute; left: 50%; top: 100px; transform: translate(-50%, -8px) scale(0.92); opacity: 0; pointer-events: none; font-family: var(--font-title); font-weight: 700; font-size: 22px; color: var(--rc, #2b2a26); background: rgba(255,253,248,0.94); border: 1.5px solid var(--rc, #2b2a26); padding: 5px 18px; border-radius: 22px; box-shadow: 0 8px 22px rgba(20,30,40,0.18); transition: transform 0.22s cubic-bezier(0.2, 1.3, 0.4, 1), opacity 0.2s; white-space: nowrap; max-width: 90vw; overflow: hidden; text-overflow: ellipsis; z-index: 12; }
 .hud-ribbon.on { transform: translate(-50%, 0) scale(1); opacity: 1; }
 .hud-ribbon.master { font-size: 26px; background: linear-gradient(180deg, #fffaf0, #ffe9bf); box-shadow: 0 10px 26px rgba(224,163,58,0.35); }
 .hud-ribbon.streak { background: linear-gradient(180deg, #fffaf0, #fff0cc); }
@@ -259,3 +259,24 @@ html.compact .hud-ribbon.msg { font-size: 13px; padding: 4px 10px; }
    saison restent) ; la remontée est rapide, l'effacement lent. */
 .hud-wishes, .hud-fauna, .powers, .tile-help { transition: opacity 0.35s ease; }
 #hud.resting .hud-wishes, #hud.resting .hud-fauna, #hud.resting .powers, #hud.resting .tile-help { opacity: 0.35; transition: opacity 1.6s ease; }
+
+/* ---- correctifs de la chasse aux défauts d'interface ---- */
+/* Le ruban reçoit aussi des phrases (règle de météo, friche) : au téléphone elles étaient coupées d'une ellipse
+   (« Chaque forêt ou verger posé rapporte +1 ;… »). Elles passent à la ligne au lieu de se perdre. */
+.hud-ribbon { font-weight: 600; }
+html.compact .hud-ribbon { white-space: normal; width: max-content; max-width: calc(100vw - 24px); text-align: center; line-height: 1.2; border-radius: 16px; }
+/* souffle gratuit : le « 0 » était écrit en vert sur une pastille du même vert */
+.pw.free em { background: var(--breath); color: #fff; border-radius: 6px; padding: 0 5px; }
+/* le détail des points s'ouvrait vers la gauche depuis un compteur collé au bord gauche : 200 px hors de l'écran */
+html.compact.portrait .score-pop { right: auto; left: 0; width: min(320px, calc(100vw - 16px)); }
+/* bilan : les libellés « D'où viennent les points » héritaient du centrage du panneau */
+.res-why { text-align: left; }
+/* Ordinateur : huit panneaux sur dix avaient leur rangée d'actions sous le pli (bilan : 146 px, Atelier : 480 px,
+   Pépin : 259 px…) — « Continuer » ou « Envoyer » n'apparaissait qu'en défilant, sans indice qu'il y avait une suite.
+   Le téléphone le règle depuis longtemps (css/mobile.css) ; même principe ici : la rangée reste collée au bas du panneau. */
+html:not(.compact) .panel > .panel-actions { position: sticky; bottom: -28px; z-index: 2; margin: 14px -40px -28px; padding: 12px 40px 18px; background: rgba(255,253,248,0.98); border-radius: 0 0 18px 18px; box-shadow: 0 -10px 14px -10px rgba(30,50,70,0.25); }
+html:not(.compact) .panel.panel-workshop > .panel-actions { bottom: -16px; margin: 10px -32px -16px; padding: 10px 32px 14px; }
+/* ordinateur : la fiche de tuile était posée DANS la colonne de la file (même coin, bas gauche) ; avec une file
+   longue (Regard, Poche, Remise) ou les pastilles du Jardin, elle couvrait les souffles et les pastilles et
+   captait leurs clics. Elle se range à côté de la colonne, au-dessus des animaux. */
+html:not(.compact) .tile-help { left: 220px; bottom: 54px; }

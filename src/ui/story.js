@@ -11,7 +11,10 @@ export function buildStory(screens, { onDone, skippable = true }) {
   let i = 0, busy = false, done = false;
   const root = h('div', { class: 'story' });
   const stage = h('div', { class: 'story-stage' });
-  const hint = h('div', { class: 'story-hint' }, 'Cliquer ou Espace pour continuer');
+  // au toucher, « Cliquer ou Espace » ne veut rien dire : la consigne suit l'appareil
+  const touch = document.documentElement.classList.contains('touch');
+  const say = (v) => touch ? `Toucher pour ${v}` : `Cliquer ou Espace pour ${v}`;
+  const hint = h('div', { class: 'story-hint' }, say('continuer'));
   const progress = h('div', { class: 'story-progress', 'aria-hidden': 'true' });
   const actions = h('div', { class: 'story-actions' });
   if (skippable) actions.appendChild(button('Passer', () => finish(), { cls: 'btn-ghost btn-small', title: 'Passer (Échap)' }));
@@ -30,7 +33,7 @@ export function buildStory(screens, { onDone, skippable = true }) {
     stage.appendChild(card);
     requestAnimationFrame(() => requestAnimationFrame(() => card.classList.add('in')));
     AudioSys.play(i % 2 ? 'page_flip_1' : 'page_flip_2', { volume: 0.4 });
-    hint.textContent = i === screens.length - 1 ? 'Cliquer ou Espace pour fermer' : 'Cliquer ou Espace pour continuer';
+    hint.textContent = say(i === screens.length - 1 ? 'fermer' : 'continuer');
   }
   function next() { if (busy) return; busy = true; setTimeout(() => { busy = false; }, 280); if (i >= screens.length - 1) { finish(); return; } i++; render(); }
   function finish() { if (done) return; done = true; window.removeEventListener('keydown', onKey); onDone(); }

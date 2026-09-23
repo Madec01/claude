@@ -134,7 +134,8 @@ const Game = {
       this.askSignIn(['La connexion Google n’a pas abouti.', signInProblem(Cloud.error)].filter(Boolean).join(' ') + ' Tu peux réessayer, ou jouer sans compte : rien ne sera perdu.');
       return;
     }
-    if (!c.choice) { this.askSignIn(); return; }
+    // l'écran de choix s'ouvre sur l'île du menu : sans scène, le canvas (opaque) restait noir sous le voile, un aplat gris
+    if (!c.choice) { await scenes.go('menu', {}, { fade: 0 }); this.askSignIn(); return; }
     if (c.choice === 'none') { scenes.go('menu', {}, { fade: 0 }); return; }
     scenes.go('menu', {}, { fade: 0 });
     try { const u = await Cloud.resume(); if (u) await this.syncFromCloud(); } catch (e) { console.warn('nuage', e); }

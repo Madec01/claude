@@ -98,7 +98,7 @@ html.compact:not(.landscape) .menu-row .btn span:last-child { overflow: visible;
 
 /* ---- Succès ---- */
 .panel-achievements { max-width: 1100px; }
-.ach-cat { display: flex; align-items: baseline; gap: 10px; margin: 18px 0 8px; font-family: 'Fraunces', serif; font-size: 20px; }
+.ach-cat { display: flex; align-items: baseline; gap: 10px; margin: 18px 0 8px; font-family: var(--font-title); font-size: 20px; }
 .ach-cat-n { font-family: 'Quicksand', sans-serif; font-size: 13px; opacity: 0.6; }
 .ach-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; }
 .ach-card { display: flex; gap: 10px; align-items: center; padding: 8px 10px; border-radius: 14px; background: rgba(255,255,255,0.7); border: 1px solid rgba(43,42,38,0.08); min-height: 84px; }
@@ -110,7 +110,7 @@ html.compact:not(.landscape) .menu-row .btn span:last-child { overflow: visible;
 .ach-fallback { display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; background: rgba(43,42,38,0.08); width: 56px; height: 56px; margin: 9px 4px; }
 .ach-fallback img { width: 30px; height: 30px; opacity: 0.6; }
 .ach-body { min-width: 0; }
-.ach-body h4 { margin: 0 0 2px; font-family: 'Fraunces', serif; font-size: 16px; }
+.ach-body h4 { margin: 0 0 2px; font-family: var(--font-title); font-size: 16px; }
 .ach-body p { margin: 0; font-size: 12.5px; line-height: 1.3; opacity: 0.8; }
 .ach-bar { position: relative; height: 8px; border-radius: 5px; background: rgba(43,42,38,0.1); margin-top: 6px; overflow: visible; }
 .ach-bar > div { height: 100%; border-radius: 5px; background: var(--gold, #e0a33a); }
@@ -126,7 +126,7 @@ html.compact:not(.landscape) .menu-row .btn span:last-child { overflow: visible;
 .ach-banner .ach-fallback { width: 64px; height: 64px; }
 .ach-glow { position: absolute; inset: -30px; border-radius: 40px; background: radial-gradient(closest-side, rgba(255,215,122,0.55), rgba(255,215,122,0)); animation: achGlow 1.6s ease-out 0.3s both; pointer-events: none; }
 .ach-kicker { font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: #a3701f; font-weight: 700; }
-.ach-name { font-family: 'Fraunces', serif; font-size: 22px; line-height: 1.1; }
+.ach-name { font-family: var(--font-title); font-size: 22px; line-height: 1.1; }
 .ach-desc { font-size: 12.5px; opacity: 0.8; margin-top: 2px; }
 .ach-sparks { position: absolute; left: 52px; top: 50%; width: 0; height: 0; }
 .ach-sparks i { position: absolute; width: 8px; height: 8px; border-radius: 50%; background: #ffd77a; box-shadow: 0 0 8px #ffd77a; transform: translate(-50%, -50%); opacity: 0; animation: achSpark 1.3s ease-out calc(0.4s + var(--i) * 0.04s) both; --a: calc(var(--i) * 30deg); }
@@ -148,17 +148,17 @@ html.compact .ach-name { font-size: 18px; }
 .wi-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 10px; margin: 8px 0 6px; }
 .wi-card { background: rgba(255,255,255,0.75); border-left: 4px solid var(--wish, #8e6bb5); border-radius: 12px; padding: 10px 12px; }
 .wi-head { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
-.wi-head b { font-family: 'Fraunces', serif; font-size: 17px; }
+.wi-head b { font-family: var(--font-title); font-size: 17px; }
 .wi-giver { font-size: 12px; font-style: italic; opacity: 0.7; }
 .wi-text { margin: 4px 0 6px; font-size: 13.5px; line-height: 1.35; }
 .wi-foot { display: flex; justify-content: space-between; font-size: 12px; opacity: 0.8; }
 .wi-dl { font-weight: 700; }
 
 /* ---- préparation d'île : semis ---- */
-.prep-h { font-family: 'Fraunces', serif; font-size: 18px; margin: 12px 0 2px; }
+.prep-h { font-family: var(--font-title); font-size: 18px; margin: 12px 0 2px; }
 .semis-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; margin: 6px 0 4px; }
 .semis-card { font: inherit; text-align: left; cursor: pointer; background: rgba(255,255,255,0.75); border: 2px solid rgba(43,42,38,0.12); border-radius: 12px; padding: 10px 12px; display: flex; flex-direction: column; gap: 4px; transition: border-color 0.15s, transform 0.15s; }
-.semis-card b { font-family: 'Fraunces', serif; font-size: 16px; }
+.semis-card b { font-family: var(--font-title); font-size: 16px; }
 .semis-card span { font-size: 12.5px; opacity: 0.8; line-height: 1.3; }
 .semis-card:hover { transform: translateY(-2px); }
 .semis-card.on { border-color: var(--gold, #e0a33a); background: linear-gradient(180deg, #fffdf6, #fff3d9); box-shadow: 0 6px 16px rgba(224,163,58,0.2); }
@@ -183,7 +183,7 @@ html.compact .ach-name { font-size: 18px; }
 .signin-card:disabled { opacity: 0.55; cursor: default; }
 .signin-card.primary { border-color: var(--breath, #2f9e8f); background: linear-gradient(180deg, #fbfffe, #f1faf7); }
 .signin-card.ghost { background: rgba(255,255,255,0.6); }
-.signin-card b { font-family: 'Fraunces', serif; font-size: 16px; display: block; }
+.signin-card b { font-family: var(--font-title); font-size: 16px; display: block; }
 .signin-card span { font-size: 12.5px; opacity: 0.8; line-height: 1.35; display: block; margin-top: 2px; }
 .signin-card .hud-icon, .signin-card img { width: 26px; height: 26px; flex: 0 0 26px; filter: invert(0.3); }
 .signin-msg, .signin-err { text-align: center; font-size: 13px; margin: 6px 0 0; }
@@ -195,12 +195,27 @@ html.compact .ach-name { font-size: 18px; }
 .conflict-card { position: relative; text-align: left; font: inherit; cursor: pointer; padding: 12px 14px; border-radius: 12px; border: 1px solid rgba(43,42,38,0.16); background: #fff; color: var(--ink); transition: transform 0.15s, box-shadow 0.2s; }
 .conflict-card:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(30,50,70,0.14); }
 .conflict-card.best { border-color: var(--gold, #e0a33a); }
-.conflict-card > b { font-family: 'Fraunces', serif; font-size: 17px; }
+.conflict-card > b { font-family: var(--font-title); font-size: 17px; }
 .conflict-when { display: block; font-size: 12px; opacity: 0.65; margin-bottom: 6px; }
 .conflict-rows > div { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; padding: 2px 0; border-top: 1px solid rgba(43,42,38,0.08); }
 .conflict-rows i { font-style: normal; opacity: 0.75; }
 .conflict-tag { position: absolute; right: 10px; top: -9px; font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: #fff; background: var(--gold, #e0a33a); border-radius: 999px; padding: 2px 8px; }
 .priv-list { display: flex; flex-direction: column; gap: 8px; margin: 10px 0; }
-.priv-row b { font-family: 'Fraunces', serif; font-size: 15px; display: block; }
+.priv-row b { font-family: var(--font-title); font-size: 15px; display: block; }
 .priv-row span { font-size: 13px; opacity: 0.85; line-height: 1.4; }
 .opt-cloud h3 { display: flex; align-items: center; gap: 6px; }
+
+/* ---- correctifs de la chasse aux défauts d'interface ---- */
+/* « 0 / 10 » du succès en cours était posé 15 px au-dessus de sa barre, sur la dernière ligne de la description */
+.ach-bar { margin-top: 20px; }
+/* Ordinateur : 360 px pour quatre boutons rognaient « Gui… », « Op… », « Cré… » et effaçaient le compte des succès ;
+   et avec « Reprendre » le menu descendait sous le pied de page, « Plein écran » coupé par le bas de la scène.
+   Deux colonnes : les modes par paires, les quatre portes en deux rangées. */
+html:not(.compact) .menu-nav { display: grid; grid-template-columns: 1fr 1fr; width: 540px; gap: 8px; }
+html:not(.compact) .menu-nav > .btn-big, html:not(.compact) .menu-nav > .menu-row, html:not(.compact) .menu-nav > .btn-ghost { grid-column: 1 / -1; }
+html:not(.compact) .menu-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+html:not(.compact) .menu-row .btn { justify-content: flex-start; padding: 9px 14px; }
+html:not(.compact) .menu-row .btn span:last-child { overflow: visible; text-overflow: clip; }
+/* la paire Jardin–Atelier se fond dans la grille à deux colonnes : le Jardin rejoint l'Île du jour, l'Atelier a sa rangée */
+html:not(.compact) .menu-pair { display: contents; }
+html:not(.compact) .menu-pair > .btn:last-child { grid-column: 1 / -1; }
