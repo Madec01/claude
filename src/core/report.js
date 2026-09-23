@@ -214,7 +214,7 @@ export function collectContext(scene, sceneName) {
   const c = Save.campaign;
   ctx.progression = {
     ile_debloquee: c.unlockedIsland, etoiles: Object.values(c.stars || {}).reduce((a, b) => a + b, 0),
-    graines: c.seeds, ameliorations: { ...c.upgrades }, contrats: { ...(c.contracts || {}) },
+    graines: c.seeds, ameliorations: { ...c.upgrades },
   };
   // le nuage : son mode et son état, JAMAIS l'identifiant ni le nom du compte
   const st = Cloud.status();

@@ -23,8 +23,6 @@ async function preparer(page, ile, plays) {
     await page.waitForTimeout(400);
     const pret = await page.evaluate(() => {
       if (window.CS.scenes.currentName === 'island') return true;
-      const c = document.querySelector('.contract-card');
-      if (c) { c.click(); const go = [...document.querySelectorAll('.panel-contract button')].find((x) => x.textContent.includes('Signer')); if (go) go.click(); return false; }
       const p = [...document.querySelectorAll('button')].find((y) => /C’est parti|Continuer|Suivant/.test(y.textContent));
       if (p) p.click(); return false;
     });

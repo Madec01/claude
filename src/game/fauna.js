@@ -85,12 +85,11 @@ export function evaluate(board, season, rule = null) {
     }
   }
   // chevaux : des collines qui touchent une prairie
-  const troughNear = (reg) => reg.cells.some((c) => c.family === 'trough') || board.regionNeighbors(reg).some((n) => n.family === 'trough');
-  for (const reg of board.regions('hill')) if ((reg.size >= F.horse || troughNear(reg)) && board.regionTouches(reg, 'meadow')) add('horse', reg);
+  for (const reg of board.regions('hill')) if (reg.size >= F.horse && board.regionTouches(reg, 'meadow')) add('horse', reg);
   // vaches : une prairie en lisière de lande
   for (const reg of board.regions('meadow')) {
     const alive = reg.cells.filter((c) => !c.dry).length;
-    if ((alive >= F.cow || troughNear(reg)) && (board.regionTouches(reg, 'heath') || troughNear(reg))) add('cow', reg, reg.cells.find((t) => !t.dry && neighbors(t.q, t.r).some(([a, b]) => { const n = board.get(a, b); return n && Board.isFamily(n, 'heath'); })) || undefined);
+    if (alive >= F.cow && board.regionTouches(reg, 'heath')) add('cow', reg, reg.cells.find((t) => !t.dry && neighbors(t.q, t.r).some(([a, b]) => { const n = board.get(a, b); return n && Board.isFamily(n, 'heath'); })) || undefined);
   }
   for (const t of board.tiles.values()) if (t.family === 'camp') out.set(`goat@camp:${t.q},${t.r}`, { species: 'goat', q: t.q, r: t.r, regionId: `camp:${t.q},${t.r}` });
   // pâturages (prairie de niveau 3) : vache et cheval

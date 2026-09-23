@@ -12,12 +12,12 @@ export const CAMPAIGN_SIZE = 50;
 /** Mécaniques introduites par île (cumulatives). */
 export const MECH_AT = {
   1: ['affinity', 'close', 'fauna'], 2: ['river', 'season'], 4: ['semis'],
-  6: ['wish'], 7: ['breath'], 8: ['rare'], 9: ['event'],
+  6: ['wish'], 7: ['breath'], 8: ['rare'],
   11: ['weather'], 12: ['hill'], 13: ['rare2'], 14: ['heath'],
-  16: ['build', 'hand'], 18: ['rare3'],
+  16: ['build', 'hand'],
   21: ['climate', 'fuse'], 26: ['work'], 31: ['build3'], 41: ['growth'],
 };
-export const MECH_NAMES = { river: 'rivière', season: 'saisons', fauna: 'faune', semis: 'semis', wish: 'vœux', breath: 'souffles', rare: 'tuiles rares', event: 'tuiles d’événement', weather: 'météo', hill: 'collines', rare2: 'grenier et fontaine', heath: 'lande', build: 'bâtir', hand: 'main de saison', rare3: 'rares tardives', climate: 'climats', fuse: 'fusions', work: 'ouvrages', build3: 'niveau 3' , growth: 'croissance'};
+export const MECH_NAMES = { river: 'rivière', season: 'saisons', fauna: 'faune', semis: 'semis', wish: 'vœux', breath: 'souffles', rare: 'tuiles rares', weather: 'météo', hill: 'collines', rare2: 'grenier', heath: 'lande', build: 'bâtir', hand: 'main de saison', climate: 'climats', fuse: 'fusions', work: 'ouvrages', build3: 'niveau 3' , growth: 'croissance'};
 /** Île où une mécanique arrive (pour le Guide et l'Atelier). */
 export function mechIsland(m) { for (const [n, list] of Object.entries(MECH_AT)) if (list.includes(m)) return Number(n); return null; }
 /** Mécaniques disponibles jusqu'à l'île n (incluse). Sans argument : toutes (modes libres). */
@@ -143,8 +143,8 @@ export function climateCardFor(n) {
 export const OLD_TO_NEW = { 1: 1, 2: 3, 3: 7, 4: 5, 5: 10, 6: 15, 7: 13, 8: 20, 9: 25, 10: 30, 11: 35, 12: 50 };
 /** Étoiles du chapitre k dans une sauvegarde. */
 export function chapterStars(stars, k) { let s = 0; for (let n = (k - 1) * 5 + 1; n <= k * 5; n++) s += stars[n] || 0; return s; }
-/** Étoiles comptées pour la porte : celles des cinq îles, plus deux si le contrat d'archipel du chapitre est rempli. */
-export function gateStars(campaign, k) { const ct = campaign.contracts && campaign.contracts[k]; return chapterStars((campaign && campaign.stars) || {}, k) + (ct && ct.done ? 2 : 0); }
+/** Étoiles comptées pour la porte : celles des cinq îles (les contrats d'archipel, qui en ajoutaient deux, ont été retirés). */
+export function gateStars(campaign, k) { return chapterStars((campaign && campaign.stars) || {}, k); }
 export const CHAPTER_GATE = 6;       // étoiles dans un chapitre (sur 15) pour ouvrir le suivant
 export const CHAPTER_PATIENCE = 8;   // ou, sans les étoiles : parties terminées dans le chapitre. La porte finit toujours par s'ouvrir.
 
@@ -167,7 +167,7 @@ export function chapterPlays(campaign, k) {
 export function chapterDone(campaign, k) { for (let n = (k - 1) * 5 + 1; n <= k * 5; n++) if (!islandDone(campaign, n)) return false; return true; }
 /**
  * La porte du chapitre k. Deux clés, et il suffit d'une :
- *  — les étoiles (six sur quinze, le contrat d'archipel en vaut deux) : la voie du joueur qui vise ;
+ *  — les étoiles (six sur quinze) : la voie du joueur qui vise ;
  *  — la patience (les cinq îles terminées, et huit parties en tout dans le chapitre) : la voie du joueur qui rame.
  *    Elle s'atteint en jouant, donc aucune porte ne peut rester fermée pour de bon — et rejouer neuf fois la même
  *    île n'ouvre rien, puisqu'il faut d'abord avoir vu le bout des cinq.
@@ -236,11 +236,11 @@ export function restarFromBest(campaign) {
 export function gateText(campaign, k) {
   if (gateOpen(campaign, k)) return null;
   const st = gateStars(campaign, k), pl = chapterPlays(campaign, k);
-  return `${st} / ${CHAPTER_GATE} étoiles pour ouvrir le chapitre suivant — ou ${pl} / ${CHAPTER_PATIENCE} parties terminées dans ce chapitre, les cinq îles comprises. Rejouer une île déjà faite compte des deux côtés${k >= 2 ? ', et le contrat d’archipel vaut deux étoiles' : ''}.`;
+  return `${st} / ${CHAPTER_GATE} étoiles pour ouvrir le chapitre suivant — ou ${pl} / ${CHAPTER_PATIENCE} parties terminées dans ce chapitre, les cinq îles comprises. Rejouer une île déjà faite compte des deux côtés.`;
 }
 
 /** Options à passer à `new Island(def, …)` depuis les mécaniques de l'île (tout est ouvert dans les modes libres). */
 export function islandOptions(def) {
   const m = def.mech || campaignMechanics(99);
-  return { build: m.has('build'), growth: m.has('growth'), hand: m.has('hand'), fuse: m.has('fuse'), work: m.has('work'), level3: m.has('build3'), weather: m.has('weather'), rareTier: m.has('rare3') ? 3 : m.has('rare2') ? 2 : m.has('event') ? 1 : 0 };
+  return { build: m.has('build'), growth: m.has('growth'), hand: m.has('hand'), fuse: m.has('fuse'), work: m.has('work'), level3: m.has('build3'), weather: m.has('weather'), rareTier: m.has('rare2') ? 1 : 0 };
 }

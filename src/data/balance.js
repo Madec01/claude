@@ -11,7 +11,6 @@ export const BALANCE = {
   // croissance : une tuile entourée des siennes assez longtemps monte au niveau 2 toute seule (le temps épaissit, le joueur signe).
   // `at` : voisines de la même famille selon la famille ; les familles absentes ne poussent pas (un « marais dense » ne veut rien dire).
   growth: { at: { hamlet: 3, orchard: 3, forest: 4, field: 4, meadow: 4 }, seasons: 2, perSeason: 2 },
-  streaks: { breathAt: 3, doubleAt: 5 },   // les séries comptent : un souffle à trois bons coups d'affilée, fermeture doublée à cinq
   breaths: { swap: 1, discard: 2, bud: 3, undo: [4, 3, 2], close: 1, faunaSeason: 1, faunaPer: 2, wish: 2, start: [0, 2, 4, 6], build: 1 },
   // bâtir : poser une tuile sur une tuile de même famille la monte de niveau (bords +1, compte double dans sa région) ;
   // une tuile bien bâtie (région close, en saison, ou bien entourée) revient dans la file, au plus une fois par saison

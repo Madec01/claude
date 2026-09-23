@@ -20,7 +20,7 @@ const boot = (p) => p.waitForFunction(() => !document.getElementById('boot'), nu
     const s = JSON.parse(localStorage.getItem('cent-saisons.save') || '{}');
     s.cloud = { choice: 'none', uid: null, pending: null };
     s.options = Object.assign(s.options || {}, { testMode: false, skipTutorial: true, master: 0 });
-    s.campaign = Object.assign(s.campaign || {}, { prologueSeen: true, unlockedIsland: 5, stars: { 1: 1, 2: 2, 3: 1, 4: 1, 5: 1 }, seeds: 5, contracts: {} });
+    s.campaign = Object.assign(s.campaign || {}, { prologueSeen: true, unlockedIsland: 5, stars: { 1: 1, 2: 2, 3: 1, 4: 1, 5: 1 }, seeds: 5 });
     s.version = 2;   // sans numéro de version, la sauvegarde passerait par la migration v1 → v2 qui remappe les îles
     localStorage.setItem('cent-saisons.save', JSON.stringify(s));
   });
@@ -115,7 +115,6 @@ const boot = (p) => p.waitForFunction(() => !document.getElementById('boot'), nu
   await page.evaluate(() => window.CS.Game.startIsland(9, { skipIntro: true }));
   await page.waitForTimeout(800);
   // le contrat d'archipel est demandé à l'entrée du chapitre : on en signe un
-  await page.evaluate(() => { const c = document.querySelector('.contract-card'); if (c) { c.click(); const go = [...document.querySelectorAll('.panel-contract button')].find((x) => x.textContent.includes('Signer')); if (go) go.click(); } });
   await page.waitForFunction(() => window.CS.scenes.currentName === 'island' || [...document.querySelectorAll('button')].some((x) => x.textContent.includes('C’est parti')), null, { timeout: 20000 });
   await page.evaluate(() => { const x = [...document.querySelectorAll('button')].find((y) => y.textContent.includes('C’est parti')); if (x) x.click(); });
   await page.waitForFunction(() => window.CS.scenes.currentName === 'island', null, { timeout: 20000 });

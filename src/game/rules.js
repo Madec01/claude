@@ -28,12 +28,8 @@ function edgePoints(tile, other, season, rule = null, climate = null) {
   if (season === 'summer' && ((fa.includes('field') && fb.includes('water')) || (fa.includes('water') && fb.includes('field')))) best += P.summerIrrigation;
   // chapelle : tous les bords +1 en hiver
   if (season === 'winter' && (tile.family === 'chapel' || other.family === 'chapel')) best += 1;
-  // grenier : +1 par bord avec un champ ; fontaine : +1 par bord avec un hameau
+  // grenier : +1 par bord avec un champ
   if ((tile.family === 'granary' && fb.includes('field')) || (other.family === 'granary' && fa.includes('field'))) best += 1;
-  if ((tile.family === 'fountain' && fb.includes('hamlet')) || (other.family === 'fountain' && fa.includes('hamlet'))) best += 1;
-  // four à pain : +1 par bord avec un champ ; mine : +1 par bord avec une roche
-  if ((tile.family === 'oven' && fb.includes('field')) || (other.family === 'oven' && fa.includes('field'))) best += 1;
-  if ((tile.family === 'mine' && fb.includes('rock')) || (other.family === 'mine' && fa.includes('rock'))) best += 1;
   // climat : vergers +1 au chaud ; hameau contre marais −2 en climat humide
   if (climate) {
     if (climate.orchardEdge && best > 0 && (fa.includes('orchard') || fb.includes('orchard'))) best += climate.orchardEdge;
@@ -138,10 +134,7 @@ export function closedRegionsAround(board, q, r) {
       seen.add(reg.id);
       if (fam === 'rock' && reg.cells.every((c) => c.rare || c.start)) continue; // les rochers de départ ne font pas de prime
       const closed = board.isRegionClosed(reg) || (reg.cells.some((c) => c.family === 'watchtower' || c.family === 'fort') && openCells(board, reg) <= 1);
-      // porche : un bourg clos vaut ×3 ; mine : une roche close vaut ×2
-      let mul = P.closeBonusMul[fam] || 1;
-      if (fam === 'hamlet' && reg.cells.some((c) => c.family === 'archway')) mul = 3;
-      if (fam === 'rock' && reg.cells.some((c) => c.family === 'mine')) mul = Math.max(mul, 2);
+      const mul = P.closeBonusMul[fam] || 1;
       // la prime ne porte que sur ce qui n'a pas déjà été payé : une région close qui regrandit paie
       // son agrandissement, du côté qu'on veut, et jamais deux fois la même case
       const neuf = board.regionUnpaid(reg);

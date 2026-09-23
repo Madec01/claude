@@ -1,4 +1,5 @@
 // Sauvegarde locale versionnée (localStorage).
+import { UPGRADES } from '../data/upgrades.js';
 const KEY = 'cent-saisons.save';
 const VERSION = 2;
 // v1 → v2 : la campagne passe de 12 à 50 îles ; les douze îles dessinées gardent leurs étoiles à leur nouvelle place
@@ -17,16 +18,45 @@ function migrate(data, from) {
   // qui la rallume ensuite volontairement.
   if (!data.fixes) data.fixes = {};
   if (!data.fixes.gridOff) { data.fixes.gridOff = true; if (data.options) data.options.grid = false; }
+  tidyCampaign(data);
   return data;
 }
 
+/**
+ * Coûts, niveau par niveau, des améliorations retirées par l'audit de simplification (22 septembre) et des niveaux
+ * retirés à celles qui restent. Ils ne servent qu'à rembourser : les graines dépensées reviennent au joueur.
+ */
+const OLD_COSTS = {
+  sickle: [6, 9, 12], seed2: [7], pocket: [5, 10], memory: [4, 8], talisman: [7], shed: [8], fresh: [7], spyglass: [12, 16],
+  rare: [6, 10, 12, 14],
+};
+/**
+ * Ce que la simplification retire de la sauvegarde, sans rien faire perdre : chaque niveau d'amélioration disparu
+ * rend ses graines, et les contrats d'archipel s'effacent (ils ne comptent plus pour les portes). Idempotent : une
+ * amélioration remboursée disparaît de la sauvegarde, un niveau en trop redescend au plafond — rien ne se rembourse
+ * deux fois. Appelé au chargement et quand on reprend une partie en ligne.
+ * @returns {number} graines rendues
+ */
+export function tidyCampaign(data) {
+  const c = data && data.campaign; if (!c) return 0;
+  let back = 0; const ups = c.upgrades || (c.upgrades = {});
+  for (const [id, lv] of Object.entries({ ...ups })) {
+    const u = UPGRADES.find((x) => x.id === id); const old = OLD_COSTS[id];
+    const max = u ? u.costs.length : 0;
+    if (u && (lv || 0) <= max) continue;
+    if (old) for (let i = max; i < (lv || 0) && i < old.length; i++) back += old[i];
+    if (u) ups[id] = max; else delete ups[id];
+  }
+  if (back) { c.seeds = (c.seeds || 0) + back; c.refunded = (c.refunded || 0) + back; }
+  if (c.contracts) delete c.contracts;
+  return back;
+}
 const defaults = () => ({
   version: VERSION,
   options: { master: 0.8, music: 0.7, ambience: 0.8, sfx: 0.9, muted: false, shake: true, testMode: false, skipTutorial: false, showFps: false, tileHelp: true, grid: false, recap: 'auto', notes: 'auto', haptics: true, rest: true, finaleClassique: false },   // relevé de saison : auto (complet sur ordinateur, bref sur téléphone), full, brief, none ; notes : auto (sobres sur téléphone, toutes sur ordinateur), all, sober ; haptics : vibrations
   campaign: {
     recipes: [],   // fusions découvertes (Cahier)
-    unlockedIsland: 1, stars: {}, gold: {}, best: {}, plays: {}, seeds: 0, seedsTotal: 0,   // gold : étoile d'or par île (cosmétique) ; plays : parties terminées par île (déblocage et porte de chapitre) ; contracts : contrat d'archipel par chapitre
-    contracts: {},
+    unlockedIsland: 1, stars: {}, gold: {}, best: {}, plays: {}, seeds: 0, seedsTotal: 0,   // gold : étoile d'or par île (cosmétique) ; plays : parties terminées par île (déblocage et porte de chapitre)
     upgrades: { sight: 0, pocket: 0, breath: 0, patience: 0, rare: 0, memory: 0 },
     prologueSeen: false, completed: false, islandsPlayed: 0, memoriesRead: [],
     announced: [],   // déblocages déjà annoncés par une bannière (modes de jeu, chapitre d'Atelier) : chacun ne passe qu'une fois

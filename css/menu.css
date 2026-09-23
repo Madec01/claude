@@ -159,12 +159,6 @@ html.compact .ach-name { font-size: 18px; }
 .nc-stars.gold .star.on .icon { filter: sepia(1) saturate(5) brightness(1.15) drop-shadow(0 0 4px rgba(224,163,58,0.75)); }
 .nc-stars.gold .nc-best { color: var(--gold, #e0a33a); font-weight: 800; }
 /* contrat d'archipel */
-.act-head .act-contract { font-size: 12.5px; margin-top: 4px; color: var(--breath, #2f9e8f); font-weight: 700; }
-.act-head .act-contract.done { color: var(--gold, #e0a33a); }
-.contract-card { position: relative; padding-bottom: 26px; }
-.contract-card .contract-target { position: absolute; left: 12px; bottom: 8px; font-style: normal; font-size: 12px; font-weight: 800; color: var(--breath, #2f9e8f); }
-.prep-contract { margin: 0 0 6px; font-size: 14px; font-weight: 700; color: var(--breath, #2f9e8f); }
-.prep-contract.done { color: var(--gold, #e0a33a); }
 .prep-signature { margin: 0 0 6px; font-size: 14px; } .prep-signature b { color: var(--gold, #e0a33a); }
 /* carte postale */
 .panel-postcard { max-width: 900px; }

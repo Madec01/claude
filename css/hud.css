@@ -273,18 +273,6 @@ html.compact.portrait .hud-ribbon { top: 118px; } html.compact.portrait .hud-rec
 @keyframes rule-in { 0% { opacity: 0; transform: translateY(4px); } 40% { opacity: 0; } 100% { opacity: 0.75; transform: none; } }
 @keyframes score-hit { 0% { transform: scale(1); } 35% { transform: scale(1.22); color: var(--gold, #e0a33a); } 100% { transform: scale(1); } }
 .hud-score b.hit { display: inline-block; animation: score-hit 0.32s ease-out; }
-/* jauge de série sous le score */
-.streak-pips { display: flex; gap: 3px; margin-top: 3px; height: 6px; }
-.streak-pips.hidden { display: none; }
-.streak-pips i { width: 11px; height: 6px; border-radius: 3px; background: rgba(43,42,38,0.12); transition: background 0.25s, transform 0.25s; }
-.streak-pips i.on { background: var(--breath, #2f9e8f); }
-.streak-pips.full i.on { background: var(--gold, #e0a33a); box-shadow: 0 0 6px rgba(224,163,58,0.6); }
-@keyframes pips-break { 0% { transform: translateX(0); opacity: 1; } 100% { transform: translateX(14px); opacity: 0.2; } }
-.streak-pips.break i { animation: pips-break 0.45s ease-in; }
-/* Faucille : clore la saison */
-.season-close { margin-top: 4px; align-self: flex-start; font: 700 12px var(--font-ui, Quicksand, sans-serif); color: #fff; background: var(--breath, #2f9e8f); border: 0; border-radius: 999px; padding: 3px 10px; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
-.season-close:hover { filter: brightness(1.08); }
-.season-close.hidden { display: none; }
 .panel-results .stars .gold-star .icon { opacity: 0.12; }
 .panel-results .stars .gold-star.on .icon, .panel-results .stars .gold-star.on.pop .icon { opacity: 1; filter: sepia(1) saturate(5) brightness(1.2) drop-shadow(0 0 10px rgba(224,163,58,0.9)); }
 .res-gold { text-align: center; font-family: var(--font-title); color: var(--gold, #e0a33a); margin: -4px 0 8px; }

@@ -2,11 +2,14 @@
 export const FAMILIES = ['meadow', 'forest', 'field', 'hamlet', 'orchard', 'water', 'marsh', 'rock', 'sand', 'hill', 'heath'];
 /** Île à partir de laquelle une famille peut apparaître (absente = dès le début). */
 export const FAMILY_FROM = { hill: 12, heath: 14 };
-export const RARE = ['mill', 'chapel', 'watchtower', 'well', 'camp', 'granary', 'fountain', 'market', 'fete', 'restore', 'tavern', 'trough', 'archway', 'mine', 'oven'];
-/** Tuiles d'événement : un effet immédiat ou ponctuel plutôt qu'un bonus permanent. */
-export const EVENT_TILES = ['market', 'fete', 'restore'];
+export const RARE = ['mill', 'chapel', 'watchtower', 'well', 'camp', 'granary'];
 /** Tuiles rares réservées aux îles tardives (et aux modes libres). */
-export const RARE_LATE = { granary: 13, fountain: 13, market: 9, fete: 9, restore: 9, tavern: 18, trough: 18, archway: 18, mine: 18, oven: 18 };
+export const RARE_LATE = { granary: 13 };
+/**
+ * Rares et tuiles d'événement retirées par l'audit de simplification (22 septembre) : ce qu'elles deviennent si une
+ * partie reprise, ou une file en cours, en contient encore — une tuile ordinaire de la famille qu'elles comptaient.
+ */
+export const RETIRED_RARE = { fountain: 'hamlet', market: 'hamlet', fete: 'hamlet', restore: 'meadow', tavern: 'hamlet', trough: 'meadow', archway: 'hamlet', mine: 'rock', oven: 'hamlet' };
 export const SEASONS = ['spring', 'summer', 'autumn', 'winter'];
 
 /** Nombre de variantes graphiques par famille (clés d'image : `${family}_${n}_${season}`). */

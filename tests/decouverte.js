@@ -77,7 +77,6 @@ const btn = (page, label) => page.evaluate((l) => {
   await save(page, { unlockedIsland: 20, stars: { 16: 2 }, plays: { 16: 1 }, islandsPlayed: 16, seeds: 20, announced: ['mode_garden', 'mode_daily', 'mode_infinite', 'postcard'] });
   await page.evaluate(() => window.CS.Game.startIsland(16, { skipIntro: true }));
   await page.waitForTimeout(900);
-  await page.evaluate(() => { const c = document.querySelector('.contract-card'); if (c) { c.click(); const go = [...document.querySelectorAll('.panel-contract button')].find((x) => x.textContent.includes('Signer')); if (go) go.click(); } });
   await page.waitForFunction(() => window.CS.scenes.currentName === 'island' || [...document.querySelectorAll('button')].some((x) => x.textContent.includes('C’est parti')), null, { timeout: 25000 });
   await page.evaluate(() => { const x = [...document.querySelectorAll('button')].find((y) => y.textContent.includes('C’est parti')); if (x) x.click(); });
   await page.waitForFunction(() => window.CS.scenes.currentName === 'island', null, { timeout: 25000 });

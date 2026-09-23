@@ -27,7 +27,7 @@ export function transition(board, season, rule = null, climate = null) {
       else if (Board.isFamily(t, 'heath')) { t.bloom = true; ev.push({ type: 'heather', q: t.q, r: t.r, pts: rule === 'crue' || !rule ? P.springHeath : 0 }); }
     }
     // climat chaud : les prés loin de l'eau sèchent dès le printemps
-    if (cl.dryEarly) for (const t of tiles) if (t.family === 'meadow' && !t.rare && (t.level || 1) < 3 && !neighbors(t.q, t.r).some(([a, b]) => { const n = board.get(a, b); return n && (Board.isFamily(n, 'water') || n.family === 'well' || n.family === 'fountain' || n.family === 'trough'); })) { t.dry = true; ev.push({ type: 'dry', q: t.q, r: t.r }); }
+    if (cl.dryEarly) for (const t of tiles) if (t.family === 'meadow' && !t.rare && (t.level || 1) < 3 && !neighbors(t.q, t.r).some(([a, b]) => { const n = board.get(a, b); return n && (Board.isFamily(n, 'water') || n.family === 'well'); })) { t.dry = true; ev.push({ type: 'dry', q: t.q, r: t.r }); }
   } else if (season === 'summer') {
     for (const t of tiles) {
       if (t.bloom) t.bloom = false;
@@ -39,7 +39,7 @@ export function transition(board, season, rule = null, climate = null) {
           if (badMarsh) { t.dry = true; ev.push({ type: 'dry', q: t.q, r: t.r }); }
           continue;
         }
-        const wet = (t.level || 1) >= 3 || ns.some((n) => Board.isFamily(n, 'water') || Board.isFamily(n, 'forest') || Board.isFamily(n, 'marsh') || Board.isFamily(n, 'heath') || n.family === 'well' || n.family === 'fountain' || n.family === 'trough');
+        const wet = (t.level || 1) >= 3 || ns.some((n) => Board.isFamily(n, 'water') || Board.isFamily(n, 'forest') || Board.isFamily(n, 'marsh') || Board.isFamily(n, 'heath') || n.family === 'well');
         if (!wet) { t.dry = true; ev.push({ type: 'dry', q: t.q, r: t.r }); }
       }
     }

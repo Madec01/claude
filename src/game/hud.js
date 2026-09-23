@@ -15,7 +15,7 @@ const icon = (name, cls = '') => `<img class="hud-icon ${cls}" src="assets/img/u
 const SEASON_ICON = { spring: 'icon_leaf', summer: 'icon_sun', autumn: 'icon_wind', winter: 'icon_snow' };
 
 export class Hud {
-  constructor(root, island, { title, onPause, onSwap, onPick, onCloseSeason, onDiscard, onBud, onUndo, onPocket, onPocketOut, onShed, onShedOut, onGardenPick, onPlace, onBudChoice, onBudCancel, onFullscreen, compact = false, mechanics }) {
+  constructor(root, island, { title, onPause, onSwap, onPick, onDiscard, onBud, onUndo, onPocket, onPocketOut, onShed, onShedOut, onGardenPick, onPlace, onBudChoice, onBudCancel, onFullscreen, compact = false, mechanics }) {
     this.root = root; this.isl = island; this.mech = mechanics;
     const m = mechanics;
     root.innerHTML = `
@@ -23,11 +23,11 @@ export class Hud {
         <div class="hud-block hud-title"><div class="hud-island">${title}</div><div class="hud-arch" data-ref="arch"></div></div>
         <div class="hud-block hud-season" data-ref="seasonBox" title="Règle de la saison">
           <span class="season-icon" data-ref="seasonIcon"></span>
-          <div class="season-txt"><b data-ref="seasonName">—</b><span class="season-rule" data-ref="seasonRule"></span><span class="season-weather hidden" data-ref="weather"></span><button class="season-close hidden" type="button" data-ref="seasonClose" title="Faucille : clore la saison maintenant (touche C)">Clore la saison</button></div>
+          <div class="season-txt"><b data-ref="seasonName">—</b><span class="season-rule" data-ref="seasonRule"></span><span class="season-weather hidden" data-ref="weather"></span></div>
           <div class="season-pips" data-ref="pips" title="Poses avant la prochaine saison"></div>
           <div class="season-pop hidden" data-ref="seasonPop"></div>
         </div>
-        <div class="hud-block hud-score"><span class="hud-label">Points</span><b data-ref="score">0</b><span class="score-delta" data-ref="scoreDelta"></span><span class="hud-stars" data-ref="starsLine" title="Seuils des étoiles"></span><span class="streak-pips hidden" data-ref="streakPips" title="Série de bons coups : un souffle à trois, fermeture doublée à cinq"></span><div class="score-pop hidden" data-ref="scorePop"></div></div>
+        <div class="hud-block hud-score"><span class="hud-label">Points</span><b data-ref="score">0</b><span class="score-delta" data-ref="scoreDelta"></span><span class="hud-stars" data-ref="starsLine" title="Seuils des étoiles"></span><div class="score-pop hidden" data-ref="scorePop"></div></div>
         <div class="hud-block hud-breaths ${m.has('breath') ? '' : 'hidden'}" title="Souffles"><span class="hud-label">Souffles</span><b data-ref="breaths">0</b></div>
         <div class="hud-block hud-left-tiles"><span class="hud-label">Tuiles</span><b data-ref="left">0</b></div>
         <button class="hud-pause" data-ref="pause" title="Pause (Échap)">${icon('icon_pause')}</button>
@@ -60,7 +60,6 @@ export class Hud {
     root.querySelectorAll('[data-ref]').forEach((el) => { this.r[el.dataset.ref] = el; });
     this.r.pause.addEventListener('click', (e) => { e.stopPropagation(); onPause(); });
     this.r.seasonBox.addEventListener('click', (e) => { e.stopPropagation(); this.toggleSeasonPop(); });
-    this.r.seasonClose.addEventListener('click', (e) => { e.stopPropagation(); this.onCloseSeason(); });
     // le pourquoi des points : un toucher sur le compteur ouvre le détail par source
     { const box = this.r.score.parentNode; box.title = 'D’où viennent les points (toucher)'; box.style.cursor = 'pointer'; box.addEventListener('click', (e) => { e.stopPropagation(); this.toggleScorePop(); }); }
     this.r.pwDiscard.addEventListener('click', (e) => { e.stopPropagation(); onDiscard(); });
@@ -79,7 +78,7 @@ export class Hud {
     this.r.budForest.addEventListener('click', (e) => { e.stopPropagation(); onBudChoice && onBudChoice('forest'); });
     this.r.budOrchard.addEventListener('click', (e) => { e.stopPropagation(); onBudChoice && onBudChoice('orchard'); });
     this.r.budCancel.addEventListener('click', (e) => { e.stopPropagation(); onBudCancel && onBudCancel(); });
-    this.onSwap = onSwap; this.onPick = onPick || (() => {}); this.onCloseSeason = onCloseSeason || (() => {}); this.onPocket = onPocket; this.onPocketOut = onPocketOut; this.onShed = onShed; this.onShedOut = onShedOut; this.onGardenPick = onGardenPick;
+    this.onSwap = onSwap; this.onPick = onPick || (() => {}); this.onPocket = onPocket; this.onPocketOut = onPocketOut; this.onShed = onShed; this.onShedOut = onShedOut; this.onGardenPick = onGardenPick;
     this.last = {};
     this.notes = [];
     const d = island.def; const ch = d.chapter ? CHAPTERS[d.chapter - 1] : null;
@@ -341,10 +340,8 @@ export class Hud {
     const w = isl.weather; const wt = w ? (STORY.weather[w.key] || { name: w.key, rule: '' }) : null;
     const wtxt = !w ? '' : w.phase === 'announced' ? `${wt.name} dans ${Math.max(0, w.at - isl.inSeason)} pose${w.at - isl.inSeason > 1 ? 's' : ''}` : `${wt.name} en cours`;
     if (wtxt !== this.last.weather) { this.last.weather = wtxt; r.weather.textContent = wtxt; r.weather.title = wt ? wt.rule : ''; r.weather.classList.toggle('hidden', !wtxt); r.weather.classList.toggle('active', !!w && w.phase === 'active'); }
-    const choose = isl.garden || isl.freeChoice > 0;
-    if (choose !== this.last.choose) { this.last.choose = choose; r.gardenPick.classList.toggle('hidden', !choose); }
-    const pt = isl.garden ? 'Choisir' : `Marché : ${isl.freeChoice} choix`;
-    if (choose && pt !== this.last.pickTitle) { this.last.pickTitle = pt; r.pickTitle.textContent = pt; }
+    const choose = !!isl.garden;
+    if (choose !== this.last.choose) { this.last.choose = choose; r.gardenPick.classList.toggle('hidden', !choose); if (choose) r.pickTitle.textContent = 'Choisir'; }
     const bliz = isl.weatherActive && isl.weatherActive('blizzard');
     if (bliz !== this.last.bliz) { this.last.bliz = bliz; r.queueList.classList.toggle('blizzard', !!bliz); }
     // le compteur monte vers la vraie valeur (tic-tac), sans jamais traîner plus d'une seconde
@@ -355,27 +352,16 @@ export class Hud {
     // hauteur réelle de la barre du haut (elle passe sur deux lignes en portrait) : les panneaux dessous s'y calent
     if ((this._frame = (this._frame || 0) + 1) % 20 === 0) { const hh = this.r.top ? this.r.top.offsetHeight : 0; if (hh && hh !== this._topH) { this._topH = hh; this.root.style.setProperty('--hud-top-h', `${hh}px`); } }
     if (!this.r.scorePop.classList.contains('hidden') && this._scorePopScore !== isl.score) this.renderScorePop();
-    // jauge de série : un cran par bon coup, pleine à cinq (fermeture doublée) ; elle se vide en glissant quand la série casse
-    if (this.mech && this.mech.has('breath') && !isl.garden) {
-      const st = isl.stats.streak || 0, cap = BALANCE.streaks.doubleAt;
-      if (this.last.streak === undefined) { r.streakPips.classList.remove('hidden'); r.streakPips.innerHTML = Array.from({ length: cap }, () => '<i></i>').join(''); this.last.streak = -1; }
-      if (st !== this.last.streak) {
-        const pips = r.streakPips.children; for (let i = 0; i < pips.length; i++) pips[i].classList.toggle('on', i < st);
-        if (st === 0 && this.last.streak > 0) { r.streakPips.classList.remove('break'); void r.streakPips.offsetWidth; r.streakPips.classList.add('break'); }
-        r.streakPips.classList.toggle('full', st >= cap); this.last.streak = st;
-      }
-    }
     if (!isl.infinite && !isl.garden) {
-      const th = isl.thresholds; const reached = th.filter((t) => isl.score >= t).length; const gold = isl.goldThreshold;
-      const line = reached >= 3 ? (isl.score >= gold ? '★★★✦' : `★★★ ✦ ${gold}`) : `${'★'.repeat(reached)}☆ ${th[reached]}`;
-      if (line !== this.last.starsLine) { this.last.starsLine = line; r.starsLine.textContent = line; r.starsLine.title = `Étoiles : ${th.join(' · ')} points · étoile d'or : ${gold}`; }
+      // l'étoile d'or ne se montre qu'au bilan : pendant la partie, un seul juge, les trois étoiles
+      const th = isl.thresholds; const reached = th.filter((t) => isl.score >= t).length;
+      const line = reached >= 3 ? '★★★' : `${'★'.repeat(reached)}☆ ${th[reached]}`;
+      if (line !== this.last.starsLine) { this.last.starsLine = line; r.starsLine.textContent = line; r.starsLine.title = `Étoiles : ${th.join(' · ')} points`; }
       // l'étoile franchie : jugée sur le compteur AFFICHÉ, donc après l'arrivée des points en vol ; jamais au premier rendu ni en reprise
       const shownReached = th.filter((t) => this.shownScore >= t).length;
       if (this.last.reached === undefined) this.last.reached = shownReached;
       else if (shownReached > this.last.reached) { this.last.reached = shownReached; this.starReached(shownReached); }
     }
-    // Faucille : le bouton n'apparaît que dans la fenêtre autorisée
-    { const can = isl.canCloseSeason && isl.canCloseSeason(); const left = isl.seasonLength - isl.inSeason; const txt = can ? `Clore la saison · ${left} pose${left > 1 ? 's' : ''} restante${left > 1 ? 's' : ''}` : ''; if (txt !== this.last.closeTxt) { this.last.closeTxt = txt; r.seasonClose.classList.toggle('hidden', !can); if (can) r.seasonClose.textContent = txt; } }
     this.set('breaths', String(isl.breaths));
     this.set('left', isl.infinite || isl.garden ? '∞' : String(isl.queue.remaining));
     r.pwDiscard.disabled = !isl.canDiscard();

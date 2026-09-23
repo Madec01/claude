@@ -35,7 +35,6 @@ export function buildResults({ result, def, onContinue, onRetry, onMenu, onPostc
       row('Animaux (au plus)', result.stats.faunaMax, result.stats.faunaMax ? 'good' : ''),
       result.wishesTotal ? row('Vœux exaucés', `${result.wishesDone} / ${result.wishesTotal}`, result.wishesDone === result.wishesTotal ? 'gold' : '') : null,
       row('Saisons traversées', result.seasons),
-      result.contract ? row('Contrat', result.contract.done ? `${result.contract.contract.name} · rempli, +2 étoiles` : `${result.contract.contract.name} · ${result.contract.after} / ${result.contract.target}${result.contract.gained ? ` (+${result.contract.gained})` : ''}`, result.contract.done ? 'gold' : result.contract.gained ? 'good' : '') : null,
       seedsGained ? row('Graines gagnées', `+${seedsGained}`, 'gold') : null,
       daily ? row('Meilleur du jour', daily.best, 'gold') : null,
       daily ? row('Jours d’affilée', daily.streak) : null,

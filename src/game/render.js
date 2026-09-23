@@ -699,7 +699,7 @@ export class IslandRenderer {
         const pts = body.chain.map((k) => { const [q, r] = parse(k); return toWorld(q, r); });
         const first = body.cells.find((c) => key(c.q, c.r) === body.chain[0]); const last = body.cells.find((c) => key(c.q, c.r) === body.chain[body.chain.length - 1]);
         const ext = (cell, pred, pt, len) => { for (let d = 0; d < 6; d++) { const n = b.get(cell.q + DIRS[d][0], cell.r + DIRS[d][1]); const sea = b.isSea(cell.q + DIRS[d][0], cell.r + DIRS[d][1]); if (pred(n, sea)) { const m = edgeMid(pt.x, pt.y, d); return { x: pt.x + (m.x - pt.x) * len, y: pt.y + (m.y - pt.y) * len }; } } return null; };
-        const src = first ? ext(first, (n) => n && (n.family === 'rock' || n.family === 'hill' || (n.rare && (n.family === 'watchtower' || n.family === 'mine'))), pts[0], 0.75) : null;
+        const src = first ? ext(first, (n) => n && (n.family === 'rock' || n.family === 'hill' || (n.rare && n.family === 'watchtower')), pts[0], 0.75) : null;
         let mouth = body.mouth && last ? ext(last, (n, sea) => sea, pts[pts.length - 1], 1.05) : null;
         if (!mouth && body.intoLake) { const [lq, lr] = parse(body.intoLake); const lw = toWorld(lq, lr); const e = pts[pts.length - 1]; mouth = { x: e.x + (lw.x - e.x) * 0.55, y: e.y + (lw.y - e.y) * 0.55 }; }   // le ruban entre dans la nappe
         // méandres : trois points par segment, décalés en alternance d'un côté puis de l'autre (serpent) avec une part de hasard déterministe

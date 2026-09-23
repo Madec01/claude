@@ -4,7 +4,6 @@ import { Achievements } from '../game/achievements.js';
 const achCount = () => Achievements.count();
 import { h, button, icon, stagger, append } from './dom.js';
 import { CHAPTERS, campaignIsland, chapterStars, CAMPAIGN_SIZE, gateText, gateOpen, islandDone } from '../data/campaign.js';
-import { contractLine } from '../data/contracts.js';
 import { Save } from '../core/save.js';
 import { RunSave } from '../core/run.js';
 import { ISLANDS } from '../data/islands.js';
@@ -75,8 +74,7 @@ export function buildMenu({ game }) {
       const first = (ch.id - 1) * 5 + 1; const got = chapterStars(c.stars, ch.id);
       const open = testMode || c.unlockedIsland >= first;
       const climate = ch.climate !== 'mixed' && ch.climate !== 'temperate' && STORY.climates && STORY.climates[ch.climate] ? ` · ${STORY.climates[ch.climate].name}` : (ch.climate === 'mixed' ? ' · climats variés' : '');
-      const ctr = contractLine(c, ch.id);
-      const row = h('div', { class: `act-row ${open ? '' : 'act-locked'}` }, h('div', { class: 'act-head' }, h('div', { class: 'act-num' }, `Chapitre ${ch.id} · ${ch.name}`), h('div', { class: 'act-name' }, `${ch.sub}${climate} · ${got} / 15 étoiles`), ctr ? h('div', { class: `act-contract ${ctr.done ? 'done' : ''}`, title: 'Contrat d’archipel : rempli, il vaut deux étoiles pour la porte' }, `Contrat · ${ctr.text}`) : null));
+      const row = h('div', { class: `act-row ${open ? '' : 'act-locked'}` }, h('div', { class: 'act-head' }, h('div', { class: 'act-num' }, `Chapitre ${ch.id} · ${ch.name}`), h('div', { class: 'act-name' }, `${ch.sub}${climate} · ${got} / 15 étoiles`)));
       for (let n = first; n < first + 5; n++) {
         const def = campaignIsland(n); const name = def.story && STORY.islands[def.story] ? STORY.islands[def.story].name : def.name;
         const unlocked = testMode || n <= c.unlockedIsland;

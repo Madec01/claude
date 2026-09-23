@@ -1,4 +1,4 @@
-// Tests des tuiles d’événement, des rares tardives, de la météo et de l’île du jour (Node, sans navigateur).
+// Tests des tuiles rares, de la météo et de l’île du jour (Node, sans navigateur).
 import { Island } from '../src/game/island.js';
 import { getIsland } from '../src/data/islands.js';
 import { dailyDef } from '../src/data/daily.js';
@@ -11,16 +11,23 @@ const greedy = (isl) => {
   // ouvrage en main : on le pose sur la meilleure tuile (ou on le défausse), puis on continue avec la tuile suivante
   for (let g = 0; g < 4 && isl.current && isl.current.work && !isl.ended; g++) { let bt = null, bs = -Infinity; for (const t of isl.board.tiles.values()) { if (!isl.canBuild(t.q, t.r)) continue; const pv = isl.previewBuild(t.q, t.r); if (pv && pv.total > bs) { bs = pv.total; bt = t; } } if (bt) isl.build(bt.q, bt.r); else if (isl.canDiscard()) isl.discard(); else break; }
   let best = null, bs = -Infinity; for (const c of isl.board.legalCells()) { const pv = isl.preview(c.q, c.r); if (pv && pv.total > bs) { bs = pv.total; best = c; } } return best; };
+// une rare retirée (audit de simplification) trouvée dans une partie reprise redevient une tuile ordinaire
+{
+  const { RETIRED_RARE } = await import('../src/data/tiles.js');
+  const iR = new Island(getIsland(12), { upgrades: {} });
+  const c0 = iR.board.legalCells()[0]; iR.board.place(c0.q, c0.r, { family: 'tavern', variant: 1, rare: true, id: 999 });
+  iR.queue.list[0] = iR.queue.makeRare('market');
+  const snap = iR.serialize(); const iR2 = new Island(getIsland(12), { upgrades: {} }); iR2.restoreRun(snap);
+  const t = iR2.board.get(c0.q, c0.r);
+  check(t && t.family === RETIRED_RARE.tavern && !t.rare, `auberge reprise → ${t && t.family}`);
+  check(iR2.queue.list[0].family === RETIRED_RARE.market && !iR2.queue.list[0].rare, `marché en file → ${iR2.queue.list[0].family}`);
+}
 // île 12 : injecter chaque tuile rare et la poser
 const isl = new Island(getIsland(12), { upgrades: {} });
 const events = []; isl.on((e) => events.push(e));
 for (const r of RARE) { isl.queue.inject(isl.queue.makeRare(r), true); const c = greedy(isl); check(!!c, `case légale pour ${r}`); if (c) isl.place(c.q, c.r); }
-check(events.some((e) => e.type === 'place' && e.restoredFrom === 'restore'), 'ruine restaurée transformée');
-check(isl.freeChoice > 0 || events.some((e) => e.market), 'marché : choix libres accordés');
-isl.setGardenTile('forest'); check(isl.queue.list[0].family === 'forest' || isl.freeChoice === 0, 'marché : choix de tuile appliqué');
 for (let i = 0; i < 40 && !isl.ended; i++) { const c = greedy(isl); if (!c) break; isl.place(c.q, c.r); }
 check(events.some((e) => e.type === 'weather'), 'météo annoncée sur une île tardive');
-check(events.some((e) => e.type === 'season' && e.events.some((x) => x.type === 'fete')), 'fête : prime versée à la saison') ;
 // activer chaque météo à la main
 for (const key of ['storm', 'heat', 'wind', 'blizzard', 'thaw']) { isl.weather = { key, phase: 'announced', at: 0 }; isl.activateWeather(); check(isl.weatherActive(key), `météo ${key} active`); const c = greedy(isl); if (c) isl.place(c.q, c.r); }
 // île du jour

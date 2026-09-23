@@ -39,18 +39,9 @@ export const RARE_DECOR = {
   camp:       [{ tpl: 'obj_tent', dx: -12, dy: 22 }, { tpl: 'obj_fire', dx: 24, dy: 24 }, { tpl: 'obj_logPile', dx: 26, dy: 38, scale: 0.9 }, { tpl: 'obj_treePine_small_{s}', dx: -32, dy: 34, scale: 0.7 }],
   ruins:      [{ tpl: 'obj_towerRuin', dx: -2, dy: 24, scale: 0.9 }, { tpl: 'obj_logPile', dx: -28, dy: 32, scale: 0.95 }, { tpl: 'obj_ruins_brick1', dx: 28, dy: 30, scale: 0.9 }],
   granary:    [{ tpl: 'obj_farm', dx: 0, dy: 26, scale: 0.85 }, { tpl: 'obj_silo1', dx: -32, dy: 20, scale: 0.9 }, { tpl: 'obj_sack', dx: 26, dy: 34, scale: 1 }, { tpl: 'obj_crate', dx: 34, dy: 36, scale: 0.85 }, { tpl: 'obj_haybale', dx: 32, dy: 14, scale: 0.9 }],
-  fountain:   [{ tpl: 'obj_fountain', dx: 0, dy: 24 }, { tpl: 'obj_tallGrass_{s}', dx: -32, dy: 26, scale: 0.9 }, { tpl: 'obj_tallGrass2_{s}', dx: 32, dy: 26, scale: 0.8 }],
-  market:     [{ tpl: 'obj_shop', dx: 0, dy: 22 }, { tpl: 'obj_cart', dx: 30, dy: 36, scale: 0.8 }, { tpl: 'obj_crate', dx: -32, dy: 34, scale: 1.2 }, { tpl: 'obj_barrel', dx: -24, dy: 16, scale: 0.85 }],
-  fete:       [{ tpl: 'obj_stage', dx: 0, dy: 24, scale: 0.8 }, { tpl: 'obj_barrel', dx: -30, dy: 32, scale: 0.92 }, { tpl: 'obj_barrel', dx: 30, dy: 34, scale: 0.85 }, { tpl: 'obj_banner', dx: -34, dy: 10, scale: 0.9 }],
-  restore:    [{ tpl: 'obj_scaffolding', dx: 0, dy: 26, scale: 0.9 }, { tpl: 'obj_ladder', dx: 30, dy: 30, scale: 0.9 }, { tpl: 'obj_crate', dx: -32, dy: 34, scale: 1.2 }],
-  tavern:     [{ tpl: 'obj_tavern', dx: 0, dy: 24, scale: 0.75 }, { tpl: 'obj_barrel', dx: -32, dy: 32, scale: 1 }, { tpl: 'obj_barrel', dx: 34, dy: 36, scale: 0.85 }],
-  trough:     [{ tpl: 'obj_horseTrough', dx: 0, dy: 24, scale: 1 }, { tpl: 'obj_tallGrass_{s}', dx: -30, dy: 26, scale: 0.9 }, { tpl: 'obj_bushGrass_{s}', dx: 30, dy: 8, scale: 0.8 }],
-  archway:    [{ tpl: 'obj_archway', dx: 0, dy: 24, scale: 0.95 }, { tpl: 'obj_wall_small', dx: -32, dy: 26, scale: 0.55 }, { tpl: 'obj_wall_small', dx: 32, dy: 26, scale: 0.55, flip: true }],
-  mine:       [{ tpl: 'obj_mine', dx: 0, dy: 24 }, { tpl: 'obj_logPile', dx: -30, dy: 32 }, { tpl: 'obj_rockGrey_small2{w}', dx: 32, dy: 28, scale: 0.8 }],
-  oven:       [{ tpl: 'obj_oven', dx: 0, dy: 24 }, { tpl: 'obj_logPile', dx: -30, dy: 32 }, { tpl: 'obj_sack', dx: 30, dy: 30, scale: 1 }],
 };
 /** Les rares qui portent un massif de fleurs au printemps et en été (les points d'eau du village). */
-const RARE_FLEURIES = new Set(['well', 'fountain', 'trough']);
+const RARE_FLEURIES = new Set(['well']);
 /** Un massif est toujours d'UNE SEULE couleur : une fleur isolée se lit comme une pastille d'interface. */
 const FLEURS = ['obj_flowerWhite', 'obj_flowerRed', 'obj_flowerBlue', 'obj_flowerYellow'];
 
@@ -68,7 +59,7 @@ export function groundOf(t) {
   if (!t) return null;
   if (t.blighted) return t.family === 'water' ? 'sand' : 'dry';   // friche : sol sec ; lit asséché pour l'eau
   if (t.fusion) return FUSION_GROUND[t.family] || 'water';
-  if (t.rare) return t.family === 'ruins' || t.family === 'mine' ? 'stone' : 'grass';
+  if (t.rare) return t.family === 'ruins' ? 'stone' : 'grass';
   if (t.family === 'meadow' && t.dry) return 'dry';
   if (t.family === 'water' && t.frozen) return 'ice';
   // la colline est de l'herbe : son relief est un objet posé dessus (journal 102), plus un sol surélevé
@@ -354,7 +345,7 @@ export class Decor {
       const garde = poids <= 1 ? 0.30 : poids <= 3 ? 0.52 : 0.72;
       const cen = centroidOf(reg);
       const closed = board.regionPaid(reg);
-      const hasRare = reg.cells.some((c) => c.rare && (c.family === 'fountain' || c.family === 'chapel' || c.family === 'well'));
+      const hasRare = reg.cells.some((c) => c.rare && (c.family === 'chapel' || c.family === 'well'));
       // Un bourg assez gros posé contre un pré mérite son écurie : c'est du décor pur, aucune règle
       // ne la connaît. Une par bourg, à la place d'une maison, et seulement si le pré est là — sinon
       // on aurait des chevaux au milieu des rochers.
@@ -446,7 +437,7 @@ export class Decor {
         // cellule « centrale » (village)
         let center = null, bd = Infinity;
         for (const c of cells) { const w = toWorld(c.q, c.r); const d = Math.hypot(w.x - cen.x, w.y - cen.y); if (d < bd) { bd = d; center = c; } }
-        const hasRareCenter = reg.cells.some((c) => c.rare && (c.family === 'fountain' || c.family === 'chapel' || c.family === 'well'));
+        const hasRareCenter = reg.cells.some((c) => c.rare && (c.family === 'chapel' || c.family === 'well'));
         for (const cell of cells) {
           const ck = key(cell.q, cell.r); const rng = mulberry(cellSeed(this.seed, cell.q, cell.r, 1));
           const c = toWorld(cell.q, cell.r); const deg = degreeOf(cell, keys);

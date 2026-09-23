@@ -7,15 +7,13 @@ export const UPGRADES = [
   // chapitre 2 : vœux, souffles, rares
   { id: 'breath', chapter: 2, name: 'Souffle de départ', icon: 'icon_wind', desc: 'Commencer chaque île avec des souffles en réserve.', levels: ['0', '+2', '+4', '+6'], costs: [3, 6, 9], requires: 'breath' },
   { id: 'pocket', chapter: 2, name: 'Poche', icon: 'icon_pocket', desc: 'Garder une tuile de côté pour plus tard.', levels: ['Aucune', '1 tuile', '2 tuiles'], costs: [5, 10] },
-  { id: 'rare', chapter: 2, name: 'Semence rare', icon: 'icon_diamond', desc: 'Une tuile rare offerte au début de chaque île.', levels: ['Aucune', 'Puits', 'Moulin', 'Grenier', 'Fontaine'], costs: [6, 10, 12, 14], requires: 'rare' },
+  { id: 'rare', chapter: 2, name: 'Semence rare', icon: 'icon_diamond', desc: 'Une tuile rare offerte au début de chaque île.', levels: ['Aucune', 'Puits', 'Moulin', 'Grenier'], costs: [6, 10, 12], requires: 'rare' },
   // chapitre 3 : météo, collines, lande
-  { id: 'sickle', chapter: 3, name: 'Faucille', icon: 'icon_next', desc: 'Clore la saison avant son terme, quand les dernières poses ne rapportent plus (touche C).', levels: ['Non', '1 pose avant', '2 poses avant', '3 poses avant'], costs: [6, 9, 12] },
   { id: 'source', chapter: 3, name: 'Source', icon: 'icon_drop', desc: 'Chaque tuile de rivière posée rapporte un point de plus.', levels: ['Normale', '+1 point'], costs: [6], requires: 'river' },
   { id: 'refuge', chapter: 3, name: 'Refuge', icon: 'icon_home', desc: 'Chaque animal présent rapporte plus de points à chaque changement de saison.', levels: ['Normal', '+1 point', '+2 points'], costs: [5, 9], requires: 'fauna' },
   { id: 'almanac', chapter: 3, name: 'Almanach', icon: 'icon_save', desc: 'Des graines supplémentaires à chaque île terminée, même rejouée.', levels: ['Aucune', '+1 graine', '+2 graines'], costs: [4, 8] },
   // chapitre 4 : bâtir
   { id: 'frame', chapter: 4, name: 'Charpente', icon: 'icon_wrench', desc: 'Bâtir coûte un souffle de moins (le niveau 2 devient gratuit).', levels: ['Normal', '−1 souffle'], costs: [8], requires: 'build' },
-  { id: 'seed2', chapter: 4, name: 'Semence forte', icon: 'icon_leaf', desc: 'Une tuile de niveau 2 dans la file de départ de chaque île.', levels: ['Aucune', '1 tuile'], costs: [7], requires: 'build' },
   { id: 'memory', chapter: 4, name: 'Seconde chance', icon: 'icon_undo', desc: 'Le souvenir (annuler) coûte moins de souffles.', levels: ['4 souffles', '3 souffles', '2 souffles'], costs: [4, 8], requires: 'breath' },
   // chapitre 5 : climats et fusions
   { id: 'still', chapter: 5, name: 'Alambic', icon: 'icon_swap', desc: 'La première fusion de chaque île ne coûte aucun souffle.', levels: ['Normal', '1re fusion offerte'], costs: [8], requires: 'fuse' },

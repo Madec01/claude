@@ -26,12 +26,7 @@ const errors = []; const check = (ok, m) => { if (!ok) errors.push(m); console.l
 
   // on démarre l'île 9 et on pose quinze tuiles
   await page.evaluate(() => window.CS.Game.startIsland(9, { skipIntro: true }));
-  await page.waitForFunction(() => window.CS.scenes.currentName === 'island' || document.querySelector('.panel-contract') || [...document.querySelectorAll('button')].some((x) => x.textContent.includes('C’est parti')), null, { timeout: 20000 });
-  if (await page.$('.panel-contract')) {   // contrat d'archipel à l'entrée d'un chapitre
-    await page.evaluate(() => document.querySelector('.panel-contract').querySelector('button').click());
-    await page.evaluate(() => [...document.querySelectorAll('button')].find((x) => x.textContent.includes('Signer'))?.click());
-    await page.waitForTimeout(600);
-  }
+  await page.waitForFunction(() => window.CS.scenes.currentName === 'island' || [...document.querySelectorAll('button')].some((x) => x.textContent.includes('C’est parti')), null, { timeout: 20000 });
   await page.waitForFunction(() => window.CS.scenes.currentName === 'island' || [...document.querySelectorAll('button')].some((x) => x.textContent.includes('C’est parti')), null, { timeout: 20000 });
   await page.evaluate(() => { const x = [...document.querySelectorAll('button')].find((b) => b.textContent.includes('C’est parti')); if (x) x.click(); });
   await page.waitForFunction(() => window.CS.scenes.currentName === 'island', null, { timeout: 20000 });

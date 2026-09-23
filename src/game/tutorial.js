@@ -2,12 +2,10 @@
 import { STORY } from '../data/story.js';
 import { mechIsland } from '../data/campaign.js';
 
-const MECH_STEP_IDS = new Set(['river', 'season', 'fauna', 'wish', 'breath', 'rare', 'event', 'weather', 'hill', 'rare2', 'heath', 'build', 'hand', 'rare3', 'climate', 'fuse', 'work', 'build3', 'semis']);
+const MECH_STEP_IDS = new Set(['river', 'season', 'fauna', 'wish', 'breath', 'rare', 'weather', 'hill', 'rare2', 'heath', 'build', 'hand', 'climate', 'fuse', 'work', 'build3', 'semis']);
 const RULES = {
-  event:    { when: (i) => i.placements >= 2, done: () => false, info: true, timeout: 30 },
   weather:  { when: (i) => i.placements >= 2, done: (i, ev) => ev.has('weather'), info: true, timeout: 40 },
   rare2:    { when: (i) => i.placements >= 2, done: () => false, info: true, timeout: 30 },
-  rare3:    { when: (i) => i.placements >= 2, done: () => false, info: true, timeout: 30 },
   climate:  { when: () => true, done: () => false, info: true, timeout: 35 },
   place:    { when: () => true, done: (i) => i.placements >= 1, info: false },
   affinity: { when: (i) => i.placements >= 1, done: (i) => i.score >= 4, info: false, timeout: 60 },

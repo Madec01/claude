@@ -3,7 +3,7 @@ import { Loop } from './core/loop.js';
 import { Input } from './core/input.js';
 import { Assets } from './core/assets.js';
 import { AudioSys } from './core/audio.js';
-import { Save } from './core/save.js';
+import { Save, tidyCampaign } from './core/save.js';
 import { RunSave } from './core/run.js';
 import { Haptics } from './core/haptics.js';
 import { SceneManager, wait } from './core/scenes.js';
@@ -37,8 +37,6 @@ import { buildAchievements, celebrate, celebrateThing } from './ui/achievements.
 import { UPGRADES, playerChapter } from './data/upgrades.js';
 import { buildWishesIntro } from './ui/wishes_intro.js';
 import { buildIslandPrep } from './ui/island_prep.js';
-import { buildContractPick } from './ui/contract.js';
-import { contractNeeded, chooseContract, noteContractResult, contractLine, chapterOf } from './data/contracts.js';
 import { applySemis } from './data/semis.js';
 import { Achievements } from './game/achievements.js';
 import { buildPause } from './ui/pause.js';
@@ -80,7 +78,7 @@ const SEASON_MUSIC = { spring: 'spring', summer: 'summer', autumn: 'autumn', win
 const seasonMusic = (season, nth = 1) => { const alt = `${SEASON_MUSIC[season]}_2`; return nth >= 2 && nth % 2 === 0 && AudioSys.has(alt, 'music') ? alt : SEASON_MUSIC[season]; };
 
 /** Lignes du relevé de saison : les événements groupés par nature, avec les cases concernées. */
-const SEASON_LABELS = { harvest: 'Récoltes', veillee: 'Veillée', pond: 'Étangs', fete: 'Fête', mill: 'Moulins', work: 'Ouvrages', level3: 'Niveau 3', fusion: 'Fusions', hunt: 'Chasse', firewood: 'Bois de chauffage', fair: 'Grande foire', mild: 'Hiver doux', cold: 'Grand froid', bloom: 'Marais en fleurs', heather: 'Lande en fleurs' };
+const SEASON_LABELS = { harvest: 'Récoltes', veillee: 'Veillée', pond: 'Étangs', mill: 'Moulins', work: 'Ouvrages', level3: 'Niveau 3', fusion: 'Fusions', hunt: 'Chasse', firewood: 'Bois de chauffage', fair: 'Grande foire', mild: 'Hiver doux', cold: 'Grand froid', bloom: 'Marais en fleurs', heather: 'Lande en fleurs' };
 function seasonLines(e, isl) {
   const by = new Map();
   for (const ev of e.events || []) { if (!ev.pts) continue; const k = ev.type === 'work' && ev.pts < 0 ? 'workBad' : ev.type; const g = by.get(k) || { label: k === 'workBad' ? 'Ouvrages mal placés' : (SEASON_LABELS[ev.type] || ev.type), pts: 0, cells: [] }; g.pts += ev.pts; g.cells.push({ q: ev.q, r: ev.r }); by.set(k, g); }
@@ -117,6 +115,7 @@ const Game = {
     // depuis les meilleurs scores gardés (une échelle revue vaut pour les parties déjà jouées), puis le déblocage
     // est recalculé — un joueur coincé derrière une règle ou une échelle plus ancienne repart tout seul.
     { const c = Save.data.campaign; const restar = restarFromBest(c); const up = unlockedUpTo(c); const avance = up > c.unlockedIsland; if (avance) c.unlockedIsland = up; if (restar || avance) Save.save(); }
+    setTimeout(() => this.noteRefund(), 2500);
     Achievements.init(Save); Achievements.testMode = () => !!Save.options.testMode; Achievements.onUnlock((a) => celebrate(a, { sound: () => AudioSys.play('achievement', { volume: 0.85 }) }));
     AudioSys.volumes = { master: Save.options.master, music: Save.options.music, ambience: Save.options.ambience, sfx: Save.options.sfx };
     AudioSys.muted = !!Save.options.muted;
@@ -196,7 +195,13 @@ const Game = {
     }), 'panel-wrap');
   },
 
-  adoptCloud(data) { const opts = Save.data.options, cl = Save.data.cloud; Save.data = data; Save.data.options = opts; Save.data.cloud = cl; Save.save(); RunSave.clear(); RunSave.forget(); this.showMenu(); },   // on prend la partie du nuage : la partie en cours de cet appareil, et les dernières jouées, ne s'y rattachent plus
+  /** Des améliorations de l'Atelier ont été retirées : leurs graines sont rendues (`tidyCampaign`), on le dit une fois. */
+  noteRefund() {
+    const c = Save.data.campaign; const due = (c.refunded || 0) - (c.refundSaid || 0); if (due <= 0) return;
+    c.refundSaid = c.refunded; Save.save();
+    this.toast(`L’Atelier s’est allégé : ${due} graine${due > 1 ? 's' : ''} rendue${due > 1 ? 's' : ''}, pour les améliorations retirées.`, 7000);
+  },
+  adoptCloud(data) { const opts = Save.data.options, cl = Save.data.cloud; Save.data = data; Save.data.options = opts; Save.data.cloud = cl; tidyCampaign(Save.data); Save.save(); this.noteRefund(); RunSave.clear(); RunSave.forget(); this.showMenu(); },   // on prend la partie du nuage : la partie en cours de cet appareil, et les dernières jouées, ne s'y rattachent plus
 
   /** Envoi de la sauvegarde. Appelé UNIQUEMENT à la fin d'une île et sur demande : jamais pendant une partie. */
   async pushCloud(opts = {}) {
@@ -305,17 +310,10 @@ const Game = {
   },
   /** Semis et vœux avant la première pose ; sans rien à choisir ni à lire, l'île démarre directement. */
   prepIsland(def) {
-    // contrat d'archipel : à l'entrée d'un chapitre (dès le deuxième), avant le semis et les vœux
-    if (!def.daily && typeof def.id === 'number' && contractNeeded(Save.campaign, def.id)) {
-      const ch = chapterOf(def.id);
-      this.showPanel(buildContractPick({ chapter: ch, onPick: (id) => { chooseContract(Save.campaign, ch, id); Save.save(); AudioSys.play('chalk', { volume: 0.55 }); AudioSys.play('ui_confirm', { volume: 0.35 }); this.prepIsland(def); } }));
-      return;
-    }
-    const contract = !def.daily && typeof def.id === 'number' ? contractLine(Save.campaign, chapterOf(def.id)) : null;
     const semis = !!(def.mech && def.mech.has('semis')) && !def.daily;
     const go = (semisId) => { const d2 = semisId && semisId !== 'saisons' ? { ...def, weights: applySemis(def.weights, semisId), semis: semisId } : def; hideUI(); scenes.go('island', { def: d2, skipWishes: true }, { fade: 0.5 }); };
-    if (!semis && !(def.wishes && def.wishes.length) && !contract) { go(null); return; }
-    this.showPanel(buildIslandPrep({ def, semis, contract, onStart: (id) => { AudioSys.play('ui_confirm', { volume: 0.5 }); go(id); } }));
+    if (!semis && !(def.wishes && def.wishes.length)) { go(null); return; }
+    this.showPanel(buildIslandPrep({ def, semis, onStart: (id) => { AudioSys.play('ui_confirm', { volume: 0.5 }); go(id); } }));
   },
   // ----- Partie en cours gardée sur l'appareil -----
   /** De quoi retrouver l'île plus tard : le strict nécessaire pour la reconstruire à l'identique. */
@@ -404,7 +402,6 @@ const Game = {
       Save.data.stats.placements += result.placements; Save.data.stats.closed += result.stats.closed; Save.data.stats.wishes += result.wishesDone;
       const prevStars = c.stars[def.id] || 0;
       c.stars[def.id] = Math.max(prevStars, result.stars);
-      const ctr = noteContractResult(c, def.id, result); if (ctr) result.contract = ctr;
       const prevGold = !!(c.gold && c.gold[def.id]); if (result.gold) { c.gold = c.gold || {}; c.gold[def.id] = true; }
       if (result.score > (c.best[def.id] || 0)) { newRecord = !!c.best[def.id]; c.best[def.id] = result.score; }
       // graines : étoiles nouvelles + vœux + île terminée la première fois
@@ -541,7 +538,6 @@ class IslandScene {
       onPause: () => this.togglePause(),
       onSwap: (i) => { if (isl.swap(i)) AudioSys.play('tile_swap', { volume: 0.6 }); else AudioSys.play('ui_error', { volume: 0.4 }); },
       onPick: (i) => { if (isl.pick(i)) { AudioSys.play('tile_swap', { volume: 0.5 }); this.tutorial.onEvent('hand'); } },
-      onCloseSeason: () => { if (isl.closeSeason()) AudioSys.play('ui_confirm', { volume: 0.5 }); },
       onDiscard: () => { if (isl.discard()) AudioSys.play('tile_discard', { volume: 0.6 }); else AudioSys.play('ui_error', { volume: 0.4 }); },
       onBud: () => this.setBud(!this.budMode),
       onUndo: () => { if (isl.undo()) { AudioSys.play('tile_undo', { volume: 0.6 }); this.hud.notify('Souvenir : la dernière pose est annulée', 'info'); } else AudioSys.play('ui_error', { volume: 0.4 }); },
@@ -679,8 +675,6 @@ class IslandScene {
       }
       if (e.milestone) setTimeout(() => { this.hud.notify(STORY.verdicts.milestone.replace('{n}', e.milestone), 'gold'); AudioSys.play('star_2', { volume: 0.5 }); }, 90 * i + 700);
       if (isl.season === 'winter') { const pts = []; for (const o of this.renderer.decor.objects) if (o.tpl && o.tpl.startsWith('obj_tree') && Math.hypot(o.x - w.x, o.y - w.y) < 150 && Math.hypot(o.x - w.x, o.y - w.y) > 50) pts.push({ x: o.x, y: o.y }); if (pts.length) fx.snowShake(pts.slice(0, 10)); }
-      if (e.restoredFrom) this.hud.notify(`La ruine restaurée devient : ${(STORY.tiles[e.tile.family] || {}).name || e.tile.family}`, 'rare');
-      if (e.market) this.hud.notify(`Marché : choisis ta tuile pour les ${e.market} prochaines poses`, 'gold');
       if (e.tile.rare) this.tutorial.onEvent('rare');
       if (e.tile.family === 'hill' || e.tile.family === 'heath') this.tutorial.onEvent(e.tile.family);
       this.updateAmbience();
@@ -802,10 +796,6 @@ class IslandScene {
       if (e.kind === 'bud') { const w = toWorld(e.q, e.r); fx.drop(key(e.q, e.r)); fx.placeBurst(w.x, w.y, true); AudioSys.play('bud', { volume: 0.7 }); }
       else if (e.kind !== 'undo' && !e.free) AudioSys.play('breath_spend', { volume: 0.5 });
       if (!e.free) this.tutorial.onEvent('breath');
-    } else if (e.type === 'streak') {
-      if (e.kind === 'breath') { this.hud.ribbon(`Série de ${e.n} : +1 souffle`, '#3a9c8a', 1600, 'streak'); AudioSys.play('breath_gain', { volume: 0.5 }); }
-      else if (e.kind === 'double') { this.hud.ribbon(`Série de ${e.n} : la prochaine fermeture compte double`, '#e0a33a', 2200, 'streak'); AudioSys.play('region_close', { volume: 0.5 }); }
-      else if (e.kind === 'doubled') { const w = toWorld(e.q, e.r); setTimeout(() => { fx.floatText(w.x, w.y - 60, `fermeture doublée +${e.pts}`, '#e0a33a', 24, 1.8); fx.closeBurst(w.x, w.y - 20, 6); AudioSys.play('region_big', { volume: 0.6 }); this.hud.bumpScore(e.pts); }, 500); }
     } else if (e.type === 'work' && e.kind === 'arrive') {
       this.hud.notify(`Un ouvrage arrive : ${(STORY.tiles[e.tile.family] || {}).name || e.tile.family}. Pose-le tout de suite (frais : +1 par saison), mets-le en remise (R) ou défausse-le, c’est gratuit`, 'info');
     } else if (e.type === 'shed') {
@@ -889,7 +879,6 @@ class IslandScene {
     if (k === 'KeyM') { const m = AudioSys.toggleMute(); Save.options.muted = m; Save.save(); return; }
     if (this.paused || this.hold || !this.isl || this.isl.ended) return;
     const isl = this.isl;
-    if (k === 'KeyC') { this.hud.onCloseSeason(); return; }
     if (k === 'Digit2' || k === 'Numpad2') { if (isl.handOn) this.hud.onPick(1); else this.hud.onSwap(1); }
     if (k === 'Digit3' || k === 'Numpad3') { if (isl.handOn) this.hud.onPick(2); else this.hud.onSwap(2); }
     if (k === 'Digit4' || k === 'Numpad4') { if (isl.handOn) this.hud.onPick(3); }
