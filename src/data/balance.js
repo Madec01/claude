@@ -15,7 +15,6 @@ export const BALANCE = {
   breaths: { discard: 1, undo: 3, close: 1, wish: 2, start: [0, 2, 4, 6], build: 1 },
   // bâtir : poser une tuile sur une tuile de même famille la monte de niveau (bords +1, compte double dans sa région) ;
   // une tuile bien bâtie (région close, en saison, ou bien entourée) revient dans la file, au plus une fois par saison
-  works: { from: 26, everyPlacements: 16, wishChance: 0.35, shedLife: 12, freshWindow: 4, freshBonus: 1, badSeasons: 2 },   // ouvrages : une tuile bonus toutes les 16 poses et parfois en récompense de vœu ; remise (poche spéciale) où il expire au bout de 12 poses ; posé tout de suite ou dans les 4 poses après la mise en remise, il est « frais » (+1 par saison) ; mal placé, il coûte 2 saisons puis s'efface
   fusion: { cost: 1, bonus: 1 },   // fusion : même geste que bâtir ; +1 point à la fusion (le gain vient des bords, des fermetures et des primes de saison), une découverte rend une tuile et une rare
   build: { maxLevel: 3, level3From: 31, cost: 1, cost3: 2, matureSeasons: 1, level3Season: 1, neighborsForRefund: 4, refundsPerSeason: 1, season: { meadow: 'spring', marsh: 'spring', heath: 'spring', field: 'summer', sand: 'summer', forest: 'autumn', orchard: 'autumn', hill: 'autumn', hamlet: 'winter', water: 'winter', rock: 'winter' } },
   fauna: { rabbit: 3, moose: 5, duck: 3, bear: 3, frog: 1, owl: 1, penguin: 4, chicken: 2, horse: 2, cow: 2 },

@@ -61,9 +61,7 @@ function parseList(s) {
         const sc = window.CS.scenes.current; const isl = sc && sc.isl;
         if (!isl) return { gone: true };
         if (isl.ended) return { ended: true, placements: isl.placements, score: isl.score };
-        if (!isl.current && isl.shed && isl.shed.length) { isl.fromShed(0); return { swapped: true }; }   // file vide : reprendre l'ouvrage en remise
         // bot glouton à un coup, avec une petite prime aux fermetures et aux rivières
-        if (isl.current && isl.current.work) { let bt = null, bsw = -Infinity; for (const t of isl.board.tiles.values()) { if (!isl.canBuild(t.q, t.r)) continue; const pv = isl.previewBuild(t.q, t.r); if (pv && pv.total > bsw) { bsw = pv.total; bt = t; } } if (bt && (bsw > 0 || !isl.canDiscard())) { isl.build(bt.q, bt.r); return { built: true }; } if (isl.canDiscard()) { isl.discard(); return { discarded: true }; } return { stuck: true }; }
         let best = null, bs = -Infinity;
         for (const c of isl.board.legalCells()) {
           const pv = isl.preview(c.q, c.r); if (!pv) continue;

@@ -1,6 +1,6 @@
-// Succès : trente-trois vignettes à débloquer, une graine chacune. `target` : succès qui se compte (barre de progression) ;
+// Succès : trente et une vignettes à débloquer (deux, liées aux ouvrages, sont parties avec eux ; les identifiants des autres n'ont pas bougé), une graine chacune. `target` : succès qui se compte (barre de progression) ;
 // `hidden` : le nom reste caché tant qu'il n'est pas obtenu. Les conditions sont évaluées dans src/game/achievements.js.
-export const ACHIEVEMENT_CATS = { start: 'Prise en main', water: 'Eau et saisons', fauna: 'Faune', people: 'Habitants et vœux', build: 'Bâtir, fusions, ouvrages', campaign: 'Campagne', elsewhere: 'Ailleurs' };
+export const ACHIEVEMENT_CATS = { start: 'Prise en main', water: 'Eau et saisons', fauna: 'Faune', people: 'Habitants et vœux', build: 'Bâtir et fusions', campaign: 'Campagne', elsewhere: 'Ailleurs' };
 
 export const ACHIEVEMENTS = [
   // prise en main
@@ -36,8 +36,6 @@ export const ACHIEVEMENTS = [
   // supprimer changerait le compte des succès et fausserait les sauvegardes existantes — et récompense
   // désormais la cascade, qui demande la même idée : marier l'eau à ce qui n'est pas elle.
   { id: 'port-d-attache', cat: 'build', name: 'Le saut de l’eau', desc: 'Faire une cascade.' },
-  { id: 'bien-place', cat: 'build', name: 'Bien placé', desc: 'Dix ouvrages bien placés à la fin d’une île.' },
-  { id: 'frais-du-jour', cat: 'build', name: 'Frais du jour', desc: 'Un ouvrage frais qui rapporte pendant six saisons.' },
   // campagne
   { id: 'chapitre-clos', cat: 'campaign', name: 'Chapitre clos', desc: 'Quinze étoiles sur un chapitre.' },
   { id: 'les-quatre-climats', cat: 'campaign', name: 'Les quatre climats', desc: 'Trois étoiles sur une île de chaque climat.', target: 4, counter: 'climates3' },

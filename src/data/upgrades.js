@@ -16,10 +16,6 @@ export const UPGRADES = [
   // chapitre 5 : climats et fusions
   { id: 'still', chapter: 5, name: 'Alambic', icon: 'icon_swap', desc: 'La première fusion de chaque île ne coûte aucun souffle.', levels: ['Normal', '1re fusion offerte'], costs: [8], requires: 'fuse' },
   { id: 'cloak', chapter: 5, name: 'Manteau', icon: 'icon_snow', desc: 'La contrainte du climat s’adoucit : au chaud les prés ne sèchent plus dès le printemps, au froid les champs ne dorment qu’en hiver, à l’humide un hameau contre un marais ne perd que 1.', levels: ['Normal', 'Adouci'], costs: [10], requires: 'climate' },
-  // chapitre 6 : ouvrages
-  { id: 'talisman', chapter: 6, name: 'Talisman', icon: 'icon_key', desc: 'Commencer chaque île avec un ouvrage dans la file.', levels: ['Aucun', '1 ouvrage'], costs: [7], requires: 'work' },
-  { id: 'shed', chapter: 6, name: 'Grande remise', icon: 'icon_plus', desc: 'La remise garde deux ouvrages au lieu d’un.', levels: ['1 place', '2 places'], costs: [8], requires: 'work' },
-  { id: 'fresh', chapter: 6, name: 'Fraîcheur', icon: 'icon_tree', desc: 'Un ouvrage repris de la remise reste frais deux fois plus longtemps.', levels: ['4 poses', '8 poses'], costs: [7], requires: 'work' },
   // chapitre 7 : niveau 3
   { id: 'master', chapter: 7, name: 'Maître d’œuvre', icon: 'icon_gear', desc: 'Une tuile de niveau 2 peut passer au niveau 3 sans attendre une saison.', levels: ['Une saison', 'Aussitôt'], costs: [10], requires: 'build3' },
   // chapitres 8 et 9 : prestige

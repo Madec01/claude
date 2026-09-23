@@ -94,8 +94,6 @@ export function evaluate(board, season, rule = null) {
   for (const t of board.tiles.values()) if (t.family === 'camp') out.set(`goat@camp:${t.q},${t.r}`, { species: 'goat', q: t.q, r: t.r, regionId: `camp:${t.q},${t.r}` });
   // pâturages (prairie de niveau 3) : vache et cheval
   for (const t of board.tiles.values()) if (t.family === 'meadow' && (t.level || 1) >= 3 && !t.rare) { const reg = { id: `pasture:${key(t.q, t.r)}`, cells: [t] }; add('cow', reg, t); add('horse', reg, t); }
-  // nichoirs bien placés : un hibou
-  for (const t of board.tiles.values()) if (t.work === 'nestbox' && !t.workBad) add('owl', { id: `nestbox:${key(t.q, t.r)}`, cells: [t] }, t, { noBonus: true });
   // fusions : chaque tuile composée accueille son animal
   for (const t of board.tiles.values()) {
     if (!t.fusion) continue; const reg = { id: `${t.family}:${key(t.q, t.r)}`, cells: [t] };

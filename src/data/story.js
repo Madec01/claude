@@ -126,7 +126,6 @@ export const STORY = {
         'La chapelle est restée ouverte. Pas pour prier : pour se serrer. Il n’y avait plus d’hiver, mais il y avait du froid dans les gens.',
       ],
       tutorial: [
-        { id: 'work', text: 'Ouvrages : une tuile bonus qui se pose SUR une tuile posée (ruche, épouvantail, ponton, pont, nichoir, feu de camp, menhir, compost). Bien placée, elle rapporte à chaque saison ; mal placée, elle coûte à chaque saison tant qu’on n’a pas arrangé son voisinage. Sa fiche dit la bonne et la mauvaise place. Une arrive toutes les seize poses, parfois en récompense d’un vœu.' },
         { id: 'hill', text: 'Les collines : +2 contre la roche, +1 avec forêt, prairie, verger et hameau. Comme la roche, elles font naître les rivières, et les chevaux y montent depuis les prés.' },
       ],
     },
@@ -348,7 +347,6 @@ export const STORY = {
     c_veillee: { giver: 'Les deux hameaux', title: 'La veillée', text: 'Que la glace relie deux hameaux en hiver. On a des choses à se dire.', done: 'La glace a tenu toute la veillée. On a tout dit. Presque.', failed: 'Pas de glace. On a crié d’une rive à l’autre.' },
     c_closedSeason: { giver: 'La passeuse du pont', title: 'Deux régions en une saison', text: 'Deux régions closes dans la même saison. Je veux voir l’île se fermer d’un coup.', done: 'Deux régions, une saison. La passeuse a applaudi seule.', failed: 'Une région par saison. C’est bien aussi, dit-elle. Elle ment.' },
     c_level: { giver: 'Le charpentier', title: 'Deux tuiles bâties', text: 'Bâtis deux tuiles au niveau 2. Une île qui ne monte pas s’étale.', done: 'Deux tuiles bâties. Le charpentier regarde le ciel avec envie.', failed: 'Rien de bâti. Le charpentier a fait une chaise.' },
-    c_works: { giver: 'L’ouvrière', title: 'Deux ouvrages à leur place', text: 'Deux ouvrages bien placés. Un ouvrage mal posé, c’est une dette.', done: 'Deux ouvrages, aucune dette. L’ouvrière s’est payé une pause.', failed: 'Un ouvrage bien placé. L’autre dérive encore.' },
     c_paddy: { giver: 'La repiqueuse', title: 'Une rizière', text: 'Un champ sous l’eau, ou l’eau sur un champ : une rizière. J’ai les pieds faits pour ça.', done: 'La rizière brille. La repiqueuse y marche comme sur un miroir.', failed: 'Pas de rizière. Elle repique des cailloux, par principe.' },
     c_farm: { giver: 'La fermière', title: 'Une ferme', text: 'Un hameau sur un champ, ou un champ sur un hameau : une ferme. Les poules y seront chez elles.', done: 'La ferme est là. Les poules ont pris le pouvoir.', failed: 'Pas de ferme. Les poules errent, dignes.' },
     w8_1: {
@@ -563,15 +561,8 @@ export const STORY = {
     hill: { name: 'Colline', blurb: 'Aime la roche (+2), la forêt, la prairie, le verger et le hameau ; fait naître les rivières comme la roche ; les chevaux y montent depuis les prés.' },
     heath: { name: 'Lande', blurb: 'Sol pauvre (le champ et le verger n’y poussent pas) mais fleurit au printemps, ne sèche jamais et protège les prairies voisines de l’été ; les vaches paissent en lisière.' },
     granary: { name: 'Grenier', blurb: 'Compte comme champ, +1 par bord avec un champ, et ne dort pas en hiver.' },
-    // ouvrages (tuiles bonus à superposer)
-    hive: { name: 'Ruche', blurb: 'Ouvrage. Bonne place : verger ou prairie avec des fleurs autour (+1 par verger ou prairie voisin, +1 au printemps). Mauvaise place : sans fleur, ou près d’un marais (−2 la première saison, −1 la seconde, puis il s’efface).' },
-    scarecrow: { name: 'Épouvantail', blurb: 'Ouvrage. Bonne place : un champ (+1, +1 par champ voisin). Mauvaise place : ailleurs (−2 la première saison, −1 la seconde, puis il s’efface).' },
-    pier: { name: 'Ponton', blurb: 'Ouvrage. Bonne place : l’eau collée à un hameau, la jetée part de sa rive (+3 par saison). Mauvaise place : eau sans hameau, ou terre (−2 puis −1, puis il dérive pour de bon).' },
-    bridge: { name: 'Pont', blurb: 'Ouvrage. Bonne place : une rivière entre deux hameaux, il la traverse (+3 par saison). Mauvaise place : un lac, un étang ou la terre (−1 deux saisons, puis il s’efface).' },
-    nestbox: { name: 'Nichoir', blurb: 'Ouvrage. Bonne place : une forêt d’au moins trois tuiles (+2 par saison, le hibou s’installe). Mauvaise place : petite forêt ou autre famille (−2 la première saison, −1 la seconde, puis il s’efface).' },
-    campfire: { name: 'Feu de camp', blurb: 'Ouvrage. Bonne place : forêt ou prairie près d’un hameau (+1, +1 par hameau voisin, +1 en hiver). Mauvaise place : sans hameau (−2 la première saison, −1 la seconde, puis il s’efface) ; sous les feux de broussaille, −5.' },
-    menhir: { name: 'Menhir', blurb: 'Ouvrage. Bonne place : roche ou colline (+1 par tuile de son massif, au plus 4). Mauvaise place : ailleurs (−1 deux saisons, puis il s’efface).' },
-    compost: { name: 'Compost', blurb: 'Ouvrage. Bonne place : champ ou verger sans hameau voisin (+1 par champ ou verger voisin). Mauvaise place : un hameau voisin (−2 puis −1, puis on l’enlève).' },
+    hive: { name: 'Ruche', blurb: 'Compte comme prairie ; à chaque saison, +1 par verger ou prairie voisin (au plus 3), et +1 de plus au printemps.' },
+    menhir: { name: 'Menhir', blurb: 'Compte comme roche ; à chaque saison, +1 par roche ou colline voisine (au plus 3).' },
     // fusions
     port: { name: 'Port', blurb: 'Hameau + eau. Compte pour les deux ; +1 par tuile d’eau voisine à chaque saison (au plus 4). Les canards s’y posent.' },
     paddy: { name: 'Rizière', blurb: 'Champ + eau. Compte pour les deux ; +3 à chaque automne. La grenouille s’y plaît.' },
@@ -650,11 +641,6 @@ export const STORY = {
     done: ['Fusion !', 'Deux en un !', 'Ça se marie !'],
     discovery: 'Recette découverte : {n} !',
   },
-  work: {
-    good: ['Bien placé !', 'À sa place.', 'Ça rendra.'],
-    bad: ['Mal placé…', 'Ça va coûter.', 'Pas ici.'],
-    gone: ['abandonné', 's’efface', 'emporté par le vent'],
-  },
   // signatures du niveau 3 (bâtir une seconde fois une tuile de niveau 2 qui a traversé une saison)
   level3: {
     forest:  { name: 'Forêt ancienne', short: 'ours et hibou, à l’abri des feux' },
@@ -679,12 +665,11 @@ export const STORY = {
     rare: 'Tuiles rares : le moulin vaut champ et hameau, la chapelle réchauffe l’hiver, la tour clôt malgré un trou, le puits garde l’eau, le campement attire.',
     surprise: 'Surprise de saison : à chaque saison qui arrive, la règle de base peut laisser place à l’une de ses deux surprises (semailles ou nichées au printemps, grandes chaleurs ou feux en été, foire ou chasse en automne, grand froid ou hiver doux). Elle s’écrit sous la saison et dure jusqu’à la suivante.',
     hill: 'La colline aime le pré et la forêt ; deux collines qui se touchent attirent le cheval. Une rivière peut en naître.',
-    rare2: 'Nouvelle rare : le grenier (+1 par bord avec un champ, pas de dormance d’hiver).',
+    rare2: 'Nouvelles rares : le grenier (+1 par bord avec un champ, pas de dormance d’hiver), la ruche (+1 par verger ou prairie voisin à chaque saison) et le menhir (+1 par roche ou colline voisine à chaque saison).',
     heath: 'La lande fleurit au printemps (+1) et attire la vache en lisière des prés.',
     build: 'Bâtir : pose une tuile sur une tuile de la même famille (1 souffle). Elle passe au niveau 2 : ses bords valent +1 de plus, elle compte double dans sa région. Bien bâtie (région close, en saison, bien entourée), elle rend une tuile.',
     climate: 'Climat : chaque archipel a le sien. Il change la file, donne un avantage permanent et une contrainte, affichés à côté de la saison.',
     fuse: 'Fusionner : pose une tuile sur une tuile d’une autre famille quand une recette existe (champ + eau = rizière…). La tuile compte pour ses deux familles. Une recette découverte rend une tuile et une rare.',
-    work: 'Ouvrages : une tuile bonus qui se pose sur une tuile posée. Bien placée, elle rapporte à chaque saison ; mal placée, elle coûte deux saisons puis s’efface. Posée tout de suite, elle est fraîche (+1 par saison). Pas de bonne place ? Mets-la en remise (R), elle y attend douze poses, ou défausse-la gratuitement.',
     paths: 'Un sentier vient de se tracer : deux villages séparés par au plus trois tuiles de terre ouverte (prairie, champ, verger, lande — pas la colline, qu’on contourne) se relient tout seuls. Chaque sentier rapporte +1 à chaque saison ; les hameaux voisins se relient par des ruelles.',
     riverLake: 'Ta rivière s’élargit : le tronc depuis la montagne reste une rivière (+2 par tuile), la suite devient un lac dans lequel elle se jette (+1 par tuile). Un ponton posé sur la rivière y reste.',
     growth: 'Croissance : une tuile entourée d’assez des siennes pendant deux saisons grandit toute seule. Le hameau devient un village, la forêt s’épaissit, le verger se remplit. Une saison avant, de jeunes pousses l’annoncent : tu peux encore l’empêcher en posant autre chose à côté. Le temps épaissit ; le niveau 3 et les signatures, eux, restent à bâtir.',

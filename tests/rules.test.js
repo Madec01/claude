@@ -4,7 +4,7 @@ import { Island } from '../src/game/island.js';
 import { ISLANDS, INFINITE, GARDEN } from '../src/data/islands.js';
 import { Board } from '../src/game/board.js';
 import { neighbors } from '../src/game/hex.js';
-import { affinity, WORKS } from '../src/data/tiles.js';
+import { affinity } from '../src/data/tiles.js';
 import { preview, previewBuild, canBuild, canFuse, previewFuse, apply, closedRegionsAround, countClosedRegions } from '../src/game/rules.js';
 import { STORY } from '../src/data/story.js';
 import { progressOf } from '../src/game/wishes.js';
@@ -25,7 +25,7 @@ const check = (cond, msg) => { if (!cond) { failures++; console.error('ÉCHEC :'
     if (w.needs) check(mechIsland(w.needs) !== null, `vœu ${w.id} : la mécanique « ${w.needs} » arrive dans la campagne`);
   }
   for (const i of ISLANDS) for (const w of i.wishes || []) if (w.type === 'fusion') check(!!FUSION_BY_ID[w.recipe], `île ${i.id}, vœu ${w.id} : la recette « ${w.recipe} » existe`);
-  const needOf = { fusion: 'fuse', level: 'build', works: 'work' };
+  const needOf = { fusion: 'fuse', level: 'build' };
   for (let n = 1; n <= CAMPAIGN_SIZE; n++) { const d = campaignIsland(n); for (const w of d.wishes) if (needOf[w.type]) check(d.mech.has(needOf[w.type]), `île ${n}, vœu ${w.id} : demande « ${needOf[w.type]} », pas encore ouvert`); }
 }
 
@@ -100,54 +100,26 @@ check(affinity('meadow', 'water') === 0, 'prairie-eau = 0');
   check(isl.board.get(f.q, f.r).level === 3 && isl.breaths === b0 - 2 && isl.stats.level3 === 1, 'niveau 3 bâti');
 }
 
-// --- ouvrages : bonne et mauvaise place, pénalité de saison
+// --- les ouvrages sont retirés : la ruche et le menhir sont des rares qui se posent sur une case vide et rapportent à chaque saison
 {
-  const isl = new Island(ISLANDS[6], { work: true }); // île 7
-  const f = [...isl.board.tiles.values()].find((t) => !t.rare && t.family === 'field') || [...isl.board.tiles.values()].find((t) => !t.rare);
-  isl.queue.list[0] = isl.queue.makeWork('scarecrow');
-  check(!isl.canPlace(f.q, f.r) && isl.canBuild(f.q, f.r), 'un ouvrage se pose sur une tuile, pas sur une case vide');
-  const pv = isl.previewBuild(f.q, f.r); check(pv && pv.work === 'scarecrow' && (f.family === 'field' ? pv.good && pv.total >= 1 : !pv.good && pv.total < 0), `aperçu d'ouvrage (${f.family} : ${pv && pv.total})`);
-  const res = isl.build(f.q, f.r); check(!!res && isl.board.get(f.q, f.r).work === 'scarecrow' && isl.stats.works === 1, 'ouvrage posé');
-  const s0 = isl.score; isl.advanceSeason(); check(isl.score !== s0 || true, 'la saison juge les ouvrages');
-}
-
-
-// --- remise des ouvrages : défausse gratuite, expiration au bout de 12 poses, fraîcheur, pénalité qui s'éteint
-{
+  const { RARE, RARE_SEASONAL } = await import('../src/data/tiles.js');
+  check(RARE.includes('hive') && RARE.includes('menhir') && !!RARE_SEASONAL.hive && !!RARE_SEASONAL.menhir, 'ruche et menhir sont des rares à rente');
   const d = campaignIsland(26); const isl = new Island(d, { ...islandOptions(d) });
-  const cadence = BALANCE.works.everyPlacements; BALANCE.works.everyPlacements = 9999;   // pas d'ouvrage automatique pendant ce scénario
-  const placeOne = () => { if (isl.current.work) return false; const c = isl.board.legalCells()[0]; isl.place(c.q, c.r); return true; };
-  isl.giveWork('scarecrow'); placeOne();
-  check(!!isl.current && isl.current.work && isl.discardCost() === 0 && isl.canDiscard(), 'un ouvrage en tête de file se défausse gratuitement');
-  check(isl.canShed() && isl.canPocket === undefined, 'un ouvrage va en remise ; la poche n’existe plus');
-  const before = isl.queue.list.length;
-  check(isl.toShed() && isl.shed.length === 1 && isl.shedLeft(isl.shed[0]) === 12 && isl.queue.list.length === before, 'mise en remise : 12 poses devant lui, la file continue');
-  for (let i = 0; i < 5; i++) placeOne();
-  check(isl.shed.length === 1 && isl.shedLeft(isl.shed[0]) === 7 && !isl.isFresh(isl.shed[0]), 'après cinq poses : sept restantes, plus frais');
-  for (let i = 0; i < 7; i++) placeOne();
-  check(isl.shed.length === 0 && isl.stats.worksExpired === 1, `l'ouvrage expire à la douzième pose (${isl.shed.length}, ${isl.stats.worksExpired})`);
-  // frais : repris dans les quatre poses
-  isl.giveWork('hive'); placeOne(); isl.toShed(); placeOne(); placeOne();
-  check(isl.fromShed(0) && isl.current.work && isl.isFresh(isl.current), 'repris après deux poses : encore frais');
-  // remplacement : un second ouvrage prend la place du premier
-  isl.toShed(); isl.giveWork('menhir'); placeOne(); isl.toShed();
-  check(isl.shed.length === 1 && isl.shed[0].family === 'menhir' && isl.stats.worksExpired === 2, 'la remise pleine : le nouveau remplace l’ancien');
-  // pénalité qui s'éteint : un épouvantail sur une forêt
-  isl.fromShed(0); isl.discard();
-  isl.giveWork('scarecrow'); placeOne();
-  const forest = [...isl.board.tiles.values()].find((t) => t.family === 'forest' && !t.rare && !t.work) || [...isl.board.tiles.values()].find((t) => t.family !== 'field' && !t.rare && !t.work);
-  const pv = isl.previewBuild(forest.q, forest.r); check(pv && !pv.good && pv.fresh, 'épouvantail hors champ : mauvaise place, mais frais');
-  isl.build(forest.q, forest.r); const tt = isl.board.get(forest.q, forest.r); check(tt.work === 'scarecrow' && tt.workBad, 'ouvrage posé mal placé');
-  const pts = [];
-  for (let k = 0; k < 3; k++) { isl.advanceSeason(); const ev = isl.lastEvents.filter((e) => e.type === 'season').pop(); const w = ev.events.filter((x) => x.type === 'work' && x.q === forest.q && x.r === forest.r); pts.push(w.length ? (w[0].gone ? 'gone' : w[0].pts) : null); }
-  check(pts[0] === -2 && pts[1] === -1 && pts[2] === 'gone' && !isl.board.get(forest.q, forest.r).work && isl.stats.worksGone === 1, `pénalité −2, −1 puis effacement (${pts.join(',')})`);
-  // fin d'île : la file vide n'achève pas l'île tant qu'un ouvrage en remise peut se poser ; repris puis défaussé, l'île se termine
-  isl.giveWork('menhir'); placeOne(); isl.toShed();
-  isl.queue.list.length = 0; isl.queue.total = 0; isl.checkEnd();
-  check(!isl.ended && isl.shed.length === 1, 'file vide mais remise pleine : l’île continue');
-  isl.fromShed(0); isl.discard();
-  check(isl.ended, 'remise vidée et défaussée : l’île se termine');
-  BALANCE.works.everyPlacements = cadence;
+  check(isl.workOn === undefined && isl.shed === undefined && isl.giveWork === undefined, 'plus d’ouvrage, de remise ni de don d’ouvrage');
+  const rock = [...isl.board.tiles.values()].find((t) => t.family === 'rock');
+  const c = isl.board.legalCells().find((x) => neighbors(x.q, x.r).some(([a, b]) => a === rock.q && b === rock.r));
+  isl.queue.list[0] = isl.queue.makeRare('menhir'); check(isl.canPlace(c.q, c.r), 'le menhir se pose sur une case vide');
+  isl.place(c.q, c.r); isl.inSeason = isl.seasonLength - 1;
+  const c2 = isl.board.legalCells()[0]; isl.place(c2.q, c2.r);
+  const ev = isl.lastEvents.filter((e) => e.type === 'season').pop();
+  check(ev && ev.events.some((x) => x.type === 'rare' && x.id === 'menhir' && x.pts >= 1), 'le menhir rapporte au changement de saison, près de la roche');
+  // une partie reprise avec des ouvrages : ceux posés s'en vont, la ruche en main devient une rare, les autres disparaissent
+  const snap = isl.serialize(); const t0 = snap.board.tiles ? null : null;
+  const i2 = new Island(d, { ...islandOptions(d) }); i2.restoreRun(snap);
+  const any = [...i2.board.tiles.values()][0]; any.work = 'scarecrow'; any.workBad = true;
+  i2.queue.list.unshift({ family: 'hive', variant: 1, work: true, id: 900 }, { family: 'compost', variant: 1, work: true, id: 901 });
+  i2.retireRares();
+  check(!any.work && i2.queue.list[0].family === 'hive' && i2.queue.list[0].rare && !i2.queue.list.some((t) => t.family === 'compost'), 'vieille partie : ouvrages retirés, ruche en main devenue rare');
 }
 
 
@@ -158,14 +130,11 @@ check(affinity('meadow', 'water') === 0, 'prairie-eau = 0');
   for (const u of UPGRADES) { check(u.chapter >= prevCh && u.chapter >= 1 && u.chapter <= 10, `amélioration ${u.id} : chapitre croissant`); prevCh = u.chapter; if (u.requires) { const at = mechIsland(u.requires); check(at !== null && Math.ceil(at / 5) <= u.chapter, `amélioration ${u.id} : sa mécanique (${u.requires}, île ${at}) arrive avant son chapitre ${u.chapter}`); } check(u.levels.length === u.costs.length + 1, `amélioration ${u.id} : niveaux et coûts`); }
   check(playerChapter(1) === 1 && playerChapter(5) === 1 && playerChapter(6) === 2 && playerChapter(50) === 10, 'chapitre du joueur');
   const d = campaignIsland(31);
-  const a = new Island(d, { ...islandOptions(d) }), b = new Island(d, { ...islandOptions(d), upgrades: { sight: 2, shed: 1, fresh: 1, master: 1, still: 1, cloak: 1 } });
-  check(b.queue.visible === a.queue.visible + 2 && b.shedSize === 2, 'Regard (la Longue-vue y est fondue) et Grande remise');
-  const c31 = new Island(d, { ...islandOptions(d), upgrades: { talisman: 1 } });
-  check(c31.queue.list.some((t) => t.work), 'Talisman : l’île démarre avec un ouvrage dans la file');
+  const a = new Island(d, { ...islandOptions(d) }), b = new Island(d, { ...islandOptions(d), upgrades: { sight: 2, master: 1, still: 1, cloak: 1 } });
+  check(b.queue.visible === a.queue.visible + 2, 'Regard : deux tuiles de plus (la Longue-vue y est fondue)');
   check(b.fusionCost() === 0 && a.fusionCost() === 1, 'Alambic : première fusion offerte');
   check(b.isMature({ builtAt: b.seasonsPassed.length }) && !a.isMature({ builtAt: a.seasonsPassed.length }), 'Maître d’œuvre : mûrit aussitôt');
   check(!b.climate.fieldsDormantAutumn && a.climate.fieldsDormantAutumn === true, 'Manteau : au froid, les champs ne dorment qu’en hiver');
-  const t = { work: true, family: 'hive', shedAt: 0 }; b.placements = 6; a.placements = 6; check(b.isFresh(t) && !a.isFresh(t), 'Fraîcheur : huit poses de fraîcheur');
 }
 
 
@@ -193,7 +162,6 @@ check(affinity('meadow', 'water') === 0, 'prairie-eau = 0');
   }
   // le pont et le ponton ont été retirés (leurs sprites ne tenaient pas l'échelle et un ouvrage au
   // milieu d'un étang ne racontait rien) : on vérifie qu'ils ne sont plus proposés
-  check(!WORKS.includes('bridge') && !WORKS.includes('pier'), 'plus de pont ni de ponton dans les ouvrages');
 }
 
 
@@ -221,7 +189,7 @@ check(affinity('meadow', 'water') === 0, 'prairie-eau = 0');
 {
   const { ACHIEVEMENTS } = await import('../src/data/achievements.js'); const { Achievements } = await import('../src/game/achievements.js');
   const ids = ACHIEVEMENTS.map((a) => a.id);
-  check(ids.length === 33 && new Set(ids).size === 33 && ACHIEVEMENTS.every((a) => a.name && a.desc && a.cat && /^[a-z0-9-]+$/.test(a.id)), 'trente-trois succès, identifiants uniques en minuscules');
+  check(ids.length === 31 && new Set(ids).size === 31 && ACHIEVEMENTS.every((a) => a.name && a.desc && a.cat && /^[a-z0-9-]+$/.test(a.id)), 'trente-trois succès, identifiants uniques en minuscules');
   check(ACHIEVEMENTS.every((a) => !a.target || a.counter), 'chaque succès qui se compte a son compteur');
   const store = {}; globalThis.localStorage = { getItem: (k) => (k in store ? store[k] : null), setItem: (k, v) => { store[k] = String(v); }, removeItem: (k) => { delete store[k]; } };
   const { Save } = await import('../src/core/save.js'); Save.load(); Save.data.campaign.seeds = 0;
@@ -248,7 +216,7 @@ check(affinity('meadow', 'water') === 0, 'prairie-eau = 0');
   const d = campaignIsland(26); const isl = new Island(d, { ...islandOptions(d) }); const soon = [];
   isl.on((e) => { if (e.type === 'wish' && e.kind === 'soon') soon.push(e.wish.def.id); });
   const first = Math.min(...isl.wishes.map((w) => w.def.deadline.placements));
-  let guard = 0; while (isl.placements < first - 10 && !isl.ended && guard++ < 500) { if (isl.current.work) { isl.discard(); continue; } const c = isl.board.legalCells()[0]; isl.place(c.q, c.r); }
+  let guard = 0; while (isl.placements < first - 10 && !isl.ended && guard++ < 500) { const c = isl.board.legalCells()[0]; isl.place(c.q, c.r); }
   check(soon.length >= 1, `rappel émis dix poses avant la première échéance (${soon.join(',')})`);
 }
 
@@ -258,7 +226,7 @@ check(affinity('meadow', 'water') === 0, 'prairie-eau = 0');
 {
   const d = campaignIsland(9); const isl = new Island(d, { ...islandOptions(d) }); const ev = [];
   isl.on((e) => { if (e.type === 'streak') ev.push(e.kind); });
-  let g = 0; while (!isl.ended && g++ < 40) { if (isl.current.work) { isl.discard(); continue; } let best = null, bs = -Infinity; for (const c of isl.board.legalCells()) { const pv = isl.preview(c.q, c.r); if (pv && pv.total > bs) { bs = pv.total; best = c; } } isl.place(best.q, best.r); }
+  let g = 0; while (!isl.ended && g++ < 40) { let best = null, bs = -Infinity; for (const c of isl.board.legalCells()) { const pv = isl.preview(c.q, c.r); if (pv && pv.total > bs) { bs = pv.total; best = c; } } isl.place(best.q, best.r); }
   check(ev.length === 0 && isl.stats.bestStreak >= 3, `la série se mesure encore (${isl.stats.bestStreak}) mais ne déclenche plus rien (${ev.join(',')})`);
 }
 
@@ -273,7 +241,7 @@ check(affinity('meadow', 'water') === 0, 'prairie-eau = 0');
 {
   const d = campaignIsland(20); const isl = new Island(d, { ...islandOptions(d) });
   let attendu = 0; isl.on((e) => { if (e.type === 'close') attendu += BALANCE.breaths.close; if (e.type === 'wish' && e.kind === 'done') attendu += BALANCE.breaths.wish; });
-  let g = 0, depense = 0; while (!isl.ended && g++ < 200) { if (isl.current && isl.current.work) { const c0 = isl.discardCost(); isl.discard(); depense += c0; continue; } const c = isl.board.legalCells()[0]; if (!c) break; isl.place(c.q, c.r); }
+  let g = 0, depense = 0; while (!isl.ended && g++ < 200) { const c = isl.board.legalCells()[0]; if (!c) break; isl.place(c.q, c.r); }
   check(isl.breaths === attendu - depense, `les souffles ne viennent que des fermetures et des vœux (${isl.breaths} = ${attendu} − ${depense})`);
   check(BALANCE.breaths.discard === 1 && BALANCE.breaths.undo === 3 && isl.undoCost === 3, 'défausser coûte 1, annuler 3');
   const { tidyCampaign } = await import('../src/core/save.js');
@@ -314,12 +282,12 @@ for (const w of CAMPAIGN_WISHES) check(!!STORY.wishes[w.id], `texte du vœu de c
     prev = d.mech.size;
     // déblocage des mécaniques : rien avant son île (main 6, bâtir 16, fusions 21, ouvrages 26, niveau 3 31, surprises 11, vœux 6, collines 12, lande 14, rares 8/13)
     const isl = new Island(d, { ...islandOptions(d) });
-    const exp = { buildOn: n >= 16, handOn: n >= 6, fuseOn: n >= 21, workOn: n >= 26, level3On: n >= 31, surpriseOn: n >= 11 };
+    const exp = { buildOn: n >= 16, handOn: n >= 6, fuseOn: n >= 21, level3On: n >= 31, surpriseOn: n >= 11 };
     for (const [k, v] of Object.entries(exp)) check(!!isl[k] === v, `île ${n} : ${k} devrait valoir ${v}`);
     check((isl.wishes.length > 0) === (n >= 6) || (n >= 6 && isl.wishes.length === 0 && d.story === 1), `île ${n} : vœux ${n >= 6 ? 'attendus' : 'interdits'} (${isl.wishes.length})`);
     check((n >= 12 || !d.weights.hill) && (n >= 14 || !d.weights.heath), `île ${n} : pas de colline avant 12 ni de lande avant 14`);
     check(isl.rareTier === (n >= 13 ? 1 : 0), `île ${n} : grenier dans la réserve de rares seulement dès l’île 13 (${isl.rareTier})`);
-    check(isl.breaths === 0 && !isl.queue.list.some((t) => t.work || t.rare), `île ${n} : file de départ sans ouvrage ni rare, aucun souffle`);
+    check(isl.breaths === 0 && !isl.queue.list.some((t) => t.rare), `île ${n} : file de départ sans rare, aucun souffle`);
   }
   // climats : eau posée +2 au chaud, hameau contre marais −2 à l'humide, champs dormants dès l'automne au froid, saisons longues
   {
@@ -352,7 +320,6 @@ function playGreedy(def, upgrades = {}) {
   while (!isl.ended && guard++ < 2000) {
     const tile = isl.current;
     if (!tile) { isl.checkEnd(); break; }
-    if (tile.work) { let bt = null, bs = -Infinity; for (const t of isl.board.tiles.values()) { if (!isl.canBuild(t.q, t.r)) continue; const pv = isl.previewBuild(t.q, t.r); if (pv && pv.total > bs) { bs = pv.total; bt = t; } } if (bt) { isl.build(bt.q, bt.r); continue; } if (isl.canDiscard()) { isl.discard(); continue; } isl.checkEnd(); break; }
     let best = null, bestScore = -Infinity;
     for (const c of isl.board.legalCells()) {
       const p = isl.preview(c.q, c.r);

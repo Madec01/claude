@@ -75,7 +75,6 @@ export const Achievements = {
       if ((e.events || []).some((x) => x.type === 'veillee')) this.unlock('veillee');
       if (isl.seasonsPassed.length >= 4) this.unlock('quatre-saisons');
       const harvests = (e.events || []).filter((x) => x.type === 'harvest').length; if (harvests) { this.add('harvests', harvests); this.checkCounters(); }
-      for (const t of isl.board.tiles.values()) if (t.work && t.workFresh && !t.workBad) { t.freshSeasons = (t.freshSeasons || 0) + 1; if (t.freshSeasons >= 6) this.unlock('frais-du-jour'); }
     } else if (e.type === 'fauna' && e.kind === 'arrive') {
       const a = this.state; if (SPECIES.includes(e.species) && !a.species.includes(e.species)) { a.species.push(e.species); this.checkCounters(); }
       if (e.species === 'bear') this.unlock('l-ours');
@@ -89,7 +88,6 @@ export const Achievements = {
       if (e.kind === 'fuse') this.checkCounters();   // recettes du Cahier (enregistrées par la scène)
     } else if (e.type === 'end') {
       const r = e.result;
-      if (r.stats && r.stats.worksGood >= 10) this.unlock('bien-place');
       if (campaign && r.stats && r.stats.undo === 0 && r.placements >= 20) this.unlock('sans-regret');
       if (r.wishesTotal >= 4 && r.wishesDone === r.wishesTotal) this.unlock('toute-l-ile');
       if (isl.infinite) { const s = this.save.data; s.infinite.bestPlacements = Math.max(s.infinite.bestPlacements || 0, r.placements); this.checkCounters(); }

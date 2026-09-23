@@ -2,9 +2,9 @@
 export const FAMILIES = ['meadow', 'forest', 'field', 'hamlet', 'orchard', 'water', 'marsh', 'rock', 'sand', 'hill', 'heath'];
 /** Île à partir de laquelle une famille peut apparaître (absente = dès le début). */
 export const FAMILY_FROM = { hill: 12, heath: 14 };
-export const RARE = ['mill', 'chapel', 'watchtower', 'well', 'camp', 'granary'];
+export const RARE = ['mill', 'chapel', 'watchtower', 'well', 'camp', 'granary', 'hive', 'menhir'];
 /** Tuiles rares réservées aux îles tardives (et aux modes libres). */
-export const RARE_LATE = { granary: 13 };
+export const RARE_LATE = { granary: 13, hive: 13, menhir: 13 };
 /**
  * Rares et tuiles d'événement retirées par l'audit de simplification (22 septembre) : ce qu'elles deviennent si une
  * partie reprise, ou une file en cours, en contient encore — une tuile ordinaire de la famille qu'elles comptaient.
@@ -16,7 +16,7 @@ export const SEASONS = ['spring', 'summer', 'autumn', 'winter'];
 export const VARIANTS = { meadow: 3, forest: 3, field: 2, hamlet: 3, orchard: 2, water: 2, marsh: 2, rock: 3, sand: 2, hill: 2, heath: 2, granary: 1, fountain: 1, market: 1, fete: 1, restore: 1, tavern: 1, trough: 1, archway: 1, mine: 1, oven: 1, mill: 1, chapel: 1, watchtower: 1, well: 1, camp: 1, ruins: 1, dry_meadow: 1 };
 
 /** Familles « effectives » d'une tuile rare pour les affinités (une rare peut compter pour plusieurs familles). */
-export const RARE_AS = { mill: ['field', 'hamlet'], chapel: ['hamlet'], watchtower: ['rock'], well: ['meadow'], camp: ['meadow'], granary: ['field'], fountain: ['hamlet'], market: ['hamlet'], fete: ['hamlet'], restore: [], tavern: ['hamlet'], trough: ['meadow'], archway: ['hamlet'], mine: ['rock'], oven: ['hamlet'], ruins: [],
+export const RARE_AS = { hive: ['meadow'], menhir: ['rock'], mill: ['field', 'hamlet'], chapel: ['hamlet'], watchtower: ['rock'], well: ['meadow'], camp: ['meadow'], granary: ['field'], fountain: ['hamlet'], market: ['hamlet'], fete: ['hamlet'], restore: [], tavern: ['hamlet'], trough: ['meadow'], archway: ['hamlet'], mine: ['rock'], oven: ['hamlet'], ruins: [],
   // fusions (deux familles superposées) : la tuile compte pour ses deux familles
   paddy: ['field', 'water'], farm: ['hamlet', 'field'], fort: ['hamlet', 'rock'], falls: ['rock', 'water'], cave: ['forest', 'rock'], lagoon: ['sand', 'water'] };
 
@@ -43,11 +43,21 @@ export const LEVEL3_SEASONAL = {
   hill: { family: 'meadow', pts: 1, cap: 3 }, heath: { family: 'forest', pts: 1, cap: 3 },
 };
 
-/** Ouvrages : tuiles bonus qui se posent SUR une tuile existante (une par tuile) ; bonne ou mauvaise place, jugée à chaque saison. */
-// Le ponton et le pont sont partis : les sprites du Nature Kit (une passerelle claire de 66 × 48 sur
-// un hexagone large de 120) ne se mariaient avec rien, et un ouvrage posé au milieu d'un étang ne
-// racontait pas un ouvrage. Ils reviendront peut-être avec le Livre II et ses vraies tuiles de mer.
-export const WORKS = ['hive', 'scarecrow', 'nestbox', 'campfire', 'menhir', 'compost'];
+/**
+ * Les ouvrages (tuiles bonus posées SUR une tuile, bonne ou mauvaise place, remise, fraîcheur) ont été retirés par
+ * l'audit de simplification : le sous-système le plus ramifié du jeu. La ruche et le menhir survivent comme rares ;
+ * les quatre autres (épouvantail, nichoir, feu de camp, compost), trouvés dans une partie reprise, disparaissent.
+ */
+export const RETIRED_WORKS = ['scarecrow', 'nestbox', 'campfire', 'compost'];
+/**
+ * Rente de saison des rares qui en ont une : à chaque changement de saison, +pts par voisine de l'une des familles
+ * citées, plafonné à `cap` (+`spring` de plus au printemps). La ruche et le menhir étaient des ouvrages ; ils sont
+ * devenus des rares ordinaires, posées sur une case vide, sans bonne ni mauvaise place.
+ */
+export const RARE_SEASONAL = {
+  hive: { families: ['orchard', 'meadow'], pts: 1, cap: 3, spring: 1 },
+  menhir: { families: ['rock', 'hill'], pts: 1, cap: 3 },
+};
 
 /** Table des affinités : clé "a|b" (ordre indifférent) → points par bord partagé. */
 const PAIRS = {

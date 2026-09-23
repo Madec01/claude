@@ -2,7 +2,7 @@
 import { mechIsland, CHAPTER_GATE, CHAPTER_PATIENCE } from '../data/campaign.js';
 // Tout est dérivé des données du jeu (tiles.js, balance.js, upgrades.js, story.js) : aucune valeur n'est recopiée à la main.
 import { h, button, icon, append } from './dom.js';
-import { FAMILIES, RARE, RARE_AS, FAMILY_FROM, RARE_LATE, SEASONS, affinity, FUSIONS, WORKS } from '../data/tiles.js';
+import { FAMILIES, RARE, RARE_AS, FAMILY_FROM, RARE_LATE, SEASONS, affinity, FUSIONS } from '../data/tiles.js';
 import { Save } from '../core/save.js';
 import { BALANCE } from '../data/balance.js';
 import { UPGRADES } from '../data/upgrades.js';
@@ -63,9 +63,6 @@ const TABS = {
     h('div', { class: 'g-grid' }, ...Object.keys(STORY.fauna).map((sp) => { const f = STORY.fauna[sp]; return h('div', { class: 'g-card g-fauna' }, faunaImg(sp), h('div', {}, h('h4', {}, f.name), h('p', {}, f.habitat), h('p', { class: 'g-voice' }, f.arrive))); })),
   ) },
   rare: { label: 'Tuiles rares', build: () => h('div', {},
-    h('h3', {}, icon('icon_star'), `Ouvrages (dès l’île ${mechIsland('work')})`),
-    h('p', { class: 'g-intro' }, `Une tuile bonus qui se pose sur une tuile déjà posée (une par tuile, sans souffle). Chaque ouvrage a sa bonne place, qui rapporte à chaque saison, et sa mauvaise place, qui coûte la première saison, moitié la deuxième, puis l’ouvrage s’efface (un marqueur rouge le rappelle). Posé tout de suite, ou repris de la remise dans les ${B.works.freshWindow} poses, il est frais : +1 par saison. Pas de bonne place ? La remise le garde ${B.works.shedLife} poses (touche R), un second ouvrage le remplace, et la défausse d’un ouvrage est gratuite. Il en arrive un toutes les ${B.works.everyPlacements} poses, parfois en récompense d’un vœu.`),
-    h('div', { class: 'g-grid' }, ...WORKS.map((w) => { const st = STORY.tiles[w] || { name: w, blurb: '' }; return h('div', { class: 'g-card' }, h('div', {}, h('h4', {}, st.name), h('p', {}, st.blurb.replace(/^Ouvrage\. /, '')))); })),
     h('h3', {}, icon('icon_star'), 'Tuiles rares'),
     h('p', { class: 'g-intro' }, 'Une tuile rare est offerte à chaque vœu exaucé (et par l’amélioration « Semence rare »). Elle compte comme une ou plusieurs familles pour les affinités et possède un pouvoir propre.'),
     h('div', { class: 'g-grid' }, ...[...RARE, 'ruins'].map((f) => h('div', { class: 'g-card' }, tileImg(f, true), h('div', {},

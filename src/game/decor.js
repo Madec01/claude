@@ -38,6 +38,8 @@ export const RARE_DECOR = {
   well:       [{ tpl: 'obj_well', dx: 0, dy: 20, scale: 1.3 }, { tpl: 'obj_tallGrass_{s}', dx: -28, dy: 28, scale: 0.9 }, { tpl: 'obj_bushGrass_{s}', dx: 32, dy: 8, scale: 0.8 }],
   camp:       [{ tpl: 'obj_tent', dx: -12, dy: 22 }, { tpl: 'obj_fire', dx: 24, dy: 24 }, { tpl: 'obj_logPile', dx: 26, dy: 38, scale: 0.9 }, { tpl: 'obj_treePine_small_{s}', dx: -32, dy: 34, scale: 0.7 }],
   ruins:      [{ tpl: 'obj_towerRuin', dx: -2, dy: 24, scale: 0.9 }, { tpl: 'obj_logPile', dx: -28, dy: 32, scale: 0.95 }, { tpl: 'obj_ruins_brick1', dx: 28, dy: 30, scale: 0.9 }],
+  hive:       [{ tpl: 'obj_box2', dx: 0, dy: 22, scale: 0.9 }, { tpl: 'obj_box2', dx: -26, dy: 30, scale: 0.75 }, { tpl: 'obj_flowerYellow', dx: 26, dy: 30 }, { tpl: 'obj_flowerWhite', dx: 16, dy: 38 }, { tpl: 'obj_flowerYellow', dx: -8, dy: 40 }],
+  menhir:     [{ tpl: 'obj_shrine', dx: 0, dy: 26, scale: 1.25 }, { tpl: 'obj_rockGrey_small2{w}', dx: -30, dy: 32, scale: 0.8 }, { tpl: 'obj_rockGrey_small1{w}', dx: 30, dy: 34, scale: 0.7 }],   // pierre gravée et bougies (KayKit EXTRA)
   granary:    [{ tpl: 'obj_farm', dx: 0, dy: 26, scale: 0.85 }, { tpl: 'obj_silo1', dx: -32, dy: 20, scale: 0.9 }, { tpl: 'obj_sack', dx: 26, dy: 34, scale: 1 }, { tpl: 'obj_crate', dx: 34, dy: 36, scale: 0.85 }, { tpl: 'obj_haybale', dx: 32, dy: 14, scale: 0.9 }],
 };
 /** Les rares qui portent un massif de fleurs au printemps et en été (les points d'eau du village). */
@@ -45,21 +47,12 @@ const RARE_FLEURIES = new Set(['well']);
 /** Un massif est toujours d'UNE SEULE couleur : une fleur isolée se lit comme une pastille d'interface. */
 const FLEURS = ['obj_flowerWhite', 'obj_flowerRed', 'obj_flowerBlue', 'obj_flowerYellow'];
 
-/** Décor des ouvrages posés sur une tuile. */
-export const WORK_DECOR = {
-  hive:      [{ tpl: 'obj_box2', dx: 18, dy: 20, scale: 0.7 }, { tpl: 'obj_flowerYellow', dx: 32, dy: 30 }, { tpl: 'obj_flowerWhite', dx: 6, dy: 30 }],
-  scarecrow: [{ tpl: 'obj_stake', dx: 0, dy: 22, scale: 1 }, { tpl: 'obj_haybale', dx: 16, dy: 30, scale: 0.6 }],
-  nestbox:   [{ tpl: 'obj_tinyBuilding', dx: 24, dy: 4, scale: 0.55 }],
-  campfire:  [{ tpl: 'obj_fire', dx: 0, dy: 22 }, { tpl: 'obj_log', dx: 22, dy: 30, scale: 0.8 }],
-  menhir:    [{ tpl: 'obj_shrine', dx: 0, dy: 28 }],   // pierre gravée et bougies (KayKit EXTRA) : c'était une pierre TOMBALE de 24 px
-  compost:   [{ tpl: 'obj_logPile', dx: 0, dy: 24, scale: 0.9 }, { tpl: 'obj_haybale', dx: 22, dy: 30, scale: 0.8 }],
-};
 
 export function groundOf(t) {
   if (!t) return null;
   if (t.blighted) return t.family === 'water' ? 'sand' : 'dry';   // friche : sol sec ; lit asséché pour l'eau
   if (t.fusion) return FUSION_GROUND[t.family] || 'water';
-  if (t.rare) return t.family === 'ruins' ? 'stone' : 'grass';
+  if (t.rare) return t.family === 'ruins' || t.family === 'menhir' ? 'stone' : 'grass';
   if (t.family === 'meadow' && t.dry) return 'dry';
   if (t.family === 'water' && t.frozen) return 'ice';
   // la colline est de l'herbe : son relief est un objet posé dessus (journal 102), plus un sol surélevé
@@ -274,11 +267,6 @@ export class Decor {
       else if (t.family === 'water') { push(-18, 26, 'obj_rockBrown_small', 0.9); push(18, 30, 'obj_rockBrown_small', 0.7); }
       else if (t.family === 'rock' || t.family === 'hill') { push(0, 34, 'obj_rockGrey_medium2', 0.9); }
       push(-26 + rng() * 10, 36, 'obj_bushGrass_dry', 0.9); push(24 + rng() * 8, 34, 'obj_bushGrass_dry', 0.8); push(6, 20, 'obj_bushGrass_dry', 0.7);
-    }
-    for (const t of board.tiles.values()) {
-      if (!t.work) continue; const c = toWorld(t.q, t.r); const ck = key(t.q, t.r);
-      const rg = mulberry(cellSeed(this.seed, t.q, t.r, 31));
-      for (const o of WORK_DECOR[t.work] || []) add({ x: c.x + o.dx + (rg() - 0.5) * 7, y: c.y + o.dy + (rg() - 0.5) * 5, tpl: o.tpl, cell: ck, scale: (o.scale || 1) * (0.93 + rg() * 0.14), alpha: 1, flip: o.flip !== undefined ? o.flip : rg() < 0.4 });
     }
 
     // -------------------------------------------------------------------------

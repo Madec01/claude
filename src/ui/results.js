@@ -27,7 +27,6 @@ export function buildResults({ result, def, onContinue, onRetry, onMenu, onPostc
       row('Régions closes', result.stats.closed, result.stats.closed ? 'good' : ''),
       row('Plus grande région', result.stats.biggestRegion),
       result.stats.level3 ? row('Tuiles de niveau 3', result.stats.level3, 'gold') : null,
-      result.stats.works ? row('Ouvrages bien placés', `${result.stats.worksGood} / ${result.stats.works}`, result.stats.worksGood === result.stats.works ? 'good' : '') : null,
       result.stats.fusions ? row('Fusions', result.stats.fusions, 'gold') : null,
       result.stats.built ? row('Tuiles bâties', `${result.stats.built}${result.stats.refunds ? ` (${result.stats.refunds} rendue${result.stats.refunds > 1 ? 's' : ''})` : ''}`, 'good') : null,
       result.stats.perfect ? row('Coups parfaits', result.stats.perfect, 'good') : null,
@@ -61,7 +60,7 @@ export function buildResults({ result, def, onContinue, onRetry, onMenu, onPostc
 }
 
 /** D'où viennent les points : une barre par source, et le meilleur coup de la partie. */
-export const TALLY_LABELS = { edges: 'Bords et affinités', closes: 'Régions fermées', seasons: 'Saisons (récoltes, veillées, sentiers…)', fauna: 'Faune', wishes: 'Vœux', base: 'Rivières, vent, primes de pose', build: 'Bâtir', fusions: 'Fusions', works: 'Ouvrages', streak: 'Séries (fermeture doublée)' };
+export const TALLY_LABELS = { edges: 'Bords et affinités', closes: 'Régions fermées', seasons: 'Saisons (récoltes, veillées, sentiers…)', fauna: 'Faune', wishes: 'Vœux', base: 'Rivières et primes de pose', build: 'Bâtir', fusions: 'Fusions', works: 'Ouvrages (anciennes parties)', streak: 'Séries (anciennes parties)' };
 export function tallyLines(tally) {
   const total = Object.values(tally).reduce((a, b) => a + Math.max(0, b), 0) || 1;
   return Object.entries(tally).filter(([, v]) => v).map(([k, v]) => ({ key: k, label: TALLY_LABELS[k] || k, pts: v, share: Math.max(0, v) / total })).sort((a, b) => b.pts - a.pts);

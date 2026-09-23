@@ -65,14 +65,12 @@ html.compact.portrait .hud-queue { left: 0; right: 0; top: auto; bottom: 0; widt
 html.compact.portrait .queue-list { flex-direction: row; gap: 5px; flex: 1 1 0; min-width: 0; overflow-x: auto; overflow-y: hidden; align-items: flex-end; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
 html.compact.portrait .queue-list::-webkit-scrollbar { display: none; }
 html.compact.portrait .qtile { flex: 0 0 auto; }
-html.compact.portrait .powers, html.compact.portrait .pocket { flex: 0 0 auto; }
+html.compact.portrait .powers { flex: 0 0 auto; }
 html.compact.portrait .qtile { flex-direction: column; padding: 4px 5px; }
 html.compact.portrait .qtile img { width: 30px; height: 35px; }
 html.compact.portrait .qtile.current img { width: 60px; height: 70px; }
 html.compact.portrait .qtile .qname { font-size: 10px; }
 html.compact.portrait .qtile.current .qname { font-size: 12px; }
-html.compact.portrait .pocket { display: flex; flex-direction: column; }
-html.compact.portrait .pocket-list { flex-direction: row; min-height: 0; }
 html.compact.portrait .powers { flex-direction: column; gap: 3px; }
 html.compact.portrait .pw { flex-direction: row; gap: 4px; padding: 3px 7px; }
 html.compact.portrait .garden-pick { position: absolute; left: 6px; right: 6px; bottom: 100%; margin-bottom: 4px; }
@@ -85,7 +83,7 @@ html.compact.landscape .hud-queue { left: max(6px, env(safe-area-inset-left)); t
    (avec la longue-vue et la poche, ils tombaient sous le bord de l'écran, dans un conteneur qui les masquait). */
 html.compact.landscape .queue-list { gap: 4px; flex: 1 1 0; min-height: 0; overflow-y: auto; overflow-x: hidden; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
 html.compact.landscape .queue-list::-webkit-scrollbar { display: none; }
-html.compact.landscape .powers, html.compact.landscape .pocket { flex: 0 0 auto; }
+html.compact.landscape .powers { flex: 0 0 auto; }
 html.compact.landscape .qtile { padding: 3px 6px; gap: 5px; }
 html.compact.landscape .qtile img { width: 26px; height: 30px; }
 html.compact.landscape .qtile.current img { width: 46px; height: 54px; }

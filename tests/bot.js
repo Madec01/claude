@@ -56,29 +56,14 @@ export function playStrong(def, o = {}) {
   let guard = 0, picked = false;   // `picked` : une seule prise dans la main par pose, pour ne jamais osciller entre deux tuiles
   while (!isl.ended && guard++ < 3000) {
     const tile = isl.current;
-    if (!tile) { if (isl.shed.length && isl.fromShed(0)) continue; isl.checkEnd(); break; }   // file vide : la remise se vide avant la fin
-    if (tile.work) {
-      // ouvrage : la meilleure tuile d'accueil tout de suite (frais), sinon en remise, sinon défausse (gratuite)
-      let bt = null, bs = -Infinity; for (const t of isl.board.tiles.values()) { if (!isl.canBuild(t.q, t.r)) continue; const pv = isl.previewBuild(t.q, t.r); if (pv && pv.total > bs) { bs = pv.total; bt = t; } }
-      if (bt && bs > 0) { isl.build(bt.q, bt.r); continue; }
-      if (isl.canShed() && isl.queue.list.length > 1 && (isl.shed.length < isl.shedSize || isl.shed.every((s) => isl.shedLeft(s) <= 2))) { isl.toShed(); continue; }   // en remise seulement s'il reste d'autres tuiles à jouer
-      if (isl.canDiscard()) { isl.discard(); continue; }
-      if (bt) { isl.build(bt.q, bt.r); continue; }
-      isl.checkEnd(); break;
-    }
-    // remise : un ouvrage mis de côté trouve-t-il maintenant une bonne place ?
-    if (isl.shed.length) {
-      let bi = -1, bt = null, bs = 0;
-      isl.shed.forEach((s, i) => { for (const t of isl.board.tiles.values()) { if (!isl.canBuild(t.q, t.r, s)) continue; const pv = isl.previewBuild(t.q, t.r, s); if (pv && pv.total > bs) { bs = pv.total; bt = t; bi = i; } } });
-      if (bt && isl.fromShed(bi)) { isl.build(bt.q, bt.r); continue; }
-    }
+    if (!tile) { isl.checkEnd(); break; }
     let mv = bestMove(isl, tile, rng);
     if (!mv.cell) { isl.checkEnd(); break; }
     // main de saison : jouer la meilleure tuile visible, gratuitement
     if (isl.handOn && !picked && isl.queue.list.length > 1) {
       // évaluation rapide (un coup) des autres tuiles de la main ; la meilleure candidate seule est évaluée en profondeur
       let bi = -1, bq = -Infinity;
-      for (let i = 1; i < isl.queue.list.length; i++) { if (!isl.canPick(i) || isl.queue.list[i].work) continue; let q = -Infinity; for (const c of isl.board.legalCells()) { const sc = evalMove(isl, isl.queue.list[i], c.q, c.r, rng, false); if (sc > q) q = sc; } if (q > bq) { bq = q; bi = i; } }
+      for (let i = 1; i < isl.queue.list.length; i++) { if (!isl.canPick(i)) continue; let q = -Infinity; for (const c of isl.board.legalCells()) { const sc = evalMove(isl, isl.queue.list[i], c.q, c.r, rng, false); if (sc > q) q = sc; } if (q > bq) { bq = q; bi = i; } }
       if (bi > 0) { const m = bestMove(isl, isl.queue.list[bi], rng); if (m.cell && m.score > mv.score + 0.5 && isl.pick(bi)) { picked = true; continue; } }
     }
     // souffles : défausser une tuile sans avenir (l'échange et le bourgeon ont été retirés, la main les remplace)

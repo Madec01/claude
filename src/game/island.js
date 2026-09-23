@@ -1,8 +1,8 @@
 // Déroulement d'une île : orchestration des règles, saisons, faune, vœux, souffles, fin et bilan.
 // Modèle pur (sans DOM ni canvas) : utilisable en Node pour les tests et le bot.
 import { Board } from './board.js';
-import { preview, apply, previewBuild, canBuild as ruleCanBuild, canFuse, previewFuse, fusedTile, evalWork, previewWork } from './rules.js';
-import { FUSION_BY_ID, WORKS, LEVEL3_SEASONAL, RETIRED_RARE } from '../data/tiles.js';
+import { preview, apply, previewBuild, canBuild as ruleCanBuild, canFuse, previewFuse, fusedTile } from './rules.js';
+import { FUSION_BY_ID, LEVEL3_SEASONAL, RETIRED_RARE, RETIRED_WORKS, RARE_SEASONAL } from '../data/tiles.js';
 import { climateOf } from '../data/climates.js';
 import { transition, nextSeason } from './seasons.js';
 import { evaluate as evalFauna, reconcile } from './fauna.js';
@@ -40,13 +40,9 @@ export class Island {
     this.known = o.known || new Set();
     // main de saison : île 16 et modes libres, la tuile à jouer se choisit librement parmi les tuiles visibles
     this.handOn = o.hand !== undefined ? !!o.hand : (!!def.infinite || !!def.garden || !!def.daily || (typeof def.id === 'number' && def.id >= 16));
-    this.rareTier = o.rareTier;   // 0 : les cinq rares de base ; 1 : le grenier s'y ajoute (île 13)
+    this.rareTier = o.rareTier;   // 0 : les cinq rares de base ; 1 : le grenier, la ruche et le menhir s'y ajoutent (île 13)
     // niveau 3 : ouvert par les options de campagne (île 31), toujours dans les modes libres et sur l'Île du jour
     this.level3On = o.level3 !== undefined ? !!o.level3 : (!!def.infinite || !!def.garden || !!def.daily || (typeof def.id === 'number' && def.id >= BALANCE.build.level3From));
-    // ouvrages : ouverts par les options de campagne (île 26), toujours dans les modes libres et sur l'Île du jour
-    this.workOn = o.work !== undefined ? !!o.work : (!!def.infinite || !!def.garden || !!def.daily || (typeof def.id === 'number' && def.id >= BALANCE.works.from));
-    this.shed = [];                  // remise : ouvrages mis de côté ({ ...tuile, shedAt })
-    this.shedSize = 1 + (this.upgrades.shed || 0);
     const seed = def.seed + (o.seedOffset || 0);
     this.rng = new RNG(seed * 7 + 1);
     this.board = new Board(generateMask(seed, def.cells, { roughness: def.roughness, holes: def.holes }));
@@ -70,7 +66,6 @@ export class Island {
     if (def.opening) { def.opening.forEach((f, i) => { if (i < this.queue.list.length) this.queue.list[i] = this.queue.makeTile(f); }); this.pendingOpening = def.opening.slice(this.queue.list.length); }
     if ((this.upgrades.rare || 0) > 0) this.queue.inject(this.queue.makeRare([null, 'well', 'mill', 'granary'][Math.min(3, this.upgrades.rare)]), false);
     // Talisman : un ouvrage dans la file de départ (après la création de la file)
-    if (this.workOn && (this.upgrades.talisman || 0) > 0) this.giveWork(this.pickWork());
     this.baseMods = { river: BALANCE.upgrades.source[this.upgrades.source || 0] || 0, refuge: BALANCE.upgrades.refuge[this.upgrades.refuge || 0] || 0 };
     this.season = def.startSeason || 'spring';
     this.seasonLength = def.seasonLength + BALANCE.queue.seasonExtra[this.upgrades.patience || 0];
@@ -82,9 +77,9 @@ export class Island {
     this.wishes = initWishes(def.wishes || []);
     this.fauna = new Map();
     // d'où viennent les points : cumul par source (le « pourquoi » du score), et le meilleur coup de la partie
-    this.tally = { edges: 0, base: 0, closes: 0, seasons: 0, wishes: 0, fauna: 0, works: 0, fusions: 0, build: 0, streak: 0 };
+    this.tally = { edges: 0, base: 0, closes: 0, seasons: 0, wishes: 0, fauna: 0, fusions: 0, build: 0 };
     this.bestMove = null;
-    this.stats = { grown: 0, harvest: 0, bloom: 0, closedThisSeason: 0, irrigatedSummer: 0, closed: 0, rivers: 0, faunaMax: 0, wishesDone: 0, biggestRegion: 0, undo: 0, links: 0, perfect: 0, streak: 0, bestStreak: 0, built: 0, refunds: 0, fusions: 0, works: 0, worksGood: 0, worksFresh: 0, worksExpired: 0, worksGone: 0, level3: 0 };
+    this.stats = { grown: 0, harvest: 0, bloom: 0, closedThisSeason: 0, irrigatedSummer: 0, closed: 0, rivers: 0, faunaMax: 0, wishesDone: 0, biggestRegion: 0, undo: 0, links: 0, perfect: 0, streak: 0, bestStreak: 0, built: 0, refunds: 0, fusions: 0, level3: 0 };
     this.history = [];         // instantanés pour le souvenir
     this.undoUsedThisSeason = false;
     this.ended = false;
@@ -135,30 +130,30 @@ export class Island {
 
   /** Prévisualisation d'une pose de la tuile courante. */
   preview(q, r, tile = this.current) {
-    if (!tile || tile.work || !this.board.canPlace(q, r)) return null;
+    if (!tile || !this.board.canPlace(q, r)) return null;
     return preview(this.board, q, r, tile, this.season, this.mods);
   }
 
-  canPlace(q, r) { return !this.ended && !!this.current && !this.current.work && this.board.canPlace(q, r) && (!this.restrict || this.restrict.has(key(q, r))); }
+  canPlace(q, r) { return !this.ended && !!this.current && this.board.canPlace(q, r) && (!this.restrict || this.restrict.has(key(q, r))); }
 
   // ---- Bâtir : poser une tuile sur une tuile de même famille ----
   /**
    * Les tuiles DÉJÀ POSÉES où la tuile courante peut aller : bâtir (même famille), fusionner (recette),
    * poser un ouvrage, remettre une friche en état. Rien dans le jeu ne le montrait — ni la file, ni le plateau —
    * et une mécanique entière passait inaperçue (retour du commanditaire).
-   * @returns {Array<{q:number,r:number,kind:'build'|'fuse'|'work'|'restore',total:number}>}
+   * @returns {Array<{q:number,r:number,kind:'build'|'fuse'|'restore',total:number}>}
    */
   buildTargets(tile = this.current) {
     if (this.ended || this.restrict || !tile) return [];
     // le rendu et le bandeau le demandent à chaque image : on garde le résultat tant que rien n'a bougé
-    const cle = `${this.board.version}|${tile.family}:${tile.level || 1}:${tile.rare ? 1 : 0}:${tile.work ? 1 : 0}|${this.breaths}|${this.season}|${this.placements}`;
+    const cle = `${this.board.version}|${tile.family}:${tile.level || 1}:${tile.rare ? 1 : 0}|${this.breaths}|${this.season}|${this.placements}`;
     if (this._btKey === cle) return this._bt;
     const out = [];
     for (const t of this.board.tiles.values()) {
       if (!this.canBuild(t.q, t.r, tile)) continue;
       const pv = this.previewBuild(t.q, t.r, tile);
       if (!pv) continue;
-      out.push({ q: t.q, r: t.r, kind: pv.work ? 'work' : pv.fuse ? 'fuse' : pv.restore ? 'restore' : 'build', total: pv.total || 0 });
+      out.push({ q: t.q, r: t.r, kind: pv.fuse ? 'fuse' : pv.restore ? 'restore' : 'build', total: pv.total || 0 });
     }
     this._btKey = cle; this._bt = out;
     return out;
@@ -166,7 +161,6 @@ export class Island {
 
   canBuild(q, r, tile = this.current) {
     if (this.ended || this.restrict || !tile) return false;
-    if (tile.work) { const t = this.board.get(q, r); return this.workOn && !!t && !t.rare && !t.work; }
     if (this.buildOn && ruleCanBuild(this.board, q, r, tile)) {
       const t = this.board.get(q, r); const lv = t.level || 1;
       if (t.blighted) return this.breaths >= BALANCE.build.cost;   // remise en état d'une friche
@@ -184,7 +178,6 @@ export class Island {
   isMature(t) { return (this.upgrades.master || 0) > 0 || this.seasonsPassed.length - (t.builtAt || 0) >= BALANCE.build.matureSeasons; }
   previewBuild(q, r, tile = this.current) {
     if (!tile) return null;
-    if (tile.work) { if (!this.workOn) return null; const pv = previewWork(this.board, q, r, tile, this.season, { ...this.mods, fresh: this.isFresh(tile) }); if (pv) pv.cost = 0; return pv; }
     if (this.fuseOn && canFuse(this.board, q, r, tile)) {
       const pv = previewFuse(this.board, q, r, tile, this.season, this.mods); if (!pv) return null;
       const first = !this.known.has(pv.fuse.id);
@@ -213,15 +206,12 @@ export class Island {
     this.pushHistory();
     this.queue.take();
     const scoreBefore = this.score; let placed = target, rare = null;
-    if (pv.work) {
-      // ouvrage : posé sur la tuile, jugé maintenant puis à chaque saison
-      target.work = pv.work; target.workBad = !pv.good; target.workFresh = !!pv.fresh; target.badSeasons = 0; this.board.touch(); this.stats.works++; if (pv.fresh) this.stats.worksFresh++;
-    } else if (pv.fuse) {
+    if (pv.fuse) {
       // fusion : la tuile en place devient la tuile composée ; fermetures éventuelles ; découverte = une tuile de retour et une rare
       placed = fusedTile(target, pv.fuse); this.board.tiles.set(key(q, r), placed); this.board.touch();
       for (const c of pv.closes) { this.board.payRegion(c); this.stats.closed++; this.stats.closedThisSeason++; this.breaths += BALANCE.breaths.close; this.stats.biggestRegion = Math.max(this.stats.biggestRegion, c.size); }
       this.breaths -= this.fusionCost(); this.stats.fusions++;
-      if (pv.first) { this.known.add(pv.fuse.id); this.queue.inject(this.queue.makeTile(tile.family), false); rare = this.pickRare(); if (WORKS.includes(rare)) this.giveWork(rare); else this.queue.inject(this.queue.makeRare(rare), false); this.stats.refunds++; }
+      if (pv.first) { this.known.add(pv.fuse.id); this.queue.inject(this.queue.makeTile(tile.family), false); rare = this.pickRare(); this.queue.inject(this.queue.makeRare(rare), false); this.stats.refunds++; }
     } else if (pv.restore) {
       target.blighted = false; this.board.touch(); this.breaths -= BALANCE.build.cost; this.stats.restored = (this.stats.restored || 0) + 1;
       for (const c of pv.closes) { this.board.payRegion(c); this.stats.closed++; this.stats.closedThisSeason++; this.breaths += BALANCE.breaths.close; }
@@ -231,9 +221,8 @@ export class Island {
       if (pv.refund.ok) { this.refunds++; this.queue.inject(this.queue.makeTile(tile.family), false); this.stats.refunds++; }
     }
     this.placements++; this.inSeason++;
-    this.score += pv.total; this.tally[pv.work ? 'works' : pv.fuse ? 'fusions' : 'build'] += pv.total;
-    this.expireShed();
-    this.emit({ type: 'build', kind: pv.work ? 'work' : pv.fuse ? 'fuse' : pv.restore ? 'restore' : 'level', work: pv.work || null, good: !!pv.good, fresh: !!pv.fresh, q, r, tile: placed, level: placed.level, result: pv, refund: pv.refund, family: tile.family, recipe: pv.fuse ? pv.fuse.id : null, first: !!pv.first, rare, milestone: Math.floor(this.score / 100) > Math.floor(scoreBefore / 100) ? Math.floor(this.score / 100) * 100 : 0 });
+    this.score += pv.total; this.tally[pv.fuse ? 'fusions' : 'build'] += pv.total;
+    this.emit({ type: 'build', kind: pv.fuse ? 'fuse' : pv.restore ? 'restore' : 'level', q, r, tile: placed, level: placed.level, result: pv, refund: pv.refund, family: tile.family, recipe: pv.fuse ? pv.fuse.id : null, first: !!pv.first, rare, milestone: Math.floor(this.score / 100) > Math.floor(scoreBefore / 100) ? Math.floor(this.score / 100) * 100 : 0 });
     for (const c of pv.closes || []) this.emit({ type: 'close', ...c, breath: BALANCE.breaths.close });
     this.updateFauna(); this.checkWishes();
     if (!this.garden && this.inSeason >= this.seasonLength) this.advanceSeason();
@@ -255,8 +244,6 @@ export class Island {
     const res = apply(this.board, q, r, placedTile, this.season, this.mods);
     if (this.rule === 'semailles' && Board.isFamily(placedTile, 'orchard')) { const pt = this.board.get(q, r); if (pt) pt.sown = true; }
     this.placements++; this.inSeason++;
-    if (this.workOn && this.placements % BALANCE.works.everyPlacements === 0 && !this.garden) this.giveWork(this.pickWork());
-    this.expireShed();
     const scoreBefore = this.score;
     this.score += res.total;
     { const closes = res.closes.reduce((a, c) => a + c.bonus, 0); const base = res.base.reduce((a, b) => a + b.pts, 0); this.tally.closes += closes; this.tally.base += base; this.tally.edges += res.total - closes - base;
@@ -294,7 +281,7 @@ export class Island {
     const G = BALANCE.growth; const ready = [], soon = [];
     for (const t of this.board.tiles.values()) {
       const min = G.at[t.family];
-      if (!min || t.rare || t.fusion || t.work || t.blighted || (t.level || 1) > 1) { t.ripe = 0; t.ripening = false; continue; }
+      if (!min || t.rare || t.fusion || t.blighted || (t.level || 1) > 1) { t.ripe = 0; t.ripening = false; continue; }
       const same = neighbors(t.q, t.r).filter(([a, b]) => Board.isFamily(this.board.get(a, b), t.family)).length;
       if (same < min) { t.ripe = 0; t.ripening = false; continue; }   // la condition tombe : le compteur repart de zéro
       t.ripe = (t.ripe || 0) + 1; t.ripening = false;
@@ -327,7 +314,7 @@ export class Island {
    */
   serialize() {
     return {
-      v: 1, longSeasonDone: !!this.longSeasonDone, refunds: this.refunds, shed: this.shed.map((t) => ({ ...t })),
+      v: 1, longSeasonDone: !!this.longSeasonDone, refunds: this.refunds,
       rngS: this.rng.s, board: this.board.snapshot(), queue: this.queue.snapshot(),
       restrict: this.restrict ? [...this.restrict] : null, pendingOpening: [...this.pendingOpening],
       season: this.season, inSeason: this.inSeason, placements: this.placements, seasonsPassed: [...this.seasonsPassed],
@@ -342,15 +329,24 @@ export class Island {
   /** Les rares retirées du jeu, encore présentes dans une partie reprise (plateau ou file), deviennent la tuile de leur famille. */
   retireRares() {
     let changed = false;
-    for (const t of this.board.tiles.values()) { const f = RETIRED_RARE[t.family]; if (!f) continue; t.family = f; t.rare = false; t.variant = 1; changed = true; }
-    for (const list of [this.queue.list]) for (let k = 0; k < list.length; k++) { const f = RETIRED_RARE[list[k].family]; if (f) list[k] = { ...this.queue.makeTile(f), id: list[k].id }; }
+    for (const t of this.board.tiles.values()) {
+      const f = RETIRED_RARE[t.family]; if (f) { t.family = f; t.rare = false; t.variant = 1; changed = true; }
+      // un ouvrage posé sur une tuile (retirés eux aussi) s'en va : la tuile dessous reste telle quelle
+      if (t.work) { delete t.work; delete t.workBad; delete t.workFresh; delete t.badSeasons; delete t.freshSeasons; changed = true; }
+    }
+    const list = this.queue.list;
+    for (let k = list.length - 1; k >= 0; k--) {
+      const t = list[k]; const f = RETIRED_RARE[t.family];
+      if (f) list[k] = { ...this.queue.makeTile(f), id: t.id };
+      else if (t.work) { if (RETIRED_WORKS.includes(t.family)) list.splice(k, 1); else list[k] = { ...this.queue.makeRare(t.family), id: t.id }; }   // ruche et menhir en main : des rares, désormais
+    }
     if (changed) this.board.touch();
   }
 
   /** Remet l'île dans l'état rendu par `serialize()`. L'île doit avoir été construite avec la même définition. */
   restoreRun(s) {
     if (!s || s.v !== 1) return false;
-    this.longSeasonDone = !!s.longSeasonDone; this.refunds = s.refunds || 0; this.shed = (s.shed || []).map((t) => ({ ...t }));
+    this.longSeasonDone = !!s.longSeasonDone; this.refunds = s.refunds || 0;
     this.rng.s = s.rngS; this.board.restore(s.board); this.queue.restore(s.queue);
     this.fillEnclosedHoles();   // une partie commencée avant le correctif garde son trou : la mare devient l'eau qu'elle a toujours eu l'air d'être
     this.retireRares();         // une rare retirée depuis (audit de simplification) redevient la tuile ordinaire qu'elle comptait
@@ -387,15 +383,12 @@ export class Island {
     const links = computeLinks(this.board).links.length;
     this.stats.links = Math.max(this.stats.links, links);
     pts += links * BALANCE.points.pathSeason;
-    // ouvrages : jugés à chaque saison (bonne place : points ; mauvaise place : pénalité tant que le voisinage ne change pas)
+    // rares à rente (ruche, menhir) : +pts par voisine des familles citées, plafonné ; la ruche donne un peu plus au printemps
     for (const t of this.board.tiles.values()) {
-      if (!t.work) continue; const w = evalWork(this.board, t, this.season, this.rule); t.workBad = !w.good;
-      if (w.good) { t.badSeasons = 0; if (w.pts) ev.push({ type: 'work', q: t.q, r: t.r, pts: w.pts, id: t.work, good: true, label: w.label }); continue; }
-      // mal placé : plein tarif la première saison, moitié la deuxième, puis l'ouvrage s'efface
-      t.badSeasons = (t.badSeasons || 0) + 1;
-      if (t.badSeasons > BALANCE.works.badSeasons) { const id = t.work; delete t.work; delete t.workBad; delete t.workFresh; delete t.badSeasons; this.stats.worksGone++; ev.push({ type: 'work', q: t.q, r: t.r, pts: 0, id, good: false, gone: true, label: 's’efface' }); continue; }
-      const pts = t.badSeasons === 1 ? w.pts : -Math.ceil(-w.pts / 2);
-      if (pts) ev.push({ type: 'work', q: t.q, r: t.r, pts, id: t.work, good: false, label: w.label, last: t.badSeasons === BALANCE.works.badSeasons });
+      const rs = t.rare && RARE_SEASONAL[t.family]; if (!rs) continue;
+      const n = neighbors(t.q, t.r).filter(([a, b]) => { const x = this.board.get(a, b); return x && rs.families.some((f) => Board.isFamily(x, f)); }).length;
+      const p = Math.min(rs.cap, n) * rs.pts + (this.season === 'spring' ? rs.spring || 0 : 0);
+      if (p) ev.push({ type: 'rare', q: t.q, r: t.r, pts: p, id: t.family });
     }
     // niveau 3 : +1 par saison et signature de la famille
     for (const t of this.board.tiles.values()) {
@@ -449,7 +442,7 @@ export class Island {
         this.score += BALANCE.points.wish; this.tally.wishes += BALANCE.points.wish;
         this.breaths += BALANCE.breaths.wish;
         const rare = this.pickRare();
-        if (WORKS.includes(rare)) this.giveWork(rare); else this.queue.inject(this.queue.makeRare(rare), false);
+        this.queue.inject(this.queue.makeRare(rare), false);
         this.emit({ type: 'wish', kind: 'done', wish: e.wish, rare });
       } else this.emit({ type: 'wish', kind: 'failed', wish: e.wish });
     }
@@ -459,11 +452,9 @@ export class Island {
     const id = typeof this.def.id === 'number' ? this.def.id : 99;
     const tier = this.rareTier !== undefined ? this.rareTier : (id >= 7 ? 1 : 0);
     const pool = ['mill', 'chapel', 'watchtower', 'well', 'camp'];
-    if (tier >= 1) pool.push('granary');
-    if (this.workOn && this.rng.next() < BALANCE.works.wishChance) return this.pickWork();
+    if (tier >= 1) pool.push('granary', 'hive', 'menhir');
     return pool[Math.floor(this.rng.next() * pool.length)];
   }
-  pickWork() { return WORKS[Math.floor(this.rng.next() * WORKS.length)]; }
 
   // ---- Souffles ----
   get undoCost() { return BALANCE.breaths.undo; }
@@ -471,37 +462,17 @@ export class Island {
   canPick(i) { return this.handOn && !this.ended && i > 0 && i < this.queue.list.length; }
   pick(i) { if (!this.canPick(i) || !this.queue.swap(i)) return false; this.emit({ type: 'pick', i }); return true; }
   /** Défausser : coûte des souffles, sauf pour un ouvrage (gratuit : on ne bloque jamais la file). */
-  discardCost() { return this.current && this.current.work ? 0 : BALANCE.breaths.discard; }
+  discardCost() { return BALANCE.breaths.discard; }
   canDiscard() { return this.queue.list.length > 0 && this.breaths >= this.discardCost(); }
-  discard() { if (!this.canDiscard()) return false; this.breaths -= this.discardCost(); const t = this.queue.discard(); this.emit({ type: 'breath', kind: 'discard', tile: t, free: !!(t && t.work) }); this.checkEnd(); return true; }
+  discard() { if (!this.canDiscard()) return false; this.breaths -= this.discardCost(); const t = this.queue.discard(); this.emit({ type: 'breath', kind: 'discard', tile: t }); this.checkEnd(); return true; }
 
-  // ---- Remise : un ouvrage mis de côté, qui expire au bout de `shedLife` poses ----
-  /** Donne un ouvrage : il entre dans la file juste après la tuile courante. */
-  giveWork(id) { const t = this.queue.makeWork(id); t.arrivedAt = this.placements; this.queue.inject(t, false); this.emit({ type: 'work', kind: 'arrive', tile: t }); return t; }
-  /** Un ouvrage est frais s'il n'a pas traîné en remise (posé directement, ou repris dans les `freshWindow` poses). */
-  isFresh(tile) { return !!tile && !!tile.work && (tile.shedAt === undefined || this.placements - tile.shedAt <= BALANCE.works.freshWindow * (1 + (this.upgrades.fresh || 0))); }
-  /** Poses restantes avant expiration d'un ouvrage en remise. */
-  shedLeft(tile) { return tile.shedAt === undefined ? BALANCE.works.shedLife : Math.max(0, BALANCE.works.shedLife - (this.placements - tile.shedAt)); }
-  canShed() { return this.workOn && !this.ended && !!this.current && !!this.current.work; }
-  /** Met l'ouvrage courant en remise ; si elle est pleine, il remplace le plus ancien (perdu). */
-  toShed() {
-    if (!this.canShed()) return false;
-    const t = this.queue.take(); let replaced = null;
-    if (this.shed.length >= this.shedSize) { replaced = this.shed.shift(); this.stats.worksExpired++; }
-    const st = { ...t, shedAt: t.shedAt === undefined ? this.placements : t.shedAt }; this.shed.push(st);
-    this.emit({ type: 'shed', kind: 'in', tile: st, replaced }); this.checkEnd(); return true;
-  }
-  fromShed(i = 0) { if (!this.shed.length || this.ended) return false; const t = this.shed.splice(i, 1)[0]; this.queue.list.unshift(t); this.emit({ type: 'shed', kind: 'out', tile: t }); return true; }
-  expireShed() {
-    for (let i = this.shed.length - 1; i >= 0; i--) { const t = this.shed[i]; if (this.placements - t.shedAt >= BALANCE.works.shedLife) { this.shed.splice(i, 1); this.stats.worksExpired++; this.emit({ type: 'shed', kind: 'expired', tile: t }); } }
-  }
   canUndo() { return this.history.length > 0 && this.breaths >= this.undoCost && !this.undoUsedThisSeason; }
   undo() {
     if (!this.canUndo()) return false;
     const s = this.history.pop();
     this.board.restore(s.board); this.queue.restore(s.queue); this.rule = s.rule || this.rule; this.huntSeason = !!s.huntSeason;
     this.score = s.score; this.placements = s.placements; this.inSeason = s.inSeason; this.season = s.season; this.seasonsPassed = [...s.seasonsPassed];
-    this.stats = { ...s.stats }; if (s.tally) this.tally = { ...s.tally }; this.bestMove = s.bestMove ? { ...s.bestMove } : null; this.wishes = s.wishes.map((w) => ({ ...w })); this.shed = (s.shed || []).map((t) => ({ ...t }));
+    this.stats = { ...s.stats }; if (s.tally) this.tally = { ...s.tally }; this.bestMove = s.bestMove ? { ...s.bestMove } : null; this.wishes = s.wishes.map((w) => ({ ...w }));
     this.breaths = s.breaths - this.undoCost;
     this.undoUsedThisSeason = true; this.stats.undo++;
     this.fauna = new Map(s.fauna);
@@ -510,7 +481,7 @@ export class Island {
   }
 
   pushHistory() {
-    this.history.push({ tally: { ...this.tally }, bestMove: this.bestMove ? { ...this.bestMove } : null, rule: this.rule, huntSeason: this.huntSeason, board: this.board.snapshot(), queue: this.queue.snapshot(), score: this.score, placements: this.placements, inSeason: this.inSeason, season: this.season, seasonsPassed: [...this.seasonsPassed], stats: { ...this.stats }, wishes: this.wishes.map((w) => ({ ...w })), breaths: this.breaths, fauna: new Map(this.fauna), shed: this.shed.map((t) => ({ ...t })) });
+    this.history.push({ tally: { ...this.tally }, bestMove: this.bestMove ? { ...this.bestMove } : null, rule: this.rule, huntSeason: this.huntSeason, board: this.board.snapshot(), queue: this.queue.snapshot(), score: this.score, placements: this.placements, inSeason: this.inSeason, season: this.season, seasonsPassed: [...this.seasonsPassed], stats: { ...this.stats }, wishes: this.wishes.map((w) => ({ ...w })), breaths: this.breaths, fauna: new Map(this.fauna) });
     if (this.history.length > 3) this.history.shift();
   }
 
@@ -520,7 +491,7 @@ export class Island {
 
   checkEnd() {
     if (this.ended) return;
-    const noTile = this.queue.empty && !this.shed.some((t) => [...this.board.tiles.values()].some((x) => this.canBuild(x.q, x.r, t)));
+    const noTile = this.queue.empty;
     const noMove = this.board.legalCells().length === 0;
     if (noTile || noMove) this.finish(noMove ? 'full' : 'queue');
   }
@@ -528,7 +499,6 @@ export class Island {
   finish(reason = 'queue') {
     if (this.ended) return this.result;
     this.ended = true;
-    this.stats.worksGood = [...this.board.tiles.values()].filter((t) => t.work && !t.workBad).length;
     const cells = this.board.cells;
     const th = this.thresholds;
     let stars = 0;

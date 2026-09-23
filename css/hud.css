@@ -37,18 +37,9 @@
 .qtile.current .qname { font-size: 17px; }
 .qtile.next { opacity: 0.85; } .qtile.next img { width: 40px; height: 47px; }
 .qtile.rare::after { content: 'rare'; position: absolute; right: 8px; top: 6px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--gold); font-weight: 800; }
-.qtile.pocketed, .qtile.shedable, .qtile.pickable { cursor: pointer; }
+.qtile.pickable { cursor: pointer; }
 .qtile.pickable:hover { transform: translateX(3px); border-color: var(--gold); }
-.qtile.shedable { border-style: dashed; }
-.shed .qlvl.warn { color: var(--bad, #d95f4b); }
-.pw.free em { background: var(--good, #2f9e8f); }
-/* « poche » / « remise » : la tuile du moment se range d'une touche, et la pastille le dit (sans souris, rien ne le signalait) */
-.q-stash { position: absolute; right: 6px; top: 6px; font-style: normal; font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 800; color: #fff; background: var(--breath); border-radius: 999px; padding: 2px 7px; box-shadow: 0 2px 6px rgba(30,50,70,0.2); pointer-events: none; }
-.qtile.rare .q-stash { top: 22px; }   /* sous l'étiquette « rare », qui occupe déjà le coin */
-html.compact .q-stash { font-size: 9px; padding: 1px 5px; right: 4px; top: 4px; }
-html.compact .qtile.rare .q-stash { top: 18px; }
-/* « sur une tuile » : la tuile du moment peut aussi se poser sur une tuile déjà posée. En bas, pour ne pas
-   se cogner à « poche » / « remise » qui occupent le haut. */
+/* « sur une tuile » : la tuile du moment peut aussi se poser sur une tuile déjà posée (en bas de la carte). */
 .q-onto { position: absolute; left: 6px; bottom: 6px; font-style: normal; font-size: 10px; text-transform: uppercase; letter-spacing: 0.07em; font-weight: 800; color: #fff; background: var(--gold); border-radius: 999px; padding: 2px 7px; box-shadow: 0 2px 6px rgba(30,50,70,0.2); pointer-events: none; }
 .qtile.onto-fuse .q-onto { background: var(--wish); }
 .qtile.onto-work .q-onto { background: var(--breath); }
@@ -59,9 +50,7 @@ html.compact .q-onto { font-size: 9px; padding: 1px 5px; left: 4px; bottom: 4px;
 .q-help { position: absolute; left: 6px; top: 6px; width: 22px; height: 22px; border-radius: 50%; border: 1px solid rgba(43,42,38,0.18); background: rgba(255,253,248,0.95); color: var(--ink-2); font-family: inherit; font-weight: 800; font-size: 13px; line-height: 20px; padding: 0; cursor: pointer; box-shadow: 0 2px 6px rgba(30,50,70,0.15); }
 .q-help.on { background: var(--breath); color: #fff; border-color: var(--breath); }
 html.compact .q-help { width: 20px; height: 20px; font-size: 12px; line-height: 18px; left: 4px; top: 4px; }
-.qtile.pocketed:hover, .qtile.shedable:hover { transform: translateX(3px); border-color: var(--breath); }
 .qempty { font-size: 14px; opacity: 0.6; padding: 6px; } .qempty.small { font-size: 12px; }
-.pocket-list { display: flex; flex-direction: column; gap: 6px; min-height: 30px; }
 .powers { display: flex; gap: 6px; }
 .pw { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; background: #fff; border: 1px solid rgba(43,42,38,0.14); border-radius: 10px; padding: 6px 4px; cursor: pointer; font-size: 11px; font-weight: 700; color: var(--ink); transition: transform 0.15s, border-color 0.2s; }
 .pw .hud-icon { width: 18px; height: 18px; filter: invert(0.25); }
@@ -285,5 +274,5 @@ html.compact.portrait .hud-ribbon { top: 118px; } html.compact.portrait .hud-rec
 
 /* Mode repos : après quelques secondes sans geste, les panneaux périphériques s'effacent à 35 % (la file, le score et la
    saison restent) ; la remontée est rapide, l'effacement lent. */
-.hud-wishes, .hud-fauna, .powers, .pocket, .hud-log, .tile-help, .hud-arch { transition: opacity 0.35s ease; }
-#hud.resting .hud-wishes, #hud.resting .hud-fauna, #hud.resting .powers, #hud.resting .pocket, #hud.resting .hud-log, #hud.resting .tile-help, #hud.resting .hud-arch { opacity: 0.35; transition: opacity 1.6s ease; }
+.hud-wishes, .hud-fauna, .powers, .hud-log, .tile-help, .hud-arch { transition: opacity 0.35s ease; }
+#hud.resting .hud-wishes, #hud.resting .hud-fauna, #hud.resting .powers, #hud.resting .hud-log, #hud.resting .tile-help, #hud.resting .hud-arch { opacity: 0.35; transition: opacity 1.6s ease; }

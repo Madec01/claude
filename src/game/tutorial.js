@@ -2,7 +2,7 @@
 import { STORY } from '../data/story.js';
 import { mechIsland } from '../data/campaign.js';
 
-const MECH_STEP_IDS = new Set(['river', 'season', 'fauna', 'wish', 'breath', 'rare', 'surprise', 'hill', 'rare2', 'heath', 'build', 'hand', 'climate', 'fuse', 'work', 'build3', 'semis']);
+const MECH_STEP_IDS = new Set(['river', 'season', 'fauna', 'wish', 'breath', 'rare', 'surprise', 'hill', 'rare2', 'heath', 'build', 'hand', 'climate', 'fuse', 'build3', 'semis']);
 const RULES = {
   surprise: { when: (i) => i.seasonsPassed.length >= 1, done: () => false, info: true, timeout: 40 },
   rare2:    { when: (i) => i.placements >= 2, done: () => false, info: true, timeout: 30 },
@@ -22,7 +22,6 @@ const RULES = {
   hand:     { when: (i) => i.placements >= 1, done: (i, ev) => ev.has('hand'), info: true, timeout: 40 },
   semis:    { when: () => true, done: () => false, info: true, timeout: 25 },
   fuse:     { when: (i) => i.placements >= 3 && i.breaths >= 1, done: (i, ev) => ev.has('fuse'), info: true, timeout: 50 },
-  work:     { when: (i) => i.queue.list.some((t) => t.work), done: (i, ev) => ev.has('work'), info: true, timeout: 50 },
   build3:   { when: (i) => [...i.board.tiles.values()].some((t) => (t.level || 1) >= 2), done: (i, ev) => ev.has('build3'), info: true, timeout: 50 },
 };
 

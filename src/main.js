@@ -79,10 +79,10 @@ const SEASON_MUSIC = { spring: 'spring', summer: 'summer', autumn: 'autumn', win
 const seasonMusic = (season, nth = 1) => { const alt = `${SEASON_MUSIC[season]}_2`; return nth >= 2 && nth % 2 === 0 && AudioSys.has(alt, 'music') ? alt : SEASON_MUSIC[season]; };
 
 /** Lignes du relevé de saison : les événements groupés par nature, avec les cases concernées. */
-const SEASON_LABELS = { harvest: 'Récoltes', veillee: 'Veillée', pond: 'Étangs', mill: 'Moulins', work: 'Ouvrages', level3: 'Niveau 3', fusion: 'Fusions', hunt: 'Chasse', firewood: 'Bois de chauffage', fair: 'Grande foire', mild: 'Hiver doux', cold: 'Grand froid', bloom: 'Marais en fleurs', heather: 'Lande en fleurs' };
+const SEASON_LABELS = { harvest: 'Récoltes', veillee: 'Veillée', pond: 'Étangs', mill: 'Moulins', rare: 'Tuiles rares', level3: 'Niveau 3', fusion: 'Fusions', hunt: 'Chasse', firewood: 'Bois de chauffage', fair: 'Grande foire', mild: 'Hiver doux', cold: 'Grand froid', bloom: 'Marais en fleurs', heather: 'Lande en fleurs' };
 function seasonLines(e, isl) {
   const by = new Map();
-  for (const ev of e.events || []) { if (!ev.pts) continue; const k = ev.type === 'work' && ev.pts < 0 ? 'workBad' : ev.type; const g = by.get(k) || { label: k === 'workBad' ? 'Ouvrages mal placés' : (SEASON_LABELS[ev.type] || ev.type), pts: 0, cells: [] }; g.pts += ev.pts; g.cells.push({ q: ev.q, r: ev.r }); by.set(k, g); }
+  for (const ev of e.events || []) { if (!ev.pts) continue; const k = ev.type; const g = by.get(k) || { label: SEASON_LABELS[ev.type] || ev.type, pts: 0, cells: [] }; g.pts += ev.pts; g.cells.push({ q: ev.q, r: ev.r }); by.set(k, g); }
   const lines = [...by.values()];
   if (e.links) lines.push({ label: `Sentiers (${e.links})`, pts: e.links * BALANCE.points.pathSeason, cells: [] });
   if (e.faunaBonus) lines.push({ label: `Faune (${e.faunaBonus})`, pts: e.faunaBonus * (BALANCE.points.faunaSeason + (isl.mods.refuge || 0)), cells: [...isl.fauna.values()].map((a) => ({ q: a.q, r: a.r })) });
@@ -92,7 +92,7 @@ function seasonLines(e, isl) {
 }
 
 /** Les étincelles d'une saison : une par tuile qui rapporte (couleur selon la nature), les sentiers depuis leur milieu, la faune depuis chaque animal, le reste depuis le centre. */
-const FLIGHT_COLORS = { harvest: '#e0a33a', bloom: '#d98cb3', vigil: '#f2c08a', level3: '#e0a33a', fusion: '#b8862b', work: '#2f9e8f', workBad: '#d95f4b', path: '#c9a26b', fauna: '#3a9c8a', other: '#e0a33a' };
+const FLIGHT_COLORS = { harvest: '#e0a33a', bloom: '#d98cb3', vigil: '#f2c08a', level3: '#e0a33a', fusion: '#b8862b', rare: '#8a6fb5', path: '#c9a26b', fauna: '#3a9c8a', other: '#e0a33a' };
 function seasonFlights(e, isl) {
   const out = [];
   for (const ev of e.events || []) if (ev.pts) out.push({ q: ev.q, r: ev.r, pts: ev.pts, color: FLIGHT_COLORS[ev.type] || FLIGHT_COLORS.other });
@@ -518,7 +518,7 @@ class IslandScene {
     this.def = def;
     const upgrades = Save.campaign.upgrades;
     const mech = def.mech ? new Set(def.mech) : campaignMechanics(99);
-    if (Game.testMode) for (const m of ['river', 'season', 'fauna', 'wish', 'breath', 'rare', 'build', 'fuse', 'work', 'build3']) mech.add(m);
+    if (Game.testMode) for (const m of ['river', 'season', 'fauna', 'wish', 'breath', 'rare', 'build', 'fuse', 'build3']) mech.add(m);
     this.mech = mech;
     const opt = islandOptions({ mech }); const isl = new Island(def, { upgrades, ...opt, known: new Set(Save.data.campaign.recipes || []) });
     // reprise : l'île retrouve exactement l'état laissé (plateau, file de tuiles, saison, score, vœux)
@@ -540,8 +540,6 @@ class IslandScene {
       onPick: (i) => { if (isl.pick(i)) { AudioSys.play('tile_swap', { volume: 0.5 }); this.tutorial.onEvent('hand'); } },
       onDiscard: () => { if (isl.discard()) AudioSys.play('tile_discard', { volume: 0.6 }); else AudioSys.play('ui_error', { volume: 0.4 }); },
       onUndo: () => { if (isl.undo()) { AudioSys.play('tile_undo', { volume: 0.6 }); this.hud.notify('La dernière pose est annulée', 'info'); } else AudioSys.play('ui_error', { volume: 0.4 }); },
-      onShed: () => { if (isl.toShed()) AudioSys.play('tile_pocket', { volume: 0.6 }); },
-      onShedOut: (i) => { if (isl.fromShed(i)) AudioSys.play('tile_pocket', { volume: 0.6 }); },
       onGardenPick: (fam) => { isl.setGardenTile(fam); AudioSys.play('ui_click', { volume: 0.4 }); },
       onPlace: () => this.placeArmed(),
       onFullscreen: () => Game.toggleFullscreen(),
@@ -681,12 +679,7 @@ class IslandScene {
       let i = 0;
       for (const ed of e.result.edges) { const nw = toWorld(ed.q, ed.r); const mx = (w.x + nw.x) / 2, my = (w.y + nw.y) / 2; setTimeout(() => { fx.floatText(mx, my, `${ed.pts > 0 ? '+' : ''}${ed.pts}`, ed.pts > 0 ? '#2f9e8f' : '#d95f4b', 18, 1.1); if (ed.pts > 0) AudioSys.play(`point_${Math.min(8, i + 1)}`, { volume: 0.45 }); }, 90 * i); i++; }
       const fam = (STORY.tiles[e.family] || {}).name || e.family;
-      if (e.kind === 'work') {
-        const wt = (e.good ? STORY.work.good : STORY.work.bad)[Math.floor(Math.random() * 3)];
-        setTimeout(() => { fx.floatText(w.x, w.y - 44, `${e.result.total >= 0 ? '+' : ''}${e.result.total}`, e.good ? '#2f9e8f' : '#d95f4b', 24, 1.6); this.hud.ribbon(`${wt} ${fam}`, e.good ? '#2f9e8f' : '#d95f4b', 1500, e.good ? 'good' : 'bad'); this.hud.bumpScore(e.result.total); if (e.good) { fx.closeBurst(w.x, w.y - 10, 3); AudioSys.play('point_8', { volume: 0.5 }); } else AudioSys.play('point_bad', { volume: 0.5 }); }, 60);
-        this.hud.notify(`${fam} : ${e.good ? (e.fresh ? 'bien placé et frais, +1 par saison' : 'bien placé') : 'mal placé : pénalité cette saison, moitié la suivante, puis il s’efface'} (${e.result.total >= 0 ? '+' : ''}${e.result.total})`, e.good ? 'gold' : 'warn');
-        this.tutorial.onEvent('work');
-      } else if (e.kind === 'restore') {
+      if (e.kind === 'restore') {
         setTimeout(() => { fx.floatText(w.x, w.y - 44, `${e.result.total >= 0 ? '+' : ''}${e.result.total}`, '#2f9e8f', 24, 1.6); this.hud.ribbon(`${fam} remise en état`, '#2f9e8f', 1600, 'good'); this.hud.bumpScore(e.result.total); fx.closeBurst(w.x, w.y - 10, 4); AudioSys.play('bud', { volume: 0.6 }); }, 60);
         this.hud.notify(`${fam} : friche remise en état, elle recompte pour sa famille`, 'good');
       } else if (e.kind === 'fuse') {
@@ -782,12 +775,6 @@ class IslandScene {
     } else if (e.type === 'breath') {
       if (e.kind !== 'undo' && !e.free) AudioSys.play('breath_spend', { volume: 0.5 });
       if (!e.free) this.tutorial.onEvent('breath');
-    } else if (e.type === 'work' && e.kind === 'arrive') {
-      this.hud.notify(`Un ouvrage arrive : ${(STORY.tiles[e.tile.family] || {}).name || e.tile.family}. Pose-le tout de suite (frais : +1 par saison), mets-le en remise (R) ou défausse-le, c’est gratuit`, 'info');
-    } else if (e.type === 'shed') {
-      const nm = (STORY.tiles[e.tile.family] || {}).name || e.tile.family;
-      if (e.kind === 'expired') this.hud.notify(`${nm} : resté trop longtemps en remise, il a expiré`, 'warn');
-      else if (e.kind === 'in' && e.replaced) this.hud.notify(`${nm} prend la place de ${(STORY.tiles[e.replaced.family] || {}).name || e.replaced.family} dans la remise`, 'info');
     } else if (e.type === 'grow') {
       this.cam.fit(this.isl.board.mask);
     } else if (e.type === 'end') {
@@ -861,7 +848,6 @@ class IslandScene {
     if (k === 'KeyJ') this.hud.toggleLog();
     if (k === 'KeyH') this.hud.setTileHelp(this.hud.helpHidden || Save.options.tileHelp === false);
     if (k === 'KeyZ') { if (this.mech.has('breath') && isl.undo()) AudioSys.play('tile_undo', { volume: 0.6 }); }
-    if (k === 'KeyR') { if (isl.toShed()) AudioSys.play('tile_pocket', { volume: 0.6 }); else if (isl.shed.length) { isl.fromShed(0); AudioSys.play('tile_pocket', { volume: 0.6 }); } }
     if (Game.testMode) {
       if (k === 'F1') { if (this.debugEl) { this.debugEl.remove(); this.debugEl = null; } else { this.debugEl = h('div', { class: 'debug' }); document.getElementById('app').appendChild(this.debugEl); } }
       if (k === 'F2') { isl.queue.total = Infinity; isl.queue.fill(); this.hud.notify('File infinie', 'special'); }
