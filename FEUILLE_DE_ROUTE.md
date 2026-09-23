@@ -194,6 +194,7 @@ Demande du commanditaire : « beaucoup de fonctionnalités, le jeu est complexe 
 | Fusions | garder recettes et Cahier, retirer la récompense de découverte (+23,7 % sur le calibrage) | d'accord | fait (lot S5) |
 | Interface | un canal de message, 4 blocs, 2 écrans entre deux îles (lot S6) | d'accord | fait (lot S6) |
 | **Régime de calibrage** | recettes connues (actuel) ou première traversée | retirer la récompense de découverte, le régime « recettes connues » reste juste | fait (lot S5) |
+| Calibrage final (lot S7) | rejouer la porte et les bots par chapitre après tous les lots ; cible de l'audit : le bot glouton fait 5 à 7 étoiles par chapitre, jamais moins de 4 | mesure du 23 septembre (après S6 et les correctifs) : le glouton fait **15, 14, 13, 10, 10, 10, 9, 10, 9, 10** étoiles sur 15 aux chapitres 1 à 10 — la porte (6 étoiles) ne bloque jamais, mais les étoiles sont bien plus faciles que la cible ; l'écart bot fort / glouton est sous 20 % aux chapitres 1 à 3 (9, 12, 15 %), entre 23 et 33 % ensuite | **à trancher** : garder les bandes actuelles (45 / 65 / 85 % du bot fort) ou les durcir vers la cible |
 
 ## Croissance des tuiles (idée du commanditaire, 19 septembre)
 
