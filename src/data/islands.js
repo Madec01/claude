@@ -90,7 +90,7 @@ export const ISLANDS = [
   { id: 7,  arch: 2, cells: 66, starFactors: [4.0, 5.8, 7.2], seed: 2707, roughness: 0.4, holes: 2, seasonLength: 10, startSeason: 'spring', weights: W.hills, tilesRatio: 0.92, start: [{ q: 0, r: 0, family: 'hamlet' }, { q: -3, r: 0, family: 'rock' }, { q: 2, r: 2, family: 'ruins' }], mechanics: ['hill', 'work'],
     wishes: [ { id: 'w7_1', type: 'pairs', a: 'orchard', b: 'hamlet', count: 3, deadline: { season: 'autumn' } }, { id: 'w7_2', type: 'lake', size: 5, deadline: { placements: 40 } }, { id: 'w7_3', type: 'fauna', species: 'frog', deadline: { placements: 50 } } ] },
   { id: 8,  arch: 2, cells: 72, starFactors: [4.3, 6.2, 7.8], seed: 2808, roughness: 0.45, holes: 2, seasonLength: 9, startSeason: 'autumn', weights: W.ridges, tilesRatio: 0.92, start: [{ q: 0, r: 0, family: 'hamlet' }, { q: -4, r: 2, family: 'hamlet' }, { q: 3, r: -3, family: 'rock' }, { q: 1, r: 3, family: 'rock' }], mechanics: ['fuse'],
-    wishes: [ { id: 'w8_1', type: 'fauna', species: 'moose', deadline: { placements: 45 } }, { id: 'w8_2', type: 'veillee', pairs: 1, deadline: { season: 'spring' } }, { id: 'w8_3', type: 'closed', size: 6, deadline: { placements: 60 } }, { id: 'w8_4', type: 'fusion', recipe: 'port', deadline: { placements: 64 } } ] },
+    wishes: [ { id: 'w8_1', type: 'fauna', species: 'moose', deadline: { placements: 45 } }, { id: 'w8_2', type: 'veillee', pairs: 1, deadline: { season: 'spring' } }, { id: 'w8_3', type: 'closed', size: 6, deadline: { placements: 60 } }, { id: 'w8_4', type: 'fusion', recipe: 'fort', deadline: { placements: 64 } } ] },
   { id: 9,  arch: 3, cells: 84, starFactors: [4.2, 6.2, 7.7], seed: 3909, roughness: 0.45, holes: 2, seasonLength: 9, startSeason: 'spring', weights: W.moor, tilesRatio: 0.9, start: [{ q: 0, r: 0, family: 'hamlet' }, { q: -4, r: 1, family: 'rock' }, { q: 4, r: -2, family: 'rock' }, { q: 2, r: 3, family: 'rock' }, { q: -2, r: -2, family: 'ruins' }], mechanics: ['heath'],
     wishes: [ { id: 'w9_1', type: 'fauna', species: 'bear', deadline: { placements: 50 } }, { id: 'w9_2', type: 'river', minLen: 8, mouth: true, deadline: { placements: 70 } }, { id: 'w9_3', type: 'bourg', count: 3, deadline: { placements: 76 } } ] },
   { id: 10, arch: 3, cells: 96, starFactors: [5.1, 7.5, 9.3], seed: 3010, roughness: 0.5, holes: 3, seasonLength: 9, startSeason: 'summer', weights: W.moorFarm, tilesRatio: 0.9, start: [{ q: 0, r: 0, family: 'hamlet' }, { q: 5, r: -1, family: 'hamlet' }, { q: -3, r: 3, family: 'rock' }, { q: -1, r: -4, family: 'rock' }], mechanics: ['build3'],
@@ -106,10 +106,3 @@ export const WEIGHTS = W;
 
 export const INFINITE = { id: 'infinite', arch: 3, cells: 40, seed: 7777, roughness: 0.45, holes: 1, seasonLength: 10, startSeason: 'spring', weights: W.all, tilesRatio: Infinity, start: [{ q: 0, r: 0, family: 'hamlet' }, { q: 3, r: -1, family: 'rock' }], wishes: [], mechanics: [], infinite: true };
 export const GARDEN = { id: 'garden', arch: 1, cells: 80, seed: 4242, roughness: 0.4, holes: 2, seasonLength: 14, startSeason: 'spring', weights: W.all, tilesRatio: Infinity, start: [{ q: 0, r: 0, family: 'hamlet' }], wishes: [], mechanics: [], garden: true };
-
-/** Mécaniques disponibles jusqu'à une île donnée (incluse). */
-export function mechanicsUpTo(id) {
-  const set = new Set(['affinity', 'close']);
-  for (const i of ISLANDS) { if (typeof id === 'number' && i.id > id) break; for (const m of i.mechanics) set.add(m); }
-  return set;
-}

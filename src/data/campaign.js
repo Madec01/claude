@@ -11,7 +11,7 @@ export const CAMPAIGN_SIZE = 50;
 
 /** Mécaniques introduites par île (cumulatives). */
 export const MECH_AT = {
-  1: ['affinity', 'close'], 2: ['river', 'season'], 4: ['fauna', 'semis'],
+  1: ['affinity', 'close', 'fauna'], 2: ['river', 'season'], 4: ['semis'],
   6: ['wish'], 7: ['breath'], 8: ['rare'], 9: ['event'],
   11: ['weather'], 12: ['hill'], 13: ['rare2'], 14: ['heath'],
   16: ['build', 'hand'], 18: ['rare3'],
@@ -54,7 +54,7 @@ export const CAMPAIGN_WISHES = [
   { id: 'c_closedSeason', type: 'closedInSeason', count: 2, dl: 0.95 },
   { id: 'c_level', type: 'level', count: 2, dl: 0.85, needs: 'build' },
   { id: 'c_works', type: 'works', count: 2, dl: 0.9, needs: 'work' },
-  { id: 'c_port', type: 'fusion', recipe: 'port', dl: 0.85, needs: 'fuse' },
+  { id: 'c_paddy', type: 'fusion', recipe: 'paddy', dl: 0.85, needs: 'fuse' },
   { id: 'c_farm', type: 'fusion', recipe: 'farm', dl: 0.85, needs: 'fuse' },
 ];
 
@@ -87,7 +87,9 @@ export function campaignIsland(n) {
   if (slot.hand) {
     const h = ISLANDS.find((i) => i.id === slot.hand);
     // les vœux et tuiles de départ restent ; les vœux disparaissent si l'île est jouée avant l'arrivée des vœux
-    return { ...h, id: n, story: h.id, chapter: ch.id, climate, memory: !!slot.memory, mech, wishes: mech.has('wish') ? h.wishes : [], mechanics: [], starFactors: stars || h.starFactors, weather: mech.has('weather') };
+    // un vœu qui demande une mécanique pas encore arrivée tombe (l'île 20 demandait une fusion, qui n'ouvre qu'à l'île 21)
+    const wishOk = (w) => !(w.type === 'fusion' && !mech.has('fuse')) && !(w.type === 'level' && !mech.has('build')) && !(w.type === 'works' && !mech.has('work'));
+    return { ...h, id: n, story: h.id, chapter: ch.id, climate, memory: !!slot.memory, mech, wishes: mech.has('wish') ? h.wishes.filter(wishOk) : [], mechanics: [], starFactors: stars || h.starFactors, weather: mech.has('weather') };
   }
   const seed = 5000 + n * 131;
   const rng = mulberry(seed);

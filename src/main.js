@@ -16,7 +16,7 @@ import { Effects } from './game/effects.js';
 import { Hud } from './game/hud.js';
 import { Tutorial } from './game/tutorial.js';
 import { fromWorld, toWorld, key, DIRS } from './game/hex.js';
-import { ISLANDS, INFINITE, GARDEN, getIsland, mechanicsUpTo } from './data/islands.js';
+import { ISLANDS, INFINITE, GARDEN, getIsland } from './data/islands.js';
 import { STORY } from './data/story.js';
 import { BALANCE } from './data/balance.js';
 import { buildMenu } from './ui/menu.js';

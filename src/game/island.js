@@ -29,15 +29,17 @@ export class Island {
     this.climate = climateOf(def.climate);   // chaud, humide, froid ou tempéré
     if ((this.upgrades.cloak || 0) > 0 && this.climate.id !== 'temperate') { const c = { ...this.climate }; delete c.dryEarly; delete c.fieldsDormantAutumn; if (c.hamletMarsh) c.hamletMarsh = -1; this.climate = c; }   // Manteau : contrainte du climat adoucie
     this.longSeasonDone = false;
-    // bâtir : dès l'île 6 en campagne, toujours dans les modes libres et sur l'Île du jour (forçable par les options : mode test)
+    // Les numéros ci-dessous sont ceux des anciennes îles dessinées (tests, modes libres) : la campagne passe toujours
+    // ses mécaniques par `islandOptions` (MECH_AT, campaign.js), qui font foi.
+    // bâtir : île 6 des anciennes îles, toujours dans les modes libres et sur l'Île du jour (forçable par les options : mode test)
     this.buildOn = o.build !== undefined ? !!o.build : (!!def.infinite || !!def.garden || !!def.daily || (typeof def.id === 'number' && def.id >= 6));
     // croissance : dès l'île 41 en campagne, toujours dans les modes libres — une tuile bien entourée des siennes monte au niveau 2 toute seule
     this.growOn = o.growth !== undefined ? !!o.growth : (!!def.infinite || !!def.daily || (typeof def.id === 'number' && def.id >= 41));
     this.refunds = 0;            // tuiles rendues cette saison (au plus une)
-    // fusionner : dès l'île 8 en campagne, toujours dans les modes libres et sur l'Île du jour ; `known` = recettes déjà découvertes (sauvegarde)
+    // fusionner : île 8 des anciennes îles, toujours dans les modes libres et sur l'Île du jour ; `known` = recettes déjà découvertes (sauvegarde)
     this.fuseOn = o.fuse !== undefined ? !!o.fuse : (!!def.infinite || !!def.garden || !!def.daily || (typeof def.id === 'number' && def.id >= 8));
     this.known = o.known || new Set();
-    // main de saison : dès l'île 16 en campagne (et dans les modes libres), la tuile à jouer se choisit librement parmi les tuiles visibles
+    // main de saison : île 16 et modes libres, la tuile à jouer se choisit librement parmi les tuiles visibles
     this.handOn = o.hand !== undefined ? !!o.hand : (!!def.infinite || !!def.garden || !!def.daily || (typeof def.id === 'number' && def.id >= 16));
     this.rareTier = o.rareTier;   // paliers de tuiles rares (0 : base ; 1 : événements ; 2 : grenier, fontaine ; 3 : tardives)
     // niveau 3 : ouvert par les options de campagne (île 31), toujours dans les modes libres et sur l'Île du jour
@@ -90,7 +92,7 @@ export class Island {
     this.undoUsedThisSeason = false;
     this.ended = false;
     this.result = null;
-    // météo : dès l'île 4, dans les modes libres et sur l'île du jour
+    // météo : île 4 des anciennes îles, dans les modes libres et sur l'île du jour
     this.weatherOn = o.weather !== undefined ? (!!o.weather || this.infinite) : (!!def.weather || this.infinite || (typeof def.id === 'number' && def.id >= 4));
     this.weather = null;          // { key, phase: 'announced' | 'active', at }
     this.windSeason = false;      // grand vent actif pendant la saison écoulée → prime des moulins

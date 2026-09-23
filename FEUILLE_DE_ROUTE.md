@@ -184,16 +184,16 @@ Demande du commanditaire : « beaucoup de fonctionnalités, le jeu est complexe 
 
 | Mécanique | Proposition | Décision du commanditaire | Statut |
 |---|---|---|---|
-| Cinq anomalies (vœu `c_port` impossible, îles annoncées à tort dans le Guide, faune non verrouillée, règles liées à la météo, port dans le README) | corriger quoi qu'on décide (lot S0) | | à trancher |
-| Contrats d'archipel, faucille, effets de série, étoile d'or dans le HUD, tuiles d'événement, rares des paliers 2 et 3, 12 améliorations | retirer (lot S1, −1,7 % mesuré) | | à trancher |
-| Météo + règles de saison variables | une seule « surprise de saison » par saison, 8 au lieu de 17, découplée du drapeau météo (lot S2) | | à trancher |
-| Souffles, main, poche, remise | 3 pouvoirs, 2 sources, main dès l'île 6 (lot S3) | | à trancher |
-| **Ouvrages + remise** | retirer, ruche et menhir passent rares (lot S4, recalibrage obligatoire) — ou les six ouvrages en rares sans remise | | **à trancher** |
-| Niveau 3 | garder le geste, une règle, signatures en étiquettes (lot S5) | | à trancher |
-| **Croissance** | caractère du chapitre 9 (« ici, le temps bâtit seul ») plutôt que mécanique cumulée | | **à trancher** |
-| Fusions | garder recettes et Cahier, retirer la récompense de découverte (+23,7 % sur le calibrage) | | à trancher |
-| Interface | un canal de message, 4 blocs, 2 écrans entre deux îles (lot S6) | | à trancher |
-| **Régime de calibrage** | recettes connues (actuel) ou première traversée | | **à trancher** |
+| Cinq anomalies (vœu `c_port` impossible, îles annoncées à tort dans le Guide, faune non verrouillée, règles liées à la météo, port dans le README) | corriger quoi qu'on décide (lot S0) | d'accord (23 septembre) | **fait** (lot S0) |
+| Contrats d'archipel, faucille, effets de série, étoile d'or dans le HUD, tuiles d'événement, rares des paliers 2 et 3, 12 améliorations | retirer (lot S1, −1,7 % mesuré) | d'accord, mais l'Atelier garde **12** améliorations et non 8 | en cours |
+| Météo + règles de saison variables | une seule « surprise de saison » par saison, 8 au lieu de 17, découplée du drapeau météo (lot S2) | d'accord | à faire |
+| Souffles, main, poche, remise | 3 pouvoirs, 2 sources, main dès l'île 6 (lot S3) | d'accord | à faire |
+| **Ouvrages + remise** | retirer, ruche et menhir passent rares (lot S4, recalibrage obligatoire) — ou les six ouvrages en rares sans remise | retirer | à faire |
+| Niveau 3 | garder le geste, une règle, signatures en étiquettes (lot S5) | d'accord | à faire |
+| **Croissance** | caractère du chapitre 9 (« ici, le temps bâtit seul ») plutôt que mécanique cumulée | question posée : « c'est quoi la croissance ? » — expliquée, réponse attendue | **à trancher** |
+| Fusions | garder recettes et Cahier, retirer la récompense de découverte (+23,7 % sur le calibrage) | d'accord | à faire |
+| Interface | un canal de message, 4 blocs, 2 écrans entre deux îles (lot S6) | d'accord | à faire |
+| **Régime de calibrage** | recettes connues (actuel) ou première traversée | retirer la récompense de découverte, le régime « recettes connues » reste juste | à faire (lot S5) |
 
 ## Croissance des tuiles (idée du commanditaire, 19 septembre)
 

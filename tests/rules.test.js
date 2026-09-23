@@ -17,6 +17,19 @@ import { gradeMove } from '../src/game/feedback.js';
 let failures = 0;
 const check = (cond, msg) => { if (!cond) { failures++; console.error('ÉCHEC :', msg); } };
 
+// --- la réserve de vœux ne demande rien d'impossible : chaque recette existe, chaque mécanique requise arrive un jour
+// (le vœu du port a visé pendant des semaines une recette retirée, sur dix îles, sans que rien ne casse)
+{
+  const { FUSION_BY_ID } = await import('../src/data/tiles.js'); const { mechIsland } = await import('../src/data/campaign.js');
+  for (const w of CAMPAIGN_WISHES) {
+    if (w.type === 'fusion') check(!!FUSION_BY_ID[w.recipe], `vœu ${w.id} : la recette « ${w.recipe} » existe`);
+    if (w.needs) check(mechIsland(w.needs) !== null, `vœu ${w.id} : la mécanique « ${w.needs} » arrive dans la campagne`);
+  }
+  for (const i of ISLANDS) for (const w of i.wishes || []) if (w.type === 'fusion') check(!!FUSION_BY_ID[w.recipe], `île ${i.id}, vœu ${w.id} : la recette « ${w.recipe} » existe`);
+  const needOf = { fusion: 'fuse', level: 'build', works: 'work' };
+  for (let n = 1; n <= CAMPAIGN_SIZE; n++) { const d = campaignIsland(n); for (const w of d.wishes) if (needOf[w.type]) check(d.mech.has(needOf[w.type]), `île ${n}, vœu ${w.id} : demande « ${needOf[w.type]} », pas encore ouvert`); }
+}
+
 // --- affinités
 check(affinity('field', 'hamlet') === 2, 'champ-hameau = 2');
 check(affinity('hamlet', 'marsh') === -1, 'hameau-marais = -1');
