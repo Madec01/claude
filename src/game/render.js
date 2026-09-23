@@ -138,6 +138,21 @@ export class IslandRenderer {
     this.legacy = !Assets.has('ground_grass_spring');   // manifeste sans sols/objets : tuiles composées (repli)
   }
 
+  /**
+   * La vague du pack (waveWater) est faite pour être posée sur le bord d'une tuile : sa dernière
+   * ligne de pixels est opaque (alpha 217), et chaque vague finissait par un trait horizontal net,
+   * en mer comme sur les lacs. On efface ce bas en dégradé, une fois par image source.
+   */
+  vagueFondue(img) {
+    if (!img || !img.width) return img;
+    this._vagues = this._vagues || new Map(); const hit = this._vagues.get(img); if (hit) return hit;
+    const cv = document.createElement('canvas'); cv.width = img.width; cv.height = img.height; const c = cv.getContext('2d');
+    c.drawImage(img, 0, 0);
+    const g = c.createLinearGradient(0, 0, 0, img.height); g.addColorStop(0, 'rgba(0,0,0,1)'); g.addColorStop(0.5, 'rgba(0,0,0,1)'); g.addColorStop(1, 'rgba(0,0,0,0)');
+    c.globalCompositeOperation = 'destination-in'; c.fillStyle = g; c.fillRect(0, 0, cv.width, cv.height);
+    this._vagues.set(img, cv); return cv;
+  }
+
   startTransition(from, to) { this.transition = { from, to, t: 0 }; }
 
   seasonFor(worldX) {
@@ -147,7 +162,9 @@ export class IslandRenderer {
     const p = this.transition.t / 1.6;
     const sx = this.cam.toScreen(worldX, 0).x;
     const sweep = -200 + p * (STAGE.W + 400);
-    return sx < sweep ? this.transition.to : this.transition.from;
+    // une case ne bascule qu'une fois ENTIÈREMENT passée sous le front (sa demi-largeur, 60 unités) :
+    // au centre près, l'escalier des colonnes d'hexagones dépassait la bande et se voyait en clair
+    return sx + 60 * this.cam.zoom < sweep ? this.transition.to : this.transition.from;
   }
 
   tileImage(t, season) {
@@ -264,7 +281,7 @@ export class IslandRenderer {
       const p = cam.toScreen(w.x + Math.sin(w.t * 0.5) * 12, w.y + Math.sin(w.t * 0.35 + w.ph) * 4);
       const ww = sz * w.s * z, hh = ww / 3.6;
       if (p.x < -ww || p.x > STAGE.W + ww || p.y < -hh || p.y > STAGE.H + hh) continue;
-      const img = this.waveImgs[Math.floor(w.t * 0.7) % Math.max(1, this.waveImgs.length)];
+      const img = this.vagueFondue(this.waveImgs[Math.floor(w.t * 0.7) % Math.max(1, this.waveImgs.length)]);
       ctx.globalAlpha = clamp(aBase + aAmp * Math.sin(w.t * 1.3 + w.ph), 0.05, 0.85);
       if (img) ctx.drawImage(img, p.x - ww / 2, p.y - hh / 2, ww, hh);
       else { ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(p.x - ww / 3, p.y); ctx.quadraticCurveTo(p.x, p.y - hh / 2, p.x + ww / 3, p.y); ctx.stroke(); }
@@ -501,7 +518,9 @@ export class IslandRenderer {
       const img = t.family === 'water'
         ? (cotier ? Assets.img(groundKey(this.riveDe(t), season)) : this.waterGround(t, season))
         : Assets.img(groundKey(g, season));
-      const zz = z * d.s, cy = c.y + d.dy * z;
+      // 2 % de plus : deux images posées bord à bord sur une arête verticale laissaient passer, par
+      // l'anticrénelage, un fil de la mer (bleu) entre elles ; la découpe de côte reprend le débord
+      const zz = z * d.s * 1.02, cy = c.y + d.dy * z;
       if (img) ctx.drawImage(img, c.x - TILE_W * zz / 2, cy - TILE_H * zz / 2, TILE_W * zz, TILE_H * zz);
       else this.drawTileAt(ctx, t, c.x, cy, d.s, 1);
     }
@@ -609,7 +628,8 @@ export class IslandRenderer {
       if (o.rules && !o.rules.includes(rule)) continue;
       if (o.notRules && o.notRules.includes(rule)) continue;
       if (o.composed) { const cw = toWorld(o.tile.q, o.tile.r); const cc = cam.toScreen(cw.x, cw.y); const dd = d || { s: 1, dy: 0 }; this.drawTileAt(ctx, o.tile, cc.x, cc.y + dd.dy * z, dd.s, 1); continue; }
-      const sk = spriteKey(o.tpl, season); const img = Assets.img(sk); if (!img) continue;
+      const sk = spriteKey(o.tpl, season); let img = Assets.img(sk); if (!img) continue;
+      if (o.wave) img = this.vagueFondue(img);
       const m = images[sk]; const div = o.wave ? 3 : 2;
       const os = o.scale || 1;
       const w = (m ? m.w : img.width) / div * os, h = (m ? m.h : img.height) / div * os;
@@ -696,13 +716,19 @@ export class IslandRenderer {
         // ruban de la source à l'embouchure, prolongé vers la montagne et vers la mer
         const pts = body.chain.map((k) => { const [q, r] = parse(k); return toWorld(q, r); });
         const first = body.cells.find((c) => key(c.q, c.r) === body.chain[0]); const last = body.cells.find((c) => key(c.q, c.r) === body.chain[body.chain.length - 1]);
-        const ext = (cell, pred, pt, len) => { for (let d = 0; d < 6; d++) { const n = b.get(cell.q + DIRS[d][0], cell.r + DIRS[d][1]); const sea = b.isSea(cell.q + DIRS[d][0], cell.r + DIRS[d][1]); if (pred(n, sea)) { const m = edgeMid(pt.x, pt.y, d); return { x: pt.x + (m.x - pt.x) * len, y: pt.y + (m.y - pt.y) * len }; } } return null; };
-        const src = first ? ext(first, (n) => n && (n.family === 'rock' || n.family === 'hill' || (n.rare && n.family === 'watchtower')), pts[0], 0.75) : null;
+        // `aval` : le point suivant du ruban. Une source ne se prolonge que vers l'AMONT — vers une roche
+        // placée du côté de l'aval, le ruban faisait demi-tour et finissait en os (deux lobes)
+        const ext = (cell, pred, pt, len, aval = null) => { for (let d = 0; d < 6; d++) { const n = b.get(cell.q + DIRS[d][0], cell.r + DIRS[d][1]); const sea = b.isSea(cell.q + DIRS[d][0], cell.r + DIRS[d][1]); if (pred(n, sea)) { const m = edgeMid(pt.x, pt.y, d); if (aval && (m.x - pt.x) * (aval.x - pt.x) + (m.y - pt.y) * (aval.y - pt.y) > -1) continue; return { x: pt.x + (m.x - pt.x) * len, y: pt.y + (m.y - pt.y) * len }; } } return null; };
+        const src = first ? ext(first, (n) => n && (n.family === 'rock' || n.family === 'hill' || (n.rare && n.family === 'watchtower')), pts[0], 0.75, pts.length > 1 ? pts[1] : null) : null;
         let mouth = body.mouth && last ? ext(last, (n, sea) => sea, pts[pts.length - 1], 1.05) : null;
         if (!mouth && body.intoLake) { const [lq, lr] = parse(body.intoLake); const lw = toWorld(lq, lr); const e = pts[pts.length - 1]; mouth = { x: e.x + (lw.x - e.x) * 0.55, y: e.y + (lw.y - e.y) * 0.55 }; }   // le ruban entre dans la nappe
         // méandres : trois points par segment, décalés en alternance d'un côté puis de l'autre (serpent) avec une part de hasard déterministe
         const full = meander([...(src ? [src] : []), ...pts, ...(mouth ? [mouth] : [])]);
         const sp = full.map(S); if (!sp.some((p) => vis(p))) continue;
+        // une rivière qui se jette dans la mer (ou dans une anse, qui est de la mer) s'arrête au trait de
+        // côte : son bout rond et la tache d'embouchure se posaient sinon SUR la mer, en bulle plus claire
+        const coupe = mouth && (body.mouth || anses.has(body.intoLake));
+        if (coupe) { ctx.save(); ctx.beginPath(); this.cheminCote(ctx, S); ctx.clip(); }
         // filet qui s'élargit de la source à l'embouchure : chaque tronçon lissé a sa propre largeur (bouts ronds : pas de joint visible)
         const wAt = (i) => { const t = i / Math.max(1, sp.length - 1); return (16 + 12 * t + 3 * Math.sin(i * 2.3)) * z; };
         ctx.globalAlpha = 1;
@@ -713,6 +739,7 @@ export class IslandRenderer {
         if (mouth) { const m = S(mouth); ctx.fillStyle = pal.fill; ctx.beginPath(); ctx.ellipse(m.x, m.y, 26 * z, 16 * z, 0, 0, TAU); ctx.fill(); }
         if (!frozen) { ctx.strokeStyle = pal.foam; ctx.lineWidth = (this.finale ? 3 : RIDE.trait) * z; ctx.setLineDash(RIDE.tirets.map((v) => v * z)); ctx.lineDashOffset = -this.time * (this.finale ? 120 : 40) * z; trace(sp); ctx.stroke(); ctx.setLineDash([]); }
         else this.drawCracks(ctx, sp, z);
+        if (coupe) ctx.restore();
       } else if (body.kind === 'pond') {
         const c = S(c0); if (!vis(c)) continue;
         const rr = SIZE * 0.66 * z;
@@ -729,7 +756,9 @@ export class IslandRenderer {
         const nappe = (color, grow, dy = 0) => {
           ctx.fillStyle = color; ctx.strokeStyle = color;
           for (const c of cs) { this.blob(ctx, c.s.x, c.s.y + dy, (SIZE * 0.92 + grow) * z, c.w); ctx.fill(); }
-          ctx.lineWidth = (SIZE * 1.11 + grow * 2) * z; ctx.beginPath(); for (const [a, o] of bridges) { ctx.moveTo(a.s.x, a.s.y + dy); ctx.lineTo(o.s.x, o.s.y + dy); } ctx.stroke();
+          // le pont entre deux cases du même lac est une tache ronde posée sur l'arête partagée : le
+          // trait épais d'avant avait des bords DROITS, qui redessinaient l'hexagone de la terre enclavée
+          for (const [a, o] of bridges) { this.blob(ctx, (a.s.x + o.s.x) / 2, (a.s.y + o.s.y) / 2 + dy, (SIZE * 0.74 + grow) * z, { x: (a.w.x + o.w.x) / 2, y: (a.w.y + o.w.y) / 2 }); ctx.fill(); }
         };
         // Une CUVETTE, pas un monticule. Une ombre portée à l'extérieur et vers le bas est la signature
         // d'un objet posé SUR le sol : c'est exactement l'inverse de ce qu'on veut. L'ombre va donc
@@ -748,7 +777,20 @@ export class IslandRenderer {
           // l'animation ce n'est qu'un trait peint, et c'est ce mouvement qui fait lire « de l'eau »
           ctx.save(); ctx.strokeStyle = pal.foam; ctx.lineWidth = RIDE.trait * z;
           ctx.setLineDash(RIDE.tirets.map((v) => v * z)); ctx.lineDashOffset = -this.time * 12 * z;
-          for (const c of cs) { this.blob(ctx, c.s.x, c.s.y, SIZE * 0.9 * z, c.w); ctx.stroke(); }
+          // le liseré ne court que sur la RIVE : la part du contour d'une case qui tombe dans une
+          // voisine du même lac, ou dans le pont qui les relie, est de l'eau — on l'exclut par découpe
+          for (const c of cs) {
+            ctx.save();
+            for (const o of cs) {
+              if (o === c || Math.hypot(o.s.x - c.s.x, o.s.y - c.s.y) > SIZE * 2.2 * z) continue;
+              ctx.beginPath(); ctx.rect(-1e4, -1e4, 3e4, 3e4); this.blob(ctx, o.s.x, o.s.y, SIZE * 0.92 * z, o.w, true); ctx.clip('evenodd');
+            }
+            for (const [a, o] of bridges) {
+              if (a !== c && o !== c) continue;
+              ctx.beginPath(); ctx.rect(-1e4, -1e4, 3e4, 3e4); this.blob(ctx, (a.s.x + o.s.x) / 2, (a.s.y + o.s.y) / 2, SIZE * 0.70 * z, { x: (a.w.x + o.w.x) / 2, y: (a.w.y + o.w.y) / 2 }, true); ctx.clip('evenodd');
+            }
+            this.blob(ctx, c.s.x, c.s.y, SIZE * 0.9 * z, c.w); ctx.stroke(); ctx.restore();
+          }
           ctx.restore();
           // reflets : une ride par case, placée de façon déterministe
           ctx.strokeStyle = pal.foam; ctx.lineWidth = RIDE.trait * 0.7 * z; ctx.beginPath();
@@ -781,17 +823,11 @@ export class IslandRenderer {
     const W = baseImg.width, H = baseImg.height, sc = W / TILE_W;   // images 2×
     const cv = document.createElement('canvas'); cv.width = W; cv.height = H; const g = cv.getContext('2d');
     g.drawImage(baseImg, 0, 0);
-    const tmp = document.createElement('canvas'); tmp.width = W; tmp.height = H; const tg = tmp.getContext('2d');
-    const c0 = toWorld(t.q, t.r);
-    for (let d = 0; d < 6; d++) {
-      if (!gs[d]) continue; const img = Assets.img(groundKey(gs[d], season)); if (!img) continue;
-      const m = edgeMid(c0.x, c0.y, d); const mx = W / 2 + (m.x - c0.x) * sc, my = H / 2 + (m.y - c0.y) * sc;
-      tg.globalCompositeOperation = 'source-over'; tg.clearRect(0, 0, W, H); tg.drawImage(img, 0, 0);
-      const r = SIZE * 0.95 * sc; const grad = tg.createRadialGradient(mx, my, 0, mx, my, r);
-      grad.addColorStop(0, 'rgba(0,0,0,1)'); grad.addColorStop(0.45, 'rgba(0,0,0,0.9)'); grad.addColorStop(1, 'rgba(0,0,0,0)');
-      tg.globalCompositeOperation = 'destination-in'; tg.fillStyle = grad; tg.fillRect(0, 0, W, H);
-      g.drawImage(tmp, 0, 0);
-    }
+    // Plus de disque de la voisine posé sur chaque arête : centré sur le milieu de l'arête, il
+    // débordait sur les deux arêtes d'à côté, et la découpe de l'hexagone y traçait des droites ; la
+    // voisine, elle, recevait en même temps la berge en langue (`deborde`), si bien que les deux sols
+    // s'échangeaient de part et d'autre de l'arête. La berge est le sol majoritaire des voisines,
+    // et les langues de sol ordinaires font le raccord, comme entre deux cases de terre.
     this._wg.set(sig, cv); return cv;
   }
 
@@ -1291,8 +1327,9 @@ export class IslandRenderer {
         const t = (r.t - (cell.d || 0)) / 1.3; if (t < 0 || t > 1) continue;   // chaque cellule vit sa propre onde, décalée
         const e = easeOutCubic(t);
         const w = toWorld(cell.q, cell.r); const c = cam.toScreen(w.x, w.y);
-        const pts = corners(c.x, c.y, SIZE * cam.zoom * (0.9 + e * 0.25));
-        ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]); for (let k = 1; k < 6; k++) ctx.lineTo(pts[k][0], pts[k][1]); ctx.closePath();
+        // sur l'île nue (tournée, carte postale), pas d'hexagone : l'anneau redessinait la grille
+        if (this.nu) this.blob(ctx, c.x, c.y, SIZE * cam.zoom * (0.8 + e * 0.3), w);
+        else { const pts = corners(c.x, c.y, SIZE * cam.zoom * (0.9 + e * 0.25)); ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]); for (let k = 1; k < 6; k++) ctx.lineTo(pts[k][0], pts[k][1]); ctx.closePath(); }
         if (t < 0.45) { ctx.globalAlpha = (1 - t / 0.45) * 0.28; ctx.fill(); }   // l'éclat : la case s'allume, puis l'anneau part
         ctx.globalAlpha = (1 - t) * 0.9; ctx.lineWidth = 4 * cam.zoom * (1 - t) + 1; ctx.stroke();
       }
@@ -1435,10 +1472,11 @@ export class IslandRenderer {
     const sweep = -200 + p * (STAGE.W + 400);
     const cols = { spring: '#bfe8a8', summer: '#ffe9a8', autumn: '#f2c08a', winter: '#eef4fa' };
     ctx.save();
-    const g = ctx.createLinearGradient(sweep - 160, 0, sweep + 40, 0);
-    g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(0.7, cols[tr.to] || '#fff'); g.addColorStop(1, 'rgba(255,255,255,0)');
+    const large = 160 + 120 * this.cam.zoom;   // la bande couvre toute la zone où les cases basculent
+    const g = ctx.createLinearGradient(sweep - large, 0, sweep + 40, 0); const k = 40 / (large + 40);
+    g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(0.3, cols[tr.to] || '#fff'); g.addColorStop(1 - k, cols[tr.to] || '#fff'); g.addColorStop(1, 'rgba(255,255,255,0)');
     ctx.globalAlpha = 0.75 * (1 - Math.max(0, p - 0.9) * 10);
-    ctx.fillStyle = g; ctx.fillRect(sweep - 160, 0, 200, STAGE.H);
+    ctx.fillStyle = g; ctx.fillRect(sweep - large, 0, large + 40, STAGE.H);
     ctx.restore();
   }
 }

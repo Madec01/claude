@@ -368,7 +368,10 @@ export class Decor {
         const pave = () => { if (cour) this.courts.push({ x: p.x, y: p.y - 4, r: cour.r * (0.9 + rng() * 0.25), a: cour.a, cell: ck }); };
         if (b === coeur && !hasRare) {
           pave();
-          if (poids >= 3) met('obj_townhall', 0.85); else met('obj_well', 1);
+          // un hameau dont la trame n'a donné qu'un point (le cœur) n'avait qu'un puits, pas une maison :
+          // le cœur devient alors une maisonnette, et le puits se range à côté
+          if (poids < 3 && bati.length === 1) { met(`obj_house_small${roof(rng)}`, 0.86); add({ x: p.x - 22, y: p.y + 6, tpl: 'obj_well', cell: ck, scale: 0.8, alpha: 1, flip: w.flip }); }
+          else if (poids >= 3) met('obj_townhall', 0.85); else met('obj_well', 1);
           add({ x: p.x + 24, y: p.y - 4, tpl: 'obj_banner', cell: ck, scale: 0.78, alpha: 1, seasons: ['summer'], notRules: ['foire'] });
           add({ x: p.x + 24, y: p.y - 4, tpl: 'obj_banner', cell: ck, scale: 0.78, alpha: 1, rules: ['foire'] });
           if (closed) add({ x: p.x - 26, y: p.y + 2, tpl: 'obj_shrine', cell: ck, scale: 0.55, alpha: 1 });   // la pierre à bougies : un bourg clos veille

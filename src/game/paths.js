@@ -67,6 +67,7 @@ export function computeLinks(board) {
           continue;
         }
         if (!isOpen(n) || d + 1 > (board.linkMax || MAX_PATH)) continue;
+        if (Board.familiesOf(n).includes('water')) continue;   // une rizière est un champ SOUS L'EAU : le sentier la contourne
         if (dist.has(nk) && dist.get(nk) < d + 1) continue;          // déjà atteinte en moins de pas
         const nv = (vus.get(nk) || 0) + 1; if (nv > 6) continue;    // six chemins de même longueur suffisent
         vus.set(nk, nv); dist.set(nk, d + 1); queue.push([nk, [...path, nk]]);
