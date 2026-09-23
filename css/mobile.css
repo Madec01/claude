@@ -198,7 +198,7 @@ html.compact .season-txt b { white-space: nowrap; overflow: hidden; text-overflo
 html.compact .season-pips { flex: 0 0 auto; width: 38px; max-width: 38px; margin-left: 4px; }
 html.compact .hud-label { font-size: 8px; }
 html.compact .hud-score b, html.compact .hud-breaths b { font-size: 15px; }
-html.compact .hud-pause { width: 30px; height: 30px; flex: 0 0 auto; }
+html.compact .hud-pause { width: 40px; height: 40px; flex: 0 0 auto; }   /* la barre n'a plus que quatre blocs : la pause retrouve une taille de doigt */
 html.compact.landscape .panel-title { font-size: 20px; margin-bottom: 4px; }
 html.compact.landscape .panel-results .stars { margin: 2px 0 4px; }
 html.compact.landscape .panel-results .star .icon { width: 26px; height: 26px; }

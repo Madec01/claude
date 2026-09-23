@@ -280,3 +280,7 @@ html:not(.compact) .panel.panel-workshop > .panel-actions { bottom: -16px; margi
    longue (Regard, Poche, Remise) ou les pastilles du Jardin, elle couvrait les souffles et les pastilles et
    captait leurs clics. Elle se range à côté de la colonne, au-dessus des animaux. */
 html:not(.compact) .tile-help { left: 220px; bottom: 54px; }
+/* Cibles tactiles : le « ? » de la tuile (20 px) et la croix de la fiche (18 × 15 px) étaient trop petits pour un doigt.
+   Leur zone de toucher s'élargit sans changer leur dessin. */
+html.touch .q-help::after, html.touch .th-close::after { content: ''; position: absolute; inset: -10px; }
+html.touch .th-close { position: relative; }
