@@ -189,11 +189,11 @@ Demande du commanditaire : « beaucoup de fonctionnalités, le jeu est complexe 
 | Météo + règles de saison variables | une seule « surprise de saison » par saison, 8 au lieu de 17, découplée du drapeau météo (lot S2) | d'accord | **fait** (lot S2) |
 | Souffles, main, poche, remise | 3 pouvoirs, 2 sources, main dès l'île 6 (lot S3) | d'accord | **fait** (lot S3) |
 | **Ouvrages + remise** | retirer, ruche et menhir passent rares (lot S4, recalibrage obligatoire) — ou les six ouvrages en rares sans remise | retirer | **fait** (lot S4) |
-| Niveau 3 | garder le geste, une règle, signatures en étiquettes (lot S5) | d'accord | à faire |
+| Niveau 3 | garder le geste, une règle, signatures en étiquettes (lot S5) | d'accord | fait (lot S5) |
 | **Croissance** | caractère du chapitre 9 (« ici, le temps bâtit seul ») plutôt que mécanique cumulée | question posée : « c'est quoi la croissance ? » — expliquée, réponse attendue | **à trancher** |
-| Fusions | garder recettes et Cahier, retirer la récompense de découverte (+23,7 % sur le calibrage) | d'accord | à faire |
+| Fusions | garder recettes et Cahier, retirer la récompense de découverte (+23,7 % sur le calibrage) | d'accord | fait (lot S5) |
 | Interface | un canal de message, 4 blocs, 2 écrans entre deux îles (lot S6) | d'accord | à faire |
-| **Régime de calibrage** | recettes connues (actuel) ou première traversée | retirer la récompense de découverte, le régime « recettes connues » reste juste | à faire (lot S5) |
+| **Régime de calibrage** | recettes connues (actuel) ou première traversée | retirer la récompense de découverte, le régime « recettes connues » reste juste | fait (lot S5) |
 
 ## Croissance des tuiles (idée du commanditaire, 19 septembre)
 
