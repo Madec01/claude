@@ -5,3 +5,4 @@ tests/output/
 .DS_Store
 tools/cache/
 __pycache__/
+.claude/worktrees/
