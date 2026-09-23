@@ -1191,7 +1191,7 @@ export class IslandRenderer {
     ctx.restore();
   }
 
-  /** Voiles et pluie de la météo active (espace écran). */
+  /** Voiles et pluie de l'habillage de la saison (espace écran). */
   drawWeather(ctx, dt) {
     const w = this.weather; const W = STAGE.W, H = STAGE.H;
     if (this.flash > 0) { ctx.save(); ctx.globalAlpha = Math.min(0.5, this.flash * 2.5); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, W, H); ctx.restore(); this.flash -= dt; }

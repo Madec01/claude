@@ -635,13 +635,6 @@ export const STORY = {
     doux: { name: 'Hiver doux', line: 'Pas de glace cette année. Les canards n’en reviennent pas.', rule: 'L’eau ne gèle pas, pas de veillée ; les champs continuent de rapporter avec les hameaux et chaque marais qui touche l’eau rapporte +1.' },
   },
 
-  weather: {
-    storm: { name: 'Orage', announce: 'Le ciel se charge. Les rivières attendent la pluie.', line: 'L’orage éclate. L’eau court partout et les rivières débordent de joie.', rule: 'Chaque tuile de rivière posée rapporte +2 de plus.' },
-    heat: { name: 'Canicule', announce: 'L’air tremble déjà. Les prairies isolées vont souffrir.', line: 'La canicule s’installe. L’herbe jaunit loin de l’eau.', rule: 'Une prairie ne reste verte que si elle touche l’eau, un puits, une fontaine, un abreuvoir ou une lande.' },
-    wind: { name: 'Grand vent', announce: 'Le vent tourne. Les moulins s’impatientent.', line: 'Le grand vent souffle. Les feuilles volent, les ailes tournent.', rule: 'Chaque forêt ou verger posé rapporte +1 ; chaque moulin rapportera +3 à la prochaine saison.' },
-    blizzard: { name: 'Bourrasque', announce: 'La neige se lève à l’horizon. On n’y verra bientôt plus rien.', line: 'La bourrasque efface tout. On ne voit plus que la tuile dans sa main.', rule: 'La file est masquée : seule la tuile à poser est visible, et on ne peut plus échanger.' },
-    thaw: { name: 'Redoux', announce: 'Un vent tiède se lève. La glace craque déjà.', line: 'Le redoux : la glace fond, l’eau reprend sa voix et les canards reviennent.', rule: 'L’eau dégèle au milieu de l’hiver : les canards reviennent, les manchots repartent.' },
-  },
 
   /** Ce que dit l'île quand une tuile a grandi d'elle-même. */
   grown: { hamlet: 'Le hameau est devenu un village.', forest: 'La forêt s’est épaissie.', orchard: 'Le verger s’est rempli.', field: 'Le champ s’est étendu.', meadow: 'La prairie a pris ses aises.', default: 'Le temps a fait son travail.' },
@@ -686,7 +679,7 @@ export const STORY = {
     wish: 'Les vœux des habitants (à droite) donnent des objectifs à échéance : exaucés, ils rapportent des points, des souffles et une tuile rare.',
     breath: 'Les souffles se gagnent en fermant des régions : échanger la tuile, la défausser, faire bourgeonner un pré, annuler la dernière pose.',
     rare: 'Tuiles rares : le moulin vaut champ et hameau, la chapelle réchauffe l’hiver, la tour clôt malgré un trou, le puits garde l’eau, le campement attire.',
-    weather: 'La météo s’annonce en début de saison et se déclenche à la mi-saison : orage, canicule, grand vent, bourrasque, redoux. La règle de saison est tirée parmi trois.',
+    surprise: 'Surprise de saison : à chaque saison qui arrive, la règle de base peut laisser place à l’une de ses deux surprises (semailles ou nichées au printemps, grandes chaleurs ou feux en été, foire ou chasse en automne, grand froid ou hiver doux). Elle s’écrit sous la saison et dure jusqu’à la suivante.',
     hill: 'La colline aime le pré et la forêt ; deux collines qui se touchent attirent le cheval. Une rivière peut en naître.',
     rare2: 'Nouvelle rare : le grenier (+1 par bord avec un champ, pas de dormance d’hiver).',
     heath: 'La lande fleurit au printemps (+1) et attire la vache en lisière des prés.',
@@ -705,7 +698,7 @@ export const STORY = {
   climates: {
     temperate: { name: 'Tempéré', line: 'Le climat de référence.', plus: '', minus: '' },
     hot: { name: 'Climat chaud', line: 'Le sable est chaud dès le matin. L’eau vaut de l’or.', plus: 'Chaque tuile d’eau posée +2, un étang +1 de plus par saison, les bords des vergers +1, l’été dure deux saisons.', minus: 'Les prés loin de l’eau sèchent dès le printemps ; pas de gel, donc pas de veillée.' },
-    humid: { name: 'Climat humide', line: 'Il pleut. Puis il pleut. Rien ne sèche.', plus: 'Les prés ne sèchent jamais, rivières et lacs +1 par tuile, orages fréquents.', minus: 'Un hameau contre un marais vaut −2 ; les sentiers ne dépassent pas deux cases.' },
+    humid: { name: 'Climat humide', line: 'Il pleut. Puis il pleut. Rien ne sèche.', plus: 'Les prés ne sèchent jamais, rivières et lacs +1 par tuile.', minus: 'Un hameau contre un marais vaut −2 ; les sentiers ne dépassent pas deux cases.' },
     cold: { name: 'Climat froid', line: 'La neige reste. Le silence compte double.', plus: 'La veillée vaut +1 par paire ; chaque forêt qui touche un hameau rapporte +1 chaque hiver ; l’hiver dure deux saisons.', minus: 'Les champs dorment dès l’automne ; rien ne fleurit au printemps.' },
   },
   verdicts: {
@@ -740,7 +733,7 @@ export const STORY = {
   daily: {
     intro: [
       'L’île du jour. Elle n’existe que vingt-quatre heures et elle est la même pour tout le monde.',
-      'Trois vœux, la météo qui change, et ton meilleur score de la journée qui reste. Demain, une autre île.',
+      'Trois vœux, des saisons qui surprennent, et ton meilleur score de la journée qui reste. Demain, une autre île.',
     ],
   },
 

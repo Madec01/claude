@@ -228,7 +228,7 @@ export function collectContext(scene, sceneName) {
       semis: def.semis || null, climat: isl.climate ? isl.climate.id : null,
       saison: SAISONS[isl.season] || isl.season, regle: isl.rule || null,
       poses: isl.placements, score: isl.score, souffles: isl.breaths,
-      meteo: isl.weather ? isl.weather.id || isl.weather.kind || null : null,
+      regle: isl.rule || null,
     };
     if (scene.hud && Array.isArray(scene.hud.log)) {
       ctx.journal = scene.hud.log.slice(-JOURNAL_LINES).map((l) => `${l.when} — ${l.text}`);

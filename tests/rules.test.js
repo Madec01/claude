@@ -300,9 +300,9 @@ for (const w of CAMPAIGN_WISHES) check(!!STORY.wishes[w.id], `texte du vœu de c
     check(!!(d.story ? STORY.islands[d.story] : d.name && d.intro && d.intro.length === 2), `textes de l'île de campagne ${n}`);
     for (const w of d.wishes) check(!!STORY.wishes[w.id] && (!w.deadline || w.deadline.placements > 5 || w.deadline.season), `vœu ${w.id} sur l'île ${n}`);
     prev = d.mech.size;
-    // déblocage des mécaniques : rien avant son île (bâtir 16, fusions 21, ouvrages 26, niveau 3 31, météo 11, vœux 6, collines 12, lande 14, rares 8/9/13/18)
+    // déblocage des mécaniques : rien avant son île (bâtir 16, fusions 21, ouvrages 26, niveau 3 31, surprises 11, vœux 6, collines 12, lande 14, rares 8/13)
     const isl = new Island(d, { ...islandOptions(d) });
-    const exp = { buildOn: n >= 16, handOn: n >= 16, fuseOn: n >= 21, workOn: n >= 26, level3On: n >= 31, weatherOn: n >= 11 };
+    const exp = { buildOn: n >= 16, handOn: n >= 16, fuseOn: n >= 21, workOn: n >= 26, level3On: n >= 31, surpriseOn: n >= 11 };
     for (const [k, v] of Object.entries(exp)) check(!!isl[k] === v, `île ${n} : ${k} devrait valoir ${v}`);
     check((isl.wishes.length > 0) === (n >= 6) || (n >= 6 && isl.wishes.length === 0 && d.story === 1), `île ${n} : vœux ${n >= 6 ? 'attendus' : 'interdits'} (${isl.wishes.length})`);
     check((n >= 12 || !d.weights.hill) && (n >= 14 || !d.weights.heath), `île ${n} : pas de colline avant 12 ni de lande avant 14`);

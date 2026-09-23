@@ -1,4 +1,4 @@
-// Île du jour : une île générée depuis la date (identique pour tout le monde), trois vœux tirés d'une réserve, météo active.
+// Île du jour : une île générée depuis la date (identique pour tout le monde), trois vœux tirés d'une réserve, surprises de saison.
 import { WEIGHTS } from './islands.js';
 
 export function dailyKey(d = new Date()) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
@@ -33,6 +33,6 @@ export function dailyDef(key = dailyKey()) {
   return {
     id: 'daily', date: key, arch: 0, cells, seed, roughness: 0.35 + rng() * 0.15, holes: rng() < 0.5 ? 1 : 2, seasonLength: 9, startSeason, weights, tilesRatio: 0.92,
     start: [{ q: 0, r: 0, family: 'hamlet' }, { q: 2, r: -1, family: 'rock' }, { q: -2, r: 2, family: rng() < 0.5 ? 'rock' : 'ruins' }],
-    wishes, mechanics: [], weather: true, daily: true, name: `Île du ${dailyLabel(key)}`,
+    wishes, mechanics: [], surprise: true, daily: true, name: `Île du ${dailyLabel(key)}`,
   };
 }

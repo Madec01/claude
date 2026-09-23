@@ -23,7 +23,7 @@ export class Hud {
         <div class="hud-block hud-title"><div class="hud-island">${title}</div><div class="hud-arch" data-ref="arch"></div></div>
         <div class="hud-block hud-season" data-ref="seasonBox" title="Règle de la saison">
           <span class="season-icon" data-ref="seasonIcon"></span>
-          <div class="season-txt"><b data-ref="seasonName">—</b><span class="season-rule" data-ref="seasonRule"></span><span class="season-weather hidden" data-ref="weather"></span></div>
+          <div class="season-txt"><b data-ref="seasonName">—</b><span class="season-rule" data-ref="seasonRule"></span></div>
           <div class="season-pips" data-ref="pips" title="Poses avant la prochaine saison"></div>
           <div class="season-pop hidden" data-ref="seasonPop"></div>
         </div>
@@ -112,15 +112,14 @@ export class Hud {
     this.r.scorePop.innerHTML = `<b>D’où viennent les points</b>${rows || '<span>Rien encore : pose une tuile.</span>'}${bm ? `<em>Meilleur coup : +${bm.pts}, ${fam}</em>` : ''}<i class="pop-hint">Toucher pour fermer</i>`;
     this._scorePopScore = isl.score;
   }
-  /** Règle de la saison (et météo) en surimpression : utile sur téléphone où la boîte de saison est réduite. */
+  /** Règle de la saison (ou sa surprise) en surimpression : utile sur téléphone où la boîte de saison est réduite. */
   toggleSeasonPop(force) {
     const pop = this.r.seasonPop; const open = force !== undefined ? force : pop.classList.contains('hidden');
     if (open) {
       const isl = this.isl; const s0 = STORY.seasons[isl.season] || { name: isl.season, line: '', rule: '' };
       const rl = isl.rule && STORY.seasonRules[isl.rule] ? STORY.seasonRules[isl.rule] : null;
       const s = rl ? { name: isl.rulesVariable ? `${s0.name} · ${rl.name}` : s0.name, line: rl.line, rule: rl.rule } : s0;
-      const w = isl.weather; const wt = w ? (STORY.weather[w.key] || {}) : null;
-      pop.innerHTML = `<b>${s.name}</b><em>${s.line}</em><span>${s.rule}</span>${wt ? `<span class="pop-weather">${wt.name}${w.phase === 'active' ? ' (en cours)' : ` dans ${Math.max(0, w.at - isl.inSeason)} pose${w.at - isl.inSeason > 1 ? 's' : ''}`} : ${wt.rule}</span>` : ''}<i>Toucher pour fermer</i>`;
+      pop.innerHTML = `<b>${s.name}</b><em>${s.line}</em><span>${s.rule}</span><i>Toucher pour fermer</i>`;
       { const cl = isl.climate && isl.climate.id !== 'temperate' ? STORY.climates[isl.climate.id] : null; if (cl) pop.insertAdjacentHTML('beforeend', `<div class="pop-climate"><b>${cl.name}</b> — <em>${cl.line}</em><br>✓ ${cl.plus}<br>✗ ${cl.minus}</div>`); }
       clearTimeout(this._popT); this._popT = setTimeout(() => this.toggleSeasonPop(false), 9000);
     }
@@ -336,14 +335,8 @@ export class Hud {
     // pips
     const pipHtml = isl.garden ? '' : Array.from({ length: isl.seasonLength }, (_, i) => `<i class="${i < isl.inSeason ? 'on' : ''}"></i>`).join('');
     if (pipHtml !== this.last.pips) { this.last.pips = pipHtml; r.pips.innerHTML = pipHtml; }
-    // météo annoncée / active
-    const w = isl.weather; const wt = w ? (STORY.weather[w.key] || { name: w.key, rule: '' }) : null;
-    const wtxt = !w ? '' : w.phase === 'announced' ? `${wt.name} dans ${Math.max(0, w.at - isl.inSeason)} pose${w.at - isl.inSeason > 1 ? 's' : ''}` : `${wt.name} en cours`;
-    if (wtxt !== this.last.weather) { this.last.weather = wtxt; r.weather.textContent = wtxt; r.weather.title = wt ? wt.rule : ''; r.weather.classList.toggle('hidden', !wtxt); r.weather.classList.toggle('active', !!w && w.phase === 'active'); }
     const choose = !!isl.garden;
     if (choose !== this.last.choose) { this.last.choose = choose; r.gardenPick.classList.toggle('hidden', !choose); if (choose) r.pickTitle.textContent = 'Choisir'; }
-    const bliz = isl.weatherActive && isl.weatherActive('blizzard');
-    if (bliz !== this.last.bliz) { this.last.bliz = bliz; r.queueList.classList.toggle('blizzard', !!bliz); }
     // le compteur monte vers la vraie valeur (tic-tac), sans jamais traîner plus d'une seconde
     if (this.shownScore === undefined) this.shownScore = isl.score;
     const target = isl.score - (this.hold || 0);   // les points en vol ne sont pas encore comptés

@@ -111,7 +111,6 @@ export function preview(board, q, r, tile, season, mods = {}) {
     if (cl.waterPlaced) { base.push({ pts: cl.waterPlaced, label: 'soleil' }); total += cl.waterPlaced; }
     board.version++; board._water = null;
   }
-  if (mods.wind && (Board.isFamily(placed, 'forest') || Board.isFamily(placed, 'orchard'))) { base.push({ pts: 1, label: 'vent' }); total += 1; }
   if (mods.rule === 'feux' && Board.isFamily(placed, 'forest') && neighbors(q, r).some(([a, b]) => Board.isFamily(board.get(a, b), 'water'))) { base.push({ pts: 2, label: 'pare-feu' }); total += 2; }
   const closes = closedRegionsAround(board, q, r);
   for (const c of closes) total += c.bonus;

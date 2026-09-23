@@ -8,7 +8,7 @@ export const UPGRADES = [
   { id: 'breath', chapter: 2, name: 'Souffle de départ', icon: 'icon_wind', desc: 'Commencer chaque île avec des souffles en réserve.', levels: ['0', '+2', '+4', '+6'], costs: [3, 6, 9], requires: 'breath' },
   { id: 'pocket', chapter: 2, name: 'Poche', icon: 'icon_pocket', desc: 'Garder une tuile de côté pour plus tard.', levels: ['Aucune', '1 tuile', '2 tuiles'], costs: [5, 10] },
   { id: 'rare', chapter: 2, name: 'Semence rare', icon: 'icon_diamond', desc: 'Une tuile rare offerte au début de chaque île.', levels: ['Aucune', 'Puits', 'Moulin', 'Grenier'], costs: [6, 10, 12], requires: 'rare' },
-  // chapitre 3 : météo, collines, lande
+  // chapitre 3 : surprises de saison, collines, lande
   { id: 'source', chapter: 3, name: 'Source', icon: 'icon_drop', desc: 'Chaque tuile de rivière posée rapporte un point de plus.', levels: ['Normale', '+1 point'], costs: [6], requires: 'river' },
   { id: 'refuge', chapter: 3, name: 'Refuge', icon: 'icon_home', desc: 'Chaque animal présent rapporte plus de points à chaque changement de saison.', levels: ['Normal', '+1 point', '+2 points'], costs: [5, 9], requires: 'fauna' },
   { id: 'almanac', chapter: 3, name: 'Almanach', icon: 'icon_save', desc: 'Des graines supplémentaires à chaque île terminée, même rejouée.', levels: ['Aucune', '+1 graine', '+2 graines'], costs: [4, 8] },

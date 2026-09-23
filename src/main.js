@@ -4,6 +4,7 @@ import { Input } from './core/input.js';
 import { Assets } from './core/assets.js';
 import { AudioSys } from './core/audio.js';
 import { Save, tidyCampaign } from './core/save.js';
+import { BASE_RULE } from './game/seasonrules.js';
 import { RunSave } from './core/run.js';
 import { Haptics } from './core/haptics.js';
 import { SceneManager, wait } from './core/scenes.js';
@@ -623,7 +624,7 @@ class IslandScene {
     AudioSys.setAmbience('winter', s === 'winter' ? 0.4 : 0, fade);
     AudioSys.setAmbience('crickets', s === 'summer' ? Math.min(0.6, 0.15 + share('meadow', 'field') * 0.9) : 0, fade);
     AudioSys.setAmbience('sea', 0.18 + share('sand') * 0.6, fade);
-    const w = isl.weatherActive && isl.weather && isl.weather.phase === 'active' ? isl.weather.key : null;
+    const w = isl.look || null;   // l'habillage de la surprise en cours
     AudioSys.setAmbience('rain', w === 'storm' ? 0.55 : 0, fade);
     if (AudioSys.has('storm', 'ambience')) AudioSys.setAmbience('storm', w === 'storm' ? 0.6 : 0, fade);
     if (w === 'wind') AudioSys.setAmbience('wind', 0.7, fade);
@@ -741,6 +742,12 @@ class IslandScene {
       if (!this.def.daily) AudioSys.playMusic(seasonMusic(e.to, this.seasonCount[e.to]), { fade: 3 });
       const s = STORY.seasons[e.to]; const rl = e.rule && STORY.seasonRules[e.rule] ? STORY.seasonRules[e.rule] : null;
       this.hud.logOnly(`${s.name}${rl && isl.rulesVariable ? ` · ${rl.name}` : ''} — ${rl ? rl.line : s.line}`, 'season');
+      // une surprise (pas la règle de base) : on la dit une fois, et son habillage arrive avec elle
+      if (isl.rulesVariable && rl && e.rule !== BASE_RULE[e.to]) {
+        setTimeout(() => { this.hud.ribbon(`Surprise : ${rl.name}`, '#2b2a26', 2400, ''); AudioSys.play('weather', { volume: 0.5 }); }, 700);
+        if (isl.look === 'storm') setTimeout(() => { this.renderer.flash = 0.2; AudioSys.play('thunder', { volume: 0.7 }); this.thunderTimer = 6 + Math.random() * 8; }, 1400);
+        if (this.tutorial) this.tutorial.onEvent('surprise');
+      }
       this.hud.seasonTurn();
       fx.flightTarget = this.hud.scoreTarget();
       const flights = seasonFlights(e, isl); const total = flights.reduce((a, f) => a + f.pts, 0);
@@ -779,19 +786,6 @@ class IslandScene {
       if (e.kind === 'soon') { this.hud.notify(`Plus que ${e.left} poses pour « ${s.title} »`, 'wish'); this.hud.flashWishes(); AudioSys.play('wish_new', { volume: 0.5 }); }
       if (e.kind === 'done') { AudioSys.play('wish_done', { volume: 0.8 }); setTimeout(() => AudioSys.play('rare_tile', { volume: 0.6 }), 600); this.hud.notify(`Vœu exaucé — ${s.done}`, 'gold'); this.hud.notify(`Une tuile rare rejoint la file : ${(STORY.tiles[e.rare] || {}).name || e.rare}`, 'rare'); }
       else { AudioSys.play('wish_failed', { volume: 0.6 }); this.hud.notify(`Vœu manqué (échéance dépassée) : ${s.title} — ${s.failed}`, 'warn'); }
-    } else if (e.type === 'weather') {
-      const wt = STORY.weather[e.key] || { name: e.key, announce: '', line: '', rule: '' };
-      if (e.kind === 'announce') { this.hud.logOnly(`${wt.name} annoncé : ${wt.announce}`, 'wish'); AudioSys.play('weather', { volume: 0.5 }); }   // l'annonce est déjà écrite sous la saison : pas de bulle pendant la transition
-      else if (e.kind === 'start') {
-        this.renderer.weather = e.key; this.hud.notify(`${wt.name} — ${wt.line}`, 'season'); this.hud.logOnly(wt.rule, 'info'); setTimeout(() => this.hud.ribbon(wt.rule, '#2b2a26', 2600, ''), 900);
-        if (e.key === 'storm') { this.renderer.flash = 0.2; AudioSys.play('thunder', { volume: 0.8 }); this.shake.trigger(0.3); this.thunderTimer = 6 + Math.random() * 8; }
-        if (e.key === 'wind') AudioSys.play('season_sweep', { volume: 0.6 });
-        if (e.key === 'blizzard') AudioSys.play('season_winter', { volume: 0.5 });
-        if (e.key === 'thaw') AudioSys.play('season_spring', { volume: 0.5 });
-        if (e.key === 'heat') AudioSys.play('season_summer', { volume: 0.5 });
-        let i = 0; for (const ev of e.events || []) { const w = toWorld(ev.q, ev.r); setTimeout(() => fx.floatText(w.x, w.y - 10, ev.type === 'dry' ? 'sèche' : 'dégel', ev.type === 'dry' ? '#d95f4b' : '#5aa7d6', 16, 1.2), 60 * i++); }
-      } else if (e.kind === 'end') { this.renderer.weather = null; }
-      this.updateAmbience();
     } else if (e.type === 'breath') {
       if (e.kind === 'bud') { const w = toWorld(e.q, e.r); fx.drop(key(e.q, e.r)); fx.placeBurst(w.x, w.y, true); AudioSys.play('bud', { volume: 0.7 }); }
       else if (e.kind !== 'undo' && !e.free) AudioSys.play('breath_spend', { volume: 0.5 });
@@ -935,7 +929,7 @@ class IslandScene {
     } else this.renderer.hover = null;
     this.particles.update(dt); this.fx.update(dt); this.shake.update(dt);
     const b = (() => { const tl = this.cam.toWorldPoint(0, 0), br = this.cam.toWorldPoint(STAGE.W, STAGE.H); return { minX: tl.x, maxX: br.x, minY: tl.y, maxY: br.y }; })();
-    const wkey = isl.weather && isl.weather.phase === 'active' ? isl.weather.key : null;
+    const wkey = isl.look || null;
     if (this.renderer.weather !== wkey) this.renderer.weather = wkey;
     // quand les i/s baissent (téléphone modeste), la mer renonce à sa profondeur et à son écume large ; avec un peu
     // d'hystérésis pour ne pas clignoter autour du seuil

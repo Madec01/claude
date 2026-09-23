@@ -3,7 +3,7 @@ export const BALANCE = {
   world: { w: 1280, h: 720 },
   hex: { w: 120, h: 140, rowH: 103.92, size: 69.28 },   // géométrie 1× (les images sont en 2×)
   season: { baseLength: 12 },
-  points: { springHeath: 1, pathSeason: 1, stormRiver: 2, windMill: 3,
+  points: { springHeath: 1, pathSeason: 1,
     closeBonusMul: { hamlet: 2 },      // prime de fermeture = taille × mul (1 par défaut)
     river: 2, pond: 1, lake: 1, mouth: 3, pondSeason: 1, springWater: 1, summerIrrigation: 1, springMarsh: 2, autumnHarvest: 2, winterVeillee: 3,
     faunaSeason: 3, wish: 10,

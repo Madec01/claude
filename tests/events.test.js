@@ -1,4 +1,4 @@
-// Tests des tuiles rares, de la météo et de l’île du jour (Node, sans navigateur).
+// Tests des tuiles rares, des surprises de saison et de l’île du jour (Node, sans navigateur).
 import { Island } from '../src/game/island.js';
 import { getIsland } from '../src/data/islands.js';
 import { dailyDef } from '../src/data/daily.js';
@@ -6,7 +6,6 @@ import { STORY } from '../src/data/story.js';
 import { RARE } from '../src/data/tiles.js';
 let fails = 0; const check = (ok, m) => { if (!ok) { fails++; console.log('KO', m); } else console.log('OK', m); };
 for (const r of RARE) check(!!STORY.tiles[r], `texte de la tuile rare ${r}`);
-for (const k of Object.keys(STORY.weather)) check(!!STORY.weather[k].rule, `texte météo ${k}`);
 const greedy = (isl) => {
   // ouvrage en main : on le pose sur la meilleure tuile (ou on le défausse), puis on continue avec la tuile suivante
   for (let g = 0; g < 4 && isl.current && isl.current.work && !isl.ended; g++) { let bt = null, bs = -Infinity; for (const t of isl.board.tiles.values()) { if (!isl.canBuild(t.q, t.r)) continue; const pv = isl.previewBuild(t.q, t.r); if (pv && pv.total > bs) { bs = pv.total; bt = t; } } if (bt) isl.build(bt.q, bt.r); else if (isl.canDiscard()) isl.discard(); else break; }
@@ -27,9 +26,13 @@ const isl = new Island(getIsland(12), { upgrades: {} });
 const events = []; isl.on((e) => events.push(e));
 for (const r of RARE) { isl.queue.inject(isl.queue.makeRare(r), true); const c = greedy(isl); check(!!c, `case légale pour ${r}`); if (c) isl.place(c.q, c.r); }
 for (let i = 0; i < 40 && !isl.ended; i++) { const c = greedy(isl); if (!c) break; isl.place(c.q, c.r); }
-check(events.some((e) => e.type === 'weather'), 'météo annoncée sur une île tardive');
-// activer chaque météo à la main
-for (const key of ['storm', 'heat', 'wind', 'blizzard', 'thaw']) { isl.weather = { key, phase: 'announced', at: 0 }; isl.activateWeather(); check(isl.weatherActive(key), `météo ${key} active`); const c = greedy(isl); if (c) isl.place(c.q, c.r); }
+// l'habillage suit la surprise : une règle de base n'en a pas, les surprises qui en ont un le montrent, sans rien au score
+{
+  const { RULE_LOOK, BASE_RULE } = await import('../src/game/seasonrules.js');
+  for (const r of Object.values(BASE_RULE)) check(!RULE_LOOK[r], `règle de base ${r} : pas d’habillage`);
+  for (const [r, look] of Object.entries(RULE_LOOK)) { isl.rule = r; check(isl.look === look && !('weather' in isl.mods) && !('wind' in isl.mods), `surprise ${r} : habillage ${look}, aucun effet sur le score`); }
+  check(isl.weather === undefined && isl.activateWeather === undefined, 'plus de météo annoncée ni déclenchée à la mi-saison');
+}
 // île du jour
 const d = dailyDef('2026-09-17'); const d2 = dailyDef('2026-09-17'); check(JSON.stringify(d.wishes) === JSON.stringify(d2.wishes) && d.cells === d2.cells, 'île du jour déterministe');
 for (const w of d.wishes) check(!!STORY.wishes[w.id], `texte du vœu du jour ${w.id}`);
