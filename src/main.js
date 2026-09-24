@@ -16,7 +16,7 @@ import { Camera } from './game/camera.js';
 import { Effects } from './game/effects.js';
 import { Hud } from './game/hud.js';
 import { Tutorial } from './game/tutorial.js';
-import { fromWorld, toWorld, key, DIRS } from './game/hex.js';
+import { fromWorld, toWorld, key, DIRS, parse, SIZE } from './game/hex.js';
 import { ISLANDS, INFINITE, GARDEN, getIsland } from './data/islands.js';
 import { STORY } from './data/story.js';
 import { BALANCE } from './data/balance.js';
@@ -709,7 +709,6 @@ class IslandScene {
     const isl = this.isl, fx = this.fx;
     this.runDirty = true;
     if (e.type === 'place') {
-      if (this.tempo) this.renderer.houleRepousser();   // la pose repousse la houle au large
       if (!this.isl.garden) this.checkDiscoveryCards();
       const w = toWorld(e.q, e.r);
       fx.drop(key(e.q, e.r));
@@ -851,7 +850,7 @@ class IslandScene {
     } else if (e.type === 'lost') {
       const fam = (STORY.tiles[e.tile.family] || {}).name || e.tile.family;
       this.hud.ribbon(`${fam} perdue`, '#d95f4b', 1300, 'warn'); this.hud.notify(`Trop tard : la ${fam.toLowerCase()} est perdue, sa case restera vide`, 'warn');
-      AudioSys.play('tile_discard', { volume: 0.7 }); this.shake.trigger(0.18); Haptics.tap([10, 30, 10]); this.renderer.houleDeferler();
+      AudioSys.play('tile_discard', { volume: 0.7 }); this.shake.trigger(0.18); Haptics.tap([10, 30, 10]); this.hud.chronoCasse();
       this.armed = null; this.hud.setPlaceButton(null);
     } else if (e.type === 'grow') {
       this.cam.fit(this.isl.board.mask);
@@ -969,7 +968,10 @@ class IslandScene {
       // le battement : la phase dans le temps de la musique (horloge audio), sinon un métronome au même tempo
       const mu = BALANCE.tempo.musique, temps = 60 / mu.bpm; const ctx = AudioSys.ctx;
       const depuis = ctx && this.tempo.musiqueAt !== null && this.tempo.musiqueAt !== undefined ? ctx.currentTime - this.tempo.musiqueAt - mu.premierTemps : (this._metro = (this._metro || 0) + dt);
-      this.renderer.houle = { f: this.hold ? 1 : this.tempo.fraction, battement: ((depuis % temps) + temps) % temps / temps, saison: isl.season };
+      const battement = ((depuis % temps) + temps) % temps / temps;
+      // le chronomètre se pose juste au-dessus de l'île : le sommet du masque, en écran
+      if (this._chronoV !== isl.board.version) { this._chronoV = isl.board.version; let y = Infinity; for (const k of isl.board.mask) { const [q, r] = parse(k); y = Math.min(y, toWorld(q, r).y); } this._chronoY = y - SIZE; }
+      this.hud.setChrono({ t: this.hold ? this.tempo.limit : this.tempo.t, f: this.hold ? 1 : this.tempo.fraction, puls: Math.pow(1 - battement, 3), urgent: !this.hold && this.tempo.t <= 1, y: this.cam.toScreen(0, this._chronoY).y });
     }
     // survol
     if (!isl.ended && input.lastPointer === 'touch') {

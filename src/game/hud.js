@@ -1,5 +1,6 @@
 // HUD d'une île (DOM) : saison, score, souffles, file de tuiles, poche, vœux, pouvoirs, notifications.
 import { STAGE } from '../core/stage.js';
+import { h } from '../ui/dom.js';
 import { STORY } from '../data/story.js';
 import { BALANCE } from '../data/balance.js';
 import { TALLY_LABELS } from '../ui/results.js';
@@ -307,6 +308,27 @@ export class Hud {
     const temps = this.r.queueList.querySelector('.q-temps'); if (temps) { const txt = `${tp.t.toFixed(1)} s`; if (temps.textContent !== txt) temps.textContent = txt; }
     const serie = this.r.queueList.querySelector('.q-serie'); if (serie) { const txt = tp.serie >= 3 ? `×${tp.mult} · ${tp.serie}` : tp.serie > 0 ? `série ${tp.serie}` : ''; if (serie.textContent !== txt) serie.textContent = txt; serie.classList.toggle('on', tp.serie >= 3); }
   }
+
+  /**
+   * Souffle court : le chronomètre, juste au-dessus de l'île. Le gros chiffre (dixièmes en petit) qui respire sur
+   * la musique et tremble sur la dernière seconde ; dessous, la marée : une barre d'eau qui se retire par les deux
+   * bouts, écume aux extrémités. Rouge sur la dernière seconde ; à la perte, le chiffre éclate et la barre flashe.
+   * `{ t, f, puls, urgent, y }` : secondes restantes, fraction, coup de temps 0..1, dernière seconde, sommet de l'île en écran.
+   */
+  setChrono(c) {
+    let el = this._chrono;
+    if (!el) { el = this._chrono = h('div', { class: 'tempo-chrono' }, h('span', { class: 'tc-n' }), h('div', { class: 'tc-cadre' }, h('div', { class: 'tc-eau' }))); this.root.appendChild(el); this._chronoN = el.querySelector('.tc-n'); this._chronoEau = el.querySelector('.tc-eau'); }
+    const y = Math.round(c.y - 12); if (this._chronoTop !== y) { this._chronoTop = y; el.style.top = `${y}px`; }
+    const entier = Math.floor(c.t + 1e-6), dix = Math.max(0, Math.floor((c.t - entier) * 10 + 1e-6));
+    const txt = `${entier}.${dix}`; if (this._chronoTxt !== txt) { this._chronoTxt = txt; this._chronoN.innerHTML = `${entier}<span class="tc-d">.${dix}</span>`; }
+    const jitter = c.urgent ? `translate(${(Math.random() * 3 - 1.5).toFixed(1)}px,${(Math.random() * 3 - 1.5).toFixed(1)}px)` : '';
+    this._chronoN.style.transform = `scale(${(1 + 0.08 * c.puls).toFixed(3)}) ${jitter}`;
+    this._chronoEau.style.width = `${(c.f * 100).toFixed(1)}%`; this._chronoEau.style.filter = `brightness(${(1 + 0.25 * c.puls).toFixed(3)})`;
+    el.classList.toggle('urgent', !!c.urgent);
+    if (c.f >= 0.98) el.classList.remove('casse');
+  }
+  /** La tuile est perdue : le chiffre éclate, la barre flashe. */
+  chronoCasse() { const el = this._chrono; if (!el) return; el.classList.remove('casse'); void el.offsetWidth; el.classList.add('casse'); }
 
   destroy() { this.root.innerHTML = ''; }
 }

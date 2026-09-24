@@ -334,3 +334,22 @@ html.compact #hud.tempo .hud-queue > .queue-title { position: static; margin: 0;
 .tempo-compte.tic { animation: compte-tic 0.75s var(--ease-out) both; }
 @keyframes compte-tic { from { transform: translate(-50%, -50%) scale(1.6); opacity: 0; } 30% { transform: translate(-50%, -50%) scale(1); opacity: 1; } to { transform: translate(-50%, -50%) scale(0.92); opacity: 0.85; } }
 html.compact .tempo-compte { font-size: 72px; top: 38%; }
+/* le chronomètre du Souffle court, juste au-dessus de l'île : le chiffre et la marée */
+.tempo-chrono { position: absolute; left: 50%; top: 0; transform: translate(-50%, -100%); display: flex; flex-direction: column; align-items: center; gap: 4px; pointer-events: none; z-index: 4; }
+.tempo-chrono .tc-n { font-family: var(--font-title); font-size: 56px; font-weight: 700; line-height: 1; color: var(--ink); font-variant-numeric: tabular-nums; text-shadow: 0 2px 18px rgba(244,239,230,0.95), 0 0 34px rgba(244,239,230,0.85); transition: color 0.2s; will-change: transform; }
+.tempo-chrono .tc-d { font-size: 30px; opacity: 0.7; }
+.tempo-chrono .tc-cadre { width: 220px; height: 14px; border-radius: 9px; background: rgba(244,239,230,0.85); box-shadow: 0 2px 10px rgba(30,50,70,0.18), inset 0 1px 2px rgba(43,42,38,0.15); position: relative; overflow: hidden; }
+.tempo-chrono .tc-eau { position: absolute; top: 0; bottom: 0; left: 50%; transform: translateX(-50%); border-radius: 9px; background: linear-gradient(180deg, #8fc8e6, #4f93c2); }
+.tempo-chrono .tc-eau::before, .tempo-chrono .tc-eau::after { content: ''; position: absolute; top: -2px; width: 14px; height: 18px; border-radius: 50%; background: radial-gradient(circle, rgba(255,255,255,0.95), rgba(255,255,255,0) 70%); animation: tc-ecume 0.42s ease-in-out infinite alternate; }
+.tempo-chrono .tc-eau::before { left: -6px; } .tempo-chrono .tc-eau::after { right: -6px; animation-delay: 0.2s; }
+@keyframes tc-ecume { from { transform: translateY(-2px) scale(1); } to { transform: translateY(2px) scale(1.25); } }
+.tempo-chrono.urgent .tc-n { color: var(--loss); }
+.tempo-chrono.urgent .tc-eau { background: linear-gradient(180deg, #f0a08c, #d95f4b); }
+.tempo-chrono.casse .tc-n { animation: tc-casse 0.45s ease-out both; }
+.tempo-chrono.casse .tc-cadre { animation: tc-flash 0.5s ease-out both; }
+@keyframes tc-casse { to { transform: scale(1.7); opacity: 0; filter: blur(4px); } }
+@keyframes tc-flash { from { box-shadow: 0 0 0 4px #fff, 0 0 30px #fff; } to { box-shadow: 0 2px 10px rgba(30,50,70,0.18); } }
+html.compact .tempo-chrono { gap: 3px; }
+html.compact .tempo-chrono .tc-n { font-size: 40px; } html.compact .tempo-chrono .tc-d { font-size: 22px; }
+html.compact .tempo-chrono .tc-cadre { width: 170px; height: 11px; }
+#hud.tempo .qtile.current .q-temps { display: none; }   /* les secondes sont au-dessus de l'île, plus sur la tuile */

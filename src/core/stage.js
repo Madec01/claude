@@ -35,7 +35,7 @@ export function layoutStage() {
 export function uiMargins(kind = 'island') {
   // Le Souffle court : la tuile à poser occupe le bas de l'écran, l'île se tient dans la moitié haute
   // (la lueur de marée cerne l'île sur la mer : on lui laisse une marge tout autour)
-  if (kind === 'tempo') return !STAGE.compact ? { uiLeft: 60, uiRight: 60, uiTop: 90, uiBottom: 190, padding: 60 } : STAGE.portrait ? { uiLeft: 16, uiRight: 16, uiTop: 100, uiBottom: 170, padding: 40 } : { uiLeft: 20, uiRight: 20, uiTop: 56, uiBottom: 100, padding: 30 };
+  if (kind === 'tempo') return !STAGE.compact ? { uiLeft: 60, uiRight: 60, uiTop: 120, uiBottom: 190, padding: 60 } : STAGE.portrait ? { uiLeft: 16, uiRight: 16, uiTop: 110, uiBottom: 170, padding: 40 } : { uiLeft: 20, uiRight: 20, uiTop: 80, uiBottom: 100, padding: 30 };   // en haut, la place du chronomètre
   if (!STAGE.compact) return kind === 'ambient' ? { uiLeft: 380, uiRight: 40, uiTop: 40, uiBottom: 40 } : { uiLeft: 220, uiRight: 260, uiTop: 70, uiBottom: 60 };
   if (kind === 'ambient') return { uiLeft: 10, uiRight: 10, uiTop: STAGE.portrait ? 200 : 10, uiBottom: 10, padding: 30 };
   return STAGE.portrait ? { uiLeft: 8, uiRight: 8, uiTop: 92, uiBottom: 160, padding: 24 } : { uiLeft: 130, uiRight: 8, uiTop: 50, uiBottom: 40, padding: 24 };
