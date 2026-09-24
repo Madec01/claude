@@ -326,6 +326,7 @@ html.compact.landscape #hud.tempo .qtile.current, html.compact.landscape #hud.te
 html.compact.landscape #hud.tempo .qtile.current .qname, html.compact.landscape #hud.tempo .qtile.choix .qname { font-size: 12px; }
 html.compact.landscape #hud.tempo .qtile.current .q-cadran { inset: -7px; padding: 5px; border-radius: 18px; }
 html.compact.landscape #hud.tempo .hud-queue { gap: 2px; }
+html.compact.landscape #hud.tempo .qtile.current .q-serie { top: auto; bottom: 22px; right: 4px; font-size: 11px; }
 html.compact #hud.tempo .qtile.current .qname, html.compact #hud.tempo .qtile.choix .qname { font-size: 14px; }
 html.compact #hud.tempo .hud-queue > .queue-title { position: static; margin: 0; }
 /* le décompte : trois, deux, un, pose — au centre, une pulsation par chiffre */
