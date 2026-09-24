@@ -64,7 +64,12 @@ export class Finale {
     // Si le joueur regardait déjà l'île entière, le recul ne se verrait pas : on part d'un cheveu plus près.
     if (Math.abs(this.camA.z - this.centre.z) < this.centre.z * 0.06) this.camA = { ...this.camA, z: this.centre.z * 1.14 };
     this.camB = this.centre;
-    this.cadre = cadreCarte(this.isl, STAGE.W, STAGE.H);   // le cadrage de la carte postale : la fin du voyage
+    // en portrait au téléphone, la carte s'arrête au-dessus d'une bande de papier qui porte les deux boutons :
+    // rien ne se superpose à l'image (ni aux tampons, posés en bas à droite)
+    this.barre = STAGE.compact && STAGE.portrait ? 76 : 0;
+    this.hCarte = STAGE.H - this.barre;
+    this.cadre = cadreCarte(this.isl, STAGE.W, this.hCarte);   // le cadrage de la carte postale : la fin du voyage
+    this.cadre.oy -= this.barre / 2;   // le cadre est calculé pour une scène de hCarte de haut ; l'écran est plus haut de la bande
     this.bornes = this.bornesIle();
     this.plans = this.choisirPlans();
     const vill = this.plans.find((p) => p.famille === 'hamlet');
@@ -174,9 +179,10 @@ export class Finale {
   montrerBoutons() {
     if (this.boutons) return;
     const g = geoCarte(STAGE.W);
-    const voir = button('Voir le récapitulatif →', () => this.finish(), { cls: 'btn-primary' });
-    const garder = button('Enregistrer la carte', () => { try { exporterCarte(renderPostcard(this.sc), postcardName(this.sc)); } catch (e) { console.warn('carte postale', e); } }, { iconName: 'icon_save' });
-    this.boutons = h('div', { class: 'carte-actions', style: `bottom:${g.bottom + 14}px` }, garder, voir);
+    const court = this.barre > 0;   // sous la carte, sur une seule ligne : des libellés courts
+    const voir = button(court ? 'Récapitulatif →' : 'Voir le récapitulatif →', () => this.finish(), { cls: 'btn-primary' });
+    const garder = button(court ? 'Enregistrer' : 'Enregistrer la carte', () => { try { exporterCarte(renderPostcard(this.sc), postcardName(this.sc)); } catch (e) { console.warn('carte postale', e); } }, { iconName: 'icon_save' });
+    this.boutons = h('div', { class: 'carte-actions', style: `bottom:${this.barre ? Math.round((this.barre - 40) / 2) : g.bottom + 14}px` }, garder, voir);
     showUI(this.boutons, 'carte-wrap');
   }
 
@@ -326,13 +332,20 @@ export class Finale {
     this.score = Math.min(this.target, Math.round(this.target * clamp(av, 0, 1)));
   }
 
+  /** Portrait : la bande de papier sous la carte, où se posent les boutons ; elle arrive avec les bandeaux. */
+  bandeBoutons(ctx, a) {
+    if (!this.barre || a <= 0) return;
+    ctx.save(); ctx.globalAlpha = a; ctx.fillStyle = '#fbf7ee'; ctx.fillRect(0, this.hCarte, STAGE.W, this.barre);
+    ctx.fillStyle = 'rgba(43,42,38,0.14)'; ctx.fillRect(0, this.hCarte, STAGE.W, 1); ctx.restore();
+  }
+
   /** Surimpression écran : le compteur, le nom du lieu visité, puis la carte postale. */
   render(ctx) {
     if (this.done) return;
-    const W = STAGE.W, H = STAGE.H, compact = STAGE.compact;
-    if (this.phase === 'carte') { habillerCarte(ctx, this.sc, W, H, { legendes: true }); return; }
+    const W = STAGE.W, H = this.hCarte, compact = STAGE.compact;
+    if (this.phase === 'carte') { habillerCarte(ctx, this.sc, W, H, { legendes: true }); this.bandeBoutons(ctx, 1); return; }
     const fin = this.phase === 'titre' ? clamp(this.stepT / (this.D.titre * 0.26), 0, 1) : 0;
-    if (this.phase === 'titre') habillerCarte(ctx, this.sc, W, H, { bandes: this.bandes, lettres: this.lettres, etoiles: this.starsShown, tampons: this.tampons || 0, legendes: true });
+    if (this.phase === 'titre') { habillerCarte(ctx, this.sc, W, H, { bandes: this.bandes, lettres: this.lettres, etoiles: this.starsShown, tampons: this.tampons || 0, legendes: true }); this.bandeBoutons(ctx, this.bandes); }
     ctx.save(); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     // le compteur, tant que la carte n'a pas pris le relais (elle porte le score, elle aussi)
     const a = clamp(this.t / 0.8, 0, 1) * (1 - fin);
