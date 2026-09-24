@@ -134,6 +134,33 @@ Mesure de référence sur HTTP/2 + gzip comme GitHub Pages (`tools/serveur_h2.js
 | Atlas de sprites | 620 images en quelques planches, si le nombre de requêtes gêne encore sur le vrai site (HTTP/2 le rend secondaire : 737 fichiers pour 4,7 Mo tiennent en 9,6 s, soit le débit) | — | plus tard, seulement mesuré |
 | Vérifier sur le site en ligne | `github.io` injoignable depuis l'environnement (403 du mandataire) : mesurer une fois depuis un vrai téléphone | — | **à faire par le commanditaire** |
 
+## Deux modes à part (idées du commanditaire, 24 septembre)
+
+Le jeu de base reste lent ; ces deux modes sont l'inverse assumé, chacun avec son bouton à côté de l'Île infinie, son tampon et sa version « du jour » (même graine pour tous). Rien à dessiner par le code : une image de cadran et une image de dos de tuile à faire faire.
+
+### « Le Souffle court » (pas de file, la tuile au dernier moment, 3 secondes)
+
+| Règle | Décision |
+|---|---|
+| Tuile | apparaît d'un coup, cadran de 3 s ; à zéro, posée toute seule sur la case légale qui rapporte le moins (on ne perd jamais une tuile) |
+| Tempo | le temps restant à la pose alimente une série (sous 1 s) : ×1, ×1,5, ×2, ×3 au-delà de dix ; hésiter casse la série |
+| Bonus (gagnés) | région fermée = un souffle = +3 s sur une tuile ; dix poses sans zéro = 6 s sur la suivante ; série de cinq = la famille de la tuile suivante ; vœu éclair exaucé = une saison à 5 s |
+| Malus (subis) | pose forcée : pire endroit, série à zéro, suivante à 2 s ; pose à perte : friche et un souffle perdu ; chaque saison retire 0,1 s au cadran (3 → 1,8) |
+| Réglage | tempo 3 / 5 / 8 s, meilleur score par tempo ; ouverture dès l'île 6 ; musique vive déjà en stock, tournée courte |
+
+### « Sous la brume » (démineur : 5 à 10 tuiles retournées, on sait lesquelles, pas où)
+
+| Règle | Décision |
+|---|---|
+| Saison | 5 poses ; les tuiles retournées ne se dévoilent qu'au passage de saison, et seulement avec au moins 3 voisines posées ; au dévoilement, elles comptent comme posées à l'instant |
+| Déplacement | une tuile déjà posée peut être déplacée, **au prix de la prochaine tuile à poser** (elle est perdue) ; une tuile engagée contre la brume ne bouge plus avant le dévoilement |
+| Brume et régions | une tuile retournée **ne compte pas** dans les régions ni pour les primes tant qu'elle n'est pas dévoilée : la brume coupe la région |
+| Ce qui force le pari | bords contre une tuile dévoilée ×2 dans les deux sens ; une mise obligatoire par saison (annoncer la famille d'une tuile cachée : juste +5 et deux mises la saison suivante, faux −5, non posée −3) ; chaque tuile encore retournée à la fin : −3 |
+| Information | un seul indice : chaque tuile posée contre la brume affiche combien de ses voisines cachées l'aiment (pas lesquelles), lu à la pose, jamais mis à jour ; ni saison, ni faune, ni rivière ne révèlent rien |
+| Refusé | sondage aux souffles, indices par particules ou par saison : trop simple, le joueur tenu par la main |
+| Crans | Brume claire (inventaire exact, chiffres toujours) ; Brume épaisse (inventaire par couleur, chiffres une pose sur deux) |
+| Reste à écrire | la suite du gameplay par le commanditaire ; lequel des deux modes se monte en premier |
+
 ## Lot 8 : publication (à planifier)
 
 Hors ligne complet (service worker), version anglaise, export/import de sauvegarde (**fait** : fichier téléchargé / chargé, rappel périodique, copie de secours), politique de confidentialité, captures et fiche, dépôt itch.io puis Google Play (TWA) puis iOS (Capacitor). Réécriture native écartée : le code est emballé tel quel.
