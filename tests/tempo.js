@@ -34,10 +34,13 @@ const boot = (p) => p.waitForFunction(() => !document.getElementById('boot'), nu
   check(compte.hold && /^[321]$/.test(compte.el) && compte2.hold && Math.abs(compte2.t - compte.t) < 0.01, `le décompte retient le cadran (« ${compte.el} », ${compte.t.toFixed(1)} → ${compte2.t.toFixed(1)} s)`);
   await page.screenshot({ path: path.join(OUT, 'tempo-compte.png') });
   await page.waitForFunction(() => !window.CS.scenes.current.hold, null, { timeout: 8000 }); await page.waitForTimeout(200);
-  const hud = await page.evaluate(() => { const q = document.querySelector('.qtile.current').getBoundingClientRect(); return { cadran: !!document.querySelector('.q-cadran'), tuiles: document.querySelectorAll('.qtile').length, suivante: document.querySelectorAll('.qtile.next').length, souffles: getComputedStyle(document.querySelector('.hud-breaths')).display, saison: window.CS.scenes.current.isl.season, tempo: !!window.CS.scenes.current.tempo, tutoriel: !!document.querySelector('#tutorial .tuto-card'), cx: Math.round(q.left + q.width / 2), cy: Math.round(q.top + q.height / 2), w: Math.round(q.width) }; });
-  check(hud.cadran && hud.tempo && hud.souffles === 'none' && !hud.tutoriel, `l'île s'ouvre avec le cadran, sans souffles ni tutoriel (${JSON.stringify(hud)})`);
+  const hud = await page.evaluate(() => { const q = document.querySelector('.qtile.current').getBoundingClientRect(); return { cadran: !!window.CS.scenes.current.renderer.maree, tuiles: document.querySelectorAll('.qtile').length, suivante: document.querySelectorAll('.qtile.next').length, souffles: getComputedStyle(document.querySelector('.hud-breaths')).display, saison: window.CS.scenes.current.isl.season, tempo: !!window.CS.scenes.current.tempo, tutoriel: !!document.querySelector('#tutorial .tuto-card'), cx: Math.round(q.left + q.width / 2), cy: Math.round(q.top + q.height / 2), w: Math.round(q.width) }; });
+  check(hud.cadran && hud.tempo && hud.souffles === 'none' && !hud.tutoriel, `l'île s'ouvre avec la lueur de marée, sans souffles ni tutoriel (${JSON.stringify(hud)})`);
   check(hud.saison === 'spring' && hud.tuiles === 2 && hud.suivante === 0, `printemps : deux tuiles proposées, jamais de « suivante » (${hud.tuiles}, ${hud.suivante})`);
-  check(hud.cy > 400 && hud.w >= 150, `la tuile à poser est en grand, dans la moitié basse (centre y=${hud.cy}, largeur ${hud.w})`);
+  check(hud.cy > 600 && hud.w >= 80 && hud.w <= 130, `la tuile à poser est centrée en bas, de taille modeste (centre y=${hud.cy}, largeur ${hud.w})`);
+  // la lueur se resserre : à mi-temps elle est plus près de la côte qu'au départ
+  const m1 = await page.evaluate(() => window.CS.scenes.current.renderer.maree.f); await page.waitForTimeout(1200); const m2 = await page.evaluate(() => window.CS.scenes.current.renderer.maree.f);
+  check(m1 > m2 && m2 > 0, `la lueur de marée se resserre avec le temps (${m1.toFixed(2)} → ${m2.toFixed(2)})`);
   await page.screenshot({ path: path.join(OUT, 'tempo-debut.png') });
   // 3. le temps tombe : la tuile est perdue
   const avant = await page.evaluate(() => window.CS.scenes.current.isl.queue.remaining);

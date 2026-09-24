@@ -608,7 +608,7 @@ class IslandScene {
       const mu = BALANCE.tempo.musique; const pas = mu.tempsParPas * 60 / mu.bpm;
       this.hold = true;
       const lancer = AudioSys.has('tempo', 'music') ? AudioSys.playMusic('tempo', { fade: 0 }) : Promise.resolve(null);
-      Promise.race([lancer, wait(2.5)]).then((at) => { if (this.isl !== isl) return; this.compteARebours(pas, at !== null && at !== undefined ? mu.premierTemps : 0); });
+      Promise.race([lancer, wait(2.5)]).then((at) => { if (this.isl !== isl) return; this.tempo.musiqueAt = at !== null && at !== undefined ? at : null; this.compteARebours(pas, this.tempo.musiqueAt !== null ? mu.premierTemps : 0); });
     }
     // audio
     this.seasonCount = { [isl.season]: 1 };
@@ -964,6 +964,12 @@ class IslandScene {
     const pan = 320 * dt; if (input.isDown('ArrowLeft')) this.cam.pan(pan, 0); if (input.isDown('ArrowRight')) this.cam.pan(-pan, 0); if (input.isDown('ArrowUp')) this.cam.pan(0, pan); if (input.isDown('ArrowDown')) this.cam.pan(0, -pan);
     this.cam.update(dt);
     if (this.tempo && !this.hold && !isl.ended) { this.tempo.update(dt); this.hud.setTempo(this.tempo); }
+    if (this.tempo && !isl.ended) {
+      // le battement : la phase dans le temps de la musique (horloge audio), sinon un métronome au même tempo
+      const mu = BALANCE.tempo.musique, temps = 60 / mu.bpm; const ctx = AudioSys.ctx;
+      const depuis = ctx && this.tempo.musiqueAt !== null && this.tempo.musiqueAt !== undefined ? ctx.currentTime - this.tempo.musiqueAt - mu.premierTemps : (this._metro = (this._metro || 0) + dt);
+      this.renderer.maree = { f: this.hold ? 1 : this.tempo.fraction, urgent: !this.hold && this.tempo.t <= 1, battement: ((depuis % temps) + temps) % temps / temps, saison: isl.season };
+    }
     // survol
     if (!isl.ended && input.lastPointer === 'touch') {
       if (this.armed && this.armed.build && isl.canBuild(this.armed.q, this.armed.r)) { const pv = isl.previewBuild(this.armed.q, this.armed.r); this.renderer.hover = { q: this.armed.q, r: this.armed.r, preview: pv }; this.hud.setPlaceButton(pv ? pv.total : null, pv && pv.work ? 'work' : pv && pv.fuse ? 'fuse' : 'build'); }

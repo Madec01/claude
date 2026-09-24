@@ -272,6 +272,6 @@ html.compact.portrait #hud.tempo .qtile.current, html.compact.portrait #hud.temp
 html.compact.landscape #hud.tempo .hud-queue > .queue-title { position: static; align-self: center; margin: 0; }
 html.compact.portrait #hud.tempo .hud-queue > .queue-title { position: static; margin: 0; }
 /* les pastilles de faune quittent le bas pour ne pas passer sous la tuile */
-html.compact.portrait #hud.tempo .hud-fauna { bottom: calc(232px + env(safe-area-inset-bottom)); }
+html.compact.portrait #hud.tempo .hud-fauna { bottom: calc(150px + env(safe-area-inset-bottom)); }
 html.compact.landscape #hud.tempo .hud-fauna { left: 8px; right: auto; bottom: 8px; max-width: 28%; }
 html.compact #hud.tempo .tempo-compte { white-space: nowrap; }

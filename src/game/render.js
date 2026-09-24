@@ -117,6 +117,8 @@ const nappeDe = (saison) => {
 const WATER = { spring: nappeDe('spring'), summer: nappeDe('summer'), autumn: nappeDe('autumn'), winter: nappeDe('winter') };
 const ICE = { fill: '#dbe9f4', deep: '#cfe0ee', shoal: '#e8f2fa', edge: '#bdd2e2', foam: 'rgba(255,255,255,0.8)' };
 
+const SEASON_RGB = { spring: '109,191,103', summer: '74,158,79', autumn: '217,138,58', winter: '159,184,204' };
+
 export class IslandRenderer {
   constructor(island, camera, effects, particles) {
     this.isl = island; this.cam = camera; this.fx = effects; this.p = particles;
@@ -183,6 +185,7 @@ export class IslandRenderer {
     const isl = this.isl, cam = this.cam;
     const season = isl.season;
     this.drawSea(ctx, season, dt);
+    this.drawMaree(ctx);
     this.drawShallows(ctx);
     this.drawEmptyCells(ctx);
     if (this.legacy) this.drawTiles(ctx); else this.drawLayered(ctx);
@@ -1272,6 +1275,31 @@ export class IslandRenderer {
       ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]); for (let i = 1; i < 6; i++) ctx.lineTo(pts[i][0], pts[i][1]); ctx.closePath(); ctx.fill();
     }
     ctx.restore();
+  }
+
+  /**
+   * Souffle court : le temps se lit sur l'île, pas sur la tuile. Une lueur cerne l'île sur la mer (dégradé radial, rien
+   * de dessiné) et se resserre vers la côte à mesure que le cadran se vide ; elle bat la mesure de la musique, et vire au
+   * rouge dans la dernière seconde. `this.maree` = { f: 0..1 restant, urgent, battement: 0..1 dans le temps, saison }.
+   */
+  drawMaree(ctx) {
+    const m = this.maree; if (!m) return;
+    const cam = this.cam, z = cam.zoom, b = this.isl.board;
+    if (this._mareeV !== b.version || !this._mareeC) {
+      this._mareeV = b.version; let sx = 0, sy = 0, n = 0; const pts = [];
+      for (const k of b.mask) { const [q, r] = parse(k); const w = toWorld(q, r); pts.push(w); sx += w.x; sy += w.y; n++; }
+      const cx = sx / n, cy = sy / n; let R = 0; for (const w of pts) R = Math.max(R, Math.hypot(w.x - cx, w.y - cy));
+      this._mareeC = { cx, cy, R: R + SIZE * 0.9 };
+    }
+    const c = cam.toScreen(this._mareeC.cx, this._mareeC.cy);
+    const r = (this._mareeC.R + 30 + 170 * m.f) * z;                  // à plein temps, la lueur est au large ; à zéro, sur la côte
+    const puls = Math.pow(1 - m.battement, 3);                        // un coup par temps, qui s'éteint vite
+    const w = (26 + 10 * puls) * z;
+    const col = m.urgent ? '217,95,75' : SEASON_RGB[m.saison] || '47,158,143';
+    const a = (m.urgent ? 0.5 : 0.32) + 0.18 * puls;
+    const g = ctx.createRadialGradient(c.x, c.y, Math.max(0, r - w), c.x, c.y, r + w);
+    g.addColorStop(0, `rgba(${col},0)`); g.addColorStop(0.5, `rgba(${col},${a.toFixed(3)})`); g.addColorStop(1, `rgba(${col},0)`);
+    ctx.save(); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(c.x, c.y, r + w, 0, Math.PI * 2); ctx.fill(); ctx.restore();
   }
 
   drawHover(ctx) {

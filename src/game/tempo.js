@@ -20,6 +20,7 @@ export class Tempo {
     this.sc = scene; this.isl = scene.isl;
     this.serie = 0; this.mult = 1; this.perduesSaison = 0; this.reserve = null; this.dernier = null;
     this.brume = new Set();   // clés des tuiles sous la brume (automne) — lue par le rendu
+    this.musiqueAt = null;    // départ de la musique sur l'horloge audio : la marée bat la mesure dessus
     this.isl.stats.lost = 0; this.isl.stats.bestSerie = 0;
     this.entrer(this.isl.season);
     this.armer();
