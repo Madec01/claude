@@ -228,7 +228,7 @@ export const TREE = [
         f('niveau2', 'Bâtir (niveau 2)', 'Même famille exactement ?', 'Les bords ont-ils gagné +1 ?', 'La région a-t-elle grandi de 2 ?'),
         f('bienbati', 'Bien bâtie (la tuile qui revient)', 'Quelle raison affichée ?', 'Une tuile était-elle déjà revenue cette saison ?'),
         f('niveau3', 'Niveau 3', 'Depuis combien de saisons au niveau 2 ?', 'Le +1 par saison est-il tombé ?'),
-        f('croissance', 'Croissance naturelle (dès l’île 41)', 'Combien de voisines de sa famille ?', 'As-tu vu les jeunes pousses ?', 'Qu’as-tu posé à côté ?'),
+        f('croissance', 'Croissance naturelle (chapitre 9, îles 25 à 27)', 'Combien de voisines de sa famille ?', 'As-tu vu les jeunes pousses ?', 'Qu’as-tu posé à côté ?'),
         f('fusion', 'Fusion', 'Quelles deux familles ?', 'La case était-elle surlignée ?', 'Le souffle a-t-il été débité ?'),
         f('prime', 'La prime d’une fusion', 'Quelle recette ?', 'Combien de voisines comptées ?', 'Chaque saison ou une fois ?'),
         f('cahier', 'Le Cahier des recettes', 'Était-ce ta première fois ?', 'As-tu reçu les deux tuiles ?'),

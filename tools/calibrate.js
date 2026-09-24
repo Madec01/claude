@@ -1,6 +1,6 @@
 // Calibrage des étoiles : fait jouer le bot fort (tests/bot.js) et le bot glouton sur chaque île avec plusieurs graines.
 // Les seuils valent 45 / 65 / 85 % de la médiane du bot fort, et l'étoile d'or 100 % (voir plus bas).
-// Usage : node tools/calibrate.js [nbEssais=6] [îles=1-50] [--write : écrit src/data/campaign_stars.js]
+// Usage : node tools/calibrate.js [nbEssais=6] [îles=1-30] [--write : écrit src/data/campaign_stars.js]
 // L'île est toujours jouée avec sa graine (celle du joueur) ; les essais ne font varier que le hasard du bot.
 import { campaignIsland, CAMPAIGN_SIZE, islandOptions } from '../src/data/campaign.js';
 import { writeFileSync } from 'node:fs';

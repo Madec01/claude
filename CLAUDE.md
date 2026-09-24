@@ -49,7 +49,7 @@
 - Mesurer avant de trancher. Les deux plus grosses erreurs du projet venaient d'une
   intuition non vérifiée : l'échelle des étoiles et la projection des tuiles.
 - Toute modification qui touche au score impose un recalibrage :
-  `node tools/calibrate.js 4 1-50 --write`.
+  `node tools/calibrate.js 4 1-30 --write`.
 - Les tests en deux vitesses, par `tools/suite.sh` :
   - **`tools/suite.sh court`** (~3 min) avant **chaque** poussée : les quatre tests Node
     (règles, événements, nuage, reprise) et `gate.js` comme test de fumée — il charge tout
