@@ -121,6 +121,19 @@ Récit : une capitaine qui cherche une île disparue, douze souvenirs, l'île 75
 
 Trois lots de code : **7a** mer, abysse, routes et archipel à deux îles avec bot et calibrage ; **7b** faune, fusions, ouvrages et météo de mer, venteux ; **7c** archipels à contraintes, marée, récit, îles 61 à 75 calibrées.
 
+## Chargement (fait le 24 septembre, sur le rapport de la session pépins)
+
+Mesure de référence sur HTTP/2 + gzip comme GitHub Pages (`tools/serveur_h2.js`), profil iPhone 12, 4G bridée, cache vide (`tools/mesure_chargement.js`) : **27,7 s, 22 Mo, 796 fichiers** avant le menu.
+
+| Piste | Fait | Avant → après (menu, 4G) | Statut |
+|---|---|---|---|
+| 1. Sons en arrière-plan | plus rien d'audio ne bloque : effets puis ambiances se chargent une fois le menu affiché | 27,7 s → 19,5 s (22 → 14,9 Mo) | **fait** (journal 136) |
+| 2. Images WebP, effets à 128 px, manifeste allégé | passe finale du pipeline (`build_images.py --webp`), qualité 90 vérifiée au zoom, faune et mer sans perte ; fx jamais tirés en `lazy` ; `manifest.json` 64 Ko + `provenance.json` | 19,5 s → **9,6 s** (14,9 → 4,7 Mo) | **fait** (journal 137) |
+| 3. Service worker | assets cache d'abord par empreinte de contenu, code réseau d'abord, « Recharger à neuf » | seconde visite : 2 fichiers par le réseau sur 777, chargement fini à 1,5 s (le film fait le reste) | **fait** (journal 138) |
+| Le film aussi depuis l'appareil | servir les requêtes Range du film depuis le cache | 0,63 Mo de moins par visite après dix minutes | à décider |
+| Atlas de sprites | 620 images en quelques planches, si le nombre de requêtes gêne encore sur le vrai site (HTTP/2 le rend secondaire : 737 fichiers pour 4,7 Mo tiennent en 9,6 s, soit le débit) | — | plus tard, seulement mesuré |
+| Vérifier sur le site en ligne | `github.io` injoignable depuis l'environnement (403 du mandataire) : mesurer une fois depuis un vrai téléphone | — | **à faire par le commanditaire** |
+
 ## Lot 8 : publication (à planifier)
 
 Hors ligne complet (service worker), version anglaise, export/import de sauvegarde (**fait** : fichier téléchargé / chargé, rappel périodique, copie de secours), politique de confidentialité, captures et fiche, dépôt itch.io puis Google Play (TWA) puis iOS (Capacitor). Réécriture native écartée : le code est emballé tel quel.
