@@ -178,8 +178,8 @@ Elle est oubliée quand l'île se termine, quand on recommence, quand on ouvre u
 
 ## Tests
 
-Deux vitesses : `tools/suite.sh court` (~3 min, les quatre tests Node et `gate.js` en fumée) avant chaque
-poussée ; `tools/suite.sh complet` (~25 min, toute la suite navigateur en plus) quand le changement touche
+Deux vitesses : `tools/suite.sh court` (~1 min 30, les quatre tests Node et `gate.js` en fumée) avant chaque
+poussée ; `tools/suite.sh complet` (~5 min, toute la suite navigateur en plus, par trois en parallèle ; la tournée finale y est pressée comme par un doigt, sauf dans `finale.js` qui la vérifie) quand le changement touche
 les règles, le score, la sauvegarde, l'interface ou la tournée finale. Le détail, test par test :
 
 ```bash

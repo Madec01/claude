@@ -1,9 +1,9 @@
 #!/bin/bash
 # Lance la suite de tests, en deux vitesses (règle de CLAUDE.md, journal 107).
 #
-#   tools/suite.sh court     ~2 min  : les quatre tests Node (règles, événements, nuage, reprise)
+#   tools/suite.sh court   ~1 min 30 : les quatre tests Node (règles, événements, nuage, reprise)
 #                                      et gate.js comme test de fumée dans Chromium
-#   tools/suite.sh complet  ~8 min   : la suite courte puis les neuf autres tests navigateur
+#   tools/suite.sh complet   ~5 min  : la suite courte puis les neuf autres tests navigateur
 #
 # Les tests Node se suivent ; les tests navigateur tournent par trois (PARALLELE), chacun dans son Chromium,
 # les plus longs d'abord. Ils ont besoin d'un serveur statique sur le port 8765 ; le script le lance s'il n'y
