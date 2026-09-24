@@ -48,7 +48,7 @@ export class Island {
     this.level3On = o.level3 !== undefined ? !!o.level3 : (libre || des('build3'));
     const seed = def.seed + (o.seedOffset || 0);
     this.rng = new RNG(seed * 7 + 1);
-    this.board = new Board(generateMask(seed, def.cells, { roughness: def.roughness, holes: def.holes }));
+    this.board = new Board(generateMask(seed, def.cells, { roughness: def.roughness, holes: def.holes, etire: def.etire || 1 }));
     if (this.climate.linkMax) this.board.linkMax = this.climate.linkMax;
     this.garden = !!def.garden;
     this.infinite = !!def.infinite;

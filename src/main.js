@@ -380,7 +380,7 @@ const Game = {
   noteMode(k) { Save.data.seen = Save.data.seen || {}; if (!Save.data.seen[k]) { Save.data.seen[k] = true; Save.save(); } },
   startInfinite() { this.noteMode('mode_infinite'); scenes.go('story', { screens: infiniteScreens(), onDone: () => scenes.go('island', { def: INFINITE }, { fade: 0.5 }) }); },
   /** Le Souffle court : le récit d'ouverture la première fois seulement ; ensuite, droit sur une île neuve. */
-  startTempo() { this.noteMode('mode_tempo'); const def = tempoDef(); if (AudioSys.has('tempo', 'music')) AudioSys.load('music', 'tempo').catch(() => {}); scenes.go('prep', { node: buildTempoPrep({ onStart: () => { AudioSys.play('ui_confirm', { volume: 0.5 }); hideUI(); scenes.go('island', { def }, { fade: 0.4 }); }, onBack: () => this.showMenu() }) }); },
+  startTempo() { this.noteMode('mode_tempo'); const def = tempoDef(undefined, { etire: STAGE.compact && STAGE.portrait ? BALANCE.tempo.etirePortrait : 1 }); if (AudioSys.has('tempo', 'music')) AudioSys.load('music', 'tempo').catch(() => {}); scenes.go('prep', { node: buildTempoPrep({ onStart: () => { AudioSys.play('ui_confirm', { volume: 0.5 }); hideUI(); scenes.go('island', { def }, { fade: 0.4 }); }, onBack: () => this.showMenu() }) }); },
   startDaily() { this.noteMode('mode_daily'); const def = dailyDef(); this.prepIsland(def, dailyScreens(def)); },
   startGarden() { this.noteMode('mode_garden'); scenes.go('story', { screens: gardenScreens(), onDone: () => scenes.go('island', { def: GARDEN }, { fade: 0.5 }) }); },
 

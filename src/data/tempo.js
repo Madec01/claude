@@ -10,15 +10,18 @@ import { Board } from '../game/board.js';
 
 const T = () => BALANCE.tempo;
 
-/** L'île d'une partie : tirée d'une graine (rejouable), 40 à 60 cases, une seule tuile de départ. */
-export function tempoDef(seed = Math.floor(Math.random() * 1e9)) {
+/**
+ * L'île d'une partie : tirée d'une graine (rejouable), 40 à 60 cases, une seule tuile de départ. `etire` : le rapport
+ * hauteur/largeur de l'île — plus haute que large sur un écran en portrait, pour qu'elle remplisse l'écran.
+ */
+export function tempoDef(seed = Math.floor(Math.random() * 1e9), { etire = 1 } = {}) {
   const rng = new RNG(seed);
   const t = T();
   const cells = t.cellsMin + Math.floor(rng.next() * (t.cellsMax - t.cellsMin + 1));
   const sets = ['all', 'balanced', 'rivers', 'farms', 'coastAll', 'hills', 'moorFarm', 'gentle'];
   const weights = WEIGHTS[sets[Math.floor(rng.next() * sets.length)]];
   return {
-    id: 'tempo', tempo: true, seed, arch: 0, cells, roughness: 0.35 + rng.next() * 0.15, holes: rng.next() < 0.5 ? 1 : 2,
+    id: 'tempo', tempo: true, seed, arch: 0, cells, roughness: 0.35 + rng.next() * 0.15, holes: rng.next() < 0.5 ? 1 : 2, etire,
     seasonLength: t.seasonLength, startSeason: 'spring', weights, tilesRatio: 1,
     start: [{ q: 0, r: 0, family: 'hamlet' }], wishes: [], mechanics: [], surprise: false, name: 'Le Souffle court',
   };

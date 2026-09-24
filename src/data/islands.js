@@ -6,7 +6,9 @@ import { neighbors, key } from '../game/hex.js';
  * Génère un masque d'île : croissance aléatoire depuis le centre, avec baies et éventuels lacs (trous).
  * @returns {Set<string>} clés "q,r"
  */
-export function generateMask(seed, cells, { roughness = 0.35, holes = 0 } = {}) {
+/** `etire` : le rapport hauteur/largeur visé (1 = île ronde ; 1,4 = plus haute que large, pour un écran en portrait). */
+export function generateMask(seed, cells, { roughness = 0.35, holes = 0, etire = 1 } = {}) {
+  const ex = Math.sqrt(etire), ey = 1 / ex;
   const rng = new RNG(seed);
   const mask = new Set([key(0, 0)]);
   const frontier = new Map();
@@ -16,7 +18,7 @@ export function generateMask(seed, cells, { roughness = 0.35, holes = 0 } = {}) 
     // choisir une case de la frontière en favorisant celles proches du centre (compacité) mais avec du bruit
     let best = null, bestScore = -Infinity;
     for (const f of frontier.values()) {
-      const d = Math.hypot(f.q + f.r / 2, f.r * 0.866);
+      const d = Math.hypot((f.q + f.r / 2) * ex, f.r * 0.866 * ey);
       const n = neighbors(f.q, f.r).filter(([a, b]) => mask.has(key(a, b))).length;
       const score = -d * (1 - roughness) + n * 0.6 + f.w * roughness * 4;
       if (score > bestScore) { bestScore = score; best = f; }
