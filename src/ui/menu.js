@@ -10,6 +10,7 @@ import { ISLANDS } from '../data/islands.js';
 import { STORY } from '../data/story.js';
 import { dailyKey, dailyLabel } from '../data/daily.js';
 import { UPGRADES, upgradeCost, playerChapter } from '../data/upgrades.js';
+import { insigne, insignesGagnes, rangeeArchetypes, srcChapitre } from './collection.js';
 import { campaignMechanics } from '../data/campaign.js';
 
 export const VERSION = 'v1.0';
@@ -61,7 +62,7 @@ export function buildMenu({ game }) {
     h('div', { class: 'menu-row' },
       navButton('Guide', () => game.showGuide(), { iconName: 'icon_question', title: 'Tuiles, saisons, faune, souffles, graines' }),
       navButton('Options', () => game.showOptions(), { iconName: 'icon_gear' }),
-      navButton('Succès', () => game.showAchievements(), { iconName: 'icon_medal', sub: `${achCount()} / ${ACHIEVEMENTS.length}` }),
+      navButton('Collection', () => game.showAchievements(), { iconName: 'icon_medal', sub: `${achCount() + (c.insignes ? (c.insignes.chapitres || []).length + Object.values(c.insignes.iles || {}).reduce((s, l) => s + l.length, 0) : 0)}` }),   // succès, chapitres et archétypes
       navButton('Crédits', () => game.showCredits(), { iconName: 'icon_info' }),
     ),
     navButton('Plein écran', () => game.toggleFullscreen(), { cls: 'btn-ghost', iconName: 'icon_fullscreen' }),
@@ -83,7 +84,9 @@ export function buildMenu({ game }) {
       const first = (ch.id - 1) * 5 + 1; const got = chapterStars(c.stars, ch.id);
       const open = testMode || c.unlockedIsland >= first;
       const climate = ch.climate !== 'mixed' && ch.climate !== 'temperate' && STORY.climates && STORY.climates[ch.climate] ? ` · ${STORY.climates[ch.climate].name}` : (ch.climate === 'mixed' ? ' · climats variés' : '');
-      const row = h('div', { class: `act-row ${open ? '' : 'act-locked'}` }, h('div', { class: 'act-head' }, h('div', { class: 'act-num' }, `Chapitre ${ch.id} · ${ch.name}`), h('div', { class: 'act-name' }, `${ch.sub}${climate} · ${got} / 15 étoiles`)));
+      // l'insigne du chapitre en tête : en couleur une fois l'île-souvenir terminée, en silhouette avant
+      const clos = insignesGagnes().chapitres.includes(ch.id);
+      const row = h('div', { class: `act-row ${open ? '' : 'act-locked'}` }, h('div', { class: 'act-head' }, insigne(srcChapitre(ch.id), clos, `Chapitre ${ch.id} · ${ch.name}${clos ? '' : ' (terminer son île-souvenir)'}`, 'chapitre'), h('div', {}, h('div', { class: 'act-num' }, `Chapitre ${ch.id} · ${ch.name}`), h('div', { class: 'act-name' }, `${ch.sub}${climate} · ${got} / 15 étoiles`))));
       for (let n = first; n < first + 5; n++) {
         const def = campaignIsland(n); const name = def.story && STORY.islands[def.story] ? STORY.islands[def.story].name : def.name;
         const unlocked = testMode || n <= c.unlockedIsland;
@@ -97,6 +100,8 @@ export function buildMenu({ game }) {
           h('div', { class: 'nc-num' }, `Île ${n} · ${def.cells} cases${def.memory ? ' · souvenir' : ''}${def.signature ? ` · ${def.signature.name.toLowerCase()}` : ''}`),
           h('div', { class: 'nc-title' }, name),
           h('div', { class: `nc-stars ${c.gold && c.gold[n] ? 'gold' : ''}`, title: c.gold && c.gold[n] ? 'Étoile d’or' : '' }, ...[0, 1, 2].map((i) => h('span', { class: `star ${i < stars ? 'on' : ''}` }, icon('icon_star'))), c.best[n] ? h('span', { class: 'nc-best' }, `${c.best[n]} pts`) : null),
+          // les six archétypes que cette île peut donner : ceux déjà gagnés en couleur, les autres en silhouette
+          unlocked ? rangeeArchetypes(n, 'petit') : null,
           unlocked ? null : icon('icon_locked', 'nc-lock'),
         );
         card.addEventListener('click', () => game.startIsland(n, { fromSelect: true }));

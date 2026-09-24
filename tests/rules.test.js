@@ -567,5 +567,16 @@ for (const def of ISLANDS.slice(0, 4)) {
   while (!inf.ended && n++ < 120) { const c = inf.board.legalCells()[0]; if (!c) break; inf.place(c.q, c.r); }
   check(!cerne(inf.board), `Île infinie : aucun trou cerné après ${n} poses (${inf.board.cells} cases)`);
 }
+// --- les insignes : l'archétype au bilan, les chapitres déjà clos rendus à une vieille sauvegarde
+{
+  const { tidyCampaign } = await import('../src/core/save.js');
+  const { archetypeOf, ARCHETYPES } = await import('../src/data/archetypes.js');
+  const data = { campaign: { upgrades: {}, plays: { 5: 1, 10: 0 }, memoriesRead: [15] } }; tidyCampaign(data);
+  check(JSON.stringify(data.campaign.insignes.chapitres.sort()) === '[1,3]', `chapitres clos rendus d'après les îles-souvenirs jouées (${data.campaign.insignes.chapitres})`);
+  tidyCampaign(data); check(data.campaign.insignes.chapitres.length === 2, 'rendus une seule fois');
+  const r = playStrong(campaignIsland(12), { seedOffset: 0, botSeed: 1, known: new Set() });
+  const a = r.result.archetype, b = archetypeOf(r.isl.board);
+  check(a && ARCHETYPES.some((x) => x.id === a.id) && b && b.id === a.id && b.cells.length === a.size, `le bilan porte l'archétype de l'île (${a && a.id}, région de ${a && a.size})`);
+}
 console.log(failures ? `${failures} échec(s)` : 'Tous les tests passent.');
 process.exit(failures ? 1 : 0);

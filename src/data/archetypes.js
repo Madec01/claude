@@ -21,8 +21,8 @@ export function archetypeOf(board) {
   let big = null; const seen = new Set();
   for (const t of board.tiles.values()) for (const f of Board.familiesOf(t)) {
     const reg = board.region(t.q, t.r, f); if (!reg || seen.has(reg.id)) continue; seen.add(reg.id);
-    if (!big || reg.size > big.size) big = { size: reg.size, family: f };
+    if (!big || reg.size > big.size) big = { size: reg.size, family: f, cells: reg.cells };
   }
   const a = big && ARCHETYPES.find((x) => x.families.includes(big.family));
-  return a ? { ...a, family: big.family, size: big.size } : null;
+  return a ? { ...a, family: big.family, size: big.size, cells: big.cells } : null;
 }

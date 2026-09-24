@@ -34,8 +34,9 @@ import { computeLinks } from './game/paths.js';
 import { waterBodies } from './game/water.js';
 import { buildStory, islandIntroScreens, islandMemoryScreens, prologueScreens, endingScreens, infiniteScreens, gardenScreens, dailyScreens } from './ui/story.js';
 import { buildResults } from './ui/results.js';
+import { buildCollection } from './ui/collection.js';
 import { buildWorkshop } from './ui/workshop.js';
-import { buildAchievements, celebrate, celebrateThing } from './ui/achievements.js';
+import { celebrate, celebrateThing } from './ui/achievements.js';
 import { UPGRADES, playerChapter } from './data/upgrades.js';
 import { buildWishesIntro } from './ui/wishes_intro.js';
 import { buildIslandPrep } from './ui/island_prep.js';
@@ -261,7 +262,8 @@ const Game = {
   showOptions(onBack) { this.showPanel(buildOptions({ onBack: onBack || (() => this.showMenu()), game: this })); },
   showGuide(onBack) { this.showPanel(buildGuide({ onBack: onBack || (() => this.showMenu()) })); },
   showCredits(onBack) { this.showPanel(buildCredits({ onBack: onBack || (() => this.showMenu()), credits: this.credits })); },
-  showAchievements(onBack) { this.showPanel(buildAchievements({ onBack: onBack || (() => this.showMenu()) })); },
+  /** La Collection : chapitres, archétypes (en tout et île par île) et succès, les manquants en silhouette. */
+  showAchievements(onBack) { this.showPanel(buildCollection({ onBack: onBack || (() => this.showMenu()) })); },
   toggleFullscreen() {
     const el = document.documentElement;
     const req = el.requestFullscreen || el.webkitRequestFullscreen;
@@ -398,6 +400,10 @@ const Game = {
       seedsGained = Math.max(0, result.stars - prevStars) * (BALANCE.seeds.star + (c.upgrades.evening || 0)) + (result.gold && !prevGold ? 1 : 0) + (firstTime ? result.wishesDone * BALANCE.seeds.wish + BALANCE.seeds.island : 0) + (BALANCE.upgrades.almanac[c.upgrades.almanac || 0] || 0);
       c.seeds += seedsGained; c.seedsTotal += seedsGained;
       if (firstTime) c.memoriesRead.push(def.id);   // le souvenir se lit au bilan : il est acquis dès maintenant, même si l'on part par « Menu »
+      // les insignes : l'archétype de l'île bâtie rejoint ceux de cette île ; l'île-souvenir clôt son chapitre
+      const ins = c.insignes || (c.insignes = { iles: {}, chapitres: [] }); ins.iles = ins.iles || {}; ins.chapitres = ins.chapitres || [];
+      if (result.archetype) { const l = ins.iles[def.id] || (ins.iles[def.id] = []); if (!l.includes(result.archetype.id)) l.push(result.archetype.id); }
+      if (def.memory && def.chapter && !ins.chapitres.includes(def.chapter)) ins.chapitres.push(def.chapter);
       // déblocage recalculé depuis les étoiles : l'étoile qui manquait à la porte compte même si on l'a décrochée
       // sur une île déjà jouée. `Math.max` pour ne jamais retirer ce qui était ouvert (mode test, anciennes sauvegardes).
       c.unlockedIsland = Math.max(c.unlockedIsland, unlockedUpTo(c));

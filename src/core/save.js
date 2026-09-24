@@ -52,6 +52,11 @@ export function tidyCampaign(data) {
   }
   if (back) { c.seeds = (c.seeds || 0) + back; c.refunded = (c.refunded || 0) + back; }
   if (c.contracts) delete c.contracts;
+  // les insignes : les archétypes gagnés île par île, et les chapitres clos (leur île-souvenir terminée). Une sauvegarde
+  // d'avant les insignes reçoit ses chapitres déjà clos ; ses archétypes, eux, ne se devinent pas : ils viendront en rejouant.
+  const ins = c.insignes || (c.insignes = { iles: {}, chapitres: [] });
+  ins.iles = ins.iles || {}; ins.chapitres = ins.chapitres || [];
+  for (let ch = 1; ch <= 10; ch++) if (!ins.chapitres.includes(ch) && (((c.plays || {})[ch * 5] || 0) > 0 || (c.memoriesRead || []).includes(ch * 5))) ins.chapitres.push(ch);
   return back;
 }
 const defaults = () => ({
@@ -62,6 +67,7 @@ const defaults = () => ({
     unlockedIsland: 1, stars: {}, gold: {}, best: {}, plays: {}, seeds: 0, seedsTotal: 0,   // gold : étoile d'or par île (cosmétique) ; plays : parties terminées par île (déblocage et porte de chapitre)
     upgrades: { sight: 0, breath: 0, patience: 0, rare: 0 },
     prologueSeen: false, completed: false, islandsPlayed: 0, memoriesRead: [],
+    insignes: { iles: {}, chapitres: [] },   // archétypes gagnés par île ({ 12: ['sauvage', …] }) et chapitres clos
     announced: [],   // déblocages déjà annoncés par une bannière (modes de jeu, chapitre d'Atelier) : chacun ne passe qu'une fois
   },
   cloud: { choice: null, uid: null, pending: null },   // sauvegarde en ligne : choix de connexion (null = pas encore demandé, 'anon', 'google', 'none') ; `pending` = redirection Google en cours

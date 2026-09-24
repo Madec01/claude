@@ -96,9 +96,13 @@ JOURNAL_DE_BORD.md    document de référence du projet (vision, GDD, DA, décis
 CREDITS.md            crédits complets générés
 ```
 
+## Collection
+
+L'écran **Collection** du menu rassemble tout ce qui se gagne : les **insignes des dix chapitres** (un chapitre se clôt en terminant son île-souvenir), les **six archétypes** (hameaux, aquatique, sauvage, montagneuse, nourricière, littorale), les **archétypes île par île** — chaque île peut donner les six, selon la région qu'on y fait la plus grande, donc rejouer une île autrement en rapporte un autre —, et les succès. Ce qui manque se montre en **silhouette** : la forme de l'insigne, vide. Les mêmes insignes paraissent dans « Choisir une île » : celui du chapitre en tête de chaque chapitre, et sur chaque île ses six emplacements d'archétype. En fin d'île, la carte postale reçoit ses tampons un à un ; la région qui a valu l'archétype se rallume sur l'île et une légende dit pourquoi (« Île sauvage · sa plus grande région : forêt, 14 tuiles », « Chapitre 1 · Prise en main : clos »).
+
 ## Succès
 
-Trente et un succès à débloquer (écran « Succès » du menu), rangés par famille : prise en main, eau et saisons, faune, habitants et vœux, bâtir, campagne, ailleurs. Chacun rapporte une graine. Ceux qui se comptent (dix coups de maître, vingt tuiles bâties, cinquante vœux…) affichent leur progression ; trois restent cachés jusqu'à leur obtention. Au déblocage, une bannière glisse depuis le haut avec la vignette, des éclats et un jingle pizzicato (Kenney Music Jingles, CC0). Les vignettes sont composées par le pipeline d'images à partir des tuiles et sprites du jeu (`assets/img/succes/`).
+Trente et un succès à débloquer (dans la Collection du menu), rangés par famille : prise en main, eau et saisons, faune, habitants et vœux, bâtir, campagne, ailleurs. Chacun rapporte une graine. Ceux qui se comptent (dix coups de maître, vingt tuiles bâties, cinquante vœux…) affichent leur progression ; trois restent cachés jusqu'à leur obtention. Au déblocage, une bannière glisse depuis le haut avec la vignette, des éclats et un jingle pizzicato (Kenney Music Jingles, CC0). Les vignettes sont composées par le pipeline d'images à partir des tuiles et sprites du jeu (`assets/img/succes/`).
 
 Les vœux d'une île se présentent avant la première pose (donneur, demande, objectif, échéance, récompense) avec un bouton « C'est parti » ; ils restent affichés à droite pendant la partie.
 

@@ -20,7 +20,7 @@ import { clamp, TAU, rnd } from '../core/math.js';
 import { waterBodies } from './water.js';
 import { SEASONS } from '../data/tiles.js';
 import { cadreCarte, habillerCarte, geoCarte, renderPostcard, postcardName } from './postcard.js';
-import { insignesDe } from './tampon.js';
+import { insignesDe, TAMPON } from './tampon.js';
 import { exporterCarte } from '../ui/postcard.js';
 import { showUI, hideUI, h, button } from '../ui/dom.js';
 
@@ -302,13 +302,19 @@ export class Finale {
     const premiere = D.titre * 0.53 + 0.5, pas = this.court ? 0.3 : 0.42;
     if (t > premiere + this.starsShown * pas && this.starsShown < this.stars) { this.starsShown++; this.sc.playSfx(`star_${this.starsShown}`, 0.7); }
     // après les étoiles, le coup de tampon : l'encre paraît d'un coup, avec le choc sourd du bois sur la table
-    const tape = premiere + this.stars * pas + 0.35;
-    const avant = this.tampons || 0; this.tampons = clamp((t - tape) / 0.12, 0, 1);
-    if (avant === 0 && this.tampons > 0 && insignesDe(this.sc).length) this.sc.playSfx('tile_place_2', 0.8);
+    // chaque tampon tombe à son tour, avec le choc du bois ; celui de l'archétype rallume la région qui l'a valu
+    const tape = premiere + this.stars * pas + 0.35, ins = insignesDe(this.sc);
+    const avant = this.tampons || 0; this.tampons = Math.max(0, t - tape);
+    ins.forEach((it, n) => {
+      const d = n * TAMPON.espace; if (!(avant <= d && this.tampons > d)) return;
+      this.sc.playSfx('tile_place_2', 0.8);
+      if (it.cells) { const c0 = it.cells.reduce((m, c) => { const w = toWorld(c.q, c.r); return { x: m.x + w.x / it.cells.length, y: m.y + w.y / it.cells.length }; }, { x: 0, y: 0 }); this.fx.ring(it.cells.map((c) => { const w = toWorld(c.q, c.r); return { q: c.q, r: c.r, d: Math.min(0.5, Math.hypot(w.x - c0.x, w.y - c0.y) / 420) }; }), '#ffd77a'); }
+    });
+    const finTampons = ins.length ? tape + (ins.length - 1) * TAMPON.espace + TAMPON.chute + 1.4 : 0;   // le temps de lire la dernière légende
     if (!this.voilier && t > 0.25) { this.voilier = true; this.r.envoyerVoilier(this.versLaMer, D.titre * 1.3); }
     if (!this.baleine && t > D.titre * 0.3) { this.baleine = true; if (this.r.anses().size) this.r.souffleBaleine(D.titre); }
     // la carte attend que le tampon soit tombé (trois étoiles et un tampon débordent un peu la durée du titre)
-    if (t >= Math.max(D.titre, insignesDe(this.sc).length ? tape + 0.6 : 0)) this.entrer('carte');
+    if (t >= Math.max(D.titre, finTampons)) this.entrer('carte');
   }
 
   /** Le compteur monte pendant la tournée et finit sa course avec la vague. */
@@ -324,9 +330,9 @@ export class Finale {
   render(ctx) {
     if (this.done) return;
     const W = STAGE.W, H = STAGE.H, compact = STAGE.compact;
-    if (this.phase === 'carte') { habillerCarte(ctx, this.sc, W, H); return; }
+    if (this.phase === 'carte') { habillerCarte(ctx, this.sc, W, H, { legendes: true }); return; }
     const fin = this.phase === 'titre' ? clamp(this.stepT / (this.D.titre * 0.26), 0, 1) : 0;
-    if (this.phase === 'titre') habillerCarte(ctx, this.sc, W, H, { bandes: this.bandes, lettres: this.lettres, etoiles: this.starsShown, tampons: this.tampons || 0 });
+    if (this.phase === 'titre') habillerCarte(ctx, this.sc, W, H, { bandes: this.bandes, lettres: this.lettres, etoiles: this.starsShown, tampons: this.tampons || 0, legendes: true });
     ctx.save(); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     // le compteur, tant que la carte n'a pas pris le relais (elle porte le score, elle aussi)
     const a = clamp(this.t / 0.8, 0, 1) * (1 - fin);

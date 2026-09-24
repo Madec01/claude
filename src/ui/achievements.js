@@ -10,9 +10,8 @@ export function badgeImg(a, cls = '') {
   return img;
 }
 
-export function buildAchievements({ onBack }) {
-  const root = h('div', { class: 'panel panel-achievements' });
-  const n = Achievements.count(), total = ACHIEVEMENTS.length;
+/** Les succès rangés par famille : un titre et une grille par famille (repris par l'écran Collection). */
+export function achievementGroups() {
   const groups = [];
   for (const [cat, label] of Object.entries(ACHIEVEMENT_CATS)) {
     const list = ACHIEVEMENTS.filter((a) => a.cat === cat); if (!list.length) continue;
@@ -30,6 +29,13 @@ export function buildAchievements({ onBack }) {
           got ? h('div', { class: 'ach-when' }, `Obtenu le ${when}`) : null));
     })));
   }
+  return groups;
+}
+
+export function buildAchievements({ onBack }) {
+  const root = h('div', { class: 'panel panel-achievements' });
+  const n = Achievements.count(), total = ACHIEVEMENTS.length;
+  const groups = achievementGroups();
   append(root,
     h('h2', { class: 'panel-title' }, 'Succès'),
     h('div', { class: 'ws-head-row' }, h('p', { class: 'ws-intro' }, `Chaque succès rapporte ${ACHIEVEMENT_SEED} graine pour l’Atelier. Les cachés se révèlent quand on les obtient.`), h('div', { class: 'seeds', title: 'Succès obtenus' }, icon('icon_medal'), h('b', {}, String(n)), h('span', {}, `/ ${total}`))),

@@ -1,6 +1,7 @@
 // Déroulement d'une île : orchestration des règles, saisons, faune, vœux, souffles, fin et bilan.
 // Modèle pur (sans DOM ni canvas) : utilisable en Node pour les tests et le bot.
 import { Board } from './board.js';
+import { archetypeOf } from '../data/archetypes.js';
 import { preview, apply, previewBuild, canBuild as ruleCanBuild, canFuse, previewFuse, fusedTile } from './rules.js';
 import { FUSION_BY_ID, RETIRED_RARE, RETIRED_WORKS, RARE_SEASONAL } from '../data/tiles.js';
 import { climateOf } from '../data/climates.js';
@@ -514,7 +515,7 @@ export class Island {
     const dom = ['hamlet', 'water', 'forest'].map((f) => ({ family: f, share: placedN ? (counts[f] || 0) / placedN : 0 })).sort((a, b) => b.share - a.share)[0];
     const dominant = dom && dom.share >= 0.3 ? dom : null;
     const seeds = stars * BALANCE.seeds.star + this.stats.wishesDone * BALANCE.seeds.wish + (this.infinite || this.garden ? 0 : BALANCE.seeds.island);
-    this.result = { island: this.def.id, score: this.score, stars: this.infinite || this.garden ? 0 : stars, gold, goldThreshold: this.goldThreshold, thresholds: th, tally: { ...this.tally }, bestMove: this.bestMove, dominant, reason, placements: this.placements, seasons: this.seasonsPassed.length, stats: { ...this.stats }, fauna: this.fauna.size, wishesDone: this.stats.wishesDone, wishesTotal, seeds, cells, filled: this.board.placed };
+    this.result = { island: this.def.id, score: this.score, stars: this.infinite || this.garden ? 0 : stars, gold, goldThreshold: this.goldThreshold, thresholds: th, tally: { ...this.tally }, bestMove: this.bestMove, dominant, archetype: (() => { const a = archetypeOf(this.board); return a ? { id: a.id, family: a.family, size: a.size } : null; })(), reason, placements: this.placements, seasons: this.seasonsPassed.length, stats: { ...this.stats }, fauna: this.fauna.size, wishesDone: this.stats.wishesDone, wishesTotal, seeds, cells, filled: this.board.placed };
     this.emit({ type: 'end', result: this.result });
     return this.result;
   }

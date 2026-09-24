@@ -219,3 +219,28 @@ html:not(.compact) .menu-row .btn span:last-child { overflow: visible; text-over
 /* la paire Jardin–Atelier se fond dans la grille à deux colonnes : le Jardin rejoint l'Île du jour, l'Atelier a sa rangée */
 html:not(.compact) .menu-pair { display: contents; }
 html:not(.compact) .menu-pair > .btn:last-child { grid-column: 1 / -1; }
+
+/* ---- Insignes et Collection ---- */
+/* un insigne manquant garde sa forme, vide : la silhouette de l'hexagone dit qu'il y a quelque chose à gagner là */
+.insigne { display: block; object-fit: contain; flex: 0 0 auto; }
+.insigne.vide { filter: brightness(0); opacity: 0.13; }
+.insigne-petit { width: 17px; height: 20px; }
+.insigne-chapitre { width: 40px; height: 47px; }
+.insigne-grand { width: 96px; height: 112px; margin: 0 auto 4px; }
+.insignes-rangee { display: flex; gap: 2px; margin-top: 6px; }
+.act-head { flex-direction: row; align-items: center; gap: 10px; }
+.coll-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 10px; }
+.coll-item { text-align: center; padding: 10px 6px 8px; border-radius: 14px; background: rgba(255,255,255,0.55); border: 1px solid rgba(43,42,38,0.06); }
+.coll-item.gagne { background: linear-gradient(180deg, #fffdf6, #fff6e2); border-color: rgba(224,163,58,0.55); }
+.coll-item b { display: block; font-family: var(--font-title); font-size: 14px; }
+.coll-item span { display: block; font-size: 11.5px; line-height: 1.3; opacity: 0.7; margin-top: 2px; }
+.coll-iles { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 10px; }
+.coll-chap { background: rgba(255,255,255,0.55); border-radius: 12px; padding: 8px 10px; }
+.coll-chap-titre { display: flex; align-items: center; gap: 6px; font-family: var(--font-title); font-size: 15px; margin-bottom: 4px; }
+.coll-ile { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 3px 0; border-top: 1px dotted var(--line); }
+.coll-ile-nom { font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.coll-ile-nom i { font-style: normal; opacity: 0.5; margin-right: 6px; }
+.coll-ile .insignes-rangee { margin: 0; }
+.panel-collection .ach-souscat { font-size: 16px; margin-top: 10px; }
+.panel-collection .ach-card.locked .ach-img { filter: brightness(0); opacity: 0.13; }   /* le succès manquant, en silhouette lui aussi */
+.panel-collection .ach-card.locked { opacity: 0.85; }
