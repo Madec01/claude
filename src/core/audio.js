@@ -84,15 +84,20 @@ export const AudioSys = {
     return p;
   },
 
-  /** Précharge tous les SFX et ambiances (petits fichiers). */
+  /**
+   * Précharge les SFX puis les ambiances, en arrière-plan (appelé une fois le menu affiché, jamais avant : rien ici
+   * n'est nécessaire pour commencer). Les effets d'abord (1 Mo, ils servent dès la première pose), les ambiances
+   * ensuite (6 Mo, par ordre d'utilité : celles du menu et des premières îles avant l'orage). Quatre à la fois, pour
+   * laisser de la bande passante au film d'ouverture et au nuage.
+   */
   async preload(onProgress = () => {}) {
     this.init();
-    const jobs = [];
-    for (const k of Object.keys(this.manifest.sfx || {})) jobs.push(['sfx', k]);
-    for (const k of Object.keys(this.manifest.ambience || {})) jobs.push(['ambience', k]);
+    const ordre = ['birds', 'sea', 'stream', 'wind', 'crickets', 'winter', 'rain', 'storm'];
+    const amb = Object.keys(this.manifest.ambience || {}).sort((a, b) => (ordre.indexOf(a) + 1 || 99) - (ordre.indexOf(b) + 1 || 99));
+    const jobs = [...Object.keys(this.manifest.sfx || {}).map((k) => ['sfx', k]), ...amb.map((k) => ['ambience', k])];
     let done = 0;
-    for (let i = 0; i < jobs.length; i += 8) {
-      await Promise.all(jobs.slice(i, i + 8).map(([g, k]) => this.load(g, k).then(() => { done++; onProgress(done / jobs.length); })));
+    for (let i = 0; i < jobs.length; i += 4) {
+      await Promise.all(jobs.slice(i, i + 4).map(([g, k]) => this.load(g, k).then(() => { done++; onProgress(done / jobs.length); })));
     }
   },
 

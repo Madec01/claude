@@ -135,8 +135,10 @@ const Game = {
     AudioSys.volumes = { master: Save.options.master, music: Save.options.music, ambience: Save.options.ambience, sfx: Save.options.sfx };
     AudioSys.muted = !!Save.options.muted;
     try { await AudioSys.loadManifest(); } catch (e) { console.warn(e); }
-    try { await Assets.loadImages((p) => setP(p * 0.6, 'Les tuiles se réveillent…')); } catch (e) { console.warn(e); }
-    try { await AudioSys.preload((p) => setP(0.6 + p * 0.35, 'Les oiseaux s’accordent…')); } catch (e) { console.warn(e); }
+    try { await Assets.loadImages((p) => setP(p * 0.95, 'Les tuiles se réveillent…')); } catch (e) { console.warn(e); }
+    // Les sons ne bloquent plus le menu : la musique et les ambiances se chargent à la demande (playMusic, setAmbience),
+    // un effet pas encore arrivé se tait. Le préchargement part en arrière-plan une fois le menu affiché (8 Mo en 4G,
+    // c'était sept secondes d'écran de chargement pour des sons qui ne servent qu'en partie).
     try { await document.fonts.ready; } catch (_) { /* ignore */ }
     this.credits = await loadCredits();
     setP(1, 'Prêt.');
@@ -144,6 +146,7 @@ const Game = {
     await wait(200);
     const boot = document.getElementById('boot'); boot.classList.add('off'); setTimeout(() => boot.remove(), 700);
     await intro;   // le film finit son tour avant que le menu (ou le choix de connexion) n'apparaisse
+    AudioSys.preload().catch((e) => console.warn(e));   // en arrière-plan : effets d'abord, ambiances ensuite
     await this.bootCloud();
     this.proposeReport();
     this.proposeEtats();
