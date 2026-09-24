@@ -327,6 +327,13 @@ export class Hud {
     el.classList.toggle('urgent', !!c.urgent);
     if (c.f >= 0.98) el.classList.remove('casse');
   }
+  /** Souffle court : la file (la tuile à poser) suit le bas de l'île, sans jamais sortir de l'écran. */
+  setQueueTop(y) {
+    const q = this.r.queue; if (!q) return;
+    if ((this._qFrame = (this._qFrame || 0) + 1) % 20 === 1) this._qH = q.offsetHeight || this._qH || 140;
+    const top = Math.round(Math.min(y + 6, STAGE.H - this._qH - 8));
+    if (this._qTop !== top) { this._qTop = top; q.style.top = `${top}px`; }
+  }
   /** La tuile est perdue : le chiffre éclate, la barre flashe. */
   chronoCasse() { const el = this._chrono; if (!el) return; el.classList.remove('casse'); void el.offsetWidth; el.classList.add('casse'); }
 

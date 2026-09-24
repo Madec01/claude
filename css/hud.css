@@ -303,6 +303,7 @@ html.touch .th-close { position: relative; }
 
 /* ---- Le Souffle court : la tuile à poser, en grand, centrée dans la moitié basse ; jamais la suivante ---- */
 #hud.tempo .hud-queue { left: 50%; right: auto; top: auto; bottom: 4%; width: auto; transform: translateX(-50%); align-items: center; gap: 6px; }
+#hud.tempo .hud-queue[style*="top"] { bottom: auto; }   /* posée par le jeu juste sous l'île */
 #hud.tempo .hud-queue > .queue-title { justify-content: center; }
 #hud.tempo .queue-list { flex-direction: row; align-items: flex-end; gap: 18px; }
 #hud.tempo .qtile.current, #hud.tempo .qtile.choix { flex-direction: column; padding: 8px 12px 6px; border-radius: 14px; gap: 3px; }

@@ -267,6 +267,7 @@ html.compact .panel-collection { overflow: auto; -webkit-overflow-scrolling: tou
 html.compact.portrait #hud.tempo .hud-queue, html.compact.landscape #hud.tempo .hud-queue { left: 50%; right: auto; top: auto; width: auto; height: auto; overflow: visible; flex-direction: column; align-items: center; padding: 0; gap: 6px; transform: translateX(-50%); }
 html.compact.portrait #hud.tempo .hud-queue { bottom: calc(10px + env(safe-area-inset-bottom)); }
 html.compact.landscape #hud.tempo .hud-queue { bottom: 6px; }
+html.compact #hud.tempo .hud-queue[style*="top"] { bottom: auto; }
 html.compact.portrait #hud.tempo .queue-list, html.compact.landscape #hud.tempo .queue-list { flex: none; min-height: 0; overflow: visible; flex-direction: row; align-items: flex-end; gap: 12px; }
 html.compact.portrait #hud.tempo .qtile.current, html.compact.portrait #hud.tempo .qtile.choix, html.compact.landscape #hud.tempo .qtile.current, html.compact.landscape #hud.tempo .qtile.choix { flex: none; flex-direction: column; }
 html.compact.landscape #hud.tempo .hud-queue > .queue-title { position: static; align-self: center; margin: 0; }

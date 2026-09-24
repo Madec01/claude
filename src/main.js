@@ -970,8 +970,9 @@ class IslandScene {
       const depuis = ctx && this.tempo.musiqueAt !== null && this.tempo.musiqueAt !== undefined ? ctx.currentTime - this.tempo.musiqueAt - mu.premierTemps : (this._metro = (this._metro || 0) + dt);
       const battement = ((depuis % temps) + temps) % temps / temps;
       // le chronomètre se pose juste au-dessus de l'île : le sommet du masque, en écran
-      if (this._chronoV !== isl.board.version) { this._chronoV = isl.board.version; let y = Infinity; for (const k of isl.board.mask) { const [q, r] = parse(k); y = Math.min(y, toWorld(q, r).y); } this._chronoY = y - SIZE; }
+      if (this._chronoV !== isl.board.version) { this._chronoV = isl.board.version; let y = Infinity, y2 = -Infinity; for (const k of isl.board.mask) { const [q, r] = parse(k); const wy = toWorld(q, r).y; y = Math.min(y, wy); y2 = Math.max(y2, wy); } this._chronoY = y - SIZE; this._basY = y2 + SIZE; }
       this.hud.setChrono({ t: this.hold ? this.tempo.limit : this.tempo.t, f: this.hold ? 1 : this.tempo.fraction, puls: Math.pow(1 - battement, 3), urgent: !this.hold && this.tempo.t <= 1, y: this.cam.toScreen(0, this._chronoY).y });
+      this.hud.setQueueTop(this.cam.toScreen(0, this._basY).y);   // la tuile à poser se cale juste sous l'île, pas au bord de l'écran
     }
     // survol
     if (!isl.ended && input.lastPointer === 'touch') {
