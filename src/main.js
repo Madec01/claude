@@ -855,6 +855,7 @@ class IslandScene {
     } else if (e.type === 'grow') {
       this.cam.fit(this.isl.board.mask);
     } else if (e.type === 'end') {
+      if (this.tempo) this.tempo.brume.clear();   // la brume d'automne se lève : la tournée finale et la carte montrent l'île entière
       if (!Game.testMode) RunSave.archive(Game.whereOf(this.def), this.isl, this.title);   // finie, elle ne se reprend plus — mais elle s'illustre dans un pépin
       RunSave.clear(); this.runDirty = false;   // l'île est finie : plus rien à reprendre
       fx.flushFlights(); this.hud.hold = 0;

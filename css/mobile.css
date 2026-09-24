@@ -276,3 +276,6 @@ html.compact.portrait #hud.tempo .hud-queue > .queue-title { position: static; m
 html.compact.portrait #hud.tempo .hud-fauna { bottom: calc(150px + env(safe-area-inset-bottom)); }
 html.compact.landscape #hud.tempo .hud-fauna { left: 8px; right: auto; bottom: 8px; max-width: 28%; }
 html.compact #hud.tempo .tempo-compte { white-space: nowrap; }
+/* la carte de fin : en portrait, les deux boutons en colonne à gauche, pour ne pas couvrir le tampon et ses légendes (à droite) */
+html.compact.portrait .carte-actions { flex-direction: column; align-items: flex-start; gap: 8px; padding: 0 12px; }
+html.compact.portrait .carte-actions .btn { font-size: 14px; padding: 8px 12px; }   /* assez étroits pour laisser un second tampon à droite */
