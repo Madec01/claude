@@ -372,6 +372,27 @@ html.compact .tempo-chrono .tc-cadre { width: 170px; height: 11px; }
 .brume-cran { flex: 1 1 240px; display: flex; flex-direction: column; gap: 6px; }
 .brume-cran ul { margin: 0; padding-left: 18px; font-size: 13px; line-height: 1.4; }
 .brume-best { margin: 0; font-weight: 700; color: #b8862b; font-size: 13px; }
+/* la carte de saison, sous le bandeau : bonus ou malus, et la chance de bonus à côté */
+.hud-carte { position: absolute; left: 14px; top: calc(var(--hud-top-h, 70px) + 8px); display: flex; align-items: center; gap: 8px; max-width: 460px; padding: 6px 10px; border-radius: 12px; background: rgba(255,253,248,0.92); border: 1px solid rgba(43,42,38,0.14); box-shadow: 0 4px 12px rgba(30,50,70,0.12); font-size: 12px; pointer-events: none; }
+.hud-carte .hc-kicker { font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 800; opacity: 0.6; }
+.hud-carte b { font-size: 14px; white-space: nowrap; }
+.hud-carte .hc-texte { opacity: 0.8; line-height: 1.25; }
+.hud-carte .hc-ratio { margin-left: auto; white-space: nowrap; font-weight: 800; padding: 2px 8px; border-radius: 999px; background: rgba(43,42,38,0.08); }
+.hud-carte.bonus { border-color: rgba(47,158,143,0.6); } .hud-carte.bonus .hc-kicker { color: #2f7f74; opacity: 1; }
+.hud-carte.malus { border-color: rgba(217,95,75,0.6); } .hud-carte.malus .hc-kicker { color: #b0432f; opacity: 1; }
+/* le tirage : une carte au centre, qui fait défiler les noms puis s'arrête */
+.brume-tirage { position: absolute; left: 50%; top: 36%; transform: translate(-50%, -50%) scale(0.9); width: 380px; padding: 18px 22px; border-radius: 16px; background: #fffdf8; border: 2px solid rgba(43,42,38,0.14); box-shadow: 0 16px 40px rgba(30,50,70,0.25); display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; opacity: 0; transition: opacity 0.3s, transform 0.3s var(--ease-out); pointer-events: all; z-index: 9; }
+.brume-tirage.on { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+.brume-tirage .bt-kicker { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 800; opacity: 0.6; }
+.brume-tirage b { font-family: var(--font-title); font-size: 30px; line-height: 1.1; }
+.brume-tirage .bt-texte { font-size: 14px; line-height: 1.35; opacity: 0.85; }
+.brume-tirage.tire { animation: tirage-pop 0.4s var(--ease-out); }
+.brume-tirage.bonus { border-color: #2f9e8f; } .brume-tirage.bonus .bt-kicker, .brume-tirage.bonus b { color: #2f7f74; }
+.brume-tirage.malus { border-color: #d95f4b; } .brume-tirage.malus .bt-kicker, .brume-tirage.malus b { color: #b0432f; }
+@keyframes tirage-pop { 0% { transform: translate(-50%, -50%) scale(1); } 40% { transform: translate(-50%, -50%) scale(1.08); } 100% { transform: translate(-50%, -50%) scale(1); } }
+/* le tutoriel montre ce dont il parle */
+.tuto-focus { outline: 3px solid var(--breath); outline-offset: 4px; border-radius: 14px; animation: tuto-focus 0.9s ease-in-out infinite alternate; }
+@keyframes tuto-focus { from { outline-color: rgba(47,158,143,0.35); } to { outline-color: rgba(47,158,143,1); } }
 .brume-attente { text-align: center; font-style: italic; margin: 10px 0 0; animation: brume-attente 1.2s ease-in-out infinite alternate; }
 @keyframes brume-attente { from { opacity: 0.45; } to { opacity: 1; } }
 .panel-brume-case { width: 560px; }

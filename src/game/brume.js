@@ -25,6 +25,62 @@ export const CRANS = {
 /** Les points propres au mode. Le trésor est une première valeur, à régler en jouant. */
 export const P = { jalonJuste: 5, jalonFaux: -5, jalonManque: -3, tresor: 8, cachee: -3 };
 
+/**
+ * Le tirage de saison (décision du commanditaire) : à chaque passage de saison, une carte, bonus ou malus, pour la saison
+ * qui commence. Première saison à 50 / 50 ; chaque bon coup de la saison écoulée (tuile posée dans le meilleur tiers des
+ * places possibles) pousse la chance vers le bonus d'un cran, chaque mauvais coup (pire tiers) vers le malus ; bornes
+ * 20 et 80 %. `poids` : Marée basse et Brume épaisse touchent le dévoilement, donc toute la saison : deux fois plus rares.
+ */
+export const TIRAGE = { depart: 0.5, pas: 0.08, min: 0.2, max: 0.8 };
+export const CARTES = {
+  bonus: [
+    { id: 'longueVue', nom: 'Longue-vue', texte: 'Une case cachée de ton choix se dévoile tout de suite : touche-la.' },
+    { id: 'lanterne', nom: 'Lanterne', texte: 'Une fois cette saison, la tuile posée contre la brume dit quelles voisines cachées sont de sa famille, pas seulement combien.' },
+    { id: 'deuxJalons', nom: 'Deux jalons', texte: 'Deux jalons cette saison au lieu d’un.' },
+    { id: 'mareeBasse', nom: 'Marée basse', texte: 'Les cases cachées se dévoilent avec une voisine posée de moins.', poids: 0.5 },
+    { id: 'bordsDores', nom: 'Bords dorés', texte: 'Les bords contre une tuile dévoilée valent triple au lieu de double.' },
+    { id: 'boussole', nom: 'Boussole', texte: 'La case du trésor est signalée, pas ce qu’il est.' },
+    { id: 'deplacementOffert', nom: 'Déplacement offert', texte: 'Un déplacement gratuit, sans perdre la tuile suivante.' },
+    { id: 'crayonSur', nom: 'Crayon sûr', texte: 'Ta première note au crayon de la saison te dit si elle est juste.' },
+    { id: 'primeDevoilement', nom: 'Prime de dévoilement', texte: '+4 points par case dévoilée au prochain passage de saison.' },
+    { id: 'mainLarge', nom: 'Main large', texte: 'Une tuile de plus dans la main : tu choisis parmi six.' },
+  ],
+  malus: [
+    { id: 'brumeGagne', nom: 'La brume gagne', texte: 'Une case libre passe sous la brume, avec une tuile de plus à deviner.' },
+    { id: 'indicesMuets', nom: 'Indices muets', texte: 'Les tuiles posées contre la brume ne lisent pas d’indice cette saison.' },
+    { id: 'mainCourte', nom: 'Main courte', texte: 'Quatre poses cette saison au lieu de cinq.' },
+    { id: 'jalonForce', nom: 'Jalon forcé', texte: 'Un jalon obligatoire cette saison, sinon −5.' },
+    { id: 'brumeEpaisse', nom: 'Brume épaisse', texte: 'Les cases se dévoilent avec une voisine posée de plus.', poids: 0.5 },
+    { id: 'mauvaisVoisinage', nom: 'Mauvais voisinage', texte: 'Les mauvaises paires de bords comptent double.' },
+    { id: 'nuitNoire', nom: 'Nuit noire', texte: 'L’inventaire est caché toute la saison.' },
+    { id: 'tuilePerdue', nom: 'Tuile perdue', texte: 'La première tuile de la main est perdue d’office.' },
+    { id: 'crayonEfface', nom: 'Crayon effacé', texte: 'Toutes les notes s’effacent, et le crayon est indisponible.' },
+    { id: 'ventContraire', nom: 'Vent contraire', texte: 'Au prochain passage de saison, une tuile posée cette saison glisse sur une case libre voisine.' },
+  ],
+};
+export const CARTE_PAR_ID = Object.fromEntries([...CARTES.bonus.map((c) => [c.id, { ...c, bonus: true }]), ...CARTES.malus.map((c) => [c.id, { ...c, bonus: false }])]);
+/** Tire une carte : bonus avec la probabilité `ratio`, puis une carte au poids parmi celles qui restent possibles. */
+export function tirerCarte(rng, ratio, exclus = new Set()) {
+  const bonus = rng.next() < ratio;
+  const liste = (bonus ? CARTES.bonus : CARTES.malus).filter((c) => !exclus.has(c.id));
+  const somme = liste.reduce((a, c) => a + (c.poids || 1), 0);
+  let x = rng.next() * somme;
+  for (const c of liste) { x -= c.poids || 1; if (x <= 0) return { ...c, bonus }; }
+  return { ...liste[liste.length - 1], bonus };
+}
+/** L'état d'une saison sous la brume, remis à neuf à chaque tirage. */
+export function saisonNeuve() {
+  return { jalonsMax: 1, devoileDelta: 0, dores: false, muets: false, mauvais: false, nuit: false, crayonBloque: false, lanterne: false, gratuits: 0, crayonSur: false, boussole: false, prime: 0, vent: false, longueVue: false, jalonForce: false, mainCourte: false };
+}
+/** Une famille ordinaire tirée selon les poids de l'île (la même loi que les tuiles cachées). */
+export function tirerFamille(rng, weights = WEIGHTS.balanced) {
+  const fams = Object.keys(weights).filter((f) => weights[f] > 0 && COULEURS[f]);
+  const somme = fams.reduce((a, f) => a + weights[f], 0);
+  let x = rng.next() * somme;
+  for (const f of fams) { x -= weights[f]; if (x <= 0) return f; }
+  return fams[0];
+}
+
 /** Les trésors possibles : les cinq rares de base. */
 export const TRESORS = ['mill', 'chapel', 'watchtower', 'well', 'camp'];
 

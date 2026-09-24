@@ -45,18 +45,20 @@ const GUIDED = {
  * qui arrivent quand le jeu montre la chose ; au Souffle court, le temps s'arrête tant qu'une carte est là (voir main.js).
  */
 const MODE_STEPS = {
+  // `focus` : l'élément de l'écran que la carte met en avant (un sélecteur dans le HUD) — le tutoriel montre ce dont il parle
   tempo: [
-    { id: 'tp1', info: true, when: () => true, done: (i) => i.placements >= 1, text: 'Pas de file : une seule tuile, en bas. Le temps se lit au-dessus de l’île, le chiffre et la marée qui se retire. Tant qu’une carte comme celle-ci est là, le temps s’arrête. Pose la tuile contre l’île.' },
-    { id: 'tp2', info: true, when: (i) => i.placements >= 1, done: (i) => i.placements >= 3, text: 'Posée vite, sous une seconde, la série monte, deux fois plus vite si la place est bonne. Elle multiplie les points de la tuile : ×1,5 à 3, ×2 à 6, ×3 à 10. Hésiter la casse.' },
-    { id: 'tp3', info: true, when: (i) => i.placements >= 3, done: (i) => i.placements >= 5, text: 'À zéro, la tuile est perdue et sa case restera vide : elle coûte des points à la fin, plus encore si elle seule empêchait une région de se fermer, ou si les vides se touchent.' },
-    { id: 'tp4', info: true, when: (i) => i.seasonsPassed.length >= 1, done: () => false, timeout: 40, text: 'Nouvelle saison : ses primes comptent double, et +10 si aucune tuile n’a été perdue. L’hiver ralentit le cadran, le printemps propose deux tuiles, l’été donne une réserve à répartir, l’automne couvre l’île de brume que seule la pose dissipe.' },
+    { id: 'tp1', info: true, when: () => true, done: () => false, focus: '.hud-queue', text: 'Ta tuile, en bas. Pas de file : tu ne vois jamais la suivante, elle arrive quand celle-ci est posée. Tant qu’une carte comme celle-ci est là, le temps s’arrête.' },
+    { id: 'tp2', info: true, when: () => true, done: (i) => i.placements >= 1, focus: '.tempo-chrono', text: 'Le temps, juste au-dessus de l’île : le chiffre, et la marée qui se retire par les deux bouts. Sur la dernière seconde, tout rougit. Pose la tuile contre l’île avant zéro.' },
+    { id: 'tp3', info: true, when: (i) => i.placements >= 1, done: (i) => i.placements >= 3, focus: '.hud-queue', text: 'Posée vite, sous une seconde, la série monte, et s’affiche sur la tuile : deux fois plus vite si la place est bonne. Elle multiplie les points : ×1,5 à 3, ×2 à 6, ×3 à 10. Hésiter la casse.' },
+    { id: 'tp4', info: true, when: (i) => i.placements >= 3, done: (i) => i.placements >= 5, focus: '.hud-score', text: 'Les points, en haut : bords, régions, faune, comme sur toute île. À zéro, la tuile est perdue et sa case restera vide, elle coûte des points à la fin, plus encore si elle bloquait une région.' },
+    { id: 'tp5', info: true, when: (i) => i.placements >= 5 || i.seasonsPassed.length >= 1, done: () => false, timeout: 40, focus: '.hud-season', text: 'La saison, en haut : cinq poses, la ligne se remplit, puis elle change. Ses primes comptent double, +10 sans tuile perdue. L’hiver ralentit le cadran, le printemps propose deux tuiles, l’été donne une réserve, l’automne couvre l’île de brume.' },
   ],
   brume: [
-    { id: 'br1', info: true, when: () => true, done: (i) => i.placements >= 1, text: 'Des cases sont sous la brume : chacune cache une tuile déjà là. L’inventaire, en bas, dit lesquelles, jamais où. On pose contre une tuile ou contre la brume. Pose ta première tuile contre la brume.' },
+    { id: 'br1', info: true, when: () => true, done: (i) => i.placements >= 1, focus: '.hud-brume', text: 'Des cases sont sous la brume : chacune cache une tuile déjà là. L’inventaire, en bas, dit lesquelles, jamais où. On pose contre une tuile ou contre la brume. Pose ta première tuile contre la brume.' },
     { id: 'br2', info: true, when: (i) => [...i.board.tiles.values()].some((t) => typeof t.indice === 'number'), done: (i) => i.placements >= 3, text: 'Le chiffre sur la tuile est son indice : combien de ses voisines cachées sont de sa famille. Choisir quelle tuile poser contre la brume, c’est choisir ta question.' },
-    { id: 'br3', info: true, when: (i) => i.placements >= 2, done: (i) => i.brume && (i.brume.jalons.size >= 1 || i.brume.crayon.size >= 1), timeout: 60, text: 'Touche une case de brume pour ouvrir sa fiche. Le jalon de la saison annonce une famille : juste au dévoilement, +5 et ses bords valent triple ; faux, −5. Le crayon note sans rien coûter.' },
-    { id: 'br4', info: true, when: (i) => i.placements >= 4, done: () => false, timeout: 35, text: 'Déplacer : une tuile déjà posée peut changer de place, au prix de la prochaine tuile. Reposée contre la brume, elle lit un nouvel indice. Une tuile qui touche la brume ne bouge plus.' },
-    { id: 'br5', info: true, when: (i) => i.seasonsPassed.length >= 1, done: () => false, timeout: 40, text: 'Passage de saison : les cases cachées assez entourées se dévoilent et comptent comme posées à l’instant, bords doublés. Un trésor se cache parmi elles. À la fin, chaque case restée cachée coûte des points.' },
+    { id: 'br3', info: true, when: (i) => i.placements >= 2, done: (i) => i.brume && (i.brume.jalons.size >= 1 || i.brume.crayon.size >= 1), timeout: 60, focus: '.brume-jalon', text: 'Touche une case de brume pour ouvrir sa fiche. Le jalon de la saison annonce une famille : juste au dévoilement, +5 et ses bords valent triple ; faux, −5. Le crayon note sans rien coûter.' },
+    { id: 'br4', info: true, when: (i) => i.placements >= 4, done: () => false, timeout: 35, focus: '.brume-move', text: 'Déplacer : une tuile déjà posée peut changer de place, au prix de la prochaine tuile. Reposée contre la brume, elle lit un nouvel indice. Une tuile qui touche la brume ne bouge plus.' },
+    { id: 'br5', info: true, when: (i) => i.seasonsPassed.length >= 1, done: () => false, timeout: 40, focus: '.hud-season, .hud-carte', text: 'Passage de saison : les cases cachées assez entourées se dévoilent et comptent comme posées à l’instant, bords doublés. Un trésor se cache parmi elles. À la fin, chaque case restée cachée coûte des points.' },
   ],
 };
 
@@ -113,12 +115,15 @@ export class Tutorial {
     const b = this.root.querySelector('.tuto-ok');
     if (b) b.addEventListener('click', (e) => { e.stopPropagation(); this.dismissed = true; });
     requestAnimationFrame(() => this.root.querySelector('.tuto-card')?.classList.add('on'));
+    this.defocus(); if (step.focus) { this.focused = [...document.querySelectorAll(step.focus)]; for (const el of this.focused) el.classList.add('tuto-focus'); }
   }
+  /** Retire la mise en avant de l'élément montré par la carte. */
+  defocus() { for (const el of this.focused || []) el.classList.remove('tuto-focus'); this.focused = []; }
   complete() {
     const card = this.root.querySelector('.tuto-card');
     if (card) { card.classList.add('done'); setTimeout(() => { if (card.parentNode) card.remove(); }, 500); }
-    this.current = null; this.idx++; this.isl.restrict = null;
+    this.current = null; this.idx++; this.isl.restrict = null; this.defocus();
     if (this.idx >= this.steps.length) this.doneAll = true;
   }
-  destroy() { this.root.innerHTML = ''; this.isl.restrict = null; }
+  destroy() { this.root.innerHTML = ''; this.isl.restrict = null; this.defocus(); }
 }

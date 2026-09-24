@@ -33,6 +33,7 @@ export class Hud {
         <div class="hud-block hud-breaths ${m.has('breath') ? '' : 'hidden'}" title="Souffles"><span class="hud-label">Souffles</span><b data-ref="breaths">0</b></div>
         <button class="hud-pause" data-ref="pause" title="Pause (Échap) : journal, plein écran, options">${icon('icon_pause')}</button>
       </div>
+      <div class="hud-carte ${island.brume ? '' : 'hidden'}" data-ref="carte"><span class="hc-kicker" data-ref="carteKicker">Saison</span><b data-ref="carteNom">—</b><span class="hc-texte" data-ref="carteTexte"></span><span class="hc-ratio" data-ref="carteRatio" title="Chance de tirer un bonus à la prochaine saison"></span></div>
       <div class="hud-queue" data-ref="queue">
         <div class="queue-title"><span>${island.handOn ? 'Main · choisis ta tuile' : 'À poser'}</span><span class="queue-left" data-ref="left" title="Tuiles qui restent"></span></div>
         <div class="queue-list" data-ref="queueList"></div>
@@ -173,15 +174,19 @@ export class Hud {
   renderBrume(moving = false) {
     const isl = this.isl, B = isl.brume; if (!B) return;
     const nom = (id) => (id === 'tresor' ? 'trésor' : NOMS_COULEURS[id] || ((STORY.tiles[id] || {}).name || id).toLowerCase());
-    const inv = isl.inventaireBrume;
-    const html = inv.map((e) => `<span class="binv ${e.id === 'tresor' || (STORY.tiles[e.id] && B.cachees && [...B.cachees.values()].some((t) => t.tresor && t.family === e.id)) ? 'tresor' : ''}" style="--fam:${FAMILY_COLORS[e.id] || '#8a867c'}">${e.n > 1 ? `${e.n} ` : ''}${nom(e.id)}</span>`).join('') || '<span class="binv vide">plus rien de caché</span>';
+    const inv = B.saison && B.saison.nuit ? [] : isl.inventaireBrume;
+    const html = B.saison && B.saison.nuit ? '<span class="binv vide">nuit noire : inventaire caché</span>' : inv.map((e) => `<span class="binv ${e.id === 'tresor' || (STORY.tiles[e.id] && B.cachees && [...B.cachees.values()].some((t) => t.tresor && t.family === e.id)) ? 'tresor' : ''}" style="--fam:${FAMILY_COLORS[e.id] || '#8a867c'}">${e.n > 1 ? `${e.n} ` : ''}${nom(e.id)}</span>`).join('') || '<span class="binv vide">plus rien de caché</span>';
     if (html !== this.last.brumeInv) { this.last.brumeInv = html; this.r.brumeInv.innerHTML = html; }
     const left = isl.board.fog.size ? `${isl.board.fog.size} case${isl.board.fog.size > 1 ? 's' : ''} · dévoilée${B.cran.devoile > 1 ? 's' : ''} à ${B.cran.devoile} voisines` : '';
     if (left !== this.last.brumeLeft) { this.last.brumeLeft = left; this.r.brumeLeft.textContent = left; }
     const j = !isl.board.fog.size ? '' : B.jalonSaison ? 'Jalon planté cette saison' : B.cran.jalonObligatoire ? `Jalon à planter (sinon ${PB.jalonManque}) : touche une case de brume` : 'Jalon possible : touche une case de brume';
     if (j !== this.last.brumeJalon) { this.last.brumeJalon = j; this.r.brumeJalon.textContent = j; this.r.brumeJalon.classList.toggle('due', !B.jalonSaison && B.cran.jalonObligatoire); }
     this.r.brumeMove.classList.toggle('on', !!moving);
-    this.r.brumeMove.disabled = isl.ended || !isl.queue.list.length;
+    this.r.brumeMove.disabled = isl.ended || !(isl.queue.list.length || (B.saison && B.saison.gratuits));
+    // la carte de la saison, sous le bandeau, avec la chance de bonus à côté
+    const c = B.carte; const ratio = `${Math.round((B.ratio ?? 0.5) * 100)} % bonus`;
+    const ck = `${c ? (c.bonus ? 'Bonus' : 'Malus') : 'Saison'}|${c ? c.nom : 'Sans carte'}|${c ? c.texte : 'Le tirage vient au changement de saison.'}|${ratio}`;
+    if (ck !== this.last.carte) { this.last.carte = ck; const [k, n, t, r] = ck.split('|'); this.r.carteKicker.textContent = k; this.r.carteNom.textContent = n; this.r.carteTexte.textContent = t; this.r.carteRatio.textContent = r; this.r.carte.classList.toggle('bonus', !!(c && c.bonus)); this.r.carte.classList.toggle('malus', !!(c && !c.bonus)); }
   }
 
   buildGardenPick() {
@@ -278,7 +283,7 @@ export class Hud {
   /** Bouton « Poser ici » (tactile) : total de la pose armée, ou null pour le masquer. */
   setPlaceButton(total, mode = 'place') {
     if (total === null || total === undefined) { if (!this.r.placeBtn.classList.contains('hidden')) this.r.placeBtn.classList.add('hidden'); return; }
-    const txt = `${mode === 'fuse' ? 'Fusionner ici' : mode === 'build' ? 'Bâtir ici' : mode === 'move' ? 'Déplacer ici' : 'Poser ici'} · ${total >= 0 ? '+' : ''}${total}`;
+    const txt = this.isl.brume ? (mode === 'move' ? 'Déplacer ici' : 'Poser ici') : `${mode === 'fuse' ? 'Fusionner ici' : mode === 'build' ? 'Bâtir ici' : mode === 'move' ? 'Déplacer ici' : 'Poser ici'} · ${total >= 0 ? '+' : ''}${total}`;   // sous la brume, pas de points avant la pose
     if (this.last.placeTxt !== txt) { this.last.placeTxt = txt; this.r.placeBtn.textContent = txt; this.r.placeBtn.classList.toggle('neg', total < 0); }
     this.r.placeBtn.classList.remove('hidden');
   }

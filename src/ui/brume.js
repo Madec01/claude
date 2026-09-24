@@ -55,7 +55,7 @@ export function famillesPossibles(isl) {
 }
 
 /** La fiche d'une case cachée : planter le jalon de la saison, ou noter au crayon. */
-export function buildBrumePicker({ isl, q, r, onJalon, onNote, onClose }) {
+export function buildBrumePicker({ isl, q, r, onJalon, onNote, onLongueVue, onClose }) {
   const B = isl.brume; const k = `${q},${r}`;
   const fams = famillesPossibles(isl);
   const puce = (f, fn, on = false) => {
@@ -64,7 +64,8 @@ export function buildBrumePicker({ isl, q, r, onJalon, onNote, onClose }) {
     return b;
   };
   const jal = B.jalons.get(k), note = B.crayon.get(k);
-  const inv = isl.inventaireBrume.map((e) => `${e.n} ${e.id === 'tresor' ? 'trésor' : NOMS_COULEURS[e.id] || nom(e.id).toLowerCase()}`).join(' · ');
+  const S = B.saison || {};
+  const inv = S.nuit ? 'nuit noire, l’inventaire est caché' : isl.inventaireBrume.map((e) => `${e.n} ${e.id === 'tresor' ? 'trésor' : NOMS_COULEURS[e.id] || nom(e.id).toLowerCase()}`).join(' · ');
   const root = h('div', { class: 'panel panel-brume-case' });
   const voisines = isl.fogAround(q, r).length;
   const posees = [[1, 0], [1, -1], [0, -1], [-1, 0], [-1, 1], [0, 1]].filter(([dq, dr]) => isl.board.get(q + dq, r + dr)).length;
@@ -72,14 +73,16 @@ export function buildBrumePicker({ isl, q, r, onJalon, onNote, onClose }) {
     h('h2', { class: 'panel-title' }, 'Case sous la brume'),
     h('p', { class: 'res-line' }, `Voisines posées : ${posees} / ${B.cran.devoile} pour se dévoiler au passage de saison${voisines ? ` · ${voisines} voisine${voisines > 1 ? 's' : ''} sous la brume` : ''}.`),
     h('p', { class: 'brume-inv-line' }, `Caché : ${inv}`),
+    S.longueVue ? h('div', { class: 'brume-section brume-longue-vue' }, h('h3', {}, 'Longue-vue : cette case peut se dévoiler tout de suite'), button('Dévoiler cette case', () => onLongueVue && onLongueVue(), { cls: 'btn-primary', iconName: 'icon_sun' })) : null,
     jal ? h('p', { class: 'brume-jalon-line' }, `Jalon planté : ${nom(jal)}`)
       : isl.canJalon(q, r) ? h('div', { class: 'brume-section' }, h('h3', {}, `Planter le jalon de la saison (juste : +${P.jalonJuste}, bords ×3 ; faux : ${P.jalonFaux})`), h('div', { class: 'gpick-list' }, ...fams.map((f) => puce(f, onJalon))))
       : h('p', { class: 'brume-jalon-line' }, B.jalonSaison ? 'Le jalon de cette saison est déjà planté.' : ''),
-    h('div', { class: 'brume-section' }, h('h3', {}, 'Noter au crayon (sans effet sur les points)'),
-      h('div', { class: 'gpick-list' }, ...fams.map((f) => puce(f, onNote, note === f)), note ? puce(null, () => onNote(null)) : null)),
+    S.crayonBloque ? h('p', { class: 'brume-jalon-line' }, 'Crayon effacé : pas de note cette saison.')
+      : h('div', { class: 'brume-section' }, h('h3', {}, S.crayonSur ? 'Noter au crayon (Crayon sûr : ta première note te dira si elle est juste)' : 'Noter au crayon (sans effet sur les points)'),
+        h('div', { class: 'gpick-list' }, ...fams.map((f) => puce(f, onNote, note === f)), note ? puce(null, () => onNote(null)) : null)),
     h('div', { class: 'panel-actions' }, button('Fermer', onClose, { cls: 'btn-primary', iconName: 'icon_return' })),
   );
   // le bouton « effacer » n'a pas de famille : on lui donne son nom
-  const eff = root.querySelectorAll('.brume-section .gpick-list')[1]?.lastElementChild; if (note && eff) eff.textContent = 'Effacer';
+  const listes = root.querySelectorAll('.brume-section .gpick-list'); const eff = listes[listes.length - 1]?.lastElementChild; if (note && eff && !S.crayonBloque) eff.textContent = 'Effacer';
   return root;
 }

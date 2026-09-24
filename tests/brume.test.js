@@ -2,7 +2,8 @@
 // Usage : node tests/brume.test.js
 import { Island } from '../src/game/island.js';
 import { Board } from '../src/game/board.js';
-import { brumeDef, CRANS, P, possibles, inventaire, indice, compte } from '../src/game/brume.js';
+import { brumeDef, CRANS, P, possibles, inventaire, indice, compte, CARTES, CARTE_PAR_ID, TIRAGE, tirerCarte } from '../src/game/brume.js';
+import { RNG } from '../src/core/math.js';
 import { key, parse, neighbors } from '../src/game/hex.js';
 
 let failures = 0;
@@ -223,6 +224,43 @@ for (const cran of ['claire', 'epaisse']) {
   const { campaignIsland } = await import('../src/data/campaign.js');
   const isl = new Island(campaignIsland(5));
   check(isl.brume === null && isl.board.fog.size === 0 && isl.tally.brume === undefined, 'hors du mode : ni brume ni ligne de bilan');
+}
+
+
+// --- le tirage de saison : la chance bouge avec les coups, une carte par saison, ses effets
+{
+  check(CARTES.bonus.length === 10 && CARTES.malus.length === 10, 'dix bonus, dix malus');
+  check(new Set([...CARTES.bonus, ...CARTES.malus].map((c) => c.id)).size === 20, 'vingt identifiants distincts');
+  // le tirage respecte la chance : à 0,8, surtout des bonus ; à 0,2, surtout des malus ; une carte exclue ne sort jamais
+  const rng = new RNG(7); let b8 = 0, b2 = 0;
+  for (let i = 0; i < 400; i++) { if (tirerCarte(rng, 0.8).bonus) b8++; if (tirerCarte(rng, 0.2).bonus) b2++; }
+  check(b8 > 280 && b2 < 120, `la chance est respectée (${b8} / 400 bonus à 0,8 ; ${b2} / 400 à 0,2)`);
+  let exclue = false; for (let i = 0; i < 200; i++) if (tirerCarte(rng, 1, new Set(['longueVue'])).id === 'longueVue') exclue = true;
+  check(!exclue, 'la carte exclue ne sort jamais');
+  // la partie : la chance part de 50 %, bouge d'un cran par coup jugé, une carte tombe au passage de saison
+  const isl = new Island(brumeDef('claire', 3)); const B = isl.brume;
+  check(B.ratio === TIRAGE.depart && B.carte === null, 'première saison : 50 / 50, pas de carte');
+  joue(isl, 4);
+  check(B.ratio >= TIRAGE.min && B.ratio <= TIRAGE.max && B.ratio !== TIRAGE.depart, `la chance a bougé (${B.ratio.toFixed(2)})`);
+  joue(isl, 1);
+  check(isl.seasonsPassed.length === 1 && !!B.carte && !!CARTE_PAR_ID[B.carte.id], `au passage de saison, une carte est tirée (${B.carte && B.carte.nom})`);
+  // les effets, un à un, sur une île fraîche
+  const eff = (id) => { const i = new Island(brumeDef('claire', 4)); i.appliquerCarte(id); return i; };
+  check(eff('mareeBasse').seuilDevoile() === CRANS.claire.devoile - 1 && eff('brumeEpaisse').seuilDevoile() === CRANS.claire.devoile + 1, 'Marée basse et Brume épaisse déplacent le seuil de dévoilement');
+  check(eff('deuxJalons').brume.saison.jalonsMax === 2, 'Deux jalons');
+  { const i = eff('tuilePerdue'); check(i.queue.remaining === new Island(brumeDef('claire', 4)).queue.remaining - 1, 'Tuile perdue : une tuile de moins'); }
+  { const i = eff('mainCourte'); check(i.seasonLength === 4, 'Main courte : quatre poses'); i.appliquerCarte('nuitNoire'); check(i.seasonLength === 5 && i.brume.saison.nuit, 'la saison suivante rend la cinquième pose ; Nuit noire cache l’inventaire'); }
+  check(eff('mainLarge').queue.list.length === 6, 'Main large : six tuiles en main');
+  // La brume gagne : impossible au départ (chaque case libre touche la brume), possible une fois des cases dévoilées ; le tirage l'exclut sinon
+  check(new Island(brumeDef('claire', 4)).casesPourLaBrume().length === 0, 'au départ, la brume ne peut gagner nulle part (jamais collée)');
+  { let i = null; for (let seed = 4; seed <= 14 && !i; seed++) { const c = new Island(brumeDef('claire', seed)); while (!c.ended && !c.casesPourLaBrume().length) joue(c, 5); if (!c.ended && c.casesPourLaBrume().length) i = c; }
+    if (i) { const avant = i.board.fog.size; i.appliquerCarte('brumeGagne'); check(i.board.fog.size === avant + 1, 'La brume gagne : une case cachée de plus, là où elle ne colle à rien'); } else console.log('  (aucune île ne s’est prêtée à « La brume gagne » : non testé)'); check([...i.board.fog].every((k) => !neighbors(...parse(k)).some(([a, c]) => i.board.fog.has(key(a, c)))), 'et toujours aucune case cachée collée à une autre'); }
+  { const i = eff('crayonEfface'); const k = [...i.board.fog][0]; check(!i.noter(...parse(k), 'forest'), 'Crayon effacé : plus de note'); }
+  { const i = eff('indicesMuets'); joue(i, 2); check([...i.board.tiles.values()].every((t) => typeof t.indice !== 'number'), 'Indices muets : aucun indice lu'); }
+  { const i = eff('longueVue'); const k = [...i.board.fog][0]; const n = i.board.fog.size; check(i.longueVue(...parse(k)) && i.board.fog.size === n - 1 && !i.brume.saison.longueVue, 'Longue-vue : la case touchée se dévoile, une fois'); }
+  { const i = eff('deplacementOffert'); joue(i, 3); const libre = [...i.board.tiles.values()].find((t) => !t.start && !i.fogAround(t.q, t.r).length); if (libre) { const c = i.moveTargets(libre.q, libre.r)[0]; const reste = i.queue.remaining; if (c) { i.move(libre.q, libre.r, c.q, c.r); check(i.queue.remaining === reste, 'Déplacement offert : la tuile suivante n’est pas perdue'); } } }
+  // sauvegarde : le tirage revient tel quel
+  { const i = new Island(brumeDef('claire', 5)); joue(i, 5); const j = new Island(brumeDef('claire', 5)); j.restoreRun(i.serialize()); check(j.brume.ratio === i.brume.ratio && JSON.stringify(j.brume.carte) === JSON.stringify(i.brume.carte) && JSON.stringify(j.brume.saison) === JSON.stringify(i.brume.saison), 'le tirage se sauvegarde et se reprend'); }
 }
 
 console.log(failures ? `\n${failures} échec(s)` : '\nSous la brume : tout est bon.');

@@ -11,7 +11,7 @@ import { SceneManager, wait } from './core/scenes.js';
 import { ParticleSystem } from './core/particles.js';
 import { Shake } from './core/shake.js';
 import { Island } from './game/island.js';
-import { brumeDef } from './game/brume.js';
+import { brumeDef, CARTES } from './game/brume.js';
 import { buildBrumeChoice, buildBrumePicker } from './ui/brume.js';
 import { IslandRenderer } from './game/render.js';
 import { Camera } from './game/camera.js';
@@ -618,6 +618,7 @@ class IslandScene {
     this.armed = null;   // tactile : case « armée » (aperçu affiché) en attente d'une seconde touche
     this.particles = new ParticleSystem(1500); this.fx = new Effects(this.particles); this.shake = new Shake(); this.shake.enabled = Save.options.shake !== false;
     this.renderer = new IslandRenderer(isl, this.cam, this.fx, this.particles);
+    this.renderer.sansPoints = !!def.brume;   // sous la brume, on choisit sa case sans voir les points
     this.paused = false; this.endTimer = 0; this.finished = false; this.finale = null;
     const name = def.story && STORY.islands[def.story] ? STORY.islands[def.story].name : def.infinite ? 'Île infinie' : def.garden ? 'Jardin' : def.tempo ? 'Le Souffle court' : (def.name || 'Île');
     this.title = name;
@@ -1007,7 +1008,32 @@ class IslandScene {
     showUI(buildBrumePicker({ isl, q, r,
       onJalon: (f) => { if (isl.planterJalon(q, r, f)) AudioSys.play('ui_confirm', { volume: 0.5 }); close(); },
       onNote: (f) => { isl.noter(q, r, f); AudioSys.play('ui_click', { volume: 0.4 }); close(); },
+      onLongueVue: () => { close(); if (isl.longueVue(q, r)) AudioSys.play('ui_confirm', { volume: 0.5 }); },
       onClose: () => { AudioSys.play('ui_close', { volume: 0.4 }); close(); } }), 'panel-wrap');
+  }
+  /**
+   * Le tirage de saison, à l'écran : une carte au centre qui fait défiler les noms comme une roue, puis s'arrête sur la
+   * carte tirée (verte pour un bonus, rouge pour un malus), avec la chance qui l'a tirée. Un toucher la ferme ; sinon elle
+   * s'efface seule. La carte reste ensuite sous le bandeau de saison.
+   */
+  tirageBrume(carte, ratio) {
+    const hud = document.getElementById('hud'); const anc = hud.querySelector('.brume-tirage'); if (anc) anc.remove();
+    const nomEl = h('b', {}, '…'); const kick = h('span', { class: 'bt-kicker' }, 'Tirage de saison');
+    const texte = h('span', { class: 'bt-texte' }, `${Math.round(ratio * 100)} % de chance de bonus`);
+    const el = h('div', { class: 'brume-tirage' }, kick, nomEl, texte);
+    hud.appendChild(el); requestAnimationFrame(() => el.classList.add('on'));
+    const noms = [...CARTES.bonus, ...CARTES.malus].map((c) => c.nom); let i = Math.floor(Math.random() * noms.length), n = 0;
+    AudioSys.play('ui_open', { volume: 0.4 });
+    const roue = setInterval(() => { i = (i + 1) % noms.length; nomEl.textContent = noms[i]; if (++n % 3 === 0) AudioSys.play('tile_hover', { volume: 0.25, minInterval: 0.05 }); }, 70);
+    setTimeout(() => {
+      clearInterval(roue); nomEl.textContent = carte.nom; texte.textContent = carte.texte; kick.textContent = carte.bonus ? 'Bonus de la saison' : 'Malus de la saison';
+      el.classList.add(carte.bonus ? 'bonus' : 'malus', 'tire');
+      AudioSys.play(carte.bonus ? 'rare_tile' : 'point_bad', { volume: 0.6 }); if (!carte.bonus) this.shake.trigger(0.1);
+      this.hud.logOnly(`${carte.bonus ? 'Bonus' : 'Malus'} de la saison : ${carte.nom} — ${carte.texte}`, 'season');
+    }, 1500);
+    const fermer = () => { el.classList.remove('on'); setTimeout(() => el.remove(), 400); };
+    el.addEventListener('click', (ev) => { ev.stopPropagation(); fermer(); });
+    setTimeout(fermer, 5200);
   }
   /** Les événements du mode : dévoilement, jalon, déplacement. */
   onBrume(e) {
@@ -1025,6 +1051,22 @@ class IslandScene {
         this.hud.bumpScore(pts);
       }, 500 + i * 380));
       this.hud.logOnly(`Dévoilées : ${e.cells.map((c) => nom(c.tile.family)).join(', ')} (${e.pts >= 0 ? '+' : ''}${e.pts})`, 'season');
+    } else if (e.kind === 'tirage') {
+      this.tirageBrume(e.carte, e.ratio);
+    } else if (e.kind === 'coup') {
+      // la chance de bonus bouge d'un cran : un mot sur le bandeau, pas plus
+      this.hud.notify(`${e.bon ? 'Bon coup' : 'Mauvais coup'} : ${Math.round(e.ratio * 100)} % de bonus à la prochaine saison`, e.bon ? 'info' : 'warn');
+    } else if (e.kind === 'crayonSur') {
+      this.hud.ribbon(e.juste ? `Crayon sûr : ${nom(e.famille)}, juste !` : `Crayon sûr : ce n’est pas ${nom(e.famille)}`, e.juste ? '#2f9e8f' : '#d95f4b', 1800, e.juste ? 'streak' : 'warn');
+      AudioSys.play(e.juste ? 'star_1' : 'point_bad', { volume: 0.5 });
+    } else if (e.kind === 'lanterne') {
+      this.hud.notify(`Lanterne : les voisines cachées de sa famille sont marquées (${e.n})`, 'special');
+    } else if (e.kind === 'perdue') {
+      this.hud.ribbon(`Tuile perdue : ${nom(e.tile.family)}`, '#d95f4b', 1500, 'warn'); AudioSys.play('tile_discard', { volume: 0.6 });
+    } else if (e.kind === 'brumeGagne') {
+      this.hud.notify('La brume gagne : une case de plus à deviner', 'warn'); AudioSys.play('weather', { volume: 0.4 });
+    } else if (e.kind === 'vent') {
+      const w = toWorld(e.q, e.r); fx.drop(key(e.q, e.r)); this.hud.notify(`Vent contraire : ${nom(e.tile.family)} a glissé`, 'warn'); AudioSys.play('weather', { volume: 0.5 });
     } else if (e.kind === 'jalon') {
       this.hud.notify(`Jalon planté : ${nom(e.famille)}`, 'info');
     } else if (e.kind === 'jalonManque') {

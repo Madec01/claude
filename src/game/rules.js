@@ -41,7 +41,7 @@ function edgePoints(tile, other, season, rule = null, climate = null) {
 }
 
 /** Multiplicateur de bord du mode « Sous la brume » : jalon juste ×3, tuile dévoilée ×2, sinon ×1. */
-function brumeMul(t) { return t.jalon ? 3 : t.devoilee ? 2 : 1; }
+function brumeMul(t, dores = false) { return t.jalon ? 3 : t.devoilee ? (dores ? 3 : 2) : 1; }
 
 /** Peut-on bâtir `tile` sur la case (q, r) ? Même famille, pas de rare, niveau maximal non atteint. */
 export function canBuild(board, q, r, tile) {
@@ -91,8 +91,9 @@ export function preview(board, q, r, tile, season, mods = {}) {
     const e = edgePoints(tile, n, season, mods.rule || null, mods.climate || null);
     // Sous la brume : un bord qui touche une tuile dévoilée compte double, un jalon juste le triple (dans les deux sens :
     // une mauvaise paire coûte d'autant plus). Aucune tuile n'a ces marques hors de ce mode.
-    const mul = Math.max(brumeMul(tile), brumeMul(n));
-    const pts = e.pts * mul;
+    const mul = Math.max(brumeMul(tile, !!mods.brumeDores), brumeMul(n, !!mods.brumeDores));
+    let pts = e.pts * mul;
+    if (mods.brumeMauvais && pts < 0) pts *= 2;   // la carte « Mauvais voisinage » : les mauvaises paires comptent double
     if (pts !== 0) { edges.push({ d, q: q + dq, r: r + dr, pts, label: mul > 1 ? `${e.label ? e.label + " " : ""}×${mul}` : e.label }); total += pts; }
   });
   // simulation de la pose pour rivières et fermetures

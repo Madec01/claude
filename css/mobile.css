@@ -288,3 +288,6 @@ html.compact.landscape #hud.tempo .hud-fauna { left: 8px; right: auto; bottom: 8
 html.compact #hud.tempo .tempo-compte { white-space: nowrap; }
 /* la carte de fin : en portrait, les deux boutons sur une bande de papier sous la carte, en une ligne */
 html.compact.portrait .carte-actions { gap: 10px; padding: 0 10px; animation: none; }
+/* Sous la brume, au téléphone : la carte de saison en bandeau serré, le tirage plus étroit */
+html.compact .hud-carte { left: 8px; right: 8px; max-width: none; font-size: 11px; padding: 5px 8px; gap: 6px; } html.compact .hud-carte b { font-size: 12px; } html.compact .hud-carte .hc-texte { display: none; }
+html.compact .brume-tirage { width: calc(100% - 32px); padding: 14px 16px; } html.compact .brume-tirage b { font-size: 24px; }

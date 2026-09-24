@@ -1296,6 +1296,8 @@ export class IslandRenderer {
     }
     // tuile fantôme
     if (!pv.build) { const tile = { ...(hv.tile || this.isl.current), q: hv.q, r: hv.r }; this.drawTileAt(ctx, tile, c.x, c.y - 6 * z, 1, 0.8, this.isl.season); }
+    // Sous la brume : on choisit sa case sans voir les points (décision du commanditaire) — la tuile fantôme et le liseré, rien d'autre
+    if (this.sansPoints) { this.outline(ctx, c.x, c.y, '#2f9e8f', 0.9); return; }
     this.outline(ctx, c.x, c.y, pv.build ? '#e0a33a' : pv.total >= 0 ? '#2f9e8f' : '#d95f4b', 0.9);
     if (pv.build) { const p2 = 0.5 + 0.5 * Math.sin(this.time * 5); ctx.save(); ctx.globalAlpha = 0.18 + 0.12 * p2; ctx.fillStyle = '#ffd77a'; const pts = corners(c.x, c.y, SIZE * z * 0.92); ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]); for (let i = 1; i < 6; i++) ctx.lineTo(pts[i][0], pts[i][1]); ctx.closePath(); ctx.fill(); ctx.restore(); }
     // points par bord
@@ -1366,6 +1368,10 @@ export class IslandRenderer {
       const fz = clamp(z, 0.8, 1.3);
       ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       const jal = B.jalons.get(k), note = B.crayon.get(k);
+      // la Boussole : la case du trésor est signalée ; la Lanterne : la case est de la famille de la tuile qui l'a lue
+      if (B.saison && B.saison.boussole) { const cach = B.cachees.get(k); if (cach && cach.tresor) this.outline(ctx, c.x, c.y, '#e0a33a', 0.6 + 0.4 * Math.sin(t * 4)); }
+      const marque = B.marques && B.marques.get(k);
+      if (marque && !jal) { ctx.font = `700 ${Math.round(13 * fz)}px Quicksand, sans-serif`; this.pill(ctx, c.x, c.y - 8 * z, `= ${nomCourt(marque)}`, FAMILY_COLORS[marque] || '#2b2a26'); }
       if (jal) { ctx.font = `700 ${Math.round(13 * fz)}px Quicksand, sans-serif`; this.pill(ctx, c.x, c.y - 8 * z, `⚑ ${nomCourt(jal)}`, '#8a6fb5'); }
       if (note) { ctx.font = `italic 600 ${Math.round(13 * fz)}px Quicksand, sans-serif`; ctx.fillStyle = 'rgba(70,66,60,0.85)'; ctx.fillText(`${nomCourt(note)} ?`, c.x, c.y + (jal ? 18 : 0) * z); }
     }
