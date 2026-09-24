@@ -12,8 +12,8 @@ const check = (ok, msg) => { if (!ok) errors.push(msg); console.log(`${ok ? 'OK 
 
 /** Deux parties déjà jouées, posées sur l'appareil avant le lancement : de quoi tester le choix de la partie. */
 const PARTIES_JOUEES = [
-  { v: 1, at: Date.now() - 20 * 60000, where: { kind: 'campaign', id: 3 }, title: 'Partie de test B', finie: true, isl: { placements: 34, season: 'summer', score: 120 } },
-  { v: 1, at: Date.now() - 3 * 3600000, where: { kind: 'campaign', id: 2 }, title: 'Partie de test A', finie: false, isl: { placements: 12, season: 'winter', score: 40 } },
+  { v: 2, at: Date.now() - 20 * 60000, where: { kind: 'campaign', id: 3 }, title: 'Partie de test B', finie: true, isl: { placements: 34, season: 'summer', score: 120 } },
+  { v: 2, at: Date.now() - 3 * 3600000, where: { kind: 'campaign', id: 2 }, title: 'Partie de test A', finie: false, isl: { placements: 12, season: 'winter', score: 40 } },
 ];
 
 /** Ouvre le jeu hors ligne (rien ne doit partir pendant un test) et arrive à la section. */
