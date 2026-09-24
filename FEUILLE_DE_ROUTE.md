@@ -140,13 +140,18 @@ Le jeu de base reste lent ; ces deux modes sont l'inverse assumé, chacun avec s
 
 ### « Le Souffle court » (pas de file, la tuile au dernier moment, 3 secondes)
 
-| Règle | Décision |
+Île procédurale à chaque partie, sans histoire, sans vœu, sans souffle. Une seule tuile posée au départ. Autant de tuiles que de cases : ce qui n'est pas posé à temps est perdu pour de bon, et les cases vides se paient à la fin.
+
+| Règle | Décision (commanditaire, 24 septembre) |
 |---|---|
-| Tuile | apparaît d'un coup, cadran de 3 s ; à zéro, posée toute seule sur la case légale qui rapporte le moins (on ne perd jamais une tuile) |
-| Tempo | le temps restant à la pose alimente une série (sous 1 s) : ×1, ×1,5, ×2, ×3 au-delà de dix ; hésiter casse la série |
-| Bonus (gagnés) | région fermée = un souffle = +3 s sur une tuile ; dix poses sans zéro = 6 s sur la suivante ; série de cinq = la famille de la tuile suivante ; vœu éclair exaucé = une saison à 5 s |
-| Malus (subis) | pose forcée : pire endroit, série à zéro, suivante à 2 s ; pose à perte : friche et un souffle perdu ; chaque saison retire 0,1 s au cadran (3 → 1,8) |
-| Réglage | tempo 3 / 5 / 8 s, meilleur score par tempo ; ouverture dès l'île 6 ; musique vive déjà en stock, tournée courte |
+| Tuile | apparaît d'un coup, cadran de 3 s ; à zéro, la tuile est **perdue définitivement** (pas de pose automatique) |
+| Cases vides à la fin | malus par case vide ; plus fort si la case empêche une région de se fermer ; plus fort encore si plusieurs cases vides forment une « région vide » (valeurs par défaut : −2 par case ; −5 si elle est la seule à manquer à une région ; dans une région vide de 3 cases et plus, −4 par case) |
+| Série | perdue si pas de pose ; série si pose sous 1 s ; **plus forte encore si posée au bon endroit** (défaut : total de la tuile dans le meilleur tiers des cases légales) ; multiplicateur ×1, ×1,5, ×2, ×3 |
+| Souffles | aucun, sous aucune forme ; pas de rallonge de temps (« l'hiver s'en chargera ») |
+| Saisons | à renforcer pour qu'elles comptent : primes de changement de saison plus fortes ou conditions nouvelles (défaut : prime ×2, +10 si aucune tuile perdue dans la saison). Elles touchent aussi le plateau et le temps : **hiver** cadran plus lent (gelé, sans excès : ×1,4) ; **automne** brume sur le plateau (toutes les tuiles ou la plupart, selon la chance), seules celles autour de la tuile qu'on pose réapparaissent ; **printemps et été** à déterminer (propositions : printemps deux tuiles proposées, on en pose une, l'autre est perdue ; été cadran plus court ×0,8 mais points ×1,5) |
+| Cadran | visible en tout temps sans enlaidir : un arc en dégradé autour de la tuile qui se vide (dégradés et animations permis) ; couleur de la saison, rouge dans la dernière seconde |
+| Score | meilleur score tout court (île procédurale) ; île de 40 à 60 cases |
+| Reste | le sens exact de « une première tuile retournée » au départ ; les effets de printemps et d'été ; l'image du tampon |
 
 ### « Sous la brume » (démineur : 5 à 10 tuiles retournées, on sait lesquelles, pas où)
 
