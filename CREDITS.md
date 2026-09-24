@@ -99,6 +99,9 @@ Toutes les œuvres ci-dessous appartiennent à leurs auteurs et sont utilisées 
 - **Icône et écran de chargement (captures du jeu)** — Cent Saisons — licence Voir les packs ci-dessus
   - Attribution : L'icône et le fond de l'écran de chargement sont des photographies de l'île 13, jouée jusqu'au bout par le bot des tests (tools/capture_partie.js) : l'icône recadrée au carré, le fond en deux cadrages, paysage et portrait. Tout ce qu'on y voit vient des packs d'images crédités plus haut ; rien n'a été dessiné pour elles.
   - Fichiers : ui/app_icon_192.png, ui/app_icon_512.png, ui/app_icon_512_maskable.png, ui/boot_island.jpg, ui/boot_island_portrait.jpg
+- **Animation d’ouverture « Martinus Games »** — Martinus Games (le commanditaire) — licence Logo du studio, tous droits réservés — fourni par le commanditaire pour ce jeu
+  - Attribution : Le film d’ouverture (4 s, les pixels qui se rassemblent en logo) est la propriété du studio. Son habillage sonore est un montage du pipeline audio du jeu (sfx/intro.ogg : jingle 8-bit Kenney CC0, glockenspiel, violoncelle, harpe et nappe FluidR3 CC BY 3.0), crédité dans la section « Sons ».
+  - Fichiers : video/intro.webm (VP9 + Opus), video/intro.mp4 (H.264 + AAC)
 
 ## Polices
 

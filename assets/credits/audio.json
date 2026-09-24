@@ -350,7 +350,8 @@
         "sfx/island_start.ogg",
         "sfx/seed.ogg",
         "sfx/upgrade.ogg",
-        "sfx/achievement.ogg"
+        "sfx/achievement.ogg",
+        "sfx/intro.ogg"
       ]
     },
     {
@@ -429,7 +430,8 @@
       "source_url": "https://kenney.nl/assets/music-jingles",
       "mirror": "https://github.com/ETdoFresh/kenney.nl",
       "used_in": [
-        "sfx/achievement.ogg"
+        "sfx/achievement.ogg",
+        "sfx/intro.ogg"
       ]
     }
   ],

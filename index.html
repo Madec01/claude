@@ -31,6 +31,15 @@
       <div id="ui" class="screen"></div>
       <div id="fade"></div>
     </div>
+    <!-- L'ouverture : l'animation du studio (4 s), par-dessus l'écran de chargement, qui charge pendant ce temps.
+         Deux encodages du même film : WebM (VP9 + Opus, libre) d'abord, MP4 (H.264 + AAC) pour Safari. -->
+    <div id="intro" hidden>
+      <video id="intro-video" playsinline preload="auto" disablepictureinpicture disableremoteplayback aria-label="Martinus Games">
+        <source src="assets/video/intro.webm" type="video/webm">
+        <source src="assets/video/intro.mp4" type="video/mp4">
+      </video>
+      <div class="intro-passer">Toucher pour passer</div>
+    </div>
     <div id="boot">
       <div class="boot-inner">
         <div class="boot-title">Cent Saisons</div>

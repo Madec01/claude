@@ -1002,6 +1002,19 @@
         "fluidr3"
       ],
       "note": "succès débloqué : jingle pizzicato, verre, harpe"
+    },
+    "intro": {
+      "file": "sfx/intro.ogg",
+      "duration": 3.982,
+      "loop": false,
+      "source": "8-Bit jingles/jingles_NES12.ogg + pad_2_warm C4 + glockenspiel C5/E5/G5/C6/E6/G6 + cello C3 + orchestral_harp C4/E4/G4/C5",
+      "author": "Kenney + Frank Wen",
+      "license": "CC0 1.0 + CC BY 3.0",
+      "packs": [
+        "kenney_jingles",
+        "fluidr3"
+      ],
+      "note": "ouverture : montée 8-bit et glockenspiel, accord de harpe sur violoncelle, tintement (joué dans la vidéo du logo)"
     }
   }
 }

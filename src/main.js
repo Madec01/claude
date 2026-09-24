@@ -94,6 +94,30 @@ function seasonFlights(e, isl) {
 
 const Game = {
   credits: null, fpsEl: null,
+  /**
+   * L'ouverture : l'animation du studio, jouée par-dessus l'écran de chargement (qui charge pendant ce temps). Rend une
+   * promesse tenue quand le film est fini, passé d'un toucher, impossible à lire, ou après six secondes quoi qu'il arrive.
+   * Le son est dans le film : on l'essaie avec le son (le navigateur l'accorde à un joueur qui revient), sinon en muet —
+   * jamais de blocage sur un geste. Les tests automatiques (navigator.webdriver) ne la voient pas.
+   */
+  playIntro() {
+    const box = document.getElementById('intro'), v = document.getElementById('intro-video');
+    if (!box || !v) return Promise.resolve();
+    if (navigator.webdriver || Save.options.testMode) { box.remove(); return Promise.resolve(); }
+    return new Promise((resolve) => {
+      let done = false;
+      const fin = () => { if (done) return; done = true; box.classList.add('off'); setTimeout(() => box.remove(), 600); resolve(); };
+      const opts = Save.options; v.volume = Math.max(0, Math.min(1, (opts.master ?? 0.8) * (opts.sfx ?? 0.9)));
+      v.muted = !!opts.muted;
+      v.addEventListener('ended', fin); v.addEventListener('error', fin, true);
+      box.addEventListener('pointerdown', fin); window.addEventListener('keydown', fin, { once: true });
+      box.hidden = false; box.classList.add('joue');
+      const essai = v.play();
+      if (essai && essai.catch) essai.catch(() => { v.muted = true; v.play().catch(fin); });
+      setTimeout(fin, 6000);
+    });
+  },
+
   async boot() {
     const fill = document.getElementById('boot-fill'), status = document.getElementById('boot-status');
     const setP = (p, txt) => { fill.style.width = `${Math.round(p * 100)}%`; if (txt) status.textContent = txt; };
@@ -101,6 +125,7 @@ const Game = {
     BlackBox.install({ sceneName: () => scenes.currentName });
     setVersion(VERSION);
     Save.load();
+    const intro = this.playIntro();   // le film part dès la sauvegarde lue (ses réglages de son), et couvre le chargement
     // rattrapage des sauvegardes déjà en cours, une fois, au lancement : les étoiles sont d'abord réattribuées
     // depuis les meilleurs scores gardés (une échelle revue vaut pour les parties déjà jouées), puis le déblocage
     // est recalculé — un joueur coincé derrière une règle ou une échelle plus ancienne repart tout seul.
@@ -118,6 +143,7 @@ const Game = {
     this.setFpsVisible(Save.options.showFps);
     await wait(200);
     const boot = document.getElementById('boot'); boot.classList.add('off'); setTimeout(() => boot.remove(), 700);
+    await intro;   // le film finit son tour avant que le menu (ou le choix de connexion) n'apparaisse
     await this.bootCloud();
     this.proposeReport();
     this.proposeEtats();

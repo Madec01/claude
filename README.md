@@ -18,6 +18,8 @@ python3 -m http.server 8080
 
 Navigateurs pris en charge : Chrome, Firefox et Edge à jour sur ordinateur, Chrome Android et Safari iOS sur téléphone et tablette. Le son se lance après la première interaction (règle des navigateurs).
 
+**À l'ouverture**, l'animation du studio Martinus Games joue par-dessus le chargement (4 s, un toucher la passe). Son jingle est dans le film : le navigateur l'accorde avec le son quand il connaît déjà le joueur, sinon le film joue en muet — la première visite est souvent muette, c'est la règle des navigateurs, pas un défaut.
+
 **Sur téléphone** : l'interface se réorganise (file de tuiles en bas en portrait, en colonne en paysage, vœux derrière un bouton). Toucher une case affiche ses points, toucher à nouveau (ou le bouton « Poser ici ») pose la tuile ; un doigt déplace la vue, deux doigts zooment. Le bouton plein écran est dans le menu, la pause et en haut à droite en jeu. Sur iPhone, où le plein écran n'existe pas dans Safari, ajoutez le jeu à l'écran d'accueil (Partager → Sur l'écran d'accueil) : il s'ouvre alors sans barre de navigateur.
 
 ## Comment on joue
@@ -88,6 +90,7 @@ src/game/             grille hexagonale, plateau, règles, saisons, faune, vœux
 src/ui/               menu, options, crédits, écrans narratifs, bilan, atelier, pause
 assets/img/           tuiles (2×, quatre saisons), faune, effets, icônes + manifest.json
 assets/audio/         musiques, ambiances, effets (OGG) + manifest.json
+assets/video/         l'animation d'ouverture du studio (WebM et MP4, même film, 4 s)
 assets/fonts/         Lora et Quicksand (WOFF2, SIL OFL)
 assets/credits/       sources et licences (JSON) lues par l'écran des crédits
 tools/                pipelines d'assets (images, audio, polices, crédits, rendus 3D KayKit)

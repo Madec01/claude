@@ -817,6 +817,21 @@ def build_sfx(only: set[str] | None = None) -> dict:
                         [(P_K_JIN, "Pizzicato jingles/jingles_PIZZI07.ogg"), (P_K_IF, "glass_004.ogg"), (P_FLUID, "orchestral_harp C5")],
                         "succès débloqué : jingle pizzicato, verre, harpe")
     R["ui_error"] = (lambda: L(P_K_IF, "error_006.ogg"), [(P_K_IF, "error_006.ogg")], "erreur, brève et feutrée")
+    # ---- Ouverture : l'animation du studio (4,2 s, vidéo muette fournie par le commanditaire). Les pixels se rassemblent
+    # sur une montée 8-bit doublée d'un arpège de glockenspiel ; le logo se pose à 1,4 s sur un accord de harpe assis sur
+    # un violoncelle ; « GAMES » s'écrit à 2 s sur un tintement ; tout s'éteint avec le fondu au noir de l'image.
+    R["intro"] = (lambda: ff_filter(stereo_spread(cut(mix(
+        (L(P_K_JIN, "8-Bit jingles/jingles_NES12.ogg"), 0.05, -13.0),
+        (held("pad_2_warm", "C4", 1.6, 0.9, 1.3, 0.3), 0.1, -9.0),
+        (LF("glockenspiel", "C5"), 0.25, -12.0), (LF("glockenspiel", "E5"), 0.5, -11.0),
+        (LF("glockenspiel", "G5"), 0.75, -10.0), (LF("glockenspiel", "C6"), 1.0, -9.0),
+        (LF("glockenspiel", "E6"), 1.15, -9.0), (LF("glockenspiel", "G6"), 1.28, -10.0),
+        (LF("cello", "C3"), 1.4, -3.0),
+        (LF("orchestral_harp", "C4"), 1.4, 0.0), (LF("orchestral_harp", "E4"), 1.46, 0.0),
+        (LF("orchestral_harp", "G4"), 1.52, 0.0), (LF("orchestral_harp", "C5"), 1.58, 0.0),
+        (LF("glockenspiel", "C6"), 2.0, -5.0)), 4.1, 0.6)), REVERB_SOFT),
+                  [(P_K_JIN, "8-Bit jingles/jingles_NES12.ogg"), (F, "pad_2_warm C4"), (F, "glockenspiel C5/E5/G5/C6/E6/G6"), (F, "cello C3"), (F, "orchestral_harp C4/E4/G4/C5")],
+                  "ouverture : montée 8-bit et glockenspiel, accord de harpe sur violoncelle, tintement (joué dans la vidéo du logo)")
     # ---- Météo -------------------------------------------------------------------
     R["thunder"] = (lambda: cut(ff_filter(L(P_RD2, "sfx100v2_thunder_01.ogg", 2), "lowpass=f=2200," + REVERB_FAR), 4.0, 1.2),
                     [(P_RD2, "sfx100v2_thunder_01.ogg")], "tonnerre lointain (orage)")
