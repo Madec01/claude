@@ -17,7 +17,7 @@ LOG="${LOG:-/tmp/suite.log}"
 PARALLELE="${PARALLELE:-3}"
 case "$MODE" in
   court)   NAV="gate" ;;
-  complet) NAV="autoplay mobile calm gate finale feel pepin decouverte resume fauna" ;;   # du plus long au plus court : le lot se remplit mieux
+  complet) NAV="autoplay mobile calm gate finale feel pepin sw decouverte resume fauna" ;;   # du plus long au plus court : le lot se remplit mieux
   *) echo "usage : tools/suite.sh court|complet" >&2; exit 2 ;;
 esac
 
@@ -28,6 +28,9 @@ if ! curl -s -o /dev/null "http://127.0.0.1:8765/index.html"; then
   sleep 1
 fi
 trap '[ -n "$SERVEUR" ] && kill "$SERVEUR" 2>/dev/null' EXIT
+
+# la version des assets (nom du cache du service worker) doit suivre leur contenu : sinon le jeu en ligne servirait de vieilles images
+python3 tools/version_assets.py --check || { echo "→ python3 tools/version_assets.py, puis relance." >&2; exit 2; }
 
 RATES=0
 lance() {

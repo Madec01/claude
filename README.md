@@ -20,6 +20,8 @@ Navigateurs pris en charge : Chrome, Firefox et Edge à jour sur ordinateur, Chr
 
 **À l'ouverture**, l'animation du studio Martinus Games joue par-dessus le chargement (4 s, un toucher la passe). Son jingle est dans le film : le navigateur l'accorde avec le son quand il connaît déjà le joueur, sinon le film joue en muet — la première visite est souvent muette, c'est la règle des navigateurs, pas un défaut.
 
+**Les visites suivantes** viennent de l'appareil : un service worker (`sw.js`) garde images, sons et film une fois vus. Son cache porte la version des assets (`assets/version.json`, empreinte de leur contenu écrite par `tools/version_assets.py`, vérifiée par `tools/suite.sh`) et s'efface seul quand elle change ; le code, lui, est toujours pris sur le réseau quand il y en a. Le pied du menu montre la version du jeu et celle des assets ; Options → « Recharger à neuf » efface le cache sans toucher à la sauvegarde.
+
 **Sur téléphone** : l'interface se réorganise (file de tuiles en bas en portrait, en colonne en paysage, vœux derrière un bouton). Toucher une case affiche ses points, toucher à nouveau (ou le bouton « Poser ici ») pose la tuile ; un doigt déplace la vue, deux doigts zooment. Le bouton plein écran est dans le menu, la pause et en haut à droite en jeu. Sur iPhone, où le plein écran n'existe pas dans Safari, ajoutez le jeu à l'écran d'accueil (Partager → Sur l'écran d'accueil) : il s'ouvre alors sans barre de navigateur.
 
 ## Comment on joue
@@ -93,7 +95,8 @@ assets/audio/         musiques, ambiances, effets (OGG) + manifest.json
 assets/video/         l'animation d'ouverture du studio (WebM et MP4, même film, 4 s)
 assets/fonts/         Lora et Quicksand (WOFF2, SIL OFL)
 assets/credits/       sources et licences (JSON) lues par l'écran des crédits
-tools/                pipelines d'assets (images, audio, polices, crédits, rendus 3D KayKit)
+tools/                pipelines d'assets (images, audio, polices, crédits, rendus 3D KayKit), version des assets, mesure du chargement, serveur HTTP/2
+sw.js                 service worker : assets en cache par version, code réseau d'abord
 tests/                tests du modèle (Node) et bot de parcours (Playwright)
 JOURNAL_DE_BORD.md    document de référence du projet (vision, GDD, DA, décisions, journal)
 CREDITS.md            crédits complets générés
@@ -179,7 +182,7 @@ Elle est oubliée quand l'île se termine, quand on recommence, quand on ouvre u
 ## Tests
 
 Deux vitesses : `tools/suite.sh court` (~1 min 30, les quatre tests Node et `gate.js` en fumée) avant chaque
-poussée ; `tools/suite.sh complet` (~5 min, toute la suite navigateur en plus, par trois en parallèle ; la tournée finale y est pressée comme par un doigt, sauf dans `finale.js` qui la vérifie) quand le changement touche
+poussée ; `tools/suite.sh complet` (~5 min, toute la suite navigateur en plus — dont `sw.js`, le service worker —, par trois en parallèle ; la tournée finale y est pressée comme par un doigt, sauf dans `finale.js` qui la vérifie) quand le changement touche
 les règles, le score, la sauvegarde, l'interface ou la tournée finale. Le détail, test par test :
 
 ```bash

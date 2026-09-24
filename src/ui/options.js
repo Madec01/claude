@@ -121,6 +121,11 @@ export function buildOptions({ onBack, game }) {
     h('p', { class: 'opt-note' }, 'La progression est gardée dans ce navigateur. Pour ne pas la perdre (changement de téléphone, données de site effacées), télécharge une copie de temps en temps : le jeu te le rappelle.'),
     isIOS ? h('p', { class: 'opt-note opt-warn' }, 'Sur iPhone, Safari peut effacer les données d’un site non ouvert pendant sept jours. Ajoute le jeu à l’écran d’accueil (Partager → « Sur l’écran d’accueil ») : télécharge d’abord ta sauvegarde, puis charge-la dans le jeu installé.') : null,
     h('div', { class: 'opt-row opt-btnrow' }, button('Télécharger ma sauvegarde', download, { cls: 'btn-primary btn-small', iconName: 'icon_save' }), button('Charger une sauvegarde', () => fileInput.click(), { cls: 'btn-small', iconName: 'icon_return' }), fileInput),
+    h('div', { class: 'opt-row opt-btnrow' }, h('span', { class: 'opt-label' }, 'Jeu gardé sur l’appareil', h('small', {}, 'Les images et les sons restent ici pour ouvrir vite. Si le jeu semble ancien ou abîmé, recharge-le à neuf : la sauvegarde n’est pas touchée.')),
+      button('Recharger à neuf', async () => {
+        try { if (navigator.serviceWorker) for (const r of await navigator.serviceWorker.getRegistrations()) await r.unregister(); if (window.caches) for (const k of await caches.keys()) await caches.delete(k); } catch (e) { console.warn(e); }
+        location.reload();
+      }, { cls: 'btn-small', iconName: 'icon_return' })),
     status,
     button('Effacer la progression', () => {
       if (root.querySelector('.confirm')) return;

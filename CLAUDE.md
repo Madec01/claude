@@ -48,6 +48,8 @@
 
 - Mesurer avant de trancher. Les deux plus grosses erreurs du projet venaient d'une
   intuition non vérifiée : l'échelle des étoiles et la projection des tuiles.
+- Tout changement dans `assets/` impose `python3 tools/version_assets.py` (le cache du service worker
+  porte cette empreinte ; `tools/suite.sh` refuse de tourner si elle n'est pas à jour).
 - Toute modification qui touche au score impose un recalibrage :
   `node tools/calibrate.js 4 1-30 --write`.
 - Les tests en deux vitesses, par `tools/suite.sh` :

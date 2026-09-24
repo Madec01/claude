@@ -5,6 +5,7 @@ const achCount = () => Achievements.count();
 import { h, button, icon, stagger, append } from './dom.js';
 import { CHAPTERS, campaignIsland, chapterStars, CAMPAIGN_SIZE, CHAPTER_LEN, gateText, gateOpen, islandDone } from '../data/campaign.js';
 import { Save } from '../core/save.js';
+import { Version } from '../core/version.js';
 import { RunSave } from '../core/run.js';
 import { ISLANDS } from '../data/islands.js';
 import { STORY } from '../data/story.js';
@@ -73,7 +74,7 @@ export function buildMenu({ game }) {
       h('span', { class: 'foot-stat' }, icon('icon_star'), `${totalStars} / ${CAMPAIGN_SIZE * 3} étoiles`),
       h('span', { class: 'foot-stat' }, icon('icon_leaf'), `${c.seeds} graines`),
     ),
-    h('div', { class: 'foot-right' }, `${STORY.title} · ${VERSION}`),
+    h('div', { class: 'foot-right', title: Version.assets ? `assets ${Version.assets}` : '' }, `${STORY.title} · ${VERSION}${Version.assets ? ` · ${Version.assets.slice(0, 6)}` : ''}`),
   );
   append(root, h('div', { class: 'menu-veil' }), title, nav, foot);
   setTimeout(() => stagger(nav, '.btn', 60), 60);

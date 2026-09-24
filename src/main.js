@@ -38,6 +38,7 @@ import { buildCollection } from './ui/collection.js';
 import { buildWorkshop } from './ui/workshop.js';
 import { celebrate, celebrateThing } from './ui/achievements.js';
 import { UPGRADES, playerChapter } from './data/upgrades.js';
+import { Version } from './core/version.js';
 import { buildWishesIntro } from './ui/wishes_intro.js';
 import { buildIslandPrep } from './ui/island_prep.js';
 import { applySemis } from './data/semis.js';
@@ -126,6 +127,10 @@ const Game = {
     setVersion(VERSION);
     Save.load();
     const intro = this.playIntro();   // le film part dès la sauvegarde lue (ses réglages de son), et couvre le chargement
+    // les visites suivantes viennent de l'appareil (sw.js) : enregistré tout de suite, pour que les images de cette
+    // première visite passent déjà par lui et restent ; pas pour les tests ni le mode test, qui veulent le réseau tel quel
+    if ('serviceWorker' in navigator && !navigator.webdriver && !Save.options.testMode) navigator.serviceWorker.register('sw.js').catch((e) => console.warn('service worker', e));
+    const version = fetch('assets/version.json', { cache: 'no-store' }).then((r) => r.ok ? r.json() : null).then((v) => { Version.assets = v && v.assets; }).catch(() => {});
     // rattrapage des sauvegardes déjà en cours, une fois, au lancement : les étoiles sont d'abord réattribuées
     // depuis les meilleurs scores gardés (une échelle revue vaut pour les parties déjà jouées), puis le déblocage
     // est recalculé — un joueur coincé derrière une règle ou une échelle plus ancienne repart tout seul.
@@ -145,6 +150,7 @@ const Game = {
     this.setFpsVisible(Save.options.showFps);
     await wait(200);
     const boot = document.getElementById('boot'); boot.classList.add('off'); setTimeout(() => boot.remove(), 700);
+    await Promise.race([version, wait(1500)]);   // la version des assets pour le pied du menu (30 octets, jamais plus d'une seconde et demie)
     await intro;   // le film finit son tour avant que le menu (ou le choix de connexion) n'apparaisse
     AudioSys.preload().catch((e) => console.warn(e));   // en arrière-plan : effets d'abord, ambiances ensuite
     await this.bootCloud();
