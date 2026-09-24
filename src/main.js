@@ -387,14 +387,14 @@ const Game = {
   /** Le Souffle court : le récit d'ouverture la première fois seulement ; ensuite, droit sur une île neuve. */
   /** La musique d'une partie du Souffle court : une des pistes du mode, tirée au sort parmi celles que le manifeste connaît. */
   musiqueTempo() { const cles = Object.keys(BALANCE.tempo.musiques).filter((k) => AudioSys.has(k, 'music')); return cles.length ? cles[Math.floor(Math.random() * cles.length)] : null; },
-  startTempo() { this.noteMode('mode_tempo'); const def = tempoDef(undefined, { etire: STAGE.compact && STAGE.portrait ? BALANCE.tempo.etirePortrait : 1 }); def.musique = this.musiqueTempo(); if (def.musique) AudioSys.load('music', def.musique).catch(() => {}); scenes.go('prep', { node: buildTempoPrep({ onStart: () => { AudioSys.play('ui_confirm', { volume: 0.5 }); hideUI(); scenes.go('island', { def }, { fade: 0.4 }); }, onBack: () => this.showMenu() }) }); },
+  startTempo() { this.noteMode('mode_tempo'); const def = tempoDef(undefined, { etire: STAGE.compact && STAGE.portrait ? BALANCE.tempo.etirePortrait : 1 }); def.musique = this.musiqueTempo(); if (def.musique) AudioSys.load('music', def.musique).catch(() => {}); scenes.go('prep', { node: buildTempoPrep({ onStart: (cadran, tuto) => { AudioSys.play('ui_confirm', { volume: 0.5 }); def.cadran = cadran; def.tuto = !!tuto; hideUI(); scenes.go('island', { def }, { fade: 0.4 }); }, onBack: () => this.showMenu() }) }); },
   startDaily() { this.noteMode('mode_daily'); const def = dailyDef(); this.prepIsland(def, dailyScreens(def)); },
   /** Sous la brume : le choix du cran, puis une île tirée au hasard (une nouvelle à chaque partie). */
   startBrume() {
     this.noteMode('mode_brume');
-    scenes.go('prep', { node: buildBrumeChoice({ onPick: (cran) => {
+    scenes.go('prep', { node: buildBrumeChoice({ onPick: (cran, tuto) => {
       AudioSys.play('ui_confirm', { volume: 0.5 });
-      const def = brumeDef(cran, 1 + Math.floor(Math.random() * 999999));
+      const def = brumeDef(cran, 1 + Math.floor(Math.random() * 999999)); def.tuto = !!tuto;
       // la brume se prépare hors du fil principal ; le panneau attend (sa fiche dit « la brume se forme »)
       return this.preparerBrume(def).then((plan) => { if (plan) def.planBrume = plan; hideUI(); scenes.go('island', { def }, { fade: 0.5 }); });
     }, onBack: () => this.showMenu() }) });
@@ -452,7 +452,7 @@ const Game = {
     if (def.garden) { scenes.go('results', { result, def }); return; }
     if (def.tempo) {
       const T = Save.data.tempo || (Save.data.tempo = { best: 0, bestSerie: 0, parties: 0 });
-      if (!test) { T.parties = (T.parties || 0) + 1; if (result.score > (T.best || 0)) { newRecord = T.best > 0; T.best = result.score; } T.bestSerie = Math.max(T.bestSerie || 0, result.stats.bestSerie || 0); Save.save(); }
+      if (!test) { T.parties = (T.parties || 0) + 1; const cad = def.cadran || 3; T.bests = T.bests || {}; if (result.score > (T.bests[cad] || 0)) { newRecord = (T.bests[cad] || 0) > 0; T.bests[cad] = result.score; } T.best = Math.max(T.best || 0, result.score); T.bestSerie = Math.max(T.bestSerie || 0, result.stats.bestSerie || 0); Save.save(); }
       scenes.go('results', { result, def, newRecord });
       return;
     }
@@ -633,7 +633,10 @@ class IslandScene {
       compact: STAGE.compact,
     });
     document.getElementById('hud').classList.add('on');
-    this.tutorial = new Tutorial(document.getElementById('tutorial'), isl, def, !Save.options.skipTutorial && !def.infinite && !def.garden && !def.tempo && !def.brume);
+    // les deux modes à part ont leur tutoriel pas à pas : la première fois, ou à la demande (`def.tuto`) ; jamais en mode test
+    const tutoMode = (def.tempo || def.brume) && !Save.options.skipTutorial && !Game.testMode && (def.tuto || !((Save.data.seen || {})[def.tempo ? 'tuto_tempo' : 'tuto_brume']));
+    if (tutoMode) { Save.data.seen = Save.data.seen || {}; Save.data.seen[def.tempo ? 'tuto_tempo' : 'tuto_brume'] = true; Save.save(); }
+    this.tutorial = new Tutorial(document.getElementById('tutorial'), isl, def, (!Save.options.skipTutorial && !def.infinite && !def.garden && !def.tempo && !def.brume) || !!tutoMode);
     // les vœux se présentent avant la première pose (un bouton pour commencer), sauf en reprise sans intro
     this.hold = false;
     if (isl.wishes.length && !def.garden && !skipWishes && !this.resumed) { this.hold = true; showUI(buildWishesIntro({ island: isl, onStart: () => { hideUI(); this.hold = false; AudioSys.play('ui_confirm', { volume: 0.5 }); } }), 'panel-wrap'); }
@@ -1087,7 +1090,9 @@ class IslandScene {
     else if (this.drag && !input.mouse.right) this.drag = null;
     const pan = 320 * dt; if (input.isDown('ArrowLeft')) this.cam.pan(pan, 0); if (input.isDown('ArrowRight')) this.cam.pan(-pan, 0); if (input.isDown('ArrowUp')) this.cam.pan(0, pan); if (input.isDown('ArrowDown')) this.cam.pan(0, -pan);
     this.cam.update(dt);
-    if (this.tempo && !this.hold && !isl.ended) { this.tempo.update(dt); this.hud.setTempo(this.tempo); }
+    // sous une carte du tutoriel, le temps s'arrête : on lit, puis on joue
+    const tutoTient = !!(this.tempo && this.tutorial && this.tutorial.current);
+    if (this.tempo && !this.hold && !tutoTient && !isl.ended) { this.tempo.update(dt); this.hud.setTempo(this.tempo); }
     if (this.tempo && !isl.ended) {
       // le battement : la phase dans le temps de la musique (horloge audio), sinon un métronome au même tempo
       const mu = this.musiqueDuMode(), temps = 60 / mu.bpm; const ctx = AudioSys.ctx;
@@ -1095,7 +1100,7 @@ class IslandScene {
       const battement = ((depuis % temps) + temps) % temps / temps;
       // le chronomètre se pose juste au-dessus de l'île : le sommet du masque, en écran
       if (this._chronoV !== isl.board.version) { this._chronoV = isl.board.version; let y = Infinity, y2 = -Infinity; for (const k of isl.board.mask) { const [q, r] = parse(k); const wy = toWorld(q, r).y; y = Math.min(y, wy); y2 = Math.max(y2, wy); } this._chronoY = y - SIZE; this._basY = y2 + SIZE; }
-      this.hud.setChrono({ t: this.hold ? this.tempo.limit : this.tempo.t, f: this.hold ? 1 : this.tempo.fraction, puls: Math.pow(1 - battement, 3), urgent: !this.hold && this.tempo.t <= 1, y: this.cam.toScreen(0, this._chronoY).y });
+      this.hud.setChrono({ t: this.hold ? this.tempo.limit : this.tempo.t, f: this.hold ? 1 : this.tempo.fraction, fige: tutoTient, puls: Math.pow(1 - battement, 3), urgent: !this.hold && this.tempo.t <= 1, y: this.cam.toScreen(0, this._chronoY).y });
       this.hud.setQueueTop(this.cam.toScreen(0, this._basY).y);   // la tuile à poser se cale juste sous l'île, pas au bord de l'écran
     }
     // survol

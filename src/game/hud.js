@@ -348,7 +348,7 @@ export class Hud {
     const jitter = c.urgent ? `translate(${(Math.random() * 3 - 1.5).toFixed(1)}px,${(Math.random() * 3 - 1.5).toFixed(1)}px)` : '';
     this._chronoN.style.transform = `scale(${(1 + 0.08 * c.puls).toFixed(3)}) ${jitter}`;
     this._chronoEau.style.width = `${(c.f * 100).toFixed(1)}%`; this._chronoEau.style.filter = `brightness(${(1 + 0.25 * c.puls).toFixed(3)})`;
-    el.classList.toggle('urgent', !!c.urgent);
+    el.classList.toggle('urgent', !!c.urgent); el.classList.toggle('fige', !!c.fige);
     if (c.f >= 0.98) el.classList.remove('casse');
   }
   /** Souffle court : la file (la tuile à poser) suit le bas de l'île, sans jamais sortir de l'écran. */

@@ -245,6 +245,14 @@ html:not(.compact) .menu-pair > .btn:last-child { grid-column: 1 / -1; }
 .panel-collection .ach-card.locked .ach-img { filter: brightness(0); opacity: 0.13; }   /* le succès manquant, en silhouette lui aussi */
 .panel-collection .ach-card.locked { opacity: 0.85; }
 
+/* L'histoire : un bouton qui s'ouvre en deux (continuer, choisir une île) */
+.menu-histoire { display: grid; }
+html:not(.compact) .menu-nav > .menu-histoire { grid-column: 1 / -1; }
+.menu-histoire-choix { display: none; grid-template-columns: 1fr 1fr; gap: 8px; }
+.menu-histoire.ouvert > .btn-histoire { display: none; }
+.menu-histoire.ouvert .menu-histoire-choix { display: grid; animation: histoire-ouvre 0.3s var(--ease-out) both; }
+@keyframes histoire-ouvre { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+.menu-histoire-choix .btn { opacity: 1; transform: none; }   /* pas d'entrée en cascade : ils apparaissent d'un coup, à la place du bouton */
 /* Les trois modes à part : trois tuiles de même taille sur une ligne, l'icône au-dessus du nom */
 .menu-modes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
 html:not(.compact) .menu-nav > .menu-modes { grid-column: 1 / -1; }
@@ -256,6 +264,12 @@ html:not(.compact) .menu-nav > .menu-modes { grid-column: 1 / -1; }
 
 /* Le Souffle court, avant l'île : les règles en cinq lignes */
 .panel-tempo { max-width: 640px; }
+.tp-choix { display: flex; align-items: center; justify-content: center; gap: 10px; margin: 4px 0 8px; font-weight: 700; font-size: 14px; }
+.tp-cadrans { display: inline-flex; gap: 6px; }
+.tp-cadran { font: inherit; font-weight: 800; padding: 6px 14px; border-radius: 999px; border: 1px solid rgba(43,42,38,0.18); background: #fff; color: var(--ink); cursor: pointer; transition: background 0.15s, border-color 0.15s; }
+.tp-cadran.on { background: rgba(217,95,75,0.14); border-color: var(--loss); color: #b0432f; }
+.tp-tuto { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; font-weight: 600; margin: 2px 0 8px; cursor: pointer; }
+.tp-tuto input { width: 18px; height: 18px; accent-color: var(--breath); }
 .tp-regles { display: flex; flex-direction: column; gap: 8px; margin: 6px 0 4px; text-align: left; }
 .tp-regle { display: flex; align-items: flex-start; gap: 12px; background: rgba(255,255,255,0.7); border-radius: 12px; padding: 10px 12px; }
 .tp-regle .icon { width: 22px; height: 22px; flex: 0 0 auto; margin-top: 2px; filter: invert(0.3); }

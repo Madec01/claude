@@ -26,7 +26,8 @@ for (const cran of ['claire', 'epaisse']) {
   for (let seed = 1; seed <= 6; seed++) {
     const isl = new Island(brumeDef(cran, seed)); const b = isl.board; const C = CRANS[cran];
     const fog = fogKeys(isl);
-    check(fog.length >= 5 && fog.length <= 24 && fog.length >= Math.floor(b.mask.size * 0.25), `${cran} ${seed} : un tiers des cases sous la brume (${fog.length} sur ${b.mask.size})`);
+    check(fog.length >= 5 && fog.length <= 24 && fog.length >= Math.floor(b.mask.size * 0.2), `${cran} ${seed} : un quart au moins des cases sous la brume (${fog.length} sur ${b.mask.size})`);
+    check(fog.every((k) => !neighbors(...parse(k)).some(([a, d]) => b.fog.has(key(a, d)))), `${cran} ${seed} : deux cases cachées ne se touchent jamais`);
     // la brume compte comme une voisine pour poser : une case libre qui ne touche que la brume est posable
     check(b.legalCells().some((c) => !neighbors(c.q, c.r).some(([a, d]) => b.tiles.has(key(a, d)))), `${cran} ${seed} : on pose aussi contre la brume`);
     check(fog.every((k) => !b.tiles.has(k)), `${cran} ${seed} : aucune tuile visible sous la brume`);

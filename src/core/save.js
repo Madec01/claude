@@ -99,7 +99,7 @@ const defaults = () => ({
   seen: {},   // cartes explicatives déjà vues (sentiers, rivière-lac), une seule fois par joueur
   backup: { lastAt: null, islandsSince: 0 },   // copie locale (fichier téléchargé) : date de la dernière et îles jouées depuis, pour le rappel
   infinite: { best: 0, bestSeasons: 0, unlocked: false },
-  tempo: { best: 0, bestSerie: 0, parties: 0 },   // Le Souffle court : meilleur score tout court, meilleure série, parties jouées
+  tempo: { best: 0, bestSerie: 0, parties: 0, cadran: 3, bests: {} },   // Le Souffle court : meilleur score tout court, meilleure série, parties jouées, temps choisi (3, 5 ou 8 s) et meilleur score par temps
   brume: { claire: { best: 0, plays: 0 }, epaisse: { best: 0, plays: 0 } },   // Sous la brume : meilleur score et parties par cran
   daily: { best: {}, history: [], streak: 0, lastPlayed: null },
   stats: { placements: 0, closed: 0, fauna: 0, wishes: 0 },

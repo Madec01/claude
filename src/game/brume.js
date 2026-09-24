@@ -57,16 +57,16 @@ function solides(board, fog, q, r) { return neighbors(q, r).filter(([a, b]) => {
 
 /**
  * Choisit `n` cases sous la brume parmi les cases libres. Chacune garde au moins `k` voisines hors brume (sinon elle
- * ne pourrait jamais se dévoiler), et la brume aime se tenir en bancs
- * (deux fois sur trois, la case suivante touche la brume déjà posée) : c'est là que la déduction devient un jeu.
+ * ne pourrait jamais se dévoiler), et deux cases cachées ne se touchent jamais.
  */
 export function choisirBrume(board, rng, n, k) {
   const fog = new Set();
   const libres = [...board.mask].filter((c) => !board.tiles.has(c));
   let essais = 0;
   while (fog.size < n && essais++ < 400) {
-    const collees = libres.filter((c) => !fog.has(c) && neighbors(...parse(c)).some(([a, b]) => fog.has(key(a, b))));
-    const pool = fog.size && collees.length && rng.next() < 0.67 ? collees : libres.filter((c) => !fog.has(c));
+    // jamais deux cases cachées côte à côte (décision du commanditaire) : chaque banc de brume est une case seule,
+    // entourée de cases où l'on peut poser — c'est là que l'indice se lit
+    const pool = libres.filter((c) => !fog.has(c) && !neighbors(...parse(c)).some(([a, b]) => fog.has(key(a, b))));
     if (!pool.length) break;
     const c = pool[Math.floor(rng.next() * pool.length)];
     fog.add(c);

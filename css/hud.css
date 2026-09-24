@@ -350,6 +350,7 @@ html.compact .tempo-compte { font-size: 72px; top: 38%; }
 .tempo-chrono.casse .tc-cadre { animation: tc-flash 0.5s ease-out both; }
 @keyframes tc-casse { to { transform: scale(1.7); opacity: 0; filter: blur(4px); } }
 @keyframes tc-flash { from { box-shadow: 0 0 0 4px #fff, 0 0 30px #fff; } to { box-shadow: 0 2px 10px rgba(30,50,70,0.18); } }
+.tempo-chrono.fige { opacity: 0.55; }   /* sous une carte du tutoriel, le temps s'arrête */
 html.compact .tempo-chrono { gap: 3px; }
 html.compact .tempo-chrono .tc-n { font-size: 40px; } html.compact .tempo-chrono .tc-d { font-size: 22px; }
 html.compact .tempo-chrono .tc-cadre { width: 170px; height: 11px; }

@@ -29,7 +29,7 @@ export class Tempo {
 
   get saison() { return this.isl.season; }
   /** Le cadran d'une tuile, selon la saison. */
-  limite() { return T().cadran * (this.saison === 'winter' ? T().hiver : 1); }
+  limite() { return (this.isl.def.cadran || T().cadran) * (this.saison === 'winter' ? T().hiver : 1); }
   /** Une tuile nouvelle : le cadran repart (l'été, c'est la réserve qui fait foi). */
   armer() { this.limit = this.limite(); this.t = this.saison === 'summer' ? this.reserve : this.limit; this.depuis = 0; }
   /** Ce qu'il reste, de 0 à 1, pour l'arc autour de la tuile. */

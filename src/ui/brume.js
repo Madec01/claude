@@ -11,6 +11,7 @@ const nom = (f) => (f === 'tresor' ? 'Trésor' : (STORY.tiles[f] || {}).name || 
 export function buildBrumeChoice({ onPick, onBack }) {
   const best = (id) => ((Save.data.brume || {})[id] || {}).best || 0;
   const root = h('div', { class: 'panel panel-brume' });
+  const dejaVu = !!((Save.data.seen || {}).tuto_brume); const tuto = h('input', { type: 'checkbox' }); tuto.checked = !dejaVu;
   const carte = (id, lignes) => {
     const c = CRANS[id];
     const b = button(c.nom, () => {
@@ -18,7 +19,7 @@ export function buildBrumeChoice({ onPick, onBack }) {
       if (root.classList.contains('busy')) return;
       root.classList.add('busy'); root.querySelectorAll('button').forEach((x) => { x.disabled = true; });
       root.querySelector('.panel-actions').before(h('p', { class: 'brume-attente' }, 'La brume se forme… un instant.'));
-      onPick(id);
+      onPick(id, tuto.checked);
     }, { cls: id === 'claire' ? 'btn-primary btn-big' : 'btn-big', iconName: 'icon_play' });
     return h('div', { class: 'brume-cran' }, b, h('ul', {}, ...lignes.map((l) => h('li', {}, l))), best(id) ? h('p', { class: 'brume-best' }, `Meilleur score : ${best(id)} pts`) : null);
   };
@@ -34,6 +35,7 @@ export function buildBrumeChoice({ onPick, onBack }) {
     h('div', { class: 'brume-crans' },
       carte('claire', ['Inventaire exact', 'Un indice à chaque pose contre la brume', 'Dévoilée à 2 voisines', 'Jalon facultatif']),
       carte('epaisse', ['Inventaire par couleur', 'Un indice une pose sur deux', 'Dévoilée à 3 voisines', `Jalon obligatoire (sinon ${P.jalonManque})`])),
+    h('label', { class: 'tp-tuto' }, tuto, h('span', {}, dejaVu ? 'Revoir le tutoriel pas à pas' : 'Avec le tutoriel pas à pas (première fois)')),
     h('div', { class: 'panel-actions' }, button('Menu', onBack, { cls: 'btn-ghost', iconName: 'icon_home' })),
   );
   return root;

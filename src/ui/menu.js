@@ -47,7 +47,17 @@ export function buildMenu({ game }) {
   const run = (() => { const d = RunSave.describe(); return d && game.defFromWhere(d.where) ? d : null; })();
   append(nav, 
     run ? navButton('Reprendre', () => game.resumeRun(), { cls: 'btn-primary btn-big btn-resume', iconName: 'icon_return', title: `${run.title} · ${run.placements} tuile${run.placements > 1 ? 's' : ''} posée${run.placements > 1 ? 's' : ''} · ${SEASON_FR[run.season] || ''} · laissée ${run.when}`, sub: `${run.title} · ${run.placements} tuile${run.placements > 1 ? 's' : ''}` }) : null,
-    navButton(primaryLabel, () => game.startCampaign(), { cls: run ? 'btn-big' : 'btn-primary btn-big', iconName: 'icon_play', sub: primarySub }),
+    // L'histoire est le jeu principal (décision du commanditaire) : un seul grand bouton, qui s'ouvre en deux au toucher —
+    // continuer l'île en cours, ou choisir une île. Avant la première île, il commence tout de suite.
+    (() => {
+      const ouvrable = started || testMode;
+      const wrap = h('div', { class: 'menu-histoire' });
+      const histoire = navButton(c.completed ? 'L’histoire · rejouer' : started ? 'L’histoire' : 'Commencer l’histoire', () => { if (!ouvrable) { game.startCampaign(); return; } wrap.classList.add('ouvert'); }, { cls: run ? 'btn-big btn-histoire' : 'btn-primary btn-big btn-histoire', iconName: 'icon_play', sub: primarySub });
+      const cont = navButton(primaryLabel, () => game.startCampaign(), { cls: 'btn-primary btn-big', iconName: 'icon_play', sub: primarySub });
+      const choisir = navButton('Choisir une île', () => showIslands(), { cls: 'btn-big', iconName: 'icon_menu', disabled: !ouvrable, sub: ouvrable ? `${Math.min(c.unlockedIsland, CAMPAIGN_SIZE)} / ${CAMPAIGN_SIZE}` : '' });
+      append(wrap, histoire, h('div', { class: 'menu-histoire-choix' }, cont, choisir));
+      return wrap;
+    })(),
     // Les trois modes à part, en tuiles de même taille (décision du commanditaire) : le Souffle court, Sous la brume, l'Île infinie
     h('div', { class: 'menu-modes' },
       navButton('Le Souffle court', () => game.startTempo(), Object.assign({ cls: 'btn-mode btn-tempo', iconName: 'icon_wind', disabled: !(Save.data.infinite.unlocked || c.unlockedIsland > 6 || testMode), title: 'Pas de file : la tuile arrive, trois secondes pour la poser. Une île neuve à chaque partie.' },
@@ -56,7 +66,6 @@ export function buildMenu({ game }) {
         mode(Save.data.infinite.unlocked || c.unlockedIsland > 6 || testMode, { key: 'mode_brume', text: 's’ouvre après l’île 6' }, (() => { const b = Save.data.brume || {}; const m = Math.max((b.claire || {}).best || 0, (b.epaisse || {}).best || 0); return m ? `${m} pts` : 'déduire, parier'; })()))),
       navButton('Île infinie', () => game.startInfinite(), Object.assign({ cls: 'btn-mode', iconName: 'icon_tree', disabled: !(Save.data.infinite.unlocked || c.unlockedIsland > 6 || testMode), title: 'Se déverrouille après l’île 6' },
         mode(Save.data.infinite.unlocked || c.unlockedIsland > 6 || testMode, { key: 'mode_infinite', text: 's’ouvre après l’île 6' }, Save.data.infinite.best ? `${Save.data.infinite.best} pts` : 'sans fin')))),
-    navButton('Choisir une île', () => showIslands(), { iconName: 'icon_menu', disabled: !started && !testMode, sub: started || testMode ? `${Math.min(c.unlockedIsland, CAMPAIGN_SIZE)} / ${CAMPAIGN_SIZE}` : '' }),
     navButton('Île du jour', () => game.startDaily(), Object.assign({ iconName: 'icon_sun', disabled: !(c.unlockedIsland >= 6 || testMode), title: `Se déverrouille après l’île 5 · ${dailyLabel(dailyKey())}` },
       mode(c.unlockedIsland >= 6 || testMode, { key: 'mode_daily', text: 's’ouvre après l’île 5' }, (Save.data.daily && Save.data.daily.best[dailyKey()]) ? `${Save.data.daily.best[dailyKey()]} pts` : (Save.data.daily && Save.data.daily.streak ? `${Save.data.daily.streak} j` : '')))),
     // le Jardin et l'Atelier partagent une ligne. L'Atelier se visite depuis le menu (il n'est plus un écran entre
