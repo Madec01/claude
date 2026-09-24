@@ -88,7 +88,7 @@ src/core/             moteur générique : boucle, scènes, scène logique (bure
 src/data/             tuiles et affinités, équilibrage, îles, améliorations, narration
 src/game/             grille hexagonale, plateau, règles, saisons, faune, vœux, file, île, caméra, rendu, effets, HUD, tutoriel
 src/ui/               menu, options, crédits, écrans narratifs, bilan, atelier, pause
-assets/img/           tuiles (2×, quatre saisons), faune, effets, icônes + manifest.json
+assets/img/           tuiles (2×, quatre saisons), décor, faune, effets en WebP ; icônes et insignes en PNG ; manifest.json (léger) et provenance.json (sources, notes)
 assets/audio/         musiques, ambiances, effets (OGG) + manifest.json
 assets/video/         l'animation d'ouverture du studio (WebM et MP4, même film, 4 s)
 assets/fonts/         Lora et Quicksand (WOFF2, SIL OFL)

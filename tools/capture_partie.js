@@ -1,20 +1,22 @@
 // Joue une île jusqu'au bout avec le bot de calibrage, puis capture le PAYSAGE SEUL :
 // ni interface, ni points volants, ni étincelles, ni liserés. Sert à juger le rendu final d'une île.
 //
-// Usage : node tools/capture_partie.js <n° d'île> <fichier de sortie> [--saison <s>]
-// Il faut un serveur statique sur http://127.0.0.1:8765/ (python3 -m http.server 8765).
+// Usage : node tools/capture_partie.js <n° d'île> <fichier de sortie> [--saison <s>] [--port <p>]
+// Il faut un serveur statique sur http://127.0.0.1:8765/ (python3 -m http.server 8765), ou sur le port donné.
 const { chromium } = require('/opt/node22/lib/node_modules/playwright');
 const ILE = Number(process.argv[2] || 30);
 const OUT = process.argv[3] || 'tests/output/ile-finie.png';
 const iS = process.argv.indexOf('--saison');
 const SAISON = iS > 0 ? process.argv[iS + 1] : null;
+const iP = process.argv.indexOf('--port');
+const PORT = iP > 0 ? process.argv[iP + 1] : '8765';
 
 (async () => {
   const b = await chromium.launch({ args: ['--use-gl=swiftshader', '--enable-unsafe-swiftshader'] });
   const page = await (await b.newContext({ viewport: { width: 1280, height: 860 }, deviceScaleFactor: 2 })).newPage();
   const boot = (p) => p.waitForFunction(() => !document.getElementById('boot'), null, { timeout: 90000 });
   page.on('pageerror', (e) => console.log('[pageerror]', e.message));
-  await page.goto('http://127.0.0.1:8765/index.html'); await boot(page);
+  await page.goto(`http://127.0.0.1:${PORT}/index.html`); await boot(page);
   await page.evaluate(() => {
     const s = JSON.parse(localStorage.getItem('cent-saisons.save') || '{}');
     s.version = 3; s.cloud = { choice: 'none', uid: null, pending: null };

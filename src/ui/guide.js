@@ -13,8 +13,8 @@ import { AudioSys } from '../core/audio.js';
 const B = BALANCE;
 const name = (f) => (STORY.tiles[f] || {}).name || f;
 const blurb = (f) => (STORY.tiles[f] || {}).blurb || '';
-const tileImg = (f, rare = false) => h('img', { src: `assets/img/tiles/${f}_${rare ? '' : '1_'}spring.png`, alt: name(f), loading: 'lazy' });
-const faunaImg = (sp) => h('img', { src: `assets/img/fauna/fauna_${sp}.png`, alt: (STORY.fauna[sp] || {}).name || sp, loading: 'lazy' });
+const tileImg = (f, rare = false) => h('img', { src: `assets/img/tiles/${f}_${rare ? '' : '1_'}spring.webp`, alt: name(f), loading: 'lazy' });
+const faunaImg = (sp) => h('img', { src: `assets/img/fauna/fauna_${sp}.webp`, alt: (STORY.fauna[sp] || {}).name || sp, loading: 'lazy' });
 const SEASON_ICON = { spring: 'icon_leaf', summer: 'icon_sun', autumn: 'icon_wind', winter: 'icon_snow' };
 
 function pairs(f) {

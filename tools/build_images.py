@@ -6,7 +6,8 @@ faune, effets, UI.
 
 Lit les packs Kenney (CC0) depuis le miroir GitHub ETdoFresh/kenney.nl, écrit des
 PNG individuels dans assets/img/<dossier>/, puis génère :
-  - assets/img/manifest.json    (toutes les images produites, tailles, sources, notes)
+  - assets/img/manifest.json    (léger : fichier, taille, ancres — ce que le jeu lit)
+  - assets/img/provenance.json  (tout : sources, notes, poids ; pour les humains et les crédits)
   - assets/credits/images.json  (packs utilisés, licences, fichiers ; + polices)
 
 Étapes (toutes relançables, tout est régénéré depuis les sources) :
@@ -1674,7 +1675,7 @@ class Builder:
     def finish(self):
         produced = {self.img_root / v["file"] for v in self.manifest.values()}
         for p in self.img_root.rglob("*"):
-            if p.is_file() and p not in produced and p.name != "manifest.json":
+            if p.is_file() and p not in produced and p.name not in ("manifest.json", "provenance.json"):
                 p.unlink()
         for p in sorted(self.img_root.rglob("*"), reverse=True):
             if p.is_dir() and not any(p.iterdir()):
@@ -1764,6 +1765,63 @@ class Builder:
         print(f"TOTAL    {len(self.manifest):4d} images  {total / 1024:8.1f} Ko")
         print("manifest :", self.img_root / "manifest.json")
         print("crédits  :", cred_dir / "images.json")
+        webp_pass(self.img_root)
+
+
+# ---------------------------------------------------------------------------
+# Passe finale : les images du jeu en WebP. Une recompression des images produites, pas un dessin : le PNG
+# pesait 13 Mo avant le menu (27 s en 4G), le WebP à qualité 90 est indiscernable à l'écran (vérifié tuile par
+# tuile, zoom ×3) pour un quart du poids. Les effets (fx) sont en plus ramenés à 128 px : les particules se
+# dessinent entre 2 et 20 px (×3 sur un écran dense), 512 px n'y servaient à rien. Les sprites de faune (planches
+# d'animation) et la mer restent sans perte. Les dossiers fournis par le commanditaire (insignes, tampons,
+# succès) et l'interface (icônes référencées par leur nom dans le DOM et le HTML) restent en PNG.
+# ---------------------------------------------------------------------------
+WEBP_FOLDERS = {
+    "tiles": dict(quality=90), "deco": dict(quality=90), "fx": dict(quality=90, max_px=128),
+    "fauna": dict(lossless=True), "sea": dict(lossless=True),
+}
+# effets que le jeu ne tire jamais : gardés sur le disque, mais plus chargés au démarrage
+FX_INUTILISES = ("flash_", "magic_", "twirl_", "flare", "drop")
+# champs de documentation : ils partent dans provenance.json, le jeu ne lit que le reste
+PROVENANCE_ONLY = ("source", "original", "note", "method", "licence", "bytes", "generated_ai")
+
+
+def webp_pass(img_root: Path) -> None:
+    """Convertit en WebP les dossiers de WEBP_FOLDERS et écrit deux manifestes : manifest.json (léger, ce que le
+    jeu lit) et provenance.json (tout, sources et notes comprises). Rejouable : ne touche que ce qui est encore en PNG."""
+    full_path = img_root / "provenance.json"
+    doc = json.loads((full_path if full_path.exists() else img_root / "manifest.json").read_text(encoding="utf-8"))
+    images = doc["images"]
+    avant = apres = n = 0
+    for key, e in images.items():
+        folder = e["file"].split("/")[0]
+        opts = WEBP_FOLDERS.get(folder)
+        if folder == "fx" and key.startswith(FX_INUTILISES):
+            e["lazy"] = True
+        if not opts or not e["file"].endswith(".png"):
+            continue
+        src = img_root / e["file"]
+        if not src.exists():
+            continue
+        with Image.open(src) as im:
+            im = im.convert("RGBA")
+            if opts.get("max_px") and max(im.size) > opts["max_px"]:
+                im.thumbnail((opts["max_px"], opts["max_px"]), Image.LANCZOS)
+            dst = src.with_suffix(".webp")
+            im.save(dst, "WEBP", method=6, **{k: v for k, v in opts.items() if k != "max_px"})
+            w, h = im.size
+        avant += src.stat().st_size
+        src.unlink()
+        e["file"] = e["file"][:-4] + ".webp"
+        e["w"], e["h"], e["bytes"] = w, h, dst.stat().st_size
+        apres += e["bytes"]
+        n += 1
+    full_path.write_text(json.dumps(doc, ensure_ascii=False, indent=1), encoding="utf-8")
+    lean = {"generated": doc.get("generated"), "generator": doc.get("generator"),
+            "note": "manifeste allégé : les sources, notes et poids sont dans provenance.json",
+            "images": {k: {f: v for f, v in e.items() if f not in PROVENANCE_ONLY} for k, e in images.items()}}
+    (img_root / "manifest.json").write_text(json.dumps(lean, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+    print(f"WebP : {n} images, {avant / 1048576:.2f} Mo → {apres / 1048576:.2f} Mo ; manifest.json {(img_root / 'manifest.json').stat().st_size // 1024} Ko, provenance.json {full_path.stat().st_size // 1024} Ko")
 
 
 def check_licenses(src_root):
@@ -1863,7 +1921,11 @@ def main():
     ap.add_argument("--out", default=str(ROOT))
     ap.add_argument("--rebuild-cache", action="store_true", help="re-rasterise les SVG et ré-extrait les sprites 2×")
     ap.add_argument("--sheets", action="store_true", help="écrit des planches-contact par saison dans tools/cache/sheets/")
+    ap.add_argument("--webp", action="store_true", help="seulement la passe WebP + manifeste allégé, sur les images déjà produites")
     args = ap.parse_args()
+    if args.webp:
+        webp_pass(Path(args.out) / "assets" / "img")
+        return
     src_root, repo, kay_root = Path(args.src), Path(args.out), Path(args.kaykit)
     animals_root = Path(args.animaux)
     check_water_colours()
