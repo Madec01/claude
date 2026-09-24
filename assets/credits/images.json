@@ -911,7 +911,7 @@
   "author": "OpenAI",
   "license": "Conditions d'utilisation d'OpenAI (voir la page ci-dessous)",
   "url": "https://openai.com/policies/usage-policies",
-  "attribution": "Insignes d'archétype d'île, insignes des dix chapitres et vignettes des succès « L'ours » et « Le lac », générés à partir de prompts écrits pour le projet (docs/PROMPTS_INSIGNES.pdf), à la demande du commanditaire. Sur la carte postale, le jeu en tire une empreinte de tampon encré.",
+  "attribution": "Insignes d'archétype d'île, insignes des dix chapitres, leurs tampons pour la carte postale et les vignettes des succès « L'ours » et « Le lac », générés à partir de prompts écrits pour le projet (docs/PROMPTS_INSIGNES.pdf), à la demande du commanditaire.",
   "files": [
    "archetypes/archetype-hameaux.png",
    "archetypes/archetype-aquatique.png",
@@ -930,7 +930,23 @@
    "chapitres/chapitre-9.png",
    "chapitres/chapitre-10.png",
    "succes/l-ours.png",
-   "succes/le-lac.png"
+   "succes/le-lac.png",
+   "tampons/tampon-archetype-aquatique.png",
+   "tampons/tampon-archetype-hameaux.png",
+   "tampons/tampon-archetype-littorale.png",
+   "tampons/tampon-archetype-montagneuse.png",
+   "tampons/tampon-archetype-nourriciere.png",
+   "tampons/tampon-archetype-sauvage.png",
+   "tampons/tampon-chapitre-1.png",
+   "tampons/tampon-chapitre-10.png",
+   "tampons/tampon-chapitre-2.png",
+   "tampons/tampon-chapitre-3.png",
+   "tampons/tampon-chapitre-4.png",
+   "tampons/tampon-chapitre-5.png",
+   "tampons/tampon-chapitre-6.png",
+   "tampons/tampon-chapitre-7.png",
+   "tampons/tampon-chapitre-8.png",
+   "tampons/tampon-chapitre-9.png"
   ]
  },
  {

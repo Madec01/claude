@@ -94,8 +94,8 @@ Toutes les œuvres ci-dessous appartiennent à leurs auteurs et sont utilisées 
 - **Quicksand** — Andrew Paglinawan — licence SIL Open Font License 1.1 ([texte](https://openfontlicense.org/open-font-license-official-text/)) — [source](https://fonts.google.com/specimen/Quicksand) — [miroir utilisé](https://fonts.gstatic.com)
   - Fichiers : assets/fonts/quicksand-normal-400-700-latin-ext.woff2, assets/fonts/quicksand-normal-400-700-latin.woff2
 - **Généré par IA (ChatGPT, OpenAI)** — OpenAI — licence Conditions d'utilisation d'OpenAI (voir la page ci-dessous) — [source](https://openai.com/policies/usage-policies)
-  - Attribution : Insignes d'archétype d'île, insignes des dix chapitres et vignettes des succès « L'ours » et « Le lac », générés à partir de prompts écrits pour le projet (docs/PROMPTS_INSIGNES.pdf), à la demande du commanditaire. Sur la carte postale, le jeu en tire une empreinte de tampon encré.
-  - Fichiers : 18
+  - Attribution : Insignes d'archétype d'île, insignes des dix chapitres, leurs tampons pour la carte postale et les vignettes des succès « L'ours » et « Le lac », générés à partir de prompts écrits pour le projet (docs/PROMPTS_INSIGNES.pdf), à la demande du commanditaire.
+  - Fichiers : 34
 - **Icône et écran de chargement (captures du jeu)** — Cent Saisons — licence Voir les packs ci-dessus
   - Attribution : L'icône et le fond de l'écran de chargement sont des photographies de l'île 13, jouée jusqu'au bout par le bot des tests (tools/capture_partie.js) : l'icône recadrée au carré, le fond en deux cadrages, paysage et portrait. Tout ce qu'on y voit vient des packs d'images crédités plus haut ; rien n'a été dessiné pour elles.
   - Fichiers : ui/app_icon_192.png, ui/app_icon_512.png, ui/app_icon_512_maskable.png, ui/boot_island.jpg, ui/boot_island_portrait.jpg
