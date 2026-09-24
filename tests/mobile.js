@@ -3,8 +3,9 @@
 // puis capture les écrans principaux dans tests/output/mobile-*.png.
 // Usage : node tests/mobile.js   (serveur statique sur http://127.0.0.1:8765/ requis)
 const { chromium, devices } = require('/opt/node22/lib/node_modules/playwright');
-// La carte postale de fin attend un geste (pas de minuterie) : on clique « Voir le récapitulatif » quand elle est là.
-const passerLaCarte = async (page, t = 50000) => { try { await page.waitForFunction(() => window.CS.scenes.currentName === 'results' || document.querySelector('.carte-actions .btn-primary'), null, { timeout: t }); await page.evaluate(() => { const b = document.querySelector('.carte-actions .btn-primary'); if (b) b.click(); }); } catch (_) { /* pas de carte : on laisse l'attente suivante le dire */ } };
+// La tournée finale se joue en vrai dans finale.js ; ici on la presse comme le ferait un doigt (deux touchers : accélérer,
+// puis passer à la carte), et on clique « Voir le récapitulatif » dès que la carte est là — elle attend un geste, pas une minuterie.
+const passerLaCarte = async (page, t = 50000) => { try { await page.waitForFunction(() => { const sc = window.CS.scenes.current, f = sc && sc.finale; if (f && !f.done && f.phase !== 'carte') { f.skip(); f.skip(); } return window.CS.scenes.currentName === 'results' || document.querySelector('.carte-actions .btn-primary'); }, null, { timeout: t }); await page.evaluate(() => { const b = document.querySelector('.carte-actions .btn-primary'); if (b) b.click(); }); } catch (_) { /* pas de carte : on laisse l'attente suivante le dire */ } };
 const path = require('path');
 const fs = require('fs');
 const OUT = path.join(__dirname, 'output'); fs.mkdirSync(OUT, { recursive: true });
