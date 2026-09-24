@@ -128,7 +128,7 @@ const errors = []; const check = (ok, m) => { if (!ok) errors.push(m); console.l
 
   // --- 4. le HUD montre toujours les têtes rondes
   const chips = await page.evaluate(() => [...document.querySelectorAll('.fauna-chip img')].map((i) => i.getAttribute('src')));
-  if (chips.length) check(chips.every((s) => /fauna_[a-z]+\.png$/.test(s)), `les pastilles du HUD utilisent les têtes rondes (${chips.length})`);
+  if (chips.length) check(chips.every((s) => /fauna_[a-z]+\.webp$/.test(s)), `les pastilles du HUD utilisent les têtes rondes (${chips.length})`);
   else console.log('—   aucune pastille de faune affichée pendant l’essai');
 
   await b.close();

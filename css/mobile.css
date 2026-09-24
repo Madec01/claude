@@ -118,7 +118,8 @@ html.compact.landscape .menu-kicker { font-size: 12px; }
 html.compact.landscape .menu-sub { display: none; }
 html.compact.landscape .menu-nav { top: 84px; display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
 html.compact.landscape .menu-nav .btn { font-size: 13px; padding: 7px 12px; }
-html.compact.landscape .menu-nav .btn-big { font-size: 14px; padding: 8px 12px; grid-column: 1 / -1; }
+/* paysage : les grandes tuiles (Continuer, Le Souffle court, Reprendre) vont deux par deux — une par rangée dépassait la hauteur de l'écran */
+html.compact.landscape .menu-nav .btn-big { font-size: 14px; padding: 8px 12px; grid-column: auto; }
 /* en paysage, « Reprendre » et « Continuer » partagent la ligne : le menu tient encore dans la hauteur */
 html.compact.landscape .menu-nav .btn-resume, html.compact.landscape .menu-nav .btn-resume + .btn-big { grid-column: auto; }
 html.compact.landscape .menu-nav .btn-resume .btn-sub { font-size: 10px; }
