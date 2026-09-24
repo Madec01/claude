@@ -15,7 +15,7 @@ const boot = (p) => p.waitForFunction(() => !document.getElementById('boot'), nu
   await page.evaluate(() => { const s = JSON.parse(localStorage.getItem('cent-saisons.save') || '{}'); s.cloud = { choice: 'none' }; s.options = Object.assign(s.options || {}, { skipTutorial: true, master: 0 }); s.campaign = Object.assign(s.campaign || {}, { prologueSeen: true, unlockedIsland: 7, islandsPlayed: 6 }); s.version = 3; localStorage.setItem('cent-saisons.save', JSON.stringify(s)); });
   await page.reload(); await boot(page); await page.waitForTimeout(600);
   // 1. le menu : une grande tuile, ouverte après l'île 6
-  const tuile = await page.evaluate(() => { const b = [...document.querySelectorAll('.menu-nav .btn')].find((x) => x.textContent.includes('Souffle court')); return b ? { big: b.classList.contains('btn-big'), disabled: b.disabled, sub: (b.querySelector('.btn-sub') || {}).textContent } : null; });
+  const tuile = await page.evaluate(() => { const b = [...document.querySelectorAll('.menu-nav .btn')].find((x) => x.textContent.includes('Souffle court')); return b ? { big: b.classList.contains('btn-big') || b.classList.contains('btn-mode'), disabled: b.disabled, sub: (b.querySelector('.btn-sub') || {}).textContent } : null; });
   check(tuile && tuile.big && !tuile.disabled, `la grande tuile « Le Souffle court » est au menu, ouverte (${JSON.stringify(tuile)})`);
   await page.screenshot({ path: path.join(OUT, 'tempo-menu.png') });
   // 2. le récapitulatif des règles avant l'île, puis le décompte, puis le cadran sur la tuile — en grand, centrée en bas

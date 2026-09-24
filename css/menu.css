@@ -245,7 +245,13 @@ html:not(.compact) .menu-pair > .btn:last-child { grid-column: 1 / -1; }
 .panel-collection .ach-card.locked .ach-img { filter: brightness(0); opacity: 0.13; }   /* le succès manquant, en silhouette lui aussi */
 .panel-collection .ach-card.locked { opacity: 0.85; }
 
-/* Le Souffle court : la grande tuile du mode nerveux, un liseré de la couleur de la perte pour la distinguer de la campagne */
+/* Les trois modes à part : trois tuiles de même taille sur une ligne, l'icône au-dessus du nom */
+.menu-modes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+html:not(.compact) .menu-nav > .menu-modes { grid-column: 1 / -1; }
+.menu-nav .btn-mode { flex-direction: column; justify-content: center; align-items: center; text-align: center; gap: 5px; padding: 12px 8px 10px; font-size: 16px; line-height: 1.15; min-height: 108px; }
+.menu-nav .btn-mode .icon { width: 28px; height: 28px; }
+.menu-nav .btn-mode .btn-sub, .menu-nav .btn-mode .btn-sub.btn-locked-sub { margin-left: 0; font-size: 11px; max-width: 100%; text-align: center; line-height: 1.2; }
+/* Le Souffle court : un liseré de la couleur de la perte pour distinguer le mode nerveux */
 .menu-nav .btn-tempo:not(:disabled) { border-color: rgba(217,95,75,0.45); }
 
 /* Le Souffle court, avant l'île : les règles en cinq lignes */
