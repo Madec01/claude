@@ -133,12 +133,13 @@ export const AudioSys = {
   },
 
   /** Joue une musique en boucle avec crossfade depuis la précédente. */
+  /** Joue une musique en boucle avec crossfade depuis la précédente. Rend l'instant de départ (horloge audio), ou null. */
   async playMusic(key, { fade = 1.5, volume = 1 } = {}) {
-    if (!this.manifest) return;
-    if (this.music.key === key) return;
+    if (!this.manifest) return null;
+    if (this.music.key === key) return null;
     this.music.key = key;
     const buf = await this.load('music', key);
-    if (!buf || this.music.key !== key || !this.ctx) return;
+    if (!buf || this.music.key !== key || !this.ctx) return null;
     const now = this.ctx.currentTime;
     if (this.music.src) {
       const old = this.music;
@@ -148,11 +149,12 @@ export const AudioSys = {
     const src = this.ctx.createBufferSource();
     src.buffer = buf; src.loop = true;
     const g = this.ctx.createGain();
-    g.gain.setValueAtTime(0.0001, now);
-    g.gain.exponentialRampToValueAtTime(Math.max(0.0001, volume), now + fade);
+    if (fade > 0) { g.gain.setValueAtTime(0.0001, now); g.gain.exponentialRampToValueAtTime(Math.max(0.0001, volume), now + fade); }
+    else g.gain.setValueAtTime(Math.max(0.0001, volume), now);   // sans fondu : le Souffle court cale son décompte sur le premier temps
     src.connect(g); g.connect(this.bus.music.gain);
-    src.start();
+    src.start(now);
     this.music.src = src; this.music.gain = g;
+    return now;
   },
 
   stopMusic(fade = 1.2) {

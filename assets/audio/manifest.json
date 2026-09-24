@@ -122,13 +122,14 @@
     },
     "tempo": {
       "file": "music/tempo.ogg",
-      "duration": 95.161,
+      "duration": 63.177,
       "loop": true,
-      "source": "Le Grand Chase",
-      "author": "Kevin MacLeod",
-      "license": "CC BY 4.0",
-      "attribution": "\"Le Grand Chase\" Kevin MacLeod (incompetech.com) — Licensed under Creative Commons: By Attribution 4.0 License — http://creativecommons.org/licenses/by/4.0/",
-      "note": "Le Souffle court : une course, le mode nerveux veut de l'énergie — la seule piste du miroir qui presse le pas"
+      "source": "Woodblock Swing",
+      "author": "Martinus Games",
+      "license": "propriété du studio (composé avec Suno)",
+      "attribution": "« Woodblock Swing », composé avec Suno par Martinus Games pour Cent Saisons",
+      "note": "Le Souffle court : swing-folk de foire composé avec Suno par le commanditaire (143 BPM) ; le décompte du jeu se cale sur son tempo",
+      "pack": "suno"
     }
   },
   "ambience": {

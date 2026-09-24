@@ -146,16 +146,15 @@
       ]
     },
     {
-      "title": "Le Grand Chase",
-      "author": "Kevin MacLeod",
-      "license": "CC BY 4.0",
-      "license_url": "http://creativecommons.org/licenses/by/4.0/",
-      "source_url": "https://incompetech.com/music/royalty-free/index.html?keywords=Le+Grand+Chase",
-      "mirror": "https://github.com/noobsandnerdsgroup/audio",
-      "attribution": "\"Le Grand Chase\" Kevin MacLeod (incompetech.com) — Licensed under Creative Commons: By Attribution 4.0 License — http://creativecommons.org/licenses/by/4.0/",
+      "title": "Woodblock Swing",
+      "author": "Martinus Games (composé avec Suno)",
+      "license": "propriété du studio, tous droits réservés",
+      "source_url": "https://suno.com",
+      "attribution": "« Woodblock Swing », composé avec Suno par Martinus Games pour Cent Saisons",
       "used_in": [
         "music/tempo.ogg"
-      ]
+      ],
+      "type": "music"
     },
     {
       "title": "Forest quiet atmosphere with some birds",

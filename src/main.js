@@ -380,7 +380,7 @@ const Game = {
   noteMode(k) { Save.data.seen = Save.data.seen || {}; if (!Save.data.seen[k]) { Save.data.seen[k] = true; Save.save(); } },
   startInfinite() { this.noteMode('mode_infinite'); scenes.go('story', { screens: infiniteScreens(), onDone: () => scenes.go('island', { def: INFINITE }, { fade: 0.5 }) }); },
   /** Le Souffle court : le récit d'ouverture la première fois seulement ; ensuite, droit sur une île neuve. */
-  startTempo() { this.noteMode('mode_tempo'); const def = tempoDef(); scenes.go('prep', { node: buildTempoPrep({ onStart: () => { AudioSys.play('ui_confirm', { volume: 0.5 }); hideUI(); scenes.go('island', { def }, { fade: 0.4 }); }, onBack: () => this.showMenu() }) }); },
+  startTempo() { this.noteMode('mode_tempo'); const def = tempoDef(); if (AudioSys.has('tempo', 'music')) AudioSys.load('music', 'tempo').catch(() => {}); scenes.go('prep', { node: buildTempoPrep({ onStart: () => { AudioSys.play('ui_confirm', { volume: 0.5 }); hideUI(); scenes.go('island', { def }, { fade: 0.4 }); }, onBack: () => this.showMenu() }) }); },
   startDaily() { this.noteMode('mode_daily'); const def = dailyDef(); this.prepIsland(def, dailyScreens(def)); },
   startGarden() { this.noteMode('mode_garden'); scenes.go('story', { screens: gardenScreens(), onDone: () => scenes.go('island', { def: GARDEN }, { fade: 0.5 }) }); },
 
@@ -601,10 +601,18 @@ class IslandScene {
     isl.on((e) => this.onEvent(e));
     isl.on((e) => { if (!Game.testMode && !def.tempo) Achievements.onIslandEvent(e, isl); });
     // Le Souffle court : le cadran, la série et les saisons à effets ; la brume d'automne est lue par le rendu
-    this.tempo = def.tempo ? new Tempo(this) : null; if (this.tempo) { this.renderer.brume = this.tempo.brume; document.getElementById('hud').classList.add('tempo'); this.compteARebours(); }
+    this.tempo = def.tempo ? new Tempo(this) : null;
+    if (this.tempo) {
+      this.renderer.brume = this.tempo.brume; document.getElementById('hud').classList.add('tempo');
+      // la musique part sans fondu et le décompte se cale sur elle : un pas tous les deux temps, le premier coup sur le premier temps fort
+      const mu = BALANCE.tempo.musique; const pas = mu.tempsParPas * 60 / mu.bpm;
+      this.hold = true;
+      const lancer = AudioSys.has('tempo', 'music') ? AudioSys.playMusic('tempo', { fade: 0 }) : Promise.resolve(null);
+      Promise.race([lancer, wait(2.5)]).then((at) => { if (this.isl !== isl) return; this.compteARebours(pas, at !== null && at !== undefined ? mu.premierTemps : 0); });
+    }
     // audio
     this.seasonCount = { [isl.season]: 1 };
-    AudioSys.playMusic(def.garden ? 'garden' : def.tempo && AudioSys.has('tempo', 'music') ? 'tempo' : def.daily && AudioSys.has('daily', 'music') ? 'daily' : seasonMusic(isl.season, 1), { fade: 2 });
+    if (!def.tempo) AudioSys.playMusic(def.garden ? 'garden' : def.daily && AudioSys.has('daily', 'music') ? 'daily' : seasonMusic(isl.season, 1), { fade: 2 });
     this.updateAmbience(true);
     AudioSys.play('island_start', { volume: 0.6 });
     // entrées
@@ -632,7 +640,7 @@ class IslandScene {
    * Souffle court : trois, deux, un — le cadran ne part pas sans prévenir. Tant qu'il compte, rien ne se pose
    * (`hold`) et le temps ne s'écoule pas. Aussi au retour de pause, plus vite.
    */
-  compteARebours(pas = 0.8) {
+  compteARebours(pas = 0.8, avant = 0) {
     if (!this.tempo || this.isl.ended) return;
     this.hold = true;
     const el = h('div', { class: 'tempo-compte' }); document.getElementById('hud').appendChild(el);
@@ -642,7 +650,7 @@ class IslandScene {
       el.textContent = txt; el.classList.remove('tic'); void el.offsetWidth; el.classList.add('tic');
       AudioSys.play(i < 3 ? 'point_3' : 'island_start', { volume: i < 3 ? 0.5 : 0.7 });
       if (i === etapes.length - 1) { this.hold = false; this.tempo.armer(); setTimeout(() => el.remove(), 500); }
-    }, i * pas * 1000));
+    }, (avant + i * pas) * 1000));
   }
 
   /** Range la partie en cours (appareil seulement, jamais en ligne). */
@@ -942,7 +950,7 @@ class IslandScene {
       this.saveRun(true);
       const build = () => buildPause({ title: this.title, sub: this.pauseSub(), kept: !Game.testMode, onResume: () => this.togglePause(false), onJournal: () => { this.togglePause(false); this.hud.toggleLog(true); }, journalCount: this.hud.unread, onRestart: () => { RunSave.clear(); scenes.go('island', { def: this.def }, { fade: 0.5 }); }, onOptions: () => Game.showOptions(() => showUI(build(), 'pause-wrap')), onGuide: () => Game.showGuide(() => showUI(build(), 'pause-wrap')), onFullscreen: () => { Game.toggleFullscreen(); setTimeout(() => { if (this.paused) showUI(build(), 'pause-wrap'); }, 400); }, onMenu: () => scenes.go('menu'), onPostcard: () => { try { showUI(buildPostcard({ canvas: renderPostcard(this), filename: postcardName(this), onBack: () => showUI(build(), 'pause-wrap') }), 'panel-wrap'); } catch (e) { console.warn('carte postale', e); } }, onReport: () => Game.showReport(() => showUI(build(), 'pause-wrap')) });
       showUI(build(), 'pause-wrap');
-    } else { hideUI(); AudioSys.play('ui_close', { volume: 0.5 }); if (this.tempo) this.compteARebours(0.6); }
+    } else { hideUI(); AudioSys.play('ui_close', { volume: 0.5 }); if (this.tempo) { const mu = BALANCE.tempo.musique; this.compteARebours(mu.tempsParPas * 60 / mu.bpm * 0.75); } }
   }
 
   update(dt) {

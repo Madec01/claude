@@ -29,8 +29,8 @@ Toutes les œuvres ci-dessous appartiennent à leurs auteurs et sont utilisées 
   - Attribution : "Night Vigil" Kevin MacLeod (incompetech.com) — Licensed under Creative Commons: By Attribution 4.0 License — http://creativecommons.org/licenses/by/4.0/
 - **Maccary Bay** — Kevin MacLeod — licence CC BY 4.0 ([texte](http://creativecommons.org/licenses/by/4.0/)) — [source](https://incompetech.com/music/royalty-free/index.html?keywords=Maccary+Bay) — [miroir utilisé](https://github.com/noobsandnerdsgroup/audio)
   - Attribution : "Maccary Bay" Kevin MacLeod (incompetech.com) — Licensed under Creative Commons: By Attribution 4.0 License — http://creativecommons.org/licenses/by/4.0/
-- **Le Grand Chase** — Kevin MacLeod — licence CC BY 4.0 ([texte](http://creativecommons.org/licenses/by/4.0/)) — [source](https://incompetech.com/music/royalty-free/index.html?keywords=Le+Grand+Chase) — [miroir utilisé](https://github.com/noobsandnerdsgroup/audio)
-  - Attribution : "Le Grand Chase" Kevin MacLeod (incompetech.com) — Licensed under Creative Commons: By Attribution 4.0 License — http://creativecommons.org/licenses/by/4.0/
+- **Woodblock Swing** — Martinus Games (composé avec Suno) — licence propriété du studio, tous droits réservés — [source](https://suno.com)
+  - Attribution : « Woodblock Swing », composé avec Suno par Martinus Games pour Cent Saisons
 
 ## Sons et ambiances
 

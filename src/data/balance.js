@@ -38,5 +38,7 @@ export const BALANCE = {
     saisonPleine: 10,          // aucune tuile perdue dans la saison
     vide: 2, videBloque: 5, videRegion: 4, videRegionDes: 3,   // malus par case vide ; si elle seule empêche une région de fermer ; par case d'une région vide (à partir de 3)
     cellsMin: 40, cellsMax: 60, seasonLength: 5,
+    // la musique du mode (« Woodblock Swing », Suno) : le décompte se cale dessus — un pas tous les deux temps, le premier coup sur le premier temps fort
+    musique: { bpm: 143, premierTemps: 0.39, tempsParPas: 2 },
   },
 };

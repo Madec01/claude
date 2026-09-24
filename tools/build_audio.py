@@ -47,6 +47,7 @@ GAME = "Cent Saisons"
 # Sources (miroirs locaux). Surchargeables par variables d'environnement.
 # ---------------------------------------------------------------------------
 KM = Path(os.environ.get("CS_KM", "/home/user/mirrors/km-audio"))
+SUNO = Path(os.environ.get("CS_SUNO", "/home/user/mirrors/suno"))   # musiques composées avec Suno par le commanditaire (Martinus Games)
 AMB = Path(os.environ.get("CS_AMBIENT", "/home/user/mirrors/omarchy-ambient/sounds"))
 CC0 = Path(os.environ.get("CS_CC0", "/home/user/mirrors/cc0sounds"))
 KENNEY = Path(os.environ.get("CS_KENNEY", "/home/user/etdofresh/kenney.nl"))
@@ -67,6 +68,7 @@ P_FS_STORM = "fs_storm"
 
 PACKS = {
     P_KM: dict(dir=KM, author="Kevin MacLeod", license="CC BY 4.0"),
+    "suno": dict(dir=SUNO, author="Martinus Games (avec Suno)", license="propriété du studio (abonnement Suno avec droits commerciaux)"),
     P_FS_BIRDS: dict(dir=AMB, author="felix.blume", license="CC0 1.0"),
     P_FS_STREAM: dict(dir=AMB, author="IceVFX", license="CC0 1.0"),
     P_FS_WIND: dict(dir=AMB, author="felix.blume", license="CC0 1.0"),
@@ -491,7 +493,7 @@ MUSIC = {
     "autumn_2": ("Leaving Home", 115, 3.0, "automne (variante) : départ, feuilles qui tombent"),
     "winter_2": ("Night Vigil", 115, 3.0, "hiver (variante) : veille nocturne, froid et calme"),
     "daily": ("Maccary Bay", 115, 3.0, "île du jour : baie tranquille, un jour à la fois"),
-    "tempo": ("Le Grand Chase", 115, 3.0, "Le Souffle court : une course, le mode nerveux veut de l'énergie — la seule piste du miroir qui presse le pas"),
+    "tempo": ("suno:Woodblock Swing", 115, 3.0, "Le Souffle court : swing-folk de foire composé avec Suno par le commanditaire (143 BPM) ; le décompte du jeu se cale sur son tempo"),
 }
 MUSIC_LUFS = -16.0
 MUSIC_MIN_LOOP = 60.0
@@ -503,7 +505,11 @@ def build_music(only: set[str] | None = None) -> dict:
         if only and key not in only:
             continue
         path = OUT / "music" / f"{key}.ogg"
-        a = decode(src(P_KM, f"{title}.mp3"), ch=2)
+        # « suno:Titre » : une piste du commanditaire (miroir SUNO), pas du catalogue MacLeod
+        suno = title.startswith("suno:")
+        if suno:
+            title = title[5:]
+        a = decode(src("suno" if suno else P_KM, f"{title}.mp3"), ch=2)
         a = trim_silence(a, thresh_db=-48, pre=0.0, post=0.0)
         dur = len(a) / SR
         if dur <= max_s:
@@ -513,11 +519,16 @@ def build_music(only: set[str] | None = None) -> dict:
         cut_a = a[:int(end * SR)]
         looped = crossfade_loop(cut_a, xf)
         normed, info = loudnorm_loop(looped, MUSIC_LUFS)
-        encode_ogg(normed, path, 5, title=title, artist="Kevin MacLeod (incompetech.com)")
+        encode_ogg(normed, path, 5, title=title, artist="Martinus Games (Suno)" if suno else "Kevin MacLeod (incompetech.com)")
         pr = probe(path)
-        manifest[key] = dict(file=f"music/{key}.ogg", duration=round(pr["duration"], 3), loop=True,
-                             source=title, author="Kevin MacLeod", license="CC BY 4.0",
-                             attribution=km_attribution(title), note=why)
+        if suno:
+            manifest[key] = dict(file=f"music/{key}.ogg", duration=round(pr["duration"], 3), loop=True,
+                                 source=title, author="Martinus Games", license="propriété du studio (composé avec Suno)",
+                                 attribution=f"« {title} », composé avec Suno par Martinus Games pour Cent Saisons", note=why, pack="suno")
+        else:
+            manifest[key] = dict(file=f"music/{key}.ogg", duration=round(pr["duration"], 3), loop=True,
+                                 source=title, author="Kevin MacLeod", license="CC BY 4.0",
+                                 attribution=km_attribution(title), note=why)
         print(f"  music/{key}.ogg  <- {title!r}  cut={end:.1f}s xf={xf}s  "
               f"in={info['input_i']:.1f} LUFS -> {info['output_i']:.1f} ({info['mode']})  "
               f"{pr['duration']:.1f}s {pr['size'] / 1e6:.2f} Mo")
@@ -873,6 +884,10 @@ def write_credits(manifest: dict) -> None:
     works = []
     seen = set()
     for key, m in manifest.get("music", {}).items():
+        if m.get("pack") == "suno":
+            works.append(dict(title=m["source"], author="Martinus Games (composé avec Suno)", license="propriété du studio, tous droits réservés",
+                              source_url="https://suno.com", attribution=m.get("attribution", ""), used_in=[f"music/{key}.ogg"], type="music"))
+            continue
         t = m["source"]
         if ("km", t) in seen:
             continue

@@ -26,7 +26,8 @@ const boot = (p) => p.waitForFunction(() => !document.getElementById('boot'), nu
   await page.screenshot({ path: path.join(OUT, 'tempo-recap.png') });
   await page.evaluate(() => [...document.querySelectorAll('.panel-tempo button')].find((b) => b.textContent.includes('parti')).click());
   await page.waitForFunction(() => window.CS.scenes.currentName === 'island' && window.CS.scenes.current.isl && window.CS.scenes.current.isl.def.tempo, null, { timeout: 20000 });
-  await page.waitForTimeout(300);
+  // le premier chiffre attend le premier temps fort de la musique (0,4 s après son départ)
+  await page.waitForFunction(() => /^[321]$/.test((document.querySelector('.tempo-compte') || {}).textContent || ''), null, { timeout: 5000 });
   const compte = await page.evaluate(() => ({ hold: window.CS.scenes.current.hold, el: (document.querySelector('.tempo-compte') || {}).textContent || '', t: window.CS.scenes.current.tempo.t }));
   await page.waitForTimeout(900);
   const compte2 = await page.evaluate(() => ({ t: window.CS.scenes.current.tempo.t, hold: window.CS.scenes.current.hold }));
