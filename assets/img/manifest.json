@@ -6947,106 +6947,109 @@
    "file": "succes/premiere-tuile.png",
    "w": 240,
    "h": 280,
-   "bytes": 12142,
-   "source": "hexagon-pack",
-   "original": "meadow_1_spring",
-   "note": "Vignette de succès composée à partir des tuiles et sprites du jeu.",
-   "badge": true
+   "bytes": 19703,
+   "source": "ia-generee",
+   "original": "ChatGPT (OpenAI), génération d'image à partir d'un prompt",
+   "note": "Vignette de succès générée par IA (ChatGPT) à la demande du commanditaire, à partir des prompts de docs/PROMPTS_SUCCES.pdf ; recadrée à son hexagone et redimensionnée sans autre retouche.",
+   "badge": true,
+   "generated_ai": true,
+   "lazy": true
   },
   "un-toit": {
    "file": "succes/un-toit.png",
    "w": 240,
    "h": 280,
-   "bytes": 29279,
-   "source": "hexagon-pack",
-   "original": "hamlet_1_summer",
-   "note": "Vignette de succès composée à partir des tuiles et sprites du jeu.",
-   "badge": true
+   "bytes": 28863,
+   "source": "ia-generee",
+   "original": "ChatGPT (OpenAI), génération d'image à partir d'un prompt",
+   "note": "Vignette de succès générée par IA (ChatGPT) à la demande du commanditaire, à partir des prompts de docs/PROMPTS_SUCCES.pdf ; recadrée à son hexagone et redimensionnée sans autre retouche.",
+   "badge": true,
+   "generated_ai": true,
+   "lazy": true
   },
   "bourg": {
    "file": "succes/bourg.png",
    "w": 240,
    "h": 280,
-   "bytes": 29466,
-   "source": "hexagon-pack",
-   "original": "archway_summer",
-   "note": "Vignette de succès composée à partir des tuiles et sprites du jeu.",
-   "badge": true
+   "bytes": 34157,
+   "source": "ia-generee",
+   "original": "ChatGPT (OpenAI), génération d'image à partir d'un prompt",
+   "note": "Vignette de succès générée par IA (ChatGPT) à la demande du commanditaire, à partir des prompts de docs/PROMPTS_SUCCES.pdf ; recadrée à son hexagone et redimensionnée sans autre retouche.",
+   "badge": true,
+   "generated_ai": true,
+   "lazy": true
   },
   "grand-domaine": {
    "file": "succes/grand-domaine.png",
    "w": 240,
    "h": 280,
-   "bytes": 14310,
-   "source": "hexagon-pack",
-   "original": "forest_1_summer",
-   "note": "Vignette de succès composée à partir des tuiles et sprites du jeu.",
-   "badge": true
+   "bytes": 32758,
+   "source": "ia-generee",
+   "original": "ChatGPT (OpenAI), génération d'image à partir d'un prompt",
+   "note": "Vignette de succès générée par IA (ChatGPT) à la demande du commanditaire, à partir des prompts de docs/PROMPTS_SUCCES.pdf ; recadrée à son hexagone et redimensionnée sans autre retouche.",
+   "badge": true,
+   "generated_ai": true,
+   "lazy": true
   },
   "coup-de-maitre": {
    "file": "succes/coup-de-maitre.png",
    "w": 240,
    "h": 280,
-   "bytes": 14596,
-   "source": [
-    "gameicons",
-    "hexagon-pack"
-   ],
-   "original": "ground_grass_summer + icon_star",
-   "note": "Vignette de succès composée à partir des tuiles et sprites du jeu.",
-   "badge": true
+   "bytes": 31453,
+   "source": "ia-generee",
+   "original": "ChatGPT (OpenAI), génération d'image à partir d'un prompt",
+   "note": "Vignette de succès générée par IA (ChatGPT) à la demande du commanditaire, à partir des prompts de docs/PROMPTS_SUCCES.pdf ; recadrée à son hexagone et redimensionnée sans autre retouche.",
+   "badge": true,
+   "generated_ai": true,
+   "lazy": true
   },
   "sans-faute": {
    "file": "succes/sans-faute.png",
    "w": 240,
    "h": 280,
-   "bytes": 15062,
-   "source": [
-    "gameicons",
-    "hexagon-pack"
-   ],
-   "original": "ground_grass_spring + icon_check",
-   "note": "Vignette de succès composée à partir des tuiles et sprites du jeu.",
-   "badge": true
+   "bytes": 23581,
+   "source": "ia-generee",
+   "original": "ChatGPT (OpenAI), génération d'image à partir d'un prompt",
+   "note": "Vignette de succès générée par IA (ChatGPT) à la demande du commanditaire, à partir des prompts de docs/PROMPTS_SUCCES.pdf ; recadrée à son hexagone et redimensionnée sans autre retouche.",
+   "badge": true,
+   "generated_ai": true,
+   "lazy": true
   },
   "sans-regret": {
    "file": "succes/sans-regret.png",
    "w": 240,
    "h": 280,
-   "bytes": 16682,
-   "source": [
-    "gameicons",
-    "hexagon-pack"
-   ],
-   "original": "ground_grass_autumn + icon_undo",
-   "note": "Vignette de succès composée à partir des tuiles et sprites du jeu.",
-   "badge": true
+   "bytes": 23300,
+   "source": "ia-generee",
+   "original": "ChatGPT (OpenAI), génération d'image à partir d'un prompt",
+   "note": "Vignette de succès générée par IA (ChatGPT) à la demande du commanditaire, à partir des prompts de docs/PROMPTS_SUCCES.pdf ; recadrée à son hexagone et redimensionnée sans autre retouche.",
+   "badge": true,
+   "generated_ai": true,
+   "lazy": true
   },
   "la-source": {
    "file": "succes/la-source.png",
    "w": 240,
    "h": 280,
-   "bytes": 28744,
-   "source": [
-    "hexagon-pack",
-    "kaykit"
-   ],
-   "original": "water_1_spring + obj_rockGrey_medium1",
-   "note": "Vignette de succès composée à partir des tuiles et sprites du jeu.",
-   "badge": true
+   "bytes": 31417,
+   "source": "ia-generee",
+   "original": "ChatGPT (OpenAI), génération d'image à partir d'un prompt",
+   "note": "Vignette de succès générée par IA (ChatGPT) à la demande du commanditaire, à partir des prompts de docs/PROMPTS_SUCCES.pdf ; recadrée à son hexagone et redimensionnée sans autre retouche.",
+   "badge": true,
+   "generated_ai": true,
+   "lazy": true
   },
   "jusqu-a-la-mer": {
    "file": "succes/jusqu-a-la-mer.png",
    "w": 240,
    "h": 280,
-   "bytes": 36947,
-   "source": [
-    "hexagon-pack",
-    "hexagontiles"
-   ],
-   "original": "ground_sand_summer + sea_wave_1 + sea_wave_2",
-   "note": "Vignette de succès composée à partir des tuiles et sprites du jeu.",
-   "badge": true
+   "bytes": 24320,
+   "source": "ia-generee",
+   "original": "ChatGPT (OpenAI), génération d'image à partir d'un prompt",
+   "note": "Vignette de succès générée par IA (ChatGPT) à la demande du commanditaire, à partir des prompts de docs/PROMPTS_SUCCES.pdf ; recadrée à son hexagone et redimensionnée sans autre retouche.",
+   "badge": true,
+   "generated_ai": true,
+   "lazy": true
   },
   "le-lac": {
    "file": "succes/le-lac.png",
@@ -7055,71 +7058,70 @@
    "bytes": 26322,
    "source": "ia-generee",
    "original": "ChatGPT (OpenAI), génération d'image à partir d'un prompt",
-   "note": "Vignette de succès. Généré par IA (ChatGPT) à la demande du commanditaire, à partir des prompts du document « Prompts — insignes de Cent Saisons » (docs/PROMPTS_INSIGNES.pdf) ; recadré à son hexagone et redimensionné sans autre retouche.",
+   "note": "Vignette de succès générée par IA (ChatGPT) à la demande du commanditaire, à partir des prompts de docs/PROMPTS_SUCCES.pdf ; recadrée à son hexagone et redimensionnée sans autre retouche.",
    "badge": true,
-   "generated_ai": true
+   "generated_ai": true,
+   "lazy": true
   },
   "veillee": {
    "file": "succes/veillee.png",
    "w": 240,
    "h": 280,
-   "bytes": 28330,
-   "source": [
-    "hexagon-pack",
-    "kaykit"
-   ],
-   "original": "water_frozen + obj_shrine",
-   "note": "Vignette de succès composée à partir des tuiles et sprites du jeu.",
-   "badge": true
+   "bytes": 26362,
+   "source": "ia-generee",
+   "original": "ChatGPT (OpenAI), génération d'image à partir d'un prompt",
+   "note": "Vignette de succès générée par IA (ChatGPT) à la demande du commanditaire, à partir des prompts de docs/PROMPTS_SUCCES.pdf ; recadrée à son hexagone et redimensionnée sans autre retouche.",
+   "badge": true,
+   "generated_ai": true,
+   "lazy": true
   },
   "quatre-saisons": {
    "file": "succes/quatre-saisons.png",
    "w": 240,
    "h": 280,
-   "bytes": 26650,
-   "source": [
-    "generated",
-    "hexagon-pack"
-   ],
-   "original": "ground_grass_autumn + icon_sun",
-   "note": "Vignette de succès composée à partir des tuiles et sprites du jeu.",
-   "badge": true
+   "bytes": 28300,
+   "source": "ia-generee",
+   "original": "ChatGPT (OpenAI), génération d'image à partir d'un prompt",
+   "note": "Vignette de succès générée par IA (ChatGPT) à la demande du commanditaire, à partir des prompts de docs/PROMPTS_SUCCES.pdf ; recadrée à son hexagone et redimensionnée sans autre retouche.",
+   "badge": true,
+   "generated_ai": true,
+   "lazy": true
   },
   "grande-foire": {
    "file": "succes/grande-foire.png",
    "w": 240,
    "h": 280,
-   "bytes": 19710,
-   "source": "hexagon-pack",
-   "original": "orchard_1_autumn + obj_basket",
-   "note": "Vignette de succès composée à partir des tuiles et sprites du jeu.",
-   "badge": true
+   "bytes": 27311,
+   "source": "ia-generee",
+   "original": "ChatGPT (OpenAI), génération d'image à partir d'un prompt",
+   "note": "Vignette de succès générée par IA (ChatGPT) à la demande du commanditaire, à partir des prompts de docs/PROMPTS_SUCCES.pdf ; recadrée à son hexagone et redimensionnée sans autre retouche.",
+   "badge": true,
+   "generated_ai": true,
+   "lazy": true
   },
   "compagnie": {
    "file": "succes/compagnie.png",
    "w": 240,
    "h": 280,
-   "bytes": 18126,
-   "source": [
-    "hexagon-pack",
-    "kenney_animalpackredux"
-   ],
-   "original": "ground_grass_summer + fauna_rabbit + fauna_duck",
-   "note": "Vignette de succès composée à partir des tuiles et sprites du jeu.",
-   "badge": true
+   "bytes": 33981,
+   "source": "ia-generee",
+   "original": "ChatGPT (OpenAI), génération d'image à partir d'un prompt",
+   "note": "Vignette de succès générée par IA (ChatGPT) à la demande du commanditaire, à partir des prompts de docs/PROMPTS_SUCCES.pdf ; recadrée à son hexagone et redimensionnée sans autre retouche.",
+   "badge": true,
+   "generated_ai": true,
+   "lazy": true
   },
   "menagerie": {
    "file": "succes/menagerie.png",
    "w": 240,
    "h": 280,
-   "bytes": 26373,
-   "source": [
-    "hexagon-pack",
-    "kenney_animalpackredux"
-   ],
-   "original": "ground_grass_spring + fauna_moose",
-   "note": "Vignette de succès composée à partir des tuiles et sprites du jeu.",
-   "badge": true
+   "bytes": 33542,
+   "source": "ia-generee",
+   "original": "ChatGPT (OpenAI), génération d'image à partir d'un prompt",
+   "note": "Vignette de succès générée par IA (ChatGPT) à la demande du commanditaire, à partir des prompts de docs/PROMPTS_SUCCES.pdf ; recadrée à son hexagone et redimensionnée sans autre retouche.",
+   "badge": true,
+   "generated_ai": true,
+   "lazy": true
   },
   "l-ours": {
    "file": "succes/l-ours.png",
@@ -7128,221 +7130,190 @@
    "bytes": 22062,
    "source": "ia-generee",
    "original": "ChatGPT (OpenAI), génération d'image à partir d'un prompt",
-   "note": "Vignette de succès. Généré par IA (ChatGPT) à la demande du commanditaire, à partir des prompts du document « Prompts — insignes de Cent Saisons » (docs/PROMPTS_INSIGNES.pdf) ; recadré à son hexagone et redimensionné sans autre retouche.",
+   "note": "Vignette de succès générée par IA (ChatGPT) à la demande du commanditaire, à partir des prompts de docs/PROMPTS_SUCCES.pdf ; recadrée à son hexagone et redimensionnée sans autre retouche.",
    "badge": true,
-   "generated_ai": true
+   "generated_ai": true,
+   "lazy": true
   },
   "les-manchots": {
    "file": "succes/les-manchots.png",
    "w": 240,
    "h": 280,
-   "bytes": 24876,
-   "source": [
-    "hexagon-pack",
-    "kenney_animalpackredux"
-   ],
-   "original": "water_frozen + fauna_penguin + fauna_penguin",
-   "note": "Vignette de succès composée à partir des tuiles et sprites du jeu.",
-   "badge": true
+   "bytes": 24485,
+   "source": "ia-generee",
+   "original": "ChatGPT (OpenAI), génération d'image à partir d'un prompt",
+   "note": "Vignette de succès générée par IA (ChatGPT) à la demande du commanditaire, à partir des prompts de docs/PROMPTS_SUCCES.pdf ; recadrée à son hexagone et redimensionnée sans autre retouche.",
+   "badge": true,
+   "generated_ai": true,
+   "lazy": true
   },
   "promesse-tenue": {
    "file": "succes/promesse-tenue.png",
    "w": 240,
    "h": 280,
-   "bytes": 16711,
-   "source": "hexagon-pack",
-   "original": "ground_grass_summer + obj_banner",
-   "note": "Vignette de succès composée à partir des tuiles et sprites du jeu.",
-   "badge": true
+   "bytes": 31428,
+   "source": "ia-generee",
+   "original": "ChatGPT (OpenAI), génération d'image à partir d'un prompt",
+   "note": "Vignette de succès générée par IA (ChatGPT) à la demande du commanditaire, à partir des prompts de docs/PROMPTS_SUCCES.pdf ; recadrée à son hexagone et redimensionnée sans autre retouche.",
+   "badge": true,
+   "generated_ai": true,
+   "lazy": true
   },
   "toute-l-ile": {
    "file": "succes/toute-l-ile.png",
    "w": 240,
    "h": 280,
-   "bytes": 23590,
-   "source": "hexagon-pack",
-   "original": "fete_summer",
-   "note": "Vignette de succès composée à partir des tuiles et sprites du jeu.",
-   "badge": true
+   "bytes": 35908,
+   "source": "ia-generee",
+   "original": "ChatGPT (OpenAI), génération d'image à partir d'un prompt",
+   "note": "Vignette de succès générée par IA (ChatGPT) à la demande du commanditaire, à partir des prompts de docs/PROMPTS_SUCCES.pdf ; recadrée à son hexagone et redimensionnée sans autre retouche.",
+   "badge": true,
+   "generated_ai": true,
+   "lazy": true
   },
   "cinquante-promesses": {
    "file": "succes/cinquante-promesses.png",
    "w": 240,
    "h": 280,
-   "bytes": 35840,
-   "source": "hexagon-pack",
-   "original": "chapel_summer",
-   "note": "Vignette de succès composée à partir des tuiles et sprites du jeu.",
-   "badge": true
+   "bytes": 36814,
+   "source": "ia-generee",
+   "original": "ChatGPT (OpenAI), génération d'image à partir d'un prompt",
+   "note": "Vignette de succès générée par IA (ChatGPT) à la demande du commanditaire, à partir des prompts de docs/PROMPTS_SUCCES.pdf ; recadrée à son hexagone et redimensionnée sans autre retouche.",
+   "badge": true,
+   "generated_ai": true,
+   "lazy": true
   },
   "charpentier": {
    "file": "succes/charpentier.png",
    "w": 240,
    "h": 280,
-   "bytes": 18517,
-   "source": [
-    "hexagon-pack",
-    "kaykit"
-   ],
-   "original": "ground_field_summer + obj_logPile + obj_haybale",
-   "note": "Vignette de succès composée à partir des tuiles et sprites du jeu.",
-   "badge": true
+   "bytes": 22275,
+   "source": "ia-generee",
+   "original": "ChatGPT (OpenAI), génération d'image à partir d'un prompt",
+   "note": "Vignette de succès générée par IA (ChatGPT) à la demande du commanditaire, à partir des prompts de docs/PROMPTS_SUCCES.pdf ; recadrée à son hexagone et redimensionnée sans autre retouche.",
+   "badge": true,
+   "generated_ai": true,
+   "lazy": true
   },
   "signature": {
    "file": "succes/signature.png",
    "w": 240,
    "h": 280,
-   "bytes": 41445,
-   "source": [
-    "hexagon-pack",
-    "kaykit"
-   ],
-   "original": "ground_grass_summer + obj_church",
-   "note": "Vignette de succès composée à partir des tuiles et sprites du jeu.",
-   "badge": true
+   "bytes": 32320,
+   "source": "ia-generee",
+   "original": "ChatGPT (OpenAI), génération d'image à partir d'un prompt",
+   "note": "Vignette de succès générée par IA (ChatGPT) à la demande du commanditaire, à partir des prompts de docs/PROMPTS_SUCCES.pdf ; recadrée à son hexagone et redimensionnée sans autre retouche.",
+   "badge": true,
+   "generated_ai": true,
+   "lazy": true
   },
   "le-cahier-complet": {
    "file": "succes/le-cahier-complet.png",
    "w": 240,
    "h": 280,
-   "bytes": 71409,
-   "source": [
-    "hexagon-pack",
-    "kaykit"
-   ],
-   "original": "ground_stone_summer + obj_castle_small",
-   "note": "Vignette de succès composée à partir des tuiles et sprites du jeu.",
-   "badge": true
+   "bytes": 31720,
+   "source": "ia-generee",
+   "original": "ChatGPT (OpenAI), génération d'image à partir d'un prompt",
+   "note": "Vignette de succès générée par IA (ChatGPT) à la demande du commanditaire, à partir des prompts de docs/PROMPTS_SUCCES.pdf ; recadrée à son hexagone et redimensionnée sans autre retouche.",
+   "badge": true,
+   "generated_ai": true,
+   "lazy": true
   },
   "port-d-attache": {
    "file": "succes/port-d-attache.png",
    "w": 240,
    "h": 280,
-   "bytes": 37385,
-   "source": [
-    "hexagon-pack",
-    "hexagontiles",
-    "kaykit"
-   ],
-   "original": "ground_water_summer + obj_house_small + obj_rockGrey_medium1 + sea_wave_1",
-   "note": "Vignette de succès composée à partir des tuiles et sprites du jeu.",
-   "badge": true
-  },
-  "bien-place": {
-   "file": "succes/bien-place.png",
-   "w": 240,
-   "h": 280,
-   "bytes": 19305,
-   "source": [
-    "hexagon-pack",
-    "hexagontiles"
-   ],
-   "original": "ground_grass_summer + obj_box2 + obj_flowerYellow + obj_flowerWhite",
-   "note": "Vignette de succès composée à partir des tuiles et sprites du jeu.",
-   "badge": true
-  },
-  "frais-du-jour": {
-   "file": "succes/frais-du-jour.png",
-   "w": 240,
-   "h": 280,
-   "bytes": 20075,
-   "source": [
-    "hexagon-pack",
-    "kaykit"
-   ],
-   "original": "ground_grass_spring + obj_treeRound_blossom_large",
-   "note": "Vignette de succès composée à partir des tuiles et sprites du jeu.",
-   "badge": true
+   "bytes": 29731,
+   "source": "ia-generee",
+   "original": "ChatGPT (OpenAI), génération d'image à partir d'un prompt",
+   "note": "Vignette de succès générée par IA (ChatGPT) à la demande du commanditaire, à partir des prompts de docs/PROMPTS_SUCCES.pdf ; recadrée à son hexagone et redimensionnée sans autre retouche.",
+   "badge": true,
+   "generated_ai": true,
+   "lazy": true
   },
   "chapitre-clos": {
    "file": "succes/chapitre-clos.png",
    "w": 240,
    "h": 280,
-   "bytes": 13132,
-   "source": [
-    "gameicons",
-    "hexagon-pack"
-   ],
-   "original": "ground_grass_summer + icon_trophy",
-   "note": "Vignette de succès composée à partir des tuiles et sprites du jeu.",
-   "badge": true
+   "bytes": 26335,
+   "source": "ia-generee",
+   "original": "ChatGPT (OpenAI), génération d'image à partir d'un prompt",
+   "note": "Vignette de succès générée par IA (ChatGPT) à la demande du commanditaire, à partir des prompts de docs/PROMPTS_SUCCES.pdf ; recadrée à son hexagone et redimensionnée sans autre retouche.",
+   "badge": true,
+   "generated_ai": true,
+   "lazy": true
   },
   "les-quatre-climats": {
    "file": "succes/les-quatre-climats.png",
    "w": 240,
    "h": 280,
-   "bytes": 23344,
-   "source": [
-    "hexagon-pack",
-    "hexagontiles",
-    "kaykit"
-   ],
-   "original": "ground_heath_autumn + obj_snowdrift + obj_treePine_small_winter + obj_bushGrass_dry",
-   "note": "Vignette de succès composée à partir des tuiles et sprites du jeu.",
-   "badge": true
+   "bytes": 23776,
+   "source": "ia-generee",
+   "original": "ChatGPT (OpenAI), génération d'image à partir d'un prompt",
+   "note": "Vignette de succès générée par IA (ChatGPT) à la demande du commanditaire, à partir des prompts de docs/PROMPTS_SUCCES.pdf ; recadrée à son hexagone et redimensionnée sans autre retouche.",
+   "badge": true,
+   "generated_ai": true,
+   "lazy": true
   },
   "cent-saisons": {
    "file": "succes/cent-saisons.png",
    "w": 240,
    "h": 280,
-   "bytes": 16109,
-   "source": [
-    "gameicons",
-    "hexagon-pack"
-   ],
-   "original": "ground_grass_summer + icon_medal",
-   "note": "Vignette de succès composée à partir des tuiles et sprites du jeu.",
-   "badge": true
+   "bytes": 34672,
+   "source": "ia-generee",
+   "original": "ChatGPT (OpenAI), génération d'image à partir d'un prompt",
+   "note": "Vignette de succès générée par IA (ChatGPT) à la demande du commanditaire, à partir des prompts de docs/PROMPTS_SUCCES.pdf ; recadrée à son hexagone et redimensionnée sans autre retouche.",
+   "badge": true,
+   "generated_ai": true,
+   "lazy": true
   },
   "cent-cinquante": {
    "file": "succes/cent-cinquante.png",
    "w": 240,
    "h": 280,
-   "bytes": 21295,
-   "source": [
-    "gameicons",
-    "hexagon-pack",
-    "hexagontiles"
-   ],
-   "original": "ground_grass_spring + icon_trophy + obj_flowerWhite + obj_flowerRed",
-   "note": "Vignette de succès composée à partir des tuiles et sprites du jeu.",
-   "badge": true
+   "bytes": 25312,
+   "source": "ia-generee",
+   "original": "ChatGPT (OpenAI), génération d'image à partir d'un prompt",
+   "note": "Vignette de succès générée par IA (ChatGPT) à la demande du commanditaire, à partir des prompts de docs/PROMPTS_SUCCES.pdf ; recadrée à son hexagone et redimensionnée sans autre retouche.",
+   "badge": true,
+   "generated_ai": true,
+   "lazy": true
   },
   "lever-du-jour": {
    "file": "succes/lever-du-jour.png",
    "w": 240,
    "h": 280,
-   "bytes": 44743,
-   "source": [
-    "generated",
-    "hexagon-pack"
-   ],
-   "original": "ground_sand_summer + icon_sun",
-   "note": "Vignette de succès composée à partir des tuiles et sprites du jeu.",
-   "badge": true
+   "bytes": 18237,
+   "source": "ia-generee",
+   "original": "ChatGPT (OpenAI), génération d'image à partir d'un prompt",
+   "note": "Vignette de succès générée par IA (ChatGPT) à la demande du commanditaire, à partir des prompts de docs/PROMPTS_SUCCES.pdf ; recadrée à son hexagone et redimensionnée sans autre retouche.",
+   "badge": true,
+   "generated_ai": true,
+   "lazy": true
   },
   "sans-fin": {
    "file": "succes/sans-fin.png",
    "w": 240,
    "h": 280,
-   "bytes": 20188,
-   "source": "hexagon-pack",
-   "original": "hill_1_summer",
-   "note": "Vignette de succès composée à partir des tuiles et sprites du jeu.",
-   "badge": true
+   "bytes": 32979,
+   "source": "ia-generee",
+   "original": "ChatGPT (OpenAI), génération d'image à partir d'un prompt",
+   "note": "Vignette de succès générée par IA (ChatGPT) à la demande du commanditaire, à partir des prompts de docs/PROMPTS_SUCCES.pdf ; recadrée à son hexagone et redimensionnée sans autre retouche.",
+   "badge": true,
+   "generated_ai": true,
+   "lazy": true
   },
   "prudence": {
    "file": "succes/prudence.png",
    "w": 240,
    "h": 280,
-   "bytes": 12836,
-   "source": [
-    "gameicons",
-    "hexagon-pack"
-   ],
-   "original": "ground_grass_summer + icon_save",
-   "note": "Vignette de succès composée à partir des tuiles et sprites du jeu.",
-   "badge": true
+   "bytes": 23768,
+   "source": "ia-generee",
+   "original": "ChatGPT (OpenAI), génération d'image à partir d'un prompt",
+   "note": "Vignette de succès générée par IA (ChatGPT) à la demande du commanditaire, à partir des prompts de docs/PROMPTS_SUCCES.pdf ; recadrée à son hexagone et redimensionnée sans autre retouche.",
+   "badge": true,
+   "generated_ai": true,
+   "lazy": true
   },
   "archetype-hameaux": {
    "file": "archetypes/archetype-hameaux.png",

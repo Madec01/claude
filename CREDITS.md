@@ -56,11 +56,11 @@ Toutes les œuvres ci-dessous appartiennent à leurs auteurs et sont utilisées 
 ## Graphismes
 
 - **Hexagon Pack** — Kenney (kenney.nl) — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://kenney.nl/assets/hexagon-pack) — [miroir utilisé](https://github.com/ETdoFresh/kenney.nl)
-  - Fichiers : 273
+  - Fichiers : 240
 - **Hexagon Tiles** — Kenney (kenney.nl) — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://kenney.nl/assets/hexagon-tiles) — [miroir utilisé](https://github.com/ETdoFresh/kenney.nl)
-  - Fichiers : 100
+  - Fichiers : 95
 - **Animal Pack Redux** — Kenney (kenney.nl) — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://kenney.nl/assets/animal-pack-redux) — [miroir utilisé](https://github.com/ETdoFresh/kenney.nl)
-  - Fichiers : 17
+  - Fichiers : 13
 - **Particle Pack (1.1)** — Kenney (kenney.nl) — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://kenney.nl/assets/particle-pack) — [miroir utilisé](https://github.com/ETdoFresh/kenney.nl)
   - Fichiers : 43
 - **Smoke Particles** — Kenney (kenney.nl) — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://kenney.nl/assets/smoke-particles) — [miroir utilisé](https://github.com/ETdoFresh/kenney.nl)
@@ -68,7 +68,7 @@ Toutes les œuvres ci-dessous appartiennent à leurs auteurs et sont utilisées 
 - **Foliage Sprites** — Kenney (kenney.nl) — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://kenney.nl/assets/foliage-sprites) — [miroir utilisé](https://github.com/ETdoFresh/kenney.nl)
   - Fichiers : 11
 - **Game Icons** — Kenney (kenney.nl) — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://kenney.nl/assets/game-icons) — [miroir utilisé](https://github.com/ETdoFresh/kenney.nl)
-  - Fichiers : 50
+  - Fichiers : 43
 - **Game Icons Expansion** — Kenney (kenney.nl) — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://kenney.nl/assets/game-icons-expansion) — [miroir utilisé](https://github.com/ETdoFresh/kenney.nl)
   - Fichiers : ui/icon_cloud.png, ui/icon_coin.png, ui/icon_diamond.png, ui/icon_flag.png, ui/icon_key.png
 - **UI Pack** — Kenney (kenney.nl) — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://kenney.nl/assets/ui-pack) — [miroir utilisé](https://github.com/ETdoFresh/kenney.nl)
@@ -94,8 +94,8 @@ Toutes les œuvres ci-dessous appartiennent à leurs auteurs et sont utilisées 
 - **Quicksand** — Andrew Paglinawan — licence SIL Open Font License 1.1 ([texte](https://openfontlicense.org/open-font-license-official-text/)) — [source](https://fonts.google.com/specimen/Quicksand) — [miroir utilisé](https://fonts.gstatic.com)
   - Fichiers : assets/fonts/quicksand-normal-400-700-latin-ext.woff2, assets/fonts/quicksand-normal-400-700-latin.woff2
 - **Généré par IA (ChatGPT, OpenAI)** — OpenAI — licence Conditions d'utilisation d'OpenAI (voir la page ci-dessous) — [source](https://openai.com/policies/usage-policies)
-  - Attribution : Insignes d'archétype d'île, insignes des dix chapitres, leurs tampons pour la carte postale et les vignettes des succès « L'ours » et « Le lac », générés à partir de prompts écrits pour le projet (docs/PROMPTS_INSIGNES.pdf), à la demande du commanditaire.
-  - Fichiers : 34
+  - Attribution : Insignes d'archétype d'île, insignes des dix chapitres, leurs tampons pour la carte postale et les vignettes des trente et un succès, générés à partir de prompts écrits pour le projet (docs/PROMPTS_INSIGNES.pdf, docs/PROMPTS_SUCCES.pdf), à la demande du commanditaire.
+  - Fichiers : 63
 - **Icône et écran de chargement (captures du jeu)** — Cent Saisons — licence Voir les packs ci-dessus
   - Attribution : L'icône et le fond de l'écran de chargement sont des photographies de l'île 13, jouée jusqu'au bout par le bot des tests (tools/capture_partie.js) : l'icône recadrée au carré, le fond en deux cadrages, paysage et portrait. Tout ce qu'on y voit vient des packs d'images crédités plus haut ; rien n'a été dessiné pour elles.
   - Fichiers : ui/app_icon_192.png, ui/app_icon_512.png, ui/app_icon_512_maskable.png, ui/boot_island.jpg, ui/boot_island_portrait.jpg

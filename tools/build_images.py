@@ -1511,6 +1511,11 @@ class Builder:
     # --- D. UI
     # --- E. vignettes des succès : composées à partir des tuiles et sprites déjà produits (aucun dessin par code)
     def build_badges(self):
+        """Vignettes de succès : composées au départ depuis les tuiles et sprites du jeu. Le commanditaire a fait
+        générer les 31 (prompts de docs/PROMPTS_SUCCES.pdf) ; elles sont posées à la main dans assets/img/succes/
+        avec leurs entrées dans manifest.json et les crédits (pack « Généré par IA »). Plus rien à composer ici :
+        la recette d'origine reste en dessous pour l'historique, jamais exécutée."""
+        return
         def load(key):
             e = self.manifest.get(key)
             if not e:
