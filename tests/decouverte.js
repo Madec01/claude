@@ -69,7 +69,7 @@ const btn = (page, label) => page.evaluate((l) => {
     neuves: document.querySelectorAll('.ws-card.ws-new').length,
     fermees: document.querySelectorAll('.ws-card.locked').length,
   }));
-  check(/Chapitre 3/.test(atl.chap) && /amélioration/.test(atl.chap), `l’Atelier annonce la moisson du chapitre (« ${atl.chap.slice(0, 70)}… »)`);
+  check(/Chapitre 4/.test(atl.chap) && /amélioration/.test(atl.chap), `l’Atelier annonce la moisson du chapitre (l’île 12 est au chapitre 4) (« ${atl.chap.slice(0, 70)}… »)`);
   check(atl.neuves >= 1, `les nouvelles améliorations sont marquées (${atl.neuves})`);
   check(atl.fermees >= 1, `les suivantes restent visibles, grisées, avec leur chapitre (${atl.fermees})`);
 
