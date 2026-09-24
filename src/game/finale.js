@@ -20,6 +20,7 @@ import { clamp, TAU, rnd } from '../core/math.js';
 import { waterBodies } from './water.js';
 import { SEASONS } from '../data/tiles.js';
 import { cadreCarte, habillerCarte, geoCarte, renderPostcard, postcardName } from './postcard.js';
+import { insignesDe } from './tampon.js';
 import { exporterCarte } from '../ui/postcard.js';
 import { showUI, hideUI, h, button } from '../ui/dom.js';
 
@@ -300,9 +301,14 @@ export class Finale {
     // Le nom fini, on ne dit plus rien pendant une demi-seconde : c'est ce silence qui fait les étoiles.
     const premiere = D.titre * 0.53 + 0.5, pas = this.court ? 0.3 : 0.42;
     if (t > premiere + this.starsShown * pas && this.starsShown < this.stars) { this.starsShown++; this.sc.playSfx(`star_${this.starsShown}`, 0.7); }
+    // après les étoiles, le coup de tampon : l'encre paraît d'un coup, avec le choc sourd du bois sur la table
+    const tape = premiere + this.stars * pas + 0.35;
+    const avant = this.tampons || 0; this.tampons = clamp((t - tape) / 0.12, 0, 1);
+    if (avant === 0 && this.tampons > 0 && insignesDe(this.sc).length) this.sc.playSfx('tile_place_2', 0.8);
     if (!this.voilier && t > 0.25) { this.voilier = true; this.r.envoyerVoilier(this.versLaMer, D.titre * 1.3); }
     if (!this.baleine && t > D.titre * 0.3) { this.baleine = true; if (this.r.anses().size) this.r.souffleBaleine(D.titre); }
-    if (t >= D.titre) this.entrer('carte');
+    // la carte attend que le tampon soit tombé (trois étoiles et un tampon débordent un peu la durée du titre)
+    if (t >= Math.max(D.titre, insignesDe(this.sc).length ? tape + 0.6 : 0)) this.entrer('carte');
   }
 
   /** Le compteur monte pendant la tournée et finit sa course avec la vague. */
@@ -320,7 +326,7 @@ export class Finale {
     const W = STAGE.W, H = STAGE.H, compact = STAGE.compact;
     if (this.phase === 'carte') { habillerCarte(ctx, this.sc, W, H); return; }
     const fin = this.phase === 'titre' ? clamp(this.stepT / (this.D.titre * 0.26), 0, 1) : 0;
-    if (this.phase === 'titre') habillerCarte(ctx, this.sc, W, H, { bandes: this.bandes, lettres: this.lettres, etoiles: this.starsShown });
+    if (this.phase === 'titre') habillerCarte(ctx, this.sc, W, H, { bandes: this.bandes, lettres: this.lettres, etoiles: this.starsShown, tampons: this.tampons || 0 });
     ctx.save(); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     // le compteur, tant que la carte n'a pas pris le relais (elle porte le score, elle aussi)
     const a = clamp(this.t / 0.8, 0, 1) * (1 - fin);

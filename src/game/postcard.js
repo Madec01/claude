@@ -5,6 +5,7 @@ import { Camera } from './camera.js';
 import { STORY } from '../data/story.js';
 import { CHAPTERS } from '../data/campaign.js';
 import { BALANCE } from '../data/balance.js';
+import { tamponner } from './tampon.js';
 
 const PAPER = '#fbf7ee', INK = '#2b2a26', GOLD = '#e0a33a';
 
@@ -35,7 +36,7 @@ export function cadreCarte(isl, w, h) {
  * d'en montrer une image toute faite — les bandeaux glissent (`bandes`), le nom s'écrit (`lettres`) et
  * les étoiles se posent une à une (`etoiles`). À valeurs pleines, c'est la carte téléchargeable.
  */
-export function habillerCarte(ctx, scene, w, h, { bandes = 1, lettres = 1, etoiles = null } = {}) {
+export function habillerCarte(ctx, scene, w, h, { bandes = 1, lettres = 1, etoiles = null, tampons = 1 } = {}) {
   const isl = scene.isl, def = scene.def;
   const g = geoCarte(w); const { k, frame, top, bottom } = g;
   const f = (px) => Math.round(px * k);
@@ -70,6 +71,8 @@ export function habillerCarte(ctx, scene, w, h, { bandes = 1, lettres = 1, etoil
   ctx.textAlign = 'right'; ctx.font = `500 ${f(20)}px Quicksand, sans-serif`; ctx.fillText(new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }), w - frame - f(12), h - bottom + f(58) + db);
   ctx.font = `italic ${f(26)}px Lora, Georgia, serif`; ctx.globalAlpha = 0.9 * bandes; ctx.fillText('Cent Saisons', w - frame - f(12), h - bottom + f(96) + db);
   ctx.restore();
+  // les tampons : l'archétype de l'île, et le sceau du chapitre sur l'île-souvenir ; ils tombent une fois le nom écrit
+  if (bandes >= 1) tamponner(ctx, scene, w, h, g, lettres >= 1 ? tampons : 0);
 }
 
 /** Rend l'île de `scene` (IslandScene) sur un canvas `w`×`h` et l'habille. Retourne le canvas. */
