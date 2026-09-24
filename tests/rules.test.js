@@ -584,6 +584,54 @@ for (const def of ISLANDS.slice(0, 4)) {
   const a = r.result.archetype, b = archetypeOf(r.isl.board);
   check(a && ARCHETYPES.some((x) => x.id === a.id) && b && b.id === a.id && b.size === a.size && b.cells.length <= a.size, `le bilan porte l'archétype de l'île (${a && a.id}, région de ${a && a.size}, une tuile bâtie compte double)`);
 }
+// --- Le Souffle court : île procédurale, tuile perdue, série et paliers, saisons à effets, malus des cases vides
+{
+  const { tempoDef, videsMalus, multDe } = await import('../src/data/tempo.js');
+  const { Tempo } = await import('../src/game/tempo.js');
+  const T = BALANCE.tempo;
+  const def = tempoDef(12345); const def2 = tempoDef(12345);
+  check(def.tempo && def.cells >= T.cellsMin && def.cells <= T.cellsMax && def.seasonLength === 5 && def.start.length === 1 && !def.wishes.length, `île procédurale : ${def.cells} cases, 5 poses par saison, une tuile de départ, sans vœu`);
+  check(JSON.stringify(def) === JSON.stringify(def2) && tempoDef(999).seed !== def.seed, 'même graine, même île ; graine différente, île différente');
+  const opt = { build: false, fuse: false, hand: false, level3: false, growth: false, surprise: false };
+  const isl = new Island(def, opt);
+  check(isl.tempo && isl.queue.remaining === def.cells - 1 && isl.queue.list.length === 1, `autant de tuiles que de cases moins la tuile de départ (${isl.queue.remaining}), une seule visible (${isl.queue.list.length})`);
+  check(multDe(0) === 1 && multDe(2) === 1 && multDe(3) === 1.5 && multDe(6) === 2 && multDe(10) === 3 && multDe(40) === 3, 'paliers de série : ×1, ×1,5 à 3, ×2 à 6, ×3 à 10');
+  // le contrôleur, sans scène : il ne lit que l'île
+  const tp = new Tempo({ isl });
+  check(isl.season === 'spring' && isl.handOn && isl.queue.list.length === 2, 'printemps : deux tuiles proposées, la main ouverte');
+  const avant = isl.queue.remaining;
+  const c0 = isl.board.legalCells()[0]; tp.depuis = 0.4; isl.place(c0.q, c0.r);
+  check(isl.queue.remaining === avant - 1 && isl.queue.list.length === 2, `l'autre tuile du printemps est perdue sans entamer le compte (${isl.queue.remaining} = ${avant} − 1)`);
+  check(tp.serie >= 1 && tp.t === tp.limit, `pose sous une seconde : série ${tp.serie}, cadran réarmé`);
+  // une pose lente casse la série ; le cadran qui tombe à zéro perd la tuile
+  tp.depuis = 1.5; const c1 = isl.board.legalCells()[0]; isl.place(c1.q, c1.r); check(tp.serie === 0, 'pose lente : la série retombe');
+  const rest = isl.queue.remaining; const inS = isl.inSeason; tp.update(T.cadran + 0.01);
+  check(isl.stats.lost === 1 && isl.queue.remaining === rest - 1 && isl.inSeason === inS + 1, 'cadran à zéro : la tuile est perdue, elle compte pour la saison');
+  // série et bonus : trois poses rapides et bien placées
+  const bot = () => { let best = null, bs = -Infinity; for (const c of isl.board.legalCells()) { const pv = isl.preview(c.q, c.r); if (pv && pv.total > bs) { bs = pv.total; best = c; } } return best; };
+  const s0 = isl.score; let bonus = 0;
+  for (let i = 0; i < 3 && !isl.ended; i++) { tp.depuis = 0.3; const b = bot(); isl.place(b.q, b.r); bonus += (tp.dernier && tp.dernier.bonus) || 0; }
+  check(tp.serie >= 3 && tp.mult >= 1.5 && (isl.tally.tempo || 0) === bonus && isl.score >= s0 + bonus, `trois bonnes poses rapides : série ${tp.serie}, ×${tp.mult}, bonus ${bonus} compté à sa source`);
+  // les saisons : hiver gelé, été en réserve, automne sous la brume
+  while (isl.season !== 'winter' && !isl.ended) isl.advanceSeason();
+  check(!isl.handOn && isl.queue.list.length === 1 && Math.abs(tp.limit - T.cadran * T.hiver) < 1e-9, `hiver : cadran ×${T.hiver} (${tp.limit.toFixed(1)} s), une seule tuile visible`);
+  isl.advanceSeason(); isl.advanceSeason();   // printemps puis été
+  check(isl.season === 'summer' && tp.reserve === T.ete, `été : une réserve de ${T.ete} s pour la saison`);
+  tp.update(5); tp.depuis = 0.2; const c2 = bot(); if (c2) isl.place(c2.q, c2.r);
+  check(Math.abs(tp.reserve - (T.ete - 5)) < 1e-6 && Math.abs(tp.t - tp.reserve) < 1e-6, 'la pose ne recharge pas la réserve d’été');
+  isl.advanceSeason();
+  check(isl.season === 'autumn' && tp.brume.size > 0 && tp.brume.size <= isl.board.tiles.size, `automne : ${tp.brume.size} tuiles sur ${isl.board.tiles.size} sous la brume`);
+  { const b = bot(); if (b) { tp.depuis = 0.2; isl.place(b.q, b.r); } const autour = neighbors(b.q, b.r).map(([a, c]) => `${a},${c}`); check(!autour.some((k) => tp.brume.has(k)) && !tp.brume.has(`${b.q},${b.r}`), 'la pose dissipe la brume sur ses six voisines'); }
+  isl.advanceSeason(); check(tp.brume.size === 0, 'l’hiver revenu, la brume est levée');
+  // la fin : les cases vides se paient
+  const videsAvant = [...isl.board.mask].filter((k) => !isl.board.tiles.has(k)).length;
+  isl.finish('test');
+  const m = isl.stats.vides;
+  check(m && m.vides === videsAvant && m.total >= videsAvant * T.vide && isl.tally.vides === -m.total && isl.result.stars === 0 && isl.result.seeds === 0, `fin : ${m.vides} cases vides, −${m.total} points, ni étoile ni graine`);
+  // videsMalus sur un plateau connu : un trou seul, une région vide de trois, une case qui bloque une région
+  const b2 = new Island(tempoDef(7), opt).board;
+  const m0 = videsMalus(b2); check(m0.vides === b2.cells - b2.tiles.size && m0.total > 0, `plateau de départ : ${m0.vides} cases vides comptées`);
+}
 // --- campagne à trente (24 septembre 2026) : migration v2 → v3, parties en cours, et aucun numéro hors campagne
 {
   const { migrerVers30 } = await import('../src/core/save.js'); const { migrerPartie } = await import('../src/core/run.js'); const { CAMPAGNE_50_VERS_30 } = await import('../src/data/campaign.js');

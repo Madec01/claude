@@ -11,6 +11,7 @@ import { evaluate as evalFauna, reconcile } from './fauna.js';
 import { initWishes, updateWishes } from './wishes.js';
 import { TileQueue } from './queue.js';
 import { generateMask, enclosedHoles } from '../data/islands.js';
+import { videsMalus } from '../data/tempo.js';
 import { BALANCE } from '../data/balance.js';
 import { computeLinks } from './paths.js';
 import { pickRule, BASE_RULE, RULE_LOOK } from './seasonrules.js';
@@ -51,6 +52,7 @@ export class Island {
     if (this.climate.linkMax) this.board.linkMax = this.climate.linkMax;
     this.garden = !!def.garden;
     this.infinite = !!def.infinite;
+    this.tempo = !!def.tempo;   // Le Souffle court : cadran, série et saisons à effets vivent dans game/tempo.js ; ici, pas d'étoile ni de graine
     for (const [q, r] of def.ensure || []) this.board.mask.add(key(q, r));
     this.restrict = null;   // tutoriel guidé : cases autorisées (Set de clés) ou null
     // tuiles de départ
@@ -61,7 +63,7 @@ export class Island {
     }
     this.fillEnclosedHoles();   // les trous cernés par l'île sont des mares : de vraies tuiles d'eau, posées au départ
     const total = Number.isFinite(def.tilesRatio) ? Math.round(def.cells * def.tilesRatio) - def.start.length : Infinity;
-    const visible = BALANCE.queue.visible[this.upgrades.sight || 0];   // Regard : trois tuiles visibles, puis quatre, puis cinq
+    const visible = this.tempo ? 1 : BALANCE.queue.visible[this.upgrades.sight || 0];   // Regard : trois tuiles visibles, puis quatre, puis cinq ; le Souffle court n'en montre qu'une (deux au printemps)
     this.queue = new TileQueue(seed * 3 + 11, def.weights, total, visible);
     // ouverture guidée : les premières tuiles des îles d'apprentissage sont fixées (pas de marais ni de sable en première minute)
     this.pendingOpening = [];
@@ -270,6 +272,23 @@ export class Island {
     this.checkEnd();
     return res;
   }
+
+  /**
+   * Souffle court : la tuile en cours n'a pas été posée à temps, elle est perdue pour de bon. Elle compte comme un tour
+   * de la saison (le temps a passé) et sa case restera vide — le malus tombe à la fin (videsMalus).
+   */
+  loseCurrent() {
+    if (this.ended || !this.current) return null;
+    const tile = this.queue.take();
+    this.inSeason++; this.stats.lost = (this.stats.lost || 0) + 1;
+    this.emit({ type: 'lost', tile });
+    if (this.inSeason >= this.seasonLength) this.advanceSeason();
+    this.checkEnd();
+    return tile;
+  }
+
+  /** Des points hors pose (série du Souffle court, prime doublée, malus des vides), comptés à leur source. */
+  addBonus(pts, source) { if (!pts) return; this.score += pts; this.tally[source] = (this.tally[source] || 0) + pts; }
 
   /**
    * Croissance : au changement de saison, une tuile entourée d'assez de voisines de sa propre famille depuis `seasons`
@@ -505,18 +524,19 @@ export class Island {
   finish(reason = 'queue') {
     if (this.ended) return this.result;
     this.ended = true;
+    if (this.tempo) { const m = videsMalus(this.board); this.stats.vides = m; if (m.total) this.addBonus(-m.total, 'vides'); }
     const cells = this.board.cells;
     const th = this.thresholds;
     let stars = 0;
     for (const t of th) if (this.score >= t) stars++;
-    const gold = !this.infinite && !this.garden && this.score >= this.goldThreshold;
+    const gold = !this.infinite && !this.garden && !this.tempo && this.score >= this.goldThreshold;
     const wishesTotal = this.wishes.length;
     // dominante de l'île bâtie (la voix du bilan et du souvenir en tient compte) : hameaux, eau ou forêt quand une famille prend au moins un tiers des tuiles
     const counts = {}; let placedN = 0; for (const t of this.board.tiles.values()) { const f = Board.familiesOf(t)[0] || t.family; counts[f] = (counts[f] || 0) + 1; placedN++; }
     const dom = ['hamlet', 'water', 'forest'].map((f) => ({ family: f, share: placedN ? (counts[f] || 0) / placedN : 0 })).sort((a, b) => b.share - a.share)[0];
     const dominant = dom && dom.share >= 0.3 ? dom : null;
-    const seeds = stars * BALANCE.seeds.star + this.stats.wishesDone * BALANCE.seeds.wish + (this.infinite || this.garden ? 0 : BALANCE.seeds.island);
-    this.result = { island: this.def.id, score: this.score, stars: this.infinite || this.garden ? 0 : stars, gold, goldThreshold: this.goldThreshold, thresholds: th, tally: { ...this.tally }, bestMove: this.bestMove, dominant, archetype: (() => { const a = archetypeOf(this.board); return a ? { id: a.id, family: a.family, size: a.size } : null; })(), reason, placements: this.placements, seasons: this.seasonsPassed.length, stats: { ...this.stats }, fauna: this.fauna.size, wishesDone: this.stats.wishesDone, wishesTotal, seeds, cells, filled: this.board.placed };
+    const seeds = this.tempo ? 0 : stars * BALANCE.seeds.star + this.stats.wishesDone * BALANCE.seeds.wish + (this.infinite || this.garden ? 0 : BALANCE.seeds.island);
+    this.result = { island: this.def.id, score: this.score, stars: this.infinite || this.garden || this.tempo ? 0 : stars, gold, goldThreshold: this.goldThreshold, thresholds: th, tally: { ...this.tally }, bestMove: this.bestMove, dominant, archetype: (() => { const a = archetypeOf(this.board); return a ? { id: a.id, family: a.family, size: a.size } : null; })(), reason, placements: this.placements, seasons: this.seasonsPassed.length, stats: { ...this.stats }, fauna: this.fauna.size, wishesDone: this.stats.wishesDone, wishesTotal, seeds, cells, filled: this.board.placed };
     this.emit({ type: 'end', result: this.result });
     return this.result;
   }

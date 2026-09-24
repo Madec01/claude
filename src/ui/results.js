@@ -6,8 +6,9 @@ import { Save } from '../core/save.js';
 
 export function buildResults({ result, def, onContinue, onRetry, onMenu, onPostcard = null, newRecord, seedsGained, daily, memory = [] }) {
   const { stars, score, thresholds } = result;
-  const special = result.island === 'infinite' || result.island === 'garden';
-  const name = def && def.story && STORY.islands[def.story] ? STORY.islands[def.story].name : result.island === 'infinite' ? 'Île infinie' : result.island === 'garden' ? 'Jardin' : (def && def.name) || `Île ${result.island}`;
+  const special = result.island === 'infinite' || result.island === 'garden' || result.island === 'tempo';
+  const tempo = result.island === 'tempo'; const vides = tempo && result.stats.vides;
+  const name = def && def.story && STORY.islands[def.story] ? STORY.islands[def.story].name : result.island === 'infinite' ? 'Île infinie' : result.island === 'garden' ? 'Jardin' : tempo ? 'Le Souffle court' : (def && def.name) || `Île ${result.island}`;
   const root = h('div', { class: `panel panel-results stars-${stars}` });
   const by = result.dominant && STORY.resultsBy && STORY.resultsBy[result.dominant.family] && STORY.resultsBy[result.dominant.family][stars];
   const lines = by || STORY.results[stars] || [''];
@@ -15,7 +16,7 @@ export function buildResults({ result, def, onContinue, onRetry, onMenu, onPostc
   const starsEl = h('div', { class: `stars ${result.gold ? 'gold' : ''}`, 'aria-label': `${stars} étoile(s) sur 3${result.gold ? ', étoile d’or' : ''}` }, ...[0, 1, 2].map((i) => h('span', { class: `star ${i < stars ? 'on' : ''}`, title: `${thresholds[i]} points` }, icon('icon_star'))), result.goldThreshold && stars >= 2 ? h('span', { class: `star gold-star ${result.gold ? 'on' : ''}`, title: `Étoile d’or : ${result.goldThreshold} points` }, icon('icon_star')) : null);   // dès deux étoiles, pour qu'on sache qu'elle existe
   const row = (label, value, cls = '') => h('div', { class: `res-row ${cls}` }, h('span', {}, label), h('b', {}, String(value)));
   append(root, 
-    h('div', { class: 'res-kicker' }, special ? (result.island === 'infinite' ? `Île infinie · ${result.seasons} saisons` : 'Jardin') : result.island === 'daily' ? name : `Île ${result.island} · ${name}`),
+    h('div', { class: 'res-kicker' }, special ? (result.island === 'infinite' ? `Île infinie · ${result.seasons} saisons` : tempo ? `Le Souffle court · ${result.cells} cases` : 'Jardin') : result.island === 'daily' ? name : `Île ${result.island} · ${name}`),
     h('h2', { class: 'panel-title' }, special ? 'L’île se repose' : stars === 0 ? 'L’île attend encore' : 'L’île se souvient'),
     special ? null : starsEl,
     h('p', { class: 'res-line' }, line),
@@ -26,6 +27,9 @@ export function buildResults({ result, def, onContinue, onRetry, onMenu, onPostc
       row('Points', fmtInt(score), 'score'),
       special ? null : row('Seuils', thresholds.join(' · ')),
       row('Tuiles posées', `${result.filled} / ${result.cells}`),
+      tempo ? row('Meilleure série', result.stats.bestSerie || 0, result.stats.bestSerie >= 10 ? 'gold' : result.stats.bestSerie >= 3 ? 'good' : '') : null,
+      tempo ? row('Tuiles perdues', result.stats.lost || 0, result.stats.lost ? 'bad' : 'good') : null,
+      vides && vides.vides ? row('Cases vides', `${vides.vides} (−${vides.total})${vides.bloquent ? ` · ${vides.bloquent} bloquaient une région` : ''}${vides.regions ? ` · ${vides.regions} région${vides.regions > 1 ? 's' : ''} vide${vides.regions > 1 ? 's' : ''}` : ''}`, 'bad') : null,
       row('Régions closes', result.stats.closed, result.stats.closed ? 'good' : ''),
       row('Plus grande région', result.stats.biggestRegion),
       result.stats.level3 ? row('Tuiles de niveau 3', result.stats.level3, 'gold') : null,
@@ -42,7 +46,7 @@ export function buildResults({ result, def, onContinue, onRetry, onMenu, onPostc
     result.tally ? whyBlock(result) : null,
     // sans étoile, l'île est terminée quand même : plus personne n'est muré sur une île (les étoiles ne gardent que les portes de chapitre)
     !special && !daily && stars === 0 ? h('p', { class: 'res-note' }, 'L’île est terminée : la suivante s’ouvre quand même. Les étoiles ne gardent que les portes de chapitre, et elles se rattrapent quand tu veux.') : null,
-    daily ? h('p', { class: 'res-note' }, 'Île du jour : la même île pour tout le monde, un meilleur score par jour. Demain, une autre île.') : special ? null : h('p', { class: 'res-note' }, Save.options.testMode ? 'Mode test : les graines et les étoiles ne sont pas enregistrées.' : seedsGained ? 'Graines : 1 par nouvelle étoile, 1 par vœu exaucé et 3 pour l’île, la première fois. Elles se dépensent dans l’Atelier des saisons, depuis le menu.' : 'Pas de nouvelle graine : elles viennent des nouvelles étoiles, des vœux exaucés et de la première fois qu’une île est terminée.'),
+    tempo ? h('p', { class: 'res-note' }, `Le Souffle court : une île neuve à chaque partie, le meilleur score tout court${Save.data.tempo && Save.data.tempo.best ? ` — le tien : ${Save.data.tempo.best}` : ''}.`) : daily ? h('p', { class: 'res-note' }, 'Île du jour : la même île pour tout le monde, un meilleur score par jour. Demain, une autre île.') : special ? null : h('p', { class: 'res-note' }, Save.options.testMode ? 'Mode test : les graines et les étoiles ne sont pas enregistrées.' : seedsGained ? 'Graines : 1 par nouvelle étoile, 1 par vœu exaucé et 3 pour l’île, la première fois. Elles se dépensent dans l’Atelier des saisons, depuis le menu.' : 'Pas de nouvelle graine : elles viennent des nouvelles étoiles, des vœux exaucés et de la première fois qu’une île est terminée.'),
     newRecord ? h('div', { class: 'res-record' }, 'Nouveau record !') : null,
     h('div', { class: 'panel-actions' },
       button(special ? 'Rejouer' : 'Continuer', onContinue, { cls: 'btn-primary', iconName: 'icon_arrow_right' }),
@@ -64,7 +68,9 @@ export function buildResults({ result, def, onContinue, onRetry, onMenu, onPostc
 export const TALLY_LABELS = { edges: 'Bords et affinités', closes: 'Régions fermées', fauna: 'Faune', wishes: 'Vœux', base: 'Rivières et primes de pose', build: 'Bâtir', fusions: 'Fusions', paths: 'Sentiers entre villages',
   // les primes de saison, une par nature (anciennement toutes sous « Saisons »)
   s_harvest: 'Récoltes', s_veillee: 'Veillées d’hiver', s_bloom: 'Marais en fleurs', s_heather: 'Lande en fleurs', s_pond: 'Étangs', s_mild: 'Hiver doux', s_cold: 'Grand froid', s_firewood: 'Bois de chauffage', s_fair: 'Grande foire', s_hunt: 'Chasse et cueillette', s_rare: 'Tuiles rares', s_level3: 'Niveau 3', s_fusion: 'Fusions (primes de saison)',
-  seasons: 'Autres primes de saison', works: 'Ouvrages (anciennes parties)', streak: 'Séries (anciennes parties)' };
+  seasons: 'Autres primes de saison', works: 'Ouvrages (anciennes parties)', streak: 'Séries (anciennes parties)',
+  // Le Souffle court
+  tempo: 'Séries (poses rapides)', s_tempo: 'Saisons comptées double', pleine: 'Saisons sans tuile perdue', vides: 'Cases restées vides' };
 export function tallyLines(tally) {
   const total = Object.values(tally).reduce((a, b) => a + Math.max(0, b), 0) || 1;
   return Object.entries(tally).filter(([, v]) => v).map(([k, v]) => ({ key: k, label: TALLY_LABELS[k] || k, pts: v, share: Math.max(0, v) / total })).sort((a, b) => b.pts - a.pts);

@@ -35,6 +35,22 @@
 .qtile.current img { width: 80px; height: 94px; }
 .qtile.current .qname { font-size: 17px; }
 .qtile.next { opacity: 0.85; } .qtile.next img { width: 40px; height: 47px; }
+/* Le Souffle court : l'arc du cadran autour de la tuile du moment (dégradé conique, permis : il anime, il ne dessine pas),
+   le temps qui reste, la série. L'arc prend la couleur de la saison et vire au rouge dans la dernière seconde. */
+.qtile.current .q-cadran { position: absolute; inset: -7px; border-radius: 18px; padding: 5px; pointer-events: none;
+  background: conic-gradient(from -90deg, var(--col, var(--breath)) calc(var(--p, 1) * 1turn), rgba(43,42,38,0.16) 0);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); mask-composite: exclude;
+  transition: --col 0.2s; }
+.qtile.current .q-cadran.urgent { animation: cadran-urgent 0.5s ease-in-out infinite alternate; }
+@keyframes cadran-urgent { from { opacity: 1; } to { opacity: 0.55; } }
+.qtile.current .q-temps { position: absolute; right: 8px; bottom: 6px; font-style: normal; font-size: 12px; font-weight: 700; opacity: 0.65; font-variant-numeric: tabular-nums; }
+.qtile.current .q-serie { position: absolute; right: 8px; top: 6px; font-size: 11px; font-weight: 800; letter-spacing: 0.04em; color: var(--gold); text-transform: uppercase; opacity: 0.8; }
+.qtile.current .q-serie.on { font-size: 14px; opacity: 1; animation: serie-pop 0.25s var(--ease-out); }
+@keyframes serie-pop { from { transform: scale(1.4); } to { transform: none; } }
+.qtile.current .q-serie:empty { display: none; }
+/* téléphone : la carte est verticale et le nom en bas ; le temps se lit sur l'arc, la série reste en pastille */
+html.compact .qtile.current .q-temps { display: none; }
+html.compact .qtile.current .q-serie { top: 4px; right: 4px; padding: 2px 6px; border-radius: 8px; background: rgba(255,253,248,0.92); }
 .qtile.rare::after { content: 'rare'; position: absolute; right: 8px; top: 6px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--gold); font-weight: 800; }
 .qtile.pickable { cursor: pointer; }
 .qtile.pickable:hover { transform: translateX(3px); border-color: var(--gold); }
@@ -124,7 +140,7 @@ html.compact .q-help { width: 20px; height: 20px; font-size: 12px; line-height: 
 .res-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px dotted var(--line); font-size: 16px; opacity: 0; transform: translateX(-8px); transition: opacity 0.4s, transform 0.4s; }
 .res-row.in { opacity: 1; transform: none; }
 .res-row b { font-size: 18px; }
-.res-row.good b { color: var(--breath); } .res-row.gold b { color: var(--gold); } .res-row.score b { font-size: 22px; }
+.res-row.good b { color: var(--breath); } .res-row.bad b { color: var(--loss); } .res-row.gold b { color: var(--gold); } .res-row.score b { font-size: 22px; }
 .res-record { color: var(--gold); font-weight: 800; font-size: 20px; margin-top: 6px; }
 
 /* Atelier */

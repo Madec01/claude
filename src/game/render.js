@@ -187,6 +187,7 @@ export class IslandRenderer {
     this.drawEmptyCells(ctx);
     if (this.legacy) this.drawTiles(ctx); else this.drawLayered(ctx);
     this.drawClimateTint(ctx);
+    this.drawBrume(ctx);
     this.drawBuildTargets(ctx);
     this.particlesWorld(ctx, 0);
     this.drawHover(ctx);
@@ -1250,6 +1251,26 @@ export class IslandRenderer {
   drawBloom(ctx, cx, cy) {
     ctx.save(); ctx.globalAlpha = 0.8;
     for (let i = 0; i < 5; i++) { const a = this.time * 0.6 + i * 1.3; const r = 14 * this.cam.zoom; ctx.fillStyle = i % 2 ? '#fff6c9' : '#f7c8d8'; ctx.beginPath(); ctx.arc(cx + Math.cos(a) * r * 1.6, cy + Math.sin(a) * r * 0.9 + 6 * this.cam.zoom, 2.2 * this.cam.zoom, 0, TAU); ctx.fill(); }
+    ctx.restore();
+  }
+
+  /**
+   * Souffle court, automne : les tuiles sous la brume (clés dans `this.brume`) disparaissent sous un voile de papier —
+   * un dégradé, pas une image — et n'y reviennent que quand on pose à côté. Le voile couvre aussi leur décor.
+   */
+  drawBrume(ctx) {
+    const b = this.brume; if (!b || !b.size) return;
+    const cam = this.cam, z = cam.zoom; const W = STAGE.W, H = STAGE.H;
+    ctx.save();
+    for (const k of b) {
+      const [q, r] = parse(k); const w = toWorld(q, r); const c = cam.toScreen(w.x, w.y);
+      if (c.x < -140 * z || c.x > W + 140 * z || c.y < -140 * z || c.y > H + 140 * z) continue;
+      const pts = corners(c.x, c.y, SIZE * z * 1.04);
+      const g = ctx.createRadialGradient(c.x, c.y - 8 * z, 6 * z, c.x, c.y, SIZE * z * 1.1);
+      // gris-bleu de brume, plus sombre que les cases vides (blanc bleuté) : on doit voir qu'il y a une tuile dessous
+      g.addColorStop(0, 'rgba(222,226,231,0.975)'); g.addColorStop(0.7, 'rgba(198,205,214,0.97)'); g.addColorStop(1, 'rgba(172,181,194,0.965)');
+      ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]); for (let i = 1; i < 6; i++) ctx.lineTo(pts[i][0], pts[i][1]); ctx.closePath(); ctx.fill();
+    }
     ctx.restore();
   }
 

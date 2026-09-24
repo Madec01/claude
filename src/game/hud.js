@@ -79,7 +79,8 @@ export class Hud {
     // une rare sans image de tuile (la ruche, le menhir) se montre par son objet principal
     if (!k && RARE_DECOR[t.family]) { const d = RARE_DECOR[t.family][0]; const sk = spriteKey(d.tpl, this.isl.season); const im = sk && Assets.manifest().images[sk]; src = im ? `assets/img/${im.file}` : ''; }
     const help = cls === 'current' ? '<button class="q-help" data-ref="qHelp" title="Fiche de la tuile (H)">?</button>' : '';
-    return `<div class="qtile ${cls} ${t.rare ? 'rare' : ''}" style="--fam:${FAMILY_COLORS[t.family] || '#999'}" title="${name}${t.rare ? ' (rare)' : ''} — ${(STORY.tiles[t.family] || {}).blurb || ''}">${src ? `<img src="${src}" alt="${name}">` : ''}<span class="qname">${name}${(t.level || 1) >= 2 ? ` <i class="qlvl">niv. ${t.level}</i>` : ''}</span>${help}</div>`;
+    const cadran = cls === 'current' && this.isl.tempo ? '<i class="q-cadran"></i><b class="q-serie"></b><em class="q-temps"></em>' : '';
+    return `<div class="qtile ${cls} ${t.rare ? 'rare' : ''}" style="--fam:${FAMILY_COLORS[t.family] || '#999'}" title="${name}${t.rare ? ' (rare)' : ''} — ${(STORY.tiles[t.family] || {}).blurb || ''}">${cadran}${src ? `<img src="${src}" alt="${name}">` : ''}<span class="qname">${name}${(t.level || 1) >= 2 ? ` <i class="qlvl">niv. ${t.level}</i>` : ''}</span>${help}</div>`;
   }
 
   /** D'où viennent les points : cumul par source, en surimpression sous le compteur. */
@@ -138,7 +139,8 @@ export class Hud {
     const rang = { fuse: 3, restore: 1, build: 0 };
     const genre = cibles.length ? cibles.reduce((a, c) => (rang[c.kind] > rang[a] ? c.kind : a), 'build') : null;
     const ONTO = { build: ['bâtir', 'Peut se poser sur une tuile de la même famille : elle monte de niveau (touche : viser la tuile)'], fuse: ['fusion', 'Peut se poser sur une tuile d’une autre famille : une recette existe'], restore: ['réparer', 'Peut remettre une friche en état'] };
-    const html = q.list.map((t, i) => this.tileHtml(t, i === 0 ? 'current' : 'next')).join('');
+    const liste = this.isl.tempo && this.isl.season !== 'spring' ? q.list.slice(0, 1) : q.list;
+    const html = liste.map((t, i) => this.tileHtml(t, i === 0 ? 'current' : 'next')).join('');
     const cle = `${html}|${genre || ''}|${cibles.length}`;   // la pastille dépend du plateau, pas seulement de la file
     if (cle !== this.last.queue) {
       this.last.queue = cle;
@@ -180,7 +182,7 @@ export class Hud {
   renderFauna() {
     const counts = {};
     for (const a of this.isl.fauna.values()) counts[a.species] = (counts[a.species] || 0) + 1;
-    const html = Object.entries(counts).map(([sp, n]) => `<span class="fauna-chip" title="${(STORY.fauna[sp] || {}).habitat || ''}"><img src="assets/img/fauna/fauna_${sp}.png" alt="">${(STORY.fauna[sp] || {}).name || sp}${n > 1 ? ` ×${n}` : ''}</span>`).join('');
+    const html = Object.entries(counts).map(([sp, n]) => `<span class="fauna-chip" title="${(STORY.fauna[sp] || {}).habitat || ''}"><img src="assets/img/fauna/fauna_${sp}.webp" alt="">${(STORY.fauna[sp] || {}).name || sp}${n > 1 ? ` ×${n}` : ''}</span>`).join('');
     if (html !== this.last.fauna) { this.last.fauna = html; this.r.fauna.innerHTML = html; }
   }
 
@@ -278,7 +280,7 @@ export class Hud {
     // hauteur réelle de la barre du haut (elle passe sur deux lignes en portrait) : les panneaux dessous s'y calent
     if ((this._frame = (this._frame || 0) + 1) % 20 === 0) { const hh = this.r.top ? this.r.top.offsetHeight : 0; if (hh && hh !== this._topH) { this._topH = hh; this.root.style.setProperty('--hud-top-h', `${hh}px`); } }
     if (!this.r.scorePop.classList.contains('hidden') && this._scorePopScore !== isl.score) this.renderScorePop();
-    if (!isl.infinite && !isl.garden) {
+    if (!isl.infinite && !isl.garden && !isl.tempo) {
       // l'étoile d'or ne se montre qu'au bilan : pendant la partie, un seul juge, les trois étoiles
       const th = isl.thresholds; const reached = th.filter((t) => isl.score >= t).length;
       const line = reached >= 3 ? '★★★' : `${'★'.repeat(reached)}☆ ${th[reached]}`;
@@ -293,6 +295,16 @@ export class Hud {
     r.pwDiscard.disabled = !isl.canDiscard();
     r.pwUndo.disabled = !isl.canUndo();
     this.renderQueue(); this.renderWishes(); this.renderFauna(); this.renderTileHelp();
+  }
+
+  /** Souffle court : l'arc qui se vide autour de la tuile, le temps qui reste, la série. Couleur de la saison, rouge dans la dernière seconde. */
+  setTempo(tp) {
+    const el = this.r.queueList.querySelector('.q-cadran'); if (!el) return;
+    const col = tp.t <= 1 ? 'var(--loss)' : `var(--${this.isl.season})`;
+    el.style.setProperty('--p', tp.fraction.toFixed(3)); el.style.setProperty('--col', col);
+    el.classList.toggle('urgent', tp.t <= 1);
+    const temps = this.r.queueList.querySelector('.q-temps'); if (temps) { const txt = `${tp.t.toFixed(1)} s`; if (temps.textContent !== txt) temps.textContent = txt; }
+    const serie = this.r.queueList.querySelector('.q-serie'); if (serie) { const txt = tp.serie >= 3 ? `×${tp.mult} · ${tp.serie}` : tp.serie > 0 ? `série ${tp.serie}` : ''; if (serie.textContent !== txt) serie.textContent = txt; serie.classList.toggle('on', tp.serie >= 3); }
   }
 
   destroy() { this.root.innerHTML = ''; }

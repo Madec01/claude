@@ -706,6 +706,14 @@ export const STORY = {
 
   epilogue: 'Nous n’avons plus besoin d’être rappelées. Nous nous souvenons.',
 
+  tempo: {
+    intro: [
+      'Ici, pas de file. La tuile arrive, et tu as trois secondes pour la poser. Passé ce temps, elle est perdue — et sa case restera vide.',
+      'Pose vite : sous une seconde, les points s’enchaînent et se multiplient. Pose bien : la série grimpe deux fois plus vite.',
+      'Les saisons ne te laissent pas tranquille. L’hiver gèle le cadran, le printemps propose deux tuiles, l’été te donne douze secondes à répartir, l’automne couvre l’île de brume.',
+      'Une île nouvelle à chaque partie. Le meilleur score, tout court.',
+    ],
+  },
   infinite: {
     intro: [
       'Une île sans fin. Elle grandit à chaque saison et la file de tuiles ne se vide jamais.',

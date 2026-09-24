@@ -25,4 +25,18 @@ export const BALANCE = {
   seeds: { star: 1, wish: 1, island: 3 },   // 3 par île terminée la première fois : à 30 îles, le joueur tranquille finit l'Atelier vers les deux tiers de la campagne
   camera: { minZoom: 0.45, maxZoom: 1.6, lerp: 6 },
   infinite: { growEvery: 1, growCells: 6, maxCells: 400 },
+  // Le Souffle court (mode à part) : pas de file, la tuile arrive et le cadran se vide ; tout se règle ici, à la main.
+  tempo: {
+    cadran: 3,                 // secondes par tuile
+    sousSeconde: 1,            // posée sous ce délai : la série continue
+    paliers: [[3, 1.5], [6, 2], [10, 3]],   // [série atteinte, multiplicateur des points de la tuile]
+    hiver: 1.4,                // le cadran gelé : ×1,4 (sans excès)
+    ete: 12,                   // « les grandes heures » : une réserve de secondes pour la saison, pas de cadran par tuile
+    automne: 0.7,              // chance, par tuile posée, d'être sous la brume au changement de saison
+    printemps: 2,              // tuiles proposées d'un coup ; on en pose une, l'autre est perdue sans entamer le compte
+    primeSaison: 2,            // les primes de changement de saison comptent double
+    saisonPleine: 10,          // aucune tuile perdue dans la saison
+    vide: 2, videBloque: 5, videRegion: 4, videRegionDes: 3,   // malus par case vide ; si elle seule empêche une région de fermer ; par case d'une région vide (à partir de 3)
+    cellsMin: 40, cellsMax: 60, seasonLength: 5,
+  },
 };

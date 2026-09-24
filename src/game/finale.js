@@ -55,7 +55,7 @@ export class Finale {
     const d = this.isl.def;
     // Version courte dès la deuxième réussite sur la même île : `plays` ne compte que les parties
     // DÉJÀ finies (celle-ci n'y entrera qu'au bilan), donc un seul test suffit.
-    this.court = !!(d.id && ((Save.campaign.plays || {})[d.id] || 0) > 0);
+    this.court = !!(d.id && ((Save.campaign.plays || {})[d.id] || 0) > 0) || !!d.tempo;   // le Souffle court veut son bilan
     this.D = this.court ? DUREE.court : DUREE.long;
 
     this.camA = this.instantane();

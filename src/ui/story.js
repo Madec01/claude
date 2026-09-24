@@ -63,6 +63,7 @@ export function islandMemoryScreens(def, result = null) {
 }
 export const prologueScreens = () => [{ kind: 'title', kicker: STORY.subtitle, title: STORY.title }, ...STORY.prologue.map((t) => ({ kind: 'voice', text: t }))];
 export const endingScreens = () => [...STORY.ending.map((t) => ({ kind: 'ending', kicker: 'L’île', text: t })), { kind: 'title', kicker: 'Épilogue', title: STORY.title, text: STORY.epilogue }];
+export const tempoScreens = () => [{ kind: 'title', kicker: 'Mode', title: 'Le Souffle court' }, ...STORY.tempo.intro.map((t) => ({ kind: 'voice', text: t }))];
 export const infiniteScreens = () => [{ kind: 'title', kicker: 'Mode', title: 'Île infinie' }, ...STORY.infinite.intro.map((t) => ({ kind: 'voice', text: t }))];
 export const dailyScreens = (def) => [{ kind: 'title', kicker: 'Île du jour', title: def.name, sub: `${def.cells} cases` }, ...STORY.daily.intro.map((t) => ({ kind: 'voice', text: t }))];
 export const gardenScreens = () => [{ kind: 'title', kicker: 'Mode', title: 'Jardin' }, ...STORY.garden.intro.map((t) => ({ kind: 'voice', text: t }))];

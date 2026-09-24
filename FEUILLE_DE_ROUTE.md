@@ -151,7 +151,8 @@ Le jeu de base reste lent ; ces deux modes sont l'inverse assumé, chacun avec s
 | Saisons | à renforcer pour qu'elles comptent : primes de changement de saison plus fortes ou conditions nouvelles (défaut : prime ×2, +10 si aucune tuile perdue dans la saison). Elles touchent aussi le plateau et le temps : **hiver** cadran plus lent (gelé, sans excès : ×1,4) ; **automne** brume sur le plateau (toutes les tuiles ou la plupart, selon la chance), seules celles autour de la tuile qu'on pose réapparaissent ; **printemps** (retenu) : deux tuiles proposées d'un coup, on en pose une, l'autre est perdue ; automne (retenu) : 70 % de chance par tuile d'être sous la brume au changement de saison, la pose dissipe les six voisines ; **été** : à déterminer (« canicule » ×0,8 / points ×1,5 écartée : pas assez aimée) |
 | Cadran | visible en tout temps sans enlaidir : un arc en dégradé autour de la tuile qui se vide (dégradés et animations permis) ; couleur de la saison, rouge dans la dernière seconde |
 | Score | meilleur score tout court (île procédurale) ; île de 40 à 60 cases |
-| Reste | le sens exact de « une première tuile retournée » au départ ; l'effet d'été ; l'image du tampon |
+| Été (retenu) | « les grandes heures » : une réserve de 12 s pour la saison, pas de cadran par tuile, ce qu'on gagne sur le facile sert au difficile |
+| Statut | **fait** (24 septembre, journal 139) : grande tuile au menu, `src/data/tempo.js` + `src/game/tempo.js`, tests Node et navigateur ; reste l'image du tampon, à faire faire |
 
 ### « Sous la brume » (démineur : 5 à 10 tuiles retournées, on sait lesquelles, pas où)
 

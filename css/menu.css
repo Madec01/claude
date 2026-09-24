@@ -244,3 +244,6 @@ html:not(.compact) .menu-pair > .btn:last-child { grid-column: 1 / -1; }
 .panel-collection .ach-souscat { font-size: 16px; margin-top: 10px; }
 .panel-collection .ach-card.locked .ach-img { filter: brightness(0); opacity: 0.13; }   /* le succès manquant, en silhouette lui aussi */
 .panel-collection .ach-card.locked { opacity: 0.85; }
+
+/* Le Souffle court : la grande tuile du mode nerveux, un liseré de la couleur de la perte pour la distinguer de la campagne */
+.menu-nav .btn-tempo:not(:disabled) { border-color: rgba(217,95,75,0.45); }

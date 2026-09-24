@@ -32,13 +32,15 @@ import { campaignIsland, campaignMechanics, islandOptions, CAMPAIGN_SIZE, CHAPTE
 import { GRADES, streakMilestone } from './game/feedback.js';
 import { computeLinks } from './game/paths.js';
 import { waterBodies } from './game/water.js';
-import { buildStory, islandIntroScreens, islandMemoryScreens, prologueScreens, endingScreens, infiniteScreens, gardenScreens, dailyScreens } from './ui/story.js';
+import { buildStory, islandIntroScreens, islandMemoryScreens, prologueScreens, endingScreens, infiniteScreens, gardenScreens, dailyScreens, tempoScreens } from './ui/story.js';
 import { buildResults } from './ui/results.js';
 import { buildCollection } from './ui/collection.js';
 import { buildWorkshop } from './ui/workshop.js';
 import { celebrate, celebrateThing } from './ui/achievements.js';
 import { UPGRADES, playerChapter } from './data/upgrades.js';
 import { Version } from './core/version.js';
+import { tempoDef } from './data/tempo.js';
+import { Tempo } from './game/tempo.js';
 import { buildWishesIntro } from './ui/wishes_intro.js';
 import { buildIslandPrep } from './ui/island_prep.js';
 import { applySemis } from './data/semis.js';
@@ -349,6 +351,7 @@ const Game = {
     if (!def) return null;
     if (def.garden) return { kind: 'garden' };
     if (def.infinite) return { kind: 'infinite' };
+    if (def.tempo) return { kind: 'tempo' };
     if (def.daily) return { kind: 'daily', date: def.date };
     return { kind: 'campaign', id: def.id, semis: def.semis || null };
   },
@@ -375,6 +378,8 @@ const Game = {
   /** Un mode essayé cesse d'être « nouveau » au menu. */
   noteMode(k) { Save.data.seen = Save.data.seen || {}; if (!Save.data.seen[k]) { Save.data.seen[k] = true; Save.save(); } },
   startInfinite() { this.noteMode('mode_infinite'); scenes.go('story', { screens: infiniteScreens(), onDone: () => scenes.go('island', { def: INFINITE }, { fade: 0.5 }) }); },
+  /** Le Souffle court : le récit d'ouverture la première fois seulement ; ensuite, droit sur une île neuve. */
+  startTempo() { const vu = !!(Save.data.seen && Save.data.seen.mode_tempo); this.noteMode('mode_tempo'); const def = tempoDef(); const go = () => scenes.go('island', { def }, { fade: 0.5 }); if (vu) go(); else scenes.go('story', { screens: tempoScreens(), onDone: go }); },
   startDaily() { this.noteMode('mode_daily'); const def = dailyDef(); this.prepIsland(def, dailyScreens(def)); },
   startGarden() { this.noteMode('mode_garden'); scenes.go('story', { screens: gardenScreens(), onDone: () => scenes.go('island', { def: GARDEN }, { fade: 0.5 }) }); },
 
@@ -389,7 +394,8 @@ const Game = {
     let n = 0;
     if (c.islandsPlayed >= 1) n += say('mode_garden', { kicker: 'Mode ouvert', name: 'Jardin', desc: 'Poser sans score ni saison, pour le plaisir. Depuis le menu.', iconName: 'icon_leaf' }) ? 1 : 0;
     if (c.unlockedIsland >= 6) n += say('mode_daily', { kicker: 'Mode ouvert', name: 'Île du jour', desc: 'La même île pour tout le monde, une par jour. Depuis le menu.', iconName: 'icon_sun' }) ? 1 : 0;
-    if (Save.data.infinite.unlocked || c.unlockedIsland > 6) n += say('mode_infinite', { kicker: 'Mode ouvert', name: 'Île infinie', desc: 'Une île qui ne finit jamais : jusqu’où tiendras-tu ?', iconName: 'icon_wind' }) ? 1 : 0;
+    if (Save.data.infinite.unlocked || c.unlockedIsland > 6) n += say('mode_tempo', { kicker: 'Mode ouvert', name: 'Le Souffle court', desc: 'Pas de file : la tuile arrive, trois secondes pour la poser. Depuis le menu.', iconName: 'icon_wind' }) ? 1 : 0;
+    if (Save.data.infinite.unlocked || c.unlockedIsland > 6) n += say('mode_infinite', { kicker: 'Mode ouvert', name: 'Île infinie', desc: 'Une île qui ne finit jamais : jusqu’où tiendras-tu ?', iconName: 'icon_tree' }) ? 1 : 0;
     if (c.islandsPlayed >= 1) n += say('postcard', { kicker: 'Bon à savoir', name: 'La carte postale', desc: 'Au bilan et en pause : ton île en grand, à garder ou à partager.', iconName: 'icon_save' }) ? 1 : 0;
     if ((c.recipes || []).length >= 1) n += say('cahier', { kicker: 'Bon à savoir', name: 'Le Cahier des recettes', desc: 'Les fusions trouvées se rangent dans le Guide, onglet Cahier.', iconName: 'icon_question' }) ? 1 : 0;
     // l'Atelier ouvre trois ou quatre améliorations à chaque chapitre, au milieu des autres : on le dit
@@ -412,6 +418,12 @@ const Game = {
       return;
     }
     if (def.garden) { scenes.go('results', { result, def }); return; }
+    if (def.tempo) {
+      const T = Save.data.tempo || (Save.data.tempo = { best: 0, bestSerie: 0, parties: 0 });
+      if (!test) { T.parties = (T.parties || 0) + 1; if (result.score > (T.best || 0)) { newRecord = T.best > 0; T.best = result.score; } T.bestSerie = Math.max(T.bestSerie || 0, result.stats.bestSerie || 0); Save.save(); }
+      scenes.go('results', { result, def, newRecord });
+      return;
+    }
     if (def.daily) {
       const d = Save.data.daily, today = def.date, prev = d.best[today] || 0;
       if (!test) {
@@ -462,6 +474,7 @@ const Game = {
   afterResults(result, def) {
     if (def.infinite) { this.startInfinite(); return; }
     if (def.garden) { this.startGarden(); return; }
+    if (def.tempo) { this.startTempo(); return; }
     if (def.daily) { this.showMenu(); return; }
     const c = Save.campaign;
     // Terminer une île suffit : elle ouvre la suivante, avec ou sans étoile. Les étoiles ne gardent plus que les
@@ -551,7 +564,9 @@ class IslandScene {
     const mech = def.mech ? new Set(def.mech) : campaignMechanics(99);
     if (Game.testMode) for (const m of ['river', 'season', 'fauna', 'wish', 'breath', 'rare', 'build', 'fuse', 'build3']) mech.add(m);
     this.mech = mech;
-    const opt = islandOptions({ mech }); const isl = new Island(def, { upgrades, ...opt, known: new Set(Save.data.campaign.recipes || []) });
+    // Le Souffle court : les points du jeu, rien d'autre — ni souffle, ni bâtir, ni fusion, ni croissance, ni surprise de saison
+    if (def.tempo) { mech.clear(); for (const m of ['river', 'season', 'fauna', 'rare', 'hill', 'heath', 'rare2']) mech.add(m); }
+    const opt = def.tempo ? { build: false, fuse: false, hand: false, level3: false, growth: false, surprise: false, rareTier: 1 } : islandOptions({ mech }); const isl = new Island(def, { upgrades: def.tempo ? {} : upgrades, ...opt, known: new Set(Save.data.campaign.recipes || []) });
     // reprise : l'île retrouve exactement l'état laissé (plateau, file de tuiles, saison, score, vœux)
     this.resumed = !!(resume && isl.restoreRun(resume));
     if (resume && !this.resumed) { RunSave.clear(); Game.toast('Cette partie ne peut plus être reprise : on repart du début de l’île.'); }
@@ -563,7 +578,7 @@ class IslandScene {
     this.particles = new ParticleSystem(1500); this.fx = new Effects(this.particles); this.shake = new Shake(); this.shake.enabled = Save.options.shake !== false;
     this.renderer = new IslandRenderer(isl, this.cam, this.fx, this.particles);
     this.paused = false; this.endTimer = 0; this.finished = false; this.finale = null;
-    const name = def.story && STORY.islands[def.story] ? STORY.islands[def.story].name : def.infinite ? 'Île infinie' : def.garden ? 'Jardin' : (def.name || 'Île');
+    const name = def.story && STORY.islands[def.story] ? STORY.islands[def.story].name : def.infinite ? 'Île infinie' : def.garden ? 'Jardin' : def.tempo ? 'Le Souffle court' : (def.name || 'Île');
     this.title = name;
     this.hud = new Hud(document.getElementById('hud'), isl, {
       title: name, mechanics: mech,
@@ -576,16 +591,18 @@ class IslandScene {
       compact: STAGE.compact,
     });
     document.getElementById('hud').classList.add('on');
-    this.tutorial = new Tutorial(document.getElementById('tutorial'), isl, def, !Save.options.skipTutorial && !def.infinite && !def.garden);
+    this.tutorial = new Tutorial(document.getElementById('tutorial'), isl, def, !Save.options.skipTutorial && !def.infinite && !def.garden && !def.tempo);
     // les vœux se présentent avant la première pose (un bouton pour commencer), sauf en reprise sans intro
     this.hold = false;
     if (isl.wishes.length && !def.garden && !skipWishes && !this.resumed) { this.hold = true; showUI(buildWishesIntro({ island: isl, onStart: () => { hideUI(); this.hold = false; AudioSys.play('ui_confirm', { volume: 0.5 }); } }), 'panel-wrap'); }
     document.getElementById('tutorial').classList.add('on');
     isl.on((e) => this.onEvent(e));
-    isl.on((e) => { if (!Game.testMode) Achievements.onIslandEvent(e, isl); });
+    isl.on((e) => { if (!Game.testMode && !def.tempo) Achievements.onIslandEvent(e, isl); });
+    // Le Souffle court : le cadran, la série et les saisons à effets ; la brume d'automne est lue par le rendu
+    this.tempo = def.tempo ? new Tempo(this) : null; if (this.tempo) this.renderer.brume = this.tempo.brume;
     // audio
     this.seasonCount = { [isl.season]: 1 };
-    AudioSys.playMusic(def.garden ? 'garden' : def.daily && AudioSys.has('daily', 'music') ? 'daily' : seasonMusic(isl.season, 1), { fade: 2 });
+    AudioSys.playMusic(def.garden ? 'garden' : (def.daily || def.tempo) && AudioSys.has('daily', 'music') ? 'daily' : seasonMusic(isl.season, 1), { fade: 2 });
     this.updateAmbience(true);
     AudioSys.play('island_start', { volume: 0.6 });
     // entrées
@@ -612,7 +629,7 @@ class IslandScene {
   /** Range la partie en cours (appareil seulement, jamais en ligne). */
   saveRun(now = false) {
     const isl = this.isl;
-    if (!isl || isl.ended || this.finished || this.finale || Game.testMode) return;
+    if (!isl || isl.ended || this.finished || this.finale || Game.testMode || this.def.tempo) return;
     if (!now && !this.runDirty) return;
     this.runDirty = false; this.runTimer = 0;
     RunSave.write(Game.whereOf(this.def), isl, this.title);
@@ -756,7 +773,7 @@ class IslandScene {
       this.renderer.startTransition(e.from, e.to);
       AudioSys.play(`season_${e.to}`, { volume: 0.8 }); AudioSys.play('season_sweep', { volume: 0.5 });
       this.seasonCount[e.to] = (this.seasonCount[e.to] || 0) + 1;
-      if (!this.def.daily) AudioSys.playMusic(seasonMusic(e.to, this.seasonCount[e.to]), { fade: 3 });
+      if (!this.def.daily && !this.def.tempo) AudioSys.playMusic(seasonMusic(e.to, this.seasonCount[e.to]), { fade: 3 });
       const s = STORY.seasons[e.to]; const rl = e.rule && STORY.seasonRules[e.rule] ? STORY.seasonRules[e.rule] : null;
       this.hud.logOnly(`${s.name}${rl && isl.rulesVariable ? ` · ${rl.name}` : ''} — ${rl ? rl.line : s.line}`, 'season');
       // une surprise (pas la règle de base) : on la dit une fois, et son habillage arrive avec elle
@@ -803,6 +820,11 @@ class IslandScene {
     } else if (e.type === 'breath') {
       if (e.kind !== 'undo' && !e.free) AudioSys.play('breath_spend', { volume: 0.5 });
       if (!e.free) this.tutorial.onEvent('breath');
+    } else if (e.type === 'lost') {
+      const fam = (STORY.tiles[e.tile.family] || {}).name || e.tile.family;
+      this.hud.ribbon(`${fam} perdue`, '#d95f4b', 1300, 'warn'); this.hud.notify(`Trop tard : la ${fam.toLowerCase()} est perdue, sa case restera vide`, 'warn');
+      AudioSys.play('tile_discard', { volume: 0.7 }); this.shake.trigger(0.18); Haptics.tap([10, 30, 10]);
+      this.armed = null; this.hud.setPlaceButton(null);
     } else if (e.type === 'grow') {
       this.cam.fit(this.isl.board.mask);
     } else if (e.type === 'end') {
@@ -890,7 +912,7 @@ class IslandScene {
   pauseSub() {
     const d = this.def; const ch = d.chapter ? CHAPTERS[d.chapter - 1] : null;
     const cl = d.climate && d.climate !== 'temperate' && STORY.climates && STORY.climates[d.climate] ? ` · ${STORY.climates[d.climate].name}` : '';
-    return ch ? `Chapitre ${ch.id} · ${ch.name} · île ${d.id}${cl}` : d.daily ? 'Île du jour' : d.infinite ? 'Île infinie' : d.garden ? 'Jardin' : '';
+    return ch ? `Chapitre ${ch.id} · ${ch.name} · île ${d.id}${cl}` : d.daily ? 'Île du jour' : d.infinite ? 'Île infinie' : d.garden ? 'Jardin' : d.tempo ? 'Le Souffle court' : '';
   }
   togglePause(force) {
     if (!this.isl || this.isl.ended) return;
@@ -914,6 +936,7 @@ class IslandScene {
     else if (this.drag && !input.mouse.right) this.drag = null;
     const pan = 320 * dt; if (input.isDown('ArrowLeft')) this.cam.pan(pan, 0); if (input.isDown('ArrowRight')) this.cam.pan(-pan, 0); if (input.isDown('ArrowUp')) this.cam.pan(0, pan); if (input.isDown('ArrowDown')) this.cam.pan(0, -pan);
     this.cam.update(dt);
+    if (this.tempo && !this.hold && !isl.ended) { this.tempo.update(dt); this.hud.setTempo(this.tempo); }
     // survol
     if (!isl.ended && input.lastPointer === 'touch') {
       if (this.armed && this.armed.build && isl.canBuild(this.armed.q, this.armed.r)) { const pv = isl.previewBuild(this.armed.q, this.armed.r); this.renderer.hover = { q: this.armed.q, r: this.armed.r, preview: pv }; this.hud.setPlaceButton(pv ? pv.total : null, pv && pv.work ? 'work' : pv && pv.fuse ? 'fuse' : 'build'); }
@@ -933,7 +956,7 @@ class IslandScene {
     // d'hystérésis pour ne pas clignoter autour du seuil
     if (loop.fps < 42) this.renderer.lowFx = true; else if (loop.fps > 52) this.renderer.lowFx = false;
     // mode repos : après huit secondes sans geste, l'interface s'efface et la vue respire ; tout geste rétablit
-    const resting = Save.options.rest !== false && input.idleSeconds > 8 && !this.armed && !this.finale && !isl.ended;
+    const resting = Save.options.rest !== false && input.idleSeconds > 8 && !this.armed && !this.finale && !isl.ended && !isl.tempo;
     this.hud.setResting(resting); this.cam.breathe(resting ? 1 : 0, dt);
     const objs = this.renderer.decor.objects;
     if (this._srcV !== isl.board.version) { this._srcV = isl.board.version; this._sources = objs.filter((o) => o.tpl && (o.tpl.startsWith('obj_tree'))).map((o) => ({ x: o.x, y: o.y })); this._tiles = [...isl.board.tiles.values()].map((t) => { const w = toWorld(t.q, t.r); return { family: t.family, frozen: t.frozen, rare: t.rare, wx: w.x, wy: w.y }; }); }
