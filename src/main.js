@@ -709,6 +709,7 @@ class IslandScene {
     const isl = this.isl, fx = this.fx;
     this.runDirty = true;
     if (e.type === 'place') {
+      if (this.tempo) this.renderer.houleRepousser();   // la pose repousse la houle au large
       if (!this.isl.garden) this.checkDiscoveryCards();
       const w = toWorld(e.q, e.r);
       fx.drop(key(e.q, e.r));
@@ -850,7 +851,7 @@ class IslandScene {
     } else if (e.type === 'lost') {
       const fam = (STORY.tiles[e.tile.family] || {}).name || e.tile.family;
       this.hud.ribbon(`${fam} perdue`, '#d95f4b', 1300, 'warn'); this.hud.notify(`Trop tard : la ${fam.toLowerCase()} est perdue, sa case restera vide`, 'warn');
-      AudioSys.play('tile_discard', { volume: 0.7 }); this.shake.trigger(0.18); Haptics.tap([10, 30, 10]);
+      AudioSys.play('tile_discard', { volume: 0.7 }); this.shake.trigger(0.18); Haptics.tap([10, 30, 10]); this.renderer.houleDeferler();
       this.armed = null; this.hud.setPlaceButton(null);
     } else if (e.type === 'grow') {
       this.cam.fit(this.isl.board.mask);
@@ -968,7 +969,7 @@ class IslandScene {
       // le battement : la phase dans le temps de la musique (horloge audio), sinon un métronome au même tempo
       const mu = BALANCE.tempo.musique, temps = 60 / mu.bpm; const ctx = AudioSys.ctx;
       const depuis = ctx && this.tempo.musiqueAt !== null && this.tempo.musiqueAt !== undefined ? ctx.currentTime - this.tempo.musiqueAt - mu.premierTemps : (this._metro = (this._metro || 0) + dt);
-      this.renderer.maree = { f: this.hold ? 1 : this.tempo.fraction, urgent: !this.hold && this.tempo.t <= 1, battement: ((depuis % temps) + temps) % temps / temps, saison: isl.season };
+      this.renderer.houle = { f: this.hold ? 1 : this.tempo.fraction, battement: ((depuis % temps) + temps) % temps / temps, saison: isl.season };
     }
     // survol
     if (!isl.ended && input.lastPointer === 'touch') {

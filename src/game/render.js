@@ -117,7 +117,6 @@ const nappeDe = (saison) => {
 const WATER = { spring: nappeDe('spring'), summer: nappeDe('summer'), autumn: nappeDe('autumn'), winter: nappeDe('winter') };
 const ICE = { fill: '#dbe9f4', deep: '#cfe0ee', shoal: '#e8f2fa', edge: '#bdd2e2', foam: 'rgba(255,255,255,0.8)' };
 
-const SEASON_RGB = { spring: '109,191,103', summer: '74,158,79', autumn: '217,138,58', winter: '159,184,204' };
 
 export class IslandRenderer {
   constructor(island, camera, effects, particles) {
@@ -185,7 +184,7 @@ export class IslandRenderer {
     const isl = this.isl, cam = this.cam;
     const season = isl.season;
     this.drawSea(ctx, season, dt);
-    this.drawMaree(ctx);
+    this.drawHoule(ctx, dt);
     this.drawShallows(ctx);
     this.drawEmptyCells(ctx);
     if (this.legacy) this.drawTiles(ctx); else this.drawLayered(ctx);
@@ -1278,28 +1277,88 @@ export class IslandRenderer {
   }
 
   /**
-   * Souffle court : le temps se lit sur l'île, pas sur la tuile. Une lueur cerne l'île sur la mer (dégradé radial, rien
-   * de dessiné) et se resserre vers la côte à mesure que le cadran se vide ; elle bat la mesure de la musique, et vire au
-   * rouge dans la dernière seconde. `this.maree` = { f: 0..1 restant, urgent, battement: 0..1 dans le temps, saison }.
+   * Souffle court : le temps se lit sur la mer, pas sur la tuile. Une HOULE naît au large, ronde et discrète,
+   * épouse la forme de la côte en approchant, grossit dans les hauts-fonds (creux sombre derrière la crête, face
+   * claire devant, crête d'écume faite des vagues du jeu) et déferle sur le rivage quand le cadran est vide :
+   * la côte blanchit, l'écume reflue, des gouttes d'embruns jaillissent. Poser une tuile repousse la vague en
+   * cours au large, où elle s'efface. La distance vague-côte, c'est le temps qui reste. Rien de dessiné : des
+   * bandes en dégradé et les sprites de la mer. `this.houle` = { f: 0..1 restant, battement: 0..1 dans le temps,
+   * saison } ; `houleRepousser()` à la pose, `houleDeferler()` à la perte.
    */
-  drawMaree(ctx) {
-    const m = this.maree; if (!m) return;
-    const cam = this.cam, z = cam.zoom, b = this.isl.board;
-    if (this._mareeV !== b.version || !this._mareeC) {
-      this._mareeV = b.version; let sx = 0, sy = 0, n = 0; const pts = [];
-      for (const k of b.mask) { const [q, r] = parse(k); const w = toWorld(q, r); pts.push(w); sx += w.x; sy += w.y; n++; }
-      const cx = sx / n, cy = sy / n; let R = 0; for (const w of pts) R = Math.max(R, Math.hypot(w.x - cx, w.y - cy));
-      this._mareeC = { cx, cy, R: R + SIZE * 0.9 };
+  houleGeometrie() {
+    const b = this.isl.board;
+    if (this._houleV === b.version && this._houleC) return this._houleC;
+    this._houleV = b.version;
+    // la côte : les arêtes des hexagones du masque qui ne donnent sur aucun autre, chaînées en boucle (la plus longue
+    // si l'île en a plusieurs), puis adoucies deux fois (Chaikin)
+    const cle = (p) => `${Math.round(p[0])},${Math.round(p[1])}`; const compte = new Map(), aretes = [];
+    let sx = 0, sy = 0, n = 0;
+    for (const k of b.mask) { const [q, r] = parse(k); const w = toWorld(q, r); sx += w.x; sy += w.y; n++; const pts = corners(w.x, w.y, SIZE);
+      for (let i = 0; i < 6; i++) { const a = pts[i], d = pts[(i + 1) % 6]; const kk = [cle(a), cle(d)].sort().join('|'); compte.set(kk, (compte.get(kk) || 0) + 1); aretes.push({ a, b: d, k: kk }); } }
+    const cx = n ? sx / n : 0, cy = n ? sy / n : 0;
+    const bord = aretes.filter((e) => compte.get(e.k) === 1); const depuis = new Map(); for (const e of bord) depuis.set(cle(e.a), e);
+    const vus = new Set(); let meilleure = [];
+    for (const e0 of bord) { if (vus.has(e0.k)) continue; const boucle = []; let cur = e0; while (cur && !vus.has(cur.k)) { vus.add(cur.k); boucle.push(cur.a); cur = depuis.get(cle(cur.b)); } if (boucle.length > meilleure.length) meilleure = boucle; }
+    let pts = meilleure;
+    for (let it = 0; it < 2 && pts.length > 2; it++) { const out = []; for (let i = 0; i < pts.length; i++) { const a = pts[i], d = pts[(i + 1) % pts.length]; out.push([a[0] * 0.75 + d[0] * 0.25, a[1] * 0.75 + d[1] * 0.25], [a[0] * 0.25 + d[0] * 0.75, a[1] * 0.25 + d[1] * 0.75]); } pts = out; }
+    const cote = pts.map(([x, y]) => { const r = Math.hypot(x - cx, y - cy) || 1; return { ux: (x - cx) / r, uy: (y - cy) / r, r }; });
+    const Rm = cote.length ? cote.reduce((s, p) => s + p.r, 0) / cote.length : SIZE; let R = 0; for (const p of cote) R = Math.max(R, p.r);
+    this._houleC = { cx, cy, cote, Rm, R };
+    return this._houleC;
+  }
+  /** La crête à `d` unités de la côte, en écran : forme de la côte près du rivage, presque ronde au large. */
+  houleCrete(d) {
+    const g = this.houleGeometrie(), cam = this.cam; const k = clamp(d / (g.Rm * 1.2), 0, 0.85);
+    return g.cote.map((p) => { const rr = (p.r + 8 + d) * (1 - k) + (g.Rm + 8 + d) * k; return cam.toScreen(g.cx + p.ux * rr, g.cy + p.uy * rr); });
+  }
+  houleRepousser() { const h = this.houle; if (!h || !this._houleAnim) return; const an = this._houleAnim; if (an.perdue <= 0 && h.f < 0.98) an.mourante = { d: an.dernierD, a: 1 }; an.naissance = 0; }
+  houleDeferler() {
+    const an = this._houleAnim; if (!an) return; an.perdue = 0.8; an.naissance = 0;
+    if (this.lowFx) return;
+    const z = this.cam.zoom, c = this.cam.toScreen(this.houleGeometrie().cx, this.houleGeometrie().cy);
+    for (const p of this.houleEchantillons(this.houleCrete(0), 26 * z)) { const nb = 2 + (Math.random() < 0.5 ? 1 : 0); for (let i = 0; i < nb; i++) { const dx = p.x - c.x, dy = p.y - c.y; const L = Math.hypot(dx, dy) || 1;
+      an.embruns.push({ x: p.x, y: p.y, vx: (dx / L) * rnd(20, 90) * z + rnd(-30, 30), vy: -rnd(120, 260) * z, age: 0, vie: rnd(0.5, 0.9), s: rnd(0.6, 1.1) }); } }
+  }
+  houleEchantillons(pts, pas, decal = 0) { const out = []; let acc = decal; for (let i = 0; i < pts.length; i++) { const a = pts[i], b = pts[(i + 1) % pts.length]; const L = Math.hypot(b.x - a.x, b.y - a.y); let s = acc; while (s < L) { const t = s / L; out.push({ x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t, i: out.length }); s += pas; } acc = s - L; } return out; }
+  drawHoule(ctx, dt) {
+    const h = this.houle; if (!h) return;
+    const an = this._houleAnim || (this._houleAnim = { perdue: 0, naissance: 0, mourante: null, embruns: [], dernierD: 0, tps: 0 });
+    an.tps += dt; an.naissance = Math.min(1, an.naissance + dt / 0.4); if (an.perdue > 0) an.perdue -= dt;
+    const g = this.houleGeometrie(); if (g.cote.length < 3) return;
+    const cam = this.cam, z = cam.zoom, hiver = h.saison === 'winter', puls = Math.pow(1 - h.battement, 3);
+    // le large : à plein temps, la crête est au bord de l'écran (sur le petit côté), jamais plus loin que 260 unités
+    const D0 = clamp(Math.min(STAGE.W, STAGE.H) / (2 * z) - g.R + 20, 90, 260);
+    const distance = (f) => D0 * Math.pow(f, 0.9);   // la vague ralentit un peu dans les hauts-fonds
+    const H = STAGE.compact ? 34 : 40, tps = an.tps, lowFx = this.lowFx;
+    const anneau = (d1, d2, style) => { const t1 = this.houleCrete(Math.max(0, d1)), t2 = this.houleCrete(Math.max(0, d2)); ctx.beginPath(); ctx.moveTo(t1[0].x, t1[0].y); for (let i = 1; i < t1.length; i++) ctx.lineTo(t1[i].x, t1[i].y); ctx.closePath(); ctx.moveTo(t2[0].x, t2[0].y); for (let i = 1; i < t2.length; i++) ctx.lineTo(t2[i].x, t2[i].y); ctx.closePath(); ctx.fillStyle = style; ctx.fill('evenodd'); };
+    const vague = (d, alpha, f) => {
+      const hh = H * (0.6 + 0.7 * (1 - f));
+      ctx.save(); ctx.globalAlpha = alpha;
+      if (!lowFx) { anneau(d + hh * 0.25, d + hh * 1.6, 'rgba(16,48,92,0.10)'); anneau(d + hh * 0.4, d + hh * 1.0, 'rgba(16,48,92,0.12)'); anneau(d - hh * 0.9, d, 'rgba(255,255,255,0.10)'); }
+      anneau(d - hh * 0.45, d, 'rgba(255,255,255,0.13)');
+      anneau(d - hh * 0.12, d + hh * 0.12, `rgba(225,242,255,${(0.22 + 0.25 * (1 - f)).toFixed(3)})`);   // la lèvre : le haut de la vague qui prend la lumière
+      // deux rangs d'écume décalés (un seul quand les i/s baissent), pour une crête continue et mousseuse
+      const a = (hiver ? 0.5 : 0.85) * (0.45 + 0.55 * (1 - f)) + 0.25 * puls; const rangs = lowFx ? 1 : 2, pas = 22 * z;
+      for (let rang = 0; rang < rangs; rang++) { const pts = this.houleEchantillons(this.houleCrete(d + (rang ? hh * 0.1 : -hh * 0.05)), pas, ((tps * 14) + rang * pas * 0.5) % pas);
+        for (const p of pts) { const im = this.vagueFondue(this.waveImgs[(p.i + rang + Math.floor(tps * 0.7)) % Math.max(1, this.waveImgs.length)]); if (!im) continue; const sc = (0.6 + 0.7 * (1 - f) + 0.15 * puls) * (0.85 + 0.3 * Math.sin(p.i * 1.7 + rang + tps * 2.2)); const ww = 74 * sc * z, hw = ww / 3.6; ctx.globalAlpha = Math.min(1, alpha * Math.min(1, a * (0.8 + 0.4 * Math.sin(p.i * 2.3 + rang * 2 + tps * 3)))); ctx.drawImage(im, p.x - ww / 2, p.y - hw / 2 + Math.sin(tps * 3 + p.i + rang) * 2 * z, ww, hw); } }
+      ctx.restore();
+    };
+    if (an.mourante) { an.mourante.a -= dt / 0.45; an.mourante.d += dt * 160; if (an.mourante.a <= 0) an.mourante = null; else vague(an.mourante.d, an.mourante.a * 0.8, 0.6); }
+    if (an.perdue <= 0) { an.dernierD = distance(h.f); vague(an.dernierD, an.naissance, h.f); }
+    else {   // le déferlement : la côte blanchit d'un coup, l'écume s'étale vers le large en s'effaçant, les embruns retombent
+      const k = an.perdue / 0.8, e = 1 - k; ctx.save();
+      anneau(0, H * (0.6 + 1.2 * e), `rgba(255,255,255,${(0.6 * k).toFixed(3)})`); anneau(0, H * (1.2 + 2.2 * e), `rgba(255,255,255,${(0.3 * k).toFixed(3)})`);
+      for (let rang = 0; rang < (lowFx ? 1 : 3); rang++) { const pts = this.houleEchantillons(this.houleCrete(H * (0.15 + 0.35 * rang) * (0.4 + 1.6 * e)), 18 * z, rang * 6 * z); for (const p of pts) { const im = this.vagueFondue(this.waveImgs[(p.i + rang) % Math.max(1, this.waveImgs.length)]); if (!im) continue; const ww = 74 * (1.0 + 0.5 * e) * (0.85 + 0.3 * Math.sin(p.i * 1.7 + rang)) * z, hw = ww / 3.6; ctx.globalAlpha = Math.min(1, 1.1 * k); ctx.drawImage(im, p.x - ww / 2, p.y - hw / 2, ww, hw); } }
+      ctx.restore();
     }
-    const c = cam.toScreen(this._mareeC.cx, this._mareeC.cy);
-    const r = (this._mareeC.R + 30 + 170 * m.f) * z;                  // à plein temps, la lueur est au large ; à zéro, sur la côte
-    const puls = Math.pow(1 - m.battement, 3);                        // un coup par temps, qui s'éteint vite
-    const w = (26 + 10 * puls) * z;
-    const col = m.urgent ? '217,95,75' : SEASON_RGB[m.saison] || '47,158,143';
-    const a = (m.urgent ? 0.5 : 0.32) + 0.18 * puls;
-    const g = ctx.createRadialGradient(c.x, c.y, Math.max(0, r - w), c.x, c.y, r + w);
-    g.addColorStop(0, `rgba(${col},0)`); g.addColorStop(0.5, `rgba(${col},${a.toFixed(3)})`); g.addColorStop(1, `rgba(${col},0)`);
-    ctx.save(); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(c.x, c.y, r + w, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+    for (const e of an.embruns) { e.age += dt; e.vy += 700 * z * dt; e.x += e.vx * dt; e.y += e.vy * dt; }
+    if (an.embruns.length) { an.embruns = an.embruns.filter((e) => e.age < e.vie); const im = this.goutte(); if (im) { ctx.save(); for (const e of an.embruns) { const k = 1 - e.age / e.vie; ctx.globalAlpha = 0.9 * Math.min(1, k * 1.5); const w = 13 * e.s * z, hg = 26 * e.s * z; ctx.save(); ctx.translate(e.x, e.y); ctx.rotate(Math.atan2(e.vy, e.vx) + Math.PI / 2); ctx.drawImage(im, -w / 2, -hg / 2, w, hg); ctx.restore(); } ctx.restore(); } }
+  }
+  /** La goutte des embruns : image « lazy » du manifeste, chargée à la première demande. */
+  goutte() {
+    if (this._goutte) return this._goutte.complete && this._goutte.naturalWidth ? this._goutte : null;
+    const m = Assets.manifest(); const e = m && m.images && m.images.drop; if (!e) return null;
+    this._goutte = new Image(); this._goutte.src = `assets/img/${e.file}`; return null;
   }
 
   drawHover(ctx) {
