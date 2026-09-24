@@ -9,7 +9,8 @@ export const Assets = {
     const res = await fetch('assets/img/manifest.json');
     if (!res.ok) throw new Error('Manifeste images introuvable');
     manifest = await res.json();
-    const entries = Object.entries(manifest.images);
+    // les entrées « lazy » (insignes des tampons) se chargent à la demande, au moment de tamponner : pas au démarrage
+    const entries = Object.entries(manifest.images).filter(([, meta]) => !meta.lazy);
     let done = 0;
     const load = ([key, meta]) => new Promise((resolve) => {
       const img = new Image();

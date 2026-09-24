@@ -911,14 +911,26 @@
   "author": "OpenAI",
   "license": "Conditions d'utilisation d'OpenAI (voir la page ci-dessous)",
   "url": "https://openai.com/policies/usage-policies",
-  "attribution": "Insignes d'archétype d'île « hameaux » et « aquatique », générés à partir d'un prompt écrit pour le projet (détail dans manifest.json), à la demande du commanditaire.",
+  "attribution": "Insignes d'archétype d'île, insignes des dix chapitres et vignettes des succès « L'ours » et « Le lac », générés à partir de prompts écrits pour le projet (docs/PROMPTS_INSIGNES.pdf), à la demande du commanditaire. Sur la carte postale, le jeu en tire une empreinte de tampon encré.",
   "files": [
    "archetypes/archetype-hameaux.png",
    "archetypes/archetype-aquatique.png",
-   "archetypes/archetype-montagneuse.png",
    "archetypes/archetype-sauvage.png",
+   "archetypes/archetype-montagneuse.png",
+   "archetypes/archetype-nourriciere.png",
    "archetypes/archetype-littorale.png",
-   "archetypes/archetype-nourriciere.png"
+   "chapitres/chapitre-1.png",
+   "chapitres/chapitre-2.png",
+   "chapitres/chapitre-3.png",
+   "chapitres/chapitre-4.png",
+   "chapitres/chapitre-5.png",
+   "chapitres/chapitre-6.png",
+   "chapitres/chapitre-7.png",
+   "chapitres/chapitre-8.png",
+   "chapitres/chapitre-9.png",
+   "chapitres/chapitre-10.png",
+   "succes/l-ours.png",
+   "succes/le-lac.png"
   ]
  },
  {
