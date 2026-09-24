@@ -50,22 +50,22 @@
 | Montagnard | roche et collines | tuile contre la roche +1, lacs de montagne +1, mines | champs −1 loin de l'eau, saisons plus courtes | chèvres, ours, brouillard | plus tard |
 | Île à deux climats, choix du climat en infini / jour | | | | | plus tard |
 
-## Lot 6 : campagne de cinquante îles (idée du commanditaire)
+## Lot 6 : campagne de trente îles (idée du commanditaire ; cinquante jusqu'au 24 septembre 2026)
 
-> Les douze îles dessinées à la main restent les îles-souvenirs (récit, fragments) et ferment chaque chapitre ; les îles de passage sont générées (taille, climat, poids, vœux tirés d'une réserve, deux lignes de texte). Le bot fort calibre les étoiles de toutes les îles. Passage au chapitre suivant : la moitié des étoiles du chapitre. Une amélioration d'Atelier par chapitre. Carte d'archipels dans le menu.
+> Les douze îles dessinées à la main restent les îles-souvenirs (récit, fragments) et ferment chaque chapitre ; les îles de passage sont générées (taille, climat, poids, vœux tirés d'une réserve). Dix chapitres de trois îles, chacun sur le schéma « nouveauté, pratique, souvenir ». Réduction décidée le 24 septembre (docs/REDUCTION_30_ILES.md) : treize îles sur cinquante n'apportaient rien de neuf.
 
 | Chapitre | Îles | Ce qui arrive | Taille | Statut |
 |---|---|---|---|---|
-| 1. Prise en main | 1–5 | affinités, fermeture, saisons, rivière, faune | 30–50 | **fait** (structure) |
-| 2. Les habitants | 6–10 | vœux, souffles, tuiles rares | 50–60 | **fait** (structure) |
-| 3. Le ciel | 11–15 | météo, règles de saison variables, colline et lande | 60–70 | **fait** (structure) |
-| 4. Bâtir | 16–20 | niveaux 2, retour de tuile | 60–80 | **fait** (structure) |
-| 5. Archipel du Sud | 21–25 | climat chaud, fusions et Cahier | 70–80 | **fait** (structure) |
-| 6. Archipel des Pluies | 26–30 | climat humide, ouvrages | 70–90 | **fait** (structure) |
-| 7. Archipel du Nord | 31–35 | climat froid, niveaux 3 | 80–90 | **fait** (structure) |
-| 8. Les Quatre Climats | 36–40 | chaque île change de climat (chaud, froid, tempéré, humide, chaud), carte de climat à chaque changement | 90–100 | **fait** |
-| 9. Les grandes îles | 41–45 | tout est là, îles jumelles partageant une rivière | 100–140 | **fait** (structure) |
-| 10. Cent saisons | 46–50 | l'île qui grandit, épilogue, puis génération libre | 120–160 | **fait** (structure) |
+| 1. Prise en main | 1–3 | affinités et faune, rivière et saisons, semis | 30–48 | **fait** |
+| 2. Les habitants | 4–6 | vœux et main, souffles, tuiles rares | 42–54 | **fait** |
+| 3. Le ciel | 7–9 | surprises de saison, collines, grenier-ruche-menhir | 60–66 | **fait** |
+| 4. Bâtir | 10–12 | lande, bâtir | 60–68 | **fait** |
+| 5. Archipel du Sud | 13–15 | climat chaud, fusions et Cahier | 72–84 | **fait** |
+| 6. Archipel des Pluies | 16–18 | climat humide | 76–97 | **fait** |
+| 7. Archipel du Nord | 19–21 | climat froid, niveau 3 ; Le Pont de Glace y passe | 72–108 | **fait** |
+| 8. Les Quatre Climats | 22–24 | chaque île change de climat (chaud, froid, humide), signatures | 90–100 | **fait** |
+| 9. Les grandes îles | 25–27 | la croissance, ce chapitre seulement (« ici, le temps bâtit seul »), signatures | 104–140 | **fait** |
+| 10. Cent saisons | 28–30 | signatures, épilogue | 120–150 | **fait** |
 
 Ordre proposé : finir le lot 4 (grille effacée, fusions, ouvrages, niveaux 3), puis lot 5 (modèle de climat, recoloration, chaud et froid jouables sur îles générées, guide), puis lot 6 (chapitres, générateur par climat et taille, carte, textes courts, calibrage), puis lot 7 (venteux, montagnard, deux climats, jumelles).
 
@@ -73,7 +73,7 @@ Ordre proposé : finir le lot 4 (grille effacée, fusions, ouvrages, niveaux 3),
 
 ## Lot 7 : Livre II — la mer (idée du commanditaire)
 
-> Après l'île 50, la campagne continue en mer : cinq chapitres de cinq îles (51 à 75). La mer entre deux îles devient posable, des routes commerciales relient les ports, et les niveaux hauts sont des archipels dont chaque île a sa contrainte. Décisions prises avec le commanditaire : abysses jamais dans le deck (bord de carte ou amas de mer), tuile Mer neutre, routes payées selon le nombre de ports reliés, pas de saisons décalées entre les îles.
+> Après l'île 30, la campagne continue en mer : cinq chapitres de cinq îles (31 à 55). À recycler d'abord : les vingt îles générées retirées le 24 septembre (noms, textes — trois à réécrire, ils annoncent des tuiles retirées —, graines), neuf signatures (dont trois jamais employées) et quatre grandes îles de 112 à 140 cases (docs/REDUCTION_30_ILES.md, § 4.6). La mer entre deux îles devient posable, des routes commerciales relient les ports, et les niveaux hauts sont des archipels dont chaque île a sa contrainte. Décisions prises avec le commanditaire : abysses jamais dans le deck (bord de carte ou amas de mer), tuile Mer neutre, routes payées selon le nombre de ports reliés, pas de saisons décalées entre les îles.
 
 ### Tuiles de mer
 
@@ -190,11 +190,11 @@ Demande du commanditaire : « beaucoup de fonctionnalités, le jeu est complexe 
 | Souffles, main, poche, remise | 3 pouvoirs, 2 sources, main dès l'île 6 (lot S3) | d'accord | **fait** (lot S3) |
 | **Ouvrages + remise** | retirer, ruche et menhir passent rares (lot S4, recalibrage obligatoire) — ou les six ouvrages en rares sans remise | retirer | **fait** (lot S4) |
 | Niveau 3 | garder le geste, une règle, signatures en étiquettes (lot S5) | d'accord | fait (lot S5) |
-| **Croissance** | caractère du chapitre 9 (« ici, le temps bâtit seul ») plutôt que mécanique cumulée | question posée : « c'est quoi la croissance ? » — expliquée, réponse attendue | **à trancher** |
+| **Croissance** | caractère du chapitre 9 (« ici, le temps bâtit seul ») plutôt que mécanique cumulée | question posée : « c'est quoi la croissance ? » — expliquée, réponse du commanditaire : « caractère du chapitre 9 » | **fait** (campagne à trente, 24 septembre) : la croissance n'est active que sur les îles 25 à 27 |
 | Fusions | garder recettes et Cahier, retirer la récompense de découverte (+23,7 % sur le calibrage) | d'accord | fait (lot S5) |
 | Interface | un canal de message, 4 blocs, 2 écrans entre deux îles (lot S6) | d'accord | fait (lot S6) |
 | **Régime de calibrage** | recettes connues (actuel) ou première traversée | retirer la récompense de découverte, le régime « recettes connues » reste juste | fait (lot S5) |
-| Calibrage final (lot S7) | rejouer la porte et les bots par chapitre après tous les lots ; cible de l'audit : le bot glouton fait 5 à 7 étoiles par chapitre, jamais moins de 4 | mesure du 23 septembre (après S6 et les correctifs) : le glouton fait **15, 14, 13, 10, 10, 10, 9, 10, 9, 10** étoiles sur 15 aux chapitres 1 à 10 — la porte (6 étoiles) ne bloque jamais, mais les étoiles sont bien plus faciles que la cible ; l'écart bot fort / glouton est sous 20 % aux chapitres 1 à 3 (9, 12, 15 %), entre 23 et 33 % ensuite | **à trancher** : garder les bandes actuelles (45 / 65 / 85 % du bot fort) ou les durcir vers la cible |
+| Calibrage final (lot S7) | rejouer la porte et les bots par chapitre après tous les lots ; cible de l'audit : le bot glouton fait 5 à 7 étoiles par chapitre, jamais moins de 4 | mesure du 24 septembre (campagne à trente, porte à 4 étoiles sur 9) : le glouton fait **9, 8, 7, 8, 6, 7, 6, 6, 5, 4** étoiles sur 9 aux chapitres 1 à 10 — la porte ne bloque jamais, et l'écart bot fort / glouton va de −3 % (chapitre 1) à 36 % (chapitre 10) | **tranché** (commanditaire) : garder les seuils actuels ; la campagne plus courte a durci d'elle-même la fin (4 étoiles sur 9 au dernier chapitre) |
 
 ## Croissance des tuiles (idée du commanditaire, 19 septembre)
 
