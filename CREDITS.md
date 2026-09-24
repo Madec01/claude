@@ -31,6 +31,10 @@ Toutes les œuvres ci-dessous appartiennent à leurs auteurs et sont utilisées 
   - Attribution : "Maccary Bay" Kevin MacLeod (incompetech.com) — Licensed under Creative Commons: By Attribution 4.0 License — http://creativecommons.org/licenses/by/4.0/
 - **Woodblock Swing** — Martinus Games (composé avec Suno) — licence propriété du studio, tous droits réservés — [source](https://suno.com)
   - Attribution : « Woodblock Swing », composé avec Suno par Martinus Games pour Cent Saisons
+- **Woodblock Chase** — Martinus Games (composé avec Suno) — licence propriété du studio, tous droits réservés — [source](https://suno.com)
+  - Attribution : « Woodblock Chase », composé avec Suno par Martinus Games pour Cent Saisons
+- **Woodblock Chase II** — Martinus Games (composé avec Suno) — licence propriété du studio, tous droits réservés — [source](https://suno.com)
+  - Attribution : « Woodblock Chase II », composé avec Suno par Martinus Games pour Cent Saisons
 
 ## Sons et ambiances
 

@@ -380,7 +380,9 @@ const Game = {
   noteMode(k) { Save.data.seen = Save.data.seen || {}; if (!Save.data.seen[k]) { Save.data.seen[k] = true; Save.save(); } },
   startInfinite() { this.noteMode('mode_infinite'); scenes.go('story', { screens: infiniteScreens(), onDone: () => scenes.go('island', { def: INFINITE }, { fade: 0.5 }) }); },
   /** Le Souffle court : le récit d'ouverture la première fois seulement ; ensuite, droit sur une île neuve. */
-  startTempo() { this.noteMode('mode_tempo'); const def = tempoDef(undefined, { etire: STAGE.compact && STAGE.portrait ? BALANCE.tempo.etirePortrait : 1 }); if (AudioSys.has('tempo', 'music')) AudioSys.load('music', 'tempo').catch(() => {}); scenes.go('prep', { node: buildTempoPrep({ onStart: () => { AudioSys.play('ui_confirm', { volume: 0.5 }); hideUI(); scenes.go('island', { def }, { fade: 0.4 }); }, onBack: () => this.showMenu() }) }); },
+  /** La musique d'une partie du Souffle court : une des pistes du mode, tirée au sort parmi celles que le manifeste connaît. */
+  musiqueTempo() { const cles = Object.keys(BALANCE.tempo.musiques).filter((k) => AudioSys.has(k, 'music')); return cles.length ? cles[Math.floor(Math.random() * cles.length)] : null; },
+  startTempo() { this.noteMode('mode_tempo'); const def = tempoDef(undefined, { etire: STAGE.compact && STAGE.portrait ? BALANCE.tempo.etirePortrait : 1 }); def.musique = this.musiqueTempo(); if (def.musique) AudioSys.load('music', def.musique).catch(() => {}); scenes.go('prep', { node: buildTempoPrep({ onStart: () => { AudioSys.play('ui_confirm', { volume: 0.5 }); hideUI(); scenes.go('island', { def }, { fade: 0.4 }); }, onBack: () => this.showMenu() }) }); },
   startDaily() { this.noteMode('mode_daily'); const def = dailyDef(); this.prepIsland(def, dailyScreens(def)); },
   startGarden() { this.noteMode('mode_garden'); scenes.go('story', { screens: gardenScreens(), onDone: () => scenes.go('island', { def: GARDEN }, { fade: 0.5 }) }); },
 
@@ -605,9 +607,9 @@ class IslandScene {
     if (this.tempo) {
       this.renderer.brume = this.tempo.brume; document.getElementById('hud').classList.add('tempo');
       // la musique part sans fondu et le décompte se cale sur elle : un pas tous les deux temps, le premier coup sur le premier temps fort
-      const mu = BALANCE.tempo.musique; const pas = mu.tempsParPas * 60 / mu.bpm;
+      const mu = this.musiqueDuMode(); const pas = mu.tempsParPas * 60 / mu.bpm;
       this.hold = true;
-      const lancer = AudioSys.has('tempo', 'music') ? AudioSys.playMusic('tempo', { fade: 0 }) : Promise.resolve(null);
+      const lancer = def.musique && AudioSys.has(def.musique, 'music') ? AudioSys.playMusic(def.musique, { fade: 0 }) : Promise.resolve(null);
       Promise.race([lancer, wait(2.5)]).then((at) => { if (this.isl !== isl) return; this.tempo.musiqueAt = at !== null && at !== undefined ? at : null; this.compteARebours(pas, this.tempo.musiqueAt !== null ? mu.premierTemps : 0); });
     }
     // audio
@@ -640,6 +642,8 @@ class IslandScene {
    * Souffle court : trois, deux, un — le cadran ne part pas sans prévenir. Tant qu'il compte, rien ne se pose
    * (`hold`) et le temps ne s'écoule pas. Aussi au retour de pause, plus vite.
    */
+  /** Le tempo et le premier temps fort de la piste de cette partie (repli : la première piste). */
+  musiqueDuMode() { const T = BALANCE.tempo; const m = (this.def.musique && T.musiques[this.def.musique]) || T.musique; return { bpm: m.bpm, premierTemps: m.premierTemps, tempsParPas: T.musique.tempsParPas }; }
   compteARebours(pas = 0.8, avant = 0) {
     if (!this.tempo || this.isl.ended) return;
     this.hold = true;
@@ -951,7 +955,7 @@ class IslandScene {
       this.saveRun(true);
       const build = () => buildPause({ title: this.title, sub: this.pauseSub(), kept: !Game.testMode, onResume: () => this.togglePause(false), onJournal: () => { this.togglePause(false); this.hud.toggleLog(true); }, journalCount: this.hud.unread, onRestart: () => { RunSave.clear(); scenes.go('island', { def: this.def }, { fade: 0.5 }); }, onOptions: () => Game.showOptions(() => showUI(build(), 'pause-wrap')), onGuide: () => Game.showGuide(() => showUI(build(), 'pause-wrap')), onFullscreen: () => { Game.toggleFullscreen(); setTimeout(() => { if (this.paused) showUI(build(), 'pause-wrap'); }, 400); }, onMenu: () => scenes.go('menu'), onPostcard: () => { try { showUI(buildPostcard({ canvas: renderPostcard(this), filename: postcardName(this), onBack: () => showUI(build(), 'pause-wrap') }), 'panel-wrap'); } catch (e) { console.warn('carte postale', e); } }, onReport: () => Game.showReport(() => showUI(build(), 'pause-wrap')) });
       showUI(build(), 'pause-wrap');
-    } else { hideUI(); AudioSys.play('ui_close', { volume: 0.5 }); if (this.tempo) { const mu = BALANCE.tempo.musique; this.compteARebours(mu.tempsParPas * 60 / mu.bpm * 0.75); } }
+    } else { hideUI(); AudioSys.play('ui_close', { volume: 0.5 }); if (this.tempo) { const mu = this.musiqueDuMode(); this.compteARebours(mu.tempsParPas * 60 / mu.bpm * 0.75); } }
   }
 
   update(dt) {
@@ -967,7 +971,7 @@ class IslandScene {
     if (this.tempo && !this.hold && !isl.ended) { this.tempo.update(dt); this.hud.setTempo(this.tempo); }
     if (this.tempo && !isl.ended) {
       // le battement : la phase dans le temps de la musique (horloge audio), sinon un métronome au même tempo
-      const mu = BALANCE.tempo.musique, temps = 60 / mu.bpm; const ctx = AudioSys.ctx;
+      const mu = this.musiqueDuMode(), temps = 60 / mu.bpm; const ctx = AudioSys.ctx;
       const depuis = ctx && this.tempo.musiqueAt !== null && this.tempo.musiqueAt !== undefined ? ctx.currentTime - this.tempo.musiqueAt - mu.premierTemps : (this._metro = (this._metro || 0) + dt);
       const battement = ((depuis % temps) + temps) % temps / temps;
       // le chronomètre se pose juste au-dessus de l'île : le sommet du masque, en écran

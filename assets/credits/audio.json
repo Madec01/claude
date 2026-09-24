@@ -157,6 +157,28 @@
       "type": "music"
     },
     {
+      "title": "Woodblock Chase",
+      "author": "Martinus Games (composé avec Suno)",
+      "license": "propriété du studio, tous droits réservés",
+      "source_url": "https://suno.com",
+      "attribution": "« Woodblock Chase », composé avec Suno par Martinus Games pour Cent Saisons",
+      "used_in": [
+        "music/tempo_2.ogg"
+      ],
+      "type": "music"
+    },
+    {
+      "title": "Woodblock Chase II",
+      "author": "Martinus Games (composé avec Suno)",
+      "license": "propriété du studio, tous droits réservés",
+      "source_url": "https://suno.com",
+      "attribution": "« Woodblock Chase II », composé avec Suno par Martinus Games pour Cent Saisons",
+      "used_in": [
+        "music/tempo_3.ogg"
+      ],
+      "type": "music"
+    },
+    {
       "title": "Forest quiet atmosphere with some birds",
       "author": "felix.blume",
       "license": "CC0 1.0",

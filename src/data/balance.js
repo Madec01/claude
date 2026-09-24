@@ -40,6 +40,9 @@ export const BALANCE = {
     cellsMin: 40, cellsMax: 60, seasonLength: 5,
     etirePortrait: 1.5,        // au téléphone en portrait, l'île est plus haute que large (rapport hauteur/largeur)
     // la musique du mode (« Woodblock Swing », Suno) : le décompte se cale dessus — un pas tous les deux temps, le premier coup sur le premier temps fort
-    musique: { bpm: 143, premierTemps: 0.39, tempsParPas: 2 },
+    // les pistes du mode, tirées au sort à chaque partie ; pour chacune, le tempo et l'instant du premier temps fort (mesurés
+    // sur la piste : le décompte se cale dessus, un pas tous les deux temps, et le chronomètre respire à chaque temps)
+    musiques: { tempo: { bpm: 143, premierTemps: 0.39 }, tempo_2: { bpm: 152, premierTemps: 0.71 }, tempo_3: { bpm: 152, premierTemps: 0.16 } },
+    musique: { bpm: 143, premierTemps: 0.39, tempsParPas: 2 },   // valeurs de repli (et le pas du décompte, commun)
   },
 };

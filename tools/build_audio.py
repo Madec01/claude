@@ -494,6 +494,9 @@ MUSIC = {
     "winter_2": ("Night Vigil", 115, 3.0, "hiver (variante) : veille nocturne, froid et calme"),
     "daily": ("Maccary Bay", 115, 3.0, "île du jour : baie tranquille, un jour à la fois"),
     "tempo": ("suno:Woodblock Swing", 115, 3.0, "Le Souffle court : swing-folk de foire composé avec Suno par le commanditaire (143 BPM) ; le décompte du jeu se cale sur son tempo"),
+    # les deux prises de Woodblock Chase : boucle d'une minute et qualité 4 (au lieu de 5), pour tenir dans les 30 Mo d'audio
+    "tempo_2": ("suno:Woodblock Chase", 72, 3.0, "Le Souffle court, deuxième piste : une course de bois et de percussions (152 BPM), tirée au sort avec les deux autres", 4),
+    "tempo_3": ("suno:Woodblock Chase II", 70, 3.0, "Le Souffle court, troisième piste : l'autre prise de Woodblock Chase (152 BPM)", 4),
 }
 MUSIC_LUFS = -16.0
 MUSIC_MIN_LOOP = 60.0
@@ -501,25 +504,28 @@ MUSIC_MIN_LOOP = 60.0
 
 def build_music(only: set[str] | None = None) -> dict:
     manifest = {}
-    for key, (title, max_s, xf, why) in MUSIC.items():
+    for key, spec in MUSIC.items():
         if only and key not in only:
             continue
+        title, max_s, xf, why = spec[:4]
+        qualite = spec[4] if len(spec) > 4 else 5   # qualité vorbis, 5 par défaut
         path = OUT / "music" / f"{key}.ogg"
         # « suno:Titre » : une piste du commanditaire (miroir SUNO), pas du catalogue MacLeod
         suno = title.startswith("suno:")
         if suno:
             title = title[5:]
-        a = decode(src("suno" if suno else P_KM, f"{title}.mp3"), ch=2)
+        # une piste Suno peut arriver en mp3 ou en m4a (export du téléphone) : on prend ce qui est là
+        a = decode(src("suno", f"{title}.m4a") if suno and not (SUNO / f"{title}.mp3").exists() else src("suno" if suno else P_KM, f"{title}.mp3"), ch=2)
         a = trim_silence(a, thresh_db=-48, pre=0.0, post=0.0)
         dur = len(a) / SR
         if dur <= max_s:
             end = dur  # morceau court : on boucle sur toute sa durée
         else:
-            end, _ = choose_loop_end(a, MUSIC_MIN_LOOP, max_s, xf)
+            end, _ = choose_loop_end(a, MUSIC_MIN_LOOP + xf, max_s, xf)   # la boucle finale dure `end - xf` : c'est à elle que le minimum s'applique
         cut_a = a[:int(end * SR)]
         looped = crossfade_loop(cut_a, xf)
         normed, info = loudnorm_loop(looped, MUSIC_LUFS)
-        encode_ogg(normed, path, 5, title=title, artist="Martinus Games (Suno)" if suno else "Kevin MacLeod (incompetech.com)")
+        encode_ogg(normed, path, qualite, title=title, artist="Martinus Games (Suno)" if suno else "Kevin MacLeod (incompetech.com)")
         pr = probe(path)
         if suno:
             manifest[key] = dict(file=f"music/{key}.ogg", duration=round(pr["duration"], 3), loop=True,

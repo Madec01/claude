@@ -130,6 +130,28 @@
       "attribution": "« Woodblock Swing », composé avec Suno par Martinus Games pour Cent Saisons",
       "note": "Le Souffle court : swing-folk de foire composé avec Suno par le commanditaire (143 BPM) ; le décompte du jeu se cale sur son tempo",
       "pack": "suno"
+    },
+    "tempo_2": {
+      "file": "music/tempo_2.ogg",
+      "duration": 67.008,
+      "loop": true,
+      "source": "Woodblock Chase",
+      "author": "Martinus Games",
+      "license": "propriété du studio (composé avec Suno)",
+      "attribution": "« Woodblock Chase », composé avec Suno par Martinus Games pour Cent Saisons",
+      "note": "Le Souffle court, deuxième piste : une course de bois et de percussions (152 BPM), tirée au sort avec les deux autres",
+      "pack": "suno"
+    },
+    "tempo_3": {
+      "file": "music/tempo_3.ogg",
+      "duration": 64.013,
+      "loop": true,
+      "source": "Woodblock Chase II",
+      "author": "Martinus Games",
+      "license": "propriété du studio (composé avec Suno)",
+      "attribution": "« Woodblock Chase II », composé avec Suno par Martinus Games pour Cent Saisons",
+      "note": "Le Souffle court, troisième piste : l'autre prise de Woodblock Chase (152 BPM)",
+      "pack": "suno"
     }
   },
   "ambience": {
