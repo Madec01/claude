@@ -40,7 +40,7 @@ function fakeSdk() {
 }
 const reset = (sdk) => { Cloud.sdk = sdk; Cloud.user = null; Cloud.enabled = false; Cloud.state = 'off'; Cloud.error = null; Cloud._lastPush = 0; Cloud._lastHash = null; Cloud._session = 0; Cloud._skipped = 0; Cloud._reads = 0; store.clear(); };
 
-const save = (n) => ({ version: 2, campaign: { stars: { 1: n }, gold: {}, unlockedIsland: n, islandsPlayed: n, seedsTotal: n } });
+const save = (n) => ({ version: 3, campaign: { stars: { 1: n }, gold: {}, unlockedIsland: n, islandsPlayed: n, seedsTotal: n } });
 
 (async () => {
   // --- empreinte et comparaison

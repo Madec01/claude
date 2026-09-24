@@ -3,7 +3,7 @@ import { ACHIEVEMENTS } from '../data/achievements.js';
 import { Achievements } from '../game/achievements.js';
 const achCount = () => Achievements.count();
 import { h, button, icon, stagger, append } from './dom.js';
-import { CHAPTERS, campaignIsland, chapterStars, CAMPAIGN_SIZE, gateText, gateOpen, islandDone } from '../data/campaign.js';
+import { CHAPTERS, campaignIsland, chapterStars, CAMPAIGN_SIZE, CHAPTER_LEN, gateText, gateOpen, islandDone } from '../data/campaign.js';
 import { Save } from '../core/save.js';
 import { RunSave } from '../core/run.js';
 import { ISLANDS } from '../data/islands.js';
@@ -26,7 +26,7 @@ export function buildMenu({ game }) {
   const title = h('div', { class: 'menu-title' },
     h('div', { class: 'menu-kicker' }, STORY.subtitle),
     h('h1', {}, STORY.title),
-    h('div', { class: 'menu-sub' }, 'Cinquante îles à faire revivre, une tuile à la fois.'),
+    h('div', { class: 'menu-sub' }, 'Trente îles à faire revivre, une tuile à la fois.'),
   );
   const nav = h('nav', { class: 'menu-nav', 'aria-label': 'Menu principal' });
   const primaryLabel = c.completed ? 'Rejouer la campagne' : started ? 'Continuer' : 'Commencer';
@@ -48,10 +48,10 @@ export function buildMenu({ game }) {
     run ? navButton('Reprendre', () => game.resumeRun(), { cls: 'btn-primary btn-big btn-resume', iconName: 'icon_return', title: `${run.title} · ${run.placements} tuile${run.placements > 1 ? 's' : ''} posée${run.placements > 1 ? 's' : ''} · ${SEASON_FR[run.season] || ''} · laissée ${run.when}`, sub: `${run.title} · ${run.placements} tuile${run.placements > 1 ? 's' : ''}` }) : null,
     navButton(primaryLabel, () => game.startCampaign(), { cls: run ? 'btn-big' : 'btn-primary btn-big', iconName: 'icon_play', sub: primarySub }),
     navButton('Choisir une île', () => showIslands(), { iconName: 'icon_menu', disabled: !started && !testMode, sub: started || testMode ? `${Math.min(c.unlockedIsland, CAMPAIGN_SIZE)} / ${CAMPAIGN_SIZE}` : '' }),
-    navButton('Île infinie', () => game.startInfinite(), Object.assign({ iconName: 'icon_wind', disabled: !(Save.data.infinite.unlocked || c.unlockedIsland > 10 || testMode), title: 'Se déverrouille après l’île 10' },
-      mode(Save.data.infinite.unlocked || c.unlockedIsland > 10 || testMode, { key: 'mode_infinite', text: 's’ouvre après l’île 10' }, Save.data.infinite.best ? `${Save.data.infinite.best} pts` : ''))),
-    navButton('Île du jour', () => game.startDaily(), Object.assign({ iconName: 'icon_sun', disabled: !(c.unlockedIsland >= 8 || testMode), title: `Se déverrouille après l’île 7 · ${dailyLabel(dailyKey())}` },
-      mode(c.unlockedIsland >= 8 || testMode, { key: 'mode_daily', text: 's’ouvre après l’île 7' }, (Save.data.daily && Save.data.daily.best[dailyKey()]) ? `${Save.data.daily.best[dailyKey()]} pts` : (Save.data.daily && Save.data.daily.streak ? `${Save.data.daily.streak} j` : '')))),
+    navButton('Île infinie', () => game.startInfinite(), Object.assign({ iconName: 'icon_wind', disabled: !(Save.data.infinite.unlocked || c.unlockedIsland > 6 || testMode), title: 'Se déverrouille après l’île 6' },
+      mode(Save.data.infinite.unlocked || c.unlockedIsland > 6 || testMode, { key: 'mode_infinite', text: 's’ouvre après l’île 6' }, Save.data.infinite.best ? `${Save.data.infinite.best} pts` : ''))),
+    navButton('Île du jour', () => game.startDaily(), Object.assign({ iconName: 'icon_sun', disabled: !(c.unlockedIsland >= 6 || testMode), title: `Se déverrouille après l’île 5 · ${dailyLabel(dailyKey())}` },
+      mode(c.unlockedIsland >= 6 || testMode, { key: 'mode_daily', text: 's’ouvre après l’île 5' }, (Save.data.daily && Save.data.daily.best[dailyKey()]) ? `${Save.data.daily.best[dailyKey()]} pts` : (Save.data.daily && Save.data.daily.streak ? `${Save.data.daily.streak} j` : '')))),
     // le Jardin et l'Atelier partagent une ligne. L'Atelier se visite depuis le menu (il n'est plus un écran entre
     // deux îles) : ses graines s'allument quand une amélioration est à portée.
     h('div', { class: 'menu-pair' },
@@ -81,13 +81,13 @@ export function buildMenu({ game }) {
   function showIslands() {
     const rows = h('div', { class: 'acts' });
     for (const ch of CHAPTERS) {
-      const first = (ch.id - 1) * 5 + 1; const got = chapterStars(c.stars, ch.id);
+      const first = (ch.id - 1) * CHAPTER_LEN + 1; const got = chapterStars(c.stars, ch.id);
       const open = testMode || c.unlockedIsland >= first;
       const climate = ch.climate !== 'mixed' && ch.climate !== 'temperate' && STORY.climates && STORY.climates[ch.climate] ? ` · ${STORY.climates[ch.climate].name}` : (ch.climate === 'mixed' ? ' · climats variés' : '');
       // l'insigne du chapitre en tête : en couleur une fois l'île-souvenir terminée, en silhouette avant
       const clos = insignesGagnes().chapitres.includes(ch.id);
-      const row = h('div', { class: `act-row ${open ? '' : 'act-locked'}` }, h('div', { class: 'act-head' }, insigne(srcChapitre(ch.id), clos, `Chapitre ${ch.id} · ${ch.name}${clos ? '' : ' (terminer son île-souvenir)'}`, 'chapitre'), h('div', {}, h('div', { class: 'act-num' }, `Chapitre ${ch.id} · ${ch.name}`), h('div', { class: 'act-name' }, `${ch.sub}${climate} · ${got} / 15 étoiles`))));
-      for (let n = first; n < first + 5; n++) {
+      const row = h('div', { class: `act-row ${open ? '' : 'act-locked'}` }, h('div', { class: 'act-head' }, insigne(srcChapitre(ch.id), clos, `Chapitre ${ch.id} · ${ch.name}${clos ? '' : ' (terminer son île-souvenir)'}`, 'chapitre'), h('div', {}, h('div', { class: 'act-num' }, `Chapitre ${ch.id} · ${ch.name}`), h('div', { class: 'act-name' }, `${ch.sub}${climate} · ${got} / ${CHAPTER_LEN * 3} étoiles`))));
+      for (let n = first; n < first + CHAPTER_LEN; n++) {
         const def = campaignIsland(n); const name = def.story && STORY.islands[def.story] ? STORY.islands[def.story].name : def.name;
         const unlocked = testMode || n <= c.unlockedIsland;
         const stars = c.stars[n] || 0;

@@ -37,10 +37,10 @@ export const ACHIEVEMENTS = [
   // désormais la cascade, qui demande la même idée : marier l'eau à ce qui n'est pas elle.
   { id: 'port-d-attache', cat: 'build', name: 'Le saut de l’eau', desc: 'Faire une cascade.' },
   // campagne
-  { id: 'chapitre-clos', cat: 'campaign', name: 'Chapitre clos', desc: 'Quinze étoiles sur un chapitre.' },
+  { id: 'chapitre-clos', cat: 'campaign', name: 'Chapitre clos', desc: 'Neuf étoiles sur un chapitre.' },
   { id: 'les-quatre-climats', cat: 'campaign', name: 'Les quatre climats', desc: 'Trois étoiles sur une île de chaque climat.', target: 4, counter: 'climates3' },
-  { id: 'cent-saisons', cat: 'campaign', name: 'Cent saisons', desc: 'Terminer l’île 50.' },
-  { id: 'cent-cinquante', cat: 'campaign', name: 'Cent cinquante', desc: 'Toutes les étoiles de la campagne.', target: 150, counter: 'stars' },
+  { id: 'cent-saisons', cat: 'campaign', name: 'Cent saisons', desc: 'Terminer l’île 30.' },
+  { id: 'cent-cinquante', cat: 'campaign', name: 'Quatre-vingt-dix', desc: 'Toutes les étoiles de la campagne.', target: 90, counter: 'stars' },   // identifiant gardé (la campagne a compté 50 îles) : les succès obtenus restent
   // ailleurs
   { id: 'lever-du-jour', cat: 'elsewhere', name: 'Lever du jour', desc: 'Sept Îles du jour d’affilée.', target: 7, counter: 'dailyStreak' },
   { id: 'sans-fin', cat: 'elsewhere', name: 'Sans fin', desc: 'Deux cents tuiles sur l’Île infinie.', target: 200, counter: 'infiniteBest' },

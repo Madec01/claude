@@ -1,7 +1,8 @@
 // Sauvegarde locale versionnée (localStorage).
 import { UPGRADES } from '../data/upgrades.js';
+import { CAMPAIGN_SIZE, CHAPTER_LEN, CHAPTERS, CAMPAGNE_50_VERS_30, unlockedUpTo } from '../data/campaign.js';
 const KEY = 'cent-saisons.save';
-const VERSION = 2;
+const VERSION = 3;
 // v1 → v2 : la campagne passe de 12 à 50 îles ; les douze îles dessinées gardent leurs étoiles à leur nouvelle place
 const OLD_TO_NEW = { 1: 1, 2: 3, 3: 7, 4: 5, 5: 10, 6: 15, 7: 13, 8: 20, 9: 25, 10: 30, 11: 35, 12: 50 };
 function migrate(data, from) {
@@ -11,6 +12,7 @@ function migrate(data, from) {
     c.unlockedIsland = c.completed ? 50 : (OLD_TO_NEW[Math.min(12, Math.max(1, c.unlockedIsland || 1))] || 1);
     c.completed = false;
   }
+  if (from < 3) migrerVers30(data.campaign);
   // « Grille discrète » : elle redessinait le contour des hexagones PAR-DESSUS les fondus de sol,
   // donc la grille réapparaissait entre deux tuiles posées — exactement ce que les fondus servent à
   // effacer. Elle n'a jamais été cochée par défaut, mais une sauvegarde l'ayant essayée la gardait
@@ -23,6 +25,29 @@ function migrate(data, from) {
   if (!data.fixes.tileHelpOff) { data.fixes.tileHelpOff = true; if (data.options) { data.options.tileHelp = false; delete data.options.recap; } }
   tidyCampaign(data);
   return data;
+}
+
+/**
+ * v2 → v3 : la campagne passe de cinquante à trente îles (24 septembre 2026). Les îles gardées suivent leur nouveau
+ * numéro avec leurs étoiles, scores, parties, ors et archétypes ; celles qui partent sont mises de côté dans
+ * `archive50`, jamais effacées. Les graines, les améliorations, les succès et les insignes de chapitre restent
+ * (les chapitres gardent leur sens). Le joueur reprend à la première île qu'il n'avait pas encore atteinte.
+ * Idempotent : une campagne déjà migrée n'a plus d'`archive50` à faire.
+ */
+export function migrerVers30(c) {
+  if (!c || c.migre30) return;
+  const M = CAMPAGNE_50_VERS_30; const archive = { stars: {}, best: {}, plays: {}, gold: {}, memoriesRead: [], iles: {} };
+  const remap = (obj, nom) => { const o = {}; for (const [k, v] of Object.entries(obj || {})) { const n = M[Number(k)]; if (n) o[n] = v; else archive[nom][k] = v; } return o; };
+  c.stars = remap(c.stars, 'stars'); c.best = remap(c.best, 'best'); c.plays = remap(c.plays, 'plays'); c.gold = remap(c.gold, 'gold');
+  c.memoriesRead = (c.memoriesRead || []).map((k) => { const n = M[k]; if (!n) archive.memoriesRead.push(k); return n; }).filter(Boolean);
+  if (c.insignes && c.insignes.iles) c.insignes.iles = remap(c.insignes.iles, 'iles');
+  const ancienne = Math.max(1, c.unlockedIsland || 1);
+  // la première île nouvelle dont l'ancien numéro atteint l'île où l'on en était — celle qu'on aurait jouée ensuite
+  let suivante = CAMPAIGN_SIZE;
+  for (const [vieux, neuf] of Object.entries(M)) if (Number(vieux) >= ancienne && neuf < suivante) suivante = neuf;
+  c.unlockedIsland = c.completed ? CAMPAIGN_SIZE : Math.max(suivante, unlockedUpTo(c));
+  if (Object.values(archive).some((v) => (Array.isArray(v) ? v.length : Object.keys(v).length))) c.archive50 = archive;
+  c.migre30 = true;
 }
 
 /**
@@ -56,7 +81,7 @@ export function tidyCampaign(data) {
   // d'avant les insignes reçoit ses chapitres déjà clos ; ses archétypes, eux, ne se devinent pas : ils viendront en rejouant.
   const ins = c.insignes || (c.insignes = { iles: {}, chapitres: [] });
   ins.iles = ins.iles || {}; ins.chapitres = ins.chapitres || [];
-  for (let ch = 1; ch <= 10; ch++) if (!ins.chapitres.includes(ch) && (((c.plays || {})[ch * 5] || 0) > 0 || (c.memoriesRead || []).includes(ch * 5))) ins.chapitres.push(ch);
+  for (let ch = 1; ch <= CHAPTERS.length; ch++) { const fin = ch * CHAPTER_LEN; if (!ins.chapitres.includes(ch) && (((c.plays || {})[fin] || 0) > 0 || (c.memoriesRead || []).includes(fin))) ins.chapitres.push(ch); }
   return back;
 }
 const defaults = () => ({
@@ -102,6 +127,8 @@ export const Save = {
     }
     return this.data;
   },
+  /** Une sauvegarde venue d'ailleurs (le nuage), mise au format courant : complétée et migrée, sans toucher à celle de l'appareil. */
+  normalize(d) { const out = migrate(merge(defaults(), d || {}), (d && d.version) || 1); out.version = VERSION; return out; },
   /** Écrit la sauvegarde ; l'état précédent est gardé en copie (`.prev`), relue si la sauvegarde devient illisible. */
   save() { this.data.savedAt = Date.now(); try { const cur = localStorage.getItem(KEY); if (cur) localStorage.setItem(KEY + '.prev', cur); localStorage.setItem(KEY, JSON.stringify(this.data)); } catch (_) { this.available = false; } },
 

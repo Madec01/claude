@@ -10,7 +10,7 @@ async function start(ctx) {
   const page = await ctx.newPage();
   page.on('pageerror', (e) => errors.push(`[pageerror] ${e.message}`));
   await page.goto(URL); await boot(page);
-  await page.evaluate(() => { const s = JSON.parse(localStorage.getItem('cent-saisons.save') || '{}'); s.version = 2; s.cloud = { choice: 'none', uid: null, pending: null }; s.options = Object.assign(s.options || {}, { testMode: true, skipTutorial: true, master: 0 }); s.campaign = Object.assign(s.campaign || {}, { prologueSeen: true, unlockedIsland: 12 }); localStorage.setItem('cent-saisons.save', JSON.stringify(s)); });
+  await page.evaluate(() => { const s = JSON.parse(localStorage.getItem('cent-saisons.save') || '{}'); s.version = 3; s.cloud = { choice: 'none', uid: null, pending: null }; s.options = Object.assign(s.options || {}, { testMode: true, skipTutorial: true, master: 0 }); s.campaign = Object.assign(s.campaign || {}, { prologueSeen: true, unlockedIsland: 12 }); localStorage.setItem('cent-saisons.save', JSON.stringify(s)); });
   await page.reload(); await boot(page); await page.waitForTimeout(500);
   // espions : sons joués et vibrations demandées
   await page.evaluate(() => {

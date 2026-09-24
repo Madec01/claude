@@ -2,6 +2,7 @@
 // Modèle pur (sans DOM ni canvas) : utilisable en Node pour les tests et le bot.
 import { Board } from './board.js';
 import { archetypeOf } from '../data/archetypes.js';
+import { mechIsland } from '../data/campaign.js';
 import { preview, apply, previewBuild, canBuild as ruleCanBuild, canFuse, previewFuse, fusedTile } from './rules.js';
 import { FUSION_BY_ID, RETIRED_RARE, RETIRED_WORKS, RARE_SEASONAL } from '../data/tiles.js';
 import { climateOf } from '../data/climates.js';
@@ -29,21 +30,21 @@ export class Island {
     this.climate = climateOf(def.climate);   // chaud, humide, froid ou tempéré
     if ((this.upgrades.cloak || 0) > 0 && this.climate.id !== 'temperate') { const c = { ...this.climate }; delete c.dryEarly; delete c.fieldsDormantAutumn; if (c.hamletMarsh) c.hamletMarsh = -1; this.climate = c; }   // Manteau : contrainte du climat adoucie
     this.longSeasonDone = false;
-    // Les numéros ci-dessous sont ceux des anciennes îles dessinées (tests, modes libres) : la campagne passe toujours
-    // ses mécaniques par `islandOptions` (MECH_AT, campaign.js), qui font foi.
-    // bâtir : île 6 des anciennes îles, toujours dans les modes libres et sur l'Île du jour (forçable par les options : mode test)
-    this.buildOn = o.build !== undefined ? !!o.build : (!!def.infinite || !!def.garden || !!def.daily || (typeof def.id === 'number' && def.id >= 6));
-    // croissance : dès l'île 41 en campagne, toujours dans les modes libres — une tuile bien entourée des siennes monte au niveau 2 toute seule
-    this.growOn = o.growth !== undefined ? !!o.growth : (!!def.infinite || !!def.daily || (typeof def.id === 'number' && def.id >= 41));
+    // Sans option, les mécaniques suivent le numéro d'île (MECH_AT, campaign.js) : la campagne passe toujours par
+    // `islandOptions`, qui fait foi ; les modes libres et l'Île du jour ont tout.
+    const libre = !!def.infinite || !!def.garden || !!def.daily; const des = (m) => typeof def.id === 'number' && def.id >= (mechIsland(m) || 1);
+    this.buildOn = o.build !== undefined ? !!o.build : (libre || des('build'));
+    // croissance : le caractère du chapitre 9 en campagne, toujours là dans les modes libres — une tuile bien entourée des siennes monte au niveau 2 toute seule
+    this.growOn = o.growth !== undefined ? !!o.growth : (!!def.infinite || !!def.daily || des('growth'));
     this.refunds = 0;            // tuiles rendues cette saison (au plus une)
-    // fusionner : île 8 des anciennes îles, toujours dans les modes libres et sur l'Île du jour ; `known` = recettes déjà découvertes (sauvegarde)
-    this.fuseOn = o.fuse !== undefined ? !!o.fuse : (!!def.infinite || !!def.garden || !!def.daily || (typeof def.id === 'number' && def.id >= 8));
+    // fusionner ; `known` = recettes déjà découvertes (sauvegarde)
+    this.fuseOn = o.fuse !== undefined ? !!o.fuse : (libre || des('fuse'));
     this.known = o.known || new Set();
-    // main de saison : île 16 et modes libres, la tuile à jouer se choisit librement parmi les tuiles visibles
-    this.handOn = o.hand !== undefined ? !!o.hand : (!!def.infinite || !!def.garden || !!def.daily || (typeof def.id === 'number' && def.id >= 16));
-    this.rareTier = o.rareTier;   // 0 : les cinq rares de base ; 1 : le grenier, la ruche et le menhir s'y ajoutent (île 13)
-    // niveau 3 : ouvert par les options de campagne (île 31), toujours dans les modes libres et sur l'Île du jour
-    this.level3On = o.level3 !== undefined ? !!o.level3 : (!!def.infinite || !!def.garden || !!def.daily || (typeof def.id === 'number' && def.id >= BALANCE.build.level3From));
+    // main de saison : la tuile à jouer se choisit librement parmi les tuiles visibles
+    this.handOn = o.hand !== undefined ? !!o.hand : (libre || des('hand'));
+    this.rareTier = o.rareTier;   // 0 : les cinq rares de base ; 1 : le grenier, la ruche et le menhir s'y ajoutent
+    // niveau 3
+    this.level3On = o.level3 !== undefined ? !!o.level3 : (libre || des('build3'));
     const seed = def.seed + (o.seedOffset || 0);
     this.rng = new RNG(seed * 7 + 1);
     this.board = new Board(generateMask(seed, def.cells, { roughness: def.roughness, holes: def.holes }));
@@ -86,10 +87,10 @@ export class Island {
     this.ended = false;
     this.result = null;
     // surprise de saison : à chaque arrivée d'une saison, la règle de base ou l'une de ses deux surprises, tirée au
-    // sort et active toute la saison (campagne : île 11 ; toujours dans les modes libres et sur l'Île du jour).
+    // sort et active toute la saison (campagne : MECH_AT ; toujours dans les modes libres et sur l'Île du jour).
     // Elle a remplacé la météo, qui annonçait un événement en début de saison et le déclenchait à la mi-saison :
     // cinq effets de plus pour 0,2 % du score. Ce qu'il en reste est l'habillage (`look`).
-    this.surpriseOn = o.surprise !== undefined ? (!!o.surprise || this.infinite) : (!!def.surprise || !!def.weather || this.infinite || (typeof def.id === 'number' && def.id >= 4));
+    this.surpriseOn = o.surprise !== undefined ? (!!o.surprise || this.infinite) : (!!def.surprise || !!def.weather || this.infinite || des('surprise'));
     this.huntSeason = false;      // chasse et cueillette : les animaux des forêts rapportent +2 à la saison suivante
     this.rulesVariable = this.surpriseOn;
     this.rule = this.garden ? BASE_RULE[this.season] : pickRule(this.season, () => this.rng.next(), this.rulesVariable);
@@ -455,7 +456,7 @@ export class Island {
 
   pickRare() {
     const id = typeof this.def.id === 'number' ? this.def.id : 99;
-    const tier = this.rareTier !== undefined ? this.rareTier : (id >= 7 ? 1 : 0);
+    const tier = this.rareTier !== undefined ? this.rareTier : (id >= (mechIsland('rare2') || 1) ? 1 : 0);
     const pool = ['mill', 'chapel', 'watchtower', 'well', 'camp'];
     if (tier >= 1) pool.push('granary', 'hive', 'menhir');
     return pool[Math.floor(this.rng.next() * pool.length)];

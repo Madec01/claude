@@ -28,7 +28,7 @@ import { dailyDef, dailyKey, yesterdayKey } from './data/daily.js';
 import { Finale } from './game/finale.js';
 import { FinaleClassique } from './game/finale_classique.js';
 import { prechargerTampons } from './game/tampon.js';   // la tournée d'avant, gardée au cas où (option `finaleClassique`)
-import { campaignIsland, campaignMechanics, islandOptions, CAMPAIGN_SIZE, MECH_AT, climateCardFor, unlockedUpTo, gateText, restarFromBest, CHAPTERS } from './data/campaign.js';
+import { campaignIsland, campaignMechanics, islandOptions, CAMPAIGN_SIZE, CHAPTER_LEN, MECH_AT, climateCardFor, unlockedUpTo, gateText, restarFromBest, CHAPTERS } from './data/campaign.js';
 import { GRADES, streakMilestone } from './game/feedback.js';
 import { computeLinks } from './game/paths.js';
 import { waterBodies } from './game/water.js';
@@ -174,6 +174,8 @@ const Game = {
     const remote = await Cloud.fetch();
     if (!remote || !remote.data) { await this.pushCloud({ force: true }); return; }
     const local = Save.data;
+    // une vieille copie en ligne (campagne à cinquante) paraîtrait plus avancée qu'une copie migrée : on la migre d'abord
+    remote.data = Save.normalize(remote.data);
     const diff = moreAdvanced(local, remote.data);
     const localEmpty = (local.campaign.islandsPlayed || 0) === 0 && (local.campaign.unlockedIsland || 1) <= 1;
     if (localEmpty && !forceAsk) { this.adoptCloud(remote.data); return; }
@@ -351,8 +353,8 @@ const Game = {
     const say = (id, o) => { if (c.announced.includes(id)) return false; c.announced.push(id); celebrateThing(o, { sound: jingle }); return true; };
     let n = 0;
     if (c.islandsPlayed >= 1) n += say('mode_garden', { kicker: 'Mode ouvert', name: 'Jardin', desc: 'Poser sans score ni saison, pour le plaisir. Depuis le menu.', iconName: 'icon_leaf' }) ? 1 : 0;
-    if (c.unlockedIsland >= 8) n += say('mode_daily', { kicker: 'Mode ouvert', name: 'Île du jour', desc: 'La même île pour tout le monde, une par jour. Depuis le menu.', iconName: 'icon_sun' }) ? 1 : 0;
-    if (Save.data.infinite.unlocked || c.unlockedIsland > 10) n += say('mode_infinite', { kicker: 'Mode ouvert', name: 'Île infinie', desc: 'Une île qui ne finit jamais : jusqu’où tiendras-tu ?', iconName: 'icon_wind' }) ? 1 : 0;
+    if (c.unlockedIsland >= 6) n += say('mode_daily', { kicker: 'Mode ouvert', name: 'Île du jour', desc: 'La même île pour tout le monde, une par jour. Depuis le menu.', iconName: 'icon_sun' }) ? 1 : 0;
+    if (Save.data.infinite.unlocked || c.unlockedIsland > 6) n += say('mode_infinite', { kicker: 'Mode ouvert', name: 'Île infinie', desc: 'Une île qui ne finit jamais : jusqu’où tiendras-tu ?', iconName: 'icon_wind' }) ? 1 : 0;
     if (c.islandsPlayed >= 1) n += say('postcard', { kicker: 'Bon à savoir', name: 'La carte postale', desc: 'Au bilan et en pause : ton île en grand, à garder ou à partager.', iconName: 'icon_save' }) ? 1 : 0;
     if ((c.recipes || []).length >= 1) n += say('cahier', { kicker: 'Bon à savoir', name: 'Le Cahier des recettes', desc: 'Les fusions trouvées se rangent dans le Guide, onglet Cahier.', iconName: 'icon_question' }) ? 1 : 0;
     // l'Atelier ouvre trois ou quatre améliorations à chaque chapitre, au milieu des autres : on le dit
@@ -408,7 +410,7 @@ const Game = {
       // sur une île déjà jouée. `Math.max` pour ne jamais retirer ce qui était ouvert (mode test, anciennes sauvegardes).
       c.unlockedIsland = Math.max(c.unlockedIsland, unlockedUpTo(c));
       if (def.id === CAMPAIGN_SIZE) { c.completed = true; Save.data.infinite.unlocked = true; }
-      if (def.id >= 10) Save.data.infinite.unlocked = true;
+      if (def.id >= 6) Save.data.infinite.unlocked = true;   // fin du chapitre 2 : l'Île infinie s'ouvre
       Save.noteIslandDone();
       Save.save();
       this.announceUnlocks();
@@ -433,7 +435,7 @@ const Game = {
     this.remindBackup();
     if (def.id === CAMPAIGN_SIZE) { scenes.go('story', { screens: endingScreens(), skippable: false, onDone: () => scenes.go('ending') }); return; }
     if (c.unlockedIsland > def.id) this.startIsland(def.id + 1);
-    else { this.showMenu(); const t = gateText(c, Math.ceil(def.id / 5)); if (t) this.toast(t, 7000); }
+    else { this.showMenu(); const t = gateText(c, Math.ceil(def.id / CHAPTER_LEN)); if (t) this.toast(t, 7000); }
   },
   /** L'Atelier des saisons, depuis le menu. */
   showWorkshop() { scenes.go('workshop', { onContinue: () => this.showMenu() }); },

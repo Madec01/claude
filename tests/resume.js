@@ -16,7 +16,7 @@ const errors = []; const check = (ok, m) => { if (!ok) errors.push(m); console.l
     const s = JSON.parse(localStorage.getItem('cent-saisons.save') || '{}');
     s.cloud = { choice: 'none' }; s.options = Object.assign(s.options || {}, { skipTutorial: true, master: 0 });
     s.campaign = Object.assign(s.campaign || {}, { prologueSeen: true, unlockedIsland: 12, seeds: 9 });
-    s.version = 2;   // sans numéro de version, la sauvegarde passerait par la migration v1 → v2 qui remappe les îles
+    s.version = 3;   // sans numéro de version, la sauvegarde passerait par les migrations qui remappent les îles
     localStorage.setItem('cent-saisons.save', JSON.stringify(s));
   });
   await page.reload(); await page.waitForFunction(() => !document.getElementById('boot'), null, { timeout: 90000 }); await page.waitForTimeout(600);

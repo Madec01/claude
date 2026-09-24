@@ -32,7 +32,7 @@ export function insignesDe(scene) {
   const out = []; scene._insignes = { v: isl.board.version, list: out };
   // chaque tampon dit pourquoi il est là : la légende s'écrit à côté quand il tombe, et la région en cause s'illumine
   const a = archetypeOf(isl.board);
-  if (a) { const fam = ((STORY.tiles[a.family] || {}).name || a.family).toLowerCase(); out.push({ id: `archetype-${a.id}`, src: `assets/img/tampons/tampon-archetype-${a.id}.png`, nom: a.name, raison: `${a.name} · sa plus grande région : ${fam}, ${a.size} tuile${a.size > 1 ? 's' : ''}`, cells: a.cells }); }
+  if (a) { const fam = ((STORY.tiles[a.family] || {}).name || a.family).toLowerCase(); out.push({ id: `archetype-${a.id}`, src: `assets/img/tampons/tampon-archetype-${a.id}.png`, nom: a.name, raison: `${a.name} · sa plus grande région : ${fam}, ${a.cells.length} tuile${a.cells.length > 1 ? 's' : ''}`, cells: a.cells }); }
   // l'île-souvenir ferme son chapitre : la carte en porte le sceau
   if (def.memory && def.chapter && !def.daily) { const ch = CHAPTERS[def.chapter - 1]; out.push({ id: `chapitre-${def.chapter}`, src: `assets/img/tampons/tampon-chapitre-${def.chapter}.png`, nom: `Chapitre ${def.chapter}`, raison: `Chapitre ${def.chapter}${ch ? ` · ${ch.name}` : ''} : clos` }); }
   return out;

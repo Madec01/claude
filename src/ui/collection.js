@@ -4,7 +4,7 @@
 import { h, button, icon, append } from './dom.js';
 import { Save } from '../core/save.js';
 import { STORY } from '../data/story.js';
-import { CHAPTERS, campaignIsland, CAMPAIGN_SIZE } from '../data/campaign.js';
+import { CHAPTERS, campaignIsland, CAMPAIGN_SIZE, CHAPTER_LEN } from '../data/campaign.js';
 import { ARCHETYPES } from '../data/archetypes.js';
 import { ACHIEVEMENTS } from '../data/achievements.js';
 import { Achievements } from '../game/achievements.js';
@@ -52,7 +52,7 @@ export function buildCollection({ onBack }) {
   const parIle = h('div', { class: 'coll-iles' });
   for (const ch of CHAPTERS) {
     const bloc = h('div', { class: 'coll-chap' }, h('div', { class: 'coll-chap-titre' }, insigne(srcChapitre(ch.id), chapitres.includes(ch.id), `Chapitre ${ch.id}`, 'petit'), `Chapitre ${ch.id} · ${ch.name}`));
-    for (let n = (ch.id - 1) * 5 + 1; n <= Math.min(ch.id * 5, CAMPAIGN_SIZE); n++) {
+    for (let n = (ch.id - 1) * CHAPTER_LEN + 1; n <= Math.min(ch.id * CHAPTER_LEN, CAMPAIGN_SIZE); n++) {
       const def = campaignIsland(n); const nom = def.story && STORY.islands[def.story] ? STORY.islands[def.story].name : def.name;
       bloc.appendChild(h('div', { class: 'coll-ile' }, h('span', { class: 'coll-ile-nom' }, h('i', {}, `${n}`), nom), rangeeArchetypes(n, 'petit')));
     }

@@ -17,9 +17,9 @@ const SAISON = iS > 0 ? process.argv[iS + 1] : null;
   await page.goto('http://127.0.0.1:8765/index.html'); await boot(page);
   await page.evaluate(() => {
     const s = JSON.parse(localStorage.getItem('cent-saisons.save') || '{}');
-    s.version = 2; s.cloud = { choice: 'none', uid: null, pending: null };
+    s.version = 3; s.cloud = { choice: 'none', uid: null, pending: null };
     s.options = Object.assign(s.options || {}, { testMode: true, skipTutorial: true, master: 0 });
-    s.campaign = Object.assign(s.campaign || {}, { prologueSeen: true, unlockedIsland: 50 });
+    s.campaign = Object.assign(s.campaign || {}, { prologueSeen: true, unlockedIsland: 30 });
     localStorage.setItem('cent-saisons.save', JSON.stringify(s));
   });
   await page.reload(); await boot(page); await page.waitForTimeout(500);

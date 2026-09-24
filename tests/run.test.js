@@ -121,10 +121,10 @@ for (const id of [4, 12, 23, 37, 46]) {
 
 // --- la partie en cours tient dans le stockage local
 {
-  const big = make(50); playSome(big, 60);
-  const size = JSON.stringify({ v: 1, at: Date.now(), where: { kind: 'campaign', id: 50 }, title: 'x', isl: big.serialize() }).length;
+  const big = make(29); playSome(big, 60);
+  const size = JSON.stringify({ v: 2, at: Date.now(), where: { kind: 'campaign', id: 29 }, title: 'x', isl: big.serialize() }).length;
   check(size < 400000, `la plus grande île tient dans le stockage (${Math.round(size / 1024)} Ko)`);
-  console.log(`  partie en cours sur l’île 50 : ${Math.round(size / 1024)} Ko`);
+  console.log(`  partie en cours sur l’île 29 (150 cases) : ${Math.round(size / 1024)} Ko`);
 }
 
 console.log(failures ? `\n${failures} échec(s)` : '\nReprise : tout est bon.');

@@ -1,5 +1,7 @@
 // L'Atelier des saisons : améliorations achetées en graines. Chaque amélioration s'ouvre à un chapitre de la campagne
 // (`chapter`) et, pour certaines, une fois sa mécanique introduite (`requires`, voir MECH_AT dans campaign.js).
+import { CHAPTER_LEN } from './campaign.js';
+
 export const UPGRADES = [
   // chapitre 1 : prise en main
   { id: 'sight', chapter: 1, name: 'Regard', icon: 'icon_target', desc: 'Voir plus loin dans la file, puis dans la main : quatre tuiles, puis cinq.', levels: ['3 tuiles', '4 tuiles', '5 tuiles'], costs: [4, 8] },
@@ -25,6 +27,6 @@ export const UPGRADES = [
 export const upgradeCost = (u, level) => (level < u.costs.length ? u.costs[level] : null);
 export const upgradeMax = (u) => u.costs.length;
 /** Chapitre atteint par le joueur d'après la dernière île débloquée. */
-export const playerChapter = (unlockedIsland) => Math.max(1, Math.ceil(Math.max(1, unlockedIsland || 1) / 5));
+export const playerChapter = (unlockedIsland) => Math.max(1, Math.ceil(Math.max(1, unlockedIsland || 1) / CHAPTER_LEN));
 /** Première île qui introduit la mécanique requise par l'amélioration (null si aucune). */
 export const upgradeUnlockIsland = (u, islands) => (u.requires ? (islands.find((i) => i.mechanics.includes(u.requires)) || { id: null }).id : null);

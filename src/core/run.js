@@ -4,6 +4,7 @@
 // À côté d'elle, l'historique : les trois dernières parties finies ou laissées en plan. Elles ne se reprennent pas
 // — une île finie est finie — mais elles s'ILLUSTRENT : un pépin se raconte presque toujours après coup, une fois
 // l'île terminée, et jusqu'ici le rapport ne pouvait joindre que la partie du moment, souvent vide.
+import { CAMPAGNE_50_VERS_30 } from '../data/campaign.js';
 const KEY = 'cent-saisons.run';
 const HIST_KEY = 'cent-saisons.runs';
 const MAX_AGE_MS = 30 * 24 * 3600 * 1000;   // au-delà d'un mois, la partie en cours est oubliée
@@ -17,13 +18,25 @@ const depuis = (at) => {
 
 const SAISONS = { spring: 'printemps', summer: 'été', autumn: 'automne', winter: 'hiver' };
 
+/**
+ * v1 → v2 : la campagne est passée de cinquante à trente îles. Une partie sur une île gardée suit son nouveau numéro ;
+ * une partie sur une île retirée ne peut plus être reprise (null). Les autres modes ne changent pas.
+ */
+export function migrerPartie(d) {
+  if (!d || d.v === 2) return d;
+  if (d.v !== 1) return null;
+  const w = d.where || {};
+  if (w.kind === 'campaign') { const n = CAMPAGNE_50_VERS_30[w.id]; if (!n) return null; return { ...d, v: 2, where: { ...w, id: n } }; }
+  return { ...d, v: 2 };
+}
+
 export const RunSave = {
   /** Range la partie en cours. `where` décrit l'île pour pouvoir la reconstruire : { kind, id, semis }. */
   write(where, isl, title) {
     if (!isl || isl.ended) return false;
     if (!isl.placements) return false;                 // rien de commencé : rien à garder
     try {
-      localStorage.setItem(KEY, JSON.stringify({ v: 1, at: Date.now(), where, title: title || '', isl: isl.serialize() }));
+      localStorage.setItem(KEY, JSON.stringify({ v: 2, at: Date.now(), where, title: title || '', isl: isl.serialize() }));
       return true;
     } catch (e) { console.warn('partie en cours non gardée', e); return false; }
   },
@@ -32,8 +45,8 @@ export const RunSave = {
   read() {
     try {
       const raw = localStorage.getItem(KEY); if (!raw) return null;
-      const d = JSON.parse(raw);
-      if (!d || d.v !== 1 || !d.isl || !d.where) { this.clear(); return null; }
+      const d = migrerPartie(JSON.parse(raw));
+      if (!d || d.v !== 2 || !d.isl || !d.where) { this.clear(); return null; }
       if (Date.now() - (d.at || 0) > MAX_AGE_MS) { this.clear(); return null; }
       return d;
     } catch (_) { this.clear(); return null; }
@@ -55,7 +68,7 @@ export const RunSave = {
     if (!isl || !where || !isl.placements) return false;
     let etat = null;
     try { etat = isl.serialize(); } catch (e) { console.warn('partie non archivée', e); return false; }
-    return this._push({ v: 1, at: Date.now(), where, title: title || '', isl: etat, finie: !!isl.ended });
+    return this._push({ v: 2, at: Date.now(), where, title: title || '', isl: etat, finie: !!isl.ended });
   },
 
   /** Archive la partie gardée sur l'appareil — celle qu'on s'apprête à remplacer ou à oublier. */
@@ -66,8 +79,8 @@ export const RunSave = {
     try {
       const raw = localStorage.getItem(HIST_KEY); if (!raw) return [];
       const d = JSON.parse(raw);
-      if (!d || d.v !== 1 || !Array.isArray(d.list)) return [];
-      return d.list.filter((e) => e && e.isl && e.where && Date.now() - (e.at || 0) <= MAX_AGE_MS);
+      if (!d || (d.v !== 1 && d.v !== 2) || !Array.isArray(d.list)) return [];
+      return d.list.map(migrerPartie).filter((e) => e && e.isl && e.where && Date.now() - (e.at || 0) <= MAX_AGE_MS);
     } catch (_) { return []; }
   },
 
@@ -87,7 +100,7 @@ export const RunSave = {
   _push(entry) {
     const list = [entry, ...this.history()].slice(0, MAX_HIST);
     while (list.length) {
-      try { localStorage.setItem(HIST_KEY, JSON.stringify({ v: 1, list })); return true; }
+      try { localStorage.setItem(HIST_KEY, JSON.stringify({ v: 2, list })); return true; }
       catch (e) { list.pop(); if (!list.length) { console.warn('historique des parties non gardé', e); return false; } }
     }
     return false;

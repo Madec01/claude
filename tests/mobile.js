@@ -22,7 +22,7 @@ async function boot(context, opts = {}) {
     s.cloud = { choice: 'none' }; s.options = Object.assign(s.options || {}, { testMode: true, skipTutorial: !!o.skipTutorial, master: 0 });
     // longue-vue et poche : la file est alors au plus long, c'est là que le HUD est le plus serré
     s.campaign = Object.assign(s.campaign || {}, { prologueSeen: true, unlockedIsland: 7, seeds: 9, upgrades: Object.assign(s.campaign && s.campaign.upgrades || {}, { sight: 2, pocket: 2 }) });
-    s.version = 2;   // sans numéro de version, la sauvegarde passerait par la migration v1 → v2 qui remappe les îles
+    s.version = 3;   // sans numéro de version, la sauvegarde passerait par les migrations qui remappent les îles
     localStorage.setItem('cent-saisons.save', JSON.stringify(s));
   }, opts);
   await page.reload(); await page.waitForFunction(() => !document.getElementById('boot'), null, { timeout: 90000 }); await page.waitForTimeout(700);

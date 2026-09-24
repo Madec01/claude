@@ -11,7 +11,7 @@ const errors = []; const check = (ok, m) => { if (!ok) errors.push(m); console.l
 async function preparer(page, ile, plays) {
   await page.evaluate(({ plays }) => {
     const s = JSON.parse(localStorage.getItem('cent-saisons.save') || '{}');
-    s.version = 2; s.cloud = { choice: 'none', uid: null, pending: null };
+    s.version = 3; s.cloud = { choice: 'none', uid: null, pending: null };
     s.options = Object.assign(s.options || {}, { testMode: true, skipTutorial: true, master: 0 });
     s.campaign = Object.assign(s.campaign || {}, { prologueSeen: true, unlockedIsland: 30, plays });
     localStorage.setItem('cent-saisons.save', JSON.stringify(s));

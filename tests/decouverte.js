@@ -15,7 +15,7 @@ async function save(page, campaign, extra = {}) {
     s.options = Object.assign(s.options || {}, { testMode: false, skipTutorial: true, master: 0 });
     s.campaign = Object.assign(s.campaign || {}, { prologueSeen: true }, c);
     Object.assign(s, x);
-    s.version = 2; localStorage.setItem('cent-saisons.save', JSON.stringify(s));
+    s.version = 3; localStorage.setItem('cent-saisons.save', JSON.stringify(s));
   }, [campaign, extra]);
   await page.reload(); await boot(page); await page.waitForTimeout(700);
 }
@@ -33,8 +33,8 @@ const btn = (page, label) => page.evaluate((l) => {
   // --- 1. un mode fermé DIT quand il s'ouvre, en toutes lettres
   await save(page, { unlockedIsland: 3, stars: { 1: 2, 2: 1 }, plays: { 1: 1, 2: 1 }, islandsPlayed: 2, announced: ['mode_garden', 'postcard'] });
   const jour = await btn(page, 'Île du jour'), inf = await btn(page, 'Île infinie');
-  check(!!jour && jour.ferme && /île 7/.test(jour.sub), `Île du jour fermée : le bouton dit quand (« ${jour && jour.sub} »)`);
-  check(!!inf && inf.ferme && /île 10/.test(inf.sub), `Île infinie fermée : le bouton dit quand (« ${inf && inf.sub} »)`);
+  check(!!jour && jour.ferme && /île 5/.test(jour.sub), `Île du jour fermée : le bouton dit quand (« ${jour && jour.sub} »)`);
+  check(!!inf && inf.ferme && /île 6/.test(inf.sub), `Île infinie fermée : le bouton dit quand (« ${inf && inf.sub} »)`);
   check(!!jour && !/\(/.test(jour.sub) && jour.sub.length < 30, `et la phrase tient sur une ligne au téléphone (${jour && jour.sub.length} signes)`);
 
   // --- 2. un mode ouvert jamais essayé se signale
@@ -74,8 +74,8 @@ const btn = (page, label) => page.evaluate((l) => {
   check(atl.fermees >= 1, `les suivantes restent visibles, grisées, avec leur chapitre (${atl.fermees})`);
 
   // --- 5. en jeu : « poser sur une tuile déjà posée » se voit
-  await save(page, { unlockedIsland: 20, stars: { 16: 2 }, plays: { 16: 1 }, islandsPlayed: 16, seeds: 20, announced: ['mode_garden', 'mode_daily', 'mode_infinite', 'postcard'] });
-  await page.evaluate(() => window.CS.Game.startIsland(16, { skipIntro: true }));
+  await save(page, { unlockedIsland: 15, stars: { 11: 2 }, plays: { 11: 1 }, islandsPlayed: 11, seeds: 20, announced: ['mode_garden', 'mode_daily', 'mode_infinite', 'postcard'] });
+  await page.evaluate(() => window.CS.Game.startIsland(11, { skipIntro: true }));   // l'île qui introduit bâtir
   await page.waitForTimeout(900);
   await page.waitForFunction(() => window.CS.scenes.currentName === 'island' || [...document.querySelectorAll('button')].some((x) => x.textContent.includes('C’est parti')), null, { timeout: 25000 });
   await page.evaluate(() => { const x = [...document.querySelectorAll('button')].find((y) => y.textContent.includes('C’est parti')); if (x) x.click(); });

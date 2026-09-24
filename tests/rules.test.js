@@ -10,7 +10,9 @@ import { STORY } from '../src/data/story.js';
 import { progressOf } from '../src/game/wishes.js';
 import { BALANCE } from '../src/data/balance.js';
 import { playStrong } from './bot.js';
-import { campaignIsland, CAMPAIGN_SIZE, CAMPAIGN_WISHES, islandOptions, gateStars, chapterStars, unlockedUpTo, CHAPTER_GATE, CHAPTER_PATIENCE, islandDone, chapterPlays, gateOpen, gateText, islandCells, islandThresholds, restarFromBest } from '../src/data/campaign.js';
+import { campaignIsland, mechIsland, CAMPAIGN_SIZE, CHAPTER_LEN, CHAPTERS, MECH_AT, GROWTH_CHAPTER, CAMPAIGN_WISHES, islandOptions, gateStars, chapterStars, unlockedUpTo, CHAPTER_GATE, CHAPTER_PATIENCE, islandDone, chapterPlays, gateOpen, gateText, islandCells, islandThresholds, restarFromBest } from '../src/data/campaign.js';
+import { CAMPAIGN_STARS } from '../src/data/campaign_stars.js';
+import { applySignature } from '../src/data/signatures.js';
 import { gradeMove } from '../src/game/feedback.js';
 
 let failures = 0;
@@ -19,7 +21,7 @@ const check = (cond, msg) => { if (!cond) { failures++; console.error('ÉCHEC :'
 // --- la réserve de vœux ne demande rien d'impossible : chaque recette existe, chaque mécanique requise arrive un jour
 // (le vœu du port a visé pendant des semaines une recette retirée, sur dix îles, sans que rien ne casse)
 {
-  const { FUSION_BY_ID } = await import('../src/data/tiles.js'); const { mechIsland } = await import('../src/data/campaign.js');
+  const { FUSION_BY_ID } = await import('../src/data/tiles.js');
   for (const w of CAMPAIGN_WISHES) {
     if (w.type === 'fusion') check(!!FUSION_BY_ID[w.recipe], `vœu ${w.id} : la recette « ${w.recipe} » existe`);
     if (w.needs) check(mechIsland(w.needs) !== null, `vœu ${w.id} : la mécanique « ${w.needs} » arrive dans la campagne`);
@@ -104,7 +106,7 @@ check(affinity('meadow', 'water') === 0, 'prairie-eau = 0');
 {
   const { STORY: ST } = await import('../src/data/story.js');
   check(Object.values(ST.level3).every((l) => l.name && !l.short), 'les signatures du niveau 3 ne sont plus que des noms');
-  const d = campaignIsland(31); const isl = new Island(d, { ...islandOptions(d) });
+  const d = campaignIsland(mechIsland('build3')); const isl = new Island(d, { ...islandOptions(d) });
   const f = [...isl.board.tiles.values()].find((t) => !t.rare && t.family === 'hamlet'); f.level = 3; isl.board.touch();
   isl.inSeason = isl.seasonLength - 1; const c = isl.board.legalCells()[0]; isl.place(c.q, c.r);
   const ev = isl.lastEvents.filter((e) => e.type === 'season').pop();
@@ -136,11 +138,11 @@ check(affinity('meadow', 'water') === 0, 'prairie-eau = 0');
 
 // --- Atelier par chapitre : cohérence des données et effets des nouvelles améliorations
 {
-  const { UPGRADES, playerChapter } = await import('../src/data/upgrades.js'); const { mechIsland } = await import('../src/data/campaign.js');
+  const { UPGRADES, playerChapter } = await import('../src/data/upgrades.js');
   let prevCh = 0;
-  for (const u of UPGRADES) { check(u.chapter >= prevCh && u.chapter >= 1 && u.chapter <= 10, `amélioration ${u.id} : chapitre croissant`); prevCh = u.chapter; if (u.requires) { const at = mechIsland(u.requires); check(at !== null && Math.ceil(at / 5) <= u.chapter, `amélioration ${u.id} : sa mécanique (${u.requires}, île ${at}) arrive avant son chapitre ${u.chapter}`); } check(u.levels.length === u.costs.length + 1, `amélioration ${u.id} : niveaux et coûts`); }
-  check(playerChapter(1) === 1 && playerChapter(5) === 1 && playerChapter(6) === 2 && playerChapter(50) === 10, 'chapitre du joueur');
-  const d = campaignIsland(31);
+  for (const u of UPGRADES) { check(u.chapter >= prevCh && u.chapter >= 1 && u.chapter <= CHAPTERS.length, `amélioration ${u.id} : chapitre croissant`); prevCh = u.chapter; if (u.requires) { const at = mechIsland(u.requires); check(at !== null && Math.ceil(at / 5) <= u.chapter, `amélioration ${u.id} : sa mécanique (${u.requires}, île ${at}) arrive avant son chapitre ${u.chapter}`); } check(u.levels.length === u.costs.length + 1, `amélioration ${u.id} : niveaux et coûts`); }
+  check(playerChapter(1) === 1 && playerChapter(CHAPTER_LEN) === 1 && playerChapter(CHAPTER_LEN + 1) === 2 && playerChapter(CAMPAIGN_SIZE) === CHAPTERS.length, 'chapitre du joueur');
+  const d = campaignIsland(mechIsland('build3'));
   const a = new Island(d, { ...islandOptions(d) }), b = new Island(d, { ...islandOptions(d), upgrades: { sight: 2, master: 1, still: 1, cloak: 1 } });
   check(b.queue.visible === a.queue.visible + 2, 'Regard : deux tuiles de plus (la Longue-vue y est fondue)');
   check(b.fusionCost() === 0 && a.fusionCost() === 1, 'Alambic : première fusion offerte');
@@ -215,8 +217,8 @@ check(affinity('meadow', 'water') === 0, 'prairie-eau = 0');
   const before = got.length; Achievements.unlock('premiere-tuile'); check(got.length === before, 'un succès ne se débloque qu’une fois');
   // compteurs cumulés et bilan de campagne
   for (let i = 0; i < 10; i++) Achievements.add('masters'); Achievements.checkCounters(); check(got.includes('coup-de-maitre'), 'dix coups de maître');
-  Save.data.campaign.stars = { 1: 3, 2: 3, 3: 3, 4: 3, 5: 3 }; Achievements.onCampaignResult({ stars: 3 }, campaignIsland(5)); check(got.includes('chapitre-clos'), 'quinze étoiles sur le chapitre 1');
-  check(Achievements.progress(ACHIEVEMENTS.find((a) => a.id === 'cent-cinquante')).value === 15, 'progression des étoiles');
+  Save.data.campaign.stars = { 1: 3, 2: 3, 3: 3, 47: 3 }; Achievements.onCampaignResult({ stars: 3 }, campaignIsland(3)); check(got.includes('chapitre-clos'), 'neuf étoiles sur le chapitre 1');
+  check(Achievements.progress(ACHIEVEMENTS.find((a) => a.id === 'cent-cinquante')).value === 9, 'progression des étoiles : les îles hors campagne (47) ne comptent pas');
   Achievements.onBackup(); check(got.includes('prudence'), 'copie de sauvegarde');
   check(Achievements.counter('climates3') === 1, 'trois étoiles au tempéré seulement');
 }
@@ -241,11 +243,11 @@ check(affinity('meadow', 'water') === 0, 'prairie-eau = 0');
   check(ev.length === 0 && isl.stats.bestStreak >= 3, `la série se mesure encore (${isl.stats.bestStreak}) mais ne déclenche plus rien (${ev.join(',')})`);
 }
 
-// --- main de saison dès l'île 6 : choisir librement la tuile visible ; plus d'échange, de bourgeon ni de poche
+// --- main de saison dès son île : choisir librement la tuile visible ; plus d'échange, de bourgeon ni de poche
 {
-  const d = campaignIsland(6); const isl = new Island(d, { ...islandOptions(d) });
+  const d = campaignIsland(mechIsland('hand')); const isl = new Island(d, { ...islandOptions(d) });
   const second = isl.queue.list[1]; check(isl.canPick(1) && isl.canSwap === undefined && isl.pick(1) && isl.current === second, 'la deuxième tuile devient la tuile courante, gratuitement');
-  const d5 = campaignIsland(5); const i5 = new Island(d5, { ...islandOptions(d5) }); check(!i5.canPick(1), 'pas de main avant l’île 6');
+  const d5 = campaignIsland(mechIsland('hand') - 1); const i5 = new Island(d5, { ...islandOptions(d5) }); check(!i5.canPick(1), 'pas de main avant son île');
   check(isl.canBud === undefined && isl.toPocket === undefined, 'bourgeon et poche retirés');
 }
 // --- souffles : deux sources (fermer, exaucer), trois usages (défausser 1, annuler 3 une fois par saison, bâtir ou fusionner)
@@ -274,14 +276,14 @@ check(affinity('meadow', 'water') === 0, 'prairie-eau = 0');
   const pv2 = preview(b, 2, -1, { family: 'field', variant: 1 }, 'spring'); check(!pv2.edges.some((e) => e.q === 1 && e.r === 0), 'un bord contre une friche ne vaut rien');
   check(canBuild(b, 1, 0, { family: 'field', variant: 1 }), 'on peut bâtir sur la friche');
   const pb = previewBuild(b, 1, 0, { family: 'field', variant: 1 }, 'spring'); check(pb.restore && pb.level === 1, 'bâtir sur une friche = remise en état au même niveau');
-  const d = campaignIsland(16); const isl = new Island(d, { ...islandOptions(d) }); isl.breaths = 3;
+  const d = campaignIsland(mechIsland('build')); const isl = new Island(d, { ...islandOptions(d) }); isl.breaths = 3;
   const rock = [...isl.board.tiles.values()].find((x) => x.family === 'rock');
   const near = isl.board.legalCells().find((c) => neighbors(c.q, c.r).some(([a, bb]) => isl.board.get(a, bb) === rock));
   const res = isl.place(near.q, near.r, { family: 'field', variant: 1, rare: false, id: 999 });
   if (res.blight) { const tf = isl.board.get(near.q, near.r); isl.queue.list.unshift({ family: 'field', variant: 1, rare: false, id: 998 }); check(isl.canBuild(near.q, near.r) && isl.build(near.q, near.r) && !tf.blighted, 'remise en état par l’île : la friche recompte'); }
 }
 
-// --- campagne : cinquante définitions valides, textes présents, mécaniques cumulatives, bot fort sur les îles générées du début
+// --- campagne : trente définitions valides, textes présents, mécaniques cumulatives, bot fort sur les îles générées du début
 for (const w of CAMPAIGN_WISHES) check(!!STORY.wishes[w.id], `texte du vœu de campagne ${w.id}`);
 {
   let prev = 0;
@@ -291,18 +293,18 @@ for (const w of CAMPAIGN_WISHES) check(!!STORY.wishes[w.id], `texte du vœu de c
     check(!!(d.story ? STORY.islands[d.story] : d.name && d.intro && d.intro.length === 2), `textes de l'île de campagne ${n}`);
     for (const w of d.wishes) check(!!STORY.wishes[w.id] && (!w.deadline || w.deadline.placements > 5 || w.deadline.season), `vœu ${w.id} sur l'île ${n}`);
     prev = d.mech.size;
-    // déblocage des mécaniques : rien avant son île (main 6, bâtir 16, fusions 21, ouvrages 26, niveau 3 31, surprises 11, vœux 6, collines 12, lande 14, rares 8/13)
+    // déblocage des mécaniques : rien avant son île (MECH_AT fait foi) ; la croissance n'est là que sur son chapitre
     const isl = new Island(d, { ...islandOptions(d) });
-    const exp = { buildOn: n >= 16, handOn: n >= 6, fuseOn: n >= 21, level3On: n >= 31, surpriseOn: n >= 11 };
+    const exp = { buildOn: n >= mechIsland('build'), handOn: n >= mechIsland('hand'), fuseOn: n >= mechIsland('fuse'), level3On: n >= mechIsland('build3'), surpriseOn: n >= mechIsland('surprise'), growOn: d.chapter === GROWTH_CHAPTER };
     for (const [k, v] of Object.entries(exp)) check(!!isl[k] === v, `île ${n} : ${k} devrait valoir ${v}`);
-    check((isl.wishes.length > 0) === (n >= 6) || (n >= 6 && isl.wishes.length === 0 && d.story === 1), `île ${n} : vœux ${n >= 6 ? 'attendus' : 'interdits'} (${isl.wishes.length})`);
-    check((n >= 12 || !d.weights.hill) && (n >= 14 || !d.weights.heath), `île ${n} : pas de colline avant 12 ni de lande avant 14`);
-    check(isl.rareTier === (n >= 13 ? 1 : 0), `île ${n} : grenier dans la réserve de rares seulement dès l’île 13 (${isl.rareTier})`);
+    const nw = mechIsland('wish'); check((isl.wishes.length > 0) === (n >= nw) || (n >= nw && isl.wishes.length === 0 && d.story === 1), `île ${n} : vœux ${n >= nw ? 'attendus' : 'interdits'} (${isl.wishes.length})`);
+    check((n >= mechIsland('hill') || !d.weights.hill) && (n >= mechIsland('heath') || !d.weights.heath), `île ${n} : pas de colline avant ${mechIsland('hill')} ni de lande avant ${mechIsland('heath')}`);
+    check(isl.rareTier === (n >= mechIsland('rare2') ? 1 : 0), `île ${n} : grenier dans la réserve de rares seulement dès l’île ${mechIsland('rare2')} (${isl.rareTier})`);
     check(isl.breaths === 0 && !isl.queue.list.some((t) => t.rare), `île ${n} : file de départ sans rare, aucun souffle`);
   }
   // climats : eau posée +2 au chaud, hameau contre marais −2 à l'humide, champs dormants dès l'automne au froid, saisons longues
   {
-    const hot = campaignIsland(21), humid = campaignIsland(26), cold = campaignIsland(31);
+    const hot = campaignIsland(4 * CHAPTER_LEN + 1), humid = campaignIsland(5 * CHAPTER_LEN + 1), cold = campaignIsland(6 * CHAPTER_LEN + 1);
     check(hot.climate === 'hot' && humid.climate === 'humid' && cold.climate === 'cold', 'climats des chapitres 5, 6, 7');
     const ih = new Island(hot, islandOptions(hot)); const c = ih.board.legalCells()[0]; ih.queue.list[0] = ih.queue.makeTile('water');
     check(ih.preview(c.q, c.r).base.some((b) => b.label === 'soleil' && b.pts === 2), 'climat chaud : eau posée +2');
@@ -313,7 +315,7 @@ for (const w of CAMPAIGN_WISHES) check(!!STORY.wishes[w.id], `texte du vœu de c
     ic.season = 'autumn'; ic.inSeason = ic.seasonLength; ic.advanceSeason(); const w1 = ic.season; ic.inSeason = ic.seasonLength; ic.advanceSeason(); const w2 = ic.season; ic.inSeason = ic.seasonLength; ic.advanceSeason();
     check(w1 === 'winter' && w2 === 'winter' && ic.season === 'spring', `climat froid : deux hivers (${w1}, ${w2}, ${ic.season})`);
   }
-  for (const n of [2, 4, 6, 9, 11, 21, 26, 31]) { const d = campaignIsland(n); const { result } = playStrong(d, { seedOffset: 0, ...islandOptions(d) }); check(!!result && result.score > 0, `bot fort sur l'île générée ${n} (${result && result.score} pts)`); }
+  for (const n of [4, 7, 8, 13, 16, 19, 25]) { const d = campaignIsland(n); const { result } = playStrong(d, { seedOffset: 0, ...islandOptions(d) }); check(!!result && result.score > 0, `bot fort sur l'île générée ${n} (${result && result.score} pts)`); }
 }
 
 // --- histoire : chaque île a ses textes
@@ -383,7 +385,7 @@ for (const def of ISLANDS.slice(0, 4)) {
 // --- contrats d'archipel retirés : la porte ne compte plus que les étoiles, une vieille sauvegarde perd ses contrats sans rien perdre
 {
   const { tidyCampaign } = await import('../src/core/save.js');
-  const camp = { stars: { 6: 2, 7: 2, 8: 1 }, contracts: { 2: { id: 'wishes', progress: { 6: 9 }, done: true } } };
+  const camp = { stars: { 4: 2, 5: 2, 6: 1 }, contracts: { 2: { id: 'wishes', progress: { 4: 9 }, done: true } } };
   check(gateStars(camp, 2) === 5, `les étoiles seules comptent pour la porte (${gateStars(camp, 2)})`);
   const data = { campaign: { ...camp, seeds: 3, upgrades: { sight: 1, sickle: 2, seed2: 1, rare: 4 } } };
   const back = tidyCampaign(data);
@@ -444,32 +446,32 @@ for (const def of ISLANDS.slice(0, 4)) {
   check(unlockedUpTo(camp({})) === 1, 'rien de joué : on commence à l’île 1');
   check(unlockedUpTo(camp({ 1: 2 })) === 2, 'une île réussie ouvre la suivante');
   check(unlockedUpTo(camp({ 1: 2, 3: 3 })) === 2, 'un trou dans la série arrête le déblocage');
-  check(unlockedUpTo(camp({ 1: 1, 2: 1, 3: 1, 4: 1, 5: 1 })) === 5, `cinq étoiles au chapitre 1 : la porte tient (il en faut ${CHAPTER_GATE})`);
-  check(unlockedUpTo(camp({ 1: 1, 2: 2, 3: 1, 4: 1, 5: 1 })) === 6, 'la sixième étoile décrochée en REFAISANT l’île 2 ouvre le chapitre 2');
-  check(unlockedUpTo(camp({ 1: 1, 2: 1, 3: 1, 4: 1, 5: 2 })) === 6, 'six étoiles gagnées sur l’île de bout de chapitre : pareil');
-  check(unlockedUpTo(camp({ 1: 3, 2: 3, 3: 0, 4: 0, 5: 0 })) === 3, 'six étoiles mais l’île 3 jamais réussie : on s’arrête à l’île 3');
-  check(unlockedUpTo(camp({ 1: 1, 2: 1, 3: 1, 4: 1, 5: 1 }, { 1: { done: true } })) === 5, 'un contrat d’archipel d’une vieille sauvegarde ne vaut plus rien pour la porte');
+  check(unlockedUpTo(camp({ 1: 1, 2: 1, 3: 1 })) === 3, `trois étoiles au chapitre 1 : la porte tient (il en faut ${CHAPTER_GATE})`);
+  check(unlockedUpTo(camp({ 1: 1, 2: 2, 3: 1 })) === 4, 'la quatrième étoile décrochée en REFAISANT l’île 2 ouvre le chapitre 2');
+  check(unlockedUpTo(camp({ 1: 1, 2: 1, 3: 2 })) === 4, 'quatre étoiles gagnées sur l’île de bout de chapitre : pareil');
+  check(unlockedUpTo(camp({ 1: 3, 2: 3, 3: 0 })) === 3, 'six étoiles mais l’île 3 jamais réussie : on s’arrête à l’île 3');
+  check(unlockedUpTo(camp({ 1: 1, 2: 1, 3: 1 }, { 1: { done: true } })) === 3, 'un contrat d’archipel d’une vieille sauvegarde ne vaut plus rien pour la porte');
   const plein = {}; for (let n = 1; n <= CAMPAIGN_SIZE; n++) plein[n] = 3;
   check(unlockedUpTo(camp(plein)) === CAMPAIGN_SIZE, 'campagne parfaite : tout est ouvert jusqu’à la dernière île');
   // la règle ne retire jamais rien : `Math.max` côté jeu, vérifié ici sur le principe
-  check(unlockedUpTo(camp({ 1: 1, 2: 1, 3: 1, 4: 1, 5: 1, 6: 3, 7: 3 })) === 5, 'des étoiles au-delà d’une porte fermée n’ouvrent pas la porte');
+  check(unlockedUpTo(camp({ 1: 1, 2: 1, 3: 1, 4: 3, 5: 3 })) === 3, 'des étoiles au-delà d’une porte fermée n’ouvrent pas la porte');
 
   // --- plus aucune île ne peut murer : la terminer suffit à ouvrir la suivante
   check(unlockedUpTo({ stars: {}, plays: { 1: 1 } }) === 2, 'une île terminée SANS étoile ouvre la suivante');
   check(islandDone({ plays: { 3: 2 } }, 3) && islandDone({ stars: { 3: 1 } }, 3) && islandDone({ best: { 3: 120 } }, 3), 'terminée : parties comptées, étoile, ou meilleur score (anciennes sauvegardes)');
   check(!islandDone({ stars: { 3: 0 }, best: { 3: 0 } }, 3), 'jamais jouée : pas terminée');
-  // le cas du joueur bloqué à l'île 9 : chapitre 1 passé, puis une île qu'il n'arrive pas à étoiler
-  const bloque = { stars: { 1: 2, 2: 2, 3: 2, 4: 2, 5: 2, 6: 1, 7: 1, 8: 1 }, contracts: {}, plays: { 9: 1 } };
-  check(unlockedUpTo(bloque) === 10, 'île 9 terminée sans étoile : l’île 10 s’ouvre (avant, la campagne s’arrêtait là)');
+  // le cas du joueur bloqué : chapitre 1 passé, puis une île qu'il n'arrive pas à étoiler
+  const bloque = { stars: { 1: 2, 2: 2, 3: 2, 4: 2, 5: 2 }, contracts: {}, plays: { 6: 1 } };
+  check(unlockedUpTo(bloque) === 7, 'île 6 terminée sans étoile, chapitre 2 à quatre étoiles : l’île 7 s’ouvre');
 
   // --- la porte de chapitre a une seconde clé : la patience. Elle s'atteint en jouant, donc elle ne peut pas se fermer pour de bon.
-  const cinq = { 1: 1, 2: 1, 3: 1, 4: 1, 5: 1 };
-  check(chapterPlays({ stars: cinq }, 1) === 5, 'cinq îles terminées : cinq parties comptées');
-  check(!gateOpen({ stars: cinq, contracts: {} }, 1), `cinq étoiles et cinq parties : la porte tient (${CHAPTER_GATE} étoiles ou ${CHAPTER_PATIENCE} parties)`);
-  check(gateOpen({ stars: cinq, contracts: {}, plays: { 1: 2, 2: 2, 3: 2, 4: 1, 5: 1 } }, 1), 'huit parties terminées dans le chapitre : la porte s’ouvre sans les étoiles');
-  check(unlockedUpTo({ stars: cinq, contracts: {}, plays: { 1: 2, 2: 2, 3: 2, 4: 1, 5: 1 } }) === 6, 'et le chapitre 2 devient jouable');
-  check(!gateOpen({ stars: {}, contracts: {}, plays: { 1: 9 } }, 1), 'rejouer neuf fois la même île n’ouvre rien : les cinq îles restent à terminer');
-  check(gateText({ stars: cinq, contracts: {} }, 1).includes(`5 / ${CHAPTER_GATE}`) && gateText({ stars: cinq, contracts: {} }, 1).includes(`5 / ${CHAPTER_PATIENCE}`), 'le joueur voit les deux comptes');
+  const trois = { 1: 1, 2: 1, 3: 1 };
+  check(chapterPlays({ stars: trois }, 1) === 3, 'trois îles terminées : trois parties comptées');
+  check(!gateOpen({ stars: trois, contracts: {} }, 1), `trois étoiles et trois parties : la porte tient (${CHAPTER_GATE} étoiles ou ${CHAPTER_PATIENCE} parties)`);
+  check(gateOpen({ stars: trois, contracts: {}, plays: { 1: 2, 2: 2, 3: 1 } }, 1), 'cinq parties terminées dans le chapitre : la porte s’ouvre sans les étoiles');
+  check(unlockedUpTo({ stars: trois, contracts: {}, plays: { 1: 2, 2: 2, 3: 1 } }) === 4, 'et le chapitre 2 devient jouable');
+  check(!gateOpen({ stars: {}, contracts: {}, plays: { 1: 9 } }, 1), 'rejouer neuf fois la même île n’ouvre rien : les trois îles restent à terminer');
+  check(gateText({ stars: trois, contracts: {} }, 1).includes(`3 / ${CHAPTER_GATE}`) && gateText({ stars: trois, contracts: {} }, 1).includes(`3 / ${CHAPTER_PATIENCE}`), 'le joueur voit les deux comptes');
   check(gateText({ stars: { 1: 3, 2: 3 }, contracts: {} }, 1) === null, 'porte ouverte : plus rien à afficher');
 }
 
@@ -517,18 +519,22 @@ for (const def of ISLANDS.slice(0, 4)) {
   // annuler rend le cumul cohérent
   const isl = new Island(def, { ...islandOptions(def) }); isl.breaths = 9; const c0 = isl.board.legalCells()[0]; isl.place(c0.q, c0.r); const t1 = { ...isl.tally }; const c1 = isl.board.legalCells()[0]; isl.place(c1.q, c1.r); isl.undo();
   check(JSON.stringify(isl.tally) === JSON.stringify(t1), 'annuler rend le cumul par source à son état précédent');
-  for (let n = 36; n <= 49; n++) { const d = campaignIsland(n); check(!!d.signature && d.intro[1].toLowerCase().includes(d.signature.name.toLowerCase().split(' ')[0]) || !!d.signature, `île ${n} : signature « ${d.signature && d.signature.name} »`); }
-  check(!campaignIsland(44).weights.rock && !campaignIsland(44).wishes.some((w) => w.type === 'river'), 'Sans une pierre : ni roche ni vœu de rivière');
-  check(campaignIsland(49).tilesRatio < 0.8 && campaignIsland(46).seasonLength === campaignIsland(48).seasonLength - 4, 'file courte, saisons brèves et longues');
+  for (let n = 22; n <= 29; n++) { const d = campaignIsland(n); check(!!d.signature && d.intro[1].toLowerCase().includes(d.signature.name.toLowerCase().split(' ')[0]) || !!d.signature, `île ${n} : signature « ${d.signature && d.signature.name} »`); }
+  // « Sans une pierre » n'a plus d'île depuis la campagne à trente : la signature reste dans la réserve du livre II, on la vérifie à part
+  const sp = applySignature(campaignIsland(22), 'sans_roche');
+  check(!sp.weights.rock && !sp.weights.hill && !sp.start.some((t) => t.family === 'rock'), 'Sans une pierre : ni roche ni colline, ni pierre au départ');
+  for (let n = 22; n <= 29; n++) { const d = campaignIsland(n); if (!d.weights.rock && !d.weights.hill) check(!d.wishes.some((w) => w.type === 'river'), `île ${n} : sans roche, pas de vœu de rivière`); }
+  check(campaignIsland(29).tilesRatio < 0.8 && campaignIsland(28).seasonLength === 9 && applySignature(campaignIsland(29), 'saisons_longues').seasonLength === campaignIsland(29).seasonLength + 2, 'file courte, saisons brèves et longues');
   // les tuiles de départ de la signature sont posées ; les tuiles en plus ne peuvent être que des lagunes (eau)
-  for (let n = 36; n <= 49; n++) { const d = campaignIsland(n); const i2 = new Island(d, { ...islandOptions(d) }); const sk = new Set(d.start.map((t) => `${t.q},${t.r}`)); const extra = [...i2.board.tiles.values()].filter((t) => !sk.has(`${t.q},${t.r}`)); check(d.start.every((t) => !!i2.board.get(t.q, t.r)) && extra.every((t) => t.family === 'water' && t.start), `île ${n} : ${d.start.length} tuiles de départ posées${extra.length ? ` + ${extra.length} lagune(s)` : ''}`); }
+  for (let n = 22; n <= 29; n++) { const d = campaignIsland(n); const i2 = new Island(d, { ...islandOptions(d) }); const sk = new Set(d.start.map((t) => `${t.q},${t.r}`)); const extra = [...i2.board.tiles.values()].filter((t) => !sk.has(`${t.q},${t.r}`)); check(d.start.every((t) => !!i2.board.get(t.q, t.r)) && extra.every((t) => t.family === 'water' && t.start), `île ${n} : ${d.start.length} tuiles de départ posées${extra.length ? ` + ${extra.length} lagune(s)` : ''}`); }
   check(STORY.resultsBy.hamlet[3].length > 0 && STORY.memoryVoice.water.length > 0, 'textes de voix par dominante présents');
 }
 // --- croissance : une tuile bien entourée des siennes monte au niveau 2 toute seule
 {
-  const def = campaignIsland(41); const isl = new Island(def, { ...islandOptions(def) });
-  check(isl.growOn, 'la croissance est ouverte à l’île 41');
-  check(!new Island(campaignIsland(30), { ...islandOptions(campaignIsland(30)) }).growOn, 'elle est fermée à l’île 30');
+  // la croissance est le caractère du chapitre 9 (îles 25 à 27) : fermée avant, fermée après
+  const def = campaignIsland(25); const isl = new Island(def, { ...islandOptions(def) });
+  check(isl.growOn, 'la croissance est ouverte à l’île 25');
+  for (const n of [24, 28, 30]) check(!new Island(campaignIsland(n), { ...islandOptions(campaignIsland(n)) }).growOn, `elle est fermée à l’île ${n}`);
   // un hameau entouré de trois hameaux pousse après deux saisons, pas avant
   const b = isl.board; const c0 = b.legalCells()[0];
   const put = (q, r, family) => { if (!b.has(q, r)) b.mask.add(`${q},${r}`); return b.place(q, r, { family, variant: 1, rare: false, id: 0 }); };
@@ -561,7 +567,7 @@ for (const def of ISLANDS.slice(0, 4)) {
   check(pv.total === 2 && pv.edges.some((e) => e.q === 1 && e.r === -1 && e.pts === 2), `un marais contre la lagune vaut ses deux points (${pv.total})`);
   // plus aucun trou cerné, sur aucune île : ce qui ressemble à une mare EST une mare
   const cerne = (b) => { for (const k of b.mask) { const [q, r] = k.split(',').map(Number); for (const [a, bb] of neighbors(q, r)) if (!b.has(a, bb) && neighbors(a, bb).every(([x, y]) => b.has(x, y))) return `${a},${bb}`; } return null; };
-  for (const d of [INFINITE, GARDEN, ...[5, 12, 26, 40, 50].map(campaignIsland)]) check(!cerne(new Island(d, { ...islandOptions(d) }).board), `île ${d.id} : aucun trou cerné au départ`);
+  for (const d of [INFINITE, GARDEN, ...[5, 12, 20, 26, 30].map(campaignIsland)]) check(!cerne(new Island(d, { ...islandOptions(d) }).board), `île ${d.id} : aucun trou cerné au départ`);
   // l'Île infinie s'agrandit sans jamais laisser de trou derrière elle
   const inf = new Island(INFINITE); let n = 0;
   while (!inf.ended && n++ < 120) { const c = inf.board.legalCells()[0]; if (!c) break; inf.place(c.q, c.r); }
@@ -571,12 +577,34 @@ for (const def of ISLANDS.slice(0, 4)) {
 {
   const { tidyCampaign } = await import('../src/core/save.js');
   const { archetypeOf, ARCHETYPES } = await import('../src/data/archetypes.js');
-  const data = { campaign: { upgrades: {}, plays: { 5: 1, 10: 0 }, memoriesRead: [15] } }; tidyCampaign(data);
+  const data = { campaign: { upgrades: {}, plays: { 3: 1, 6: 0 }, memoriesRead: [9] } }; tidyCampaign(data);
   check(JSON.stringify(data.campaign.insignes.chapitres.sort()) === '[1,3]', `chapitres clos rendus d'après les îles-souvenirs jouées (${data.campaign.insignes.chapitres})`);
   tidyCampaign(data); check(data.campaign.insignes.chapitres.length === 2, 'rendus une seule fois');
   const r = playStrong(campaignIsland(12), { seedOffset: 0, botSeed: 1, known: new Set() });
   const a = r.result.archetype, b = archetypeOf(r.isl.board);
-  check(a && ARCHETYPES.some((x) => x.id === a.id) && b && b.id === a.id && b.cells.length === a.size, `le bilan porte l'archétype de l'île (${a && a.id}, région de ${a && a.size})`);
+  check(a && ARCHETYPES.some((x) => x.id === a.id) && b && b.id === a.id && b.size === a.size && b.cells.length <= a.size, `le bilan porte l'archétype de l'île (${a && a.id}, région de ${a && a.size}, une tuile bâtie compte double)`);
+}
+// --- campagne à trente (24 septembre 2026) : migration v2 → v3, parties en cours, et aucun numéro hors campagne
+{
+  const { migrerVers30 } = await import('../src/core/save.js'); const { migrerPartie } = await import('../src/core/run.js'); const { CAMPAGNE_50_VERS_30 } = await import('../src/data/campaign.js');
+  const vals = Object.values(CAMPAGNE_50_VERS_30);
+  check(vals.length === CAMPAIGN_SIZE && new Set(vals).size === CAMPAIGN_SIZE && Math.max(...vals) === CAMPAIGN_SIZE, 'la correspondance 50 → 30 couvre exactement les trente îles');
+  check(Object.keys(MECH_AT).every((k) => Number(k) <= CAMPAIGN_SIZE) && Object.keys(CAMPAIGN_STARS).every((k) => Number(k) <= CAMPAIGN_SIZE), 'aucune mécanique ni aucun seuil hors campagne');
+  check(campaignIsland(CAMPAIGN_SIZE).memory && campaignIsland(CAMPAIGN_SIZE).story === 12, 'la dernière île est L’Île qui se souvient');
+  for (const ch of CHAPTERS) { check(ch.islands.length === CHAPTER_LEN && ch.islands[CHAPTER_LEN - 1].memory, `chapitre ${ch.id} : ${CHAPTER_LEN} îles, la dernière est un souvenir`); for (const sl of ch.islands) check(!!sl.hand || !!sl.from, `chapitre ${ch.id} : chaque île générée garde son ancien numéro (graine)`); }
+  // un joueur à l'ancienne île 24 : les anciennes 1 à 23 faites (dont le Pont de Glace, ancienne 20), reprend à la nouvelle 15
+  const c = { stars: {}, best: {}, plays: {}, gold: { 20: true }, memoriesRead: [], unlockedIsland: 24, insignes: { iles: { 20: ['aquatique'], 17: ['hameaux'] }, chapitres: [1, 2, 3, 4] }, seeds: 40, upgrades: { sight: 1 } };
+  for (let n = 1; n <= 23; n++) { c.stars[n] = 2; c.best[n] = 100 + n; c.plays[n] = 1; c.memoriesRead.push(n); }
+  migrerVers30(c);
+  check(c.unlockedIsland === 15, `reprend à la première île non atteinte (${c.unlockedIsland})`);
+  check(c.stars[20] === 2 && c.best[20] === 120 && c.gold[20] === true && c.insignes.iles[20][0] === 'aquatique', 'le Pont de Glace (ancienne 20) garde tout à la nouvelle 20');
+  check(c.stars[14] === 123 - 100 + 0 || c.best[14] === 123, 'l’ancienne 23 devient la nouvelle 14');
+  check(c.stars[17] === undefined && c.archive50 && c.archive50.stars[17] === 2 && c.archive50.iles[17][0] === 'hameaux', 'les îles retirées sont archivées, pas effacées');
+  check(c.seeds === 40 && c.upgrades.sight === 1 && c.insignes.chapitres.length === 4, 'graines, Atelier et insignes de chapitre intacts');
+  const avant = JSON.stringify(c); migrerVers30(c); check(JSON.stringify(c) === avant, 'migrer deux fois ne change rien');
+  const fini = { stars: {}, completed: true, unlockedIsland: 50 }; migrerVers30(fini); check(fini.unlockedIsland === CAMPAIGN_SIZE && fini.completed, 'une campagne finie reste finie');
+  const p1 = migrerPartie({ v: 1, at: 1, where: { kind: 'campaign', id: 20 }, isl: {} }), p2 = migrerPartie({ v: 1, at: 1, where: { kind: 'campaign', id: 17 }, isl: {} }), p3 = migrerPartie({ v: 1, at: 1, where: { kind: 'daily', date: 'x' }, isl: {} });
+  check(p1 && p1.v === 2 && p1.where.id === 20 && p2 === null && p3 && p3.v === 2, 'partie en cours : renumérotée, oubliée si l’île est retirée, intacte pour l’Île du jour');
 }
 console.log(failures ? `${failures} échec(s)` : 'Tous les tests passent.');
 process.exit(failures ? 1 : 0);

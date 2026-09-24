@@ -1,7 +1,7 @@
 {
   "name": "Cent Saisons — L’île qui se souvient",
   "short_name": "Cent Saisons",
-  "description": "Puzzle contemplatif de tuiles hexagonales : faites revivre cinquante îles au fil des saisons.",
+  "description": "Puzzle contemplatif de tuiles hexagonales : faites revivre trente îles au fil des saisons.",
   "lang": "fr",
   "start_url": "./index.html",
   "scope": "./",

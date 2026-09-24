@@ -53,7 +53,7 @@ export function buildWorkshop({ onContinue, intro }) {
   render();
   append(root, 
     h('h2', { class: 'panel-title' }, 'L’Atelier des saisons'),
-    h('div', { class: 'ws-head-row' }, h('p', { class: 'ws-intro' }, intro || 'Les graines viennent des étoiles (1 par nouvelle étoile), des vœux exaucés (1 chacun) et de chaque île terminée pour la première fois (2). Elles se dépensent ici, quand tu veux. Chaque chapitre ouvre de nouvelles améliorations.'), seedsEl),
+    h('div', { class: 'ws-head-row' }, h('p', { class: 'ws-intro' }, intro || 'Les graines viennent des étoiles (1 par nouvelle étoile), des vœux exaucés (1 chacun) et de chaque île terminée pour la première fois (3). Elles se dépensent ici, quand tu veux. Chaque chapitre ouvre de nouvelles améliorations.'), seedsEl),
     // ce que CE chapitre a ouvert, dit en toutes lettres : sans ça, trois ou quatre améliorations apparaissaient
     // au milieu des autres sans que rien ne les signale
     chapLine ? h('p', { class: 'ws-chap' }, chapLine) : null,

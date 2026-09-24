@@ -7,7 +7,7 @@ export const STORY = {
   subtitle: 'L’île qui se souvient',
 
   prologue: [
-    'Cinquante îles dorment sous le même ciel. Sable, roche, silence. Nous étions vertes, nous étions pleines, et nous ne savons plus depuis quand nous nous taisons.',
+    'Trente îles dorment sous le même ciel. Sable, roche, silence. Nous étions vertes, nous étions pleines, et nous ne savons plus depuis quand nous nous taisons.',
     'Toi, tu es la Saison. Pas une des quatre : celle qui passe de l’une à l’autre. Tu n’as ni corps ni nom. Tu as des tuiles.',
     'Poser une tuile, c’est nous rendre un morceau. Une prairie, une forêt, un hameau. Chaque bord qui touche un autre bord est une chose que nous nous rappelons.',
     'Nous ne te demanderons pas d’aller vite. Nous te demanderons de regarder où tu poses.',
@@ -672,7 +672,7 @@ export const STORY = {
     fuse: 'Fusionner : pose une tuile sur une tuile d’une autre famille quand une recette existe (champ + eau = rizière…). La tuile compte pour ses deux familles et rapporte à chaque saison. Chaque recette découverte s’écrit dans le Cahier du Guide.',
     paths: 'Un sentier vient de se tracer : deux villages séparés par au plus trois tuiles de terre ouverte (prairie, champ, verger, lande — pas la colline, qu’on contourne) se relient tout seuls. Chaque sentier rapporte +1 à chaque saison ; les hameaux voisins se relient par des ruelles.',
     riverLake: 'Ta rivière s’élargit : le tronc depuis la montagne reste une rivière (+2 par tuile), la suite devient un lac dans lequel elle se jette (+1 par tuile). Un ponton posé sur la rivière y reste.',
-    growth: 'Croissance : une tuile entourée d’assez des siennes pendant deux saisons grandit toute seule. Le hameau devient un village, la forêt s’épaissit, le verger se remplit. Une saison avant, de jeunes pousses l’annoncent : tu peux encore l’empêcher en posant autre chose à côté. Le temps épaissit ; le niveau 3 et les signatures, eux, restent à bâtir.',
+    growth: 'Croissance — le caractère des grandes îles, ce chapitre seulement : une tuile entourée d’assez des siennes pendant deux saisons grandit toute seule. Le hameau devient un village, la forêt s’épaissit, le verger se remplit. Une saison avant, de jeunes pousses l’annoncent : tu peux encore l’empêcher en posant autre chose à côté. Le temps épaissit ; le niveau 3 et les signatures, eux, restent à bâtir.',
     blight: 'Friche : une tuile posée qui coûte des points (bords et contraintes) devient une friche, une ruine ou un lit asséché. Elle ne rapporte plus rien et ne compte plus pour sa famille. Bâtir dessus la remet en état (1 souffle).',
     hand: 'Main de saison : la file devient une main. Clique sur n’importe quelle tuile visible pour la jouer maintenant. Le Regard de l’Atelier agrandit la main.',
     semis: 'Semis : avant chaque île, tu choisis ce que la file donnera plutôt. Terres hautes, fonds humides, pays habité ou au gré des saisons. Un choix, pas une garantie : la file reste tirée au sort.',
@@ -699,7 +699,7 @@ export const STORY = {
     'Alors la rivière gèle toute seule. Les hameaux se regardent par-dessus la glace. Personne ne t’a rien demandé.',
     'Puis la glace craque au matin, les marais fleurissent, et les canards reviennent en freinant des pattes. Nous avons fait cela sans toi.',
     'Nous avons compris. Ce n’est pas la saison que tu nous rendais. C’est le passage.',
-    'Cinquante îles. Cent saisons. Nous les avons toutes comptées et nous ne compterons plus.',
+    'Trente îles. Cent saisons. Nous les avons toutes comptées et nous ne compterons plus.',
     'Le meunier a remis son aile. La passeuse a retourné sa barque. Les enfants du hameau du nord ont un nouveau vœu, mais ils ne te le diront pas : ils le feront.',
     'Tu peux partir, Saison. Il y a d’autres îles, sous d’autres ciels, qui ne savent plus ce qu’est l’automne.',
   ],

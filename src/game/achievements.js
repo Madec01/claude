@@ -4,7 +4,7 @@
 import { ACHIEVEMENTS, ACHIEVEMENT_BY_ID, ACHIEVEMENT_SEED } from '../data/achievements.js';
 import { SPECIES } from './fauna.js';
 import { FUSIONS } from '../data/tiles.js';
-import { CHAPTERS, campaignIsland, chapterStars, CAMPAIGN_SIZE } from '../data/campaign.js';
+import { CHAPTERS, campaignIsland, chapterStars, CAMPAIGN_SIZE, CHAPTER_LEN } from '../data/campaign.js';
 import { waterBodies } from './water.js';
 
 const CLIMATES = ['temperate', 'hot', 'humid', 'cold'];
@@ -27,7 +27,7 @@ export const Achievements = {
     switch (name) {
       case 'species': return a.species.length;
       case 'recipes': return (s.campaign.recipes || []).filter((r) => FUSIONS.some((f) => f.id === r)).length;
-      case 'stars': return Object.values(s.campaign.stars || {}).reduce((x, y) => x + y, 0);
+      case 'stars': return Object.entries(s.campaign.stars || {}).filter(([n]) => Number(n) >= 1 && Number(n) <= CAMPAIGN_SIZE).reduce((x, [, y]) => x + y, 0);   // les îles hors campagne ne comptent pas
       case 'climates3': return this.climates3();
       case 'dailyStreak': return s.daily ? (s.daily.streak || 0) : 0;
       case 'infiniteBest': return s.infinite ? (s.infinite.bestPlacements || 0) : 0;
@@ -37,7 +37,7 @@ export const Achievements = {
   progress(ach) { return ach.target ? { value: Math.min(ach.target, this.counter(ach.counter)), target: ach.target } : null; },
   climates3() {
     const stars = this.save.data.campaign.stars || {}; const got = new Set();
-    for (const [n, st] of Object.entries(stars)) if (st >= 3) got.add(campaignIsland(Number(n)).climate);
+    for (const [n, st] of Object.entries(stars)) if (st >= 3 && Number(n) >= 1 && Number(n) <= CAMPAIGN_SIZE) got.add(campaignIsland(Number(n)).climate);
     return CLIMATES.filter((c) => got.has(c)).length;
   },
   unlock(id) {
@@ -98,8 +98,8 @@ export const Achievements = {
   /** Après l'enregistrement du bilan d'une île de campagne (étoiles à jour). */
   onCampaignResult(result, def) {
     const s = this.save.data;
-    if (def.id === CAMPAIGN_SIZE) this.unlock('cent-saisons');   // « Terminer l'île 50 » : la terminer suffit, comme partout ailleurs
-    for (const ch of CHAPTERS) if (chapterStars(s.campaign.stars, ch.id) >= 15) { this.unlock('chapitre-clos'); break; }
+    if (def.id === CAMPAIGN_SIZE) this.unlock('cent-saisons');   // « Terminer la dernière île » : la terminer suffit, comme partout ailleurs
+    for (const ch of CHAPTERS) if (chapterStars(s.campaign.stars, ch.id) >= CHAPTER_LEN * 3) { this.unlock('chapitre-clos'); break; }
     this.checkCounters();   // étoiles, climats
   },
   /** Copie locale de la sauvegarde téléchargée. */
