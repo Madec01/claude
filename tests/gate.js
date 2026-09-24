@@ -106,6 +106,7 @@ const boot = (p) => p.waitForFunction(() => !document.getElementById('boot'), nu
     const s = JSON.parse(localStorage.getItem('cent-saisons.save'));
     s.campaign.unlockedIsland = 5; s.campaign.stars = { 1: 2, 2: 2, 3: 2, 4: 1 };
     s.campaign.plays = { 1: 1, 2: 1, 3: 1, 4: 1 };
+    s.campaign.best = {}; s.campaign.gold = {};   // sinon le meilleur score du cas précédent rendrait ses étoiles à l'île 5 au rechargement
     s.options = Object.assign(s.options || {}, { testMode: false, skipTutorial: true, master: 0 });
     s.version = 3; localStorage.setItem('cent-saisons.save', JSON.stringify(s));
   });
