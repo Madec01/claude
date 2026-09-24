@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Prototype — le chronomètre au-dessus de l'île (Souffle court)</title>
+  <link rel="stylesheet" href="../../css/fonts.css">
+  <!-- Essai isolé du jeu : SIX chronomètres stylisés, juste au-dessus de l'île (la houle est retirée, le chronomètre
+       la remplace). Numérique, barre ou hybride — le commanditaire choisit. Tout est HTML/CSS : texte, dégradés,
+       transitions, sprites du jeu ; rien de dessiné par le code. -->
+  <style>
+    html, body { margin: 0; height: 100%; background: #5a9bc4; font-family: Quicksand, system-ui, sans-serif; color: #2b2a26; overflow: hidden; }
+    canvas { display: block; width: 100vw; height: 100vh; }
+    .panneau { position: fixed; left: 12px; top: 12px; background: rgba(251,247,238,0.94); border-radius: 12px; padding: 10px 12px; font-size: 13px; line-height: 1.6; box-shadow: 0 6px 18px rgba(30,50,70,0.15); max-width: 300px; }
+    .panneau label { display: block; } .panneau input[type=range] { width: 110px; vertical-align: middle; }
+    .panneau button { font: inherit; padding: 6px 12px; border-radius: 10px; border: 1px solid rgba(43,42,38,0.2); background: #2f9e8f; color: #fff; cursor: pointer; margin-top: 6px; }
+    .panneau details { margin-top: 4px; } .panneau summary { cursor: pointer; }
+    .compte { position: fixed; right: 16px; top: 12px; font-size: 40px; font-weight: 700; background: rgba(251,247,238,0.9); border-radius: 12px; padding: 4px 16px; font-variant-numeric: tabular-nums; }
+    .compte.urgent { color: #d95f4b; }
+
+    :root { --paper: #f4efe6; --ink: #2b2a26; --ink-2: #5d5a52; --loss: #d95f4b; --font-title: 'Lora', Georgia, serif; --font-body: 'Quicksand', system-ui, sans-serif; }
+    .compte { display: none; }
+    .panneau .choix label { display: inline-block; margin-right: 8px; }
+    #timer { position: fixed; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 22px; pointer-events: none; z-index: 5; }
+    #timer.galerie { left: auto; right: 28px; top: 24px; transform: none; align-items: flex-start; gap: 18px; }
+    .var { display: none; position: relative; font-family: var(--font-body); color: var(--ink); }
+    #timer.galerie .var, .var.on { display: block; }
+    #timer.galerie .v-segments, .v-segments.on { display: flex; }
+    .etiquette { display: none; font-size: 12px; color: var(--ink-2); font-weight: 700; margin-bottom: 4px; letter-spacing: 0.04em; text-transform: uppercase; }
+    #timer.galerie .etiquette { display: block; }
+    .halo { text-shadow: 0 2px 18px rgba(244,239,230,0.95), 0 0 34px rgba(244,239,230,0.85); }
+    /* 1. le compte */
+    .v-chiffre .n { font-family: var(--font-title); font-size: 64px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; display: inline-block; transition: color 0.2s; }
+    .v-chiffre .d { font-size: 34px; opacity: 0.7; }
+    .v-chiffre.urgent .n { color: var(--loss); }
+    .v-chiffre.casse .n { animation: casse 0.45s ease-out both; }
+    @keyframes casse { to { transform: scale(1.7); opacity: 0; filter: blur(4px); } }
+    /* 2. la barre de marée */
+    .v-barre .cadre { width: 240px; height: 16px; border-radius: 10px; background: rgba(244,239,230,0.85); box-shadow: 0 2px 10px rgba(30,50,70,0.18), inset 0 1px 2px rgba(43,42,38,0.15); position: relative; overflow: hidden; }
+    .v-barre .eau { position: absolute; top: 0; bottom: 0; left: 50%; transform: translateX(-50%); border-radius: 10px; background: linear-gradient(180deg, #8fc8e6, #4f93c2); transition: filter 0.2s; }
+    .v-barre .eau::before, .v-barre .eau::after { content: ''; position: absolute; top: -2px; width: 14px; height: 20px; border-radius: 50%; background: radial-gradient(circle, rgba(255,255,255,0.95), rgba(255,255,255,0) 70%); animation: ecume 0.42s ease-in-out infinite alternate; }
+    .v-barre .eau::before { left: -6px; } .v-barre .eau::after { right: -6px; animation-delay: 0.2s; }
+    @keyframes ecume { from { transform: translateY(-2px) scale(1); } to { transform: translateY(2px) scale(1.25); } }
+    .v-barre.urgent .eau { background: linear-gradient(180deg, #f0a08c, #d95f4b); }
+    .v-barre.casse .cadre { animation: flash 0.5s ease-out both; }
+    @keyframes flash { from { box-shadow: 0 0 0 4px #fff, 0 0 30px #fff; } to { box-shadow: 0 2px 10px rgba(30,50,70,0.18); } }
+    /* 3. l'anneau */
+    .v-anneau .rond { width: 74px; height: 74px; border-radius: 50%; position: relative; display: grid; place-items: center; box-shadow: 0 3px 12px rgba(30,50,70,0.2); }
+    .v-anneau .rond::after { content: ''; position: absolute; inset: 9px; border-radius: 50%; background: var(--paper); }
+    .v-anneau .n { position: relative; z-index: 1; font-family: var(--font-title); font-size: 36px; font-weight: 700; line-height: 1; }
+    .v-anneau.urgent .n { color: var(--loss); }
+    .v-anneau.casse .rond { animation: casse 0.45s ease-out both; }
+    /* 4. les bougies */
+    .v-segments { align-items: center; gap: 12px; }
+    .v-segments .n { font-family: var(--font-title); font-size: 40px; font-weight: 700; line-height: 1; min-width: 64px; text-align: right; font-variant-numeric: tabular-nums; }
+    .v-segments .d { font-size: 22px; opacity: 0.7; }
+    .v-segments .rang { display: flex; gap: 5px; }
+    .v-segments .seg { width: 26px; height: 12px; border-radius: 6px; background: var(--couleur, #4a9e4f); box-shadow: 0 1px 4px rgba(30,50,70,0.25); transition: opacity 0.35s ease, transform 0.35s ease, filter 0.35s ease; transform-origin: left center; }
+    .v-segments .seg.eteint { opacity: 0.18; transform: scaleY(0.5); filter: blur(1px); }
+    .v-segments .seg.brule { box-shadow: 0 0 10px 2px rgba(255,220,120,0.6); }
+    .v-segments.urgent .n, .v-segments.urgent .seg { color: var(--loss); --couleur: var(--loss); }
+    /* 5. la vague */
+    .v-vague { text-align: center; }
+    .v-vague .n { font-family: var(--font-title); font-size: 30px; font-weight: 700; line-height: 1; margin-bottom: 6px; font-variant-numeric: tabular-nums; }
+    .v-vague .mer { width: 260px; height: 30px; border-radius: 15px; background: linear-gradient(180deg, #8fc8e6, #4f93c2); box-shadow: 0 2px 10px rgba(30,50,70,0.2), inset 0 0 0 2px rgba(244,239,230,0.85); position: relative; overflow: hidden; }
+    .v-vague .cote { position: absolute; left: 6px; top: -6px; width: 36px; height: 42px; }
+    .v-vague .crete { position: absolute; top: 3px; width: 56px; height: 17px; }
+    .v-vague.urgent .n { color: var(--loss); }
+    .v-vague.casse .crete { animation: splash 0.5s ease-out both; }
+    @keyframes splash { to { transform: scale(2) translateY(-8px); opacity: 0; } }
+    .v-vague.casse .mer { animation: flash 0.5s ease-out both; }
+    /* 6. chiffre + trait */
+    .v-hybride { text-align: center; }
+    .v-hybride .n { font-family: var(--font-title); font-size: 56px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; display: inline-block; }
+    .v-hybride .d { font-size: 30px; opacity: 0.7; }
+    .v-hybride .trait { width: 200px; height: 6px; border-radius: 3px; background: rgba(244,239,230,0.7); margin: 6px auto 0; position: relative; overflow: hidden; }
+    .v-hybride .plein { position: absolute; top: 0; bottom: 0; left: 50%; transform: translateX(-50%); border-radius: 3px; background: var(--couleur, #4a9e4f); }
+    .v-hybride .temps { position: absolute; top: 0; bottom: 0; width: 2px; background: rgba(244,239,230,0.9); }
+    .v-hybride.urgent .n { color: var(--loss); } .v-hybride.urgent .plein { background: var(--loss); }
+    .v-hybride.casse .n { animation: casse 0.45s ease-out both; }
+  </style>
+</head>
+<body>
+  <canvas id="c"></canvas>
+  <div class="panneau">
+    <b>Le chronomètre</b> — juste au-dessus de l'île. Choisis une variante (touches 1 à 6, 0 pour la galerie).<br>
+    <div class="choix">
+      <label><input type="radio" name="v" value="chiffre" checked> 1 Le compte</label>
+      <label><input type="radio" name="v" value="barre"> 2 La marée</label>
+      <label><input type="radio" name="v" value="anneau"> 3 L'anneau</label>
+      <label><input type="radio" name="v" value="segments"> 4 Les bougies</label>
+      <label><input type="radio" name="v" value="vague"> 5 La vague</label>
+      <label><input type="radio" name="v" value="hybride"> 6 Chiffre et trait</label>
+      <label><input type="radio" name="v" value="galerie"> 0 Galerie</label>
+    </div>
+    <label>Durée <input id="duree" type="range" min="1.5" max="6" step="0.1" value="3"></label>
+    <label>Saison <select id="saison"><option value="spring">Printemps</option><option value="summer" selected>Été</option><option value="autumn">Automne</option><option value="winter">Hiver (×1,4)</option></select></label>
+    <label><input id="battement" type="checkbox" checked> Battement sur la musique (143 BPM)</label>
+    <label><input id="fond" type="checkbox" checked> Vagues de fond</label>
+    <button id="poser">Poser (réarmer)</button> <button id="perdre" style="background:#d95f4b">Laisser filer</button>
+  </div>
+  <div class="compte" id="compte">3.0</div>
+  <div id="timer">
+    <div class="var v-chiffre halo" data-v="chiffre"><div class="etiquette">1 · Le compte</div><span class="n">3<span class="d">.0</span></span></div>
+    <div class="var v-barre" data-v="barre"><div class="etiquette">2 · La marée</div><div class="cadre"><div class="eau"></div></div></div>
+    <div class="var v-anneau" data-v="anneau"><div class="etiquette">3 · L'anneau</div><div class="rond"><span class="n">3</span></div></div>
+    <div class="var v-segments halo" data-v="segments"><div class="etiquette">4 · Les bougies</div><span class="n">3<span class="d">.0</span></span><div class="rang"></div></div>
+    <div class="var v-vague halo" data-v="vague"><div class="etiquette">5 · La vague</div><div class="n">3.0</div><div class="mer"><img class="cote" alt=""><img class="crete" alt=""></div></div>
+    <div class="var v-hybride halo" data-v="hybride"><div class="etiquette">6 · Chiffre et trait</div><span class="n">3<span class="d">.0</span></span><div class="trait"><div class="plein"></div></div></div>
+  </div>
+<script type="module">
+import { toWorld, corners, SIZE } from '../../src/game/hex.js';
+const SEA = { spring: ['#8fc8e6', '#5f9fc8'], summer: ['#7fc0e4', '#4f93c2'], autumn: ['#8cb9d3', '#5d8fb3'], winter: ['#a9c7db', '#7aa2bf'] };
+const cv = document.getElementById('c'), ctx = cv.getContext('2d');
+const dpr = Math.min(2, devicePixelRatio || 1);
+function taille() { cv.width = innerWidth * dpr; cv.height = innerHeight * dpr; }
+taille(); addEventListener('resize', taille);
+const ui = (id) => document.getElementById(id);
+
+// --- l'île : un masque à la main, huit tuiles posées, le reste libre
+const MASK = [[0,0],[1,0],[2,0],[-1,1],[0,1],[1,1],[2,1],[-2,2],[-1,2],[0,2],[1,2],[-2,3],[-1,3],[0,3],[1,-1],[2,-1],[0,-1],[3,-1],[3,0],[-1,0],[-2,1],[2,2],[-3,3],[1,3]];
+const TUILES = { '0,0': 'hamlet_1', '1,0': 'meadow_1', '0,1': 'water_1', '1,1': 'forest_1', '-1,1': 'field_1', '2,0': 'orchard_1', '0,2': 'meadow_1', '1,-1': 'rock_1' };
+const manifest = await (await fetch('../../assets/img/manifest.json')).json();
+const img = (k) => { const e = manifest.images[k]; const i = new Image(); i.src = `../../assets/img/${e.file}`; return i; };
+const sprites = {}; for (const k of Object.values(TUILES)) sprites[k] = img(`${k}_summer`);
+const VAGUES = ['sea_wave_1', 'sea_wave_2', 'sea_wave_3'].map(img);
+// la vague du pack finit par une ligne opaque : on fond son bas en dégradé, comme `vagueFondue` dans le jeu
+const fondues = new Map();
+function fondue(im) { if (!im.complete || !im.naturalWidth) return null; const hit = fondues.get(im); if (hit) return hit;
+  const c = document.createElement('canvas'); c.width = im.naturalWidth; c.height = im.naturalHeight; const x = c.getContext('2d'); x.drawImage(im, 0, 0);
+  const g = x.createLinearGradient(0, 0, 0, c.height); g.addColorStop(0, 'rgba(0,0,0,1)'); g.addColorStop(0.5, 'rgba(0,0,0,1)'); g.addColorStop(1, 'rgba(0,0,0,0)');
+  x.globalCompositeOperation = 'destination-in'; x.fillStyle = g; x.fillRect(0, 0, c.width, c.height); fondues.set(im, c); return c; }
+
+let cx = 0, cy = 0; for (const [q, r] of MASK) { const w = toWorld(q, r); cx += w.x / MASK.length; cy += w.y / MASK.length; }
+const zoom = () => Math.min(innerWidth / 1100, innerHeight / 760) * 0.62;
+const ecran = (x, y) => { const z = zoom(); return { x: innerWidth / 2 + (x - cx) * z, y: innerHeight / 2 + 20 + (y - cy) * z }; };
+
+// --- les vagues de fond, comme `drawSea` : une couronne de vagues qui ondulent, serrées près du rivage
+const rnd = (a, b) => a + Math.random() * (b - a);
+let Rm = 0; for (const [q, r] of MASK) { const w = toWorld(q, r); Rm = Math.max(Rm, Math.hypot(w.x - cx, w.y - cy)); }
+const fond = []; for (let i = 0; i < 44; i++) { const a = rnd(0, Math.PI * 2), r = Rm + 20 + Math.pow(Math.random(), 0.6) * 420; fond.push({ x: cx + Math.cos(a) * r, y: cy + Math.sin(a) * r, t: rnd(0, 10), s: rnd(0.75, 1.25), ph: rnd(0, Math.PI * 2) }); }
+
+// --- le temps
+let duree = 3, t = 3, perdue = 0, depart = performance.now(), naissance = 0;
+const facteur = () => (ui('saison').value === 'winter' ? 1.4 : 1);
+function armer(repousse = true) {
+  duree = Number(ui('duree').value) * facteur(); t = duree; naissance = 0; const lbl = ui('lblDuree'); if (lbl) lbl.textContent = duree.toFixed(1).replace('.', ',');
+}
+ui('poser').onclick = () => armer(); ui('duree').oninput = () => armer(false); ui('saison').onchange = () => armer(false); ui('perdre').onclick = () => { t = 0.05; };
+addEventListener('keydown', (e) => { if (e.code === 'Space') armer(); });
+armer(false);
+
+let dernier = performance.now();
+function boucleAnim(now) {
+  const dt = Math.min(0.05, (now - dernier) / 1000); dernier = now;
+  if (perdue > 0) perdue -= dt; else { t -= dt; if (t <= 0) { perdue = 0.8; t = 0; setTimeout(() => armer(false), 850); } }
+  naissance = Math.min(1, naissance + dt / 0.4);
+  const f = duree > 0 ? Math.max(0, t / duree) : 0;
+  const urgent = t <= 1 && perdue <= 0;
+  const bpm = 143, temps = 60 / bpm; const phase = ((now - depart) / 1000 % temps) / temps; const puls = ui('battement').checked ? Math.pow(1 - phase, 3) : 0;
+  const saison = ui('saison').value, hiver = saison === 'winter';
+  const z = zoom();
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, cv.width, cv.height);
+  // la mer et sa profondeur, comme dans le jeu
+  const g0 = ctx.createLinearGradient(0, 0, 0, cv.height); g0.addColorStop(0, SEA[saison][0]); g0.addColorStop(1, SEA[saison][1]); ctx.fillStyle = g0; ctx.fillRect(0, 0, cv.width, cv.height);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  { const c = ecran(cx, cy); const r0 = (Rm + 30) * z; const rg = ctx.createRadialGradient(c.x, c.y, r0 * 1.05, c.x, c.y, r0 * 3); rg.addColorStop(0, 'rgba(16,48,92,0)'); rg.addColorStop(1, 'rgba(16,48,92,0.30)'); ctx.fillStyle = rg; ctx.fillRect(0, 0, innerWidth, innerHeight); }
+  if (ui('fond').checked) { ctx.save(); let i = 0; for (const w of fond) { if (hiver && (++i & 1)) continue; w.t += dt; const p = ecran(w.x + Math.sin(w.t * 0.5) * 12, w.y + Math.sin(w.t * 0.35 + w.ph) * 4); const ww = 74 * w.s * z, hh = ww / 3.6; const im = fondue(VAGUES[Math.floor(w.t * 0.7) % 3]); if (!im) continue; ctx.globalAlpha = Math.max(0.05, Math.min(0.85, (hiver ? 0.22 : 0.44) + (hiver ? 0.12 : 0.24) * Math.sin(w.t * 1.3 + w.ph))); ctx.drawImage(im, p.x - ww / 2, p.y - hh / 2, ww, hh); } ctx.restore(); }
+
+  // plus de houle : le chronomètre la remplace (décision du commanditaire)
+  // les cases libres puis les tuiles
+  for (const [q, r] of MASK) { const w = toWorld(q, r); const c = ecran(w.x, w.y); const k = `${q},${r}`;
+    if (!TUILES[k]) { const pts = corners(c.x, c.y, SIZE * z * 0.98); ctx.fillStyle = 'rgba(236,244,250,0.55)'; ctx.strokeStyle = 'rgba(255,255,255,0.7)'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]); for (let i = 1; i < 6; i++) ctx.lineTo(pts[i][0], pts[i][1]); ctx.closePath(); ctx.fill(); ctx.stroke(); } }
+  for (const [q, r] of MASK) { const k = `${q},${r}`; if (!TUILES[k]) continue; const w = toWorld(q, r); const c = ecran(w.x, w.y); const im = sprites[TUILES[k]]; if (im.complete && im.naturalWidth) { const tw = 120 * z, th = 140 * z; ctx.drawImage(im, c.x - tw / 2, c.y - th / 2, tw, th); } }
+  const el = ui('compte'); el.textContent = t.toFixed(1); el.classList.toggle('urgent', urgent);
+  majTimer(t, f, puls, urgent, perdue, saison);
+  requestAnimationFrame(boucleAnim);
+}
+requestAnimationFrame(boucleAnim);
+
+// --- les chronomètres
+const SAISON_COL = { spring: '#6dbf67', summer: '#4a9e4f', autumn: '#d98a3a', winter: '#9fb8cc' };
+const timer = ui('timer'), vars = {}; for (const v of timer.querySelectorAll('.var')) vars[v.dataset.v] = v;
+const rang = vars.segments.querySelector('.rang'); for (let i = 0; i < 6; i++) rang.appendChild(Object.assign(document.createElement('div'), { className: 'seg' }));
+vars.vague.querySelector('.cote').src = sprites.hamlet_1.src; vars.vague.querySelector('.crete').src = VAGUES[0].src;
+function choisir(v) { timer.classList.toggle('galerie', v === 'galerie'); if (v === 'galerie') timer.style.top = ''; for (const k in vars) vars[k].classList.toggle('on', k === v); const r = document.querySelector(`input[name=v][value=${v}]`); if (r) r.checked = true; }
+for (const r of document.querySelectorAll('input[name=v]')) r.onchange = () => choisir(r.value);
+addEventListener('keydown', (e) => { const m = { Digit1: 'chiffre', Digit2: 'barre', Digit3: 'anneau', Digit4: 'segments', Digit5: 'vague', Digit6: 'hybride', Digit0: 'galerie' }[e.code]; if (m) choisir(m); });
+let dernierPerdue = 0;
+function majTimer(t, f, puls, urgent, perdue, saison) {
+  // la place : juste au-dessus de l'île (le point le plus haut du masque, moins une marge)
+  if (!timer.classList.contains('galerie')) { let haut = Infinity; for (const [q, r] of MASK) { const w = toWorld(q, r); haut = Math.min(haut, ecran(w.x, w.y).y); } timer.style.top = `${Math.round(haut - 70 * zoom() - 24 - timer.offsetHeight)}px`; }
+  const casse = perdue > 0 && dernierPerdue <= 0; dernierPerdue = perdue;
+  const entier = Math.floor(t + 1e-6), dix = Math.floor((t - entier) * 10 + 1e-6);
+  const couleur = SAISON_COL[saison]; const pulse = `scale(${(1 + 0.08 * puls).toFixed(3)})`;
+  const jitter = urgent ? `translate(${(Math.random() * 3 - 1.5).toFixed(1)}px,${(Math.random() * 3 - 1.5).toFixed(1)}px)` : '';
+  for (const k in vars) { const v = vars[k]; v.classList.toggle('urgent', urgent); if (casse) { v.classList.remove('casse'); void v.offsetWidth; v.classList.add('casse'); } if (perdue <= 0 && t >= duree - 0.05) v.classList.remove('casse'); v.style.setProperty('--couleur', couleur); }
+  // 1. le compte : gros chiffre, dixièmes en petit, qui respire sur le temps et tremble sur la dernière seconde
+  { const n = vars.chiffre.querySelector('.n'); n.innerHTML = `${entier}<span class="d">.${dix}</span>`; n.style.transform = `${pulse} ${jitter}`; }
+  // 2. la marée : l'eau se retire par les deux bouts, écume aux extrémités, plus vive sur le temps
+  { const eau = vars.barre.querySelector('.eau'); eau.style.width = `${(f * 100).toFixed(1)}%`; eau.style.filter = `brightness(${(1 + 0.25 * puls).toFixed(3)})`; }
+  // 3. l'anneau : dégradé conique qui se vide, secondes entières au centre
+  { const rond = vars.anneau.querySelector('.rond'); const col = urgent ? '#d95f4b' : couleur; rond.style.background = `conic-gradient(${col} ${(f * 360).toFixed(1)}deg, rgba(43,42,38,0.12) 0)`; rond.style.transform = `${pulse} ${jitter}`; vars.anneau.querySelector('.n').textContent = perdue > 0 ? '0' : Math.ceil(t - 1e-6); }
+  // 4. les bougies : six demi-secondes qui s'éteignent une à une, celle qui brûle luit sur le temps
+  { vars.segments.querySelector('.n').innerHTML = `${entier}<span class="d">.${dix}</span>`; const segs = rang.children; for (let i = 0; i < 6; i++) { const debut = i / 6, fin = (i + 1) / 6; const s = segs[i]; const allume = f > debut; s.classList.toggle('eteint', !allume); const brule = f > debut && f <= fin; s.classList.toggle('brule', brule && puls > 0.3); s.style.transform = allume ? `scaleX(${brule ? ((f - debut) / (fin - debut)).toFixed(3) : 1})` : ''; } }
+  // 5. la vague : une crête d'écume descend vers la côte (la tuile), et s'y brise
+  { const mer = vars.vague.querySelector('.mer'), crete = vars.vague.querySelector('.crete'); const W = mer.clientWidth - 56 - 36; crete.style.left = `${(36 + W * f).toFixed(1)}px`; crete.style.transform = perdue > 0 ? '' : `translateY(${(-2 * puls).toFixed(1)}px) scale(${(1 + 0.15 * puls).toFixed(3)})`; vars.vague.querySelector('.n').textContent = `${entier}.${dix}`; }
+  // 6. chiffre et trait : le chiffre, et sous lui un trait qui se vide par les deux bouts
+  { const n = vars.hybride.querySelector('.n'); n.innerHTML = `${entier}<span class="d">.${dix}</span>`; n.style.transform = `${pulse} ${jitter}`; vars.hybride.querySelector('.plein').style.width = `${(f * 100).toFixed(1)}%`; }
+}
+choisir('chiffre');
+</script>
+</body>
+</html>
