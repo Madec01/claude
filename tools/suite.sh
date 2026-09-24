@@ -1,9 +1,9 @@
 #!/bin/bash
 # Lance la suite de tests, en deux vitesses (règle de CLAUDE.md, journal 107).
 #
-#   tools/suite.sh court   ~1 min 30 : les quatre tests Node (règles, événements, nuage, reprise)
+#   tools/suite.sh court   ~1 min 30 : les cinq tests Node (règles, événements, nuage, reprise, brume)
 #                                      et gate.js comme test de fumée dans Chromium
-#   tools/suite.sh complet   ~5 min  : la suite courte puis les neuf autres tests navigateur
+#   tools/suite.sh complet   ~5 min  : la suite courte puis les autres tests navigateur (dont brume)
 #
 # Les tests Node se suivent ; les tests navigateur tournent par trois (PARALLELE), chacun dans son Chromium,
 # les plus longs d'abord. Ils ont besoin d'un serveur statique sur le port 8765 ; le script le lance s'il n'y
@@ -17,7 +17,7 @@ LOG="${LOG:-/tmp/suite.log}"
 PARALLELE="${PARALLELE:-3}"
 case "$MODE" in
   court)   NAV="gate" ;;
-  complet) NAV="autoplay mobile calm gate finale feel tempo pepin sw decouverte resume fauna" ;;   # du plus long au plus court : le lot se remplit mieux
+  complet) NAV="autoplay mobile calm gate finale feel tempo pepin brume sw decouverte resume fauna" ;;   # du plus long au plus court : le lot se remplit mieux
   *) echo "usage : tools/suite.sh court|complet" >&2; exit 2 ;;
 esac
 
@@ -45,7 +45,7 @@ lance() {
   fi
 }
 
-for t in rules events cloud run; do lance "$t.test.js"; done
+for t in rules events cloud run brume; do lance "$t.test.js"; done
 
 # les tests navigateur : chacun écrit son propre journal, recopié dans $LOG une fois tous finis
 lance_fond() {

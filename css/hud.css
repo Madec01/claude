@@ -354,3 +354,31 @@ html.compact .tempo-chrono { gap: 3px; }
 html.compact .tempo-chrono .tc-n { font-size: 40px; } html.compact .tempo-chrono .tc-d { font-size: 22px; }
 html.compact .tempo-chrono .tc-cadre { width: 170px; height: 11px; }
 #hud.tempo .qtile.current .q-temps { display: none; }   /* les secondes sont au-dessus de l'île, plus sur la tuile */
+/* Sous la brume : inventaire, jalon, Déplacer (HUD) ; choix du cran et fiche d'une case (panneaux) */
+.hud-brume { margin-top: 6px; display: flex; flex-direction: column; gap: 4px; }
+.hud-brume .queue-title { display: flex; justify-content: space-between; gap: 6px; }
+.brume-left { font-weight: 600; opacity: 0.7; font-size: 11px; }
+.brume-inv { display: flex; flex-wrap: wrap; gap: 3px; }
+.binv { background: #fff; border: 1px solid rgba(43,42,38,0.14); border-left: 4px solid var(--fam); border-radius: 7px; padding: 2px 6px; font-size: 12px; font-weight: 700; }
+.binv.tresor { border-color: #e0a33a; background: #fff6e0; }
+.binv.vide { border-left-color: #8a867c; opacity: 0.7; }
+.brume-jalon { font-size: 11px; font-weight: 600; color: #6b6a66; }
+.brume-jalon.due { color: #8a6fb5; }
+.pw.brume-move { flex-direction: row; justify-content: center; gap: 6px; }
+.pw.brume-move.on { border-color: #2f7f74; background: rgba(47,127,116,0.14); }
+.panel-brume .brume-regles { margin: 8px 0 12px; padding-left: 18px; font-size: 14px; line-height: 1.45; }
+.brume-crans { display: flex; gap: 14px; flex-wrap: wrap; }
+.brume-cran { flex: 1 1 240px; display: flex; flex-direction: column; gap: 6px; }
+.brume-cran ul { margin: 0; padding-left: 18px; font-size: 13px; line-height: 1.4; }
+.brume-best { margin: 0; font-weight: 700; color: #b8862b; font-size: 13px; }
+.brume-attente { text-align: center; font-style: italic; margin: 10px 0 0; animation: brume-attente 1.2s ease-in-out infinite alternate; }
+@keyframes brume-attente { from { opacity: 0.45; } to { opacity: 1; } }
+.panel-brume-case { width: 560px; }
+.panel-brume-case h3 { font-size: 14px; margin: 10px 0 6px; }
+.brume-inv-line, .brume-jalon-line { font-size: 14px; font-weight: 600; margin: 4px 0; }
+.gpick.on { background: rgba(47,158,143,0.14); border-color: var(--breath); }
+.gpick.tresor { border-left-color: #e0a33a; }
+html.compact .hud-brume { margin-top: 3px; gap: 2px; }
+html.compact .binv { font-size: 10px; padding: 1px 4px; }
+html.compact .brume-jalon, html.compact .brume-left { font-size: 10px; }
+html.compact .panel-brume .brume-regles { font-size: 12px; }

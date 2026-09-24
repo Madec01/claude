@@ -188,7 +188,8 @@ export class IslandRenderer {
     this.drawEmptyCells(ctx);
     if (this.legacy) this.drawTiles(ctx); else this.drawLayered(ctx);
     this.drawClimateTint(ctx);
-    this.drawBrume(ctx);
+    this.drawBrumeAutomne(ctx);
+    if (isl.brume) this.drawBrume(ctx);
     this.drawBuildTargets(ctx);
     this.particlesWorld(ctx, 0);
     this.drawHover(ctx);
@@ -435,7 +436,7 @@ export class IslandRenderer {
     const legal = new Set(b.legalCells().map((c) => key(c.q, c.r)));
     ctx.save();
     for (const k of b.mask) {
-      if (b.tiles.has(k)) continue;
+      if (b.tiles.has(k) || b.fog.has(k)) continue;   // la brume a son propre dessin (drawBrume)
       const [q, r] = parse(k); const w = toWorld(q, r); const c = cam.toScreen(w.x, w.y);
       if (c.x < -100 || c.x > STAGE.W + 100 || c.y < -100 || c.y > STAGE.H + 100) continue;
       const pts = corners(c.x, c.y, SIZE * cam.zoom * 0.96);
@@ -1259,7 +1260,7 @@ export class IslandRenderer {
    * Souffle court, automne : les tuiles sous la brume (clés dans `this.brume`) disparaissent sous un voile de papier —
    * un dégradé, pas une image — et n'y reviennent que quand on pose à côté. Le voile couvre aussi leur décor.
    */
-  drawBrume(ctx) {
+  drawBrumeAutomne(ctx) {
     const b = this.brume; if (!b || !b.size) return;
     const cam = this.cam, z = cam.zoom; const W = STAGE.W, H = STAGE.H;
     ctx.save();
@@ -1294,7 +1295,7 @@ export class IslandRenderer {
       ctx.restore();
     }
     // tuile fantôme
-    if (!pv.build) { const tile = { ...this.isl.current, q: hv.q, r: hv.r }; this.drawTileAt(ctx, tile, c.x, c.y - 6 * z, 1, 0.8, this.isl.season); }
+    if (!pv.build) { const tile = { ...(hv.tile || this.isl.current), q: hv.q, r: hv.r }; this.drawTileAt(ctx, tile, c.x, c.y - 6 * z, 1, 0.8, this.isl.season); }
     this.outline(ctx, c.x, c.y, pv.build ? '#e0a33a' : pv.total >= 0 ? '#2f9e8f' : '#d95f4b', 0.9);
     if (pv.build) { const p2 = 0.5 + 0.5 * Math.sin(this.time * 5); ctx.save(); ctx.globalAlpha = 0.18 + 0.12 * p2; ctx.fillStyle = '#ffd77a'; const pts = corners(c.x, c.y, SIZE * z * 0.92); ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]); for (let i = 1; i < 6; i++) ctx.lineTo(pts[i][0], pts[i][1]); ctx.closePath(); ctx.fill(); ctx.restore(); }
     // points par bord
@@ -1325,6 +1326,75 @@ export class IslandRenderer {
     const lab = pv.fuse ? 'FUSION' : pv.build ? 'BÂTIR' : 'TOTAL', lw = ctx.measureText(lab).width + 14 * tz;
     ctx.fillStyle = accent; ctx.beginPath(); ctx.roundRect(bx - lw / 2, by - bh / 2 - 15 * tz, lw, 16 * tz, 8 * tz); ctx.fill();
     ctx.fillStyle = pv.total > 0 ? '#2b2a26' : '#d95f4b'; ctx.fillText(lab, bx, by - bh / 2 - 7 * tz);
+    ctx.restore();
+  }
+
+  /**
+   * Sous la brume. Chaque case cachée est un banc de brume : des dégradés radiaux blancs qui dérivent lentement et
+   * débordent un peu sur les voisines (aucune image dessinée, seulement des dégradés). Par-dessus : la note au crayon,
+   * le jalon planté ; sur les tuiles posées contre la brume, leur indice ; sur les tuiles dévoilées, un liseré (×2, ×3).
+   * À la fin, ce qui est resté caché apparaît, pâle, sous une brume qui s'est levée.
+   */
+  drawBrume(ctx) {
+    const isl = this.isl, b = isl.board, B = isl.brume, cam = this.cam, z = cam.zoom, t = this.time;
+    const fin = isl.ended || !!this.finale;
+    const onScreen = (c) => c.x > -150 && c.x < STAGE.W + 150 && c.y > -150 && c.y < STAGE.H + 150;
+    const nomCourt = (f) => (f === 'tresor' ? 'trésor' : ((STORY.tiles[f] || {}).name || f)).toLowerCase();
+    ctx.save();
+    for (const k of b.fog) {
+      const [q, r] = parse(k); const w = toWorld(q, r); const c = cam.toScreen(w.x, w.y); if (!onScreen(c)) continue;
+      const h = (q * 928371 + r * 12377) % 997 / 997;   // chaque banc a son propre rythme
+      if (fin) { const cach = B.cachees.get(k); if (cach) this.drawTileAt(ctx, { ...cach, q, r }, c.x, c.y, 1, 0.55); }
+      const a = fin ? 0.35 : 1;
+      // le fond : la case entière voilée, en dégradé du centre vers les bords, pour qu'on la lise comme une case
+      { const pts0 = corners(c.x, c.y, SIZE * z * 1.02); const g0 = ctx.createRadialGradient(c.x, c.y - 10 * z, SIZE * z * 0.1, c.x, c.y, SIZE * z * 1.05);
+        g0.addColorStop(0, `rgba(246,245,242,${(0.92 * a).toFixed(3)})`); g0.addColorStop(1, `rgba(222,226,230,${(0.8 * a).toFixed(3)})`);
+        ctx.fillStyle = g0; ctx.beginPath(); ctx.moveTo(pts0[0][0], pts0[0][1]); for (let i = 1; i < 6; i++) ctx.lineTo(pts0[i][0], pts0[i][1]); ctx.closePath(); ctx.fill(); }
+      // les volutes : des dégradés qui dérivent et débordent sur les voisines
+      for (let i = 0; i < 5; i++) {
+        const ang = h * TAU + i * 1.7 + t * (0.12 + i * 0.03);
+        const ox = Math.cos(ang) * SIZE * z * 0.42, oy = Math.sin(ang * 1.3) * SIZE * z * 0.3;
+        const rad = SIZE * z * (0.75 + 0.15 * Math.sin(t * 0.6 + i + h * 5));
+        const g = ctx.createRadialGradient(c.x + ox, c.y + oy, 0, c.x + ox, c.y + oy, rad);
+        g.addColorStop(0, `rgba(255,255,255,${(0.7 * a).toFixed(3)})`); g.addColorStop(0.5, `rgba(248,248,250,${(0.35 * a).toFixed(3)})`); g.addColorStop(1, 'rgba(240,242,246,0)');
+        ctx.fillStyle = g; ctx.beginPath(); ctx.arc(c.x + ox, c.y + oy, rad, 0, TAU); ctx.fill();
+      }
+      if (fin) continue;
+      const pts = corners(c.x, c.y, SIZE * z * 0.9);
+      ctx.strokeStyle = 'rgba(120,128,140,0.45)'; ctx.lineWidth = 1.2; ctx.setLineDash([3, 5]);
+      ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]); for (let i = 1; i < 6; i++) ctx.lineTo(pts[i][0], pts[i][1]); ctx.closePath(); ctx.stroke(); ctx.setLineDash([]);
+      const fz = clamp(z, 0.8, 1.3);
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      const jal = B.jalons.get(k), note = B.crayon.get(k);
+      if (jal) { ctx.font = `700 ${Math.round(13 * fz)}px Quicksand, sans-serif`; this.pill(ctx, c.x, c.y - 8 * z, `⚑ ${nomCourt(jal)}`, '#8a6fb5'); }
+      if (note) { ctx.font = `italic 600 ${Math.round(13 * fz)}px Quicksand, sans-serif`; ctx.fillStyle = 'rgba(70,66,60,0.85)'; ctx.fillText(`${nomCourt(note)} ?`, c.x, c.y + (jal ? 18 : 0) * z); }
+    }
+    if (!fin) {
+      // indices : sur les tuiles qui touchent encore la brume
+      const fz = clamp(z, 0.8, 1.3);
+      ctx.font = `800 ${Math.round(15 * fz)}px Quicksand, sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      for (const tile of b.tiles.values()) {
+        if (typeof tile.indice !== 'number' && !tile.muette) continue;
+        if (!isl.fogAround(tile.q, tile.r).length) continue;
+        const w = toWorld(tile.q, tile.r); const c = cam.toScreen(w.x, w.y); if (!onScreen(c)) continue;
+        const x = c.x + 30 * z, y = c.y - 34 * z, rr = 13 * fz;
+        ctx.fillStyle = tile.muette ? 'rgba(138,134,124,0.9)' : '#2b2a26'; ctx.beginPath(); ctx.arc(x, y, rr, 0, TAU); ctx.fill();
+        ctx.strokeStyle = tile.muette ? '#fff' : (FAMILY_COLORS[tile.family] || '#fff'); ctx.lineWidth = 2.5; ctx.stroke();
+        ctx.fillStyle = '#fff'; ctx.fillText(tile.muette ? '·' : String(tile.indice), x, y + 1);
+      }
+    }
+    // tuiles dévoilées : un liseré doré, plus marqué sous un jalon juste
+    for (const tile of b.tiles.values()) {
+      if (!tile.devoilee) continue;
+      const w = toWorld(tile.q, tile.r); const c = cam.toScreen(w.x, w.y); if (!onScreen(c)) continue;
+      this.outline(ctx, c.x, c.y, tile.jalon ? '#8a6fb5' : '#e0a33a', fin ? 0.25 : tile.jalon ? 0.75 : 0.45);
+    }
+    // déplacement en cours : la tuile choisie et ses destinations
+    if (this.moveFrom && !fin) {
+      const w = toWorld(this.moveFrom.q, this.moveFrom.r); const c = cam.toScreen(w.x, w.y);
+      this.outline(ctx, c.x, c.y, '#2f7f74', 0.6 + 0.3 * Math.sin(t * 5));
+      for (const m of this.moveTargets || []) { const ww = toWorld(m.q, m.r); const cc = cam.toScreen(ww.x, ww.y); this.outline(ctx, cc.x, cc.y, '#2f7f74', 0.28); }
+    }
     ctx.restore();
   }
 

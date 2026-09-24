@@ -11,6 +11,8 @@ import { SceneManager, wait } from './core/scenes.js';
 import { ParticleSystem } from './core/particles.js';
 import { Shake } from './core/shake.js';
 import { Island } from './game/island.js';
+import { brumeDef } from './game/brume.js';
+import { buildBrumeChoice, buildBrumePicker } from './ui/brume.js';
 import { IslandRenderer } from './game/render.js';
 import { Camera } from './game/camera.js';
 import { Effects } from './game/effects.js';
@@ -350,6 +352,7 @@ const Game = {
   /** De quoi retrouver l'île plus tard : le strict nécessaire pour la reconstruire à l'identique. */
   whereOf(def) {
     if (!def) return null;
+    if (def.brume) return { kind: 'brume', cran: def.brume, seed: def.seed };
     if (def.garden) return { kind: 'garden' };
     if (def.infinite) return { kind: 'infinite' };
     if (def.tempo) return { kind: 'tempo' };
@@ -359,6 +362,7 @@ const Game = {
   /** Reconstruit la définition d'île rangée par `whereOf`. Rend null si elle n'a plus de sens (l'île du jour a changé de jour). */
   defFromWhere(w) {
     if (!w) return null;
+    if (w.kind === 'brume') return brumeDef(w.cran, w.seed);
     if (w.kind === 'garden') return GARDEN;
     if (w.kind === 'infinite') return INFINITE;
     if (w.kind === 'daily') return w.date === dailyKey() ? dailyDef(w.date) : null;
@@ -373,6 +377,7 @@ const Game = {
     const d = RunSave.read();
     const def = d && this.defFromWhere(d.where);
     if (!def) { RunSave.clear(); this.toast('Cette partie ne peut plus être reprise.'); this.showMenu(); return; }
+    if (def.brume) def.planBrume = { fog: [], cachees: [], deduc: 0 };   // la brume vient de la sauvegarde : pas de solveur à la reprise
     hideUI();
     scenes.go('island', { def, skipWishes: true, resume: d.isl }, { fade: 0.5 });
   },
@@ -384,6 +389,30 @@ const Game = {
   musiqueTempo() { const cles = Object.keys(BALANCE.tempo.musiques).filter((k) => AudioSys.has(k, 'music')); return cles.length ? cles[Math.floor(Math.random() * cles.length)] : null; },
   startTempo() { this.noteMode('mode_tempo'); const def = tempoDef(undefined, { etire: STAGE.compact && STAGE.portrait ? BALANCE.tempo.etirePortrait : 1 }); def.musique = this.musiqueTempo(); if (def.musique) AudioSys.load('music', def.musique).catch(() => {}); scenes.go('prep', { node: buildTempoPrep({ onStart: () => { AudioSys.play('ui_confirm', { volume: 0.5 }); hideUI(); scenes.go('island', { def }, { fade: 0.4 }); }, onBack: () => this.showMenu() }) }); },
   startDaily() { this.noteMode('mode_daily'); const def = dailyDef(); this.prepIsland(def, dailyScreens(def)); },
+  /** Sous la brume : le choix du cran, puis une île tirée au hasard (une nouvelle à chaque partie). */
+  startBrume() {
+    this.noteMode('mode_brume');
+    scenes.go('prep', { node: buildBrumeChoice({ onPick: (cran) => {
+      AudioSys.play('ui_confirm', { volume: 0.5 });
+      const def = brumeDef(cran, 1 + Math.floor(Math.random() * 999999));
+      // la brume se prépare hors du fil principal ; le panneau attend (sa fiche dit « la brume se forme »)
+      return this.preparerBrume(def).then((plan) => { if (plan) def.planBrume = plan; hideUI(); scenes.go('island', { def }, { fade: 0.5 }); });
+    }, onBack: () => this.showMenu() }) });
+  },
+  /**
+   * Sous la brume : le plan de l'île (brume, tuiles cachées, dosage) se calcule dans un worker, parce que le solveur
+   * prend des secondes. Sans worker, ou s'il échoue ou tarde, on rend `null` et l'île se prépare sur place.
+   */
+  preparerBrume(def) {
+    return new Promise((res) => {
+      let w = null; const fin = (v) => { if (w) { try { w.terminate(); } catch (_) { /* rien */ } w = null; } res(v); };
+      try { w = new Worker(new URL('./game/brume_worker.js', import.meta.url), { type: 'module' }); } catch (_) { return res(null); }
+      const garde = setTimeout(() => fin(null), 20000);
+      w.onmessage = (e) => { clearTimeout(garde); fin(e.data && !e.data.erreur && e.data.fog ? e.data : null); };
+      w.onerror = () => { clearTimeout(garde); fin(null); };
+      w.postMessage({ def });
+    });
+  },
   startGarden() { this.noteMode('mode_garden'); scenes.go('story', { screens: gardenScreens(), onDone: () => scenes.go('island', { def: GARDEN }, { fade: 0.5 }) }); },
 
   /**
@@ -424,6 +453,12 @@ const Game = {
     if (def.tempo) {
       const T = Save.data.tempo || (Save.data.tempo = { best: 0, bestSerie: 0, parties: 0 });
       if (!test) { T.parties = (T.parties || 0) + 1; if (result.score > (T.best || 0)) { newRecord = T.best > 0; T.best = result.score; } T.bestSerie = Math.max(T.bestSerie || 0, result.stats.bestSerie || 0); Save.save(); }
+      scenes.go('results', { result, def, newRecord });
+      return;
+    }
+    if (def.brume) {
+      const b = Save.data.brume || (Save.data.brume = {}); const e = b[def.brume] || (b[def.brume] = { best: 0, plays: 0 });
+      if (!test) { e.plays = (e.plays || 0) + 1; if (result.score > (e.best || 0)) { newRecord = e.best > 0; e.best = result.score; } Save.save(); }
       scenes.go('results', { result, def, newRecord });
       return;
     }
@@ -478,6 +513,7 @@ const Game = {
     if (def.infinite) { this.startInfinite(); return; }
     if (def.garden) { this.startGarden(); return; }
     if (def.tempo) { this.startTempo(); return; }
+    if (def.brume) { this.startBrume(); return; }
     if (def.daily) { this.showMenu(); return; }
     const c = Save.campaign;
     // Terminer une île suffit : elle ouvre la suivante, avec ou sans étoile. Les étoiles ne gardent plus que les
@@ -578,6 +614,7 @@ class IslandScene {
     this.runDirty = false; this.runTimer = 0;
     this.marges = () => uiMargins(def.tempo ? 'tempo' : 'island');
     this.cam = new Camera(); this.cam.fit(isl.board.mask, { ...this.marges(), immediate: true });
+    this.moving = false;   // Sous la brume : mode Déplacer
     this.armed = null;   // tactile : case « armée » (aperçu affiché) en attente d'une seconde touche
     this.particles = new ParticleSystem(1500); this.fx = new Effects(this.particles); this.shake = new Shake(); this.shake.enabled = Save.options.shake !== false;
     this.renderer = new IslandRenderer(isl, this.cam, this.fx, this.particles);
@@ -592,10 +629,11 @@ class IslandScene {
       onUndo: () => { if (isl.undo()) { AudioSys.play('tile_undo', { volume: 0.6 }); this.hud.notify('La dernière pose est annulée', 'info'); } else AudioSys.play('ui_error', { volume: 0.4 }); },
       onGardenPick: (fam) => { isl.setGardenTile(fam); AudioSys.play('ui_click', { volume: 0.4 }); },
       onPlace: () => this.placeArmed(),
+      onMove: () => this.toggleMove(),
       compact: STAGE.compact,
     });
     document.getElementById('hud').classList.add('on');
-    this.tutorial = new Tutorial(document.getElementById('tutorial'), isl, def, !Save.options.skipTutorial && !def.infinite && !def.garden && !def.tempo);
+    this.tutorial = new Tutorial(document.getElementById('tutorial'), isl, def, !Save.options.skipTutorial && !def.infinite && !def.garden && !def.tempo && !def.brume);
     // les vœux se présentent avant la première pose (un bouton pour commencer), sauf en reprise sans intro
     this.hold = false;
     if (isl.wishes.length && !def.garden && !skipWishes && !this.resumed) { this.hold = true; showUI(buildWishesIntro({ island: isl, onStart: () => { hideUI(); this.hold = false; AudioSys.play('ui_confirm', { volume: 0.5 }); } }), 'panel-wrap'); }
@@ -856,6 +894,8 @@ class IslandScene {
       this.hud.ribbon(`${fam} perdue`, '#d95f4b', 1300, 'warn'); this.hud.notify(`Trop tard : la ${fam.toLowerCase()} est perdue, sa case restera vide`, 'warn');
       AudioSys.play('tile_discard', { volume: 0.7 }); this.shake.trigger(0.18); Haptics.tap([10, 30, 10]); this.hud.chronoCasse();
       this.armed = null; this.hud.setPlaceButton(null);
+    } else if (e.type === 'brume') {
+      this.onBrume(e);
     } else if (e.type === 'grow') {
       this.cam.fit(this.isl.board.mask);
     } else if (e.type === 'end') {
@@ -888,6 +928,7 @@ class IslandScene {
     if (b === 2 || b === 1) { this.drag = { x, y, moved: 0 }; return; }
     if (b !== 0) return;
     const w = this.cam.toWorldPoint(x, y); const { q, r } = fromWorld(w.x, w.y);
+    if (this.isl.brume && this.tapBrume(q, r, true)) return;
     if (this.isl.canPlace(q, r)) { this.isl.place(q, r); this.renderer.hover = null; }
     else if (this.isl.canBuild(q, r)) { this.isl.build(q, r); this.renderer.hover = null; }
     else if (this.isl.board.has(q, r) && !this.isl.board.get(q, r)) { AudioSys.play('tile_invalid', { volume: 0.5 }); this.hud.notify(this.isl.restrict ? 'Pose la tuile sur la case qui brille' : 'Une tuile doit toucher une tuile posée', 'warn'); }
@@ -900,6 +941,7 @@ class IslandScene {
     if (this.finale && !this.finale.done) { this.finale.skip(); return; }
     if (this.paused || this.hold || !this.isl || this.isl.ended) return;
     const w = this.cam.toWorldPoint(x, y); const { q, r } = fromWorld(w.x, w.y);
+    if (this.isl.brume && this.tapBrume(q, r, false)) return;
     if (this.isl.board.get(q, r)) {
       // toucher une tuile posée : bâtir si c'est possible (même double toucher que la pose)
       if (!this.isl.canBuild(q, r)) { this.armed = null; this.hud.setPlaceButton(null); return; }
@@ -913,10 +955,87 @@ class IslandScene {
   }
   placeArmed() {
     if (!this.armed || this.paused || this.hold || !this.isl || this.isl.ended) return;
-    const { q, r, build } = this.armed; this.armed = null; this.hud.setPlaceButton(null);
+    const { q, r, build, move } = this.armed; this.armed = null; this.hud.setPlaceButton(null);
+    if (move) { this.doMove(q, r); return; }
     if (build) { if (this.isl.canBuild(q, r)) { this.isl.build(q, r); this.renderer.hover = null; } return; }
     if (this.isl.canPlace(q, r)) { this.isl.place(q, r); this.renderer.hover = null; }
   }
+  // ---- Sous la brume : fiche d'une case cachée, déplacement ----
+  /**
+   * Un toucher (ou un clic, `immediat`) pendant une partie sous la brume. Une case cachée ouvre sa fiche (jalon,
+   * crayon). En mode Déplacer : le premier toucher choisit la tuile, le suivant sa destination (deux fois au doigt,
+   * comme une pose). Rend vrai si le geste a été pris ici.
+   */
+  tapBrume(q, r, immediat) {
+    const isl = this.isl, k = key(q, r);
+    if (isl.board.fog.has(k)) { this.armed = null; this.hud.setPlaceButton(null); this.openBrumeCase(q, r); return true; }
+    if (!this.moving) return false;
+    const from = this.renderer.moveFrom;
+    const t = isl.board.get(q, r);
+    if (t) {
+      if (from && from.q === q && from.r === r) { this.setMoveFrom(null); return true; }
+      if (isl.canMove(q, r)) { this.setMoveFrom({ q, r }); AudioSys.play('tile_hover', { volume: 0.4 }); return true; }
+      AudioSys.play('tile_invalid', { volume: 0.5 });
+      this.hud.notify(t.start ? 'Une tuile de départ ne bouge pas' : t.devoilee ? 'Une tuile dévoilée reste où la brume l’a laissée' : isl.fogAround(q, r).length ? 'Cette tuile touche la brume : elle ne bouge plus avant le dévoilement' : 'Cette tuile ne peut pas bouger', 'warn');
+      return true;
+    }
+    if (!from) { this.hud.notify('Déplacer : touche d’abord la tuile à déplacer', 'warn'); return true; }
+    if (!(this.renderer.moveTargets || []).some((c) => c.q === q && c.r === r)) { AudioSys.play('tile_invalid', { volume: 0.5 }); this.hud.notify('La tuile déplacée doit toucher une autre tuile', 'warn'); return true; }
+    if (immediat || (this.armed && this.armed.move && this.armed.q === q && this.armed.r === r)) { this.armed = null; this.doMove(q, r); return true; }
+    this.armed = { q, r, move: true }; AudioSys.play('tile_hover', { volume: 0.3 });
+    return true;
+  }
+  setMoveFrom(c) { this.renderer.moveFrom = c; this.renderer.moveTargets = c ? this.isl.moveTargets(c.q, c.r) : null; this.armed = null; this.hud.setPlaceButton(null); }
+  toggleMove(force) {
+    if (!this.isl || !this.isl.brume || this.isl.ended) return;
+    this.moving = force !== undefined ? force : !this.moving; this.hud.moving = this.moving; this.setMoveFrom(null);
+    AudioSys.play(this.moving ? 'ui_open' : 'ui_close', { volume: 0.4 });
+    if (this.moving) this.hud.notify('Déplacer : touche la tuile, puis sa nouvelle case. La prochaine tuile de la main sera perdue.', 'special');
+  }
+  doMove(q, r) {
+    const f = this.renderer.moveFrom; if (!f) return;
+    const res = this.isl.move(f.q, f.r, q, r);
+    if (!res) { AudioSys.play('ui_error', { volume: 0.4 }); return; }
+    this.renderer.hover = null; this.toggleMove(false);
+  }
+  openBrumeCase(q, r) {
+    const isl = this.isl; this.hold = true;
+    const close = () => { hideUI(); this.hold = false; };
+    showUI(buildBrumePicker({ isl, q, r,
+      onJalon: (f) => { if (isl.planterJalon(q, r, f)) AudioSys.play('ui_confirm', { volume: 0.5 }); close(); },
+      onNote: (f) => { isl.noter(q, r, f); AudioSys.play('ui_click', { volume: 0.4 }); close(); },
+      onClose: () => { AudioSys.play('ui_close', { volume: 0.4 }); close(); } }), 'panel-wrap');
+  }
+  /** Les événements du mode : dévoilement, jalon, déplacement. */
+  onBrume(e) {
+    const fx = this.fx; const nom = (f) => (f === 'tresor' ? 'trésor' : ((STORY.tiles[f] || {}).name || f)).toLowerCase();
+    if (e.kind === 'reveal') {
+      AudioSys.play('region_close', { volume: 0.7 });
+      this.hud.ribbon(e.fin ? 'La brume se lève une dernière fois' : `La brume se lève : ${e.cells.length} case${e.cells.length > 1 ? 's' : ''}`, '#8a6fb5', 1800, 'streak');
+      e.cells.forEach((c, i) => setTimeout(() => {
+        const w = toWorld(c.q, c.r); fx.drop(key(c.q, c.r)); fx.ring([{ q: c.q, r: c.r }], c.juste ? '#8a6fb5' : '#e0a33a'); fx.closeBurst(w.x, w.y - 10, c.tresor ? 7 : 3);
+        const pts = c.result.total + c.extra;
+        fx.floatText(w.x, w.y - 40, `${pts >= 0 ? '+' : ''}${pts}`, pts >= 0 ? '#2b2a26' : '#d95f4b', 24, 1.5);
+        if (c.juste === true) { fx.floatText(w.x, w.y + 24, 'jalon juste ×3', '#8a6fb5', 18, 1.6); AudioSys.play('star_1', { volume: 0.6 }); }
+        if (c.juste === false) { fx.floatText(w.x, w.y + 24, `jalon faux (${nom(c.jalon)})`, '#d95f4b', 18, 1.6); AudioSys.play('point_bad', { volume: 0.5 }); }
+        if (c.tresor) { this.hud.ribbon(`Trésor : ${nom(c.tile.family)} !`, '#e0a33a', 2000, 'master'); AudioSys.play('rare_tile', { volume: 0.7 }); this.shake.trigger(0.12); }
+        this.hud.bumpScore(pts);
+      }, 500 + i * 380));
+      this.hud.logOnly(`Dévoilées : ${e.cells.map((c) => nom(c.tile.family)).join(', ')} (${e.pts >= 0 ? '+' : ''}${e.pts})`, 'season');
+    } else if (e.kind === 'jalon') {
+      this.hud.notify(`Jalon planté : ${nom(e.famille)}`, 'info');
+    } else if (e.kind === 'jalonManque') {
+      this.hud.notify(`Pas de jalon cette saison : ${e.pts}`, 'warn');
+    } else if (e.kind === 'move') {
+      const w = toWorld(e.q, e.r); fx.drop(key(e.q, e.r)); fx.placeBurst(w.x, w.y, e.result.total > 0);
+      AudioSys.play(`tile_place_${1 + Math.floor(Math.random() * 4)}`, { volume: 0.7 });
+      if (e.result.total) fx.floatText(w.x, w.y - 40, `${e.result.total > 0 ? '+' : ''}${e.result.total}`, e.result.total > 0 ? '#2b2a26' : '#d95f4b', 24, 1.4);
+      this.hud.bumpScore(e.result.total);
+      this.hud.notify(`Tuile déplacée${e.lost ? ` · perdue : ${nom(e.lost.family)}` : ''}${typeof e.tile.indice === 'number' ? ` · indice : ${e.tile.indice}` : ''}`, 'special');
+      this.updateAmbience();
+    }
+  }
+
   onKey(k) {
     if (this.finale && !this.finale.done) { if (k !== 'KeyM') this.finale.skip(k); return; }
     if (k === 'Escape') { this.togglePause(); return; }
@@ -944,7 +1063,7 @@ class IslandScene {
   pauseSub() {
     const d = this.def; const ch = d.chapter ? CHAPTERS[d.chapter - 1] : null;
     const cl = d.climate && d.climate !== 'temperate' && STORY.climates && STORY.climates[d.climate] ? ` · ${STORY.climates[d.climate].name}` : '';
-    return ch ? `Chapitre ${ch.id} · ${ch.name} · île ${d.id}${cl}` : d.daily ? 'Île du jour' : d.infinite ? 'Île infinie' : d.garden ? 'Jardin' : d.tempo ? 'Le Souffle court' : '';
+    return ch ? `Chapitre ${ch.id} · ${ch.name} · île ${d.id}${cl}` : d.daily ? 'Île du jour' : d.infinite ? 'Île infinie' : d.garden ? 'Jardin' : d.tempo ? 'Le Souffle court' : d.brume ? 'Sous la brume' : '';
   }
   togglePause(force) {
     if (!this.isl || this.isl.ended) return;
@@ -981,14 +1100,16 @@ class IslandScene {
     }
     // survol
     if (!isl.ended && input.lastPointer === 'touch') {
-      if (this.armed && this.armed.build && isl.canBuild(this.armed.q, this.armed.r)) { const pv = isl.previewBuild(this.armed.q, this.armed.r); this.renderer.hover = { q: this.armed.q, r: this.armed.r, preview: pv }; this.hud.setPlaceButton(pv ? pv.total : null, pv && pv.work ? 'work' : pv && pv.fuse ? 'fuse' : 'build'); }
+      if (this.armed && this.armed.move && this.renderer.moveFrom) { const f = this.renderer.moveFrom; const pv = isl.previewMove(f.q, f.r, this.armed.q, this.armed.r); if (pv) { this.renderer.hover = { q: this.armed.q, r: this.armed.r, preview: pv, tile: isl.board.get(f.q, f.r) }; this.hud.setPlaceButton(pv.total, 'move'); } else { this.armed = null; this.renderer.hover = null; this.hud.setPlaceButton(null); } }
+      else if (this.armed && this.armed.build && isl.canBuild(this.armed.q, this.armed.r)) { const pv = isl.previewBuild(this.armed.q, this.armed.r); this.renderer.hover = { q: this.armed.q, r: this.armed.r, preview: pv }; this.hud.setPlaceButton(pv ? pv.total : null, pv && pv.work ? 'work' : pv && pv.fuse ? 'fuse' : 'build'); }
       else if (this.armed && !this.armed.build && isl.canPlace(this.armed.q, this.armed.r)) { const pv = isl.preview(this.armed.q, this.armed.r); this.renderer.hover = { q: this.armed.q, r: this.armed.r, preview: pv }; this.hud.setPlaceButton(pv ? pv.total : null); }
       else { this.armed = null; this.renderer.hover = null; this.hud.setPlaceButton(null); }
     } else if (!isl.ended) {
       const w = this.cam.toWorldPoint(input.mouse.x, input.mouse.y); const { q, r } = fromWorld(w.x, w.y);
       const hk = key(q, r);
       if (this.lastHover !== hk) { this.lastHover = hk; if (isl.board.has(q, r) && !isl.board.get(q, r) && isl.canPlace(q, r)) AudioSys.play('tile_hover', { volume: 0.18, minInterval: 0.08 }); }
-      this.renderer.hover = isl.board.has(q, r) ? { q, r, preview: isl.board.get(q, r) ? (isl.canBuild(q, r) ? isl.previewBuild(q, r) : null) : isl.preview(q, r) } : null;
+      if (this.moving && this.renderer.moveFrom) { const f = this.renderer.moveFrom; const pv = isl.board.has(q, r) && !isl.board.get(q, r) ? isl.previewMove(f.q, f.r, q, r) : null; this.renderer.hover = pv ? { q, r, preview: pv, tile: isl.board.get(f.q, f.r) } : null; }
+      else this.renderer.hover = isl.board.has(q, r) && !isl.board.fog.has(key(q, r)) ? { q, r, preview: isl.board.get(q, r) ? (isl.canBuild(q, r) ? isl.previewBuild(q, r) : null) : isl.preview(q, r) } : null;
     } else this.renderer.hover = null;
     this.particles.update(dt); this.fx.update(dt); this.shake.update(dt);
     const b = (() => { const tl = this.cam.toWorldPoint(0, 0), br = this.cam.toWorldPoint(STAGE.W, STAGE.H); return { minX: tl.x, maxX: br.x, minY: tl.y, maxY: br.y }; })();

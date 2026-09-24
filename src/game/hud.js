@@ -10,6 +10,7 @@ import { deadlineLabel } from './wishes.js';
 import { Assets } from '../core/assets.js';
 import { AudioSys } from '../core/audio.js';
 import { RARE_DECOR, spriteKey } from './decor.js';
+import { NOMS_COULEURS, P as PB } from './brume.js';
 
 const icon = (name, cls = '') => `<img class="hud-icon ${cls}" src="assets/img/ui/${name}.png" alt="">`;
 /** Les messages qui passent aussi dans le ruban (les autres ne vont qu'au journal), avec leur couleur. */
@@ -17,7 +18,7 @@ const RIBBON_KINDS = { warn: '#b5523f', wish: '#8e6bb5', gold: '#b8862b', rare: 
 const SEASON_ICON = { spring: 'icon_leaf', summer: 'icon_sun', autumn: 'icon_wind', winter: 'icon_snow' };
 
 export class Hud {
-  constructor(root, island, { title, onPause, onPick, onDiscard, onUndo, onGardenPick, onPlace, compact = false, mechanics }) {
+  constructor(root, island, { title, onPause, onPick, onDiscard, onUndo, onGardenPick, onPlace, onMove, compact = false, mechanics }) {
     this.root = root; this.isl = island; this.mech = mechanics;
     const m = mechanics;
     root.innerHTML = `
@@ -39,6 +40,12 @@ export class Hud {
           <button class="pw" data-ref="pwDiscard" title="Défausser la tuile (X)">${icon('icon_cross')}<span>Défausser</span><em>${BALANCE.breaths.discard}</em></button>
           <button class="pw" data-ref="pwUndo" title="Annuler la dernière pose (Z), une fois par saison">${icon('icon_return')}<span>Annuler</span><em data-ref="undoCost">${BALANCE.breaths.undo}</em></button>
         </div>
+        <div class="hud-brume ${island.brume ? '' : 'hidden'}" data-ref="brume">
+          <div class="queue-title"><span>Sous la brume</span><span class="brume-left" data-ref="brumeLeft"></span></div>
+          <div class="brume-inv" data-ref="brumeInv"></div>
+          <div class="brume-jalon" data-ref="brumeJalon"></div>
+          <button class="pw brume-move" data-ref="brumeMove" title="Déplacer une tuile posée : la prochaine tuile est perdue">${icon('icon_return')}<span>Déplacer</span><em>1 tuile</em></button>
+        </div>
         <div class="garden-pick ${island.garden ? '' : 'hidden'}" data-ref="gardenPick"><div class="queue-title" data-ref="pickTitle">Choisir</div><div class="gpick-list" data-ref="pickList"></div></div>
       </div>
       <div class="hud-wishes ${island.wishes.length ? '' : 'hidden'} ${compact ? 'collapsed' : ''}" data-ref="wishes"><button class="wish-toggle" data-ref="wishToggle" title="Afficher les vœux">Vœux <b data-ref="wishCount"></b></button><div class="queue-title">Vœux</div><div class="wish-list" data-ref="wishList"></div></div>
@@ -56,6 +63,7 @@ export class Hud {
     { const box = this.r.score.parentNode; box.title = 'D’où viennent les points (toucher)'; box.style.cursor = 'pointer'; box.addEventListener('click', (e) => { e.stopPropagation(); this.toggleScorePop(); }); }
     this.r.pwDiscard.addEventListener('click', (e) => { e.stopPropagation(); onDiscard(); });
     this.r.pwUndo.addEventListener('click', (e) => { e.stopPropagation(); onUndo(); });
+    this.r.brumeMove.addEventListener('click', (e) => { e.stopPropagation(); onMove && onMove(); });
     this.log = []; this.unread = 0;
     this.r.thClose.addEventListener('click', (e) => { e.stopPropagation(); this.setTileHelp(false); });
     // Sur téléphone la fiche est repliée à deux lignes : un appui la déplie en entier (les tuiles bavardes — l'eau, la
@@ -161,6 +169,21 @@ export class Hud {
     if (dc !== this.last.discardCost) { this.last.discardCost = dc; const em = this.r.pwDiscard.querySelector('em'); if (em) em.textContent = String(dc); this.r.pwDiscard.classList.toggle('free', dc === 0); }
   }
 
+  /** Sous la brume : l'inventaire de ce qui est caché, le jalon de la saison, le bouton Déplacer. */
+  renderBrume(moving = false) {
+    const isl = this.isl, B = isl.brume; if (!B) return;
+    const nom = (id) => (id === 'tresor' ? 'trésor' : NOMS_COULEURS[id] || ((STORY.tiles[id] || {}).name || id).toLowerCase());
+    const inv = isl.inventaireBrume;
+    const html = inv.map((e) => `<span class="binv ${e.id === 'tresor' || (STORY.tiles[e.id] && B.cachees && [...B.cachees.values()].some((t) => t.tresor && t.family === e.id)) ? 'tresor' : ''}" style="--fam:${FAMILY_COLORS[e.id] || '#8a867c'}">${e.n > 1 ? `${e.n} ` : ''}${nom(e.id)}</span>`).join('') || '<span class="binv vide">plus rien de caché</span>';
+    if (html !== this.last.brumeInv) { this.last.brumeInv = html; this.r.brumeInv.innerHTML = html; }
+    const left = isl.board.fog.size ? `${isl.board.fog.size} case${isl.board.fog.size > 1 ? 's' : ''} · dévoilée${B.cran.devoile > 1 ? 's' : ''} à ${B.cran.devoile} voisines` : '';
+    if (left !== this.last.brumeLeft) { this.last.brumeLeft = left; this.r.brumeLeft.textContent = left; }
+    const j = !isl.board.fog.size ? '' : B.jalonSaison ? 'Jalon planté cette saison' : B.cran.jalonObligatoire ? `Jalon à planter (sinon ${PB.jalonManque}) : touche une case de brume` : 'Jalon possible : touche une case de brume';
+    if (j !== this.last.brumeJalon) { this.last.brumeJalon = j; this.r.brumeJalon.textContent = j; this.r.brumeJalon.classList.toggle('due', !B.jalonSaison && B.cran.jalonObligatoire); }
+    this.r.brumeMove.classList.toggle('on', !!moving);
+    this.r.brumeMove.disabled = isl.ended || !isl.queue.list.length;
+  }
+
   buildGardenPick() {
     const w = this.isl.def.weights || {};
     const fams = FAMILIES.filter((f) => this.isl.garden || (w[f] || 0) > 0);
@@ -255,7 +278,7 @@ export class Hud {
   /** Bouton « Poser ici » (tactile) : total de la pose armée, ou null pour le masquer. */
   setPlaceButton(total, mode = 'place') {
     if (total === null || total === undefined) { if (!this.r.placeBtn.classList.contains('hidden')) this.r.placeBtn.classList.add('hidden'); return; }
-    const txt = `${mode === 'fuse' ? 'Fusionner ici' : mode === 'build' ? 'Bâtir ici' : 'Poser ici'} · ${total >= 0 ? '+' : ''}${total}`;
+    const txt = `${mode === 'fuse' ? 'Fusionner ici' : mode === 'build' ? 'Bâtir ici' : mode === 'move' ? 'Déplacer ici' : 'Poser ici'} · ${total >= 0 ? '+' : ''}${total}`;
     if (this.last.placeTxt !== txt) { this.last.placeTxt = txt; this.r.placeBtn.textContent = txt; this.r.placeBtn.classList.toggle('neg', total < 0); }
     this.r.placeBtn.classList.remove('hidden');
   }
@@ -282,7 +305,7 @@ export class Hud {
     // hauteur réelle de la barre du haut (elle passe sur deux lignes en portrait) : les panneaux dessous s'y calent
     if ((this._frame = (this._frame || 0) + 1) % 20 === 0) { const hh = this.r.top ? this.r.top.offsetHeight : 0; if (hh && hh !== this._topH) { this._topH = hh; this.root.style.setProperty('--hud-top-h', `${hh}px`); } }
     if (!this.r.scorePop.classList.contains('hidden') && this._scorePopScore !== isl.score) this.renderScorePop();
-    if (!isl.infinite && !isl.garden && !isl.tempo) {
+    if (!isl.infinite && !isl.garden && !isl.tempo && !isl.brume) {
       // l'étoile d'or ne se montre qu'au bilan : pendant la partie, un seul juge, les trois étoiles
       const th = isl.thresholds; const reached = th.filter((t) => isl.score >= t).length;
       const line = reached >= 3 ? '★★★' : `${'★'.repeat(reached)}☆ ${th[reached]}`;
@@ -293,9 +316,10 @@ export class Hud {
       else if (shownReached > this.last.reached) { this.last.reached = shownReached; this.starReached(shownReached); }
     }
     this.set('breaths', String(isl.breaths));
+    if (isl.brume) this.renderBrume(this.moving);
     this.set('left', isl.infinite || isl.garden ? '' : `${isl.queue.remaining} restante${isl.queue.remaining > 1 ? 's' : ''}`);
     r.pwDiscard.disabled = !isl.canDiscard();
-    r.pwUndo.disabled = !isl.canUndo();
+    r.pwUndo.disabled = !isl.canUndo(); if (isl.brume && !this.last.undoHidden) { this.last.undoHidden = true; r.pwUndo.classList.add('hidden'); }   // pas de souvenir sous la brume
     this.renderQueue(); this.renderWishes(); this.renderFauna(); this.renderTileHelp();
   }
 

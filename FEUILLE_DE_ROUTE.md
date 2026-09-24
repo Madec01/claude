@@ -154,18 +154,31 @@ Le jeu de base reste lent ; ces deux modes sont l'inverse assumé, chacun avec s
 | Été (retenu) | « les grandes heures » : une réserve de 12 s pour la saison, pas de cadran par tuile, ce qu'on gagne sur le facile sert au difficile |
 | Statut | **fait** (24 septembre, journal 139) ; v2 sur retours du commanditaire (journal 140) : tuile seule en grand centrée en bas, jamais la suivante, décompte avant le début, musique énergique, récapitulatif des règles avant l'île ; v3 (journal 143) : le temps se lit sur la mer, une houle qui déferle sur la côte ; v4 (journal 144) : chronomètre au-dessus de l'île, chiffre et marée ; reste l'image du tampon, à faire faire |
 
-### « Sous la brume » (démineur : 5 à 10 tuiles retournées, on sait lesquelles, pas où)
+### « Sous la brume » (démineur : un tiers des cases cachées, on sait lesquelles, pas où)
 
-| Règle | Décision |
+Des cases de l'île sont sous la brume ; dessous, des tuiles déjà posées. On voit **quelles cases** sont cachées et
+**l'inventaire** de ce qu'elles cachent, jamais quelle tuile est où. On déduit en posant, on parie quand la déduction
+s'arrête. Visé : du défi, de la stratégie, un peu de hasard — et un hasard **dosé**, pas subi.
+
+| Règle | Décision (commanditaire, 24 septembre) |
 |---|---|
-| Saison | 5 poses ; les tuiles retournées ne se dévoilent qu'au passage de saison, et seulement avec au moins 3 voisines posées ; au dévoilement, elles comptent comme posées à l'instant |
-| Déplacement | une tuile déjà posée peut être déplacée, **au prix de la prochaine tuile à poser** (elle est perdue) ; une tuile engagée contre la brume ne bouge plus avant le dévoilement |
-| Brume et régions | une tuile retournée **ne compte pas** dans les régions ni pour les primes tant qu'elle n'est pas dévoilée : la brume coupe la région |
-| Ce qui force le pari | bords contre une tuile dévoilée ×2 dans les deux sens ; une mise obligatoire par saison (annoncer la famille d'une tuile cachée : juste +5 et deux mises la saison suivante, faux −5, non posée −3) ; chaque tuile encore retournée à la fin : −3 |
-| Information | un seul indice : chaque tuile posée contre la brume affiche combien de ses voisines cachées l'aiment (pas lesquelles), lu à la pose, jamais mis à jour ; ni saison, ni faune, ni rivière ne révèlent rien |
+| Sous la brume | des tuiles ordinaires **et un trésor** : une tuile rare (moulin, chapelle…) annoncée dans l'inventaire. Le dévoilement devient une récompense à aller chercher, pas seulement un soulagement |
+| Indice | une tuile posée contre la brume affiche combien de ses voisines cachées **sont de sa propre famille** (une forêt compte les forêts). Un seul indice, lu à la pose, jamais mis à jour. Choisir quelle tuile de sa main poser contre la brume, c'est **choisir sa question** ; l'information coûte une pose. (Remplace « combien l'aiment » : trop flou, on devinait au lieu de déduire) |
+| Saison | 5 poses ; les tuiles cachées ne se dévoilent qu'au passage de saison, et seulement avec assez de voisines posées (**2** en Brume claire, **3** en Brume épaisse) ; au dévoilement, elles comptent comme posées à l'instant |
+| Brume et régions | une tuile cachée **ne compte pas** dans les régions ni pour les primes tant qu'elle n'est pas dévoilée : la brume coupe la région |
+| Bords | bords contre une tuile dévoilée **×2** dans les deux sens : c'est ce qui empêche de fuir la brume |
+| Jalons | on plante un jalon sur une case cachée en annonçant une famille ; au dévoilement, juste : **+5** et ses bords passent à **×3** ; faux : **−5**. Un jalon par saison, **facultatif en Brume claire, obligatoire en Brume épaisse**. (Remplace la mise forcée, dont le « −3 si non posée » punissait de ne pas avoir joué au bon endroit plutôt que de s'être trompé) |
+| Crayon | on peut annoter une case cachée d'une famille, gratuitement : un aide-mémoire, pas un indice, et sans effet sur le score |
+| Déplacement | une tuile déjà posée peut être déplacée, **au prix de la prochaine tuile à poser** (elle est perdue) ; une tuile engagée contre la brume ne bouge plus avant le dévoilement ; une tuile déplacée contre la brume **affiche un nouvel indice** — une sonde chère, qui permet de sortir d'une impasse autrement qu'à pile ou face |
+| Fin de partie | chaque tuile encore cachée : **−3** |
+| Hasard dosé | chaque île est générée puis passée à un **solveur** ; on ne garde que celles où environ **70 %** des cases cachées se déduisent en jouant bien (moins en Brume épaisse). Le reste impose un pari : le hasard est un réglage choisi, pas un accident |
 | Refusé | sondage aux souffles, indices par particules ou par saison : trop simple, le joueur tenu par la main |
-| Crans | Brume claire (inventaire exact, chiffres toujours) ; Brume épaisse (inventaire par couleur, chiffres une pose sur deux) |
-| Reste à écrire | la suite du gameplay par le commanditaire ; lequel des deux modes se monte en premier |
+| Crans | **Brume claire** : inventaire exact, indices toujours, dévoilement à 2 voisines, jalon facultatif. **Brume épaisse** : inventaire par couleur, indices une pose sur deux, dévoilement à 3 voisines, jalon obligatoire, moins de cases déductibles |
+| Monté (première version, en relecture) | `src/game/brume.js` (génération, indice, solveur, dosage), règles dans `island.js`, rendu, HUD, fiche d'une case, choix du cran ; tests `brume.test.js` et `brume.js`. Réglages de départ : île de 45 à 55 cases, brume sur 14 % des cases (claire) ou 18 % (épaisse), entre 5 et 10 ; trésor +8 ; au dernier coup, un dernier dévoilement avant le −3 ; les améliorations de l'Atelier n'entrent pas dans le mode ; pas de souvenir |
+| Mesuré | part déductible (solveur, joueur modèle qui pose une tuile par case contre la brume et choisit, dans sa main de trois, une famille que la brume peut cacher) : **Brume claire 0,68** en moyenne sur six îles, conforme aux 70 % visés. **Brume épaisse : 0,10 à 0,38, 0,16 en moyenne**, loin des 55 % envisagés : avec l'inventaire par couleur et un indice sur deux, une case a deux ou trois familles possibles et un seul indice la tranche rarement. La cible épaisse est posée à 30 % (le dosage garde les îles les plus déductibles), à trancher en jouant : rendre un indice à chaque pose, ou garder ce cran comme le pari qu'il est. Le robot glouton dévoile toutes les cases avant la fin : le −3 mord peu |
+| Reste à régler | la valeur du trésor, en jouant ; le cran épais (ci-dessus) ; un robot qui sache jouer le mode (jalons, questions choisies) pour des seuils, si l'on veut des étoiles un jour |
+| Coût caché | calibrer les étoiles demande un robot qui sache jouer ce mode, donc le même solveur de déduction ; sans lui, les seuils seraient faux |
+| Intégré (24 septembre, seconde session) | le commanditaire, sur l'analyse de la première version : « beaucoup de tuiles cachées en début de partie et toutes les tuiles accessibles pour poser ». Retenu : **un tiers des cases** sous la brume (mesuré : 14 à 16 cases, part déductible 0,27 à 0,39 en Brume claire, 0,06 en épaisse — c'est un jeu de pari assumé), et **la brume compte comme une voisine pour poser** (presque toute l'île est ouverte dès le départ ; à 40 % de brume, 3 à 5 cases posables avec l'ancienne règle, 22 à 28 avec celle-ci). L'indice reste le même. Le solveur tourne dans un **worker** (une à quatre secondes sur ordinateur à ce taux) ; le panneau du cran attend. Fusionné à la main sur la branche (huit fichiers en conflit avec le Souffle court) ; les trois modes à part ont des tuiles de même taille au menu |
 
 ## Lot 8 : publication (à planifier)
 

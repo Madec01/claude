@@ -13,6 +13,11 @@ export class Board {
     // d'un côté et rien de l'autre. En notant les cellules, une région qui regrandit ne paie que ce qu'elle
     // a gagné, du côté qu'on veut.
     this.closedRegions = new Set();
+    // Mode « Sous la brume » : cases du masque sous la brume. Une tuile y est déjà, mais cachée — elle vit dans
+    // l'île (`Island.brume`), pas ici : tant qu'elle n'est pas dévoilée, elle ne donne aucun bord et n'entre dans
+    // aucune région. La case, elle, n'est ni libre (on n'y pose pas) ni fermée (une région qui la touche reste
+    // ouverte : ce qui s'y cache pourrait en faire partie). Vide hors de ce mode.
+    this.fog = new Set();
   }
 
   /** La région a-t-elle déjà été payée en entier ? */
@@ -39,23 +44,23 @@ export class Board {
   has(q, r) { return this.mask.has(key(q, r)); }
   get(q, r) { return this.tiles.get(key(q, r)) || null; }
   isSea(q, r) { return !this.mask.has(key(q, r)); }
-  isEmpty(q, r) { return this.mask.has(key(q, r)) && !this.tiles.has(key(q, r)); }
+  isEmpty(q, r) { const k = key(q, r); return this.mask.has(k) && !this.tiles.has(k) && !this.fog.has(k); }
   get placed() { return this.tiles.size; }
   get cells() { return this.mask.size; }
 
   /** Voisins dans le masque (posés ou non). */
   landNeighbors(q, r) { return neighbors(q, r).filter(([a, b]) => this.mask.has(key(a, b))); }
 
-  /** Une pose est-elle légale ? (case vide du masque, adjacente à une tuile) */
+  /** Une pose est-elle légale ? (case vide du masque, adjacente à une tuile — ou à une case sous la brume : ce qui s'y cache est déjà une tuile) */
   canPlace(q, r) {
     if (!this.isEmpty(q, r)) return false;
-    return neighbors(q, r).some(([a, b]) => this.tiles.has(key(a, b)));
+    return neighbors(q, r).some(([a, b]) => this.tiles.has(key(a, b)) || this.fog.has(key(a, b)));
   }
 
   /** Toutes les cases où l'on peut poser. */
   legalCells() {
     const out = [];
-    for (const k of this.mask) { if (this.tiles.has(k)) continue; const [q, r] = parse(k); if (neighbors(q, r).some(([a, b]) => this.tiles.has(key(a, b)))) out.push({ q, r }); }
+    for (const k of this.mask) { if (this.tiles.has(k) || this.fog.has(k)) continue; const [q, r] = parse(k); if (neighbors(q, r).some(([a, b]) => this.tiles.has(key(a, b)) || this.fog.has(key(a, b)))) out.push({ q, r }); }
     return out;
   }
 
@@ -108,7 +113,7 @@ export class Board {
 
   /** Une région est close si aucune de ses cases n'a de voisin vide dans le masque. */
   isRegionClosed(reg) {
-    for (const t of reg.cells) for (const [a, b] of neighbors(t.q, t.r)) if (this.isEmpty(a, b)) return false;
+    for (const t of reg.cells) for (const [a, b] of neighbors(t.q, t.r)) if (this.isEmpty(a, b) || this.fog.has(key(a, b))) return false;   // la brume laisse la région ouverte
     return true;
   }
 
@@ -149,10 +154,10 @@ export class Board {
   }
 
   /** Instantané sérialisable (pour le souvenir / annulation). */
-  snapshot() { return { mask: [...this.mask], tiles: [...this.tiles.values()].map((t) => ({ ...t })), closed: [...this.closedRegions] }; }
+  snapshot() { return { mask: [...this.mask], tiles: [...this.tiles.values()].map((t) => ({ ...t })), closed: [...this.closedRegions], fog: [...this.fog] }; }
   restore(s) {
     this.mask = new Set(s.mask); this.tiles = new Map(s.tiles.map((t) => [key(t.q, t.r), { ...t }]));
-    this.closedRegions = new Set(s.closed); this.version = (this.version || 0) + 1;
+    this.closedRegions = new Set(s.closed); this.fog = new Set(s.fog || []); this.version = (this.version || 0) + 1;
     this.sealClosed();
   }
 

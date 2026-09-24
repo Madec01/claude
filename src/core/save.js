@@ -100,6 +100,7 @@ const defaults = () => ({
   backup: { lastAt: null, islandsSince: 0 },   // copie locale (fichier téléchargé) : date de la dernière et îles jouées depuis, pour le rappel
   infinite: { best: 0, bestSeasons: 0, unlocked: false },
   tempo: { best: 0, bestSerie: 0, parties: 0 },   // Le Souffle court : meilleur score tout court, meilleure série, parties jouées
+  brume: { claire: { best: 0, plays: 0 }, epaisse: { best: 0, plays: 0 } },   // Sous la brume : meilleur score et parties par cran
   daily: { best: {}, history: [], streak: 0, lastPlayed: null },
   stats: { placements: 0, closed: 0, fauna: 0, wishes: 0 },
   fixes: {},   // correctifs appliqués une seule fois aux sauvegardes existantes (voir `migrate`)

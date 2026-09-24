@@ -224,7 +224,7 @@ export function collectContext(scene, sceneName) {
     const isl = scene.isl, def = scene.def;
     ctx.ile = {
       id: def.id || null, nom: scene.title || def.name || null, chapitre: def.chapter || null,
-      mode: def.infinite ? 'infinie' : def.garden ? 'jardin' : def.daily ? 'jour' : 'campagne',
+      mode: def.brume ? `brume ${def.brume}` : def.infinite ? 'infinie' : def.garden ? 'jardin' : def.daily ? 'jour' : 'campagne',
       semis: def.semis || null, climat: isl.climate ? isl.climate.id : null,
       saison: SAISONS[isl.season] || isl.season, regle: isl.rule || null,
       poses: isl.placements, score: isl.score, souffles: isl.breaths,
