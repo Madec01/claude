@@ -261,3 +261,17 @@ html.compact .insigne-grand { width: 72px; height: 84px; }
 html.compact .coll-grid { grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 6px; }
 html.compact .coll-iles { grid-template-columns: 1fr; }
 html.compact .panel-collection { overflow: auto; -webkit-overflow-scrolling: touch; }
+
+/* ---- Le Souffle court au téléphone : la grande tuile centrée en bas l'emporte sur la file du bord (mobile.css passe
+   après hud.css, d'où ces règles ici, à spécificité égale ou supérieure) ---- */
+html.compact.portrait #hud.tempo .hud-queue, html.compact.landscape #hud.tempo .hud-queue { left: 50%; right: auto; top: auto; width: auto; height: auto; overflow: visible; flex-direction: column; align-items: center; padding: 0; gap: 6px; transform: translateX(-50%); }
+html.compact.portrait #hud.tempo .hud-queue { bottom: calc(10px + env(safe-area-inset-bottom)); }
+html.compact.landscape #hud.tempo .hud-queue { bottom: 6px; }
+html.compact.portrait #hud.tempo .queue-list, html.compact.landscape #hud.tempo .queue-list { flex: none; min-height: 0; overflow: visible; flex-direction: row; align-items: flex-end; gap: 12px; }
+html.compact.portrait #hud.tempo .qtile.current, html.compact.portrait #hud.tempo .qtile.choix, html.compact.landscape #hud.tempo .qtile.current, html.compact.landscape #hud.tempo .qtile.choix { flex: none; flex-direction: column; }
+html.compact.landscape #hud.tempo .hud-queue > .queue-title { position: static; align-self: center; margin: 0; }
+html.compact.portrait #hud.tempo .hud-queue > .queue-title { position: static; margin: 0; }
+/* les pastilles de faune quittent le bas pour ne pas passer sous la tuile */
+html.compact.portrait #hud.tempo .hud-fauna { bottom: calc(232px + env(safe-area-inset-bottom)); }
+html.compact.landscape #hud.tempo .hud-fauna { left: 8px; right: auto; bottom: 8px; max-width: 28%; }
+html.compact #hud.tempo .tempo-compte { white-space: nowrap; }

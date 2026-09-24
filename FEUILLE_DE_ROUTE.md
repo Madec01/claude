@@ -152,7 +152,7 @@ Le jeu de base reste lent ; ces deux modes sont l'inverse assumé, chacun avec s
 | Cadran | visible en tout temps sans enlaidir : un arc en dégradé autour de la tuile qui se vide (dégradés et animations permis) ; couleur de la saison, rouge dans la dernière seconde |
 | Score | meilleur score tout court (île procédurale) ; île de 40 à 60 cases |
 | Été (retenu) | « les grandes heures » : une réserve de 12 s pour la saison, pas de cadran par tuile, ce qu'on gagne sur le facile sert au difficile |
-| Statut | **fait** (24 septembre, journal 139) : grande tuile au menu, `src/data/tempo.js` + `src/game/tempo.js`, tests Node et navigateur ; reste l'image du tampon, à faire faire |
+| Statut | **fait** (24 septembre, journal 139) ; v2 sur retours du commanditaire (journal 140) : tuile seule en grand centrée en bas, jamais la suivante, décompte avant le début, musique énergique, récapitulatif des règles avant l'île ; reste l'image du tampon, à faire faire |
 
 ### « Sous la brume » (démineur : 5 à 10 tuiles retournées, on sait lesquelles, pas où)
 

@@ -18,15 +18,25 @@ const boot = (p) => p.waitForFunction(() => !document.getElementById('boot'), nu
   const tuile = await page.evaluate(() => { const b = [...document.querySelectorAll('.menu-nav .btn')].find((x) => x.textContent.includes('Souffle court')); return b ? { big: b.classList.contains('btn-big'), disabled: b.disabled, sub: (b.querySelector('.btn-sub') || {}).textContent } : null; });
   check(tuile && tuile.big && !tuile.disabled, `la grande tuile « Le Souffle court » est au menu, ouverte (${JSON.stringify(tuile)})`);
   await page.screenshot({ path: path.join(OUT, 'tempo-menu.png') });
-  // 2. l'île : récit la première fois, puis le cadran sur la tuile
+  // 2. le récapitulatif des règles avant l'île, puis le décompte, puis le cadran sur la tuile — en grand, centrée en bas
   await page.evaluate(() => [...document.querySelectorAll('.menu-nav .btn')].find((x) => x.textContent.includes('Souffle court')).click());
-  await page.waitForFunction(() => window.CS.scenes.currentName === 'story' && document.querySelector('.story-actions button'), null, { timeout: 15000 });
-  await page.evaluate(() => document.querySelector('.story-actions button').click());
+  await page.waitForFunction(() => window.CS.scenes.currentName === 'prep' && document.querySelector('.panel-tempo'), null, { timeout: 15000 });
+  const recap = await page.evaluate(() => ({ regles: document.querySelectorAll('.tp-regle').length, txt: document.querySelector('.panel-tempo').textContent }));
+  check(recap.regles === 5 && /trois secondes/.test(recap.txt) && /série/i.test(recap.txt), `le récapitulatif des règles précède l'île (${recap.regles} règles)`);
+  await page.screenshot({ path: path.join(OUT, 'tempo-recap.png') });
+  await page.evaluate(() => [...document.querySelectorAll('.panel-tempo button')].find((b) => b.textContent.includes('parti')).click());
   await page.waitForFunction(() => window.CS.scenes.currentName === 'island' && window.CS.scenes.current.isl && window.CS.scenes.current.isl.def.tempo, null, { timeout: 20000 });
-  await page.waitForTimeout(400);
-  const hud = await page.evaluate(() => ({ cadran: !!document.querySelector('.q-cadran'), tuiles: document.querySelectorAll('.qtile').length, souffles: getComputedStyle(document.querySelector('.hud-breaths')).display, saison: window.CS.scenes.current.isl.season, tempo: !!window.CS.scenes.current.tempo, tutoriel: !!document.querySelector('#tutorial .tuto-card') }));
+  await page.waitForTimeout(300);
+  const compte = await page.evaluate(() => ({ hold: window.CS.scenes.current.hold, el: (document.querySelector('.tempo-compte') || {}).textContent || '', t: window.CS.scenes.current.tempo.t }));
+  await page.waitForTimeout(900);
+  const compte2 = await page.evaluate(() => ({ t: window.CS.scenes.current.tempo.t, hold: window.CS.scenes.current.hold }));
+  check(compte.hold && /^[321]$/.test(compte.el) && compte2.hold && Math.abs(compte2.t - compte.t) < 0.01, `le décompte retient le cadran (« ${compte.el} », ${compte.t.toFixed(1)} → ${compte2.t.toFixed(1)} s)`);
+  await page.screenshot({ path: path.join(OUT, 'tempo-compte.png') });
+  await page.waitForFunction(() => !window.CS.scenes.current.hold, null, { timeout: 8000 }); await page.waitForTimeout(200);
+  const hud = await page.evaluate(() => { const q = document.querySelector('.qtile.current').getBoundingClientRect(); return { cadran: !!document.querySelector('.q-cadran'), tuiles: document.querySelectorAll('.qtile').length, suivante: document.querySelectorAll('.qtile.next').length, souffles: getComputedStyle(document.querySelector('.hud-breaths')).display, saison: window.CS.scenes.current.isl.season, tempo: !!window.CS.scenes.current.tempo, tutoriel: !!document.querySelector('#tutorial .tuto-card'), cx: Math.round(q.left + q.width / 2), cy: Math.round(q.top + q.height / 2), w: Math.round(q.width) }; });
   check(hud.cadran && hud.tempo && hud.souffles === 'none' && !hud.tutoriel, `l'île s'ouvre avec le cadran, sans souffles ni tutoriel (${JSON.stringify(hud)})`);
-  check(hud.saison === 'spring' && hud.tuiles === 2, `printemps : deux tuiles proposées (${hud.tuiles})`);
+  check(hud.saison === 'spring' && hud.tuiles === 2 && hud.suivante === 0, `printemps : deux tuiles proposées, jamais de « suivante » (${hud.tuiles}, ${hud.suivante})`);
+  check(hud.cy > 400 && hud.w >= 150, `la tuile à poser est en grand, dans la moitié basse (centre y=${hud.cy}, largeur ${hud.w})`);
   await page.screenshot({ path: path.join(OUT, 'tempo-debut.png') });
   // 3. le temps tombe : la tuile est perdue
   const avant = await page.evaluate(() => window.CS.scenes.current.isl.queue.remaining);
@@ -38,7 +48,7 @@ const boot = (p) => p.waitForFunction(() => !document.getElementById('boot'), nu
   const t0 = await page.evaluate(() => window.CS.scenes.current.tempo.t); await page.waitForTimeout(800);
   const t1 = await page.evaluate(() => window.CS.scenes.current.tempo.t);
   check(Math.abs(t1 - t0) < 0.05, `en pause, le cadran ne bouge pas (${t0.toFixed(2)} → ${t1.toFixed(2)})`);
-  await page.keyboard.press('Escape'); await page.waitForTimeout(200);
+  await page.keyboard.press('Escape'); await page.waitForFunction(() => !window.CS.scenes.current.hold, null, { timeout: 8000 }); await page.waitForTimeout(200);
   // 5. un bot joue vite jusqu'au bout : série, saisons, brume d'automne photographiée
   let photoAutomne = false, tours = 0;
   while (tours++ < 400) {

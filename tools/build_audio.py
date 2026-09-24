@@ -491,6 +491,7 @@ MUSIC = {
     "autumn_2": ("Leaving Home", 115, 3.0, "automne (variante) : départ, feuilles qui tombent"),
     "winter_2": ("Night Vigil", 115, 3.0, "hiver (variante) : veille nocturne, froid et calme"),
     "daily": ("Maccary Bay", 115, 3.0, "île du jour : baie tranquille, un jour à la fois"),
+    "tempo": ("Le Grand Chase", 115, 3.0, "Le Souffle court : une course, le mode nerveux veut de l'énergie — la seule piste du miroir qui presse le pas"),
 }
 MUSIC_LUFS = -16.0
 MUSIC_MIN_LOOP = 60.0

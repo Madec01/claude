@@ -146,6 +146,18 @@
       ]
     },
     {
+      "title": "Le Grand Chase",
+      "author": "Kevin MacLeod",
+      "license": "CC BY 4.0",
+      "license_url": "http://creativecommons.org/licenses/by/4.0/",
+      "source_url": "https://incompetech.com/music/royalty-free/index.html?keywords=Le+Grand+Chase",
+      "mirror": "https://github.com/noobsandnerdsgroup/audio",
+      "attribution": "\"Le Grand Chase\" Kevin MacLeod (incompetech.com) — Licensed under Creative Commons: By Attribution 4.0 License — http://creativecommons.org/licenses/by/4.0/",
+      "used_in": [
+        "music/tempo.ogg"
+      ]
+    },
+    {
       "title": "Forest quiet atmosphere with some birds",
       "author": "felix.blume",
       "license": "CC0 1.0",

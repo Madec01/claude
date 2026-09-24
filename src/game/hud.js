@@ -139,8 +139,9 @@ export class Hud {
     const rang = { fuse: 3, restore: 1, build: 0 };
     const genre = cibles.length ? cibles.reduce((a, c) => (rang[c.kind] > rang[a] ? c.kind : a), 'build') : null;
     const ONTO = { build: ['bâtir', 'Peut se poser sur une tuile de la même famille : elle monte de niveau (touche : viser la tuile)'], fuse: ['fusion', 'Peut se poser sur une tuile d’une autre famille : une recette existe'], restore: ['réparer', 'Peut remettre une friche en état'] };
+    // Le Souffle court : jamais la tuile suivante ; au printemps, les deux tuiles proposées sont deux choix de même rang
     const liste = this.isl.tempo && this.isl.season !== 'spring' ? q.list.slice(0, 1) : q.list;
-    const html = liste.map((t, i) => this.tileHtml(t, i === 0 ? 'current' : 'next')).join('');
+    const html = liste.map((t, i) => this.tileHtml(t, i === 0 ? 'current' : this.isl.tempo ? 'choix' : 'next')).join('');
     const cle = `${html}|${genre || ''}|${cibles.length}`;   // la pastille dépend du plateau, pas seulement de la file
     if (cle !== this.last.queue) {
       this.last.queue = cle;

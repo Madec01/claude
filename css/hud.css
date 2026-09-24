@@ -300,3 +300,36 @@ html:not(.compact) .tile-help { left: 220px; bottom: 54px; }
    Leur zone de toucher s'élargit sans changer leur dessin. */
 html.touch .q-help::after, html.touch .th-close::after { content: ''; position: absolute; inset: -10px; }
 html.touch .th-close { position: relative; }
+
+/* ---- Le Souffle court : la tuile à poser, en grand, centrée dans la moitié basse ; jamais la suivante ---- */
+#hud.tempo .hud-queue { left: 50%; right: auto; top: auto; bottom: 6%; width: auto; transform: translateX(-50%); align-items: center; gap: 10px; }
+#hud.tempo .hud-queue > .queue-title { justify-content: center; }
+#hud.tempo .queue-list { flex-direction: row; align-items: flex-end; gap: 18px; }
+#hud.tempo .qtile.current, #hud.tempo .qtile.choix { flex-direction: column; padding: 14px 18px 10px; border-radius: 18px; gap: 6px; }
+#hud.tempo .qtile.current img, #hud.tempo .qtile.choix img { width: 150px; height: 175px; }
+#hud.tempo .qtile.current .qname, #hud.tempo .qtile.choix .qname { font-size: 18px; }
+#hud.tempo .qtile.choix { border-color: var(--breath); box-shadow: 0 0 0 3px rgba(47,158,143,0.25), 0 6px 18px rgba(30,50,70,0.15); cursor: pointer; }
+#hud.tempo .qtile.current .q-cadran { inset: -10px; border-radius: 24px; padding: 7px; }
+#hud.tempo .qtile.current .q-temps { font-size: 14px; right: 12px; bottom: 10px; }
+#hud.tempo .qtile.current .q-serie { right: 12px; top: 10px; }
+#hud.tempo .qtile.current .q-help { left: 8px; top: 8px; }
+#hud.tempo .powers, #hud.tempo .garden-pick { display: none; }
+#hud.tempo .hud-fauna { left: 20px; bottom: 20px; max-width: 24%; }
+/* téléphone : même chose, un peu plus petit, au-dessus de la zone sûre */
+html.compact #hud.tempo .hud-queue { left: 50%; right: auto; top: auto; bottom: calc(10px + env(safe-area-inset-bottom)); width: auto; flex-direction: column; padding: 0; gap: 6px; }
+html.compact #hud.tempo .queue-list { flex-direction: row; overflow: visible; }
+html.compact #hud.tempo .qtile.current, html.compact #hud.tempo .qtile.choix { flex-direction: column; padding: 10px 14px 8px; }
+html.compact.portrait #hud.tempo .qtile.current img, html.compact.portrait #hud.tempo .qtile.choix img { width: 112px; height: 130px; }
+html.compact.landscape #hud.tempo .hud-queue { bottom: 6px; }
+html.compact.landscape #hud.tempo .qtile.current img, html.compact.landscape #hud.tempo .qtile.choix img { width: 66px; height: 77px; }
+html.compact.landscape #hud.tempo .qtile.current, html.compact.landscape #hud.tempo .qtile.choix { padding: 6px 12px 4px; gap: 2px; }
+html.compact.landscape #hud.tempo .qtile.current .qname, html.compact.landscape #hud.tempo .qtile.choix .qname { font-size: 12px; }
+html.compact.landscape #hud.tempo .qtile.current .q-cadran { inset: -7px; padding: 5px; border-radius: 18px; }
+html.compact.landscape #hud.tempo .hud-queue { gap: 2px; }
+html.compact #hud.tempo .qtile.current .qname, html.compact #hud.tempo .qtile.choix .qname { font-size: 14px; }
+html.compact #hud.tempo .hud-queue > .queue-title { position: static; margin: 0; }
+/* le décompte : trois, deux, un, pose — au centre, une pulsation par chiffre */
+.tempo-compte { position: absolute; left: 50%; top: 42%; transform: translate(-50%, -50%); white-space: nowrap; font-family: var(--font-title); font-size: 96px; font-weight: 700; color: var(--ink); text-shadow: 0 2px 20px rgba(244,239,230,0.95), 0 0 40px rgba(244,239,230,0.9); pointer-events: none; z-index: 5; }
+.tempo-compte.tic { animation: compte-tic 0.75s var(--ease-out) both; }
+@keyframes compte-tic { from { transform: translate(-50%, -50%) scale(1.6); opacity: 0; } 30% { transform: translate(-50%, -50%) scale(1); opacity: 1; } to { transform: translate(-50%, -50%) scale(0.92); opacity: 0.85; } }
+html.compact .tempo-compte { font-size: 72px; top: 38%; }

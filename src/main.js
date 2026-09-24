@@ -40,6 +40,7 @@ import { celebrate, celebrateThing } from './ui/achievements.js';
 import { UPGRADES, playerChapter } from './data/upgrades.js';
 import { Version } from './core/version.js';
 import { tempoDef } from './data/tempo.js';
+import { buildTempoPrep } from './ui/tempo_prep.js';
 import { Tempo } from './game/tempo.js';
 import { buildWishesIntro } from './ui/wishes_intro.js';
 import { buildIslandPrep } from './ui/island_prep.js';
@@ -379,7 +380,7 @@ const Game = {
   noteMode(k) { Save.data.seen = Save.data.seen || {}; if (!Save.data.seen[k]) { Save.data.seen[k] = true; Save.save(); } },
   startInfinite() { this.noteMode('mode_infinite'); scenes.go('story', { screens: infiniteScreens(), onDone: () => scenes.go('island', { def: INFINITE }, { fade: 0.5 }) }); },
   /** Le Souffle court : le récit d'ouverture la première fois seulement ; ensuite, droit sur une île neuve. */
-  startTempo() { const vu = !!(Save.data.seen && Save.data.seen.mode_tempo); this.noteMode('mode_tempo'); const def = tempoDef(); const go = () => scenes.go('island', { def }, { fade: 0.5 }); if (vu) go(); else scenes.go('story', { screens: tempoScreens(), onDone: go }); },
+  startTempo() { this.noteMode('mode_tempo'); const def = tempoDef(); scenes.go('prep', { node: buildTempoPrep({ onStart: () => { AudioSys.play('ui_confirm', { volume: 0.5 }); hideUI(); scenes.go('island', { def }, { fade: 0.4 }); }, onBack: () => this.showMenu() }) }); },
   startDaily() { this.noteMode('mode_daily'); const def = dailyDef(); this.prepIsland(def, dailyScreens(def)); },
   startGarden() { this.noteMode('mode_garden'); scenes.go('story', { screens: gardenScreens(), onDone: () => scenes.go('island', { def: GARDEN }, { fade: 0.5 }) }); },
 
@@ -573,7 +574,8 @@ class IslandScene {
     if (!this.resumed) { RunSave.archiveKept(); RunSave.clear(); }   // une nouvelle île remplace la partie gardée : celle qu'on laisse passe dans l'historique, pour pouvoir l'illustrer plus tard
     this.isl = isl;
     this.runDirty = false; this.runTimer = 0;
-    this.cam = new Camera(); this.cam.fit(isl.board.mask, { ...uiMargins('island'), immediate: true });
+    this.marges = () => uiMargins(def.tempo ? 'tempo' : 'island');
+    this.cam = new Camera(); this.cam.fit(isl.board.mask, { ...this.marges(), immediate: true });
     this.armed = null;   // tactile : case « armée » (aperçu affiché) en attente d'une seconde touche
     this.particles = new ParticleSystem(1500); this.fx = new Effects(this.particles); this.shake = new Shake(); this.shake.enabled = Save.options.shake !== false;
     this.renderer = new IslandRenderer(isl, this.cam, this.fx, this.particles);
@@ -599,10 +601,10 @@ class IslandScene {
     isl.on((e) => this.onEvent(e));
     isl.on((e) => { if (!Game.testMode && !def.tempo) Achievements.onIslandEvent(e, isl); });
     // Le Souffle court : le cadran, la série et les saisons à effets ; la brume d'automne est lue par le rendu
-    this.tempo = def.tempo ? new Tempo(this) : null; if (this.tempo) this.renderer.brume = this.tempo.brume;
+    this.tempo = def.tempo ? new Tempo(this) : null; if (this.tempo) { this.renderer.brume = this.tempo.brume; document.getElementById('hud').classList.add('tempo'); this.compteARebours(); }
     // audio
     this.seasonCount = { [isl.season]: 1 };
-    AudioSys.playMusic(def.garden ? 'garden' : (def.daily || def.tempo) && AudioSys.has('daily', 'music') ? 'daily' : seasonMusic(isl.season, 1), { fade: 2 });
+    AudioSys.playMusic(def.garden ? 'garden' : def.tempo && AudioSys.has('tempo', 'music') ? 'tempo' : def.daily && AudioSys.has('daily', 'music') ? 'daily' : seasonMusic(isl.season, 1), { fade: 2 });
     this.updateAmbience(true);
     AudioSys.play('island_start', { volume: 0.6 });
     // entrées
@@ -624,6 +626,23 @@ class IslandScene {
     window.addEventListener('blur', this.onLeave);
     document.getElementById('stage').classList.add('playing');
     if (this.resumed) { this.hud.notify('Partie reprise là où vous l’aviez laissée', 'info'); this.saveRun(true); }
+  }
+
+  /**
+   * Souffle court : trois, deux, un — le cadran ne part pas sans prévenir. Tant qu'il compte, rien ne se pose
+   * (`hold`) et le temps ne s'écoule pas. Aussi au retour de pause, plus vite.
+   */
+  compteARebours(pas = 0.8) {
+    if (!this.tempo || this.isl.ended) return;
+    this.hold = true;
+    const el = h('div', { class: 'tempo-compte' }); document.getElementById('hud').appendChild(el);
+    const etapes = ['3', '2', '1', 'Pose !'];
+    etapes.forEach((txt, i) => setTimeout(() => {
+      if (!this.tempo) return;
+      el.textContent = txt; el.classList.remove('tic'); void el.offsetWidth; el.classList.add('tic');
+      AudioSys.play(i < 3 ? 'point_3' : 'island_start', { volume: i < 3 ? 0.5 : 0.7 });
+      if (i === etapes.length - 1) { this.hold = false; this.tempo.armer(); setTimeout(() => el.remove(), 500); }
+    }, i * pas * 1000));
   }
 
   /** Range la partie en cours (appareil seulement, jamais en ligne). */
@@ -862,7 +881,7 @@ class IslandScene {
     else if (this.isl.board.get(q, r) && this.isl.buildOn && this.isl.current && !this.isl.current.rare && this.isl.board.get(q, r).family === this.isl.current.family && this.isl.breaths < BALANCE.build.cost) { AudioSys.play('tile_invalid', { volume: 0.5 }); this.hud.notify(`Bâtir demande ${BALANCE.build.cost} souffle`, 'warn'); }
   }
   onMouseUp(b, x, y) { if (b === 2 || b === 1) this.drag = null; }
-  onResize() { if (this.cam && this.isl) this.cam.fit(this.isl.board.mask, uiMargins('island')); }
+  onResize() { if (this.cam && this.isl) this.cam.fit(this.isl.board.mask, this.marges()); }
   /** Tactile : première touche = aperçu (case armée), seconde touche sur la même case = pose. */
   onTap(x, y) {
     if (this.finale && !this.finale.done) { this.finale.skip(); return; }
@@ -923,7 +942,7 @@ class IslandScene {
       this.saveRun(true);
       const build = () => buildPause({ title: this.title, sub: this.pauseSub(), kept: !Game.testMode, onResume: () => this.togglePause(false), onJournal: () => { this.togglePause(false); this.hud.toggleLog(true); }, journalCount: this.hud.unread, onRestart: () => { RunSave.clear(); scenes.go('island', { def: this.def }, { fade: 0.5 }); }, onOptions: () => Game.showOptions(() => showUI(build(), 'pause-wrap')), onGuide: () => Game.showGuide(() => showUI(build(), 'pause-wrap')), onFullscreen: () => { Game.toggleFullscreen(); setTimeout(() => { if (this.paused) showUI(build(), 'pause-wrap'); }, 400); }, onMenu: () => scenes.go('menu'), onPostcard: () => { try { showUI(buildPostcard({ canvas: renderPostcard(this), filename: postcardName(this), onBack: () => showUI(build(), 'pause-wrap') }), 'panel-wrap'); } catch (e) { console.warn('carte postale', e); } }, onReport: () => Game.showReport(() => showUI(build(), 'pause-wrap')) });
       showUI(build(), 'pause-wrap');
-    } else { hideUI(); AudioSys.play('ui_close', { volume: 0.5 }); }
+    } else { hideUI(); AudioSys.play('ui_close', { volume: 0.5 }); if (this.tempo) this.compteARebours(0.6); }
   }
 
   update(dt) {

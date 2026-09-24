@@ -247,3 +247,12 @@ html:not(.compact) .menu-pair > .btn:last-child { grid-column: 1 / -1; }
 
 /* Le Souffle court : la grande tuile du mode nerveux, un liseré de la couleur de la perte pour la distinguer de la campagne */
 .menu-nav .btn-tempo:not(:disabled) { border-color: rgba(217,95,75,0.45); }
+
+/* Le Souffle court, avant l'île : les règles en cinq lignes */
+.panel-tempo { max-width: 640px; }
+.tp-regles { display: flex; flex-direction: column; gap: 8px; margin: 6px 0 4px; text-align: left; }
+.tp-regle { display: flex; align-items: flex-start; gap: 12px; background: rgba(255,255,255,0.7); border-radius: 12px; padding: 10px 12px; }
+.tp-regle .icon { width: 22px; height: 22px; flex: 0 0 auto; margin-top: 2px; filter: invert(0.3); }
+.tp-regle b { display: block; font-size: 15px; margin-bottom: 2px; }
+.tp-regle span { font-size: 13.5px; line-height: 1.4; opacity: 0.85; }
+html.compact .tp-regle { padding: 8px 10px; gap: 10px; } html.compact .tp-regle span { font-size: 12.5px; }

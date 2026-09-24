@@ -33,6 +33,8 @@ export function layoutStage() {
 
 /** Marges d'interface (px logiques) laissées libres autour de l'île pour le cadrage de la caméra. */
 export function uiMargins(kind = 'island') {
+  // Le Souffle court : la tuile à poser occupe le bas de l'écran, l'île se tient dans la moitié haute
+  if (kind === 'tempo') return !STAGE.compact ? { uiLeft: 40, uiRight: 40, uiTop: 70, uiBottom: 290, padding: 30 } : STAGE.portrait ? { uiLeft: 8, uiRight: 8, uiTop: 92, uiBottom: 260, padding: 20 } : { uiLeft: 10, uiRight: 10, uiTop: 50, uiBottom: 135, padding: 16 };
   if (!STAGE.compact) return kind === 'ambient' ? { uiLeft: 380, uiRight: 40, uiTop: 40, uiBottom: 40 } : { uiLeft: 220, uiRight: 260, uiTop: 70, uiBottom: 60 };
   if (kind === 'ambient') return { uiLeft: 10, uiRight: 10, uiTop: STAGE.portrait ? 200 : 10, uiBottom: 10, padding: 30 };
   return STAGE.portrait ? { uiLeft: 8, uiRight: 8, uiTop: 92, uiBottom: 160, padding: 24 } : { uiLeft: 130, uiRight: 8, uiTop: 50, uiBottom: 40, padding: 24 };
