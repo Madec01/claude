@@ -53,11 +53,15 @@ lance_fond() {
   if node "tests/$t" > "$LOG.$t" 2>&1; then echo "=== $t ===  ok  ($((SECONDS - debut)) s)"
   else echo "=== $t ===  RATÉ ($((SECONDS - debut)) s) — voir $LOG"; touch "$LOG.$t.rate"; fi
 }
+# on n'attend que les tests, pas le serveur lancé plus haut : un `wait` nu l'attendait lui aussi, et la suite ne rendait
+# jamais son verdict quand c'est elle qui avait dû lancer le serveur
+JOBS=()
 for t in $NAV; do
-  while [ "$(jobs -rp | wc -l)" -ge "$PARALLELE" ]; do sleep 1; done
+  while [ "$(jobs -rp | grep -vc "^$SERVEUR\$")" -ge "$PARALLELE" ]; do sleep 1; done
   lance_fond "$t.js" &
+  JOBS+=($!)
 done
-wait
+[ "${#JOBS[@]}" -gt 0 ] && wait "${JOBS[@]}"
 for t in $NAV; do
   { echo "=== $t.js ==="; cat "$LOG.$t.js"; } >> "$LOG"; rm -f "$LOG.$t.js"
   if [ -e "$LOG.$t.js.rate" ]; then RATES=$((RATES + 1)); rm -f "$LOG.$t.js.rate"; fi
