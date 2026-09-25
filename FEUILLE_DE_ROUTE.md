@@ -3,6 +3,19 @@
 > Idées d'enrichissement du jeu, à remplir au fil du développement. Statuts : **à faire**, **en cours**, **fait**, **écarté**.
 > Chaque entrée livrée reçoit une ligne dans le Journal des modifications de `JOURNAL_DE_BORD.md`.
 
+## Audit de gameplay du 25 septembre : trois feuilles, une par mode
+
+Rapport : `docs/AUDIT_GAMEPLAY_2026-09-25.pdf`. Chaque constat a été revérifié dans le code, puis planifié mode par mode ;
+chaque feuille finit par les décisions à prendre par le commanditaire, avec une recommandation par défaut.
+
+| Mode | Feuille | Première étape |
+|---|---|---|
+| L'Histoire (campagne) | `docs/FEUILLE_HISTOIRE.md` | annulation sans dette, numéros d'îles uniques, friche seulement quand on sait la réparer, aperçu qui ne recalcule plus le décor |
+| Le Souffle court | `docs/FEUILLE_SOUFFLE_COURT.md` | records honnêtes (aide et pause), été sans pertes en rafale, printemps qui jette la bonne tuile |
+| Sous la brume | `docs/FEUILLE_BRUME.md` | indices toujours exacts, règles affichées = règles appliquées |
+
+Statut : **à faire**, en attente des décisions du commanditaire.
+
 ## Retenu par le commanditaire (prochain lot)
 
 | # | Idée | Décision de design | Statut |
