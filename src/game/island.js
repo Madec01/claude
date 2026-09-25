@@ -8,7 +8,7 @@ import { FUSION_BY_ID, RETIRED_RARE, RETIRED_WORKS, RARE_SEASONAL } from '../dat
 import { climateOf } from '../data/climates.js';
 import { transition, nextSeason } from './seasons.js';
 import { evaluate as evalFauna, reconcile } from './fauna.js';
-import { initWishes, updateWishes } from './wishes.js';
+import { initWishes, updateWishes, besoinsVoeu, poseLimite } from './wishes.js';
 import { TileQueue } from './queue.js';
 import { generateMask, enclosedHoles } from '../data/islands.js';
 import { videsMalus } from '../data/tempo.js';
@@ -86,7 +86,7 @@ export class Island {
     this.queue = new TileQueue(seed * 3 + 11, def.weights, total, visible);
     // ouverture guidée : les premières tuiles des îles d'apprentissage sont fixées (pas de marais ni de sable en première minute)
     this.pendingOpening = [];
-    if (def.opening) { def.opening.forEach((f, i) => { if (i < this.queue.list.length) this.queue.list[i] = this.queue.makeTile(f); }); this.pendingOpening = def.opening.slice(this.queue.list.length); }
+    if (def.opening) { def.opening.forEach((f, i) => { if (i < this.queue.list.length) this.queue.remplacer(i, f); }); this.pendingOpening = def.opening.slice(this.queue.list.length); }
     if ((this.upgrades.rare || 0) > 0) this.queue.inject(this.queue.makeRare([null, 'well', 'mill', 'granary'][Math.min(3, this.upgrades.rare)]), false);
     // Talisman : un ouvrage dans la file de départ (après la création de la file)
     this.baseMods = { river: BALANCE.upgrades.source[this.upgrades.source || 0] || 0, refuge: BALANCE.upgrades.refuge[this.upgrades.refuge || 0] || 0 };
@@ -98,6 +98,7 @@ export class Island {
     this.score = 0;
     this.breaths = BALANCE.breaths.start[this.upgrades.breath || 0];
     this.wishes = initWishes(def.wishes || []);
+    this.promettreVoeux();
     this.fauna = new Map();
     // d'où viennent les points : cumul par source (le « pourquoi » du score), et le meilleur coup de la partie
     this.tally = { edges: 0, base: 0, closes: 0, seasons: 0, wishes: 0, fauna: 0, fusions: 0, build: 0 };
@@ -136,6 +137,22 @@ export class Island {
   }
 
   /** Modificateurs de règles (améliorations, règle de la saison, climat). */
+  /**
+   * Chaque vœu promet ses tuiles à la file : les familles et le nombre qu'il demande (`besoinsVoeu`), une de plus quand il
+   * en faut plusieurs (droit à une erreur de placement), toutes données avant 80 % de son échéance. Seules les familles
+   * que la file de l'île connaît sont promises : un vœu ne fait jamais apparaître une famille pas encore présentée.
+   */
+  promettreVoeux() {
+    if (!this.wishes.length || !this.queue) return;
+    const depart = {}; for (const t of this.board.tiles.values()) for (const f of Board.familiesOf(t)) depart[f] = (depart[f] || 0) + 1;
+    const w = this.def.weights || {}; const promesses = [];
+    for (const v of this.wishes) {
+      const fin = Math.floor(poseLimite(v.def, { startSeason: this.def.startSeason, seasonLength: this.seasonLength, cells: this.def.cells }) * 0.8);
+      for (const [family, n] of Object.entries(besoinsVoeu(v.def))) if ((w[family] || 0) > 0) promesses.push({ family, need: n + (n >= 2 ? 1 : 0), fin, voeu: v.def.id });
+    }
+    this.queue.promettre(promesses, depart);
+  }
+
   get mods() { return { river: this.baseMods.river, refuge: this.baseMods.refuge, rule: this.rule, climate: this.climate, ...(this.brume ? { brumeDores: this.brume.saison.dores, brumeMauvais: this.brume.saison.mauvais } : {}) }; }
   /** L'habillage de la saison (pluie, vent, chaleur, neige, redoux), tiré de la surprise en cours : purement visuel. */
   get look() { return this.garden ? null : RULE_LOOK[this.rule] || null; }
@@ -263,7 +280,7 @@ export class Island {
     // meilleur total possible pour cette tuile, pour commenter le coup (cosmétique)
     // meilleur coup de référence, primes de fermeture exclues : garder une fermeture pour plus tard n'est pas une faute
     let best = -Infinity; if (!this.garden) for (const c of this.board.legalCells()) { const p = preview(this.board, c.q, c.r, tile, this.season, this.mods); if (!p) continue; const v = p.total - p.closes.reduce((a, x) => a + x.bonus, 0); if (v > best) best = v; }
-    if (!tileOverride) { this.queue.take(); if (this.pendingOpening.length && this.queue.list.length) this.queue.list[this.queue.list.length - 1] = this.queue.makeTile(this.pendingOpening.shift()); }
+    if (!tileOverride) { this.queue.take(); if (this.pendingOpening.length && this.queue.list.length) this.queue.remplacer(this.queue.list.length - 1, this.pendingOpening.shift()); }
     const placedTile = tile;
     if (this.brume) this.jugerCoup(q, r, placedTile);
     const res = apply(this.board, q, r, placedTile, this.season, this.mods);

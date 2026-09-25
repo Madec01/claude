@@ -663,6 +663,31 @@ for (const def of ISLANDS.slice(0, 4)) {
   { const S = { best: 420, bestSerie: 9, parties: 4, cadran: 5 }; recordsTempo(S); const une = JSON.stringify(S); recordsTempo(S); S.bests[5] = 100; recordsTempo(S);
     check(S.bests[3] === 420 && S.series[3] === 9 && une === JSON.stringify({ ...S, bests: { 3: 420 } }) && S.bests[5] === 100, `records rangés par délai : l'ancien passe à 3 s (${S.bests[3]}), la migration ne se rejoue pas`); }
 }
+// --- vœux faisables (25 septembre 2026) : chaque vœu promet ses tuiles, la file les donne avant 80 % de l'échéance,
+// quel que soit le semis et pour toute île du jour (retour du commanditaire : « trois vergers » avec un seul verger en jeu)
+{
+  const { besoinsVoeu, poseLimite } = await import('../src/game/wishes.js');
+  const { SEMIS, applySemis } = await import('../src/data/semis.js');
+  const { dailyDef } = await import('../src/data/daily.js');
+  const { RARE_AS } = await import('../src/data/tiles.js');
+  const fams = (t) => (t.rare ? RARE_AS[t.family] || [] : [t.family]);
+  const sequence = (d) => { const isl = new Island(d, { upgrades: {}, ...(d.mech ? islandOptions({ mech: d.mech }) : {}) }); const seq = []; const vus = new Set(); const push = () => { for (const t of isl.queue.list) if (!vus.has(t)) { vus.add(t); seq.push(t); } }; push(); let g = 0; while (!isl.queue.empty && g++ < 500) { isl.queue.take(); push(); } return { isl, seq }; };
+  let besoins = 0; const manques = [];
+  const verifie = (d, label) => { const { isl, seq } = sequence(d); const dep = {}; for (const t of isl.board.tiles.values()) for (const f of fams(t)) dep[f] = (dep[f] || 0) + 1;
+    for (const w of isl.wishes) { const fin = Math.floor(poseLimite(w.def, { startSeason: d.startSeason, seasonLength: isl.seasonLength, cells: d.cells }) * 0.8);
+      for (const [f, n] of Object.entries(besoinsVoeu(w.def))) { if (!((d.weights || {})[f] > 0)) continue; besoins++; const vues = seq.slice(0, fin).filter((t) => fams(t).includes(f)).length + (dep[f] || 0); if (vues < n) manques.push(`${label} · ${w.def.id} · ${f} ${vues}/${n}`); } } };
+  for (let n = 1; n <= CAMPAIGN_SIZE; n++) { const base = campaignIsland(n); for (const sm of SEMIS) { if (sm.id !== 'saisons' && !(base.mech && base.mech.has('semis'))) continue; verifie(sm.id === 'saisons' ? base : { ...base, weights: applySemis(base.weights, sm.id), semis: sm.id }, `île ${n} (${sm.id})`); } }
+  for (let j = 1; j <= 28; j++) verifie(dailyDef(`2026-11-${String(j).padStart(2, '0')}`), `jour ${j}`);
+  check(!manques.length, `vœux faisables : ${besoins} besoins de tuiles, tous donnés avant 80 % de l'échéance${manques.length ? ` — manquent : ${manques.slice(0, 5).join(' ; ')}` : ''}`);
+  // le cas du commanditaire : l'île 9 (Trois Moulins), semis « Pays habité », trois vergers avant l'automne
+  { const base = campaignIsland(9); const d = { ...base, weights: applySemis(base.weights, 'habite'), semis: 'habite' }; const { isl, seq } = sequence(d); const w = isl.wishes.find((x) => x.def.id === 'w7_1'); const fin = poseLimite(w.def, { startSeason: d.startSeason, seasonLength: isl.seasonLength });
+    const vergers = seq.slice(0, fin).filter((t) => t.family === 'orchard').length; check(vergers >= 4, `île 9, « Pays habité » : ${vergers} vergers avant l'automne pour « trois vergers collés à un hameau » (un de marge)`); }
+  // la garantie ne remplace que le hasard en retard : peu de tirages touchés, et la file reste identique quand elle suffit
+  { let f = 0, t = 0; for (let n = 1; n <= CAMPAIGN_SIZE; n++) { const { isl, seq } = sequence(campaignIsland(n)); f += isl.queue.forcees || 0; t += seq.length; } check(f / t < 0.05, `la garantie remplace ${f} tirages sur ${t} (${(100 * f / t).toFixed(1)} %)`); }
+  // l'état des promesses suit la sauvegarde de la file (reprise, annulation)
+  { const d = campaignIsland(9); const i1 = new Island(d, { upgrades: {}, ...islandOptions({ mech: d.mech }) }); for (let k = 0; k < 6; k++) i1.queue.take(); const snap = i1.queue.snapshot(); const i2 = new Island(d, { upgrades: {}, ...islandOptions({ mech: d.mech }) }); i2.queue.restore(snap);
+    const suite = (q) => { const out = []; for (let k = 0; k < 20; k++) out.push(q.take().family); return out.join(','); }; check(suite(i1.queue) === suite(i2.queue), 'reprise d’une file : les promesses reprennent là où elles en étaient'); }
+}
 // --- campagne à trente (24 septembre 2026) : migration v2 → v3, parties en cours, et aucun numéro hors campagne
 {
   const { migrerVers30 } = await import('../src/core/save.js'); const { migrerPartie } = await import('../src/core/run.js'); const { CAMPAGNE_50_VERS_30 } = await import('../src/data/campaign.js');

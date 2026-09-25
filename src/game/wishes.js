@@ -3,7 +3,7 @@ import { Board } from './board.js';
 import { veilleePairs } from './seasons.js';
 import { speciesCount } from './fauna.js';
 import { neighbors } from './hex.js';
-import { SEASONS } from '../data/tiles.js';
+import { SEASONS, FUSION_BY_ID } from '../data/tiles.js';
 import { rivers, lakes } from './water.js';
 
 /** État d'un vœu : { def, status: 'open'|'done'|'failed', progress, target } */
@@ -71,6 +71,46 @@ export function progressOf(w, ctx) {
     case 'closedInSeason': return ctx.stats.closedThisSeason;
     default: return 0;
   }
+}
+
+/**
+ * Ce qu'un vœu demande à la file de tuiles : les familles et leur nombre, pour qu'il soit faisable. Un vœu qui demande
+ * « trois vergers collés à un hameau » ne vaut rien si la file n'apporte qu'un verger (retour du commanditaire). Les
+ * tuiles de départ comptent ; une tuile de plus (`reserve`) laisse droit à une erreur de placement. Les vœux qui ne
+ * dépendent pas d'une famille précise (espèces, régions closes dans la saison, bâtir) ne demandent rien.
+ */
+const HABITAT = {
+  rabbit: { meadow: 3 }, moose: { forest: 5 }, duck: { water: 3 }, bear: { forest: 3, rock: 1 }, frog: { marsh: 1, water: 1 },
+  owl: { forest: 1, hamlet: 1 }, penguin: { water: 4 }, chicken: { field: 2, hamlet: 1 }, horse: { hill: 2, meadow: 1 }, cow: { meadow: 2, heath: 1 },
+};
+export function besoinsVoeu(def) {
+  const out = {};
+  const add = (f, n) => { if (f && n > 0) out[f] = Math.max(out[f] || 0, n); };
+  switch (def.type) {
+    case 'pairs': add(def.a, def.count); add(def.b, Math.ceil(def.count / 4)); break;
+    case 'region': add(def.family, def.size); break;
+    case 'closed': add(def.family || 'meadow', def.size); break;
+    case 'river': add('water', (def.minLen || 3) + (def.mouth ? 1 : 0)); add('rock', 1); break;
+    case 'rivers': add('water', 3 * def.count); add('rock', def.count); break;
+    case 'lake': add('water', def.size); break;
+    case 'fauna': for (const [f, n] of Object.entries(HABITAT[def.species] || {})) add(f, n); break;
+    case 'bourg': add('hamlet', 2 * def.count); break;
+    case 'veillee': add('water', 2); add('hamlet', def.pairs + 1); break;
+    case 'irrigated': add('field', def.count); add('water', 1); break;
+    case 'bloom': add('marsh', def.count); break;
+    case 'harvest': add('orchard', Math.ceil(def.count / 2)); add('hamlet', 1); break;
+    case 'fusion': { const r = FUSION_BY_ID[def.recipe]; if (r) { add(r.a, 1); add(r.b, 1); } break; }
+    default: break;
+  }
+  return out;
+}
+
+/** La pose limite d'un vœu, en nombre de poses : son échéance, ou l'arrivée de la saison nommée (saisons de base). */
+export function poseLimite(def, { startSeason = 'spring', seasonLength = 8, cells = 60 } = {}) {
+  const dl = def.deadline || {};
+  if (dl.placements !== undefined) return dl.placements;
+  if (dl.season) { const k = (SEASONS.indexOf(dl.season) - SEASONS.indexOf(startSeason) + 4) % 4 || 4; return (k + 4 * ((dl.cycle || 1) - 1)) * seasonLength; }
+  return cells;
 }
 
 /** L'échéance est-elle dépassée ? (placements : nombre de poses ; season : la saison nommée commence) */

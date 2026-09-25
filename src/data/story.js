@@ -400,9 +400,9 @@ export const STORY = {
     },
     w10_2: {
       giver: 'Les semeurs de la plaine',
-      title: 'Cinq champs irrigués',
-      text: 'En été, cinq champs qui touchent l’eau. Sinon on sème de la poussière.',
-      done: 'Cinq champs irrigués. Les semeurs ont marché dedans pieds nus, ce qu’ils ne font qu’en cas de grande joie.',
+      title: 'Trois champs irrigués',
+      text: 'En été, trois champs qui touchent l’eau. Sinon on sème de la poussière.',
+      done: 'Trois champs irrigués. Les semeurs ont marché dedans pieds nus, ce qu’ils ne font qu’en cas de grande joie.',
       failed: 'L’été est passé, les champs ont eu soif. Les semeurs gardent le grain pour l’an prochain.',
     },
     w10_3: {
