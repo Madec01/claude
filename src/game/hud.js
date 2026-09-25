@@ -66,6 +66,8 @@ export class Hud {
     this.r.pwUndo.addEventListener('click', (e) => { e.stopPropagation(); onUndo(); });
     this.r.brumeMove.addEventListener('click', (e) => { e.stopPropagation(); onMove && onMove(); });
     this.log = []; this.unread = 0;
+    // Sous la brume, au téléphone : la ligne du bas change de hauteur avec l'inventaire ; la faune et « Poser ici » la suivent (--queue-h)
+    if (island.brume && typeof ResizeObserver !== 'undefined') { this._ro = new ResizeObserver(() => { const h = Math.round(this.r.queue.getBoundingClientRect().height / (STAGE.scale || 1)); root.style.setProperty('--queue-h', `${h}px`); }); this._ro.observe(this.r.queue); }
     this.r.thClose.addEventListener('click', (e) => { e.stopPropagation(); this.setTileHelp(false); });
     // Sur téléphone la fiche est repliée à deux lignes : un appui la déplie en entier (les tuiles bavardes — l'eau, la
     // lande — disent leurs effets passifs en cinq lignes). Le choix tient jusqu'à la fin de l'île, pas au-delà.
@@ -366,5 +368,5 @@ export class Hud {
   /** La tuile est perdue : le chiffre éclate, la barre flashe. */
   chronoCasse() { const el = this._chrono; if (!el) return; el.classList.remove('casse'); void el.offsetWidth; el.classList.add('casse'); }
 
-  destroy() { this.root.innerHTML = ''; }
+  destroy() { if (this._ro) this._ro.disconnect(); this.root.style.removeProperty('--queue-h'); this.root.innerHTML = ''; }
 }

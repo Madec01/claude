@@ -645,6 +645,8 @@ class IslandScene {
     isl.on((e) => this.onEvent(e));
     isl.on((e) => { if (!Game.testMode && !def.tempo) Achievements.onIslandEvent(e, isl); });
     // Le Souffle court : le cadran, la série et les saisons à effets ; la brume d'automne est lue par le rendu
+    // le HUD sait dans quel mode il est : au téléphone, la brume range son inventaire au-dessus des tuiles
+    if (isl.brume) document.getElementById('hud').classList.add('brume');
     this.tempo = def.tempo ? new Tempo(this) : null;
     if (this.tempo) {
       this.renderer.brume = this.tempo.brume; document.getElementById('hud').classList.add('tempo');
@@ -714,7 +716,7 @@ class IslandScene {
     window.removeEventListener('pagehide', this.onLeave);
     window.removeEventListener('blur', this.onLeave);
     for (const u of this.unsubs || []) u();
-    this.hud && this.hud.destroy(); document.getElementById('hud').classList.remove('on');
+    this.hud && this.hud.destroy(); document.getElementById('hud').classList.remove('on', 'tempo', 'brume');
     this.tutorial && this.tutorial.destroy(); document.getElementById('tutorial').classList.remove('on');
     document.getElementById('stage').classList.remove('playing');
     if (this.debugEl) { this.debugEl.remove(); this.debugEl = null; }

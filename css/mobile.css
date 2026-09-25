@@ -291,3 +291,38 @@ html.compact.portrait .carte-actions { gap: 10px; padding: 0 10px; animation: no
 /* Sous la brume, au téléphone : la carte de saison en bandeau serré, le tirage plus étroit */
 html.compact .hud-carte { left: 8px; right: 8px; max-width: none; font-size: 11px; padding: 5px 8px; gap: 6px; } html.compact .hud-carte b { font-size: 12px; } html.compact .hud-carte .hc-texte { display: none; }
 html.compact .brume-tirage { width: calc(100% - 32px); padding: 14px 16px; } html.compact .brume-tirage b { font-size: 24px; }
+/* Sous la brume, portrait : l'inventaire de la brume passe AU-DESSUS des tuiles, sur toute la largeur. En ligne avec elles,
+   il prenait toute la place et les cinq tuiles de la saison disparaissaient derrière (retour joueur). Le bloc se dissout
+   (display: contents) pour que ses morceaux se rangent dans la grille : chips, puis jalon et tuiles restantes, puis
+   tuiles · souffles · Déplacer. Les lignes longues (chips, jalon) sont mises à « width: 0 ; min-width: 100 % » pour ne pas
+   gonfler les colonnes de droite avec leur largeur naturelle. */
+html.compact.portrait #hud.brume .hud-queue { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "inv inv" "jalon reste" "list powers" "list move"; align-items: end; column-gap: 6px; row-gap: 3px; }
+html.compact.portrait #hud.brume .hud-brume { display: contents; }
+html.compact.portrait #hud.brume .hud-brume > .queue-title { display: none; }
+html.compact.portrait #hud.brume .brume-inv { grid-area: inv; width: 0; min-width: 100%; gap: 3px 4px; }
+html.compact.portrait #hud.brume .brume-jalon { grid-area: jalon; width: 0; min-width: 100%; align-self: center; line-height: 1.2; }
+html.compact.portrait #hud.brume .brume-jalon:empty { display: none; }
+html.compact.portrait #hud.brume .hud-queue > .queue-title { grid-area: reste; position: static; margin: 0; padding: 1px 6px; align-self: center; justify-self: end; white-space: nowrap; }
+/* les cinq tuiles tiennent sur la ligne à côté de la colonne des boutons : les tuiles d'attente montrent l'image seule, la tuile en main garde son nom */
+html.compact.portrait #hud.brume .queue-list { grid-area: list; gap: 3px; }
+html.compact.portrait #hud.brume .qtile { padding: 3px 4px; }
+html.compact.portrait #hud.brume .qtile:not(.current) .qname { display: none; }
+html.compact.portrait #hud.brume .powers { grid-area: powers; align-self: end; }
+html.compact.portrait #hud.brume .pw.brume-move { grid-area: move; flex-direction: column; gap: 0; padding: 3px 7px; }
+/* la ligne du bas est plus haute : la faune, « Poser ici » et les cartes du tutoriel montent d'autant (--queue-h, mesurée par le HUD) */
+html.compact.portrait #hud.brume .hud-fauna { bottom: calc(var(--queue-h, 190px) + 6px); }
+html.compact.portrait #hud.brume .hud-place { bottom: calc(var(--queue-h, 190px) + 36px); }
+html.compact.portrait #hud.brume .tuto-card { bottom: calc(var(--queue-h, 190px) + 40px); }
+/* Sous la brume, paysage : la colonne de gauche est trop étroite pour les chips et le jalon ; ils sortent de la colonne
+   (position: fixed, pour échapper à son overflow) et se posent en bas, au-dessus de la faune. La colonne garde les cinq
+   tuiles (la tuile en main un peu plus petite, les autres sans nom), le souffle et Déplacer. */
+html.compact.landscape #hud.brume .hud-carte { left: 132px; right: 8px; }
+html.compact.landscape #hud.brume .hud-brume { display: contents; }
+html.compact.landscape #hud.brume .hud-brume > .queue-title { display: none; }
+html.compact.landscape #hud.brume .brume-inv { position: fixed; left: 132px; right: 170px; bottom: 34px; gap: 3px; pointer-events: none; }
+html.compact.landscape #hud.brume .brume-jalon { position: fixed; left: 132px; right: 170px; bottom: 60px; pointer-events: none; line-height: 1.2; }
+html.compact.landscape #hud.brume .qtile.current img { width: 36px; height: 42px; }
+html.compact.landscape #hud.brume .qtile:not(.current) .qname { display: none; }
+html.compact.landscape #hud.brume .queue-list { gap: 3px; }
+html.compact.landscape #hud.brume .pw.brume-move { flex: 0 0 auto; }   /* sorti de son bloc, il héritait du flex: 1 des souffles et s’étirait */
+html.compact.landscape #hud.brume .qtile:not(.current) { padding: 2px 6px; } html.compact.landscape #hud.brume .qtile:not(.current) img { width: 22px; height: 26px; }
