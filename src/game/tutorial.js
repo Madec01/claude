@@ -1,4 +1,5 @@
 // Tutoriel intégré : consignes d'une île, validées par des conditions de jeu.
+import { reserveEte } from '../data/tempo.js';
 import { STORY } from '../data/story.js';
 import { mechIsland } from '../data/campaign.js';
 
@@ -27,6 +28,17 @@ const RULES = {
 
 /** Tutoriel guidé de l'île 1 : chaque étape impose la case à jouer (la file est fixée par `opening`). */
 const GUIDED = {
+  // l'entraînement du Souffle court : six poses guidées sans chrono (les voisines du hameau, une région qui se ferme), puis le temps
+  entrainement_tempo: [
+    { id: 'e1', target: [1, 0], fige: false, text: 'Sans chrono pour l’instant. Pose le champ sur la case qui brille : contre le hameau, il rapporte +2, et les chiffres sur les bords le disent avant de poser.', done: (i) => i.placements >= 1 },
+    { id: 'e2', target: [0, 1], fige: false, text: 'Un verger. Contre le hameau : +2 encore. Contre le champ : rien. Le bon voisin fait le point, pas la case.', done: (i) => i.placements >= 2 },
+    { id: 'e3', target: [-1, 1], fige: false, text: 'Une prairie. Le verger l’aime (+2). Regarde le total avant de confirmer : c’est toujours lui qu’on cherche.', done: (i) => i.placements >= 3 },
+    { id: 'e4', target: [-1, 0], fige: false, text: 'Une forêt contre la prairie : +1. Contre le hameau, rien. Il reste deux cases vides autour du hameau.', done: (i) => i.placements >= 4 },
+    { id: 'e5', target: [0, -1], fige: false, text: 'De l’eau contre le hameau : +1. Encore une case, et le hameau sera entouré de toutes parts.', done: (i) => i.placements >= 5 },
+    { id: 'e6', target: [1, -1], fige: false, text: 'Un champ : +2 contre le hameau, +1 contre l’autre champ. Et le hameau n’a plus de case vide autour : sa région se ferme, prime égale à sa taille, double pour un hameau.', done: (i) => i.placements >= 6 },
+    { id: 'e7', info: true, when: () => true, done: () => false, focus: '.tempo-chrono', text: 'Maintenant, le temps : huit secondes par tuile, lues au-dessus de l’île. Pose avant zéro ; une tuile perdue laisse une case vide, qui coûte des points à la fin. Douze tuiles : à toi. Tant qu’une carte est là, le temps s’arrête.' },
+    { id: 'e8', info: true, when: (i) => (i.stats.lost || 0) >= 1, done: () => false, timeout: 10, focus: '.tempo-chrono', text: 'Une tuile perdue : sa case restera vide, −2 à la fin. Rien de grave, la suivante arrive — pose-la contre un bon voisin.' },
+  ],
   1: [
     { id: 'g1', target: [1, 0], text: 'Bienvenue. Pose la prairie sur la case qui brille : une tuile doit toujours toucher une tuile déjà posée.', done: (i) => i.placements >= 1 },
     { id: 'g2', target: [2, 0], text: 'Une forêt. Survole la case qui brille avant de cliquer : chaque bord affiche ses points. Forêt contre roche : +2, forêt contre prairie : +1.', done: (i) => i.placements >= 2 },
@@ -48,11 +60,16 @@ const MODE_STEPS = {
   // `focus` : l'élément de l'écran que la carte met en avant (un sélecteur dans le HUD) — le tutoriel montre ce dont il parle
   // Au Souffle court, une carte fige le temps ET la pose (on lit, puis on joue) ; `fige: false` pour la carte qui demande une pose
   tempo: [
-    { id: 'tp1', info: true, when: () => true, done: () => false, focus: '.hud-queue', text: 'Ta tuile, en bas. Pas de file : tu ne vois jamais la suivante, elle arrive quand celle-ci est posée. Tant qu’une carte comme celle-ci est là, le temps s’arrête.' },
+    { id: 'tp1', info: true, when: () => true, done: () => false, focus: '.hud-queue', text: 'Ta tuile, en bas. Pas de file : tu ne vois jamais la suivante, elle arrive quand celle-ci est posée. Au printemps, deux tuiles : pose celle que tu veux. Tant qu’une carte comme celle-ci est là, le temps s’arrête et la pose attend.' },
     { id: 'tp2', info: true, fige: false, when: () => true, done: (i) => i.placements >= 1, focus: '.tempo-chrono', text: 'Le temps, juste au-dessus de l’île : le chiffre, et la marée qui se retire par les deux bouts. Sur la dernière seconde, tout rougit. Pose la tuile contre l’île avant zéro.' },
     { id: 'tp3', info: true, when: (i) => i.placements >= 1, done: (i) => i.placements >= 3, focus: '.hud-queue', text: 'Posée vite, sous une seconde, la série monte, et s’affiche sur la tuile : deux fois plus vite si la place est bonne. Elle multiplie les points : ×1,5 à 3, ×2 à 6, ×3 à 10. Hésiter la casse.' },
     { id: 'tp4', info: true, when: (i) => i.placements >= 3, done: (i) => i.placements >= 5, focus: '.hud-score', text: 'Les points, en haut : bords, régions, faune, comme sur toute île. À zéro, la tuile est perdue et sa case restera vide, elle coûte des points à la fin, plus encore si elle bloquait une région.' },
-    { id: 'tp5', info: true, when: (i) => i.placements >= 5 || i.seasonsPassed.length >= 1, done: () => false, timeout: 40, focus: '.hud-season', text: 'La saison, en haut : cinq poses, la ligne se remplit, puis elle change. Ses primes comptent double, +10 sans tuile perdue. L’hiver ralentit le cadran, le printemps propose deux tuiles, l’été donne une réserve, l’automne couvre l’île de brume.' },
+    { id: 'tp5', info: true, when: (i) => i.placements >= 5 || i.seasonsPassed.length >= 1, done: () => false, timeout: 30, focus: '.hud-season', text: 'La saison, en haut : cinq poses, la ligne se remplit, puis elle change. Ses primes comptent double, +10 sans tuile perdue. Chaque saison change aussi le temps ou le plateau : tu le liras sous son nom, à son arrivée.' },
+    // une carte par saison, à sa première arrivée — jamais deux saisons dans la même carte
+    { id: 'tps_summer', info: true, when: (i) => i.season === 'summer', done: () => false, timeout: 25, focus: '.hud-season, .tempo-chrono', text: (i) => `Été : une réserve de ${reserveEte(i.def)} secondes pour les cinq tuiles, pas de cadran par tuile — ce que tu gagnes sur le facile sert au difficile. Réserve vide : ce qui reste à poser est perdu d’un coup.` },
+    { id: 'tps_autumn', info: true, when: (i) => i.season === 'autumn', done: () => false, timeout: 25, focus: '.hud-season', text: 'Automne : la brume couvre une bonne part des tuiles posées. Poser une tuile la dissipe sur ses six voisines : on redécouvre l’île en jouant.' },
+    { id: 'tps_winter', info: true, when: (i) => i.season === 'winter', done: () => false, timeout: 25, focus: '.hud-season, .tempo-chrono', text: 'Hiver : le cadran est gelé, ×1,4 — un peu plus de temps pour chaque tuile. Une saison sans tuile perdue rapporte +10.' },
+    { id: 'tps_spring', info: true, when: (i) => i.season === 'spring' && i.seasonsPassed.length >= 1, done: () => false, timeout: 25, focus: '.hud-queue', text: 'Printemps : deux tuiles proposées, tu poses celle que tu veux ; l’autre est perdue sans coûter de case. Choisir, c’est déjà jouer.' },
   ],
   brume: [
     { id: 'br1', info: true, when: () => true, done: (i) => i.placements >= 1, focus: '.hud-brume', text: 'Des cases sont sous la brume : chacune cache une tuile déjà là. L’inventaire, en bas, dit lesquelles, jamais où. On pose contre une tuile ou contre la brume. Pose ta première tuile contre la brume.' },
@@ -112,7 +129,8 @@ export class Tutorial {
   }
   show(step, rule) {
     this.dismissed = false;
-    this.root.innerHTML = `<div class="tuto-card"><div class="tuto-text">${step.text}</div>${rule.info ? '<button class="tuto-ok">Compris</button>' : '<div class="tuto-hint">…</div>'}</div>`;
+    const texte = typeof step.text === 'function' ? step.text(this.isl) : step.text;
+    this.root.innerHTML = `<div class="tuto-card"><div class="tuto-text">${texte}</div>${rule.info ? '<button class="tuto-ok">Compris</button>' : '<div class="tuto-hint">…</div>'}</div>`;
     const b = this.root.querySelector('.tuto-ok');
     if (b) b.addEventListener('click', (e) => { e.stopPropagation(); this.dismissed = true; });
     requestAnimationFrame(() => this.root.querySelector('.tuto-card')?.classList.add('on'));

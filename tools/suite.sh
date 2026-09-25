@@ -17,7 +17,7 @@ LOG="${LOG:-/tmp/suite.log}"
 PARALLELE="${PARALLELE:-3}"
 case "$MODE" in
   court)   NAV="gate" ;;
-  complet) NAV="autoplay mobile calm gate finale feel tempo pepin brume sw decouverte resume fauna" ;;   # du plus long au plus court : le lot se remplit mieux
+  complet) NAV="autoplay mobile calm gate finale feel tempo pepin brume entrainement sw decouverte resume fauna" ;;   # du plus long au plus court : le lot se remplit mieux
   *) echo "usage : tools/suite.sh court|complet" >&2; exit 2 ;;
 esac
 

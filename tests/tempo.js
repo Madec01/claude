@@ -21,8 +21,12 @@ const boot = (p) => p.waitForFunction(() => !document.getElementById('boot'), nu
   // 2. le récapitulatif des règles avant l'île, puis le décompte, puis le cadran sur la tuile — en grand, centrée en bas
   await page.evaluate(() => [...document.querySelectorAll('.menu-nav .btn')].find((x) => x.textContent.includes('Souffle court')).click());
   await page.waitForFunction(() => window.CS.scenes.currentName === 'prep' && document.querySelector('.panel-tempo'), null, { timeout: 15000 });
-  const recap = await page.evaluate(() => ({ regles: document.querySelectorAll('.tp-regle').length, txt: document.querySelector('.panel-tempo').textContent }));
-  check(recap.regles === 5 && /trois secondes/.test(recap.txt) && /série/i.test(recap.txt) && /12 secondes/.test(recap.txt) && !/meilleur à 3 s :/.test(recap.txt), `le récapitulatif des règles précède l'île (${recap.regles} règles, l'été à 12 s, aucun record à 3 s)`);
+  // la toute première fois, 8 s (découverte) ; le joueur choisit 3 s (défi), et le récapitulatif suit
+  const premier = await page.evaluate(() => ({ on: (document.querySelector('.tp-cadran.on') || {}).dataset ? document.querySelector('.tp-cadran.on').dataset.cadran : null, txt: document.querySelector('.panel-tempo').textContent }));
+  check(premier.on === '8' && /huit secondes/.test(premier.txt) && /32 secondes/.test(premier.txt) && /découverte/.test(premier.txt), `la première partie propose 8 s (découverte), l'été à 32 s (pastille ${premier.on})`);
+  await page.evaluate(() => document.querySelector('.tp-cadran[data-cadran="3"]').click()); await page.waitForTimeout(100);
+  const recap = await page.evaluate(() => ({ regles: document.querySelectorAll('.tp-regle').length, txt: document.querySelector('.panel-tempo').textContent, entrainer: !![...document.querySelectorAll('.panel-tempo button')].find((b) => /entraîner/i.test(b.textContent)) }));
+  check(recap.regles === 5 && /trois secondes/.test(recap.txt) && /série/i.test(recap.txt) && /12 secondes/.test(recap.txt) && !/meilleur à 3 s :/.test(recap.txt) && recap.entrainer, `le récapitulatif des règles précède l'île (${recap.regles} règles, l'été à 12 s à 3 s, aucun record à 3 s, bouton S'entraîner)`);
   await page.screenshot({ path: path.join(OUT, 'tempo-recap.png') });
   await page.evaluate(() => [...document.querySelectorAll('.panel-tempo button')].find((b) => b.textContent.includes('parti')).click());
   await page.waitForFunction(() => window.CS.scenes.currentName === 'island' && window.CS.scenes.current.isl && window.CS.scenes.current.isl.def.tempo, null, { timeout: 20000 });
@@ -41,6 +45,8 @@ const boot = (p) => p.waitForFunction(() => !document.getElementById('boot'), nu
   await page.waitForFunction(() => !window.CS.scenes.current.hold, null, { timeout: 8000 }); await page.waitForTimeout(200);
   const hud = await page.evaluate(() => { const q = document.querySelector('.qtile.current').getBoundingClientRect(); return { cadran: !!document.querySelector('.tempo-chrono .tc-eau'), tuiles: document.querySelectorAll('.qtile').length, suivante: document.querySelectorAll('.qtile.next').length, souffles: getComputedStyle(document.querySelector('.hud-breaths')).display, saison: window.CS.scenes.current.isl.season, tempo: !!window.CS.scenes.current.tempo, tutoriel: !!document.querySelector('#tutorial .tuto-card'), cx: Math.round(q.left + q.width / 2), cy: Math.round(q.top + q.height / 2), w: Math.round(q.width) }; });
   check(hud.cadran && hud.tempo && hud.souffles === 'none' && !hud.tutoriel, `l'île s'ouvre avec le chronomètre au-dessus d'elle, sans souffles ni tutoriel (${JSON.stringify(hud)})`);
+  const banniere = await page.evaluate(() => document.querySelector('[data-ref=seasonRule]').textContent);
+  check(/Deux tuiles proposées/.test(banniere), `la bannière de saison dit l'effet du mode (« ${banniere.slice(0, 60)}… »)`);
   check(hud.saison === 'spring' && hud.tuiles === 2 && hud.suivante === 0, `printemps : deux tuiles proposées, jamais de « suivante » (${hud.tuiles}, ${hud.suivante})`);
   check(hud.cy > 600 && hud.w >= 80 && hud.w <= 130, `la tuile à poser est centrée en bas, de taille modeste (centre y=${hud.cy}, largeur ${hud.w})`);
   // la lueur se resserre : à mi-temps elle est plus près de la côte qu'au départ

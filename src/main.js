@@ -41,7 +41,8 @@ import { buildWorkshop } from './ui/workshop.js';
 import { celebrate, celebrateThing } from './ui/achievements.js';
 import { UPGRADES, playerChapter } from './data/upgrades.js';
 import { Version } from './core/version.js';
-import { tempoDef, recordsTempo } from './data/tempo.js';
+import { tempoDef, entrainementDef, recordsTempo } from './data/tempo.js';
+import { FAMILIES } from './data/tiles.js';
 import { buildTempoPrep } from './ui/tempo_prep.js';
 import { Tempo } from './game/tempo.js';
 import { buildWishesIntro } from './ui/wishes_intro.js';
@@ -387,7 +388,12 @@ const Game = {
   /** Le Souffle court : le récit d'ouverture la première fois seulement ; ensuite, droit sur une île neuve. */
   /** La musique d'une partie du Souffle court : une des pistes du mode, tirée au sort parmi celles que le manifeste connaît. */
   musiqueTempo() { const cles = Object.keys(BALANCE.tempo.musiques).filter((k) => AudioSys.has(k, 'music')); return cles.length ? cles[Math.floor(Math.random() * cles.length)] : null; },
-  startTempo() { this.noteMode('mode_tempo'); const def = tempoDef(undefined, { etire: STAGE.compact && STAGE.portrait ? BALANCE.tempo.etirePortrait : 1 }); def.musique = this.musiqueTempo(); if (def.musique) AudioSys.load('music', def.musique).catch(() => {}); scenes.go('prep', { node: buildTempoPrep({ onStart: (cadran, tuto) => { AudioSys.play('ui_confirm', { volume: 0.5 }); def.cadran = cadran; def.tuto = !!tuto; hideUI(); scenes.go('island', { def }, { fade: 0.4 }); }, onBack: () => this.showMenu() }) }); },
+  /** Les familles que la campagne a déjà présentées : le mode n'en propose pas d'autres (pas de colline avant l'île 8, pas de lande avant la 10). */
+  famillesConnues() { const n = Game.testMode ? 99 : (Save.data.campaign.unlockedIsland || 1); const mech = campaignMechanics(n); return new Set(FAMILIES.filter((f) => (f !== 'hill' || mech.has('hill')) && (f !== 'heath' || mech.has('heath')))); },
+  etireTempo() { return STAGE.compact && STAGE.portrait ? BALANCE.tempo.etirePortrait : 1; },
+  startTempo() { this.noteMode('mode_tempo'); const def = tempoDef(undefined, { etire: this.etireTempo(), familles: this.famillesConnues() }); def.musique = this.musiqueTempo(); if (def.musique) AudioSys.load('music', def.musique).catch(() => {}); scenes.go('prep', { node: buildTempoPrep({ onStart: (cadran, tuto) => { AudioSys.play('ui_confirm', { volume: 0.5 }); def.cadran = cadran; def.tuto = !!tuto; hideUI(); scenes.go('island', { def }, { fade: 0.4 }); }, onTrain: () => this.startEntrainement(), onBack: () => this.showMenu() }) }); },
+  /** L'entraînement du Souffle court : six poses guidées sans chrono, puis douze à 8 s ; jamais de record. */
+  startEntrainement() { AudioSys.play('ui_confirm', { volume: 0.5 }); const def = entrainementDef({ etire: this.etireTempo() }); def.musique = this.musiqueTempo(); if (def.musique) AudioSys.load('music', def.musique).catch(() => {}); hideUI(); scenes.go('island', { def }, { fade: 0.4 }); },
   startDaily() { this.noteMode('mode_daily'); const def = dailyDef(); this.prepIsland(def, dailyScreens(def)); },
   /** Sous la brume : le choix du cran, puis une île tirée au hasard (une nouvelle à chaque partie). */
   startBrume() {
@@ -656,7 +662,8 @@ class IslandScene {
       const mu = this.musiqueDuMode(); const pas = mu.tempsParPas * 60 / mu.bpm;
       this.hold = true;
       const lancer = def.musique && AudioSys.has(def.musique, 'music') ? AudioSys.playMusic(def.musique, { fade: 0 }) : Promise.resolve(null);
-      Promise.race([lancer, wait(2.5)]).then((at) => { if (this.isl !== isl) return; this.tempo.musiqueAt = at !== null && at !== undefined ? at : null; this.compteARebours(pas, this.tempo.musiqueAt !== null ? mu.premierTemps : 0); });
+      // à l'entraînement, pas de décompte : le chrono attend de toute façon la fin des poses guidées
+      Promise.race([lancer, wait(2.5)]).then((at) => { if (this.isl !== isl) return; this.tempo.musiqueAt = at !== null && at !== undefined ? at : null; if (def.chronoDes) this.hold = false; else this.compteARebours(pas, this.tempo.musiqueAt !== null ? mu.premierTemps : 0); });
     }
     // audio
     this.seasonCount = { [isl.season]: 1 };
@@ -1148,7 +1155,8 @@ class IslandScene {
     else if (this.drag && !input.mouse.right) this.drag = null;
     const pan = 320 * dt; if (input.isDown('ArrowLeft')) this.cam.pan(pan, 0); if (input.isDown('ArrowRight')) this.cam.pan(-pan, 0); if (input.isDown('ArrowUp')) this.cam.pan(0, pan); if (input.isDown('ArrowDown')) this.cam.pan(0, -pan);
     this.cam.update(dt);
-    // sous une carte du tutoriel, le temps s'arrête : on lit, puis on joue
+    // sous une carte du tutoriel, le temps s'arrête : on lit, puis on joue (le tutoriel se met à jour d'abord, pour qu'une carte qui apparaît arrête le temps dans la même image)
+    this.tutorial.update(dt);
     const tutoTient = this.tutoTient();
     if (this.tempo && !this.hold && !tutoTient && !isl.ended) { this.tempo.update(dt); this.hud.setTempo(this.tempo); }
     if (this.tempo && !isl.ended) {
@@ -1158,7 +1166,7 @@ class IslandScene {
       const battement = ((depuis % temps) + temps) % temps / temps;
       // le chronomètre se pose juste au-dessus de l'île : le sommet du masque, en écran
       if (this._chronoV !== isl.board.version) { this._chronoV = isl.board.version; let y = Infinity, y2 = -Infinity; for (const k of isl.board.mask) { const [q, r] = parse(k); const wy = toWorld(q, r).y; y = Math.min(y, wy); y2 = Math.max(y2, wy); } this._chronoY = y - SIZE; this._basY = y2 + SIZE; }
-      this.hud.setChrono({ t: this.hold ? this.tempo.limit : this.tempo.t, f: this.hold ? 1 : this.tempo.fraction, fige: tutoTient, puls: Math.pow(1 - battement, 3), urgent: !this.hold && this.tempo.t <= 1, y: this.cam.toScreen(0, this._chronoY).y });
+      this.hud.setChrono({ t: this.hold ? this.tempo.limit : this.tempo.t, f: this.hold ? 1 : this.tempo.fraction, fige: tutoTient || this.tempo.attend, puls: Math.pow(1 - battement, 3), urgent: !this.hold && this.tempo.t <= 1, y: this.cam.toScreen(0, this._chronoY).y });
       this.hud.setQueueTop(this.cam.toScreen(0, this._basY).y);   // la tuile à poser se cale juste sous l'île, pas au bord de l'écran
     }
     // survol
@@ -1190,7 +1198,6 @@ class IslandScene {
     this.fx.life(dt, { objects: objs, tiles: this._tiles, season: isl.season, weather: wkey, bounds: b });
     if (wkey === 'storm') { this.thunderTimer = (this.thunderTimer || 8) - dt; if (this.thunderTimer <= 0) { this.thunderTimer = 7 + Math.random() * 9; this.renderer.flash = 0.16; AudioSys.play('thunder', { volume: 0.6 }); this.shake.trigger(0.15); } }
     this.hud.update();
-    this.tutorial.update(dt);
     if (this.finished) { this.endTimer += dt; if (this.endTimer > 2.2) { this.finished = false; try { isl.result.postcard = { canvas: renderPostcard(this), filename: postcardName(this) }; } catch (e) { console.warn('carte postale', e); } Game.afterIsland(isl.result, this.def); } }
     if (this.debugEl) this.debugEl.textContent = `placements=${isl.placements} season=${isl.season} ${isl.inSeason}/${isl.seasonLength} score=${isl.score} breaths=${isl.breaths} fauna=${isl.fauna.size} queue=${isl.queue.remaining} fps=${loop.fps} particles=${this.particles.count} zoom=${this.cam.zoom.toFixed(2)}`;
     input.endFrame();

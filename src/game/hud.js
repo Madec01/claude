@@ -11,6 +11,7 @@ import { Assets } from '../core/assets.js';
 import { AudioSys } from '../core/audio.js';
 import { RARE_DECOR, spriteKey } from './decor.js';
 import { NOMS_COULEURS, P as PB } from './brume.js';
+import { reserveEte } from '../data/tempo.js';
 
 const icon = (name, cls = '') => `<img class="hud-icon ${cls}" src="assets/img/ui/${name}.png" alt="">`;
 /** Les messages qui passent aussi dans le ruban (les autres ne vont qu'au journal), avec leur couleur. */
@@ -297,10 +298,12 @@ export class Hud {
     const isl = this.isl, r = this.r;
     const s = STORY.seasons[isl.season] || { name: isl.season, rule: '' };
     const rl = isl.rule && STORY.seasonRules[isl.rule] ? STORY.seasonRules[isl.rule] : null;
-    this.set('seasonName', rl && isl.rulesVariable ? `${s.name} · ${rl.name}` : s.name); this.set('seasonRule', rl ? rl.rule : s.rule);
+    // au Souffle court, l'effet de la saison sur le temps ou le plateau passe devant la règle commune
+    const effet = isl.tempo && !isl.def.sansEffets ? { spring: 'Deux tuiles proposées : pose celle que tu veux, l’autre est perdue.', summer: `Une réserve de ${reserveEte(isl.def)} s pour les cinq tuiles.`, autumn: 'La brume couvre l’île ; poser la dissipe autour.', winter: `Cadran gelé, ×${BALANCE.tempo.hiver}.` }[isl.season] : null;
+    this.set('seasonName', rl && isl.rulesVariable ? `${s.name} · ${rl.name}` : s.name); this.set('seasonRule', (effet ? `${effet} ` : '') + (rl ? rl.rule : s.rule));
     if (this.last.seasonKey !== isl.season) { this.last.seasonKey = isl.season; r.seasonIcon.innerHTML = icon(SEASON_ICON[isl.season] || 'icon_leaf'); r.seasonBox.classList.remove('s-spring', 's-summer', 's-autumn', 's-winter'); r.seasonBox.classList.add(`s-${isl.season}`); }
     // pips
-    const pipHtml = isl.garden ? '' : Array.from({ length: isl.seasonLength }, (_, i) => `<i class="${i < isl.inSeason ? 'on' : ''}"></i>`).join('');
+    const pipHtml = isl.garden || isl.def.entrainement ? '' : Array.from({ length: isl.seasonLength }, (_, i) => `<i class="${i < isl.inSeason ? 'on' : ''}"></i>`).join('');
     if (pipHtml !== this.last.pips) { this.last.pips = pipHtml; r.pips.innerHTML = pipHtml; }
     const choose = !!isl.garden;
     if (choose !== this.last.choose) { this.last.choose = choose; r.gardenPick.classList.toggle('hidden', !choose); if (choose) r.pickTitle.textContent = 'Choisir'; }

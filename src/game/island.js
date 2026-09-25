@@ -792,7 +792,8 @@ export class Island {
     if (this.ended) return;
     const noTile = this.queue.empty;
     const noMove = this.board.legalCells().length === 0;
-    if (noTile || noMove) this.finish(noMove ? 'full' : 'queue');
+    const fini = !!(this.def.maxPoses && this.placements + (this.stats.lost || 0) >= this.def.maxPoses);   // l'entraînement du Souffle court : dix-huit tuiles, puis le bilan
+    if (noTile || noMove || fini) this.finish(noMove ? 'full' : 'queue');
   }
 
   finish(reason = 'queue') {

@@ -268,6 +268,7 @@ html:not(.compact) .menu-nav > .menu-modes { grid-column: 1 / -1; }
 .tp-cadrans { display: inline-flex; gap: 6px; }
 .tp-cadran { font: inherit; font-weight: 800; padding: 6px 14px; border-radius: 999px; border: 1px solid rgba(43,42,38,0.18); background: #fff; color: var(--ink); cursor: pointer; transition: background 0.15s, border-color 0.15s; }
 .tp-cadran.on { background: rgba(217,95,75,0.14); border-color: var(--loss); color: #b0432f; }
+.tp-cadran small { display: block; font-size: 10px; font-weight: 600; opacity: 0.7; letter-spacing: 0.04em; }   /* découverte · normal · défi */
 .tp-tuto { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; font-weight: 600; margin: 2px 0 8px; cursor: pointer; }
 .tp-tuto input { width: 18px; height: 18px; accent-color: var(--breath); }
 .tp-regles { display: flex; flex-direction: column; gap: 8px; margin: 6px 0 4px; text-align: left; }

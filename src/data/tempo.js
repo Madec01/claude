@@ -14,17 +14,30 @@ const T = () => BALANCE.tempo;
  * L'île d'une partie : tirée d'une graine (rejouable), 40 à 60 cases, une seule tuile de départ. `etire` : le rapport
  * hauteur/largeur de l'île — plus haute que large sur un écran en portrait, pour qu'elle remplisse l'écran.
  */
-export function tempoDef(seed = Math.floor(Math.random() * 1e9), { etire = 1 } = {}) {
+export function tempoDef(seed = Math.floor(Math.random() * 1e9), { etire = 1, familles = null } = {}) {
   const rng = new RNG(seed);
   const t = T();
   const cells = t.cellsMin + Math.floor(rng.next() * (t.cellsMax - t.cellsMin + 1));
   const sets = ['all', 'balanced', 'rivers', 'farms', 'coastAll', 'hills', 'moorFarm', 'gentle'];
-  const weights = WEIGHTS[sets[Math.floor(rng.next() * sets.length)]];
+  let weights = WEIGHTS[sets[Math.floor(rng.next() * sets.length)]];
+  // pas de famille jamais vue : les collines et les landes n'entrent qu'une fois rencontrées dans la campagne (`familles` = celles qu'on connaît)
+  if (familles) { weights = { ...weights }; for (const f of Object.keys(weights)) if (!familles.has(f)) weights[f] = 0; }
   return {
     id: 'tempo', tempo: true, seed, arch: 0, cells, roughness: 0.35 + rng.next() * 0.15, holes: rng.next() < 0.5 ? 1 : 2, etire,
     seasonLength: t.seasonLength, startSeason: 'spring', weights, tilesRatio: 1,
     start: [{ q: 0, r: 0, family: 'hamlet' }], wishes: [], mechanics: [], surprise: false, name: 'Le Souffle court',
   };
+}
+
+/**
+ * L'île d'entraînement : petite, à graine fixe, la même pour tous. Six poses guidées sans chrono (les six voisines du
+ * hameau de départ, dans l'ordre : champ, verger, prairie, forêt, eau, champ — la sixième ferme la région), puis douze
+ * poses à 8 s. Pas d'effet de saison, pas de record : `tuto` en fait un entraînement.
+ */
+export const ENTRAINEMENT = { seed: 1, cells: 22, guidees: 6, poses: 18, cadran: 8, opening: ['field', 'orchard', 'meadow', 'forest', 'water', 'field'], cibles: [[1, 0], [0, 1], [-1, 1], [-1, 0], [0, -1], [1, -1]] };
+export function entrainementDef({ etire = 1 } = {}) {
+  const e = ENTRAINEMENT; const def = tempoDef(e.seed, { etire });
+  return { ...def, cells: e.cells, holes: 0, seasonLength: 99, opening: e.opening, cadran: e.cadran, tuto: true, entrainement: true, sansEffets: true, chronoDes: e.guidees, maxPoses: e.poses, story: 'entrainement_tempo', name: 'Entraînement' };
 }
 
 /** La réserve d'été d'une partie : proportionnelle au délai choisi (12 s à 3 s, la valeur d'origine ; 20 s à 5 s ; 32 s à 8 s). */

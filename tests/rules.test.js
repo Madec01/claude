@@ -586,17 +586,28 @@ for (const def of ISLANDS.slice(0, 4)) {
 }
 // --- Le Souffle court : île procédurale, tuile perdue, série et paliers, saisons à effets, malus des cases vides
 {
-  const { tempoDef, videsMalus, multDe, reserveEte, recordsTempo } = await import('../src/data/tempo.js');
+  const { tempoDef, videsMalus, multDe, reserveEte, recordsTempo, entrainementDef, ENTRAINEMENT } = await import('../src/data/tempo.js');
   const { Tempo } = await import('../src/game/tempo.js');
   const T = BALANCE.tempo;
   const def = tempoDef(12345); const def2 = tempoDef(12345);
   check(def.tempo && def.cells >= T.cellsMin && def.cells <= T.cellsMax && def.seasonLength === 5 && def.start.length === 1 && !def.wishes.length, `île procédurale : ${def.cells} cases, 5 poses par saison, une tuile de départ, sans vœu`);
   check(JSON.stringify(def) === JSON.stringify(def2) && tempoDef(999).seed !== def.seed, 'même graine, même île ; graine différente, île différente');
+  // pas de famille jamais vue : avec les familles de la campagne à l'île 7, ni colline ni lande, sur 60 graines
+  { const connues = new Set(['meadow', 'forest', 'field', 'hamlet', 'orchard', 'water', 'marsh', 'rock', 'sand']); let ok = true, avecAvant = 0; for (let s = 1; s <= 60; s++) { const d = tempoDef(s, { familles: connues }); if ((d.weights.hill || 0) > 0 || (d.weights.heath || 0) > 0) ok = false; const d0 = tempoDef(s); if ((d0.weights.hill || 0) > 0 || (d0.weights.heath || 0) > 0) avecAvant++; } check(ok && avecAvant > 0, `familles connues seulement : ni colline ni lande sur 60 graines (${avecAvant} îles en auraient eu)`); }
   const opt = { build: false, fuse: false, hand: false, level3: false, growth: false, surprise: false };
   const isl = new Island(def, opt);
   const libres = (b) => [...b.mask].filter((k) => !b.tiles.has(k)).length;
   check(isl.tempo && isl.queue.remaining === libres(isl.board) && isl.queue.list.length === 1, `une tuile par case libre, mares comprises (${isl.queue.remaining} = ${libres(isl.board)}), une seule visible (${isl.queue.list.length})`);
   { let ok = true, n = 0; for (let s = 1; s <= 60; s++) { const i = new Island(tempoDef(s), opt); if (i.queue.remaining !== libres(i.board)) ok = false; if (i.board.tiles.size > 1) n++; } check(ok, `sur 60 graines, autant de tuiles que de cases libres (${n} îles avec des mares)`); }
+  // l'entraînement : une petite île fixe, ses six cibles libres autour du hameau, dix-huit poses, sans record
+  { const e = new Island(entrainementDef(), opt); const cibles = ENTRAINEMENT.cibles.every(([q, r]) => e.board.has(q, r) && !e.board.get(q, r)); const ouverture = e.queue.list[0].family === ENTRAINEMENT.opening[0];
+    check(e.tempo && e.def.tuto && e.def.entrainement && e.def.cadran === 8 && cibles && ouverture && e.queue.remaining >= ENTRAINEMENT.poses, `entraînement : ${e.board.mask.size} cases, six cibles libres autour du hameau, première tuile « ${e.queue.list[0].family} », ${e.queue.remaining} tuiles`);
+    const tpe = new Tempo({ isl: e }); tpe.update(5); check(e.stats.lost === 0 && tpe.attend && e.queue.list.length === 1, 'entraînement : le chrono attend les poses guidées, une seule tuile proposée (pas d’effet de printemps)');
+    for (const [q, r] of ENTRAINEMENT.cibles) { e.restrict = new Set([`${q},${r}`]); e.place(q, r); } e.restrict = null;
+    check(e.placements === 6 && !tpe.attend && tpe.serie === 0 && e.board.closedRegions.size >= 1, `six poses guidées : le hameau est clos (${e.board.closedRegions.size} région), la série n'a pas bougé, le chrono part`);
+    tpe.update(9); check(e.stats.lost === 1, 'après les poses guidées, le temps compte : une tuile perdue à 8 s');
+    let n = 0; while (!e.ended && n++ < 40) { const c = e.board.legalCells()[0]; if (!c) break; tpe.depuis = 0.2; e.place(c.q, c.r); }
+    check(e.ended && e.placements + e.stats.lost === ENTRAINEMENT.poses, `l'entraînement s'arrête à ${ENTRAINEMENT.poses} tuiles (${e.placements} posées, ${e.stats.lost} perdue)`); }
   check(multDe(0) === 1 && multDe(2) === 1 && multDe(3) === 1.5 && multDe(6) === 2 && multDe(10) === 3 && multDe(40) === 3, 'paliers de série : ×1, ×1,5 à 3, ×2 à 6, ×3 à 10');
   // le contrôleur, sans scène : il ne lit que l'île
   const tp = new Tempo({ isl });

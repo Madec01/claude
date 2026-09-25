@@ -30,14 +30,16 @@ export class Tempo {
 
   get saison() { return this.isl.season; }
   /** Le cadran d'une tuile, selon la saison. */
-  limite() { return (this.isl.def.cadran || T().cadran) * (this.saison === 'winter' ? T().hiver : 1); }
+  limite() { return (this.isl.def.cadran || T().cadran) * (this.saison === 'winter' && !this.isl.def.sansEffets ? T().hiver : 1); }
   /** Une tuile nouvelle : le cadran repart (l'été, c'est la réserve qui fait foi). */
   armer() { this.limit = this.limite(); this.t = this.saison === 'summer' ? this.reserve : this.limit; this.depuis = 0; }
   /** Ce qu'il reste, de 0 à 1, pour l'arc autour de la tuile. */
   get fraction() { const max = this.saison === 'summer' ? this.reserveMax : this.limit; return max > 0 ? Math.max(0, Math.min(1, this.t / max)) : 0; }
 
+  /** À l'entraînement, le chrono attend la fin des poses guidées. */
+  get attend() { const d = this.isl.def; return !!(d.chronoDes && this.isl.placements < d.chronoDes); }
   update(dt) {
-    const isl = this.isl; if (isl.ended || !isl.current) return;
+    const isl = this.isl; if (isl.ended || !isl.current || this.attend) return;
     this.depuis += dt;
     if (this.saison === 'summer') { this.reserve = Math.max(0, this.reserve - dt); this.t = this.reserve; if (this.reserve <= 0) this.finEte(); }
     else { this.t -= dt; if (this.t <= 0) this.perdre(); }
@@ -57,6 +59,7 @@ export class Tempo {
 
   onEvent(e) {
     if (e.type === 'place') {
+      if (this.attend || (this.isl.def.chronoDes && this.isl.placements === this.isl.def.chronoDes)) { this.dernier = null; this.armer(); return; }   // poses guidées : ni série ni cadran
       const rapide = this.depuis <= T().sousSeconde; const bon = BON.has(e.grade);
       this.serie = rapide ? this.serie + (bon ? 2 : 1) : 0;
       this.isl.stats.bestSerie = Math.max(this.isl.stats.bestSerie, this.serie);
@@ -89,13 +92,13 @@ export class Tempo {
   }
 
   entrer(saison) {
-    const isl = this.isl, q = isl.queue;
+    const isl = this.isl, q = isl.queue; if (isl.def.sansEffets) return;
     if (saison === 'spring') { isl.handOn = true; q.setVisible(T().printemps); }
     if (saison === 'summer') this.reserve = this.reserveMax = reserveEte(isl.def);
     if (saison === 'autumn') { this.brume.clear(); for (const t of isl.board.tiles.values()) if (!t.start && Math.random() < T().automne) this.brume.add(key(t.q, t.r)); }
   }
   sortir(saison) {
-    const isl = this.isl, q = isl.queue;
+    const isl = this.isl, q = isl.queue; if (isl.def.sansEffets) return;
     if (saison === 'spring') { isl.handOn = false; const enTrop = Math.max(0, q.list.length - 1); if (enTrop) { q.list.splice(1); if (Number.isFinite(q.total)) q.total += enTrop; } q.setVisible(1); }
     if (saison === 'summer') this.reserve = this.reserveMax = null;
     if (saison === 'autumn') this.brume.clear();
