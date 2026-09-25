@@ -18,7 +18,7 @@ export function buildResults({ result, def, onContinue, onRetry, onMenu, onPostc
   const starsEl = h('div', { class: `stars ${result.gold ? 'gold' : ''}`, 'aria-label': `${stars} étoile(s) sur 3${result.gold ? ', étoile d’or' : ''}` }, ...[0, 1, 2].map((i) => h('span', { class: `star ${i < stars ? 'on' : ''}`, title: `${thresholds[i]} points` }, icon('icon_star'))), result.goldThreshold && stars >= 2 ? h('span', { class: `star gold-star ${result.gold ? 'on' : ''}`, title: `Étoile d’or : ${result.goldThreshold} points` }, icon('icon_star')) : null);   // dès deux étoiles, pour qu'on sache qu'elle existe
   const row = (label, value, cls = '') => h('div', { class: `res-row ${cls}` }, h('span', {}, label), h('b', {}, String(value)));
   append(root, 
-    h('div', { class: 'res-kicker' }, special ? (brume ? `Sous la brume · ${(def && def.name) || ''}` : result.island === 'infinite' ? `Île infinie · ${result.seasons} saisons` : tempo ? `Le Souffle court · ${result.cells} cases` : 'Jardin') : result.island === 'daily' ? name : `Île ${result.island} · ${name}`),
+    h('div', { class: 'res-kicker' }, special ? (brume ? `Sous la brume · ${(def && def.name) || ''}` : result.island === 'infinite' ? `Île infinie · ${result.seasons} saisons` : tempo ? (def && def.entrainement ? 'Le Souffle court · entraînement' : `Le Souffle court · ${result.cells} cases · île n° ${(def && def.seed) || '?'} · ${(def && def.cadran) || 3} s`) : 'Jardin') : result.island === 'daily' ? name : `Île ${result.island} · ${name}`),
     h('h2', { class: 'panel-title' }, special ? 'L’île se repose' : stars === 0 ? 'L’île attend encore' : 'L’île se souvient'),
     special ? null : starsEl,
     h('p', { class: 'res-line' }, line),
@@ -56,7 +56,7 @@ export function buildResults({ result, def, onContinue, onRetry, onMenu, onPostc
     newRecord ? h('div', { class: 'res-record' }, 'Nouveau record !') : null,
     h('div', { class: 'panel-actions' },
       button(special ? 'Rejouer' : 'Continuer', onContinue, { cls: 'btn-primary', iconName: 'icon_arrow_right' }),
-      special || result.island === 'daily' ? null : button('Rejouer l’île', onRetry, { iconName: 'icon_return' }),
+      tempo && def && !def.entrainement ? button('Rejouer cette île', onRetry, { iconName: 'icon_return', title: 'La même île, le même délai : pour comparer deux plans' }) : special || result.island === 'daily' ? null : button('Rejouer l’île', onRetry, { iconName: 'icon_return' }),
       onPostcard ? button('Carte postale', onPostcard, { iconName: 'icon_save' }) : null,
       button('Menu', onMenu, { cls: 'btn-ghost', iconName: 'icon_home' }),
     ),

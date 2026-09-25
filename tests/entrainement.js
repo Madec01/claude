@@ -55,6 +55,29 @@ const boot = (p) => p.waitForFunction(() => !document.getElementById('boot'), nu
   check(/Entraînement/.test(bilan.txt) && bilan.bests === '{}' && bilan.parties === 0, `le bilan dit « Entraînement », aucun record ni partie comptée (${bilan.bests}, ${bilan.parties})`);
   await page.screenshot({ path: path.join(OUT, 'entrainement-bilan.png') });
   check(!pageErrors.length, `aucune erreur de page${pageErrors.length ? ` : ${pageErrors.slice(0, 3).join(' | ')}` : ''}`);
+  // 5. au doigt : l'option « poser d'un seul toucher » pose au premier toucher ; sans elle, il en faut deux
+  const ctx2 = await b.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true }); const p2 = await ctx2.newPage();
+  await p2.goto(`http://127.0.0.1:${port}/index.html`); await boot(p2);
+  await p2.evaluate(() => { const s = JSON.parse(localStorage.getItem('cent-saisons.save') || '{}'); s.cloud = { choice: 'none' }; s.options = Object.assign(s.options || {}, { master: 0, skipTutorial: true }); s.campaign = Object.assign(s.campaign || {}, { prologueSeen: true, unlockedIsland: 7, islandsPlayed: 6 }); s.version = 3; localStorage.setItem('cent-saisons.save', JSON.stringify(s)); });
+  await p2.reload(); await boot(p2); await p2.waitForTimeout(600);
+  const joueAuDoigt = async (option) => {
+    await p2.evaluate(() => [...document.querySelectorAll('.menu-nav .btn')].find((x) => x.textContent.includes('Souffle court')).click());
+    await p2.waitForFunction(() => document.querySelector('.panel-tempo'), null, { timeout: 15000 });
+    const aOption = await p2.evaluate((option) => { const c = document.querySelector('.tp-toucher input'); if (!c) return false; if (c.checked !== option) c.click(); document.querySelector('.tp-cadran[data-cadran="8"]').click(); [...document.querySelectorAll('.panel-tempo button')].find((x) => x.textContent.includes('parti')).click(); return true; }, option);
+    await p2.waitForFunction(() => window.CS.scenes.currentName === 'island' && window.CS.scenes.current.isl && window.CS.scenes.current.isl.def.tempo && !window.CS.scenes.current.hold, null, { timeout: 30000 }); await p2.waitForTimeout(300);
+    const pt = await p2.evaluate(() => { const sc = window.CS.scenes.current; const B = window.CS.BALANCE.hex; const c = sc.isl.board.legalCells().find((c) => sc.isl.canPlace(c.q, c.r)); const w = { x: B.size * Math.sqrt(3) * (c.q + c.r / 2), y: B.size * 1.5 * c.r }; const s = sc.cam.toScreen(w.x, w.y); const st = window.CS.STAGE; return { x: s.x * (st.scale || 1), y: s.y * (st.scale || 1) }; });
+    await p2.touchscreen.tap(pt.x, pt.y); await p2.waitForTimeout(300);
+    const poses = await p2.evaluate(() => window.CS.scenes.current.isl.placements);
+    await p2.evaluate(() => { window.CS.scenes.current.isl.finish('full'); });
+    await p2.waitForFunction(() => { const sc = window.CS.scenes.current, f = sc && sc.finale; if (f && !f.done && f.phase !== 'carte') { f.skip(); f.skip(); } return window.CS.scenes.currentName === 'results' || document.querySelector('.carte-actions .btn-primary'); }, null, { timeout: 40000 });
+    await p2.evaluate(() => { const b = document.querySelector('.carte-actions .btn-primary'); if (b) b.click(); });
+    await p2.waitForFunction(() => document.querySelector('.panel-results'), null, { timeout: 30000 });
+    await p2.evaluate(() => document.querySelector('.panel-results .btn-ghost').click()); await p2.waitForFunction(() => window.CS.scenes.currentName === 'menu', null, { timeout: 15000 }); await p2.waitForTimeout(300);
+    return { aOption, poses };
+  };
+  const sans = await joueAuDoigt(false); const avec = await joueAuDoigt(true);
+  check(sans.aOption && sans.poses === 0 && avec.poses === 1, `au doigt : un toucher arme sans l'option (${sans.poses} pose), pose avec elle (${avec.poses} pose)`);
+  await ctx2.close();
   await b.close();
   if (errors.length) { console.log(`\n${errors.length} problème(s) :\n${errors.join('\n')}`); process.exit(1); }
   console.log('L’entraînement du Souffle court : tout est bon.');

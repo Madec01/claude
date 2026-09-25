@@ -586,7 +586,7 @@ for (const def of ISLANDS.slice(0, 4)) {
 }
 // --- Le Souffle court : île procédurale, tuile perdue, série et paliers, saisons à effets, malus des cases vides
 {
-  const { tempoDef, videsMalus, multDe, reserveEte, recordsTempo, entrainementDef, ENTRAINEMENT } = await import('../src/data/tempo.js');
+  const { tempoDef, videsMalus, multDe, reserveEte, recordsTempo, entrainementDef, ENTRAINEMENT, seuilSerie } = await import('../src/data/tempo.js');
   const { Tempo } = await import('../src/game/tempo.js');
   const T = BALANCE.tempo;
   const def = tempoDef(12345); const def2 = tempoDef(12345);
@@ -621,7 +621,10 @@ for (const def of ISLANDS.slice(0, 4)) {
   { const [a1, a2] = isl.queue.list.map((t) => t.id); isl.pick(1); const c = isl.board.legalCells()[0]; tp.depuis = 0.4; isl.place(c.q, c.r); const l = isl.queue.list.map((t) => t.id); check(l.length === 2 && !l.includes(a1) && !l.includes(a2), `en choisissant la seconde tuile (n° ${a2}), la première (n° ${a1}) disparaît aussi`); }
   check(tp.serie >= 1 && tp.t === tp.limit, `pose sous une seconde : série ${tp.serie}, cadran réarmé`);
   // une pose lente casse la série ; le cadran qui tombe à zéro perd la tuile
-  tp.depuis = 1.5; const c1 = isl.board.legalCells()[0]; isl.place(c1.q, c1.r); check(tp.serie === 0, 'pose lente : la série retombe');
+  tp.depuis = 1.5; const c1 = isl.board.legalCells()[0]; isl.place(c1.q, c1.r); check(tp.serie === 0 && tp.dernier && !tp.dernier.rapide && tp.dernier.serieAvant >= 1, 'pose lente : la série retombe, et la tuile sait qu’elle a cassé une série');
+  // le seuil de la série suit le délai : 1 s à 3 s, 2,67 s à 8 s
+  check(seuilSerie({ cadran: 3 }) === 1 && seuilSerie({ cadran: 5 }) === 1.67 && seuilSerie({ cadran: 8 }) === 2.67, `seuil de la série : ${seuilSerie({ cadran: 3 })} s à 3 s, ${seuilSerie({ cadran: 5 })} s à 5 s, ${seuilSerie({ cadran: 8 })} s à 8 s`);
+  { const d8 = tempoDef(4242); d8.cadran = 8; const i8 = new Island(d8, opt); const t8 = new Tempo({ isl: i8 }); const c = i8.board.legalCells()[0]; t8.depuis = 2; i8.place(c.q, c.r); const s1 = t8.serie; const c2 = i8.board.legalCells()[0]; t8.depuis = 3; i8.place(c2.q, c2.r); check(s1 >= 1 && t8.serie === 0, `à 8 s, une pose à 2 s fait monter la série (${s1}), une pose à 3 s la casse`); }
   const rest = isl.queue.remaining; const inS = isl.inSeason; tp.update(T.cadran + 0.01);
   check(isl.stats.lost === 1 && isl.queue.remaining === rest - 1 && isl.inSeason === inS + 1, 'cadran à zéro : la tuile est perdue, elle compte pour la saison');
   // série et bonus : trois poses rapides et bien placées

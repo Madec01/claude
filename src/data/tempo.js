@@ -40,6 +40,9 @@ export function entrainementDef({ etire = 1 } = {}) {
   return { ...def, cells: e.cells, holes: 0, seasonLength: 99, opening: e.opening, cadran: e.cadran, tuto: true, entrainement: true, sansEffets: true, chronoDes: e.guidees, maxPoses: e.poses, story: 'entrainement_tempo', name: 'Entraînement' };
 }
 
+/** Le seuil de vitesse de la série : une part du délai choisi (1 s à 3 s, 1,7 s à 5 s, 2,7 s à 8 s). */
+export function seuilSerie(def = {}) { const t = T(); return Math.round(t.seuilSerie * (def.cadran || t.cadran) * 100) / 100; }
+
 /** La réserve d'été d'une partie : proportionnelle au délai choisi (12 s à 3 s, la valeur d'origine ; 20 s à 5 s ; 32 s à 8 s). */
 export function reserveEte(def = {}) { const t = T(); return Math.round(t.eteParTuile * t.seasonLength * (def.cadran || t.cadran) * 10) / 10; }
 

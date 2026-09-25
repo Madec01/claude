@@ -3,14 +3,14 @@
 // tuile (loseCurrent) et compter des points hors pose (addBonus). Tous les chiffres sont dans BALANCE.tempo.
 //
 //   - une tuile à la fois, cadran de `cadran` secondes ; à zéro elle est perdue, et la série avec
-//   - posée sous `sousSeconde` : la série monte (de deux si la place était bonne) ; plus lente : elle retombe
+//   - posée dans le premier tiers du délai (`seuilSerie`) : la série monte (de deux si la place était bonne) ; plus lente : elle retombe
 //   - hiver : le cadran gelé (×hiver) ; printemps : deux tuiles proposées, l'autre est perdue sans entamer le compte ;
 //     été : une réserve de secondes pour la saison (proportionnelle au délai), à répartir — vide, la fin d'été perd
 //     d'un coup ce qui restait à poser, en un seul événement ; automne : la brume couvre les tuiles posées, la pose
 //     dissipe les six voisines
 //   - changement de saison : la prime compte double, et la saison sans tuile perdue en rapporte une de plus
 import { BALANCE } from '../data/balance.js';
-import { multDe, reserveEte } from '../data/tempo.js';
+import { multDe, reserveEte, seuilSerie } from '../data/tempo.js';
 import { key, neighbors } from './hex.js';
 
 const T = () => BALANCE.tempo;
@@ -60,13 +60,13 @@ export class Tempo {
   onEvent(e) {
     if (e.type === 'place') {
       if (this.attend || (this.isl.def.chronoDes && this.isl.placements === this.isl.def.chronoDes)) { this.dernier = null; this.armer(); return; }   // poses guidées : ni série ni cadran
-      const rapide = this.depuis <= T().sousSeconde; const bon = BON.has(e.grade);
+      const rapide = this.depuis <= seuilSerie(this.isl.def); const bon = BON.has(e.grade); const serieAvant = this.serie;
       this.serie = rapide ? this.serie + (bon ? 2 : 1) : 0;
       this.isl.stats.bestSerie = Math.max(this.isl.stats.bestSerie, this.serie);
       this.mult = multDe(this.serie);
       const total = e.result.total; let bonus = 0;
       if (this.mult > 1 && total > 0) { bonus = Math.round(total * (this.mult - 1)); this.isl.addBonus(bonus, 'tempo'); }
-      this.dernier = { rapide, bon, bonus, depuis: this.depuis };
+      this.dernier = { rapide, bon, bonus, depuis: this.depuis, serieAvant, serie: this.serie, mult: this.mult };
       if (this.saison === 'spring') this.perdreLAutre();
       if (this.saison === 'autumn') { this.brume.delete(key(e.q, e.r)); for (const [a, b] of neighbors(e.q, e.r)) this.brume.delete(key(a, b)); }
       if (!this.isl.ended) this.armer();

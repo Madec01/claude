@@ -28,7 +28,7 @@ export const BALANCE = {
   // Le Souffle court (mode à part) : pas de file, la tuile arrive et le cadran se vide ; tout se règle ici, à la main.
   tempo: {
     cadran: 3,                 // secondes par tuile
-    sousSeconde: 1,            // posée sous ce délai : la série continue
+    seuilSerie: 1 / 3,         // posée dans cette part du délai, la série continue : 1 s à 3 s (la valeur d'origine), 1,7 s à 5 s, 2,7 s à 8 s
     paliers: [[3, 1.5], [6, 2], [10, 3]],   // [série atteinte, multiplicateur des points de la tuile]
     hiver: 1.4,                // le cadran gelé : ×1,4 (sans excès)
     eteParTuile: 0.8,          // « les grandes heures » : une réserve pour la saison, pas de cadran par tuile — 0,8 × 5 poses × délai : 12 s à 3 s, 20 s à 5 s, 32 s à 8 s

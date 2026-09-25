@@ -391,7 +391,9 @@ const Game = {
   /** Les familles que la campagne a déjà présentées : le mode n'en propose pas d'autres (pas de colline avant l'île 8, pas de lande avant la 10). */
   famillesConnues() { const n = Game.testMode ? 99 : (Save.data.campaign.unlockedIsland || 1); const mech = campaignMechanics(n); return new Set(FAMILIES.filter((f) => (f !== 'hill' || mech.has('hill')) && (f !== 'heath' || mech.has('heath')))); },
   etireTempo() { return STAGE.compact && STAGE.portrait ? BALANCE.tempo.etirePortrait : 1; },
-  startTempo() { this.noteMode('mode_tempo'); const def = tempoDef(undefined, { etire: this.etireTempo(), familles: this.famillesConnues() }); def.musique = this.musiqueTempo(); if (def.musique) AudioSys.load('music', def.musique).catch(() => {}); scenes.go('prep', { node: buildTempoPrep({ onStart: (cadran, tuto) => { AudioSys.play('ui_confirm', { volume: 0.5 }); def.cadran = cadran; def.tuto = !!tuto; hideUI(); scenes.go('island', { def }, { fade: 0.4 }); }, onTrain: () => this.startEntrainement(), onBack: () => this.showMenu() }) }); },
+  startTempo() { this.noteMode('mode_tempo'); const def = tempoDef(undefined, { etire: this.etireTempo(), familles: this.famillesConnues() }); def.musique = this.musiqueTempo(); if (def.musique) AudioSys.load('music', def.musique).catch(() => {}); scenes.go('prep', { node: buildTempoPrep({ onStart: (cadran, tuto, unToucher) => { AudioSys.play('ui_confirm', { volume: 0.5 }); def.cadran = cadran; def.tuto = !!tuto; def.unToucher = !!unToucher; hideUI(); scenes.go('island', { def }, { fade: 0.4 }); }, onTrain: () => this.startEntrainement(), onBack: () => this.showMenu() }) }); },
+  /** « Rejouer cette île » : la même graine, le même délai, la même forme — pour comparer deux plans. */
+  rejouerTempo(def) { AudioSys.play('ui_confirm', { volume: 0.5 }); const d = { ...def }; d.musique = this.musiqueTempo(); if (d.musique) AudioSys.load('music', d.musique).catch(() => {}); hideUI(); scenes.go('island', { def: d }, { fade: 0.4 }); },
   /** L'entraînement du Souffle court : six poses guidées sans chrono, puis douze à 8 s ; jamais de record. */
   startEntrainement() { AudioSys.play('ui_confirm', { volume: 0.5 }); const def = entrainementDef({ etire: this.etireTempo() }); def.musique = this.musiqueTempo(); if (def.musique) AudioSys.load('music', def.musique).catch(() => {}); hideUI(); scenes.go('island', { def }, { fade: 0.4 }); },
   startDaily() { this.noteMode('mode_daily'); const def = dailyDef(); this.prepIsland(def, dailyScreens(def)); },
@@ -792,11 +794,14 @@ class IslandScene {
         const n = sober ? Math.min(e.grade === 'master' || e.grade === 'good' ? 4 : 3, Math.ceil(Math.max(0, total) / 3)) : Math.min(8, total);
         for (let j = 0; j < n; j++) setTimeout(() => AudioSys.play(`point_${Math.min(8, base + j + 1)}`, { volume: sober ? 0.42 - j * 0.06 : 0.42 }), 70 * j);
         if (total < 0) AudioSys.play('point_bad', { volume: 0.45 }); }
-      for (const bs of e.result.base) { setTimeout(() => fx.floatText(w.x, w.y + 30, `+${bs.pts} ${bs.label}`, '#5aa7d6', 18, 1.2), 90 * i++); if (bs.label === 'rivière') this.tutorial.onEvent('river'); }
+      // au Souffle court, un seul texte flottant par pose (le total) et pas de ruban de coup : le regard reste sur l'île ; le mot va sur la tuile
+      const sobre = !!this.tempo;
+      for (const bs of e.result.base) { if (!sobre) setTimeout(() => fx.floatText(w.x, w.y + 30, `+${bs.pts} ${bs.label}`, '#5aa7d6', 18, 1.2), 90 * i++); if (bs.label === 'rivière') this.tutorial.onEvent('river'); }
       if (e.result.total !== 0) setTimeout(() => fx.floatText(w.x, w.y - 40, `${e.result.total > 0 ? '+' : ''}${e.result.total}`, e.result.total > 0 ? '#2b2a26' : '#d95f4b', 26, 1.4), 90 * i + 60);
+      if (sobre && this.tempo.dernier && !this.tempo.attend) this.hud.retourTempo(this.tempo.dernier);
       // commentaire du coup, série et paliers de score
       if (e.result.blight) { setTimeout(() => { this.hud.ribbon('En friche : cette tuile ne rapportera plus rien', '#d95f4b', 2200, 'bad'); AudioSys.play('point_bad', { volume: 0.5 }); }, 90 * i + 380); const seen = Save.data.seen || (Save.data.seen = {}); if (!seen.blight) { seen.blight = true; Save.save(); this.tutorial.pushCard('blight', STORY.mechCards.blight); } }
-      if (e.grade && GRADES[e.grade]) {
+      if (e.grade && GRADES[e.grade] && !sobre) {
         const g = GRADES[e.grade]; const texts = STORY.verdicts[e.grade]; const txt = texts[Math.floor(Math.random() * texts.length)];
         setTimeout(() => {
           // les mots vont dans le ruban sous la saison ; seuls les chiffres restent sur la case
@@ -917,7 +922,7 @@ class IslandScene {
     } else if (e.type === 'lost') {
       const fam = (STORY.tiles[e.tile.family] || {}).name || e.tile.family;
       if (e.n > 1) { this.hud.ribbon(`Fin de l’été : ${e.n} tuiles perdues`, '#d95f4b', 1800, 'warn'); this.hud.notify(`La réserve d’été est vide : ${e.n} tuiles perdues d’un coup, leurs cases resteront vides`, 'warn'); }
-      else { this.hud.ribbon(`${fam} perdue`, '#d95f4b', 1300, 'warn'); this.hud.notify(`Trop tard : la ${fam.toLowerCase()} est perdue, sa case restera vide`, 'warn'); }
+      else { const T = BALANCE.tempo; this.hud.ribbon(`${fam} perdue`, '#d95f4b', 1300, 'warn'); this.hud.notify(`Trop tard : la ${fam.toLowerCase()} est perdue. Une case restera vide : −${T.vide} à la fin, jusqu'à −${T.vide + T.videBloque} si elle bloque une région ; la saison n'est plus pleine (−${T.saisonPleine})`, 'warn'); }
       AudioSys.play('tile_discard', { volume: 0.7 }); this.shake.trigger(0.18); Haptics.tap([10, 30, 10]); this.hud.chronoCasse();
       this.armed = null; this.hud.setPlaceButton(null);
     } else if (e.type === 'brume') {
@@ -977,6 +982,8 @@ class IslandScene {
     if (!this.isl.board.has(q, r)) { this.armed = null; this.hud.setPlaceButton(null); return; }
     if (!this.isl.canPlace(q, r)) { this.armed = null; this.hud.setPlaceButton(null); AudioSys.play('tile_invalid', { volume: 0.5 }); this.hud.notify(this.isl.restrict ? 'Pose la tuile sur la case qui brille' : 'Une tuile doit toucher une tuile posée', 'warn'); return; }
     if (this.armed && this.armed.q === q && this.armed.r === r) { this.placeArmed(); return; }
+    // Souffle court, option « poser d'un seul toucher » : la première touche sur une case légale pose
+    if (this.tempo && this.def.unToucher) { this.armed = { q, r }; this.placeArmed(); return; }
     this.armed = { q, r }; AudioSys.play('tile_hover', { volume: 0.3 });
   }
   placeArmed() {
@@ -1214,7 +1221,7 @@ class ResultsScene {
   async enter({ result, def, newRecord, seedsGained, daily }) {
     AudioSys.playMusic('results', { fade: 1.5 });
     this.bg = scenes.scenes.get('menu').ensureBg();
-    const show = () => showUI(buildResults({ result, def, newRecord, seedsGained, daily, memory: def.daily || def.infinite || def.garden ? [] : islandMemoryScreens(def, result).map((x) => x.text), onContinue: () => Game.afterResults(result, def), onRetry: () => Game.startIsland(def.id, { skipIntro: true }), onMenu: () => scenes.go('menu'), onPostcard: result.postcard ? () => showUI(buildPostcard({ canvas: result.postcard.canvas, filename: result.postcard.filename, onBack: show }), 'panel-wrap') : null }), 'results-wrap'); show();
+    const show = () => showUI(buildResults({ result, def, newRecord, seedsGained, daily, memory: def.daily || def.infinite || def.garden ? [] : islandMemoryScreens(def, result).map((x) => x.text), onContinue: () => Game.afterResults(result, def), onRetry: () => (def.tempo ? Game.rejouerTempo(def) : Game.startIsland(def.id, { skipIntro: true })), onMenu: () => scenes.go('menu'), onPostcard: result.postcard ? () => showUI(buildPostcard({ canvas: result.postcard.canvas, filename: result.postcard.filename, onBack: show }), 'panel-wrap') : null }), 'results-wrap'); show();
   }
   exit() { hideUI(); }
   update(dt) { this.bg.update(dt); input.endFrame(); }

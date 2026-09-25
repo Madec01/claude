@@ -92,7 +92,7 @@ export class Hud {
     // une rare sans image de tuile (la ruche, le menhir) se montre par son objet principal
     if (!k && RARE_DECOR[t.family]) { const d = RARE_DECOR[t.family][0]; const sk = spriteKey(d.tpl, this.isl.season); const im = sk && Assets.manifest().images[sk]; src = im ? `assets/img/${im.file}` : ''; }
     const help = cls === 'current' ? '<button class="q-help" data-ref="qHelp" title="Fiche de la tuile (H)">?</button>' : '';
-    const cadran = cls === 'current' && this.isl.tempo ? '<i class="q-cadran"></i><b class="q-serie"></b><em class="q-temps"></em>' : '';
+    const cadran = cls === 'current' && this.isl.tempo ? '<i class="q-cadran"></i><b class="q-serie"></b><em class="q-temps"></em><span class="q-retour"></span>' : '';
     return `<div class="qtile ${cls} ${t.rare ? 'rare' : ''}" style="--fam:${FAMILY_COLORS[t.family] || '#999'}" title="${name}${t.rare ? ' (rare)' : ''} — ${(STORY.tiles[t.family] || {}).blurb || ''}">${cadran}${src ? `<img src="${src}" alt="${name}">` : ''}<span class="qname">${name}${(t.level || 1) >= 2 ? ` <i class="qlvl">niv. ${t.level}</i>` : ''}</span>${help}</div>`;
   }
 
@@ -334,6 +334,13 @@ export class Hud {
   }
 
   /** Souffle court : l'arc qui se vide autour de la tuile, le temps qui reste, la série. Couleur de la saison, rouge dans la dernière seconde. */
+  /** Souffle court : après une pose, un mot sur la tuile — pourquoi la série monte, tient ou casse. Sans décision, un fait. */
+  retourTempo(d) {
+    const el = this.r.queueList.querySelector('.q-retour'); if (!el || !d) return;
+    const txt = d.rapide ? (d.bon ? `rapide, bonne place : série +2` : 'rapide : série +1') : d.serieAvant > 0 ? 'trop lente : série cassée' : 'trop lente pour la série';
+    el.textContent = txt; el.classList.remove('bon', 'moyen', 'casse'); el.classList.add(d.rapide ? (d.bon ? 'bon' : 'moyen') : 'casse', 'on');
+    clearTimeout(this._retourT); this._retourT = setTimeout(() => el.classList.remove('on'), 1400);
+  }
   setTempo(tp) {
     const el = this.r.queueList.querySelector('.q-cadran'); if (!el) return;
     const col = tp.t <= 1 ? 'var(--loss)' : `var(--${this.isl.season})`;

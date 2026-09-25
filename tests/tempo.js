@@ -69,7 +69,7 @@ const boot = (p) => p.waitForFunction(() => !document.getElementById('boot'), nu
   check(t0.t < 2.5 && Math.abs(t2.t - t0.t) < 0.1 && Math.abs(t2.depuis - t0.depuis) < 0.1, `la reprise repart où le temps s'était arrêté (${t0.t.toFixed(2)} s avant, ${t2.t.toFixed(2)} s après ; série depuis ${t0.depuis.toFixed(2)} → ${t2.depuis.toFixed(2)})`);
   await page.waitForTimeout(200);
   // 5. un bot joue vite jusqu'au bout : série, saisons, brume d'automne photographiée
-  let photoAutomne = false, tours = 0;
+  let photoAutomne = false, tours = 0, retour = '';
   while (tours++ < 400) {
     const st = await page.evaluate(() => {
       const sc = window.CS.scenes.current; const isl = sc && sc.isl; if (!isl || isl.ended) return { ended: true };
@@ -78,23 +78,36 @@ const boot = (p) => p.waitForFunction(() => !document.getElementById('boot'), nu
       isl.place(best.q, best.r); return { season: isl.season, brume: sc.tempo.brume.size, serie: sc.tempo.serie, mult: sc.tempo.mult };
     });
     if (st.ended) break;
+    if (!retour) retour = await page.evaluate(() => { const e = document.querySelector('.q-retour'); return e && e.classList.contains('on') ? e.textContent : ''; });
     if (st.season === 'autumn' && st.brume > 0 && !photoAutomne) { photoAutomne = true; await page.waitForTimeout(300); await page.screenshot({ path: path.join(OUT, 'tempo-automne.png') }); }
     await page.waitForTimeout(120);
   }
-  const fin = await page.evaluate(() => { const isl = window.CS.scenes.current.isl; return { ended: isl.ended, score: isl.score, bestSerie: isl.stats.bestSerie, lost: isl.stats.lost, tally: isl.tally, saisons: isl.seasonsPassed.length }; });
+  const fin = await page.evaluate(() => { const isl = window.CS.scenes.current.isl; const d = isl.def; return { ended: isl.ended, score: isl.score, bestSerie: isl.stats.bestSerie, lost: isl.stats.lost, tally: isl.tally, saisons: isl.seasonsPassed.length, def: { seed: d.seed, cells: d.cells, cadran: d.cadran, etire: d.etire } }; });
   check(fin.ended && fin.score > 0 && fin.bestSerie >= 3 && (fin.tally.tempo || 0) > 0, `partie jouée : ${fin.score} points, série max ${fin.bestSerie}, ${fin.lost} perdue(s), ${fin.saisons} saisons, bonus de série ${fin.tally.tempo}`);
+  check(retour && /série/.test(retour), `après une pose, la tuile dit pourquoi la série bouge (« ${retour} »)`);
   check(photoAutomne, 'l’automne a couvert des tuiles de brume');
   // 6. la carte puis le bilan : la tournée est courte, le bilan porte le mode, le meilleur score est gardé
   await page.waitForFunction(() => { const sc = window.CS.scenes.current, f = sc && sc.finale; if (f && !f.done && f.phase !== 'carte') { f.skip(); f.skip(); } return window.CS.scenes.currentName === 'results' || document.querySelector('.carte-actions .btn-primary'); }, null, { timeout: 40000 });
   await page.evaluate(() => { const b = document.querySelector('.carte-actions .btn-primary'); if (b) b.click(); });
   await page.waitForFunction(() => document.querySelector('.panel-results'), null, { timeout: 30000 }); await page.waitForTimeout(800);
   const bilan = await page.evaluate(() => ({ txt: document.querySelector('.panel-results').textContent, best: window.CS.Save.data.tempo.best, best3: window.CS.Save.data.tempo.bests[3], serie3: window.CS.Save.data.tempo.series[3], parties: window.CS.Save.data.tempo.parties }));
-  check(/Souffle court/.test(bilan.txt) && /Meilleure série/.test(bilan.txt) && bilan.best === fin.score && bilan.best3 === fin.score && bilan.serie3 === fin.bestSerie && bilan.parties === 1 && /à 3 s/.test(bilan.txt), `bilan du mode, record rangé à 3 s (${bilan.best3}, série ${bilan.serie3}, ${bilan.parties} partie)`);
+  check(/Souffle court/.test(bilan.txt) && /Meilleure série/.test(bilan.txt) && bilan.best === fin.score && bilan.best3 === fin.score && bilan.serie3 === fin.bestSerie && bilan.parties === 1 && /à 3 s/.test(bilan.txt) && /île n°/.test(bilan.txt), `bilan du mode, record rangé à 3 s, numéro de l'île (${bilan.best3}, série ${bilan.serie3}, ${bilan.parties} partie)`);
+  // « Rejouer cette île » : même graine, même délai, même forme
+  const avantRejeu = fin.def;
+  await page.evaluate(() => [...document.querySelectorAll('.panel-results button')].find((b) => /Rejouer cette île/.test(b.textContent)).click());
+  await page.waitForFunction(() => window.CS.scenes.currentName === 'island' && window.CS.scenes.current.isl && window.CS.scenes.current.isl.def.tempo, null, { timeout: 20000 }); await page.waitForTimeout(300);
+  const rejeu = await page.evaluate(() => { const d = window.CS.scenes.current.isl.def; return { seed: d.seed, cells: d.cells, cadran: d.cadran, etire: d.etire, mask: window.CS.scenes.current.isl.board.mask.size }; });
+  check(rejeu.seed === avantRejeu.seed && rejeu.cells === avantRejeu.cells && rejeu.cadran === avantRejeu.cadran && rejeu.etire === avantRejeu.etire, `« Rejouer cette île » rouvre la même île (graine ${rejeu.seed}, ${rejeu.cells} cases, ${rejeu.cadran} s)`);
+  await page.evaluate(() => { window.CS.scenes.current.isl.finish('full'); });
+  await page.waitForFunction(() => { const sc = window.CS.scenes.current, f = sc && sc.finale; if (f && !f.done && f.phase !== 'carte') { f.skip(); f.skip(); } return window.CS.scenes.currentName === 'results' || document.querySelector('.carte-actions .btn-primary'); }, null, { timeout: 40000 });
+  await page.evaluate(() => { const b = document.querySelector('.carte-actions .btn-primary'); if (b) b.click(); });
+  await page.waitForFunction(() => document.querySelector('.panel-results'), null, { timeout: 30000 }); await page.waitForTimeout(300);
   await page.screenshot({ path: path.join(OUT, 'tempo-bilan.png') });
   // 7. l'aide ne fait pas de record : avec le tutoriel, la pose attend sous une carte qui fige, et la partie est un entraînement
   await page.evaluate(() => document.querySelector('.panel-results .btn-ghost').click());
   await page.waitForFunction(() => window.CS.scenes.currentName === 'menu', null, { timeout: 15000 }); await page.waitForTimeout(400);
   const menuTuile = await page.evaluate(() => (document.querySelector('.btn-tempo .btn-sub') || {}).textContent || '');
+  const recordsAvant = await page.evaluate(() => ({ best3: window.CS.Save.data.tempo.bests[3], parties: window.CS.Save.data.tempo.parties }));
   check(/pts à 3 s/.test(menuTuile), `le menu montre le record et son délai (« ${menuTuile} »)`);
   await page.evaluate(() => [...document.querySelectorAll('.menu-nav .btn')].find((x) => x.textContent.includes('Souffle court')).click());
   await page.waitForFunction(() => document.querySelector('.panel-tempo'), null, { timeout: 15000 });
@@ -114,7 +127,7 @@ const boot = (p) => p.waitForFunction(() => !document.getElementById('boot'), nu
   await page.evaluate(() => { const b = document.querySelector('.carte-actions .btn-primary'); if (b) b.click(); });
   await page.waitForFunction(() => document.querySelector('.panel-results'), null, { timeout: 30000 }); await page.waitForTimeout(500);
   const bilan2 = await page.evaluate(() => ({ txt: document.querySelector('.panel-results').textContent, best3: window.CS.Save.data.tempo.bests[3], parties: window.CS.Save.data.tempo.parties }));
-  check(/Entraînement/.test(bilan2.txt) && bilan2.best3 === fin.score && bilan2.parties === 1, `une partie avec le tutoriel est un entraînement : records et compte de parties intacts (${bilan2.best3}, ${bilan2.parties} partie)`);
+  check(/Entraînement/.test(bilan2.txt) && bilan2.best3 === recordsAvant.best3 && bilan2.parties === recordsAvant.parties, `une partie avec le tutoriel est un entraînement : records et compte de parties intacts (${bilan2.best3}, ${bilan2.parties} parties)`);
   check(!pageErrors.length, `aucune erreur de page${pageErrors.length ? ` : ${pageErrors.slice(0, 3).join(' | ')}` : ''}`);
   await b.close();
   if (errors.length) { console.log(`\n${errors.length} problème(s) :\n${errors.join('\n')}`); process.exit(1); }

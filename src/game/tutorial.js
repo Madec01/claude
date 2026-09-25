@@ -1,5 +1,5 @@
 // Tutoriel intégré : consignes d'une île, validées par des conditions de jeu.
-import { reserveEte } from '../data/tempo.js';
+import { reserveEte, seuilSerie } from '../data/tempo.js';
 import { STORY } from '../data/story.js';
 import { mechIsland } from '../data/campaign.js';
 
@@ -62,7 +62,7 @@ const MODE_STEPS = {
   tempo: [
     { id: 'tp1', info: true, when: () => true, done: () => false, focus: '.hud-queue', text: 'Ta tuile, en bas. Pas de file : tu ne vois jamais la suivante, elle arrive quand celle-ci est posée. Au printemps, deux tuiles : pose celle que tu veux. Tant qu’une carte comme celle-ci est là, le temps s’arrête et la pose attend.' },
     { id: 'tp2', info: true, fige: false, when: () => true, done: (i) => i.placements >= 1, focus: '.tempo-chrono', text: 'Le temps, juste au-dessus de l’île : le chiffre, et la marée qui se retire par les deux bouts. Sur la dernière seconde, tout rougit. Pose la tuile contre l’île avant zéro.' },
-    { id: 'tp3', info: true, when: (i) => i.placements >= 1, done: (i) => i.placements >= 3, focus: '.hud-queue', text: 'Posée vite, sous une seconde, la série monte, et s’affiche sur la tuile : deux fois plus vite si la place est bonne. Elle multiplie les points : ×1,5 à 3, ×2 à 6, ×3 à 10. Hésiter la casse.' },
+    { id: 'tp3', info: true, when: (i) => i.placements >= 1, done: (i) => i.placements >= 3, focus: '.hud-queue', text: (i) => `Posée vite, dans le premier tiers du temps (${seuilSerie(i.def)} s), la série monte, et s’affiche sur la tuile : deux fois plus vite si la place est bonne. Elle multiplie les points : ×1,5 à 3, ×2 à 6, ×3 à 10. Hésiter la casse — la tuile te le dit après chaque pose.` },
     { id: 'tp4', info: true, when: (i) => i.placements >= 3, done: (i) => i.placements >= 5, focus: '.hud-score', text: 'Les points, en haut : bords, régions, faune, comme sur toute île. À zéro, la tuile est perdue et sa case restera vide, elle coûte des points à la fin, plus encore si elle bloquait une région.' },
     { id: 'tp5', info: true, when: (i) => i.placements >= 5 || i.seasonsPassed.length >= 1, done: () => false, timeout: 30, focus: '.hud-season', text: 'La saison, en haut : cinq poses, la ligne se remplit, puis elle change. Ses primes comptent double, +10 sans tuile perdue. Chaque saison change aussi le temps ou le plateau : tu le liras sous son nom, à son arrivée.' },
     // une carte par saison, à sa première arrivée — jamais deux saisons dans la même carte
