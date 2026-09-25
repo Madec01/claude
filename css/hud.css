@@ -14,6 +14,8 @@
 .hud-score { position: relative; }
 .hud-stars { display: block; font-size: 11px; font-weight: 700; color: var(--gold); letter-spacing: 0.04em; line-height: 1; margin-top: -2px; white-space: nowrap; }
 .hud-stars.pop { animation: starPop 0.7s var(--ease-out); transform-origin: left center; }
+.hud-objectif { display: block; font-size: 11px; font-weight: 700; color: #2f7f74; line-height: 1.1; margin-top: 2px; white-space: nowrap; }   /* Souffle court : l'objectif personnel, et où l'on en est */
+.hud-objectif.manque { color: #b0432f; }
 @keyframes starPop { 0% { transform: scale(1); filter: brightness(1); } 35% { transform: scale(1.7); filter: brightness(1.6); } 100% { transform: scale(1); filter: brightness(1); } }
 .hud-label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; opacity: 0.6; font-weight: 700; }
 .hud-icon { width: 20px; height: 20px; vertical-align: middle; }

@@ -7,6 +7,7 @@ import { BALANCE } from './balance.js';
 import { RNG } from '../core/math.js';
 import { key, neighbors } from '../game/hex.js';
 import { Board } from '../game/board.js';
+import { dailyKey } from './daily.js';
 
 const T = () => BALANCE.tempo;
 
@@ -39,6 +40,21 @@ export function entrainementDef({ etire = 1 } = {}) {
   const e = ENTRAINEMENT; const def = tempoDef(e.seed, { etire });
   return { ...def, cells: e.cells, holes: 0, seasonLength: 99, opening: e.opening, cadran: e.cadran, tuto: true, entrainement: true, sansEffets: true, chronoDes: e.guidees, maxPoses: e.poses, story: 'entrainement_tempo', name: 'Entraînement' };
 }
+
+/**
+ * Le défi du jour : la même île pour tout le monde, tirée de la date, au délai « normal » (5 s), de forme fixe (la même
+ * au téléphone et sur ordinateur, `etire` 1) et avec toutes les familles. Un record par jour, à part des autres.
+ */
+function hachage(str) { let h = 2166136261; for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
+export function defiDuJourDef(key = dailyKey()) { const def = tempoDef(hachage(`souffle-court:${key}`) % 1000000000, { etire: 1 }); return { ...def, cadran: 5, defi: key, name: 'Le défi du jour' }; }
+
+/** Les objectifs personnels d'une partie : aucune récompense, un simple « atteint » ou « manqué » au bilan. */
+export const OBJECTIFS = [
+  { id: 'pertes3', nom: 'Au plus trois tuiles perdues', suivi: (isl) => `${isl.stats.lost || 0} perdue${(isl.stats.lost || 0) > 1 ? 's' : ''} sur 3`, atteint: (isl) => (isl.stats.lost || 0) <= 3 },
+  { id: 'serie6', nom: 'Six poses rapides de suite', suivi: (isl) => `meilleure série ${isl.stats.bestSerie || 0} sur 6`, atteint: (isl) => (isl.stats.bestSerie || 0) >= 6 },
+  { id: 'pleines3', nom: 'Trois saisons sans tuile perdue', suivi: (isl) => `${isl.stats.saisonsPleines || 0} pleine${(isl.stats.saisonsPleines || 0) > 1 ? 's' : ''} sur 3`, atteint: (isl) => (isl.stats.saisonsPleines || 0) >= 3 },
+];
+export const OBJECTIF_PAR_ID = Object.fromEntries(OBJECTIFS.map((o) => [o.id, o]));
 
 /** Le seuil de vitesse de la série : une part du délai choisi (1 s à 3 s, 1,7 s à 5 s, 2,7 s à 8 s). */
 export function seuilSerie(def = {}) { const t = T(); return Math.round(t.seuilSerie * (def.cadran || t.cadran) * 100) / 100; }

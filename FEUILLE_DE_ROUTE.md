@@ -11,7 +11,7 @@ chaque feuille finit par les décisions à prendre par le commanditaire, avec un
 | Mode | Feuille | Première étape |
 |---|---|---|
 | L'Histoire (campagne) | `docs/FEUILLE_HISTOIRE.md` | annulation sans dette, numéros d'îles uniques, friche seulement quand on sait la réparer, aperçu qui ne recalcule plus le décor |
-| Le Souffle court | `docs/FEUILLE_SOUFFLE_COURT.md` | records honnêtes (aide et pause), été sans pertes en rafale, printemps qui jette la bonne tuile |
+| Le Souffle court | `docs/FEUILLE_SOUFFLE_COURT.md` | **fait** (25 septembre, journal 160 à 163) : les quatre étapes ; reste le tampon, la validation avec des joueurs et la décision 3 |
 | Sous la brume | `docs/FEUILLE_BRUME.md` | indices toujours exacts, règles affichées = règles appliquées |
 
 Statut : **à faire**, en attente des décisions du commanditaire.

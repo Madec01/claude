@@ -271,6 +271,7 @@ html:not(.compact) .menu-nav > .menu-modes { grid-column: 1 / -1; }
 .tp-cadran small { display: block; font-size: 10px; font-weight: 600; opacity: 0.7; letter-spacing: 0.04em; }   /* découverte · normal · défi */
 .tp-tuto { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; font-weight: 600; margin: 2px 0 8px; cursor: pointer; }
 .tp-tuto input { width: 18px; height: 18px; accent-color: var(--breath); }
+.tp-objectif { font: inherit; font-weight: 700; padding: 4px 8px; border-radius: 8px; border: 1px solid rgba(43,42,38,0.18); background: #fff; color: var(--ink); }
 .tp-regles { display: flex; flex-direction: column; gap: 8px; margin: 6px 0 4px; text-align: left; }
 .tp-regle { display: flex; align-items: flex-start; gap: 12px; background: rgba(255,255,255,0.7); border-radius: 12px; padding: 10px 12px; }
 .tp-regle .icon { width: 22px; height: 22px; flex: 0 0 auto; margin-top: 2px; filter: invert(0.3); }

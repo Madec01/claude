@@ -77,6 +77,23 @@ const boot = (p) => p.waitForFunction(() => !document.getElementById('boot'), nu
   };
   const sans = await joueAuDoigt(false); const avec = await joueAuDoigt(true);
   check(sans.aOption && sans.poses === 0 && avec.poses === 1, `au doigt : un toucher arme sans l'option (${sans.poses} pose), pose avec elle (${avec.poses} pose)`);
+  // 6. le défi du jour, avec un objectif personnel : la même île pour tous, un record du jour à part, l'objectif jugé au bilan
+  await p2.evaluate(() => [...document.querySelectorAll('.menu-nav .btn')].find((x) => x.textContent.includes('Souffle court')).click());
+  await p2.waitForFunction(() => document.querySelector('.panel-tempo'), null, { timeout: 15000 });
+  await p2.evaluate(() => { const sel = document.querySelector('.tp-objectif'); sel.value = 'pertes3'; sel.dispatchEvent(new Event('change')); [...document.querySelectorAll('.panel-tempo button')].find((x) => /Défi du jour/.test(x.textContent)).click(); });
+  await p2.waitForFunction(() => window.CS.scenes.currentName === 'island' && window.CS.scenes.current.isl && window.CS.scenes.current.isl.def.defi && !window.CS.scenes.current.hold, null, { timeout: 30000 }); await p2.waitForTimeout(400);
+  const defi = await p2.evaluate(() => { const d = window.CS.scenes.current.isl.def; const o = document.querySelector('.hud-objectif'); return { defi: d.defi, cadran: d.cadran, etire: d.etire, objectif: d.objectif, hudObjectif: o && !o.classList.contains('hidden') ? o.textContent : '' }; });
+  const aujourdhui = await p2.evaluate(() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; });
+  check(defi.defi === aujourdhui && defi.cadran === 5 && defi.etire === 1 && defi.objectif === 'pertes3' && /trois tuiles perdues/.test(defi.hudObjectif), `le défi du jour ouvre l'île du ${defi.defi} à 5 s, forme fixe, objectif suivi dans le HUD (« ${defi.hudObjectif} »)`);
+  // le bot joue le défi jusqu'au bout (une partie finie tôt laisse trop de cases vides pour un score positif)
+  let nd = 0, scoreDefi = 0; while (nd++ < 400) { const st = await p2.evaluate(() => { const isl = window.CS.scenes.current.isl; if (!isl || isl.ended) return { ended: true, score: isl ? isl.score : 0 }; let best = null, bs = -Infinity; for (const c of isl.board.legalCells()) { const pv = isl.preview(c.q, c.r); if (pv && pv.total > bs) { bs = pv.total; best = c; } } if (!best) { isl.finish('full'); return { ended: true, score: isl.score }; } isl.place(best.q, best.r); return { ended: false }; }); if (st.ended) { scoreDefi = st.score; break; } await p2.waitForTimeout(100); }
+  await p2.waitForFunction(() => { const sc = window.CS.scenes.current, f = sc && sc.finale; if (f && !f.done && f.phase !== 'carte') { f.skip(); f.skip(); } return window.CS.scenes.currentName === 'results' || document.querySelector('.carte-actions .btn-primary'); }, null, { timeout: 40000 });
+  await p2.evaluate(() => { const b = document.querySelector('.carte-actions .btn-primary'); if (b) b.click(); });
+  await p2.waitForFunction(() => document.querySelector('.panel-results'), null, { timeout: 30000 }); await p2.waitForTimeout(300);
+  const bilanDefi = await p2.evaluate(() => { const t = window.CS.Save.data.tempo; return { txt: document.querySelector('.panel-results').textContent, jour: JSON.stringify((t.defi || {}).best || {}), bests: JSON.stringify(t.bests || {}), score: window.CS.scenes.current && window.CS.scenes.current.result ? window.CS.scenes.current.result.score : null }; });
+  const finalDefi = await p2.evaluate(() => { const r = window.CS.Save.data.tempo.defi.best; const k = Object.keys(r)[0]; return { k, v: r[k] }; });
+  check(/défi du jour/i.test(bilanDefi.txt) && /Objectif/.test(bilanDefi.txt) && /atteint/.test(bilanDefi.txt) && finalDefi.k === aujourdhui && finalDefi.v === scoreDefi && scoreDefi > 0 && bilanDefi.bests === '{}', `bilan du défi : record du jour à part (${finalDefi.k} : ${finalDefi.v}), objectif atteint, les records par délai intacts (${bilanDefi.bests})`);
+  await p2.screenshot({ path: path.join(OUT, 'defi-bilan.png') });
   await ctx2.close();
   await b.close();
   if (errors.length) { console.log(`\n${errors.length} problème(s) :\n${errors.join('\n')}`); process.exit(1); }

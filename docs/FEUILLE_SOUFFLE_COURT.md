@@ -87,15 +87,17 @@ Fin de l'étape : il existe plusieurs façons de bien jouer, et le joueur voit p
 
 | Lot | Ce qu'on fait | Le test qui le prouve | Effort | Dépend de | Statut |
 |---|---|---|---|---|---|
-| **S-S** · Le défi du jour | Déjà voulu par le commanditaire (« sa version du jour, même graine pour tous », feuille de route l. 139). La graine vient de la date (comme l'Île du jour), avec un délai fixe (5 s) et une forme d'île fixe, la même au téléphone et sur ordinateur. Un record par jour, dans une entrée à part de la sauvegarde. | Node : même date, même île ; `etire` identique quel que soit l'écran. Navigateur : le bouton du défi ouvre l'île du jour, et le record du jour est gardé. | moyen | S-K, S-M | à faire |
-| **S-T** · Un objectif personnel | Avant la partie, un objectif au choix (« au plus trois tuiles perdues », « six bonnes poses de suite »), suivi dans le HUD et jugé au bilan. Aucune récompense permanente. | Navigateur : objectif choisi, partie jouée par le bot ; attendu : le bilan dit « atteint » ou « manqué ». | petit | S-G | à faire |
-| **Tampon du mode** | Le tampon manque encore (feuille de route). C'est une image à faire faire, pas du code. | — | petit | — | à faire |
+| **S-S** · Le défi du jour · **fait** (journal 163) | Déjà voulu par le commanditaire (« sa version du jour, même graine pour tous », feuille de route l. 139). La graine vient de la date (comme l'Île du jour), avec un délai fixe (5 s) et une forme d'île fixe, la même au téléphone et sur ordinateur. Un record par jour, dans une entrée à part de la sauvegarde. | Node : même date, même île ; `etire` identique quel que soit l'écran. Navigateur : le bouton du défi ouvre l'île du jour, et le record du jour est gardé. | moyen | S-K, S-M | à faire |
+| **S-T** · Un objectif personnel · **fait** (journal 163) | Avant la partie, un objectif au choix (« au plus trois tuiles perdues », « six bonnes poses de suite »), suivi dans le HUD et jugé au bilan. Aucune récompense permanente. | Navigateur : objectif choisi, partie jouée par le bot ; attendu : le bilan dit « atteint » ou « manqué ». | petit | S-G | à faire |
+| **Tampon du mode** | Le tampon manque encore (feuille de route). C'est une image à faire faire, pas du code. | — | petit | — | à faire (image) |
 
 ---
 
 ## 3. Décisions à prendre par le commanditaire
 
 Chaque question est fermée. La recommandation en gras sera appliquée par défaut si rien n'est dit.
+
+**État au 25 septembre** : le commanditaire a dit « go » ; les recommandations ont été appliquées telles quelles (1 a, 2 a, 4 b, 5 b, 6 b, 7 a, 8 a, 9 a), sauf la **3** : les règles de saison de la campagne sont gardées et dites (elles étaient déjà dans la bannière ; les retirer touche au score et aux records, et le récapitulatif promet « comme sur toute île »). À trancher par le commanditaire s'il préfère b.
 
 1. **Été : la réserve suit-elle le délai ?** a) **Oui : 12 s à 3 s (ta valeur), 20 s à 5 s, 32 s à 8 s.** b) Non, 12 s partout (aujourd'hui). c) Retirer l'été spécial.
    Pour a : 8 s redevient plus facile toute la partie, et 3 s ne change pas. Contre a : l'été à 8 s devient long. Recommandation : **a**.

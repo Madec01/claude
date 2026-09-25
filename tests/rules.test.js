@@ -586,7 +586,7 @@ for (const def of ISLANDS.slice(0, 4)) {
 }
 // --- Le Souffle court : île procédurale, tuile perdue, série et paliers, saisons à effets, malus des cases vides
 {
-  const { tempoDef, videsMalus, multDe, reserveEte, recordsTempo, entrainementDef, ENTRAINEMENT, seuilSerie } = await import('../src/data/tempo.js');
+  const { tempoDef, videsMalus, multDe, reserveEte, recordsTempo, entrainementDef, ENTRAINEMENT, seuilSerie, defiDuJourDef, OBJECTIF_PAR_ID } = await import('../src/data/tempo.js');
   const { Tempo } = await import('../src/game/tempo.js');
   const T = BALANCE.tempo;
   const def = tempoDef(12345); const def2 = tempoDef(12345);
@@ -599,6 +599,11 @@ for (const def of ISLANDS.slice(0, 4)) {
   const libres = (b) => [...b.mask].filter((k) => !b.tiles.has(k)).length;
   check(isl.tempo && isl.queue.remaining === libres(isl.board) && isl.queue.list.length === 1, `une tuile par case libre, mares comprises (${isl.queue.remaining} = ${libres(isl.board)}), une seule visible (${isl.queue.list.length})`);
   { let ok = true, n = 0; for (let s = 1; s <= 60; s++) { const i = new Island(tempoDef(s), opt); if (i.queue.remaining !== libres(i.board)) ok = false; if (i.board.tiles.size > 1) n++; } check(ok, `sur 60 graines, autant de tuiles que de cases libres (${n} îles avec des mares)`); }
+  // le défi du jour : la même île pour tous, tirée de la date, à 5 s, de forme fixe
+  { const a = defiDuJourDef('2026-09-25'), b = defiDuJourDef('2026-09-25'), c = defiDuJourDef('2026-09-26');
+    check(JSON.stringify(a) === JSON.stringify(b) && a.seed !== c.seed && a.cadran === 5 && a.etire === 1 && a.defi === '2026-09-25' && a.tempo, `défi du jour : même date, même île (graine ${a.seed}) ; autre date, autre île (${c.seed}) ; 5 s, forme fixe`); }
+  // les objectifs personnels : jugés sur les statistiques de la partie
+  check(OBJECTIF_PAR_ID.pertes3.atteint({ stats: { lost: 3 } }) && !OBJECTIF_PAR_ID.pertes3.atteint({ stats: { lost: 4 } }) && OBJECTIF_PAR_ID.serie6.atteint({ stats: { bestSerie: 6 } }) && !OBJECTIF_PAR_ID.serie6.atteint({ stats: { bestSerie: 5 } }) && OBJECTIF_PAR_ID.pleines3.atteint({ stats: { saisonsPleines: 3 } }), 'objectifs personnels : au plus trois perdues, série de six, trois saisons pleines');
   // l'entraînement : une petite île fixe, ses six cibles libres autour du hameau, dix-huit poses, sans record
   { const e = new Island(entrainementDef(), opt); const cibles = ENTRAINEMENT.cibles.every(([q, r]) => e.board.has(q, r) && !e.board.get(q, r)); const ouverture = e.queue.list[0].family === ENTRAINEMENT.opening[0];
     check(e.tempo && e.def.tuto && e.def.entrainement && e.def.cadran === 8 && cibles && ouverture && e.queue.remaining >= ENTRAINEMENT.poses, `entraînement : ${e.board.mask.size} cases, six cibles libres autour du hameau, première tuile « ${e.queue.list[0].family} », ${e.queue.remaining} tuiles`);

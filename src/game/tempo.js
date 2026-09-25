@@ -72,7 +72,7 @@ export class Tempo {
       if (!this.isl.ended) this.armer();
     } else if (e.type === 'season') {
       if (e.pts > 0) this.isl.addBonus(Math.round(e.pts * (T().primeSaison - 1)), 's_tempo');
-      if (this.perduesSaison === 0) this.isl.addBonus(T().saisonPleine, 'pleine');
+      if (this.perduesSaison === 0) { this.isl.addBonus(T().saisonPleine, 'pleine'); this.isl.stats.saisonsPleines = (this.isl.stats.saisonsPleines || 0) + 1; }
       this.saisonPleine = this.perduesSaison === 0;
       this.perduesSaison = 0;
       this.sortir(e.from); this.entrer(e.to);

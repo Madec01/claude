@@ -41,7 +41,7 @@ import { buildWorkshop } from './ui/workshop.js';
 import { celebrate, celebrateThing } from './ui/achievements.js';
 import { UPGRADES, playerChapter } from './data/upgrades.js';
 import { Version } from './core/version.js';
-import { tempoDef, entrainementDef, recordsTempo } from './data/tempo.js';
+import { tempoDef, entrainementDef, defiDuJourDef, recordsTempo, OBJECTIF_PAR_ID } from './data/tempo.js';
 import { FAMILIES } from './data/tiles.js';
 import { buildTempoPrep } from './ui/tempo_prep.js';
 import { Tempo } from './game/tempo.js';
@@ -391,7 +391,9 @@ const Game = {
   /** Les familles que la campagne a déjà présentées : le mode n'en propose pas d'autres (pas de colline avant l'île 8, pas de lande avant la 10). */
   famillesConnues() { const n = Game.testMode ? 99 : (Save.data.campaign.unlockedIsland || 1); const mech = campaignMechanics(n); return new Set(FAMILIES.filter((f) => (f !== 'hill' || mech.has('hill')) && (f !== 'heath' || mech.has('heath')))); },
   etireTempo() { return STAGE.compact && STAGE.portrait ? BALANCE.tempo.etirePortrait : 1; },
-  startTempo() { this.noteMode('mode_tempo'); const def = tempoDef(undefined, { etire: this.etireTempo(), familles: this.famillesConnues() }); def.musique = this.musiqueTempo(); if (def.musique) AudioSys.load('music', def.musique).catch(() => {}); scenes.go('prep', { node: buildTempoPrep({ onStart: (cadran, tuto, unToucher) => { AudioSys.play('ui_confirm', { volume: 0.5 }); def.cadran = cadran; def.tuto = !!tuto; def.unToucher = !!unToucher; hideUI(); scenes.go('island', { def }, { fade: 0.4 }); }, onTrain: () => this.startEntrainement(), onBack: () => this.showMenu() }) }); },
+  startTempo() { this.noteMode('mode_tempo'); const def = tempoDef(undefined, { etire: this.etireTempo(), familles: this.famillesConnues() }); def.musique = this.musiqueTempo(); if (def.musique) AudioSys.load('music', def.musique).catch(() => {}); scenes.go('prep', { node: buildTempoPrep({ onStart: (cadran, tuto, unToucher, objectif) => { AudioSys.play('ui_confirm', { volume: 0.5 }); def.cadran = cadran; def.tuto = !!tuto; def.unToucher = !!unToucher; def.objectif = objectif || null; hideUI(); scenes.go('island', { def }, { fade: 0.4 }); }, onTrain: () => this.startEntrainement(), onDefi: (unToucher, objectif) => this.startDefiDuJour(unToucher, objectif), onBack: () => this.showMenu() }) }); },
+  /** Le défi du jour du Souffle court : la même île pour tous, 5 s, un record par jour. */
+  startDefiDuJour(unToucher, objectif) { AudioSys.play('ui_confirm', { volume: 0.5 }); const def = defiDuJourDef(); def.unToucher = !!unToucher; def.objectif = objectif || null; def.musique = this.musiqueTempo(); if (def.musique) AudioSys.load('music', def.musique).catch(() => {}); hideUI(); scenes.go('island', { def }, { fade: 0.4 }); },
   /** « Rejouer cette île » : la même graine, le même délai, la même forme — pour comparer deux plans. */
   rejouerTempo(def) { AudioSys.play('ui_confirm', { volume: 0.5 }); const d = { ...def }; d.musique = this.musiqueTempo(); if (d.musique) AudioSys.load('music', d.musique).catch(() => {}); hideUI(); scenes.go('island', { def: d }, { fade: 0.4 }); },
   /** L'entraînement du Souffle court : six poses guidées sans chrono, puis douze à 8 s ; jamais de record. */
@@ -461,7 +463,13 @@ const Game = {
     if (def.tempo) {
       const T = Save.data.tempo || (Save.data.tempo = { best: 0, bestSerie: 0, parties: 0 });
       // une partie jouée avec le tutoriel est un entraînement : le temps s'y arrête sous les cartes, elle ne fait pas de record
-      if (!test && !def.tuto) { recordsTempo(T); T.parties = (T.parties || 0) + 1; const cad = def.cadran || 3; if (result.score > (T.bests[cad] || 0)) { newRecord = (T.bests[cad] || 0) > 0; T.bests[cad] = result.score; } T.series[cad] = Math.max(T.series[cad] || 0, result.stats.bestSerie || 0); T.best = Math.max(T.best || 0, result.score); T.bestSerie = Math.max(T.bestSerie || 0, result.stats.bestSerie || 0); Save.save(); }
+      if (!test && !def.tuto) {
+        recordsTempo(T); T.parties = (T.parties || 0) + 1;
+        if (def.defi) { T.defi = T.defi || { best: {} }; const prev = T.defi.best[def.defi] || 0; if (result.score > prev) { newRecord = prev > 0; T.defi.best[def.defi] = result.score; } }   // le défi du jour : un record par jour, à part
+        else { const cad = def.cadran || 3; if (result.score > (T.bests[cad] || 0)) { newRecord = (T.bests[cad] || 0) > 0; T.bests[cad] = result.score; } T.series[cad] = Math.max(T.series[cad] || 0, result.stats.bestSerie || 0); T.best = Math.max(T.best || 0, result.score); T.bestSerie = Math.max(T.bestSerie || 0, result.stats.bestSerie || 0); }
+        Save.save();
+      }
+      if (def.objectif && OBJECTIF_PAR_ID[def.objectif]) result.objectif = { nom: OBJECTIF_PAR_ID[def.objectif].nom, atteint: OBJECTIF_PAR_ID[def.objectif].atteint({ stats: result.stats }) };
       scenes.go('results', { result, def, newRecord });
       return;
     }

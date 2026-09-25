@@ -11,7 +11,7 @@ import { Assets } from '../core/assets.js';
 import { AudioSys } from '../core/audio.js';
 import { RARE_DECOR, spriteKey } from './decor.js';
 import { NOMS_COULEURS, P as PB } from './brume.js';
-import { reserveEte } from '../data/tempo.js';
+import { reserveEte, OBJECTIF_PAR_ID } from '../data/tempo.js';
 
 const icon = (name, cls = '') => `<img class="hud-icon ${cls}" src="assets/img/ui/${name}.png" alt="">`;
 /** Les messages qui passent aussi dans le ruban (les autres ne vont qu'au journal), avec leur couleur. */
@@ -30,7 +30,7 @@ export class Hud {
           <div class="season-pips" data-ref="pips" title="Poses avant la prochaine saison"></div>
           <div class="season-pop hidden" data-ref="seasonPop"></div>
         </div>
-        <div class="hud-block hud-score"><span class="hud-label">Points</span><b data-ref="score">0</b><span class="score-delta" data-ref="scoreDelta"></span><span class="hud-stars" data-ref="starsLine" title="Seuils des étoiles"></span><div class="score-pop hidden" data-ref="scorePop"></div></div>
+        <div class="hud-block hud-score"><span class="hud-label">Points</span><b data-ref="score">0</b><span class="score-delta" data-ref="scoreDelta"></span><span class="hud-stars" data-ref="starsLine" title="Seuils des étoiles"></span><span class="hud-objectif hidden" data-ref="objectif"></span><div class="score-pop hidden" data-ref="scorePop"></div></div>
         <div class="hud-block hud-breaths ${m.has('breath') ? '' : 'hidden'}" title="Souffles"><span class="hud-label">Souffles</span><b data-ref="breaths">0</b></div>
         <button class="hud-pause" data-ref="pause" title="Pause (Échap) : journal, plein écran, options">${icon('icon_pause')}</button>
       </div>
@@ -302,6 +302,8 @@ export class Hud {
     const effet = isl.tempo && !isl.def.sansEffets ? { spring: 'Deux tuiles proposées : pose celle que tu veux, l’autre est perdue.', summer: `Une réserve de ${reserveEte(isl.def)} s pour les cinq tuiles.`, autumn: 'La brume couvre l’île ; poser la dissipe autour.', winter: `Cadran gelé, ×${BALANCE.tempo.hiver}.` }[isl.season] : null;
     this.set('seasonName', rl && isl.rulesVariable ? `${s.name} · ${rl.name}` : s.name); this.set('seasonRule', (effet ? `${effet} ` : '') + (rl ? rl.rule : s.rule));
     if (this.last.seasonKey !== isl.season) { this.last.seasonKey = isl.season; r.seasonIcon.innerHTML = icon(SEASON_ICON[isl.season] || 'icon_leaf'); r.seasonBox.classList.remove('s-spring', 's-summer', 's-autumn', 's-winter'); r.seasonBox.classList.add(`s-${isl.season}`); }
+    // l'objectif personnel du Souffle court, suivi sous les points
+    if (isl.tempo && isl.def.objectif && OBJECTIF_PAR_ID[isl.def.objectif]) { const o = OBJECTIF_PAR_ID[isl.def.objectif]; const txt = `${o.nom} · ${o.suivi(isl)}`; if (txt !== this.last.objectif) { this.last.objectif = txt; r.objectif.textContent = txt; r.objectif.classList.remove('hidden'); r.objectif.classList.toggle('manque', !o.atteint(isl)); } }
     // pips
     const pipHtml = isl.garden || isl.def.entrainement ? '' : Array.from({ length: isl.seasonLength }, (_, i) => `<i class="${i < isl.inSeason ? 'on' : ''}"></i>`).join('');
     if (pipHtml !== this.last.pips) { this.last.pips = pipHtml; r.pips.innerHTML = pipHtml; }
