@@ -635,7 +635,8 @@ class IslandScene {
     });
     document.getElementById('hud').classList.add('on');
     // les deux modes à part ont leur tutoriel pas à pas : la première fois, ou à la demande (`def.tuto`) ; jamais en mode test
-    const tutoMode = (def.tempo || def.brume) && !Save.options.skipTutorial && !Game.testMode && (def.tuto || !((Save.data.seen || {})[def.tempo ? 'tuto_tempo' : 'tuto_brume']));
+    // la case « Revoir le tutoriel » cochée dans le panneau l'emporte sur l'option « Sauter les tutoriels » : c'est une demande explicite
+    const tutoMode = (def.tempo || def.brume) && !Game.testMode && (def.tuto || (!Save.options.skipTutorial && !((Save.data.seen || {})[def.tempo ? 'tuto_tempo' : 'tuto_brume'])));
     if (tutoMode) { Save.data.seen = Save.data.seen || {}; Save.data.seen[def.tempo ? 'tuto_tempo' : 'tuto_brume'] = true; Save.save(); }
     this.tutorial = new Tutorial(document.getElementById('tutorial'), isl, def, (!Save.options.skipTutorial && !def.infinite && !def.garden && !def.tempo && !def.brume) || !!tutoMode);
     // les vœux se présentent avant la première pose (un bouton pour commencer), sauf en reprise sans intro
@@ -646,7 +647,7 @@ class IslandScene {
     isl.on((e) => { if (!Game.testMode && !def.tempo) Achievements.onIslandEvent(e, isl); });
     // Le Souffle court : le cadran, la série et les saisons à effets ; la brume d'automne est lue par le rendu
     // le HUD sait dans quel mode il est : au téléphone, la brume range son inventaire au-dessus des tuiles
-    if (isl.brume) document.getElementById('hud').classList.add('brume');
+    if (isl.brume) { document.getElementById('hud').classList.add('brume'); document.getElementById('tutorial').classList.add('brume'); }
     this.tempo = def.tempo ? new Tempo(this) : null;
     if (this.tempo) {
       this.renderer.brume = this.tempo.brume; document.getElementById('hud').classList.add('tempo');
@@ -717,7 +718,7 @@ class IslandScene {
     window.removeEventListener('blur', this.onLeave);
     for (const u of this.unsubs || []) u();
     this.hud && this.hud.destroy(); document.getElementById('hud').classList.remove('on', 'tempo', 'brume');
-    this.tutorial && this.tutorial.destroy(); document.getElementById('tutorial').classList.remove('on');
+    this.tutorial && this.tutorial.destroy(); document.getElementById('tutorial').classList.remove('on', 'brume');
     document.getElementById('stage').classList.remove('playing');
     if (this.debugEl) { this.debugEl.remove(); this.debugEl = null; }
     hideUI(); this.isl = null;

@@ -312,7 +312,7 @@ html.compact.portrait #hud.brume .pw.brume-move { grid-area: move; flex-directio
 /* la ligne du bas est plus haute : la faune, « Poser ici » et les cartes du tutoriel montent d'autant (--queue-h, mesurée par le HUD) */
 html.compact.portrait #hud.brume .hud-fauna { bottom: calc(var(--queue-h, 190px) + 6px); }
 html.compact.portrait #hud.brume .hud-place { bottom: calc(var(--queue-h, 190px) + 36px); }
-html.compact.portrait #hud.brume .tuto-card { bottom: calc(var(--queue-h, 190px) + 40px); }
+html.compact.portrait #tutorial.brume .tuto-card { bottom: calc(var(--hud-queue-h, 190px) + 40px); }   /* la carte vit dans #tutorial, pas dans #hud : la variable est posée sur le conteneur commun */
 /* Sous la brume, paysage : la colonne de gauche est trop étroite pour les chips et le jalon ; ils sortent de la colonne
    (position: fixed, pour échapper à son overflow) et se posent en bas, au-dessus de la faune. La colonne garde les cinq
    tuiles (la tuile en main un peu plus petite, les autres sans nom), le souffle et Déplacer. */
