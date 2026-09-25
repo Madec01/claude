@@ -3,7 +3,7 @@
 import { h, button, icon, append } from './dom.js';
 import { BALANCE } from '../data/balance.js';
 import { Save } from '../core/save.js';
-import { reserveEte, recordsTempo, seuilSerie, OBJECTIFS } from '../data/tempo.js';
+import { reserveEte, recordsTempo, seuilSerie, OBJECTIFS, fr } from '../data/tempo.js';
 import { dailyKey } from '../data/daily.js';
 import { STAGE } from '../core/stage.js';
 
@@ -19,7 +19,7 @@ export function buildTempoPrep({ onStart, onTrain, onDefi, onBack }) {
   let cadran = choisi && [3, 5, 8].includes(S.cadran) ? S.cadran : 8;
   // un record par délai, jamais celui d'un autre délai à sa place
   const bestDe = (c) => (S.bests || {})[c] || 0; const serieDe = (c) => (S.series || {})[c] || 0;
-  const paliers = T.paliers.map(([n, k]) => `×${k} à ${n}`).join(', ');
+  const paliers = T.paliers.map(([n, k]) => `×${fr(k)} à ${n}`).join(', ');
   const regle = (ic, titre, texte) => h('div', { class: 'tp-regle' }, icon(ic), h('div', {}, h('b', {}, titre), h('span', {}, texte)));
   const root = h('div', { class: 'panel panel-wishes-intro panel-tempo' });
   const intro = h('p', {}); const titreCadran = h('b', {}); const meilleur = h('span', {}); const saisons = h('span', {}); const serieTxt = h('span', {});
@@ -41,8 +41,8 @@ export function buildTempoPrep({ onStart, onTrain, onDefi, onBack }) {
     titreCadran.textContent = `${cadran} secondes par tuile`;
     const best = bestDe(cadran);
     meilleur.textContent = best ? `À chaque partie. Ton meilleur à ${cadran} s : ${best} points, série de ${serieDe(cadran)}.` : `À chaque partie. Le meilleur score, tout court — un par temps choisi ; aucun encore à ${cadran} s.`;
-    serieTxt.textContent = `Posée dans le premier tiers du temps (${seuilSerie({ cadran })} s à ${cadran} s), la série monte — deux fois plus vite si la place est bonne. Elle multiplie les points de la tuile : ${paliers}. Hésiter la casse.`;
-    saisons.textContent = `Cinq poses chacune, leurs primes comptent double, +${T.saisonPleine} sans tuile perdue. L’hiver gèle le cadran (×${T.hiver}), le printemps propose deux tuiles, l’été te donne ${reserveEte({ cadran })} secondes à répartir (vide, ce qui reste à poser est perdu d’un coup), l’automne couvre l’île de brume.`;
+    serieTxt.textContent = `Posée dans le premier tiers du temps (${fr(seuilSerie({ cadran }))} s à ${cadran} s), la série monte — deux fois plus vite si la place est bonne. Elle multiplie les points de la tuile : ${paliers}. Hésiter la casse.`;
+    saisons.textContent = `Cinq poses chacune, leurs primes comptent double, +${T.saisonPleine} sans tuile perdue. L’hiver gèle le cadran (×${fr(T.hiver)}), le printemps propose deux tuiles, l’été te donne ${fr(reserveEte({ cadran }))} secondes à répartir (vide, ce qui reste à poser est perdu d’un coup), l’automne couvre l’île de brume.`;
     for (const b of choix.children) b.classList.toggle('on', Number(b.dataset.cadran) === cadran);
   };
   for (const c of [8, 5, 3]) { const b = h('button', { class: 'tp-cadran', 'data-cadran': String(c) }, `${c} s`, h('small', {}, ETIQ[c])); b.addEventListener('click', (e) => { e.stopPropagation(); cadran = c; if (Save.data.tempo) { Save.data.tempo.cadran = c; Save.data.tempo.cadranChoisi = true; Save.save(); } maj(); }); choix.appendChild(b); }

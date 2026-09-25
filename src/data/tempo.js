@@ -56,6 +56,9 @@ export const OBJECTIFS = [
 ];
 export const OBJECTIF_PAR_ID = Object.fromEntries(OBJECTIFS.map((o) => [o.id, o]));
 
+/** Un nombre en français : la virgule, pas le point (2,67 s ; ×1,5). */
+export const fr = (x) => String(x).replace('.', ',');
+
 /** Le seuil de vitesse de la série : une part du délai choisi (1 s à 3 s, 1,7 s à 5 s, 2,7 s à 8 s). */
 export function seuilSerie(def = {}) { const t = T(); return Math.round(t.seuilSerie * (def.cadran || t.cadran) * 100) / 100; }
 

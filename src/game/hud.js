@@ -11,7 +11,7 @@ import { Assets } from '../core/assets.js';
 import { AudioSys } from '../core/audio.js';
 import { RARE_DECOR, spriteKey } from './decor.js';
 import { NOMS_COULEURS, P as PB } from './brume.js';
-import { reserveEte, OBJECTIF_PAR_ID } from '../data/tempo.js';
+import { reserveEte, OBJECTIF_PAR_ID, fr } from '../data/tempo.js';
 
 const icon = (name, cls = '') => `<img class="hud-icon ${cls}" src="assets/img/ui/${name}.png" alt="">`;
 /** Les messages qui passent aussi dans le ruban (les autres ne vont qu'au journal), avec leur couleur. */
@@ -299,7 +299,7 @@ export class Hud {
     const s = STORY.seasons[isl.season] || { name: isl.season, rule: '' };
     const rl = isl.rule && STORY.seasonRules[isl.rule] ? STORY.seasonRules[isl.rule] : null;
     // au Souffle court, l'effet de la saison sur le temps ou le plateau passe devant la règle commune
-    const effet = isl.tempo && !isl.def.sansEffets ? { spring: 'Deux tuiles proposées : pose celle que tu veux, l’autre est perdue.', summer: `Une réserve de ${reserveEte(isl.def)} s pour les cinq tuiles.`, autumn: 'La brume couvre l’île ; poser la dissipe autour.', winter: `Cadran gelé, ×${BALANCE.tempo.hiver}.` }[isl.season] : null;
+    const effet = isl.tempo && !isl.def.sansEffets ? { spring: 'Deux tuiles proposées : pose celle que tu veux, l’autre est perdue.', summer: `Une réserve de ${fr(reserveEte(isl.def))} s pour les cinq tuiles.`, autumn: 'La brume couvre l’île ; poser la dissipe autour.', winter: `Cadran gelé, ×${fr(BALANCE.tempo.hiver)}.` }[isl.season] : null;
     this.set('seasonName', rl && isl.rulesVariable ? `${s.name} · ${rl.name}` : s.name); this.set('seasonRule', (effet ? `${effet} ` : '') + (rl ? rl.rule : s.rule));
     if (this.last.seasonKey !== isl.season) { this.last.seasonKey = isl.season; r.seasonIcon.innerHTML = icon(SEASON_ICON[isl.season] || 'icon_leaf'); r.seasonBox.classList.remove('s-spring', 's-summer', 's-autumn', 's-winter'); r.seasonBox.classList.add(`s-${isl.season}`); }
     // l'objectif personnel du Souffle court, suivi sous les points
@@ -349,7 +349,7 @@ export class Hud {
     el.style.setProperty('--p', tp.fraction.toFixed(3)); el.style.setProperty('--col', col);
     el.classList.toggle('urgent', tp.t <= 1);
     const temps = this.r.queueList.querySelector('.q-temps'); if (temps) { const txt = `${tp.t.toFixed(1)} s`; if (temps.textContent !== txt) temps.textContent = txt; }
-    const serie = this.r.queueList.querySelector('.q-serie'); if (serie) { const txt = tp.serie >= 3 ? `×${tp.mult} · ${tp.serie}` : tp.serie > 0 ? `série ${tp.serie}` : ''; if (serie.textContent !== txt) serie.textContent = txt; serie.classList.toggle('on', tp.serie >= 3); }
+    const serie = this.r.queueList.querySelector('.q-serie'); if (serie) { const txt = tp.serie >= 3 ? `×${fr(tp.mult)} · ${tp.serie}` : tp.serie > 0 ? `série ${tp.serie}` : ''; if (serie.textContent !== txt) serie.textContent = txt; serie.classList.toggle('on', tp.serie >= 3); }
   }
 
   /**
