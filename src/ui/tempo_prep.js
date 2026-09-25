@@ -17,7 +17,7 @@ export function buildTempoPrep({ onStart, onBack }) {
   const intro = h('p', {}); const titreCadran = h('b', {}); const meilleur = h('span', {});
   const choix = h('div', { class: 'tp-cadrans' });
   // le tutoriel pas à pas : coché la première fois, à la demande ensuite
-  const dejaVu = !!((Save.data.seen || {}).tuto_tempo); const tuto = h('input', { type: 'checkbox' }); tuto.checked = !dejaVu;
+  const dejaVu = !!((Save.data.seen || {}).tuto_tempo); const tuto = h('input', { type: 'checkbox' }); tuto.checked = !dejaVu && !Save.options.skipTutorial;   // cochée d'office la première fois, sauf si le joueur saute les tutoriels ; il peut toujours la cocher
   const tutoLigne = h('label', { class: 'tp-tuto' }, tuto, h('span', {}, dejaVu ? 'Revoir le tutoriel pas à pas' : 'Avec le tutoriel pas à pas (première fois)'));
   const maj = () => {
     intro.textContent = `Pas de file. La tuile arrive, et tu as ${MOTS[cadran]} secondes pour la poser. Le but : le plus de points possible — vite, et bien.`;

@@ -11,7 +11,7 @@ const nom = (f) => (f === 'tresor' ? 'Trésor' : (STORY.tiles[f] || {}).name || 
 export function buildBrumeChoice({ onPick, onBack }) {
   const best = (id) => ((Save.data.brume || {})[id] || {}).best || 0;
   const root = h('div', { class: 'panel panel-brume' });
-  const dejaVu = !!((Save.data.seen || {}).tuto_brume); const tuto = h('input', { type: 'checkbox' }); tuto.checked = !dejaVu;
+  const dejaVu = !!((Save.data.seen || {}).tuto_brume); const tuto = h('input', { type: 'checkbox' }); tuto.checked = !dejaVu && !Save.options.skipTutorial;   // cochée d'office la première fois, sauf si le joueur saute les tutoriels ; il peut toujours la cocher
   const carte = (id, lignes) => {
     const c = CRANS[id];
     const b = button(c.nom, () => {
