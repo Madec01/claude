@@ -10,6 +10,7 @@ import { RunSave } from '../core/run.js';
 import { ISLANDS } from '../data/islands.js';
 import { STORY } from '../data/story.js';
 import { dailyKey, dailyLabel } from '../data/daily.js';
+import { recordsTempo } from '../data/tempo.js';
 import { UPGRADES, upgradeCost, playerChapter } from '../data/upgrades.js';
 import { insigne, insignesGagnes, rangeeArchetypes, srcChapitre } from './collection.js';
 import { campaignMechanics } from '../data/campaign.js';
@@ -61,7 +62,7 @@ export function buildMenu({ game }) {
     // Les trois modes à part, en tuiles de même taille (décision du commanditaire) : le Souffle court, Sous la brume, l'Île infinie
     h('div', { class: 'menu-modes' },
       navButton('Le Souffle court', () => game.startTempo(), Object.assign({ cls: 'btn-mode btn-tempo', iconName: 'icon_wind', disabled: !(Save.data.infinite.unlocked || c.unlockedIsland > 6 || testMode), title: 'Pas de file : la tuile arrive, trois secondes pour la poser. Une île neuve à chaque partie.' },
-        mode(Save.data.infinite.unlocked || c.unlockedIsland > 6 || testMode, { key: 'mode_tempo', text: 's’ouvre après l’île 6' }, Save.data.tempo && Save.data.tempo.best ? `${Save.data.tempo.best} pts` : '3 secondes par tuile'))),
+        mode(Save.data.infinite.unlocked || c.unlockedIsland > 6 || testMode, { key: 'mode_tempo', text: 's’ouvre après l’île 6' }, (() => { const tp = recordsTempo(Save.data.tempo || {}); const cad = [3, 5, 8].includes(tp.cadran) ? tp.cadran : 3; return tp.bests[cad] ? `${tp.bests[cad]} pts à ${cad} s` : `${cad} secondes par tuile`; })()))),
       navButton('Sous la brume', () => game.startBrume(), Object.assign({ cls: 'btn-mode', iconName: 'icon_cloud', disabled: !(Save.data.infinite.unlocked || c.unlockedIsland > 6 || testMode), title: 'Des tuiles cachées sous la brume : déduire, parier, dévoiler' },
         mode(Save.data.infinite.unlocked || c.unlockedIsland > 6 || testMode, { key: 'mode_brume', text: 's’ouvre après l’île 6' }, (() => { const b = Save.data.brume || {}; const m = Math.max((b.claire || {}).best || 0, (b.epaisse || {}).best || 0); return m ? `${m} pts` : 'déduire, parier'; })()))),
       navButton('Île infinie', () => game.startInfinite(), Object.assign({ cls: 'btn-mode', iconName: 'icon_tree', disabled: !(Save.data.infinite.unlocked || c.unlockedIsland > 6 || testMode), title: 'Se déverrouille après l’île 6' },

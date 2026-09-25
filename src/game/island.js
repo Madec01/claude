@@ -78,7 +78,9 @@ export class Island {
       this.handOn = true;
     }
     // une tuile par case libre : sous la brume, les cases cachées n'en demandent pas (elles ont déjà la leur)
+    // au Souffle court aussi : les trous cernés sont devenus des mares, qui n'attendent aucune tuile
     const total = def.brume ? [...this.board.mask].filter((k) => !this.board.tiles.has(k) && !this.board.fog.has(k)).length
+      : def.tempo ? [...this.board.mask].filter((k) => !this.board.tiles.has(k)).length
       : Number.isFinite(def.tilesRatio) ? Math.round(def.cells * def.tilesRatio) - def.start.length : Infinity;
     const visible = this.tempo ? 1 : def.brume ? 5 : BALANCE.queue.visible[this.upgrades.sight || 0];   // sous la brume, les cinq tuiles de la saison   // Regard : trois tuiles visibles, puis quatre, puis cinq ; le Souffle court n'en montre qu'une (deux au printemps)
     this.queue = new TileQueue(seed * 3 + 11, def.weights, total, visible);
@@ -297,14 +299,15 @@ export class Island {
    * Souffle court : la tuile en cours n'a pas été posée à temps, elle est perdue pour de bon. Elle compte comme un tour
    * de la saison (le temps a passé) et sa case restera vide — le malus tombe à la fin (videsMalus).
    */
-  loseCurrent() {
+  loseCurrent(n = 1) {
     if (this.ended || !this.current) return null;
-    const tile = this.queue.take();
-    this.inSeason++; this.stats.lost = (this.stats.lost || 0) + 1;
-    this.emit({ type: 'lost', tile });
+    // `n` tuiles d'un coup (la fin d'été) : un seul événement, qui porte le nombre — la scène l'annonce une fois
+    const tiles = []; for (let i = 0; i < n && this.queue.list.length; i++) tiles.push(this.queue.take());
+    this.inSeason += tiles.length; this.stats.lost = (this.stats.lost || 0) + tiles.length;
+    this.emit({ type: 'lost', tile: tiles[0], tiles, n: tiles.length });
     if (this.inSeason >= this.seasonLength) this.advanceSeason();
     this.checkEnd();
-    return tile;
+    return tiles[0];
   }
 
   /** Des points hors pose (série du Souffle court, prime doublée, malus des vides), comptés à leur source. */

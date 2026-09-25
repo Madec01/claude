@@ -31,7 +31,7 @@ export const BALANCE = {
     sousSeconde: 1,            // posée sous ce délai : la série continue
     paliers: [[3, 1.5], [6, 2], [10, 3]],   // [série atteinte, multiplicateur des points de la tuile]
     hiver: 1.4,                // le cadran gelé : ×1,4 (sans excès)
-    ete: 12,                   // « les grandes heures » : une réserve de secondes pour la saison, pas de cadran par tuile
+    eteParTuile: 0.8,          // « les grandes heures » : une réserve pour la saison, pas de cadran par tuile — 0,8 × 5 poses × délai : 12 s à 3 s, 20 s à 5 s, 32 s à 8 s
     automne: 0.7,              // chance, par tuile posée, d'être sous la brume au changement de saison
     printemps: 2,              // tuiles proposées d'un coup ; on en pose une, l'autre est perdue sans entamer le compte
     primeSaison: 2,            // les primes de changement de saison comptent double

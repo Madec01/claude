@@ -41,7 +41,7 @@ import { buildWorkshop } from './ui/workshop.js';
 import { celebrate, celebrateThing } from './ui/achievements.js';
 import { UPGRADES, playerChapter } from './data/upgrades.js';
 import { Version } from './core/version.js';
-import { tempoDef } from './data/tempo.js';
+import { tempoDef, recordsTempo } from './data/tempo.js';
 import { buildTempoPrep } from './ui/tempo_prep.js';
 import { Tempo } from './game/tempo.js';
 import { buildWishesIntro } from './ui/wishes_intro.js';
@@ -452,7 +452,8 @@ const Game = {
     if (def.garden) { scenes.go('results', { result, def }); return; }
     if (def.tempo) {
       const T = Save.data.tempo || (Save.data.tempo = { best: 0, bestSerie: 0, parties: 0 });
-      if (!test) { T.parties = (T.parties || 0) + 1; const cad = def.cadran || 3; T.bests = T.bests || {}; if (result.score > (T.bests[cad] || 0)) { newRecord = (T.bests[cad] || 0) > 0; T.bests[cad] = result.score; } T.best = Math.max(T.best || 0, result.score); T.bestSerie = Math.max(T.bestSerie || 0, result.stats.bestSerie || 0); Save.save(); }
+      // une partie jouée avec le tutoriel est un entraînement : le temps s'y arrête sous les cartes, elle ne fait pas de record
+      if (!test && !def.tuto) { recordsTempo(T); T.parties = (T.parties || 0) + 1; const cad = def.cadran || 3; if (result.score > (T.bests[cad] || 0)) { newRecord = (T.bests[cad] || 0) > 0; T.bests[cad] = result.score; } T.series[cad] = Math.max(T.series[cad] || 0, result.stats.bestSerie || 0); T.best = Math.max(T.best || 0, result.score); T.bestSerie = Math.max(T.bestSerie || 0, result.stats.bestSerie || 0); Save.save(); }
       scenes.go('results', { result, def, newRecord });
       return;
     }
@@ -689,18 +690,28 @@ class IslandScene {
    */
   /** Le tempo et le premier temps fort de la piste de cette partie (repli : la première piste). */
   musiqueDuMode() { const T = BALANCE.tempo; const m = (this.def.musique && T.musiques[this.def.musique]) || T.musique; return { bpm: m.bpm, premierTemps: m.premierTemps, tempsParPas: T.musique.tempsParPas }; }
+  /**
+   * Le décompte « 3, 2, 1, Pose ! » : au départ, et à chaque reprise après une pause. Un seul à la fois (le précédent
+   * est annulé, sinon deux chiffres se superposaient et le premier libérait le jeu pendant que le second s'affichait
+   * encore). Il ne réarme pas le cadran : le temps repart exactement où il s'était arrêté — une pause ne fait gagner
+   * aucune seconde.
+   */
   compteARebours(pas = 0.8, avant = 0) {
     if (!this.tempo || this.isl.ended) return;
+    this.annulerCompte();
     this.hold = true;
-    const el = h('div', { class: 'tempo-compte' }); document.getElementById('hud').appendChild(el);
+    const el = this._compteEl = h('div', { class: 'tempo-compte' }); document.getElementById('hud').appendChild(el);
     const etapes = ['3', '2', '1', 'Pose !'];
-    etapes.forEach((txt, i) => setTimeout(() => {
-      if (!this.tempo) return;
+    this._compteTimers = etapes.map((txt, i) => setTimeout(() => {
+      if (!this.tempo || el !== this._compteEl) return;
       el.textContent = txt; el.classList.remove('tic'); void el.offsetWidth; el.classList.add('tic');
       AudioSys.play(i < 3 ? 'point_3' : 'island_start', { volume: i < 3 ? 0.5 : 0.7 });
-      if (i === etapes.length - 1) { this.hold = false; this.tempo.armer(); setTimeout(() => el.remove(), 500); }
+      if (i === etapes.length - 1) { this.hold = false; this._compteEl = null; this._compteTimers = []; setTimeout(() => el.remove(), 500); }
     }, (avant + i * pas) * 1000));
   }
+  annulerCompte() { for (const t of this._compteTimers || []) clearTimeout(t); this._compteTimers = []; if (this._compteEl) { this._compteEl.remove(); this._compteEl = null; } }
+  /** Au Souffle court, sous une carte du tutoriel qui fige (toutes sauf celle qui demande une pose) : le temps s'arrête et la pose attend. */
+  tutoTient() { return !!(this.tempo && this.tutorial && this.tutorial.current && this.tutorial.current.step.fige !== false); }
 
   /** Range la partie en cours (appareil seulement, jamais en ligne). */
   saveRun(now = false) {
@@ -898,7 +909,8 @@ class IslandScene {
       if (!e.free) this.tutorial.onEvent('breath');
     } else if (e.type === 'lost') {
       const fam = (STORY.tiles[e.tile.family] || {}).name || e.tile.family;
-      this.hud.ribbon(`${fam} perdue`, '#d95f4b', 1300, 'warn'); this.hud.notify(`Trop tard : la ${fam.toLowerCase()} est perdue, sa case restera vide`, 'warn');
+      if (e.n > 1) { this.hud.ribbon(`Fin de l’été : ${e.n} tuiles perdues`, '#d95f4b', 1800, 'warn'); this.hud.notify(`La réserve d’été est vide : ${e.n} tuiles perdues d’un coup, leurs cases resteront vides`, 'warn'); }
+      else { this.hud.ribbon(`${fam} perdue`, '#d95f4b', 1300, 'warn'); this.hud.notify(`Trop tard : la ${fam.toLowerCase()} est perdue, sa case restera vide`, 'warn'); }
       AudioSys.play('tile_discard', { volume: 0.7 }); this.shake.trigger(0.18); Haptics.tap([10, 30, 10]); this.hud.chronoCasse();
       this.armed = null; this.hud.setPlaceButton(null);
     } else if (e.type === 'brume') {
@@ -931,7 +943,7 @@ class IslandScene {
 
   onMouseDown(b, x, y) {
     if (this.finale && !this.finale.done) { if (b === 0) this.finale.skip(); return; }
-    if (this.paused || this.hold || !this.isl || this.isl.ended) return;
+    if (this.paused || this.hold || !this.isl || this.isl.ended || (b === 0 && this.tutoTient())) return;
     if (b === 2 || b === 1) { this.drag = { x, y, moved: 0 }; return; }
     if (b !== 0) return;
     const w = this.cam.toWorldPoint(x, y); const { q, r } = fromWorld(w.x, w.y);
@@ -946,7 +958,7 @@ class IslandScene {
   /** Tactile : première touche = aperçu (case armée), seconde touche sur la même case = pose. */
   onTap(x, y) {
     if (this.finale && !this.finale.done) { this.finale.skip(); return; }
-    if (this.paused || this.hold || !this.isl || this.isl.ended) return;
+    if (this.paused || this.hold || !this.isl || this.isl.ended || this.tutoTient()) return;
     const w = this.cam.toWorldPoint(x, y); const { q, r } = fromWorld(w.x, w.y);
     if (this.isl.brume && this.tapBrume(q, r, false)) return;
     if (this.isl.board.get(q, r)) {
@@ -961,7 +973,7 @@ class IslandScene {
     this.armed = { q, r }; AudioSys.play('tile_hover', { volume: 0.3 });
   }
   placeArmed() {
-    if (!this.armed || this.paused || this.hold || !this.isl || this.isl.ended) return;
+    if (!this.armed || this.paused || this.hold || !this.isl || this.isl.ended || this.tutoTient()) return;
     const { q, r, build, move } = this.armed; this.armed = null; this.hud.setPlaceButton(null);
     if (move) { this.doMove(q, r); return; }
     if (build) { if (this.isl.canBuild(q, r)) { this.isl.build(q, r); this.renderer.hover = null; } return; }
@@ -1119,6 +1131,7 @@ class IslandScene {
     document.getElementById('tutorial').classList.toggle('paused', this.paused);
     if (this.paused) {
       AudioSys.play('ui_open', { volume: 0.5 });
+      this.annulerCompte();   // une pause pendant le décompte : il repartira de zéro à la reprise, seul
       this.saveRun(true);
       const build = () => buildPause({ title: this.title, sub: this.pauseSub(), kept: !Game.testMode, onResume: () => this.togglePause(false), onJournal: () => { this.togglePause(false); this.hud.toggleLog(true); }, journalCount: this.hud.unread, onRestart: () => { RunSave.clear(); scenes.go('island', { def: this.def }, { fade: 0.5 }); }, onOptions: () => Game.showOptions(() => showUI(build(), 'pause-wrap')), onGuide: () => Game.showGuide(() => showUI(build(), 'pause-wrap')), onFullscreen: () => { Game.toggleFullscreen(); setTimeout(() => { if (this.paused) showUI(build(), 'pause-wrap'); }, 400); }, onMenu: () => scenes.go('menu'), onPostcard: () => { try { showUI(buildPostcard({ canvas: renderPostcard(this), filename: postcardName(this), onBack: () => showUI(build(), 'pause-wrap') }), 'panel-wrap'); } catch (e) { console.warn('carte postale', e); } }, onReport: () => Game.showReport(() => showUI(build(), 'pause-wrap')) });
       showUI(build(), 'pause-wrap');
@@ -1136,7 +1149,7 @@ class IslandScene {
     const pan = 320 * dt; if (input.isDown('ArrowLeft')) this.cam.pan(pan, 0); if (input.isDown('ArrowRight')) this.cam.pan(-pan, 0); if (input.isDown('ArrowUp')) this.cam.pan(0, pan); if (input.isDown('ArrowDown')) this.cam.pan(0, -pan);
     this.cam.update(dt);
     // sous une carte du tutoriel, le temps s'arrête : on lit, puis on joue
-    const tutoTient = !!(this.tempo && this.tutorial && this.tutorial.current);
+    const tutoTient = this.tutoTient();
     if (this.tempo && !this.hold && !tutoTient && !isl.ended) { this.tempo.update(dt); this.hud.setTempo(this.tempo); }
     if (this.tempo && !isl.ended) {
       // le battement : la phase dans le temps de la musique (horloge audio), sinon un métronome au même tempo

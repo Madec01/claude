@@ -27,6 +27,21 @@ export function tempoDef(seed = Math.floor(Math.random() * 1e9), { etire = 1 } =
   };
 }
 
+/** La réserve d'été d'une partie : proportionnelle au délai choisi (12 s à 3 s, la valeur d'origine ; 20 s à 5 s ; 32 s à 8 s). */
+export function reserveEte(def = {}) { const t = T(); return Math.round(t.eteParTuile * t.seasonLength * (def.cadran || t.cadran) * 10) / 10; }
+
+/**
+ * Les records du mode, rangés par délai (3, 5 ou 8 s) : `bests[cadran]` et `series[cadran]`. Les records d'avant le choix
+ * du délai (`best`, `bestSerie`) ont été joués à 3 s : ils y passent une seule fois, si rien n'est encore rangé. Idempotent.
+ */
+export function recordsTempo(S) {
+  if (!S) return S;
+  S.bests = S.bests || {}; S.series = S.series || {};
+  if ((S.best || 0) > 0 && !Object.keys(S.bests).length) S.bests[3] = S.best;
+  if ((S.bestSerie || 0) > 0 && !Object.keys(S.series).length) S.series[3] = S.bestSerie;
+  return S;
+}
+
 /** Le multiplicateur que vaut une série. */
 export function multDe(serie) { let m = 1; for (const [n, k] of T().paliers) if (serie >= n) m = k; return m; }
 

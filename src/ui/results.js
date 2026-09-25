@@ -3,6 +3,7 @@ import { h, button, icon, fmtInt, stagger, append } from './dom.js';
 import { STORY } from '../data/story.js';
 import { AudioSys } from '../core/audio.js';
 import { Save } from '../core/save.js';
+import { recordsTempo } from '../data/tempo.js';
 
 export function buildResults({ result, def, onContinue, onRetry, onMenu, onPostcard = null, newRecord, seedsGained, daily, memory = [] }) {
   const { stars, score, thresholds } = result;
@@ -51,7 +52,7 @@ export function buildResults({ result, def, onContinue, onRetry, onMenu, onPostc
     result.tally ? whyBlock(result) : null,
     // sans étoile, l'île est terminée quand même : plus personne n'est muré sur une île (les étoiles ne gardent que les portes de chapitre)
     !special && !daily && stars === 0 ? h('p', { class: 'res-note' }, 'L’île est terminée : la suivante s’ouvre quand même. Les étoiles ne gardent que les portes de chapitre, et elles se rattrapent quand tu veux.') : null,
-    tempo ? h('p', { class: 'res-note' }, `Le Souffle court : une île neuve à chaque partie, le meilleur score tout court${Save.data.tempo && Save.data.tempo.best ? ` — le tien : ${Save.data.tempo.best}` : ''}.`) : daily ? h('p', { class: 'res-note' }, 'Île du jour : la même île pour tout le monde, un meilleur score par jour. Demain, une autre île.') : special ? null : h('p', { class: 'res-note' }, Save.options.testMode ? 'Mode test : les graines et les étoiles ne sont pas enregistrées.' : seedsGained ? 'Graines : 1 par nouvelle étoile, 1 par vœu exaucé et 3 pour l’île, la première fois. Elles se dépensent dans l’Atelier des saisons, depuis le menu.' : 'Pas de nouvelle graine : elles viennent des nouvelles étoiles, des vœux exaucés et de la première fois qu’une île est terminée.'),
+    tempo ? h('p', { class: 'res-note' }, def && def.tuto ? 'Entraînement avec le tutoriel : le temps s’arrêtait sous les cartes, cette partie ne fait pas de record.' : (() => { const tp = recordsTempo(Save.data.tempo || {}); const cad = (def && def.cadran) || 3; return `Le Souffle court : une île neuve à chaque partie, un meilleur score par temps choisi${tp.bests[cad] ? ` — le tien à ${cad} s : ${tp.bests[cad]}` : ''}.`; })()) : daily ? h('p', { class: 'res-note' }, 'Île du jour : la même île pour tout le monde, un meilleur score par jour. Demain, une autre île.') : special ? null : h('p', { class: 'res-note' }, Save.options.testMode ? 'Mode test : les graines et les étoiles ne sont pas enregistrées.' : seedsGained ? 'Graines : 1 par nouvelle étoile, 1 par vœu exaucé et 3 pour l’île, la première fois. Elles se dépensent dans l’Atelier des saisons, depuis le menu.' : 'Pas de nouvelle graine : elles viennent des nouvelles étoiles, des vœux exaucés et de la première fois qu’une île est terminée.'),
     newRecord ? h('div', { class: 'res-record' }, 'Nouveau record !') : null,
     h('div', { class: 'panel-actions' },
       button(special ? 'Rejouer' : 'Continuer', onContinue, { cls: 'btn-primary', iconName: 'icon_arrow_right' }),

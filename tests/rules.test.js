@@ -586,7 +586,7 @@ for (const def of ISLANDS.slice(0, 4)) {
 }
 // --- Le Souffle court : île procédurale, tuile perdue, série et paliers, saisons à effets, malus des cases vides
 {
-  const { tempoDef, videsMalus, multDe } = await import('../src/data/tempo.js');
+  const { tempoDef, videsMalus, multDe, reserveEte, recordsTempo } = await import('../src/data/tempo.js');
   const { Tempo } = await import('../src/game/tempo.js');
   const T = BALANCE.tempo;
   const def = tempoDef(12345); const def2 = tempoDef(12345);
@@ -594,14 +594,20 @@ for (const def of ISLANDS.slice(0, 4)) {
   check(JSON.stringify(def) === JSON.stringify(def2) && tempoDef(999).seed !== def.seed, 'même graine, même île ; graine différente, île différente');
   const opt = { build: false, fuse: false, hand: false, level3: false, growth: false, surprise: false };
   const isl = new Island(def, opt);
-  check(isl.tempo && isl.queue.remaining === def.cells - 1 && isl.queue.list.length === 1, `autant de tuiles que de cases moins la tuile de départ (${isl.queue.remaining}), une seule visible (${isl.queue.list.length})`);
+  const libres = (b) => [...b.mask].filter((k) => !b.tiles.has(k)).length;
+  check(isl.tempo && isl.queue.remaining === libres(isl.board) && isl.queue.list.length === 1, `une tuile par case libre, mares comprises (${isl.queue.remaining} = ${libres(isl.board)}), une seule visible (${isl.queue.list.length})`);
+  { let ok = true, n = 0; for (let s = 1; s <= 60; s++) { const i = new Island(tempoDef(s), opt); if (i.queue.remaining !== libres(i.board)) ok = false; if (i.board.tiles.size > 1) n++; } check(ok, `sur 60 graines, autant de tuiles que de cases libres (${n} îles avec des mares)`); }
   check(multDe(0) === 1 && multDe(2) === 1 && multDe(3) === 1.5 && multDe(6) === 2 && multDe(10) === 3 && multDe(40) === 3, 'paliers de série : ×1, ×1,5 à 3, ×2 à 6, ×3 à 10');
   // le contrôleur, sans scène : il ne lit que l'île
   const tp = new Tempo({ isl });
   check(isl.season === 'spring' && isl.handOn && isl.queue.list.length === 2, 'printemps : deux tuiles proposées, la main ouverte');
   const avant = isl.queue.remaining;
+  // printemps honnête : c'est bien la tuile NON choisie qui disparaît, et deux tuiles neuves arrivent
+  const [p1, p2] = isl.queue.list.map((t) => t.id);
   const c0 = isl.board.legalCells()[0]; tp.depuis = 0.4; isl.place(c0.q, c0.r);
-  check(isl.queue.remaining === avant - 1 && isl.queue.list.length === 2, `l'autre tuile du printemps est perdue sans entamer le compte (${isl.queue.remaining} = ${avant} − 1)`);
+  const apres = isl.queue.list.map((t) => t.id);
+  check(isl.queue.remaining === avant - 1 && apres.length === 2 && !apres.includes(p1) && !apres.includes(p2), `l'autre tuile du printemps (n° ${p2}) est perdue sans entamer le compte (${isl.queue.remaining} = ${avant} − 1) ; proposées ensuite : ${apres.join(', ')}`);
+  { const [a1, a2] = isl.queue.list.map((t) => t.id); isl.pick(1); const c = isl.board.legalCells()[0]; tp.depuis = 0.4; isl.place(c.q, c.r); const l = isl.queue.list.map((t) => t.id); check(l.length === 2 && !l.includes(a1) && !l.includes(a2), `en choisissant la seconde tuile (n° ${a2}), la première (n° ${a1}) disparaît aussi`); }
   check(tp.serie >= 1 && tp.t === tp.limit, `pose sous une seconde : série ${tp.serie}, cadran réarmé`);
   // une pose lente casse la série ; le cadran qui tombe à zéro perd la tuile
   tp.depuis = 1.5; const c1 = isl.board.legalCells()[0]; isl.place(c1.q, c1.r); check(tp.serie === 0, 'pose lente : la série retombe');
@@ -616,10 +622,13 @@ for (const def of ISLANDS.slice(0, 4)) {
   while (isl.season !== 'winter' && !isl.ended) isl.advanceSeason();
   check(!isl.handOn && isl.queue.list.length === 1 && Math.abs(tp.limit - T.cadran * T.hiver) < 1e-9, `hiver : cadran ×${T.hiver} (${tp.limit.toFixed(1)} s), une seule tuile visible`);
   isl.advanceSeason(); isl.advanceSeason();   // printemps puis été
-  check(isl.season === 'summer' && tp.reserve === T.ete, `été : une réserve de ${T.ete} s pour la saison`);
+  check(isl.season === 'summer' && tp.reserve === reserveEte(def) && reserveEte(def) === 12, `été : une réserve de ${tp.reserve} s pour la saison (12 s à 3 s)`);
+  check(reserveEte({ cadran: 5 }) === 20 && reserveEte({ cadran: 8 }) === 32, 'la réserve d’été suit le délai : 20 s à 5 s, 32 s à 8 s');
   tp.update(5); tp.depuis = 0.2; const c2 = bot(); if (c2) isl.place(c2.q, c2.r);
-  check(Math.abs(tp.reserve - (T.ete - 5)) < 1e-6 && Math.abs(tp.t - tp.reserve) < 1e-6, 'la pose ne recharge pas la réserve d’été');
-  isl.advanceSeason();
+  check(Math.abs(tp.reserve - (12 - 5)) < 1e-6 && Math.abs(tp.t - tp.reserve) < 1e-6, 'la pose ne recharge pas la réserve d’été');
+  // fin d'été lisible : la réserve vide perd d'un coup ce qui restait à poser, en UN seul événement, et l'automne commence
+  { const pertes = []; const off = isl.on((e) => { if (e.type === 'lost') pertes.push(e); }); const restait = isl.seasonLength - isl.inSeason; const lost0 = isl.stats.lost; tp.update(20);
+    check(pertes.length === 1 && pertes[0].n === restait && isl.stats.lost === lost0 + restait && isl.season === 'autumn', `réserve vide : un seul événement, ${pertes.length ? pertes[0].n : 0} tuiles perdues d'un coup (il en restait ${restait}), et l'automne commence`); if (typeof off === 'function') off(); }
   check(isl.season === 'autumn' && tp.brume.size > 0 && tp.brume.size <= isl.board.tiles.size, `automne : ${tp.brume.size} tuiles sur ${isl.board.tiles.size} sous la brume`);
   { const b = bot(); if (b) { tp.depuis = 0.2; isl.place(b.q, b.r); } const autour = neighbors(b.q, b.r).map(([a, c]) => `${a},${c}`); check(!autour.some((k) => tp.brume.has(k)) && !tp.brume.has(`${b.q},${b.r}`), 'la pose dissipe la brume sur ses six voisines'); }
   isl.advanceSeason(); check(tp.brume.size === 0, 'l’hiver revenu, la brume est levée');
@@ -631,6 +640,9 @@ for (const def of ISLANDS.slice(0, 4)) {
   // videsMalus sur un plateau connu : un trou seul, une région vide de trois, une case qui bloque une région
   const b2 = new Island(tempoDef(7), opt).board;
   const m0 = videsMalus(b2); check(m0.vides === b2.cells - b2.tiles.size && m0.total > 0, `plateau de départ : ${m0.vides} cases vides comptées`);
+  // records par délai : l'ancien record (joué à 3 s) migre une seule fois, jamais deux
+  { const S = { best: 420, bestSerie: 9, parties: 4, cadran: 5 }; recordsTempo(S); const une = JSON.stringify(S); recordsTempo(S); S.bests[5] = 100; recordsTempo(S);
+    check(S.bests[3] === 420 && S.series[3] === 9 && une === JSON.stringify({ ...S, bests: { 3: 420 } }) && S.bests[5] === 100, `records rangés par délai : l'ancien passe à 3 s (${S.bests[3]}), la migration ne se rejoue pas`); }
 }
 // --- campagne à trente (24 septembre 2026) : migration v2 → v3, parties en cours, et aucun numéro hors campagne
 {
