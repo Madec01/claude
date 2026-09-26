@@ -17,12 +17,12 @@ export const GROWTH_CHAPTER = 9;
 /** Mécaniques introduites par île (cumulatives ; la croissance, elle, n'est active que sur son chapitre). */
 export const MECH_AT = {
   1: ['affinity', 'close', 'fauna'], 2: ['river', 'season'], 3: ['semis'],
-  4: ['wish', 'hand'], 5: ['breath'], 6: ['rare'],
+  4: ['wish', 'hand'], 5: ['breath'], 6: ['rare', 'harmonie'],
   7: ['surprise'], 8: ['hill'], 9: ['rare2'], 10: ['heath'],
   11: ['build'],
   13: ['climate', 'fuse'], 19: ['build3'], 25: ['growth'],
 };
-export const MECH_NAMES = { river: 'rivière', season: 'saisons', fauna: 'faune', semis: 'semis', wish: 'vœux', breath: 'souffles', rare: 'tuiles rares', surprise: 'surprises de saison', hill: 'collines', rare2: 'grenier, ruche et menhir', heath: 'lande', build: 'bâtir', hand: 'main de saison', climate: 'climats', fuse: 'fusions', build3: 'niveau 3' , growth: 'croissance'};
+export const MECH_NAMES = { river: 'rivière', season: 'saisons', fauna: 'faune', semis: 'semis', wish: 'vœux', breath: 'souffles', rare: 'tuiles rares', surprise: 'surprises de saison', hill: 'collines', rare2: 'grenier, ruche et menhir', heath: 'lande', build: 'bâtir', hand: 'main de saison', climate: 'climats', fuse: 'fusions', build3: 'niveau 3' , growth: 'croissance', harmonie: 'harmonie'};
 /** Île où une mécanique arrive (pour le Guide et l'Atelier). */
 export function mechIsland(m) { for (const [n, list] of Object.entries(MECH_AT)) if (list.includes(m)) return Number(n); return null; }
 /** Mécaniques disponibles jusqu'à l'île n (incluse). Sans argument : toutes (modes libres). */
@@ -255,5 +255,5 @@ export function islandOptions(def) {
   const m = def.mech || campaignMechanics(99);
   // la croissance : le caractère du chapitre 9 en campagne, toujours là dans les modes libres
   const growth = def.chapter ? def.chapter === GROWTH_CHAPTER : m.has('growth');
-  return { build: m.has('build'), growth, hand: m.has('hand'), fuse: m.has('fuse'), level3: m.has('build3'), surprise: m.has('surprise'), rareTier: m.has('rare2') ? 1 : 0 };
+  return { build: m.has('build'), growth, hand: m.has('hand'), fuse: m.has('fuse'), level3: m.has('build3'), surprise: m.has('surprise'), rareTier: m.has('rare2') ? 1 : 0, harmonie: m.has('harmonie') };
 }

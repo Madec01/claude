@@ -668,6 +668,7 @@ export const STORY = {
     wish: 'Les vœux des habitants (à droite) donnent des objectifs à échéance : exaucés, ils rapportent des points, des souffles et une tuile rare.',
     breath: 'Les souffles se gagnent en fermant des régions et en exauçant des vœux. Ils servent à défausser une tuile (1) ou à annuler la dernière pose (3, une fois par saison) ; plus tard, à bâtir.',
     rare: 'Tuiles rares : le moulin vaut champ et hameau, la chapelle réchauffe l’hiver, la tour clôt malgré un trou, le puits garde l’eau, le campement attire.',
+    harmonie: 'Harmonie : trois fleurs sous le score. Variété : cinq familles tiennent chacune une région de quatre tuiles. Équilibre : aucune région ne couvre plus d’un cinquième de l’île. Achèvement : au moins 85 % des tuiles dans des régions closes, et pas de friche. Chaque fleur ouverte à la fin de l’île rapporte des points ; touche-les pour voir ce qui manque.',
     surprise: 'Surprise de saison : à chaque saison qui arrive, la règle de base peut laisser place à l’une de ses deux surprises (semailles ou nichées au printemps, grandes chaleurs ou feux en été, foire ou chasse en automne, grand froid ou hiver doux). Elle s’écrit sous la saison et dure jusqu’à la suivante.',
     hill: 'La colline aime le pré et la forêt ; deux collines qui se touchent attirent le cheval. Une rivière peut en naître.',
     rare2: 'Nouvelles rares : le grenier (+1 par bord avec un champ, pas de dormance d’hiver), la ruche (+1 par verger ou prairie voisin à chaque saison) et le menhir (+1 par roche ou colline voisine à chaque saison).',

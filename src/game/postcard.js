@@ -1,6 +1,7 @@
 // Carte postale : l'île finie rendue en pleine résolution sur un canvas hors écran, dans un cadre papier avec son nom, la saison,
 // les étoiles, le score et la date. Téléchargeable (PNG) et partageable sur téléphone quand le navigateur le permet.
 import { STAGE } from '../core/stage.js';
+import { Assets } from '../core/assets.js';
 import { Camera } from './camera.js';
 import { STORY } from '../data/story.js';
 import { CHAPTERS } from '../data/campaign.js';
@@ -36,7 +37,7 @@ export function cadreCarte(isl, w, h) {
  * d'en montrer une image toute faite — les bandeaux glissent (`bandes`), le nom s'écrit (`lettres`) et
  * les étoiles se posent une à une (`etoiles`). À valeurs pleines, c'est la carte téléchargeable.
  */
-export function habillerCarte(ctx, scene, w, h, { bandes = 1, lettres = 1, etoiles = null, tampons = Infinity, legendes = false } = {}) {
+export function habillerCarte(ctx, scene, w, h, { bandes = 1, lettres = 1, etoiles = null, fleurs = null, tampons = Infinity, legendes = false } = {}) {
   const isl = scene.isl, def = scene.def;
   const g = geoCarte(w); const { k, frame, top, bottom } = g;
   const f = (px) => Math.round(px * k);
@@ -67,6 +68,19 @@ export function habillerCarte(ctx, scene, w, h, { bandes = 1, lettres = 1, etoil
   if (gold && vues >= stars) { ctx.fillStyle = GOLD; ctx.font = `600 ${f(18)}px Quicksand, sans-serif`; ctx.fillText('ÉTOILE D’OR', w - frame - f(12), f(104) - dh); }
   // bas : score, saison, date, marque
   ctx.textAlign = 'left'; ctx.fillStyle = INK; ctx.font = `700 ${f(40)}px Quicksand, sans-serif`; ctx.fillText(`${isl.score} points`, frame + f(10), h - bottom + f(58) + db);
+  // les fleurs d'harmonie, après le score : des fleurs du décor, en couleur si elles sont gagnées, grisées sinon ; elles
+  // paraissent une à une pendant la tournée (`fleurs`), avant les étoiles
+  const harmo = res && res.harmonie;
+  if (harmo) {
+    const n = fleurs == null ? 3 : Math.min(3, fleurs); const tx = ctx.measureText(`${isl.score} points`).width; const sz = f(34);
+    const IMG = { variete: 'obj_flowerBlue', equilibre: 'obj_flowerRed', acheve: 'obj_flowerYellow' };
+    harmo.fleurs.forEach((fl, i) => {
+      if (i >= n) return; const im = Assets.img(IMG[fl.id]); if (!im) return;
+      const x = frame + f(10) + tx + f(18) + i * (sz + f(6)), y = h - bottom + f(58) + db - sz + f(4);
+      ctx.save(); ctx.globalAlpha = (fl.ok ? 1 : 0.32) * bandes; if (!fl.ok) ctx.filter = 'grayscale(1)';
+      ctx.drawImage(im, x, y, sz, sz * (im.height / im.width)); ctx.restore();
+    });
+  }
   ctx.font = `italic ${f(22)}px Lora, Georgia, serif`; ctx.globalAlpha = 0.75 * bandes; ctx.fillText(`${s.name}${isl.seasonsPassed.length ? ` · ${isl.seasonsPassed.length + 1}e saison` : ''} · ${isl.board.placed} tuiles${isl.fauna.size ? ` · ${isl.fauna.size} animaux` : ''}`, frame + f(10), h - bottom + f(94) + db);
   ctx.textAlign = 'right'; ctx.font = `500 ${f(20)}px Quicksand, sans-serif`; ctx.fillText(new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }), w - frame - f(12), h - bottom + f(58) + db);
   ctx.font = `italic ${f(26)}px Lora, Georgia, serif`; ctx.globalAlpha = 0.9 * bandes; ctx.fillText('Cent Saisons', w - frame - f(12), h - bottom + f(96) + db);

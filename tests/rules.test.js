@@ -303,6 +303,36 @@ check(affinity('meadow', 'water') === 0, 'prairie-eau = 0');
   if (res.blight) { const tf = isl.board.get(near.q, near.r); const a = isl.action(near.q, near.r); const b0 = isl.breaths, n0 = isl.queue.list.length; check(!!a && a.kind === 'restore' && a.cost === 1 && isl.build(near.q, near.r) && !tf.blighted && isl.breaths === b0 - 1 && isl.queue.list.length === n0, 'remise en état par l’île : 1 souffle, sans tuile, la friche recompte'); }
 }
 
+// --- harmonie : trois fleurs (variété, équilibre, achèvement), comptées à la fin de l'île
+{
+  const { harmonie, ptsFleur, varieteDemandee } = await import('../src/game/harmonie.js');
+  const cells = []; for (let q = -4; q <= 4; q++) for (let r = -4; r <= 4; r++) if (Math.abs(q + r) <= 4) cells.push(`${q},${r}`);
+  const b = new Board(cells);
+  // cinq familles en bandes de quatre ou cinq tuiles : aucune ne domine
+  const fams = ['forest', 'meadow', 'field', 'hamlet', 'water', 'rock', 'sand']; let i = 0;
+  for (const k of cells) { const [q, r] = k.split(',').map(Number); if (i >= 35) break; b.place(q, r, { family: fams[Math.floor(i / 5)], variant: 1 }); i++; }
+  let h = harmonie(b, { weights: Object.fromEntries(fams.map((f) => [f, 1])) });
+  check(h.fleurs.length === 3 && h.pts === ptsFleur(cells.length) && h.total === h.ouvertes * h.pts, `trois fleurs, ${h.pts} points chacune pour ${cells.length} cases`);
+  check(h.fleurs.find((f) => f.id === 'variete').ok, `variété : ${h.fleurs[0].detail}`);
+  check(h.fleurs.find((f) => f.id === 'equilibre').ok, `équilibre : ${h.fleurs[1].detail}`);
+  check(!h.fleurs.find((f) => f.id === 'acheve').ok, `achèvement fermé tant que rien n'est clos : ${h.fleurs[2].detail}`);
+  for (const fam of fams) for (const reg of b.regions(fam)) b.payRegion(reg);
+  h = harmonie(b, {}); check(h.fleurs[2].ok, 'toutes les régions payées : achèvement ouvert');
+  const t0 = [...b.tiles.values()][0]; t0.blighted = true; h = harmonie(b, {}); check(!h.fleurs[2].ok && /friche/.test(h.fleurs[2].detail), 'une friche referme l’achèvement');
+  // une seule grande région : l'équilibre se referme
+  const b2 = new Board(cells); let j = 0; for (const k of cells) { const [q, r] = k.split(',').map(Number); if (j++ >= 30) break; b2.place(q, r, { family: 'forest', variant: 1 }); }
+  check(!harmonie(b2, {}).fleurs[1].ok, 'une forêt qui couvre toute l’île ferme l’équilibre');
+  check(varieteDemandee({ weights: { forest: 1, meadow: 1, field: 1, hamlet: 0 } }) === 2, 'une file de trois familles ne demande que deux familles tenues');
+  // île : rien avant son île ; à partir d'elle, les fleurs ouvertes paient à la fin et le bilan les porte
+  const avant = new Island(campaignIsland(mechIsland('harmonie') - 1), { ...islandOptions(campaignIsland(mechIsland('harmonie') - 1)) });
+  check(!avant.harmonieOn, 'pas d’harmonie avant son île');
+  const dh = campaignIsland(mechIsland('harmonie')); const isl = new Island(dh, { ...islandOptions(dh) });
+  check(isl.harmonieOn, 'harmonie à son île');
+  let g = 0; while (!isl.ended && g++ < 300) { const c = isl.board.legalCells()[0]; if (!c || !isl.place(c.q, c.r)) break; }
+  if (!isl.ended) isl.finish('test');
+  const hr = isl.result.harmonie; check(!!hr && hr.fleurs.length === 3 && (isl.tally.harmonie || 0) === hr.total, `le bilan porte l'harmonie (${hr && hr.ouvertes} fleur(s), +${hr && hr.total})`);
+}
+
 // --- campagne : trente définitions valides, textes présents, mécaniques cumulatives, bot fort sur les îles générées du début
 for (const w of CAMPAIGN_WISHES) check(!!STORY.wishes[w.id], `texte du vœu de campagne ${w.id}`);
 { const { SPECIES } = await import('../src/game/fauna.js'); for (const sp of SPECIES) check(!!(STORY.fauna[sp] && STORY.fauna[sp].name), `nom français de l'animal ${sp} (la pastille de faune l'affiche)`); }
@@ -316,7 +346,7 @@ for (const w of CAMPAIGN_WISHES) check(!!STORY.wishes[w.id], `texte du vœu de c
     prev = d.mech.size;
     // déblocage des mécaniques : rien avant son île (MECH_AT fait foi) ; la croissance n'est là que sur son chapitre
     const isl = new Island(d, { ...islandOptions(d) });
-    const exp = { buildOn: n >= mechIsland('build'), handOn: n >= mechIsland('hand'), fuseOn: n >= mechIsland('fuse'), level3On: n >= mechIsland('build3'), surpriseOn: n >= mechIsland('surprise'), growOn: d.chapter === GROWTH_CHAPTER };
+    const exp = { buildOn: n >= mechIsland('build'), handOn: n >= mechIsland('hand'), fuseOn: n >= mechIsland('fuse'), level3On: n >= mechIsland('build3'), surpriseOn: n >= mechIsland('surprise'), growOn: d.chapter === GROWTH_CHAPTER, harmonieOn: n >= mechIsland('harmonie') };
     for (const [k, v] of Object.entries(exp)) check(!!isl[k] === v, `île ${n} : ${k} devrait valoir ${v}`);
     const nw = mechIsland('wish'); check((isl.wishes.length > 0) === (n >= nw) || (n >= nw && isl.wishes.length === 0 && d.story === 1), `île ${n} : vœux ${n >= nw ? 'attendus' : 'interdits'} (${isl.wishes.length})`);
     check((n >= mechIsland('hill') || !d.weights.hill) && (n >= mechIsland('heath') || !d.weights.heath), `île ${n} : pas de colline avant ${mechIsland('hill')} ni de lande avant ${mechIsland('heath')}`);

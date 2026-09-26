@@ -23,6 +23,7 @@ const RULES = {
   hand:     { when: (i) => i.placements >= 1, done: (i, ev) => ev.has('hand'), info: true, timeout: 40 },
   semis:    { when: () => true, done: () => false, info: true, timeout: 25 },
   fuse:     { when: (i) => i.placements >= 3 && (i.breaths >= 2 || i.placements >= 8), done: (i, ev) => ev.has('fuse'), info: true, timeout: 50 },
+  harmonie: { when: (i) => i.placements >= 5, done: () => false, info: true, timeout: 30 },
   build3:   { when: (i) => [...i.board.tiles.values()].some((t) => (t.level || 1) >= 2), done: (i, ev) => ev.has('build3'), info: true, timeout: 50 },
 };
 

@@ -43,6 +43,11 @@ export function buildResults({ result, def, onContinue, onRetry, onMenu, onPostc
       result.stats.perfect ? row('Coups parfaits', result.stats.perfect, 'good') : null,
       row('Animaux (au plus)', result.stats.faunaMax, result.stats.faunaMax ? 'good' : ''),
       result.wishesTotal ? row('Vœux exaucés', `${result.wishesDone} / ${result.wishesTotal}`, result.wishesDone === result.wishesTotal ? 'gold' : '') : null,
+      // l'harmonie : les trois fleurs s'ouvrent l'une après l'autre ; ce qui a manqué est dit, pour la prochaine fois
+      result.harmonie ? h('div', { class: `res-row res-harmonie ${result.harmonie.ouvertes === 3 ? 'gold' : result.harmonie.ouvertes ? 'good' : ''}` },
+        h('span', {}, 'Harmonie', ...result.harmonie.fleurs.map((f, i) => h('img', { class: `res-fleur ${f.ok ? 'on' : ''}`, style: `--i:${i}`, src: `assets/img/deco/${FLEUR_IMG[f.id]}.webp`, alt: f.nom, title: `${f.nom} : ${f.detail}` }))),
+        h('b', {}, `${result.harmonie.ouvertes} / 3${result.harmonie.total ? ` (+${result.harmonie.total})` : ''}`)) : null,
+      result.harmonie && result.harmonie.ouvertes < 3 ? h('p', { class: 'res-harmo-manque' }, `Manquait : ${result.harmonie.fleurs.filter((f) => !f.ok).map((f) => `${f.nom.toLowerCase()} (${f.detail})`).join(' ; ')}.`) : null,
       brume ? row('Cases dévoilées', `${brume.devoilees} / ${brume.depart}`, brume.restantes.length ? '' : 'good') : null,
       brume && (brume.justes + brume.fausses) ? row('Jalons justes', `${brume.justes} / ${brume.justes + brume.fausses}`, brume.justes ? 'good' : '') : null,
       brume && brume.tresor ? row('Trésor', (STORY.tiles[brume.tresor] || {}).name || brume.tresor, 'gold') : null,
@@ -76,7 +81,8 @@ export function buildResults({ result, def, onContinue, onRetry, onMenu, onPostc
 }
 
 /** D'où viennent les points : une barre par source, et le meilleur coup de la partie. */
-export const TALLY_LABELS = { edges: 'Bords et affinités', closes: 'Régions fermées', fauna: 'Faune', wishes: 'Vœux', base: 'Rivières et primes de pose', build: 'Bâtir', fusions: 'Fusions', paths: 'Sentiers entre villages',
+const FLEUR_IMG = { variete: 'obj_flowerBlue', equilibre: 'obj_flowerRed', acheve: 'obj_flowerYellow' };
+export const TALLY_LABELS = { harmonie: 'Harmonie (fleurs)', edges: 'Bords et affinités', closes: 'Régions fermées', fauna: 'Faune', wishes: 'Vœux', base: 'Rivières et primes de pose', build: 'Bâtir', fusions: 'Fusions', paths: 'Sentiers entre villages',
   // les primes de saison, une par nature (anciennement toutes sous « Saisons »)
   s_harvest: 'Récoltes', s_veillee: 'Veillées d’hiver', s_bloom: 'Marais en fleurs', s_heather: 'Lande en fleurs', s_pond: 'Étangs', s_mild: 'Hiver doux', s_cold: 'Grand froid', s_firewood: 'Bois de chauffage', s_fair: 'Grande foire', s_hunt: 'Chasse et cueillette', s_rare: 'Tuiles rares', s_level3: 'Niveau 3', s_fusion: 'Fusions (primes de saison)',
   seasons: 'Autres primes de saison', works: 'Ouvrages (anciennes parties)', streak: 'Séries (anciennes parties)',

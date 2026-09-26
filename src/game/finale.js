@@ -170,7 +170,7 @@ export class Finale {
     else if (p === 'titre') { this.camB = this.cadre; this.bandes = 0; this.lettres = 0; }
     else if (p === 'carte') {
       // la carte est là, entière, et elle reste : le paysage continue de vivre dessous
-      this.camB = this.cadre; this.majCamera(1); this.bandes = 1; this.lettres = 1; this.starsShown = this.stars; this.r.transition = null;
+      this.camB = this.cadre; this.majCamera(1); this.bandes = 1; this.lettres = 1; this.starsShown = this.stars; this.fleursVues = 3; this.r.transition = null;
       this.montrerBoutons();
     }
   }
@@ -305,7 +305,11 @@ export class Finale {
     this.bandes = doux(clamp(t / (D.titre * 0.26), 0, 1));
     this.lettres = clamp((t - D.titre * 0.2) / (D.titre * 0.33), 0, 1);
     // Le nom fini, on ne dit plus rien pendant une demi-seconde : c'est ce silence qui fait les étoiles.
-    const premiere = D.titre * 0.53 + 0.5, pas = this.court ? 0.3 : 0.42;
+    const pas = this.court ? 0.3 : 0.42;
+    // les fleurs d'harmonie d'abord, une à une (un tintement pour chaque fleur gagnée), puis les étoiles
+    const harmo = this.isl.result && this.isl.result.harmonie; const nF = harmo ? harmo.fleurs.length : 0;
+    const fleur0 = D.titre * 0.53 + 0.5, premiere = fleur0 + nF * pas;
+    if (harmo && (this.fleursVues || 0) < nF && t > fleur0 + (this.fleursVues || 0) * pas) { const fl = harmo.fleurs[this.fleursVues || 0]; this.fleursVues = (this.fleursVues || 0) + 1; if (fl.ok) this.sc.playSfx('star_1', 0.45); }
     if (t > premiere + this.starsShown * pas && this.starsShown < this.stars) { this.starsShown++; this.sc.playSfx(`star_${this.starsShown}`, 0.7); }
     // après les étoiles, le coup de tampon : l'encre paraît d'un coup, avec le choc sourd du bois sur la table
     // chaque tampon tombe à son tour, avec le choc du bois ; celui de l'archétype rallume la région qui l'a valu
@@ -345,7 +349,7 @@ export class Finale {
     const W = STAGE.W, H = this.hCarte, compact = STAGE.compact;
     if (this.phase === 'carte') { habillerCarte(ctx, this.sc, W, H, { legendes: true }); this.bandeBoutons(ctx, 1); return; }
     const fin = this.phase === 'titre' ? clamp(this.stepT / (this.D.titre * 0.26), 0, 1) : 0;
-    if (this.phase === 'titre') { habillerCarte(ctx, this.sc, W, H, { bandes: this.bandes, lettres: this.lettres, etoiles: this.starsShown, tampons: this.tampons || 0, legendes: true }); this.bandeBoutons(ctx, this.bandes); }
+    if (this.phase === 'titre') { habillerCarte(ctx, this.sc, W, H, { bandes: this.bandes, lettres: this.lettres, etoiles: this.starsShown, fleurs: this.fleursVues || 0, tampons: this.tampons || 0, legendes: true }); this.bandeBoutons(ctx, this.bandes); }
     ctx.save(); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     // le compteur, tant que la carte n'a pas pris le relais (elle porte le score, elle aussi)
     const a = clamp(this.t / 0.8, 0, 1) * (1 - fin);

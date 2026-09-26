@@ -19,6 +19,9 @@ export const BALANCE = {
   breaths: { discard: 1, undo: 3, close: 1, wish: 2, start: [0, 2, 4, 6] },
   // bâtir : poser une tuile sur une tuile de même famille la monte de niveau (bords +1, compte double dans sa région) ;
   // une tuile bien bâtie (région close, en saison, ou bien entourée) revient dans la file, au plus une fois par saison
+  // harmonie : trois fleurs comptées à la fin de l'île (harmonie.js) ; chacune vaut la surface de l'île divisée par casesParPoint
+  // seuils mesurés sur le robot fort (qui ne vise pas l'harmonie) : il obtient chaque fleur une fois sur deux environ (52, 69 et 55 %)
+  harmonie: { variete: 5, regionMin: 4, equilibre: 0.2, acheve: 0.85, poseMin: 8, casesParPoint: 5 },
   fusion: { cost: 2, bonus: 1 },   // fusion : deux tuiles voisines qui font recette, sans tuile de la file ; 2 souffles, +1 point (le gain vient des bords, des fermetures et des primes de saison)
   build: { maxLevel: 3, level3From: 19, cost: 2, cost3: 3, restore: 1, matureSeasons: 1, level3Season: 1 },   // bâtir : une tuile d'une région close monte d'un niveau, sans tuile de la file ; 2 souffles pour le niveau 2, 3 pour le niveau 3 ; une friche se remet en état pour 1
   fauna: { rabbit: 3, moose: 5, duck: 3, bear: 3, frog: 1, owl: 1, penguin: 4, chicken: 2, horse: 2, cow: 2 },

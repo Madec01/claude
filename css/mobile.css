@@ -27,6 +27,8 @@ html.compact .season-pips i { width: 6px; height: 6px; }
 html.compact .hud-label { font-size: 9px; letter-spacing: 0.06em; }
 html.compact .hud-score b, html.compact .hud-breaths b { font-size: 16px; }
 html.compact .hud-stars { font-size: 9px; }
+html.compact .hud-harmonie .fleur { width: 15px; height: 15px; }
+html.compact .hud-harmonie { gap: 1px; margin-left: 0; }
 html.compact .hud-pause { width: 34px; height: 34px; }
 html.compact .hud-pause .hud-icon { width: 13px; height: 13px; }
 html.compact .fauna-chip { font-size: 11px; padding: 2px 7px 2px 2px; gap: 4px; }

@@ -9,6 +9,7 @@ import { climateOf } from '../data/climates.js';
 import { transition, nextSeason } from './seasons.js';
 import { evaluate as evalFauna, reconcile } from './fauna.js';
 import { initWishes, updateWishes, besoinsVoeu, poseLimite } from './wishes.js';
+import { harmonie } from './harmonie.js';
 import { TileQueue } from './queue.js';
 import { generateMask, enclosedHoles } from '../data/islands.js';
 import { videsMalus } from '../data/tempo.js';
@@ -46,6 +47,8 @@ export class Island {
     this.rareTier = o.rareTier;   // 0 : les cinq rares de base ; 1 : le grenier, la ruche et le menhir s'y ajoutent
     // niveau 3
     this.level3On = o.level3 !== undefined ? !!o.level3 : (libre || des('build3'));
+    // l'harmonie (trois fleurs comptées en fin d'île) : campagne dès son île, Île du jour et Île infinie ; ni jardin, ni modes à part
+    this.harmonieOn = o.harmonie !== undefined ? !!o.harmonie : ((libre && !def.garden) || des('harmonie'));
     const seed = def.seed + (o.seedOffset || 0);
     this.rng = new RNG(seed * 7 + 1);
     this.board = new Board(generateMask(seed, def.cells, { roughness: def.roughness, holes: def.holes, etire: def.etire || 1 }));
@@ -73,7 +76,7 @@ export class Island {
       this.brume = { cran, cachees: plan.cachees, deduc: plan.deduc, jalons: new Map(), crayon: new Map(), jalonSaison: false, jalonsPoses: 0, contre: 0, devoilees: 0, justes: 0, fausses: 0, tresor: null, depart: plan.fog.size,
         // le tirage de saison : la chance de bonus (bouge à chaque coup), la carte en cours, l'état de la saison, les marques de la Lanterne
         ratio: TIRAGE.depart, carte: null, saison: saisonNeuve(), marques: new Map(), posesSaison: [], rngCartes: new RNG(seed * 13 + 5) };
-      for (const k of ['buildOn', 'growOn', 'fuseOn', 'level3On']) this[k] = false;
+      for (const k of ['buildOn', 'growOn', 'fuseOn', 'level3On', 'harmonieOn']) this[k] = false;
       this.handOn = true;
     }
     // une tuile par case libre : sous la brume, les cases cachées n'en demandent pas (elles ont déjà la leur)
@@ -830,6 +833,9 @@ export class Island {
     const brume = this.brume ? this.finBrume() : null;
     this.ended = true;
     if (this.tempo) { const m = videsMalus(this.board); this.stats.vides = m; if (m.total) this.addBonus(-m.total, 'vides'); }
+    // l'harmonie : les fleurs ouvertes paient à la fin, avant que les étoiles se comptent
+    let harmo = null;
+    if (this.harmonieOn && !this.tempo && !this.brume && !this.garden) { const h = harmonie(this.board, this.def); harmo = { fleurs: h.fleurs.map((f) => ({ id: f.id, nom: f.nom, ok: f.ok, detail: f.detail })), ouvertes: h.ouvertes, pts: h.pts, total: h.total }; this.stats.harmonie = h.ouvertes; if (h.total) this.addBonus(h.total, 'harmonie'); }
     const cells = this.board.cells;
     const th = this.thresholds;
     let stars = 0;
@@ -842,7 +848,7 @@ export class Island {
     const dominant = dom && dom.share >= 0.3 ? dom : null;
     const libre = this.infinite || this.garden || !!this.brume || !!this.tempo;   // pas d'étoiles ni de graines d'île hors campagne et Île du jour
     const seeds = (libre ? 0 : stars) * BALANCE.seeds.star + this.stats.wishesDone * BALANCE.seeds.wish + (libre ? 0 : BALANCE.seeds.island);
-    this.result = { island: this.def.id, score: this.score, stars: libre ? 0 : stars, gold: gold && !this.brume, brume, goldThreshold: this.goldThreshold, thresholds: th, tally: { ...this.tally }, bestMove: this.bestMove, dominant, archetype: (() => { const a = archetypeOf(this.board); return a ? { id: a.id, family: a.family, size: a.size } : null; })(), reason, placements: this.placements, seasons: this.seasonsPassed.length, stats: { ...this.stats }, fauna: this.fauna.size, wishesDone: this.stats.wishesDone, wishesTotal, seeds, cells, filled: this.board.placed };
+    this.result = { island: this.def.id, score: this.score, stars: libre ? 0 : stars, gold: gold && !this.brume, brume, goldThreshold: this.goldThreshold, thresholds: th, tally: { ...this.tally }, bestMove: this.bestMove, dominant, archetype: (() => { const a = archetypeOf(this.board); return a ? { id: a.id, family: a.family, size: a.size } : null; })(), reason, placements: this.placements, seasons: this.seasonsPassed.length, stats: { ...this.stats }, harmonie: harmo, fauna: this.fauna.size, wishesDone: this.stats.wishesDone, wishesTotal, seeds, cells, filled: this.board.placed };
     this.emit({ type: 'end', result: this.result });
     return this.result;
   }

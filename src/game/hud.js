@@ -7,12 +7,15 @@ import { TALLY_LABELS } from '../ui/results.js';
 import { FAMILY_COLORS, FAMILIES, affinity, RARE_AS } from '../data/tiles.js';
 import { Save } from '../core/save.js';
 import { deadlineLabel } from './wishes.js';
+import { harmonie } from './harmonie.js';
 import { Assets } from '../core/assets.js';
 import { AudioSys } from '../core/audio.js';
 import { RARE_DECOR, spriteKey } from './decor.js';
 import { NOMS_COULEURS, P as PB } from './brume.js';
 import { reserveEte, OBJECTIF_PAR_ID, fr } from '../data/tempo.js';
 
+// les trois fleurs d'harmonie : des fleurs du décor, grisées tant qu'elles ne sont pas gagnées
+const FLEURS = [{ id: 'variete', nom: 'Variété', img: 'obj_flowerBlue' }, { id: 'equilibre', nom: 'Équilibre', img: 'obj_flowerRed' }, { id: 'acheve', nom: 'Achèvement', img: 'obj_flowerYellow' }];
 const icon = (name, cls = '') => `<img class="hud-icon ${cls}" src="assets/img/ui/${name}.png" alt="">`;
 /** Les messages qui passent aussi dans le ruban (les autres ne vont qu'au journal), avec leur couleur. */
 const RIBBON_KINDS = { warn: '#b5523f', wish: '#8e6bb5', gold: '#b8862b', rare: '#8a6fb5', special: '#2f7f74' };
@@ -48,7 +51,7 @@ export class Hud {
           <div class="season-pips" data-ref="pips" title="Poses avant la prochaine saison"></div>
           <div class="season-pop hidden" data-ref="seasonPop"></div>
         </div>
-        <div class="hud-block hud-score"><span class="hud-label">Points</span><b data-ref="score">0</b><span class="score-delta" data-ref="scoreDelta"></span><span class="hud-stars" data-ref="starsLine" title="Seuils des étoiles"></span><span class="hud-objectif hidden" data-ref="objectif"></span><div class="score-pop hidden" data-ref="scorePop"></div></div>
+        <div class="hud-block hud-score"><span class="hud-label">Points</span><b data-ref="score">0</b><span class="score-delta" data-ref="scoreDelta"></span><span class="hud-stars" data-ref="starsLine" title="Seuils des étoiles"></span><span class="hud-harmonie ${island.harmonieOn ? '' : 'hidden'}" data-ref="harmonie" title="Harmonie : trois fleurs, comptées à la fin de l’île (toucher)">${FLEURS.map((f) => `<img class="fleur" data-fleur="${f.id}" src="assets/img/deco/${f.img}.webp" alt="${f.nom}">`).join('')}</span><div class="score-pop harmo-pop hidden" data-ref="harmoPop"></div><span class="hud-objectif hidden" data-ref="objectif"></span><div class="score-pop hidden" data-ref="scorePop"></div></div>
         <div class="hud-block hud-breaths ${m.has('breath') ? '' : 'hidden'}" title="Souffles"><span class="hud-label">Souffles</span><b data-ref="breaths">0</b></div>
         <button class="hud-pause" data-ref="pause" title="Pause (Échap) : journal, plein écran, options">${icon('icon_pause')}</button>
       </div>
@@ -83,6 +86,8 @@ export class Hud {
     this.r.seasonBox.addEventListener('click', (e) => { e.stopPropagation(); this.toggleSeasonPop(); });
     // le pourquoi des points : un toucher sur le compteur ouvre le détail par source
     { const box = this.r.score.parentNode; box.title = 'D’où viennent les points (toucher)'; box.style.cursor = 'pointer'; box.addEventListener('click', (e) => { e.stopPropagation(); this.toggleScorePop(); }); }
+    this.r.harmonie.addEventListener('click', (e) => { e.stopPropagation(); this.toggleHarmoPop(); });
+    this.r.harmoPop.addEventListener('click', (e) => { e.stopPropagation(); this.toggleHarmoPop(false); });
     this.r.pwDiscard.addEventListener('click', (e) => { e.stopPropagation(); onDiscard(); });
     this.r.pwUndo.addEventListener('click', (e) => { e.stopPropagation(); onUndo(); });
     this.r.brumeMove.addEventListener('click', (e) => { e.stopPropagation(); onMove && onMove(); });
@@ -134,6 +139,36 @@ export class Hud {
     this.r.scorePop.innerHTML = `<b>D’où viennent les points</b>${rows || '<span>Rien encore : pose une tuile.</span>'}${bm ? `<em>Meilleur coup : +${bm.pts}, ${fam}</em>` : ''}<i class="pop-hint">Toucher pour fermer</i>`;
     this._scorePopScore = isl.score;
   }
+  /**
+   * L'harmonie : les trois fleurs sous le score, recalculées quand le plateau change. Une fleur qui s'ouvre le dit
+   * (et tinte) ; une fleur qui se referme le dit aussi, avec la raison — sans ça on la perdait sans comprendre.
+   */
+  renderHarmonie() {
+    const isl = this.isl; if (!isl.harmonieOn) return;
+    if (this._harmoV === isl.board.version) return; this._harmoV = isl.board.version;
+    const h = this.harmo = harmonie(isl.board, isl.def); const avant = this._harmoOk;
+    for (const f of h.fleurs) {
+      const el = this.r.harmonie.querySelector(`[data-fleur="${f.id}"]`); if (!el) continue;
+      if (el.classList.contains('on') !== f.ok) el.classList.toggle('on', f.ok);
+      if (avant && avant[f.id] !== undefined && avant[f.id] !== f.ok && !isl.ended) {
+        if (f.ok) { this.notify(`Fleur d’harmonie : ${f.nom} (+${h.pts} à la fin de l’île)`, 'gold'); el.classList.remove('eclot'); void el.offsetWidth; el.classList.add('eclot'); AudioSys.play('star_1', { volume: 0.45 }); }
+        else this.notify(`La fleur ${f.nom} se referme : ${f.detail}`, 'warn');
+      }
+    }
+    this._harmoOk = Object.fromEntries(h.fleurs.map((f) => [f.id, f.ok]));
+    if (!this.r.harmoPop.classList.contains('hidden')) this.renderHarmoPop();
+  }
+  toggleHarmoPop(force) {
+    const pop = this.r.harmoPop; const open = force !== undefined ? force : pop.classList.contains('hidden');
+    if (open) { this.toggleScorePop(false); this.renderHarmoPop(); clearTimeout(this._harmoPopT); this._harmoPopT = setTimeout(() => this.toggleHarmoPop(false), 9000); }
+    pop.classList.toggle('hidden', !open);
+  }
+  renderHarmoPop() {
+    const h = this.harmo || harmonie(this.isl.board, this.isl.def);
+    const img = (id) => (FLEURS.find((x) => x.id === id) || FLEURS[0]).img;
+    this.r.harmoPop.innerHTML = `<b>Harmonie</b><span>Chaque fleur ouverte à la fin de l’île rapporte +${h.pts}.</span>${h.fleurs.map((f) => `<div class="harmo-row ${f.ok ? 'on' : ''}"><img src="assets/img/deco/${img(f.id)}.webp" alt=""><span><b>${f.nom}</b> ${f.ok ? '· ouverte' : ''}<br><small>${f.detail}</small></span></div>`).join('')}<i class="pop-hint">Toucher pour fermer</i>`;
+  }
+
   /** Règle de la saison (ou sa surprise) en surimpression : utile sur téléphone où la boîte de saison est réduite. */
   toggleSeasonPop(force) {
     const pop = this.r.seasonPop; const open = force !== undefined ? force : pop.classList.contains('hidden');
@@ -394,7 +429,7 @@ export class Hud {
     r.pwDiscard.disabled = !isl.canDiscard();
     if (isl.buildOn || isl.fuseOn) { const n = isl.buildTargets().length; if (n !== this.last.buildCount) { this.last.buildCount = n; r.buildCount.textContent = String(n); r.pwBuild.classList.toggle('some', n > 0); } }
     r.pwUndo.disabled = !isl.canUndo(); if (isl.brume && !this.last.undoHidden) { this.last.undoHidden = true; r.pwUndo.classList.add('hidden'); }   // pas de souvenir sous la brume
-    this.renderQueue(); this.renderWishes(); this.renderFauna(); this.renderTileHelp();
+    this.renderQueue(); this.renderWishes(); this.renderFauna(); this.renderTileHelp(); this.renderHarmonie();
   }
 
   /** Souffle court : l'arc qui se vide autour de la tuile, le temps qui reste, la série. Couleur de la saison, rouge dans la dernière seconde. */
