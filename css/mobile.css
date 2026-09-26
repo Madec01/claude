@@ -78,6 +78,7 @@ html.compact.portrait .pw { flex-direction: row; gap: 4px; padding: 3px 7px; }
 html.compact.portrait .garden-pick { position: absolute; left: 6px; right: 6px; bottom: 100%; margin-bottom: 4px; }
 html.compact.portrait .hud-fauna { left: 6px; right: 6px; bottom: 124px; max-width: none; gap: 4px; }
 html.compact.portrait .hud-place { bottom: 156px; }
+html.compact.portrait .hud-actions { bottom: 156px; }
 html.compact.portrait .tuto-card { bottom: 160px; }
 /* paysage : colonne étroite à gauche */
 html.compact.landscape .hud-queue { left: max(6px, env(safe-area-inset-left)); top: 46px; bottom: 6px; width: 118px; gap: 4px; overflow: hidden; }
@@ -95,6 +96,10 @@ html.compact.landscape .powers { gap: 3px; }
 html.compact.landscape .pw span { display: none; }
 html.compact.landscape .hud-fauna { left: 132px; right: 50px; bottom: 6px; max-width: none; gap: 4px; }
 html.compact.landscape .hud-place { bottom: 8px; left: auto; right: max(10px, env(safe-area-inset-right)); transform: none; }
+html.compact.landscape .hud-actions { bottom: 8px; left: auto; right: max(10px, env(safe-area-inset-right)); transform: none; min-width: 200px; }
+html.compact .hud-actions { padding: 8px 10px; gap: 4px; }
+html.compact .hud-actions .act { padding: 6px 10px; }
+html.compact .hud-actions .act b { font-size: 14px; }
 html.compact.landscape .tuto-card { bottom: auto; top: 46px; width: calc(100% - 300px); left: calc(50% + 30px); }
 html.compact.landscape .tuto-card.on { transform: translate(-50%, 0); }
 

@@ -19,7 +19,7 @@ const RIBBON_KINDS = { warn: '#b5523f', wish: '#8e6bb5', gold: '#b8862b', rare: 
 const SEASON_ICON = { spring: 'icon_leaf', summer: 'icon_sun', autumn: 'icon_wind', winter: 'icon_snow' };
 
 export class Hud {
-  constructor(root, island, { title, onPause, onPick, onDiscard, onUndo, onGardenPick, onPlace, onMove, compact = false, mechanics }) {
+  constructor(root, island, { title, onPause, onPick, onDiscard, onUndo, onGardenPick, onPlace, onMove, onAction, onActionHover, onBuildHint, compact = false, mechanics }) {
     this.root = root; this.isl = island; this.mech = mechanics;
     const m = mechanics;
     root.innerHTML = `
@@ -41,6 +41,7 @@ export class Hud {
         <div class="powers ${m.has('breath') ? '' : 'hidden'}" data-ref="powers">
           <button class="pw" data-ref="pwDiscard" title="Défausser la tuile (X)">${icon('icon_cross')}<span>Défausser</span><em>${BALANCE.breaths.discard}</em></button>
           <button class="pw" data-ref="pwUndo" title="Annuler la dernière pose (Z), une fois par saison">${icon('icon_return')}<span>Annuler</span><em data-ref="undoCost">${BALANCE.breaths.undo}</em></button>
+          <button class="pw pw-build ${m.has('build') || m.has('fuse') ? '' : 'hidden'}" data-ref="pwBuild" title="Les tuiles posées qui attendent une action : bâtir une région close (2 souffles), fusionner deux voisines qui font recette (2), réparer une friche (1). Touche-les sur l’île.">${icon('icon_wrench')}<span>Bâtir</span><em data-ref="buildCount">0</em></button>
         </div>
         <div class="hud-brume ${island.brume ? '' : 'hidden'}" data-ref="brume">
           <div class="queue-title"><span>Sous la brume</span><span class="brume-left" data-ref="brumeLeft"></span></div>
@@ -52,6 +53,7 @@ export class Hud {
       </div>
       <div class="hud-wishes ${island.wishes.length ? '' : 'hidden'} ${compact ? 'collapsed' : ''}" data-ref="wishes"><button class="wish-toggle" data-ref="wishToggle" title="Afficher les vœux">Vœux <b data-ref="wishCount"></b></button><div class="queue-title">Vœux</div><div class="wish-list" data-ref="wishList"></div></div>
       <button class="hud-place hidden" data-ref="placeBtn"></button>
+      <div class="hud-actions hidden" data-ref="actions"></div>
       <div class="hud-logpanel hidden" data-ref="logPanel"><div class="log-head"><span>Journal de l’île</span><button class="log-close" data-ref="logClose" title="Fermer">✕</button></div><div class="log-list" data-ref="logList"></div></div>
       <div class="tile-help hidden" data-ref="tileHelp"><div class="th-head"><b data-ref="thName"></b><button class="th-close" data-ref="thClose" title="Masquer la fiche (H)">✕</button></div><p class="th-blurb" data-ref="thBlurb"></p><div class="th-pairs" data-ref="thPairs"></div></div>
       <div class="hud-fauna" data-ref="fauna"></div>
@@ -75,6 +77,11 @@ export class Hud {
     this.r.tileHelp.addEventListener('click', (e) => { e.stopPropagation(); this.helpOpen = !this.helpOpen; this.r.tileHelp.classList.toggle('open', this.helpOpen); });
     this.r.logClose.addEventListener('click', (e) => { e.stopPropagation(); this.toggleLog(false); });
     this.r.placeBtn.addEventListener('click', (e) => { e.stopPropagation(); onPlace && onPlace(); });
+    this.r.pwBuild.addEventListener('click', (e) => { e.stopPropagation(); onBuildHint && onBuildHint(); });
+    // les actions d'une tuile posée : un bouton par action ; le survol d'un bouton change l'aperçu sur l'île, le clic fait l'action
+    this.r.actions.addEventListener('click', (e) => { e.stopPropagation(); const b = e.target.closest('button'); if (!b) return; if (b.classList.contains('act-close')) { this.setActions(null); this.onActionHover(-1); return; } onAction && onAction(Number(b.dataset.i)); });
+    this.r.actions.addEventListener('mouseover', (e) => { const b = e.target.closest('button.act'); if (b) this.onActionHover(Number(b.dataset.i)); });
+    this.onActionHover = onActionHover || (() => {});
     this.r.wishToggle.addEventListener('click', (e) => { e.stopPropagation(); this.r.wishes.classList.toggle('collapsed'); });
     this.onPick = onPick || (() => {}); this.onGardenPick = onGardenPick;
     this.last = {};
@@ -146,26 +153,15 @@ export class Hud {
 
   renderQueue() {
     const q = this.isl.queue;
-    // « sur une tuile » : la tuile du moment peut aussi se poser SUR une tuile déjà posée (bâtir, fusionner,
-    // un ouvrage, réparer une friche). Rien ne le disait, et la mécanique passait inaperçue.
-    const cibles = this.isl.buildTargets ? this.isl.buildTargets() : [];
-    const rang = { fuse: 3, restore: 1, build: 0 };
-    const genre = cibles.length ? cibles.reduce((a, c) => (rang[c.kind] > rang[a] ? c.kind : a), 'build') : null;
-    const ONTO = { build: ['bâtir', 'Peut se poser sur une tuile de la même famille : elle monte de niveau (touche : viser la tuile)'], fuse: ['fusion', 'Peut se poser sur une tuile d’une autre famille : une recette existe'], restore: ['réparer', 'Peut remettre une friche en état'] };
     // Le Souffle court : jamais la tuile suivante ; au printemps, les deux tuiles proposées sont deux choix de même rang
     const liste = this.isl.tempo && this.isl.season !== 'spring' ? q.list.slice(0, 1) : q.list;
     const html = liste.map((t, i) => this.tileHtml(t, i === 0 ? 'current' : this.isl.tempo ? 'choix' : 'next')).join('');
-    const cle = `${html}|${genre || ''}|${cibles.length}`;   // la pastille dépend du plateau, pas seulement de la file
+    const cle = html;
     if (cle !== this.last.queue) {
       this.last.queue = cle;
       this.r.queueList.innerHTML = html || '<div class="qempty">Plus de tuiles</div>';
       const qh = this.r.queueList.querySelector('.q-help'); if (qh) qh.addEventListener('click', (e) => { e.stopPropagation(); this.setTileHelp(this.helpHidden || Save.options.tileHelp === false); });
       this.r.queueList.querySelectorAll('.qtile').forEach((el, i) => {
-        // la tuile du moment se range d'une touche ; sans souris, rien ne le disait : une pastille le montre maintenant
-        if (i === 0 && genre && ONTO[genre]) {
-          el.classList.add('onto', `onto-${genre}`);
-          el.insertAdjacentHTML('beforeend', `<i class="q-onto" title="${ONTO[genre][1]}">${ONTO[genre][0]} · ${cibles.length}</i>`);
-        }
         if (i > 0 && this.isl.handOn) { el.classList.add('pickable'); el.addEventListener('click', (e) => { e.stopPropagation(); this.onPick(i); }); el.title += ' — clic : jouer cette tuile'; }
       });
     }
@@ -285,10 +281,31 @@ export class Hud {
 
   /** Bouton « Poser ici » (tactile) : total de la pose armée, ou null pour le masquer. */
   setPlaceButton(total, mode = 'place') {
-    if (total === null || total === undefined) { if (!this.r.placeBtn.classList.contains('hidden')) this.r.placeBtn.classList.add('hidden'); return; }
+    if (total === null || total === undefined) { if (!this.r.placeBtn.classList.contains('hidden')) this.r.placeBtn.classList.add('hidden'); this.setActions(null); return; }
     const txt = this.isl.brume ? (mode === 'move' ? 'Déplacer ici' : 'Poser ici') : `${mode === 'fuse' ? 'Fusionner ici' : mode === 'build' ? 'Bâtir ici' : mode === 'move' ? 'Déplacer ici' : 'Poser ici'} · ${total >= 0 ? '+' : ''}${total}`;   // sous la brume, pas de points avant la pose
     if (this.last.placeTxt !== txt) { this.last.placeTxt = txt; this.r.placeBtn.textContent = txt; this.r.placeBtn.classList.toggle('neg', total < 0); }
     this.r.placeBtn.classList.remove('hidden');
+  }
+
+  /**
+   * Les actions d'une tuile posée (bâtir, fusionner, remettre en état) : un bouton par action avec son coût en souffles
+   * et ce qu'elle rapporte, l'action choisie en avant. `null` replie le tout. Redessiné seulement quand la liste change.
+   */
+  setActions(list, q = 0, r = 0, sel = 0) {
+    if (!list || !list.length) { if (!this.r.actions.classList.contains('hidden')) { this.r.actions.classList.add('hidden'); this.last.actions = ''; } return; }
+    const t = this.isl.board.get(q, r); if (!t) { this.setActions(null); return; }
+    const nom = (f) => (STORY.tiles[f] || {}).name || f;
+    const libelle = (a) => {
+      if (a.kind === 'restore') return 'Remettre en état';
+      if (a.kind === 'fuse') return `${nom(a.recipe.id)} <small>(${nom(t.family).toLowerCase()} + ${nom(a.with.family).toLowerCase()})</small>`;
+      const sig = a.level >= 3 && STORY.level3[t.family]; return sig ? `${sig.name} <small>(niveau 3)</small>` : `Agrandir <small>(niveau ${a.level})</small>`;
+    };
+    const cle = `${q},${r}|${sel}|` + list.map((a) => `${a.kind}:${a.recipe ? a.recipe.id : a.level}:${a.cost}:${a.pv.total}:${a.first ? 1 : 0}`).join(';');
+    if (cle === this.last.actions) { this.r.actions.classList.remove('hidden'); return; }
+    this.last.actions = cle;
+    this.r.actions.innerHTML = `<div class="act-head"><b>${nom(t.family)}${(t.level || 1) > 1 ? ` · niveau ${t.level}` : ''}</b><button class="act-close" title="Fermer">✕</button></div>` +
+      list.map((a, i) => `<button class="act act-${a.kind} ${i === sel ? 'sel' : ''}" data-i="${i}"><b>${libelle(a)}</b><span><em>${a.cost} souffle${a.cost > 1 ? 's' : ''}</em> · ${a.pv.total >= 0 ? '+' : ''}${a.pv.total}${a.first ? ' · ★ recette nouvelle' : ''}</span></button>`).join('');
+    this.r.actions.classList.remove('hidden');
   }
 
   /** Déplie brièvement les vœux (mode compact) quand un vœu change. */
@@ -331,6 +348,7 @@ export class Hud {
     if (isl.brume) this.renderBrume(this.moving);
     this.set('left', isl.infinite || isl.garden ? '' : `${isl.queue.remaining} restante${isl.queue.remaining > 1 ? 's' : ''}`);
     r.pwDiscard.disabled = !isl.canDiscard();
+    if (isl.buildOn || isl.fuseOn) { const n = isl.buildTargets().length; if (n !== this.last.buildCount) { this.last.buildCount = n; r.buildCount.textContent = String(n); r.pwBuild.classList.toggle('some', n > 0); } }
     r.pwUndo.disabled = !isl.canUndo(); if (isl.brume && !this.last.undoHidden) { this.last.undoHidden = true; r.pwUndo.classList.add('hidden'); }   // pas de souvenir sous la brume
     this.renderQueue(); this.renderWishes(); this.renderFauna(); this.renderTileHelp();
   }

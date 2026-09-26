@@ -43,22 +43,8 @@ function edgePoints(tile, other, season, rule = null, climate = null) {
 /** Multiplicateur de bord du mode « Sous la brume » : jalon juste ×3, tuile dévoilée ×2, sinon ×1. */
 function brumeMul(t, dores = false) { return t.jalon ? 3 : t.devoilee ? (dores ? 3 : 2) : 1; }
 
-/** Peut-on bâtir `tile` sur la case (q, r) ? Même famille, pas de rare, niveau maximal non atteint. */
-export function canBuild(board, q, r, tile) {
-  const t = board.get(q, r);
-  return !!t && !!tile && !t.rare && !tile.rare && t.family === tile.family && ((t.level || 1) < BALANCE.build.maxLevel || !!t.blighted);
-}
-
-/**
- * Aperçu d'une construction : la tuile en place monte d'un niveau et l'on gagne, sur chaque bord, la différence
- * entre sa valeur au nouveau niveau et sa valeur actuelle (+1 par bord qui n'est pas une mauvaise paire).
- * Les bords ne sont donc pas rejoués en entier : bâtir vaut à peu près une bonne pose, pas le double.
- */
-export function previewBuild(board, q, r, tile, season, mods = {}) {
-  const t = board.get(q, r); if (!t) return null;
-  // une friche se remet en état (même niveau, elle recompte pour sa famille) ; sinon la tuile monte d'un niveau
-  const restore = !!t.blighted;
-  const up = restore ? { ...t, blighted: false } : { ...t, level: (t.level || 1) + 1 };
+/** Points gagnés sur chaque bord si la tuile `t` en (q, r) devenait `up` : la différence entre après et avant, bord par bord. */
+function deltaEdges(board, q, r, t, up, season, mods) {
   const edges = []; let total = 0;
   DIRS.forEach(([dq, dr], d) => {
     const n = board.get(q + dq, r + dr); if (!n) return;
@@ -66,15 +52,90 @@ export function previewBuild(board, q, r, tile, season, mods = {}) {
     const pts = after.pts - before.pts;
     if (pts !== 0) { edges.push({ d, q: q + dq, r: r + dr, pts, label: after.label }); total += pts; }
   });
-  if (restore) {
-    // seuls les bons voisins comptent : la friche a déjà payé les mauvais ; et la tuile remise en état peut fermer des régions (simulation)
-    const good = edges.filter((e) => e.pts > 0); total = good.reduce((a, e) => a + e.pts, 0);
-    const k = key(q, r); board.tiles.set(k, up); board.version++; board._water = null;
-    const closes = closedRegionsAround(board, q, r); board.tiles.set(k, t); board.version++; board._water = null;
-    for (const c of closes) total += c.bonus;
-    return { total, edges: good, closes, river: null, base: [{ pts: 0, label: 'remise en état' }], build: true, level: up.level, restore: true };
-  }
+  return { edges, total };
+}
+
+/** Régions que fermerait la tuile `up` mise à la place de `t` en (q, r) (simulation, le plateau est rendu tel quel). */
+function closesIf(board, q, r, t, up) {
+  const k = key(q, r); board.tiles.set(k, up); board.version++; board._water = null;
+  const closes = closedRegionsAround(board, q, r);
+  board.tiles.set(k, t); board.version++; board._water = null;
+  return closes;
+}
+
+/**
+ * Peut-on bâtir la tuile en (q, r) ? Une tuile de base (ni rare ni friche) dont le niveau maximal n'est pas atteint,
+ * et dont la région est close (déjà payée) : on bâtit ce qui est achevé. Aucune tuile de la file n'est consommée.
+ */
+export function canLevelUp(board, q, r) {
+  const t = board.get(q, r);
+  if (!t || t.rare || t.blighted || (t.level || 1) >= BALANCE.build.maxLevel) return false;
+  return board.regionPaid(board.region(q, r, t.family));
+}
+
+/**
+ * Aperçu d'une construction : la tuile en place monte d'un niveau et l'on gagne, sur chaque bord, la différence
+ * entre sa valeur au nouveau niveau et sa valeur actuelle (+1 par bord qui n'est pas une mauvaise paire).
+ * Les bords ne sont donc pas rejoués en entier : bâtir vaut à peu près une bonne pose. La région étant close, rien ne se ferme.
+ */
+export function previewBuild(board, q, r, season, mods = {}) {
+  const t = board.get(q, r); if (!t) return null;
+  const up = { ...t, level: (t.level || 1) + 1 };
+  const { edges, total } = deltaEdges(board, q, r, t, up, season, mods);
   return { total, edges, closes: [], river: null, base: [], build: true, level: up.level };
+}
+
+/** Une friche (ruine, lit asséché, terre morte) se remet en état d'un toucher, sans tuile. */
+export function canRestore(board, q, r) { const t = board.get(q, r); return !!t && !!t.blighted; }
+
+/**
+ * Aperçu d'une remise en état : la friche recompte pour sa famille au même niveau. Seuls ses bons voisins comptent
+ * (elle a déjà payé les mauvais), et elle peut fermer des régions.
+ */
+export function previewRestore(board, q, r, season, mods = {}) {
+  const t = board.get(q, r); if (!t || !t.blighted) return null;
+  const up = { ...t, blighted: false };
+  const good = deltaEdges(board, q, r, t, up, season, mods).edges.filter((e) => e.pts > 0);
+  let total = good.reduce((a, e) => a + e.pts, 0);
+  const closes = closesIf(board, q, r, t, up);
+  for (const c of closes) total += c.bonus;
+  return { total, edges: good, closes, river: null, base: [{ pts: 0, label: 'remise en état' }], build: true, level: up.level || 1, restore: true };
+}
+
+/**
+ * Les fusions possibles pour la tuile en (q, r) avec l'une de ses voisines : une entrée par recette, avec la voisine
+ * qui la permet. La tuile doit être de base, saine et au niveau 1 (une tuile bâtie ne fusionne plus : la fusion
+ * repart au niveau 1) ; la voisine, de base et saine. Aucune des deux n'est consommée : la tuile touchée devient
+ * la tuile composée, la voisine reste.
+ * @returns {Array<{recipe:object, with:{q:number,r:number,family:string}}>}
+ */
+export function fusionsAround(board, q, r) {
+  const t = board.get(q, r);
+  if (!t || t.rare || t.blighted || (t.level || 1) > 1) return [];
+  const out = [];
+  for (const [a, b] of neighbors(q, r)) {
+    const n = board.get(a, b); if (!n || n.rare || n.blighted) continue;
+    const recipe = fusionFor(t.family, n.family); if (!recipe || out.some((o) => o.recipe.id === recipe.id)) continue;
+    out.push({ recipe, with: { q: a, r: b, family: n.family } });
+  }
+  return out;
+}
+
+/** Tuile fusionnée (compte pour ses deux familles). `from` garde la famille d'origine et celle de la voisine. */
+export function fusedTile(t, recipe, withFamily = null) { return { ...t, family: recipe.id, rare: true, fusion: true, level: 1, from: withFamily ? [t.family, withFamily] : [t.family] }; }
+
+/**
+ * Aperçu d'une fusion : la tuile en place devient la tuile composée ; on gagne la différence de valeur des bords,
+ * la prime de fusion et les éventuelles fermetures de régions (la tuile composée appartient à deux familles).
+ */
+export function previewFuse(board, q, r, recipeId, season, mods = {}) {
+  const t = board.get(q, r); const f = fusionsAround(board, q, r).find((x) => x.recipe.id === recipeId); if (!f) return null;
+  const fused = fusedTile(t, f.recipe, f.with.family);
+  const { edges } = deltaEdges(board, q, r, t, fused, season, mods); let total = edges.reduce((a, e) => a + e.pts, 0);
+  const closes = closesIf(board, q, r, t, fused);
+  for (const c of closes) total += c.bonus;
+  const base = [{ pts: BALANCE.fusion.bonus, label: 'fusion' }]; total += BALANCE.fusion.bonus;
+  return { total, edges, closes, river: null, base, build: true, fuse: f.recipe, with: f.with, level: 1 };
 }
 
 /**
@@ -179,36 +240,3 @@ export function countClosedRegions(board, family = null) {
   for (const fam of familles) n += board.paidRegions(fam).length;
   return n;
 }
-
-/** Recette de fusion applicable en posant `tile` sur la case (q, r), ou null. */
-export function canFuse(board, q, r, tile) {
-  const t = board.get(q, r);
-  if (!t || !tile || t.rare || tile.rare || t.family === tile.family) return null;
-  return fusionFor(t.family, tile.family);
-}
-
-/** Tuile fusionnée (compte pour ses deux familles). */
-export function fusedTile(t, recipe) { return { ...t, family: recipe.id, rare: true, fusion: true, level: 1, from: [t.family] }; }
-
-/**
- * Aperçu d'une fusion : la tuile en place devient la tuile composée ; on gagne la différence de valeur des bords,
- * la prime de fusion et les éventuelles fermetures de régions (la tuile composée appartient à deux familles).
- */
-export function previewFuse(board, q, r, tile, season, mods = {}) {
-  const t = board.get(q, r); const recipe = canFuse(board, q, r, tile); if (!recipe) return null;
-  const fused = fusedTile(t, recipe);
-  const edges = []; let total = 0;
-  DIRS.forEach(([dq, dr], d) => {
-    const n = board.get(q + dq, r + dr); if (!n) return;
-    const after = edgePoints(fused, n, season, mods.rule || null, mods.climate || null), before = edgePoints(t, n, season, mods.rule || null, mods.climate || null);
-    const pts = after.pts - before.pts;
-    if (pts !== 0) { edges.push({ d, q: q + dq, r: r + dr, pts, label: after.label }); total += pts; }
-  });
-  const k = key(q, r); board.tiles.set(k, fused); board.version++; board._water = null;
-  const closes = closedRegionsAround(board, q, r);
-  board.tiles.set(k, t); board.version++; board._water = null;
-  for (const c of closes) total += c.bonus;
-  const base = [{ pts: BALANCE.fusion.bonus, label: 'fusion' }]; total += BALANCE.fusion.bonus;
-  return { total, edges, closes, river: null, base, build: true, fuse: recipe, level: 1 };
-}
-

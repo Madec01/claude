@@ -16,11 +16,11 @@ export const BALANCE = {
   // `at` : voisines de la même famille selon la famille ; les familles absentes ne poussent pas (un « marais dense » ne veut rien dire).
   growth: { at: { hamlet: 3, orchard: 3, forest: 4, field: 4, meadow: 4 }, seasons: 2, perSeason: 2 },
   // souffles : deux sources (fermer une région, exaucer un vœu), trois usages (défausser, annuler une fois par saison, bâtir ou fusionner)
-  breaths: { discard: 1, undo: 3, close: 1, wish: 2, start: [0, 2, 4, 6], build: 1 },
+  breaths: { discard: 1, undo: 3, close: 1, wish: 2, start: [0, 2, 4, 6] },
   // bâtir : poser une tuile sur une tuile de même famille la monte de niveau (bords +1, compte double dans sa région) ;
   // une tuile bien bâtie (région close, en saison, ou bien entourée) revient dans la file, au plus une fois par saison
-  fusion: { cost: 1, bonus: 1 },   // fusion : même geste que bâtir ; +1 point à la fusion (le gain vient des bords, des fermetures et des primes de saison), une découverte rend une tuile et une rare
-  build: { maxLevel: 3, level3From: 19, cost: 1, cost3: 2, matureSeasons: 1, level3Season: 1, neighborsForRefund: 4, refundsPerSeason: 1, season: { meadow: 'spring', marsh: 'spring', heath: 'spring', field: 'summer', sand: 'summer', forest: 'autumn', orchard: 'autumn', hill: 'autumn', hamlet: 'winter', water: 'winter', rock: 'winter' } },
+  fusion: { cost: 2, bonus: 1 },   // fusion : deux tuiles voisines qui font recette, sans tuile de la file ; 2 souffles, +1 point (le gain vient des bords, des fermetures et des primes de saison)
+  build: { maxLevel: 3, level3From: 19, cost: 2, cost3: 3, restore: 1, matureSeasons: 1, level3Season: 1 },   // bâtir : une tuile d'une région close monte d'un niveau, sans tuile de la file ; 2 souffles pour le niveau 2, 3 pour le niveau 3 ; une friche se remet en état pour 1
   fauna: { rabbit: 3, moose: 5, duck: 3, bear: 3, frog: 1, owl: 1, penguin: 4, chicken: 2, horse: 2, cow: 2 },
   queue: { visible: [3, 4, 5], seasonExtra: [0, 1, 2] },
   upgrades: { source: [0, 1], refuge: [0, 1, 2], almanac: [0, 1, 2] },   // bonus de l'Atelier : rivière, faune, graines

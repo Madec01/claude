@@ -19,10 +19,10 @@ const RULES = {
   rare:     { when: (i) => i.placements >= 2, done: (i, ev) => ev.has('rare'), info: true, timeout: 30 },
   hill:     { when: (i) => i.placements >= 1, done: (i, ev) => ev.has('hill'), info: true, timeout: 35 },
   heath:    { when: (i) => i.placements >= 1, done: (i, ev) => ev.has('heath'), info: true, timeout: 35 },
-  build:    { when: (i) => i.placements >= 3 && i.breaths >= 1, done: (i, ev) => ev.has('build'), info: true, timeout: 45 },
+  build:    { when: (i) => i.placements >= 3 && (i.stats.closed >= 1 || i.placements >= 8), done: (i, ev) => ev.has('build'), info: true, timeout: 45 },   // dès qu'une région est close : c'est là qu'on bâtit
   hand:     { when: (i) => i.placements >= 1, done: (i, ev) => ev.has('hand'), info: true, timeout: 40 },
   semis:    { when: () => true, done: () => false, info: true, timeout: 25 },
-  fuse:     { when: (i) => i.placements >= 3 && i.breaths >= 1, done: (i, ev) => ev.has('fuse'), info: true, timeout: 50 },
+  fuse:     { when: (i) => i.placements >= 3 && (i.breaths >= 2 || i.placements >= 8), done: (i, ev) => ev.has('fuse'), info: true, timeout: 50 },
   build3:   { when: (i) => [...i.board.tiles.values()].some((t) => (t.level || 1) >= 2), done: (i, ev) => ev.has('build3'), info: true, timeout: 50 },
 };
 

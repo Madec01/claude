@@ -73,14 +73,14 @@ const btn = (page, label) => page.evaluate((l) => {
   check(atl.neuves >= 1, `les nouvelles améliorations sont marquées (${atl.neuves})`);
   check(atl.fermees >= 1, `les suivantes restent visibles, grisées, avec leur chapitre (${atl.fermees})`);
 
-  // --- 5. en jeu : « poser sur une tuile déjà posée » se voit
+  // --- 5. en jeu : les tuiles posées qui attendent une action (bâtir, fusionner, réparer) se voient
   await save(page, { unlockedIsland: 15, stars: { 11: 2 }, plays: { 11: 1 }, islandsPlayed: 11, seeds: 20, announced: ['mode_garden', 'mode_daily', 'mode_infinite', 'postcard'] });
   await page.evaluate(() => window.CS.Game.startIsland(11, { skipIntro: true }));   // l'île qui introduit bâtir
   await page.waitForTimeout(900);
   await page.waitForFunction(() => window.CS.scenes.currentName === 'island' || [...document.querySelectorAll('button')].some((x) => x.textContent.includes('C’est parti')), null, { timeout: 25000 });
   await page.evaluate(() => { const x = [...document.querySelectorAll('button')].find((y) => y.textContent.includes('C’est parti')); if (x) x.click(); });
   await page.waitForFunction(() => window.CS.scenes.currentName === 'island', null, { timeout: 25000 });
-  // on pose une quinzaine de tuiles, puis on force la tuile courante à valoir une tuile posée
+  // on pose une quinzaine de tuiles, puis on ferme une région d'office et l'on met une tuile en friche
   const cible = await page.evaluate(() => {
     const isl = window.CS.scenes.current.isl;
     for (let k = 0; k < 15 && !isl.ended; k++) {
@@ -89,21 +89,34 @@ const btn = (page, label) => page.evaluate((l) => {
       for (const c of isl.board.legalCells()) { const pv = isl.preview(c.q, c.r); if (pv && pv.total > bs) { bs = pv.total; best = c; } }
       if (!best || !isl.place(best.q, best.r)) break;
     }
-    // une tuile de la même famille qu'une tuile posée : bâtir devient possible
-    const posee = [...isl.board.tiles.values()].find((t) => !t.rare && !t.work && (t.level || 1) === 1);
-    if (isl.current && posee) { isl.current.family = posee.family; isl.current.variant = posee.variant || 1; isl.current.rare = false; isl.board.touch(); }
-    isl.breaths = Math.max(isl.breaths, 3);
+    // une région close : bâtir devient possible sur ses tuiles, quelle que soit la tuile du moment ; une friche : réparer
+    const posee = [...isl.board.tiles.values()].find((t) => !t.rare && (t.level || 1) === 1);
+    if (posee) isl.board.payRegion(isl.board.region(posee.q, posee.r, posee.family));
+    const autre = [...isl.board.tiles.values()].find((t) => !t.rare && t !== posee && t.family !== posee.family); if (autre) autre.blighted = true;
+    isl.board.touch(); isl.breaths = Math.max(isl.breaths, 3);
     const t = isl.buildTargets();
-    return { n: t.length, genres: [...new Set(t.map((x) => x.kind))] };
+    return { n: t.length, genres: [...new Set(t.map((x) => x.kind))], acts: posee ? isl.actions(posee.q, posee.r).map((a) => `${a.kind}:${a.cost}`) : [] };
   });
-  check(cible.n > 0, `la tuile du moment peut aller sur ${cible.n} tuile(s) déjà posée(s) (${cible.genres.join(', ')})`);
+  check(cible.n > 0 && cible.genres.includes('level') && cible.genres.includes('restore'), `${cible.n} tuile(s) posée(s) attendent une action (${cible.genres.join(', ')})`);
+  check(cible.acts.includes('level:2'), `sur la région close, bâtir le niveau 2 pour 2 souffles (${cible.acts.join(', ')})`);
   await page.waitForTimeout(700);
-  const pastille = await page.evaluate(() => {
-    const el = document.querySelector('.qtile.current .q-onto') || document.querySelector('.qtile .q-onto');
-    return el ? { txt: el.textContent, titre: el.getAttribute('title') || '' } : null;
+  const bouton = await page.evaluate(() => {
+    const el = document.querySelector('.pw-build');
+    return el ? { n: Number(el.querySelector('em').textContent), titre: el.getAttribute('title') || '', visible: !el.classList.contains('hidden') } : null;
   });
-  check(!!pastille, `la file le montre par une pastille (« ${pastille ? pastille.txt : 'ABSENTE'} »)`);
-  check(!!pastille && /pose/i.test(pastille.titre), 'et l’explique au survol pour qui a une souris');
+  check(!!bouton && bouton.visible && bouton.n === cible.n, `le bandeau les compte sur le bouton Bâtir (« ${bouton ? bouton.n : 'ABSENT'} »)`);
+  check(!!bouton && /touche/i.test(bouton.titre), 'et l’explique au survol pour qui a une souris');
+  // toucher une tuile qui attend : ses actions s'affichent, avec leur coût et leur gain
+  const panneau = await page.evaluate(() => {
+    const sc = window.CS.scenes.current; const isl = sc.isl; const t = isl.buildTargets()[0];
+    sc.armBuild(t.q, t.r);
+    const el = document.querySelector('.hud-actions'); const acts = [...document.querySelectorAll('.hud-actions .act')].map((b) => b.textContent);
+    const ouvert = !!el && !el.classList.contains('hidden'); const b0 = isl.breaths;
+    sc.doAction(0);
+    return { ouvert, acts, paye: b0 - isl.breaths, ferme: el.classList.contains('hidden') };
+  });
+  check(panneau.ouvert && panneau.acts.length >= 1 && /souffle/.test(panneau.acts[0]), `toucher la tuile ouvre ses actions (${panneau.acts.join(' | ')})`);
+  check(panneau.paye >= 1 && panneau.ferme, `choisir l’action la fait (${panneau.paye} souffle(s) payé(s)) et replie le panneau`);
   // le plateau entoure les tuiles visées
   const trace = await page.evaluate(() => {
     const R = window.CS.scenes.current.renderer; let n = 0;

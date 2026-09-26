@@ -14,7 +14,7 @@ export const UPGRADES = [
   { id: 'refuge', chapter: 3, name: 'Refuge', icon: 'icon_home', desc: 'Chaque animal présent rapporte plus de points à chaque changement de saison.', levels: ['Normal', '+1 point', '+2 points'], costs: [5, 9], requires: 'fauna' },
   { id: 'almanac', chapter: 3, name: 'Almanach', icon: 'icon_save', desc: 'Des graines supplémentaires à chaque île terminée, même rejouée.', levels: ['Aucune', '+1 graine', '+2 graines'], costs: [4, 8] },
   // chapitre 4 : bâtir
-  { id: 'frame', chapter: 4, name: 'Charpente', icon: 'icon_wrench', desc: 'Bâtir coûte un souffle de moins (le niveau 2 devient gratuit).', levels: ['Normal', '−1 souffle'], costs: [8], requires: 'build' },
+  { id: 'frame', chapter: 4, name: 'Charpente', icon: 'icon_wrench', desc: 'Bâtir coûte un souffle de moins (niveau 2 : un souffle, niveau 3 : deux).', levels: ['Normal', '−1 souffle'], costs: [8], requires: 'build' },
   // chapitre 5 : climats et fusions
   { id: 'still', chapter: 5, name: 'Alambic', icon: 'icon_swap', desc: 'La première fusion de chaque île ne coûte aucun souffle.', levels: ['Normal', '1re fusion offerte'], costs: [8], requires: 'fuse' },
   { id: 'cloak', chapter: 5, name: 'Manteau', icon: 'icon_snow', desc: 'La contrainte du climat s’adoucit : au chaud les prés ne sèchent plus dès le printemps, au froid les champs ne dorment qu’en hiver, à l’humide un hameau contre un marais ne perd que 1.', levels: ['Normal', 'Adouci'], costs: [10], requires: 'climate' },

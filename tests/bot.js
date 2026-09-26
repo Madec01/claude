@@ -57,6 +57,14 @@ export function playStrong(def, o = {}) {
   while (!isl.ended && guard++ < 3000) {
     const tile = isl.current;
     if (!tile) { isl.checkEnd(); break; }
+    // bâtir, fusionner, réparer : des actions sur les tuiles posées, payées en souffles, sans tuile de la file ; on fait la
+    // meilleure tant qu'elle vaut ses souffles (un souffle compté 1,5 : il sert aussi à défausser), les rentes comptées sur les saisons qui restent
+    if (isl.buildOn || isl.fuseOn) {
+      const left = Math.min(4, Math.ceil(isl.queue.remaining / Math.max(1, isl.seasonLength)));
+      let bb = null, bbs = 0;
+      for (const t of isl.buildTargets()) for (const a of isl.actions(t.q, t.r)) { const rente = a.kind === 'fuse' ? 1.5 * left : a.level >= 3 ? left : 0; const sc = a.pv.total + rente - 1.5 * a.cost; if (sc > bbs) { bbs = sc; bb = { q: t.q, r: t.r, a }; } }
+      if (bb && isl.build(bb.q, bb.r, bb.a.kind, bb.a.recipe ? bb.a.recipe.id : null)) continue;
+    }
     let mv = bestMove(isl, tile, rng);
     if (!mv.cell) { isl.checkEnd(); break; }
     // main de saison : jouer la meilleure tuile visible, gratuitement
@@ -68,12 +76,6 @@ export function playStrong(def, o = {}) {
     }
     // souffles : défausser une tuile sans avenir (l'échange et le bourgeon ont été retirés, la main les remplace)
     if (mv.score <= 0 && isl.breaths >= 3 && isl.canDiscard()) { isl.discard(); continue; }
-    // bâtir : si une tuile de même famille bien placée rapporte plus que la meilleure pose (retour de tuile compté 3, souffle compté 1)
-    if (isl.buildOn && isl.breaths >= 2) {
-      let bb = null, bbs = mv.score + 1;
-      for (const t of isl.board.tiles.values()) { if (!isl.canBuild(t.q, t.r)) continue; const pv = isl.previewBuild(t.q, t.r); if (!pv) continue; const sc = pv.total + (pv.refund && pv.refund.ok ? 3 : -1) - (pv.cost || 1) + (pv.level >= 3 ? 4 : 0) + (pv.fuse ? 3 : 0); if (sc > bbs) { bbs = sc; bb = t; } }
-      if (bb && isl.build(bb.q, bb.r)) continue;
-    }
     isl.place(mv.cell.q, mv.cell.r); picked = false;
     if (o.maxPlacements && isl.placements >= o.maxPlacements) isl.finish('test');
   }

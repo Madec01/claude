@@ -413,7 +413,9 @@ export class IslandRenderer {
     const list = isl.buildTargets();   // gardé en cache côté île : recalculé seulement quand le plateau ou la tuile change
     if (!list.length) return;
     const cam = this.cam;
-    const puls = 0.55 + 0.25 * Math.sin(this.time * 2.4);
+    // le bouton « Bâtir » du bandeau fait briller les cibles trois secondes, plus fort et plus vite
+    const flash = (this.flashTargets || 0) > this.time;
+    const puls = flash ? 0.7 + 0.3 * Math.sin(this.time * 7) : 0.55 + 0.25 * Math.sin(this.time * 2.4);
     ctx.save();
     for (const c of list) {
       const w = toWorld(c.q, c.r); const p = cam.toScreen(w.x, w.y);
@@ -421,7 +423,7 @@ export class IslandRenderer {
       const pts = corners(p.x, p.y, SIZE * cam.zoom * 0.9);
       ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]); for (let i = 1; i < 6; i++) ctx.lineTo(pts[i][0], pts[i][1]); ctx.closePath();
       ctx.strokeStyle = c.kind === 'fuse' ? `rgba(138,111,181,${puls})` : `rgba(224,163,58,${puls})`;
-      ctx.lineWidth = Math.max(1.5, 2.4 * cam.zoom); ctx.setLineDash([7 * cam.zoom, 5 * cam.zoom]);
+      ctx.lineWidth = Math.max(1.5, (flash ? 3.4 : 2.4) * cam.zoom); ctx.setLineDash([7 * cam.zoom, 5 * cam.zoom]);
       ctx.stroke();
     }
     ctx.restore();
@@ -1311,9 +1313,15 @@ export class IslandRenderer {
     for (const cl of pv.closes) this.pill(ctx, c.x, c.y - (64) * z, `région close +${cl.bonus}`, '#e0a33a');
     if (pv.blight) this.pill(ctx, c.x, c.y - 64 * z, '✗ en friche : ne rapportera plus rien', '#d95f4b');
     const py = (34 + pv.base.length * 24) * z;   // sous les pastilles de base
-    if (pv.build && pv.fuse) { const nm = (STORY.tiles[pv.fuse.id] || {}).name || pv.fuse.id; this.pill(ctx, c.x, c.y + py, `${nm} · ${pv.cost} souffle`, '#2b2a26'); this.pill(ctx, c.x, c.y + py + 22 * z, pv.first ? '★ recette nouvelle : elle s’écrit dans le Cahier' : 'recette connue', pv.first ? '#e0a33a' : '#8a867c'); }
-    else if (pv.build && pv.restore) { this.pill(ctx, c.x, c.y + py, `Remise en état · ${pv.cost} souffle`, '#2b2a26'); this.pill(ctx, c.x, c.y + py + 22 * z, 'la friche recompte pour sa famille', '#2f9e8f'); }
-    else if (pv.build) { const ok = pv.refund && pv.refund.ok; const sig = pv.level >= 3 && STORY.level3[this.isl.board.get(hv.q, hv.r).family]; this.pill(ctx, c.x, c.y + py, `${sig ? sig.name : `niveau ${pv.level}`} · ${pv.cost} souffle${pv.cost > 1 ? 's' : ''}`, '#2b2a26'); if (sig) this.pill(ctx, c.x, c.y + py + 22 * z, '★ bords +2, +1 par saison', '#e0a33a'); this.pill(ctx, c.x, c.y + py + (sig ? 44 : 22) * z, ok ? '↩ rend une tuile' : 'sans retour', ok ? '#2f9e8f' : '#8a867c'); }
+    const souffles = (n) => `${n} souffle${n > 1 ? 's' : ''}`;
+    if (pv.build && pv.fuse) {
+      const nm = (STORY.tiles[pv.fuse.id] || {}).name || pv.fuse.id; const av = pv.with ? ((STORY.tiles[pv.with.family] || {}).name || pv.with.family).toLowerCase() : '';
+      this.pill(ctx, c.x, c.y + py, `${nm}${av ? ` avec ${av}` : ''} · ${souffles(pv.cost)}`, '#2b2a26'); this.pill(ctx, c.x, c.y + py + 22 * z, pv.first ? '★ recette nouvelle : elle s’écrit dans le Cahier' : 'recette connue', pv.first ? '#e0a33a' : '#8a867c');
+      // la voisine qui fait recette : liseré violet, elle reste en place
+      if (pv.with) { const ww = toWorld(pv.with.q, pv.with.r); const cc = cam.toScreen(ww.x, ww.y); this.outline(ctx, cc.x, cc.y, '#8a6fb5', 0.9); }
+    }
+    else if (pv.build && pv.restore) { this.pill(ctx, c.x, c.y + py, `Remise en état · ${souffles(pv.cost)}`, '#2b2a26'); this.pill(ctx, c.x, c.y + py + 22 * z, 'la friche recompte pour sa famille', '#2f9e8f'); }
+    else if (pv.build) { const sig = pv.level >= 3 && STORY.level3[this.isl.board.get(hv.q, hv.r).family]; this.pill(ctx, c.x, c.y + py, `${sig ? sig.name : `niveau ${pv.level}`} · ${souffles(pv.cost)}`, '#2b2a26'); this.pill(ctx, c.x, c.y + py + 22 * z, sig ? '★ bords +2, +1 par saison' : 'bords +1, sans tuile', sig ? '#e0a33a' : '#8a867c'); }
     // total : badge nettement plus grand et plus contrasté que les pastilles de bord, avec son libellé
     const tz = clamp(z, 0.8, 1.3);
     const txt = `${pv.total >= 0 ? '+' : ''}${pv.total}`;

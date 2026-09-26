@@ -5,7 +5,7 @@ import { ISLANDS, INFINITE, GARDEN } from '../src/data/islands.js';
 import { Board } from '../src/game/board.js';
 import { neighbors } from '../src/game/hex.js';
 import { affinity } from '../src/data/tiles.js';
-import { preview, previewBuild, canBuild, canFuse, previewFuse, apply, closedRegionsAround, countClosedRegions } from '../src/game/rules.js';
+import { preview, previewBuild, canLevelUp, fusionsAround, previewFuse, apply, closedRegionsAround, countClosedRegions } from '../src/game/rules.js';
 import { STORY } from '../src/data/story.js';
 import { progressOf } from '../src/game/wishes.js';
 import { BALANCE } from '../src/data/balance.js';
@@ -52,54 +52,68 @@ check(affinity('meadow', 'water') === 0, 'prairie-eau = 0');
   check(pc.closes.some((c) => c.family === 'meadow' && c.size === 6), 'la prairie de 6 se ferme aussi');
 }
 
-// --- bâtir : niveau 2, bords +1, région pondérée, retour de tuile
+// --- bâtir : une tuile d'une région close monte d'un niveau (2 souffles, sans tuile) ; bords +1, région pondérée
 {
   const b = new Board(['0,0', '1,0', '0,1', '-1,1', '-1,0', '0,-1', '1,-1']);
   b.place(0, 0, { family: 'hamlet', variant: 1 }); b.place(1, 0, { family: 'field', variant: 1 });
-  check(canBuild(b, 1, 0, { family: 'field', variant: 1 }), 'un champ se bâtit sur un champ');
-  check(!canBuild(b, 1, 0, { family: 'forest', variant: 1 }), 'pas de forêt sur un champ');
-  const pb = previewBuild(b, 1, 0, { family: 'field', variant: 1 }, 'spring');
+  check(!canLevelUp(b, 1, 0), 'un champ dont la région est ouverte ne se bâtit pas');
+  b.payRegion(b.region(1, 0, 'field'));
+  check(canLevelUp(b, 1, 0), 'un champ d’une région close se bâtit');
+  const pb = previewBuild(b, 1, 0, 'spring');
   check(pb.total === 1 && pb.level === 2, `bâtir un champ contre un hameau = +1 sur le bord (obtenu ${pb.total})`);
   b.get(1, 0).level = 2;
   const p2 = preview(b, 0, 1, { family: 'field', variant: 1 }, 'spring');
   check(p2.edges.find((e) => e.q === 1 && e.r === 0).pts === 2, 'un champ posé contre un champ de niveau 2 : 1 + 1');
   check(b.region(1, 0).size === 2, 'une tuile de niveau 2 compte double dans sa région');
   const isl = new Island(ISLANDS[5], { build: true }); isl.breaths = 3;
-  const f = [...isl.board.tiles.values()].find((t) => !t.rare && t.family !== 'water' && t.family !== 'rock') || [...isl.board.tiles.values()][0];
-  isl.queue.list[0] = isl.queue.makeTile(f.family);
-  const before = isl.queue.list.length, res = isl.build(f.q, f.r);
-  check(!!res && isl.board.get(f.q, f.r).level === 2 && isl.breaths === 2 && isl.stats.built === 1, `bâtir sur l'île 6 (${f.family})`);
-  check(isl.queue.list.length >= before - 1, 'la file avance');
+  const tuiles = [...isl.board.tiles.values()].filter((t) => !t.rare && t.family !== 'water' && t.family !== 'rock');
+  const f = tuiles[0] || [...isl.board.tiles.values()][0];
+  check(!isl.canBuild(f.q, f.r) && /close/.test(isl.pourquoiPas(f.q, f.r) || ''), `région ouverte : rien à bâtir, et le jeu dit pourquoi (${isl.pourquoiPas(f.q, f.r)})`);
+  isl.board.payRegion(isl.board.region(f.q, f.r, f.family)); isl.board.touch();
+  check(isl.action(f.q, f.r).kind === 'level' && isl.action(f.q, f.r).cost === 2, 'région close : bâtir le niveau 2 pour 2 souffles');
+  const before = isl.queue.list.length, pl = isl.placements, res = isl.build(f.q, f.r);
+  check(!!res && isl.board.get(f.q, f.r).level === 2 && isl.breaths === 1 && isl.stats.built === 1, `bâtir sur l'île 6 (${f.family}) : 2 souffles`);
+  check(isl.queue.list.length === before && isl.placements === pl, 'bâtir ne prend rien dans la file et ne compte pas comme une pose');
+  const g = tuiles.find((t) => t !== f && t.family !== f.family);
+  if (g) { isl.board.payRegion(isl.board.region(g.q, g.r, g.family)); isl.board.touch(); check(!isl.canBuild(g.q, g.r) && /souffle/.test(isl.pourquoiPas(g.q, g.r) || ''), `sans assez de souffles : rien, et le jeu le dit (${isl.pourquoiPas(g.q, g.r)})`); }
 }
 
-// --- fusions : recette, aperçu, île
+// --- fusions : deux voisines qui font recette ; la touchée devient la composée, la voisine reste
 {
   const b = new Board(['0,0', '1,0', '0,1', '-1,1', '-1,0', '0,-1', '1,-1']);
   b.place(0, 0, { family: 'hamlet', variant: 1 }); b.place(1, 0, { family: 'field', variant: 1 });
-  check(!canFuse(b, 0, 0, { family: 'water', variant: 1 }), 'eau sur hameau : plus de recette (le port attend le Livre II)');
-  check(canFuse(b, 1, 0, { family: 'hamlet', variant: 1 }).id === 'farm', 'hameau sur champ = ferme');
-  check(!canFuse(b, 1, 0, { family: 'sand', variant: 1 }), 'sable sur champ : pas de recette');
-  const pf = previewFuse(b, 0, 0, { family: 'field', variant: 1 }, 'spring');
-  check(pf && pf.fuse.id === 'farm' && pf.total >= 1, `fusion ferme : prime +1 au moins (obtenu ${pf && pf.total})`);
+  const pf = previewFuse(b, 0, 0, 'farm', 'spring');
+  check(pf && pf.fuse.id === 'farm' && pf.total >= 1 && pf.with.family === 'field', `fusion ferme : prime +1 au moins (obtenu ${pf && pf.total})`);
+  check(!previewFuse(b, 0, 0, 'paddy', 'spring'), 'pas de rizière sans eau voisine');
+  b.place(0, 1, { family: 'sand', variant: 1 });
+  check(fusionsAround(b, 0, 0).map((f) => f.recipe.id).join() === 'farm', 'hameau à côté d’un champ : ferme (et rien avec le sable)');
+  const fa = fusionsAround(b, 1, 0); check(fa.length === 1 && fa[0].with.q === 0 && fa[0].with.r === 0 && fa[0].with.family === 'hamlet', 'la voisine qui fait recette est nommée');
+  check(!fusionsAround(b, 0, 1).length, 'sable : pas de recette avec ces voisines');
+  b.get(0, 0).level = 2; check(!fusionsAround(b, 0, 0).length, 'une tuile bâtie ne fusionne plus'); b.get(0, 0).level = 1;
   const isl = new Island(ISLANDS[7], { build: true, fuse: true, known: new Set() }); isl.breaths = 3;
   const h = [...isl.board.tiles.values()].find((t) => !t.rare && t.family === 'hamlet');
-  if (h) { isl.queue.list[0] = isl.queue.makeTile('field'); const before = isl.queue.list.length; const res = isl.build(h.q, h.r);
-    check(!!res && isl.board.get(h.q, h.r).family === 'farm' && isl.board.get(h.q, h.r).fusion && isl.stats.fusions === 1 && isl.known.has('farm'), 'fusion sur l’île 8 : ferme découverte');
-    check(isl.queue.list.length <= before && !isl.queue.list.some((t) => t.rare), 'découverte : la recette s’écrit dans le Cahier, sans tuile ni rare en retour (elles faussaient le calibrage)'); }
+  const c = h && isl.board.legalCells().find((c) => neighbors(c.q, c.r).some(([a, bb]) => a === h.q && bb === h.r));
+  if (h && c) {
+    isl.board.place(c.q, c.r, { family: 'field', variant: 1 }); isl.board.touch();
+    const before = isl.queue.list.length, pl = isl.placements; const a = isl.action(h.q, h.r, 'fuse', 'farm');
+    check(!!a && a.cost === 2 && a.first, 'la ferme est proposée sur le hameau : 2 souffles, recette nouvelle');
+    const res = isl.build(h.q, h.r, 'fuse', 'farm');
+    check(!!res && isl.board.get(h.q, h.r).family === 'farm' && isl.board.get(h.q, h.r).fusion && isl.stats.fusions === 1 && isl.known.has('farm') && isl.breaths === 1, 'fusion sur l’île 8 : ferme découverte, 2 souffles');
+    check(isl.board.get(c.q, c.r).family === 'field' && isl.queue.list.length === before && isl.placements === pl, 'la voisine reste, rien ne sort de la file, pas une pose');
+  }
 }
 
-// --- niveau 3 : mûrir une saison, 2 souffles, bords +2, signature
+// --- niveau 3 : mûrir une saison, 3 souffles, bords +2, signature
 {
   const isl = new Island(ISLANDS[9], { build: true, level3: true }); isl.breaths = 6;   // île 10
   const f = [...isl.board.tiles.values()].find((t) => !t.rare && t.family === 'forest') || [...isl.board.tiles.values()].find((t) => !t.rare);
-  isl.queue.list[0] = isl.queue.makeTile(f.family); isl.build(f.q, f.r);
+  isl.board.payRegion(isl.board.region(f.q, f.r, f.family)); isl.board.touch(); isl.build(f.q, f.r);
   check(isl.board.get(f.q, f.r).level === 2, 'niveau 2 atteint');
-  isl.queue.list[0] = isl.queue.makeTile(f.family);
-  check(!isl.canBuild(f.q, f.r), 'pas de niveau 3 avant une saison');
+  check(!isl.canBuild(f.q, f.r) && /saison/.test(isl.pourquoiPas(f.q, f.r) || ''), `pas de niveau 3 avant une saison (${isl.pourquoiPas(f.q, f.r)})`);
   isl.seasonsPassed.push('summer');
-  check(isl.canBuild(f.q, f.r) && isl.previewBuild(f.q, f.r).cost === 2, 'niveau 3 possible après une saison, 2 souffles');
+  check(isl.canBuild(f.q, f.r) && isl.previewBuild(f.q, f.r).cost === 3, 'niveau 3 possible après une saison, 3 souffles');
   const b0 = isl.breaths; isl.build(f.q, f.r);
-  check(isl.board.get(f.q, f.r).level === 3 && isl.breaths === b0 - 2 && isl.stats.level3 === 1, 'niveau 3 bâti');
+  check(isl.board.get(f.q, f.r).level === 3 && isl.breaths === b0 - 3 && isl.stats.level3 === 1, 'niveau 3 bâti');
 }
 
 // --- niveau 3 : une seule règle (bords +2, triple dans sa région, +1 par saison) ; les noms par famille n'ont plus d'effet
@@ -145,7 +159,7 @@ check(affinity('meadow', 'water') === 0, 'prairie-eau = 0');
   const d = campaignIsland(mechIsland('build3'));
   const a = new Island(d, { ...islandOptions(d) }), b = new Island(d, { ...islandOptions(d), upgrades: { sight: 2, master: 1, still: 1, cloak: 1 } });
   check(b.queue.visible === a.queue.visible + 2, 'Regard : deux tuiles de plus (la Longue-vue y est fondue)');
-  check(b.fusionCost() === 0 && a.fusionCost() === 1, 'Alambic : première fusion offerte');
+  check(b.fusionCost() === 0 && a.fusionCost() === 2, 'Alambic : première fusion offerte');
   check(b.isMature({ builtAt: b.seasonsPassed.length }) && !a.isMature({ builtAt: a.seasonsPassed.length }), 'Maître d’œuvre : mûrit aussitôt');
   check(!b.climate.fieldsDormantAutumn && a.climate.fieldsDormantAutumn === true, 'Manteau : au froid, les champs ne dorment qu’en hiver');
 }
@@ -263,9 +277,9 @@ check(affinity('meadow', 'water') === 0, 'prairie-eau = 0');
 }
 
 
-// --- friche : une pose négative laisse une tuile morte, sans famille ; bâtir la remet en état
+// --- friche : une pose négative laisse une tuile morte, sans famille ; la toucher la remet en état (1 souffle, sans tuile)
 {
-  const { apply, preview, previewBuild, canBuild } = await import('../src/game/rules.js');
+  const { apply, preview, previewRestore, canRestore } = await import('../src/game/rules.js');
   const cells = []; for (let q = -2; q <= 3; q++) for (let r = -2; r <= 2; r++) cells.push(`${q},${r}`);
   const b = new Board(cells);
   b.place(0, 0, { family: 'rock', variant: 1 }); b.place(1, -1, { family: 'sand', variant: 1 });
@@ -274,13 +288,13 @@ check(affinity('meadow', 'water') === 0, 'prairie-eau = 0');
   apply(b, 1, 0, { family: 'field', variant: 1 }, 'spring');
   const t = b.get(1, 0); check(t.blighted && Board.familiesOf(t).length === 0 && b.regions('field').length === 0, 'la friche ne compte pour aucune famille');
   const pv2 = preview(b, 2, -1, { family: 'field', variant: 1 }, 'spring'); check(!pv2.edges.some((e) => e.q === 1 && e.r === 0), 'un bord contre une friche ne vaut rien');
-  check(canBuild(b, 1, 0, { family: 'field', variant: 1 }), 'on peut bâtir sur la friche');
-  const pb = previewBuild(b, 1, 0, { family: 'field', variant: 1 }, 'spring'); check(pb.restore && pb.level === 1, 'bâtir sur une friche = remise en état au même niveau');
+  check(canRestore(b, 1, 0) && !canRestore(b, 0, 0), 'une friche se remet en état, une tuile saine non');
+  const pb = previewRestore(b, 1, 0, 'spring'); check(pb.restore && pb.level === 1 && pb.total >= 0, 'remise en état au même niveau, seuls les bons voisins comptent');
   const d = campaignIsland(mechIsland('build')); const isl = new Island(d, { ...islandOptions(d) }); isl.breaths = 3;
   const rock = [...isl.board.tiles.values()].find((x) => x.family === 'rock');
   const near = isl.board.legalCells().find((c) => neighbors(c.q, c.r).some(([a, bb]) => isl.board.get(a, bb) === rock));
   const res = isl.place(near.q, near.r, { family: 'field', variant: 1, rare: false, id: 999 });
-  if (res.blight) { const tf = isl.board.get(near.q, near.r); isl.queue.list.unshift({ family: 'field', variant: 1, rare: false, id: 998 }); check(isl.canBuild(near.q, near.r) && isl.build(near.q, near.r) && !tf.blighted, 'remise en état par l’île : la friche recompte'); }
+  if (res.blight) { const tf = isl.board.get(near.q, near.r); const a = isl.action(near.q, near.r); const b0 = isl.breaths, n0 = isl.queue.list.length; check(!!a && a.kind === 'restore' && a.cost === 1 && isl.build(near.q, near.r) && !tf.blighted && isl.breaths === b0 - 1 && isl.queue.list.length === n0, 'remise en état par l’île : 1 souffle, sans tuile, la friche recompte'); }
 }
 
 // --- campagne : trente définitions valides, textes présents, mécaniques cumulatives, bot fort sur les îles générées du début

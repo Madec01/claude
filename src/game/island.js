@@ -3,7 +3,7 @@
 import { Board } from './board.js';
 import { archetypeOf } from '../data/archetypes.js';
 import { mechIsland } from '../data/campaign.js';
-import { preview, apply, previewBuild, canBuild as ruleCanBuild, canFuse, previewFuse, fusedTile } from './rules.js';
+import { preview, apply, previewBuild, canLevelUp, previewRestore, fusionsAround, previewFuse, fusedTile } from './rules.js';
 import { FUSION_BY_ID, RETIRED_RARE, RETIRED_WORKS, RARE_SEASONAL } from '../data/tiles.js';
 import { climateOf } from '../data/climates.js';
 import { transition, nextSeason } from './seasons.js';
@@ -38,7 +38,6 @@ export class Island {
     this.buildOn = o.build !== undefined ? !!o.build : (libre || des('build'));
     // croissance : le caractère du chapitre 9 en campagne, toujours là dans les modes libres — une tuile bien entourée des siennes monte au niveau 2 toute seule
     this.growOn = o.growth !== undefined ? !!o.growth : (!!def.infinite || !!def.daily || des('growth'));
-    this.refunds = 0;            // tuiles rendues cette saison (au plus une)
     // fusionner ; `known` = recettes déjà découvertes (sauvegarde)
     this.fuseOn = o.fuse !== undefined ? !!o.fuse : (libre || des('fuse'));
     this.known = o.known || new Set();
@@ -104,7 +103,7 @@ export class Island {
     this.tally = { edges: 0, base: 0, closes: 0, seasons: 0, wishes: 0, fauna: 0, fusions: 0, build: 0 };
     if (def.brume) this.tally.brume = 0;   // jalons, trésor, jalons manqués, tuiles restées cachées
     this.bestMove = null;
-    this.stats = { grown: 0, harvest: 0, bloom: 0, closedThisSeason: 0, irrigatedSummer: 0, closed: 0, rivers: 0, faunaMax: 0, wishesDone: 0, biggestRegion: 0, undo: 0, links: 0, perfect: 0, streak: 0, bestStreak: 0, built: 0, refunds: 0, fusions: 0, level3: 0 };
+    this.stats = { grown: 0, harvest: 0, bloom: 0, closedThisSeason: 0, irrigatedSummer: 0, closed: 0, rivers: 0, faunaMax: 0, wishesDone: 0, biggestRegion: 0, undo: 0, links: 0, perfect: 0, streak: 0, bestStreak: 0, built: 0, fusions: 0, level3: 0, restored: 0 };
     this.history = [];         // instantanés pour le souvenir
     this.undoUsedThisSeason = false;
     this.ended = false;
@@ -177,96 +176,109 @@ export class Island {
 
   canPlace(q, r) { return !this.ended && !!this.current && this.board.canPlace(q, r) && (!this.restrict || this.restrict.has(key(q, r))); }
 
-  // ---- Bâtir : poser une tuile sur une tuile de même famille ----
+  // ---- Bâtir, fusionner, remettre en état : des actions sur une tuile posée, payées en souffles, sans tuile ----
   /**
-   * Les tuiles DÉJÀ POSÉES où la tuile courante peut aller : bâtir (même famille), fusionner (recette),
-   * poser un ouvrage, remettre une friche en état. Rien dans le jeu ne le montrait — ni la file, ni le plateau —
-   * et une mécanique entière passait inaperçue (retour du commanditaire).
-   * @returns {Array<{q:number,r:number,kind:'build'|'fuse'|'restore',total:number}>}
+   * Les tuiles posées qui ont au moins une action possible (liseré sur le plateau, compteur dans le bandeau).
+   * Indépendant de la tuile du moment : on touche une tuile, on choisit. `kind` et `total` sont ceux de la première action.
+   * @returns {Array<{q:number,r:number,kind:'level'|'fuse'|'restore',total:number,n:number}>}
    */
-  buildTargets(tile = this.current) {
-    if (this.ended || this.restrict || !tile) return [];
+  buildTargets() {
+    if (this.ended || this.restrict || !(this.buildOn || this.fuseOn)) return [];
     // le rendu et le bandeau le demandent à chaque image : on garde le résultat tant que rien n'a bougé
-    const cle = `${this.board.version}|${tile.family}:${tile.level || 1}:${tile.rare ? 1 : 0}|${this.breaths}|${this.season}|${this.placements}`;
+    const cle = `${this.board.version}|${this.breaths}|${this.season}|${this.seasonsPassed.length}|${this.stats.fusions}`;
     if (this._btKey === cle) return this._bt;
     const out = [];
-    for (const t of this.board.tiles.values()) {
-      if (!this.canBuild(t.q, t.r, tile)) continue;
-      const pv = this.previewBuild(t.q, t.r, tile);
-      if (!pv) continue;
-      out.push({ q: t.q, r: t.r, kind: pv.fuse ? 'fuse' : pv.restore ? 'restore' : 'build', total: pv.total || 0 });
-    }
+    for (const t of this.board.tiles.values()) { const a = this.actions(t.q, t.r); if (a.length) out.push({ q: t.q, r: t.r, kind: a[0].kind, total: a[0].pv.total, n: a.length }); }
     this._btKey = cle; this._bt = out;
     return out;
   }
-
-  canBuild(q, r, tile = this.current) {
-    if (this.ended || this.restrict || !tile) return false;
-    if (this.buildOn && ruleCanBuild(this.board, q, r, tile)) {
-      const t = this.board.get(q, r); const lv = t.level || 1;
-      if (t.blighted) return this.breaths >= BALANCE.build.cost;   // remise en état d'une friche
-      if (lv >= 2 && (!this.level3On || !this.isMature(t))) return false;   // niveau 3 : débloqué, et la tuile a mûri une saison
-      return this.breaths >= this.buildCost(lv + 1);
+  /**
+   * Les actions possibles sur la tuile en (q, r), la plus simple en tête : remettre une friche en état (1 souffle),
+   * monter d'un niveau une tuile d'une région close (2 souffles, 3 pour le niveau 3), fusionner avec une voisine qui
+   * fait recette (2 souffles, une entrée par recette). Rien n'est pris dans la file, et l'action ne compte pas comme une pose.
+   * @returns {Array<{kind:'level'|'fuse'|'restore', cost:number, pv:object, level?:number, recipe?:object, with?:{q,r,family}, first?:boolean}>}
+   */
+  actions(q, r) {
+    if (this.ended || this.restrict) return [];
+    const t = this.board.get(q, r); if (!t) return [];
+    const out = [];
+    if (this.buildOn && t.blighted) {
+      const cost = BALANCE.build.restore;
+      if (this.breaths >= cost) { const pv = previewRestore(this.board, q, r, this.season, this.mods); pv.cost = cost; out.push({ kind: 'restore', cost, pv, level: pv.level }); }
+      return out;   // une friche ne fait rien d'autre
     }
-    if (this.fuseOn && canFuse(this.board, q, r, tile)) return this.breaths >= this.fusionCost();
-    return false;
+    if (this.buildOn && canLevelUp(this.board, q, r)) {
+      const lv = (t.level || 1) + 1;
+      if (lv < 3 || (this.level3On && this.isMature(t))) {   // niveau 3 : débloqué, et la tuile a mûri une saison
+        const cost = this.buildCost(lv);
+        if (this.breaths >= cost) { const pv = previewBuild(this.board, q, r, this.season, this.mods); pv.cost = cost; if (lv >= 3) pv.signature = true; out.push({ kind: 'level', cost, pv, level: lv }); }
+      }
+    }
+    if (this.fuseOn) {
+      const cost = this.fusionCost();
+      if (this.breaths >= cost) for (const f of fusionsAround(this.board, q, r)) {
+        const pv = previewFuse(this.board, q, r, f.recipe.id, this.season, this.mods); if (!pv) continue;
+        pv.cost = cost; pv.first = !this.known.has(f.recipe.id);
+        out.push({ kind: 'fuse', cost, pv, level: 1, recipe: f.recipe, with: f.with, first: pv.first });
+      }
+    }
+    return out;
   }
-  /** Coût en souffles pour atteindre `level` (Charpente : un de moins, jamais moins que 0 pour le niveau 2 ni que 1 pour le niveau 3). */
+  /** Une action au moins est-elle possible sur cette tuile ? */
+  canBuild(q, r) { return this.actions(q, r).length > 0; }
+  /** L'action demandée (la première sans précision), ou null. */
+  action(q, r, kind = null, recipeId = null) {
+    const list = this.actions(q, r); if (!list.length) return null;
+    if (!kind) return list[0];
+    return list.find((a) => a.kind === kind && (!recipeId || (a.recipe && a.recipe.id === recipeId))) || null;
+  }
+  /**
+   * Pourquoi rien n'est possible sur cette tuile : un mot pour le joueur qui la touche (souffles qui manquent,
+   * région encore ouverte, niveau 3 qui attend sa saison), ou null quand il n'y a rien à dire (tuile rare, niveau maximal…).
+   */
+  pourquoiPas(q, r) {
+    const t = this.board.get(q, r); if (!t || this.ended || this.restrict || this.actions(q, r).length) return null;
+    const s = (n) => (n > 1 ? 's' : '');
+    if (t.blighted) return this.buildOn ? `Remettre en état demande ${BALANCE.build.restore} souffle (tu en as ${this.breaths})` : null;
+    if (t.rare) return null;
+    if (this.fuseOn && fusionsAround(this.board, q, r).length) { const c = this.fusionCost(); return `Fusionner demande ${c} souffle${s(c)} (tu en as ${this.breaths})`; }
+    if (!this.buildOn || (t.level || 1) >= BALANCE.build.maxLevel) return null;
+    if (!this.board.regionPaid(this.board.region(q, r, t.family))) return 'Bâtir : la région de cette tuile doit d’abord être close';
+    const lv = (t.level || 1) + 1;
+    if (lv >= 3 && !this.level3On) return null;
+    if (lv >= 3 && !this.isMature(t)) return 'Niveau 3 : la tuile doit d’abord traverser une saison';
+    const c = this.buildCost(lv); return `Bâtir le niveau ${lv} demande ${c} souffle${s(c)} (tu en as ${this.breaths})`;
+  }
   /** Coût d'une fusion (Alambic : la première de l'île est offerte). */
   fusionCost() { return (this.upgrades.still || 0) > 0 && this.stats.fusions === 0 ? 0 : BALANCE.fusion.cost; }
-  buildCost(level) { const base = level >= 3 ? BALANCE.build.cost3 : BALANCE.build.cost; return Math.max(level >= 3 ? 1 : 0, base - (this.upgrades.frame || 0)); }
+  /** Coût en souffles pour atteindre `level` (Charpente : un de moins, jamais moins que 1). */
+  buildCost(level) { const base = level >= 3 ? BALANCE.build.cost3 : BALANCE.build.cost; return Math.max(1, base - (this.upgrades.frame || 0)); }
   /** Une tuile de niveau 2 a mûri si une saison a passé depuis sa construction. */
   isMature(t) { return (this.upgrades.master || 0) > 0 || this.seasonsPassed.length - (t.builtAt || 0) >= BALANCE.build.matureSeasons; }
-  previewBuild(q, r, tile = this.current) {
-    if (!tile) return null;
-    if (this.fuseOn && canFuse(this.board, q, r, tile)) {
-      const pv = previewFuse(this.board, q, r, tile, this.season, this.mods); if (!pv) return null;
-      const first = !this.known.has(pv.fuse.id);
-      pv.refund = { ok: false, reason: 'none' }; pv.cost = this.fusionCost(); pv.first = first;
-      return pv;
-    }
-    if (!ruleCanBuild(this.board, q, r, tile)) return null;
-    const pv = previewBuild(this.board, q, r, tile, this.season, this.mods);
-    if (pv.restore) { pv.refund = { ok: false, reason: 'none' }; pv.cost = BALANCE.build.cost; return pv; }
-    pv.refund = this.refundFor(q, r, tile.family); pv.cost = this.buildCost(pv.level); if (pv.level >= 3) pv.signature = true;
-    return pv;
-  }
-  /** Une tuile bien bâtie rend une tuile : région close, en saison, ou entourée d'au moins quatre tuiles de sa famille (une seule fois par saison). */
-  refundFor(q, r, family) {
-    const reg = this.board.region(q, r, family); if (!reg || this.refunds >= BALANCE.build.refundsPerSeason) return { ok: false, reason: 'none' };
-    if (this.board.regionPaid(reg)) return { ok: true, reason: 'closed', region: reg.id };
-    if (BALANCE.build.season[family] === this.season) return { ok: true, reason: 'season', region: reg.id };
-    const same = neighbors(q, r).filter(([a, b]) => { const n = this.board.get(a, b); return n && n.family === family; }).length;
-    if (same >= BALANCE.build.neighborsForRefund) return { ok: true, reason: 'crowd', region: reg.id };
-    return { ok: false, reason: 'none' };
-  }
-  build(q, r) {
-    if (!this.canBuild(q, r)) return null;
-    const tile = this.current; const target = this.board.get(q, r);
-    const pv = this.previewBuild(q, r, tile); if (!pv) return null;
+  /** Aperçu de l'action demandée (la première sans précision) : ce que l'on gagne, ce que ça coûte. */
+  previewBuild(q, r, kind = null, recipeId = null) { const a = this.action(q, r, kind, recipeId); return a ? a.pv : null; }
+  /** Fait l'action demandée sur la tuile en (q, r) : paie les souffles, marque les points, ne prend rien dans la file, ne compte pas comme une pose. */
+  build(q, r, kind = null, recipeId = null) {
+    const a = this.action(q, r, kind, recipeId); if (!a) return null;
+    const pv = a.pv; const target = this.board.get(q, r);
     this.pushHistory();
-    this.queue.take();
-    const scoreBefore = this.score; let placed = target, rare = null;
-    if (pv.fuse) {
-      // fusion : la tuile en place devient la tuile composée ; fermetures éventuelles ; découverte = une tuile de retour et une rare
-      placed = fusedTile(target, pv.fuse); this.board.tiles.set(key(q, r), placed); this.board.touch();
-      for (const c of pv.closes) { this.board.payRegion(c); this.stats.closed++; this.stats.closedThisSeason++; this.breaths += BALANCE.breaths.close; this.stats.biggestRegion = Math.max(this.stats.biggestRegion, c.size); }
-      this.breaths -= this.fusionCost(); this.stats.fusions++;
-      if (pv.first) this.known.add(pv.fuse.id);   // la recette s'écrit dans le Cahier ; plus de tuile ni de rare en retour (elles faussaient le calibrage de 23 %)
-    } else if (pv.restore) {
-      target.blighted = false; this.board.touch(); this.breaths -= BALANCE.build.cost; this.stats.restored = (this.stats.restored || 0) + 1;
-      for (const c of pv.closes) { this.board.payRegion(c); this.stats.closed++; this.stats.closedThisSeason++; this.breaths += BALANCE.breaths.close; }
+    const scoreBefore = this.score; let placed = target;
+    const paye = () => { for (const c of pv.closes || []) { this.board.payRegion(c); this.stats.closed++; this.stats.closedThisSeason++; this.breaths += BALANCE.breaths.close; this.stats.biggestRegion = Math.max(this.stats.biggestRegion, c.size); } };
+    if (a.kind === 'fuse') {
+      // fusion : la tuile touchée devient la tuile composée, la voisine reste ; fermetures éventuelles ; la recette s'écrit dans le Cahier
+      placed = fusedTile(target, a.recipe, a.with.family); this.board.tiles.set(key(q, r), placed); this.board.touch();
+      paye(); this.breaths -= a.cost; this.stats.fusions++;
+      if (pv.first) this.known.add(a.recipe.id);
+    } else if (a.kind === 'restore') {
+      target.blighted = false; this.board.touch(); paye(); this.breaths -= a.cost; this.stats.restored = (this.stats.restored || 0) + 1;
     } else {
-      target.level = (target.level || 1) + 1; target.builtAt = this.seasonsPassed.length; this.board.touch();
-      this.breaths -= this.buildCost(target.level); this.stats.built++; if (target.level >= 3) this.stats.level3++;
-      if (pv.refund.ok) { this.refunds++; this.queue.inject(this.queue.makeTile(tile.family), false); this.stats.refunds++; }
+      target.level = a.level; target.builtAt = this.seasonsPassed.length; this.board.touch();
+      this.breaths -= a.cost; this.stats.built++; if (target.level >= 3) this.stats.level3++;
     }
-    this.placements++; this.inSeason++;
-    this.score += pv.total; this.tally[pv.fuse ? 'fusions' : 'build'] += pv.total;
-    this.emit({ type: 'build', kind: pv.fuse ? 'fuse' : pv.restore ? 'restore' : 'level', q, r, tile: placed, level: placed.level, result: pv, refund: pv.refund, family: tile.family, recipe: pv.fuse ? pv.fuse.id : null, first: !!pv.first, rare, milestone: Math.floor(this.score / 100) > Math.floor(scoreBefore / 100) ? Math.floor(this.score / 100) * 100 : 0 });
+    this.score += pv.total; this.tally[a.kind === 'fuse' ? 'fusions' : 'build'] += pv.total;
+    this.emit({ type: 'build', kind: a.kind, q, r, tile: placed, level: placed.level || 1, result: pv, cost: a.cost, family: a.with ? a.with.family : target.family, recipe: a.recipe ? a.recipe.id : null, with: a.with || null, first: !!pv.first, milestone: Math.floor(this.score / 100) > Math.floor(scoreBefore / 100) ? Math.floor(this.score / 100) * 100 : 0 });
     for (const c of pv.closes || []) this.emit({ type: 'close', ...c, breath: BALANCE.breaths.close });
     this.updateFauna(); this.checkWishes();
-    if (!this.garden && this.inSeason >= this.seasonLength) this.advanceSeason();
     this.checkEnd();
     return pv;
   }
@@ -375,7 +387,7 @@ export class Island {
    */
   serialize() {
     return {
-      v: 1, longSeasonDone: !!this.longSeasonDone, refunds: this.refunds,
+      v: 1, longSeasonDone: !!this.longSeasonDone,
       rngS: this.rng.s, board: this.board.snapshot(), queue: this.queue.snapshot(),
       restrict: this.restrict ? [...this.restrict] : null, pendingOpening: [...this.pendingOpening],
       season: this.season, inSeason: this.inSeason, placements: this.placements, seasonsPassed: [...this.seasonsPassed],
@@ -408,7 +420,7 @@ export class Island {
   /** Remet l'île dans l'état rendu par `serialize()`. L'île doit avoir été construite avec la même définition. */
   restoreRun(s) {
     if (!s || s.v !== 1) return false;
-    this.longSeasonDone = !!s.longSeasonDone; this.refunds = s.refunds || 0;
+    this.longSeasonDone = !!s.longSeasonDone;
     this.rng.s = s.rngS; this.board.restore(s.board); this.queue.restore(s.queue);
     this.fillEnclosedHoles();   // une partie commencée avant le correctif garde son trou : la mare devient l'eau qu'elle a toujours eu l'air d'être
     this.retireRares();         // une rare retirée depuis (audit de simplification) redevient la tuile ordinaire qu'elle comptait
@@ -434,7 +446,6 @@ export class Island {
     this.seasonsPassed.push(this.season);
     this.inSeason = 0;
     this.stats.closedThisSeason = 0;
-    this.refunds = 0;
     this.undoUsedThisSeason = false;
     const prevRule = this.rule;
     this.rule = this.garden ? BASE_RULE[this.season] : pickRule(this.season, () => this.rng.next(), this.rulesVariable);

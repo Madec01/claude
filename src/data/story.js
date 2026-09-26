@@ -111,7 +111,7 @@ export const STORY = {
       ],
       tutorial: [
         { id: 'rare', text: 'Tuiles rares : le moulin vaut champ et hameau, la chapelle réchauffe l’hiver, la tour clôt malgré un trou, le puits garde l’eau, le campement attire.' },
-        { id: 'build', text: 'Bâtir : pose une tuile sur une tuile de la même famille (1 souffle). Elle passe au niveau 2 : ses bords valent +1 de plus et elle compte double dans sa région. Bâtie dans une région close, en sa saison ou entourée d’au moins quatre tuiles de sa famille, elle rend une tuile à la file.' },
+        { id: 'build', text: 'Bâtir : touche une tuile d’une région close (2 souffles, aucune tuile de la file n’y passe). Elle passe au niveau 2 : ses bords valent +1 de plus, son décor s’épaissit. Les tuiles qui attendent une action ont un liseré doré, et le bouton Bâtir du bandeau les compte.' },
       ],
     },
     7: {
@@ -142,7 +142,7 @@ export const STORY = {
         'Voilà. C’est cela qui nous a figées : pas une catastrophe. Une saison qui a trop plu.',
       ],
       tutorial: [
-        { id: 'fuse', text: 'Fusionner : pose une tuile sur une tuile d’une autre famille quand une recette existe (1 souffle) : hameau + eau = port, champ + eau = rizière, hameau + champ = ferme, hameau + roche = fortin, roche + eau = cascade, forêt + roche = grotte, sable + eau = lagune. La tuile compte pour ses deux familles et rapporte chaque saison. Une recette découverte rend une tuile et une rare, et s’écrit dans le Cahier du Guide.' },],
+        { id: 'fuse', text: 'Fusionner : touche une tuile qui a une voisine avec laquelle elle fait recette (2 souffles, aucune tuile de la file n’y passe) : champ + eau = rizière, hameau + champ = ferme, hameau + roche = fortin, roche + eau = cascade, forêt + roche = grotte, sable + eau = lagune. La tuile touchée devient la tuile composée, la voisine reste ; elle compte pour ses deux familles et rapporte chaque saison. Chaque recette découverte s’écrit dans le Cahier du Guide.' },],
     },
     9: {
       name: 'La Falaise de l’Ours',
@@ -171,7 +171,7 @@ export const STORY = {
         'Nous avons réappris ceci : ce qui déborde au printemps nourrit en été. Il faut les deux, ou rien.',
       ],
       tutorial: [
-        { id: 'build3', text: 'Niveau 3 : une tuile de niveau 2 qui a traversé une saison peut être bâtie une seconde fois (2 souffles). Elle prend sa signature : forêt ancienne, pâturage, domaine, bourg, grand verger, eau profonde, tourbière, pic, dune… et rapporte +1 à chaque saison en plus.' },],
+        { id: 'build3', text: 'Niveau 3 : une tuile de niveau 2 qui a traversé une saison peut être bâtie une seconde fois (3 souffles). Elle prend sa signature : forêt ancienne, pâturage, domaine, bourg, grand verger, eau profonde, tourbière, pic, dune… et rapporte +1 à chaque saison en plus.' },],
     },
     11: {
       name: 'Les Vergers de Neige',
@@ -576,7 +576,7 @@ export const STORY = {
   breaths: {
     discard: 'Défausser (1 souffle) : la tuile du moment s’en va et ne revient pas.',
     undo: 'Annuler (3 souffles, une fois par saison) : la dernière tuile posée revient dans ta main.',
-    build: 'Bâtir ou fusionner (1 souffle) : poser la tuile sur une tuile déjà posée, de sa famille ou d’une famille qui fait recette.',
+    build: 'Bâtir (2 souffles) : toucher une tuile d’une région close, elle monte d’un niveau. Fusionner (2) : toucher une tuile qui a une voisine avec laquelle elle fait recette. Réparer une friche (1). Aucune tuile de la file n’y passe.',
   },
 
   results: {
@@ -635,7 +635,6 @@ export const STORY = {
   // commentaire de chaque coup (feedback.js) : comparé au meilleur emplacement possible pour la même tuile
   build: {
     done: ['Bâti !', 'Plus haut !', 'Niveau deux !', 'Ça pousse !'],
-    refund: { closed: 'à l’abri : une {f} revient', season: 'en saison : une {f} revient', crowd: 'bien entourée : une {f} revient', none: 'sans retour' },
   },
   fusion: {
     done: ['Fusion !', 'Deux en un !', 'Ça se marie !'],
@@ -667,17 +666,17 @@ export const STORY = {
     hill: 'La colline aime le pré et la forêt ; deux collines qui se touchent attirent le cheval. Une rivière peut en naître.',
     rare2: 'Nouvelles rares : le grenier (+1 par bord avec un champ, pas de dormance d’hiver), la ruche (+1 par verger ou prairie voisin à chaque saison) et le menhir (+1 par roche ou colline voisine à chaque saison).',
     heath: 'La lande fleurit au printemps (+1) et attire la vache en lisière des prés.',
-    build: 'Bâtir : pose une tuile sur une tuile de la même famille (1 souffle). Elle passe au niveau 2 : ses bords valent +1 de plus, elle compte double dans sa région. Bien bâtie (région close, en saison, bien entourée), elle rend une tuile.',
+    build: 'Bâtir : touche une tuile d’une région close (2 souffles, sans tuile de la file). Elle passe au niveau 2 : ses bords valent +1 de plus. Les tuiles qui attendent une action ont un liseré doré ; le bouton Bâtir du bandeau les compte.',
     climate: 'Climat : chaque archipel a le sien. Il change la file, donne un avantage permanent et une contrainte, affichés à côté de la saison.',
-    fuse: 'Fusionner : pose une tuile sur une tuile d’une autre famille quand une recette existe (champ + eau = rizière…). La tuile compte pour ses deux familles et rapporte à chaque saison. Chaque recette découverte s’écrit dans le Cahier du Guide.',
+    fuse: 'Fusionner : touche une tuile qui a une voisine avec laquelle elle fait recette (2 souffles, sans tuile de la file ; champ + eau = rizière…). La tuile touchée devient la tuile composée, la voisine reste ; elle compte pour ses deux familles et rapporte à chaque saison. Chaque recette découverte s’écrit dans le Cahier du Guide.',
     grandeRegion: 'Une grande région : à partir de cinq tuiles d’une même famille, chaque tuile qui l’agrandit gagne +1 (+2 à partir de dix), et sa prime de fermeture est multipliée par 1,5 (par 2 à partir de dix).',
     paths: 'Un sentier vient de se tracer : deux villages séparés par au plus trois tuiles de terre ouverte (prairie, champ, verger, lande — pas la colline, qu’on contourne) se relient tout seuls. Chaque sentier rapporte +1 à chaque saison ; les hameaux voisins se relient par des ruelles.',
     riverLake: 'Ta rivière s’élargit : le tronc depuis la montagne reste une rivière (+2 par tuile), la suite devient un lac dans lequel elle se jette (+1 par tuile). Un ponton posé sur la rivière y reste.',
     growth: 'Croissance — le caractère des grandes îles, ce chapitre seulement : une tuile entourée d’assez des siennes pendant deux saisons grandit toute seule. Le hameau devient un village, la forêt s’épaissit, le verger se remplit. Une saison avant, de jeunes pousses l’annoncent : tu peux encore l’empêcher en posant autre chose à côté. Le temps épaissit ; le niveau 3 et les signatures, eux, restent à bâtir.',
-    blight: 'Friche : une tuile posée qui coûte des points (bords et contraintes) devient une friche, une ruine ou un lit asséché. Elle ne rapporte plus rien et ne compte plus pour sa famille. Bâtir dessus la remet en état (1 souffle).',
+    blight: 'Friche : une tuile posée qui coûte des points (bords et contraintes) devient une friche, une ruine ou un lit asséché. Elle ne rapporte plus rien et ne compte plus pour sa famille. La toucher la remet en état (1 souffle, sans tuile).',
     hand: 'Main de saison : la file devient une main. Clique sur n’importe quelle tuile visible pour la jouer maintenant. Le Regard de l’Atelier agrandit la main.',
     semis: 'Semis : avant chaque île, tu choisis ce que la file donnera plutôt. Terres hautes, fonds humides, pays habité ou au gré des saisons. Un choix, pas une garantie : la file reste tirée au sort.',
-    build3: 'Niveau 3 : une tuile de niveau 2 qui a traversé une saison se bâtit encore (2 souffles). Ses bords valent +2, elle compte triple dans sa région et rapporte +1 par saison.',
+    build3: 'Niveau 3 : une tuile de niveau 2 qui a traversé une saison se bâtit encore (3 souffles). Ses bords valent +2, elle compte triple dans sa région et rapporte +1 par saison.',
   },
   climates: {
     temperate: { name: 'Tempéré', line: 'Le climat de référence.', plus: '', minus: '' },

@@ -37,7 +37,7 @@ export function buildResults({ result, def, onContinue, onRetry, onMenu, onPostc
       row('Plus grande région', result.stats.biggestRegion),
       result.stats.level3 ? row('Tuiles de niveau 3', result.stats.level3, 'gold') : null,
       result.stats.fusions ? row('Fusions', result.stats.fusions, 'gold') : null,
-      result.stats.built ? row('Tuiles bâties', `${result.stats.built}${result.stats.refunds ? ` (${result.stats.refunds} rendue${result.stats.refunds > 1 ? 's' : ''})` : ''}`, 'good') : null,
+      result.stats.built ? row('Tuiles bâties', `${result.stats.built}${result.stats.restored ? ` (${result.stats.restored} friche${result.stats.restored > 1 ? 's' : ''} réparée${result.stats.restored > 1 ? 's' : ''})` : ''}`, 'good') : null,
       result.stats.perfect ? row('Coups parfaits', result.stats.perfect, 'good') : null,
       row('Animaux (au plus)', result.stats.faunaMax, result.stats.faunaMax ? 'good' : ''),
       result.wishesTotal ? row('Vœux exaucés', `${result.wishesDone} / ${result.wishesTotal}`, result.wishesDone === result.wishesTotal ? 'gold' : '') : null,
