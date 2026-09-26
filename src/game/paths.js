@@ -202,9 +202,16 @@ export const LARGEUR = { lane: 7, link: 10 };   // largeur nominale d'une ruelle
  * (pour la bordure sombre) sans changer ses irrégularités : la bordure suit le bord clair.
  * @returns {{ gauche: Array<{x:number,y:number}>, droite: Array<{x:number,y:number}> }}
  */
-export function ruban(pts, largeur, seed, marge = 0) {
+export function ruban(pts, largeur, seed, marge = 0) { return rubans(pts, largeur, seed, [marge])[0]; }
+
+/**
+ * Plusieurs rubans d'un même chemin, un par marge, d'une seule passe : le rééchantillonnage et les trois bruits
+ * ne dépendent pas de la marge, et le ruban et sa bordure les calculaient chacun de leur côté à chaque
+ * changement du plateau. Chaque ruban est exactement celui que `ruban` donnerait avec sa marge.
+ */
+function rubans(pts, largeur, seed, marges) {
   const p = resample(pts, 5);
-  const gauche = [], droite = [];
+  const res = marges.map(() => ({ gauche: [], droite: [] }));
   let L = 0; for (let i = 1; i < p.length; i++) L += Math.hypot(p[i].x - p[i - 1].x, p[i].y - p[i - 1].y);
   let s = 0;
   for (let i = 0; i < p.length; i++) {
@@ -216,12 +223,15 @@ export function ruban(pts, largeur, seed, marge = 0) {
     // chacun à leur rythme (± 18 % sur 12 px) — deux bruits différents, sinon le chemin ne fait
     // qu'onduler. (± 35 % sur 9 px, la première fois : « trop prononcé », dit le commanditaire.)
     const bout = Math.min(1, s / 22, (L - s) / 22); const effile = 0.45 + 0.55 * bout * bout * (3 - 2 * bout);
-    const w = (largeur / 2) * effile * (0.92 + 0.08 * bruit1d(seed, s, 30)) + marge;
+    const w0 = (largeur / 2) * effile * (0.92 + 0.08 * bruit1d(seed, s, 30));
     const gl = 1 + 0.18 * bruit1d(seed + 3, s, 12), gr = 1 + 0.18 * bruit1d(seed + 7, s, 12);
-    gauche.push({ x: p[i].x + nx * w * gl, y: p[i].y + ny * w * gl });
-    droite.push({ x: p[i].x - nx * w * gr, y: p[i].y - ny * w * gr });
+    for (let m = 0; m < marges.length; m++) {
+      const w = w0 + marges[m]; const r = res[m];
+      r.gauche.push({ x: p[i].x + nx * w * gl, y: p[i].y + ny * w * gl });
+      r.droite.push({ x: p[i].x - nx * w * gr, y: p[i].y - ny * w * gr });
+    }
   }
-  return { gauche, droite };
+  return res;
 }
 
 /**
@@ -235,7 +245,7 @@ export function pathShapes(board) {
   const out = [];
   for (const [a, b] of lanes) out.push({ kind: 'lane', cells: [a, b], pts: shape(board, [a, b]) });
   for (const l of links) out.push({ kind: 'link', cells: l.cells, pts: shape(board, l.cells) });
-  out.forEach((o, i) => { o.ruban = ruban(o.pts, LARGEUR[o.kind], i); o.bordure = ruban(o.pts, LARGEUR[o.kind], i, 2); });
+  out.forEach((o, i) => { [o.ruban, o.bordure] = rubans(o.pts, LARGEUR[o.kind], i, [0, 2]); });
   board._shapes = out; board._shapesVersion = board.version;
   return out;
 }
@@ -247,14 +257,18 @@ export function pathShapes(board) {
 export function pathPoints(board, pas = 11) {
   if (board._pathPts && board._pathPtsVersion === board.version) return board._pathPts;
   const map = new Map();
+  // la case du point puis ses six voisines, dans cet ordre ; la clé n'est fabriquée que pour les cases retenues
+  // (cette fonction tourne à chaque changement du plateau, pour des centaines de points sur une grande île)
+  const retient = (p, a, b) => {
+    const c = toWorld(a, b);
+    if (Math.hypot(c.x - p.x, c.y - p.y) > SIZE) return;
+    const k = key(a, b); const l = map.get(k);
+    if (l) l.push(p); else map.set(k, [p]);
+  };
   const ajoute = (p) => {
     const q = Math.round((Math.sqrt(3) / 3 * p.x - p.y / 3) / SIZE), r0 = Math.round((2 / 3 * p.y) / SIZE);
-    for (const [a, b] of [[q, r0], ...neighbors(q, r0)]) {
-      const k = key(a, b); const c = toWorld(a, b);
-      if (Math.hypot(c.x - p.x, c.y - p.y) > SIZE) continue;
-      if (!map.has(k)) map.set(k, []);
-      map.get(k).push(p);
-    }
+    retient(p, q, r0);
+    for (let d = 0; d < 6; d++) retient(p, q + DIRS[d][0], r0 + DIRS[d][1]);
   };
   for (const s of pathShapes(board)) {
     for (let i = 0; i < s.pts.length - 1; i++) {

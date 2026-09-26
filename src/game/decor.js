@@ -83,6 +83,57 @@ export function bourgCour(poids) {
 const PAS = 34;
 export const GROUND_COLORS = { dry: '#cdbb6a', ice: '#dbe9f4' };
 
+/**
+ * « Un des points de `liste` est-il à moins de `dmin` de `p` ? » — exactement `liste.some(o => Math.hypot(…) < dmin)`,
+ * mais sans parcourir toute la liste. Les obstacles d'une région (la route, les arbres déjà posés) se comptent par
+ * centaines dans une grande forêt, et `sample` les passait tous en revue à chaque essai : c'était le premier poste de
+ * la reconstruction du décor sur les grandes îles. Au-delà d'une vingtaine de points, la liste est rangée dans une
+ * grille (cases de GRILLE unités monde), tenue à jour au fil des `push` — les listes d'obstacles ne font que grandir.
+ * Le test final reste le même `Math.hypot(…) < dmin` : la grille ne fait qu'écarter les points trop loin pour compter.
+ */
+const GRILLE = 32;
+const grilles = new WeakMap();
+const cleGrille = (i, j) => (i + 32768) * 65536 + (j + 32768);
+function proche(liste, p, dmin) {
+  if (liste.length < 24) { for (const o of liste) if (Math.hypot(o.x - p.x, o.y - p.y) < dmin) return true; return false; }
+  let g = grilles.get(liste); if (!g) grilles.set(liste, (g = { n: 0, cases: new Map() }));
+  for (; g.n < liste.length; g.n++) {
+    const o = liste[g.n]; const k = cleGrille(Math.floor(o.x / GRILLE), Math.floor(o.y / GRILLE));
+    const l = g.cases.get(k); if (l) l.push(o); else g.cases.set(k, [o]);
+  }
+  const m = dmin + 1;   // une case de marge : un point à dmin près ne doit jamais tomber hors de la fenêtre par un arrondi
+  const i0 = Math.floor((p.x - m) / GRILLE), i1 = Math.floor((p.x + m) / GRILLE), j0 = Math.floor((p.y - m) / GRILLE), j1 = Math.floor((p.y + m) / GRILLE);
+  for (let i = i0; i <= i1; i++) for (let j = j0; j <= j1; j++) {
+    const l = g.cases.get(cleGrille(i, j)); if (!l) continue;
+    for (const o of l) if (Math.hypot(o.x - p.x, o.y - p.y) < dmin) return true;
+  }
+  return false;
+}
+
+/** `liste` triée par y croissant, stable : le même ordre que `liste.slice().sort((a, b) => a.y - b.y)`, cinq fois plus vite. */
+function trieParY(liste) {
+  const n = liste.length, ys = new Float64Array(n); let a = new Uint32Array(n), b = new Uint32Array(n);
+  for (let i = 0; i < n; i++) { ys[i] = liste[i].y; a[i] = i; }
+  // paquets de 16 triés par insertion (on ne double que sur un y strictement plus grand : stable)…
+  for (let s0 = 0; s0 < n; s0 += 16) {
+    const e = Math.min(n, s0 + 16);
+    for (let i = s0 + 1; i < e; i++) { const v = a[i], y = ys[v]; let j = i - 1; while (j >= s0 && ys[a[j]] > y) { a[j + 1] = a[j]; j--; } a[j + 1] = v; }
+  }
+  // … puis fusionnés deux à deux (la droite ne passe devant que si elle est strictement plus haute : stable)
+  for (let w = 16; w < n; w *= 2) {
+    for (let lo = 0; lo < n; lo += 2 * w) {
+      const mid = Math.min(n, lo + w), hi = Math.min(n, lo + 2 * w); let i = lo, j = mid, k = lo;
+      while (i < mid && j < hi) b[k++] = ys[a[j]] < ys[a[i]] ? a[j++] : a[i++];
+      while (i < mid) b[k++] = a[i++];
+      while (j < hi) b[k++] = a[j++];
+    }
+    const t = a; a = b; b = t;
+  }
+  const trie = [];
+  for (let i = 0; i < n; i++) trie.push(liste[a[i]]);
+  return trie;
+}
+
 function mulberry(seed) { let s = seed >>> 0 || 7; return () => { s += 0x6D2B79F5; let t = Math.imul(s ^ (s >>> 15), 1 | s); t ^= t + Math.imul(t ^ (t >>> 7), 61 | t); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
 const cellSeed = (seed, q, r, salt = 0) => ((seed * 73856093) ^ ((q + 512) * 19349663) ^ ((r + 512) * 83492791) ^ (salt * 2654435761)) >>> 0;
 
@@ -101,7 +152,7 @@ const VAR3 = (rng) => ['1', '2', '3'][Math.floor(rng() * 3)];
 const wild = (rng, lo = 0.82, hi = 1.18) => ({ scale: lo + rng() * (hi - lo), flip: rng() < 0.5 });
 
 export class Decor {
-  constructor(seed = 1) { this.seed = seed; this.version = -1; this.objects = []; }
+  constructor(seed = 1) { this.seed = seed; this.version = -1; this.objects = []; this.memoire = new Map(); }
 
   /** Recalcule tous les objets si le plateau a changé. */
   sync(board) {
@@ -120,8 +171,15 @@ export class Decor {
     for (const t of board.tiles.values()) { if (!Board.isFamily(t, 'water')) continue; bank.set(key(t.q, t.r), bankOf(t.q, t.r, 'grass')); }
     // lagunes : trous du masque entourés de six cases de l'île ; elles prennent une rive dès qu'une voisine est posée
     this.holes = [];
-    const seen = new Set();
-    for (const k of board.mask) { const [q, r] = k.split(',').map(Number); for (const [a, b] of neighbors(q, r)) { const hk = key(a, b); if (board.mask.has(hk) || seen.has(hk)) continue; seen.add(hk); if (neighbors(a, b).every(([x, y]) => board.mask.has(key(x, y)))) { const g = bankOf(a, b, null); if (g) { bank.set(hk, g); this.holes.push({ q: a, r: b, family: 'water', variant: 1, hole: true }); } } } }
+    // Les trous ne dépendent que du masque, qui ne fait que grandir (ou change d'objet quand on restaure un
+    // plateau) : on ne refait leur recherche — tout le masque et ses voisines — que si l'un ou l'autre a bougé.
+    const M = board.mask;
+    if (!this._trous || this._trous.mask !== M || this._trous.taille !== M.size) {
+      const trous = [], seen = new Set();
+      for (const k of M) { const [q, r] = k.split(',').map(Number); for (const [a, b] of neighbors(q, r)) { const hk = key(a, b); if (M.has(hk) || seen.has(hk)) continue; seen.add(hk); if (neighbors(a, b).every(([x, y]) => M.has(key(x, y)))) trous.push([hk, a, b]); } }
+      this._trous = { mask: M, taille: M.size, trous };
+    }
+    for (const [hk, a, b] of this._trous.trous) { const g = bankOf(a, b, null); if (g) { bank.set(hk, g); this.holes.push({ q: a, r: b, family: 'water', variant: 1, hole: true }); } }
     return bank;
   }
 
@@ -139,13 +197,55 @@ export class Decor {
     const centroidOf = (reg) => { let x = 0, y = 0; for (const c of reg.cells) { const w = toWorld(c.q, c.r); x += w.x; y += w.y; } return { x: x / reg.cells.length, y: y / reg.cells.length }; };
     // outils de placement
     const inRegion = (p, keys) => { const c = fromWorld(p.x, p.y); const k = key(c.q, c.r); return keys.has(k) ? k : null; };
-    const edgeOk = (p, k, keys, margin) => {
-      const [q, r] = parse(k); const c = toWorld(q, r);
+    // -------------------------------------------------------------------------
+    // La mémoire des régions. Le décor se refaisait EN ENTIER à chaque changement du plateau — une pose,
+    // un bâtiment, une saison : sur une île de fin de campagne (mille trois cents objets), c'était un
+    // à-coup à chaque geste, alors qu'une pose ne change qu'une ou deux régions. Les objets d'une région
+    // (bourg ou famille) ne dépendent que de ce qu'on met dans sa SIGNATURE — ses cases dans leur ordre de
+    // parcours, avec ce que le décor lit de chacune, plus ce qu'il lit autour (voir les appels) — et des
+    // points de chemin qui passent sur ses cases. Même signature, mêmes chemins : on reprend les objets
+    // (et les cours) de la dernière fois tels quels, au même rang ; sinon on les refait et on les garde.
+    // Le résultat est exactement celui d'une reconstruction complète, objet pour objet.
+    // Toute nouvelle lecture d'une tuile ou du plateau dans une région DOIT entrer dans la signature.
+    // Les objets rendus sont partagés d'une reconstruction à l'autre : personne ne doit les modifier.
+    // -------------------------------------------------------------------------
+    const memoire = this.memoire;
+    const signature = (reg, extra) => {
+      let s = `${this.seed}|${reg.family}|${reg.id}|${extra}`;
+      for (const c of reg.cells) {
+        s += `|${c.q},${c.r},${c.level || 1},${c.rare ? c.family : ''},${c.blighted ? 1 : 0}${c.dry ? 1 : 0}${c.frozen ? 1 : 0}`;
+        if (reg.family === 'water') { const b = this.water && this.water.get(key(c.q, c.r)); s += b ? b.kind : '-'; }
+        else if (reg.family === 'hill') for (const [dq, dr] of DIRS) s += board.isSea(c.q + dq, c.r + dr) ? 1 : 0;
+      }
+      return s;
+    };
+    const cheminsDe = (keys) => { const a = []; for (const k of keys) { const l = chemins.get(k); if (!l) { a.push(0); continue; } a.push(l.length); for (const p of l) a.push(p.x, p.y); } return a; };
+    const memes = (a, b) => { if (a.length !== b.length) return false; for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return false; return true; };
+    /** Les objets d'une région déjà connue, repris tels quels ; `true` si c'est fait. */
+    const reprendre = (sig, chem) => {
+      const m = memoire.get(sig); if (!m || !memes(m.chem, chem)) return false;
+      for (const o of m.objets) out.push(o);
+      for (const c of m.cours) this.courts.push(c);
+      memoire.delete(sig); memoire.set(sig, m);   // la plus récente en dernier : on oublie d'abord les plus anciennes
+      return true;
+    };
+    const retenir = (sig, chem, debut, debutCours) => memoire.set(sig, { chem, objets: out.slice(debut), cours: this.courts.slice(debutCours) });
+    // Les arêtes d'une case qui bordent l'extérieur de sa région (milieu, normale, longueur), calculées une fois par
+    // case et par région : `edgeOk` et `distBord` les refaisaient à chaque point essayé, des dizaines de fois par case.
+    const bordsCache = new Map();
+    const bordsDe = (k, keys) => {
+      let parCase = bordsCache.get(keys); if (!parCase) bordsCache.set(keys, (parCase = new Map()));
+      let e = parCase.get(k); if (e) return e;
+      const [q, r] = parse(k); const c = toWorld(q, r); e = [];
       for (let d = 0; d < 6; d++) {
         const nk = key(q + DIRS[d][0], r + DIRS[d][1]); if (keys.has(nk)) continue;
-        const m = edgeMid(c.x, c.y, d); const nx = (m.x - c.x), ny = (m.y - c.y); const len = Math.hypot(nx, ny);
-        if (((m.x - p.x) * nx + (m.y - p.y) * ny) / len < margin) return false;
+        const m = edgeMid(c.x, c.y, d); const nx = (m.x - c.x), ny = (m.y - c.y);
+        e.push({ mx: m.x, my: m.y, nx, ny, len: Math.hypot(nx, ny) });
       }
+      parCase.set(k, e); return e;
+    };
+    const edgeOk = (p, k, keys, margin) => {
+      for (const b of bordsDe(k, keys)) if (((b.mx - p.x) * b.nx + (b.my - p.y) * b.ny) / b.len < margin) return false;
       return true;
     };
     // `yMin` / `yMax` : bornes verticales par rapport au centre de la case. yMin sert à garnir l'avant-plan —
@@ -158,7 +258,7 @@ export class Decor {
           const p = { x: c.x + Math.cos(a) * rr, y: c.y + Math.sin(a) * rr * 0.9 };
           if (p.y - c.y > yMax || p.y - c.y < yMin) continue;
           const k = inRegion(p, keys); if (!k || !edgeOk(p, k, keys, margin)) continue;
-          if (placed.some((o) => Math.hypot(o.x - p.x, o.y - p.y) < minDist) || pts.some((o) => Math.hypot(o.x - p.x, o.y - p.y) < minDist)) continue;
+          if (proche(placed, p, minDist) || proche(pts, p, minDist)) continue;
           pts.push(p); break;
         }
       }
@@ -216,12 +316,8 @@ export class Decor {
      * lisières et clair au milieu, on lit une clairière.
      */
     const distBord = (p, k, keys) => {
-      const [q, r] = parse(k); const c = toWorld(q, r); let d = Infinity;
-      for (let i = 0; i < 6; i++) {
-        const nk = key(q + DIRS[i][0], r + DIRS[i][1]); if (keys.has(nk)) continue;
-        const m = edgeMid(c.x, c.y, i); const nx = m.x - c.x, ny = m.y - c.y; const len = Math.hypot(nx, ny) || 1;
-        d = Math.min(d, ((m.x - p.x) * nx + (m.y - p.y) * ny) / len);
-      }
+      let d = Infinity;
+      for (const b of bordsDe(k, keys)) d = Math.min(d, ((b.mx - p.x) * b.nx + (b.my - p.y) * b.ny) / (b.len || 1));
       return d;
     };
     // Une rivière qui ne rejoint ni la mer ni un lac s'arrêtait sur un bout rond en pleine plaine :
@@ -326,20 +422,25 @@ export class Decor {
     // remplissent l'hexagone et l'œil ne lit plus qu'un tas.
     // Tout ceci est du DESSIN : pour les règles, ce sont toujours N tuiles distinctes.
     // -------------------------------------------------------------------------
+    let nRegions = 0;
     for (const reg of board.regions('hamlet')) {
+      nRegions++;
       const keys = reg.keys;
-      let poids = 0; for (const c of reg.cells) poids += c.level || 1;
-      const cour = bourgCour(poids);
-      const garde = poids <= 1 ? 0.30 : poids <= 3 ? 0.52 : 0.72;
-      const cen = centroidOf(reg);
       const closed = board.regionPaid(reg);
-      const hasRare = reg.cells.some((c) => c.rare && (c.family === 'chapel' || c.family === 'well'));
       // Un bourg assez gros posé contre un pré mérite son écurie : c'est du décor pur, aucune règle
       // ne la connaît. Une par bourg, à la place d'une maison, et seulement si le pré est là — sinon
       // on aurait des chevaux au milieu des rochers.
       const preVoisin = reg.cells.some((c) => neighbors(c.q, c.r).some(([a, b2]) => {
         const n = board.get(a, b2); return n && !n.rare && Board.isFamily(n, 'meadow');
       }));
+      const sig = signature(reg, `${closed ? 1 : 0}${preVoisin ? 1 : 0}`), chem = cheminsDe(keys);
+      if (reprendre(sig, chem)) continue;
+      const debut = out.length, debutCours = this.courts.length;
+      let poids = 0; for (const c of reg.cells) poids += c.level || 1;
+      const cour = bourgCour(poids);
+      const garde = poids <= 1 ? 0.30 : poids <= 3 ? 0.52 : 0.72;
+      const cen = centroidOf(reg);
+      const hasRare = reg.cells.some((c) => c.rare && (c.family === 'chapel' || c.family === 'well'));
       let ecurieFaite = !(preVoisin && poids >= 4);
       let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
       for (const c of reg.cells) { const w = toWorld(c.q, c.r); x0 = Math.min(x0, w.x); x1 = Math.max(x1, w.x); y0 = Math.min(y0, w.y); y1 = Math.max(y1, w.y); }
@@ -417,18 +518,22 @@ export class Decor {
           else add({ x: g.x, y: g.y, tpl: 'obj_bushGrass_{s}', cell: ck, scale: 0.55 + rng() * 0.2, alpha: 1, flip: rng() < 0.5 });
         }
       }
+      retenir(sig, chem, debut, debutCours);
     }
     for (const family of ['forest', 'meadow', 'field', 'orchard', 'water', 'marsh', 'rock', 'sand', 'hill', 'heath']) {
       for (const reg of board.regions(family)) {
-        const keys = reg.keys; const cen = centroidOf(reg);
+        nRegions++;
+        const keys = reg.keys;
+        const sig = signature(reg, ''), chem = cheminsDe(keys);
+        if (reprendre(sig, chem)) continue;
+        const debut = out.length, debutCours = this.courts.length;
+        const cen = centroidOf(reg);
         // la route occupe la place : on la verse dans les obstacles avant de semer quoi que ce soit
         const placed = []; for (const k of keys) for (const p of chemins.get(k) || []) placed.push(p);
-        const closed = board.regionPaid(reg);
         const cells = reg.cells.filter((c) => !c.rare);
         // cellule « centrale » (village)
         let center = null, bd = Infinity;
         for (const c of cells) { const w = toWorld(c.q, c.r); const d = Math.hypot(w.x - cen.x, w.y - cen.y); if (d < bd) { bd = d; center = c; } }
-        const hasRareCenter = reg.cells.some((c) => c.rare && (c.family === 'chapel' || c.family === 'well'));
         for (const cell of cells) {
           const ck = key(cell.q, cell.r); const rng = mulberry(cellSeed(this.seed, cell.q, cell.r, 1));
           const c = toWorld(cell.q, cell.r); const deg = degreeOf(cell, keys);
@@ -647,8 +752,12 @@ export class Decor {
           // bourrasque : congères sur toutes les tuiles de terre
           if (family !== 'water') for (const p of sample(rng, cell, keys, 1, { minDist: 30, margin: 12, placed: [] })) push(p, 'obj_snowdrift', { weathers: ['blizzard'] });
         }
+        retenir(sig, chem, debut, debutCours);
       }
     }
+    // la mémoire garde les régions de ce plateau et quelques plateaux passés (une saison qui revient, une
+    // annulation) ; au-delà, on oublie les plus anciennes
+    for (const k of memoire.keys()) { if (memoire.size <= 3 * nRegions + 32) break; memoire.delete(k); }
     // Des pierres et des touffes au bord des chemins : un chemin de terre n'est pas posé sur l'herbe,
     // il y est usé, et ce sont les cailloux dégagés et l'herbe qui repousse au bord qui le disent.
     let ic = 0;
@@ -665,8 +774,11 @@ export class Decor {
         else add({ x: p.x, y: p.y, tpl: 'obj_bushGrass_{s}', cell: key(c.q, c.r), scale: 0.5 + rng() * 0.2, flip: rng() < 0.5 });
       }
     }
-    out.sort((a, b) => a.y - b.y);
-    return out;
+    // Du fond vers l'avant : tri stable sur y (à y égal, l'ordre de pose) — exactement l'ordre que donnait
+    // `out.sort((a, b) => a.y - b.y)`. Mais le comparateur, appelé treize mille fois depuis le tri natif,
+    // coûtait à lui seul près d'une demi-milliseconde sur une grande île : on trie ici des indices sur un
+    // tableau de y, par insertion puis fusion, stable (à égalité, celui de gauche passe d'abord).
+    return trieParY(out);
   }
 }
 
