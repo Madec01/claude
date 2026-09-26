@@ -1242,7 +1242,7 @@ class IslandScene {
       if (this.armed && this.armed.move && this.renderer.moveFrom) { const f = this.renderer.moveFrom; const pv = isl.previewMove(f.q, f.r, this.armed.q, this.armed.r); if (pv) { this.renderer.hover = { q: this.armed.q, r: this.armed.r, preview: pv, tile: isl.board.get(f.q, f.r) }; this.hud.setPlaceButton(pv.total, 'move'); } else { this.armed = null; this.renderer.hover = null; this.hud.setPlaceButton(null); } }
       else if (this.armed && this.armed.build) { const acts = isl.actions(this.armed.q, this.armed.r); const a = acts[this.armed.i] || acts[0]; if (a) { this.renderer.hover = { q: this.armed.q, r: this.armed.r, preview: a.pv }; this.hud.setActions(acts, this.armed.q, this.armed.r, acts.indexOf(a)); } else this.disarm(); }
       else if (this.armed && !this.armed.build && isl.canPlace(this.armed.q, this.armed.r)) { const pv = isl.preview(this.armed.q, this.armed.r); this.renderer.hover = { q: this.armed.q, r: this.armed.r, preview: pv }; this.hud.setPlaceButton(pv ? pv.total : null); }
-      else { this.disarm(); this.renderer.hover = null; }
+      else { if (this.armed) this.disarm(); this.renderer.hover = null; }
     } else if (!isl.ended) {
       const w = this.cam.toWorldPoint(input.mouse.x, input.mouse.y); const { q, r } = fromWorld(w.x, w.y);
       const hk = key(q, r);

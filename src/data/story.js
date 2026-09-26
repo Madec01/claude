@@ -534,6 +534,12 @@ export const STORY = {
       leave: 'La vache a quitté la lisière.',
       habitat: 'Une prairie d’au moins deux tuiles qui touche une lande.',
     },
+    goat: {
+      name: 'Chèvre',
+      arrive: 'Une chèvre s’est installée au campement. Personne ne sait d’où elle vient ; elle, si.',
+      leave: 'La chèvre est partie voir plus haut.',
+      habitat: 'Un campement : il attire un animal, quel que soit l’habitat autour.',
+    },
     penguin: {
       name: 'Manchot',
       arrive: 'Des manchots ! Ils marchent sur la rivière gelée comme sur une place de village.',

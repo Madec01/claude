@@ -305,6 +305,7 @@ check(affinity('meadow', 'water') === 0, 'prairie-eau = 0');
 
 // --- campagne : trente définitions valides, textes présents, mécaniques cumulatives, bot fort sur les îles générées du début
 for (const w of CAMPAIGN_WISHES) check(!!STORY.wishes[w.id], `texte du vœu de campagne ${w.id}`);
+{ const { SPECIES } = await import('../src/game/fauna.js'); for (const sp of SPECIES) check(!!(STORY.fauna[sp] && STORY.fauna[sp].name), `nom français de l'animal ${sp} (la pastille de faune l'affiche)`); }
 {
   let prev = 0;
   for (let n = 1; n <= CAMPAIGN_SIZE; n++) {
