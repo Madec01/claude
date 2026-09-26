@@ -13,6 +13,8 @@ export class Effects {
     this.flightTarget = null;   // cible écran { x, y } (le compteur de points), posée par la scène
     this.ambientTimer = 0;
     this.lifeTimers = { smoke: 0, shimmer: 0, gust: 0, heat: 0, snow: 0 };
+    this._maisons = { de: null, liste: [] };   // cheminées et eaux vives, recalculées seulement quand le décor ou les tuiles changent
+    this._eaux = { de: null, liste: [] };
   }
 
   img(prefix) { const keys = Assets.keysStarting(prefix); return keys.length ? Assets.img(rndPick(keys)) : null; }
@@ -47,6 +49,7 @@ export class Effects {
     this.ambientTimer -= dt;
     if (this.ambientTimer > 0) return;
     this.ambientTimer = season === 'winter' ? 0.05 : 0.14;
+    if (!this.p.placeAmbiance()) return;   // budget d'ambiance plein (téléphone, images lentes) : on saute ce flocon
     const img = season === 'autumn' ? this.img('leaf_') : season === 'spring' ? this.img('petal_') : season === 'winter' ? (this.img('snowflake_') || this.img('circle_')) : null;
     if (!img) return;
     let x = rnd(bounds.minX, bounds.maxX), y = rnd(bounds.minY - 200, bounds.minY);
@@ -64,10 +67,15 @@ export class Effects {
    */
   life(dt, { objects, tiles, season, weather, bounds }) {
     const T = this.lifeTimers;
-    for (const k of Object.keys(T)) T[k] -= dt;
+    T.smoke -= dt; T.shimmer -= dt; T.gust -= dt; T.heat -= dt; T.snow -= dt;
+    // budget d'ambiance plein : les minuteurs tournent, rien n'est émis (les gerbes de jeu gardent la place)
+    if (!this.p.placeAmbiance()) return;
+    // la largeur de la vue : une rafale qui traverse l'écran meurt en sortant, au lieu de voler hors champ jusqu'au bout de ses 3 s
+    const largeur = bounds.maxX - bounds.minX + 160;
     if (T.smoke <= 0) {
       T.smoke = season === 'winter' ? 0.09 : season === 'autumn' ? 0.2 : 0.45;
-      const houses = objects.filter((o) => o.tpl === 'obj_house' || o.tpl === 'obj_house_small' || o.tpl === 'obj_villa' || o.tpl === 'obj_farm');
+      const M = this._maisons; if (M.de !== objects) { M.de = objects; M.liste = objects.filter((o) => o.tpl === 'obj_house' || o.tpl === 'obj_house_small' || o.tpl === 'obj_villa' || o.tpl === 'obj_farm'); }
+      const houses = M.liste;
       if (houses.length) {
         const h = rndPick(houses); const smoke = this.img('smoke_');
         const top = h.tpl === 'obj_house' ? 62 : h.tpl === 'obj_villa' ? 58 : 48; const off = h.tpl === 'obj_house' ? 22 : 10;
@@ -76,12 +84,13 @@ export class Effects {
     }
     if (T.shimmer <= 0) {
       T.shimmer = weather === 'thaw' ? 0.06 : 0.16;
-      const water = tiles.filter((t) => t.family === 'water' && !t.frozen && !t.rare);
+      const E = this._eaux; if (E.de !== tiles) { E.de = tiles; E.liste = tiles.filter((t) => t.family === 'water' && !t.frozen && !t.rare); }
+      const water = E.liste;
       if (water.length) { const t = rndPick(water); const c = this.img('light_') || this.img('circle_'); this.p.emit({ x: t.wx + rnd(-40, 40), y: t.wy + rnd(-28, 34), vx: 0, vy: 0, life: rnd(0.9, 1.6), size: 3, sizeEnd: rnd(10, 16), img: c, color: '#fff', alpha: 0.55, alphaEnd: 0, blend: 'lighter', layer: 1 }); }
     }
     if (weather === 'wind' && T.gust <= 0) {
-      T.gust = 0.04; const img = this.img('leaf_');
-      this.p.emit({ x: bounds.minX - 80, y: rnd(bounds.minY, bounds.maxY), vx: rnd(260, 420), vy: rnd(-30, 30), life: 3, size: rnd(8, 16), sizeEnd: rnd(8, 14), img, alpha: 0.9, alphaEnd: 0.6, layer: 1, rotV: rnd(-9, 9) });
+      T.gust = 0.04; const img = this.img('leaf_'); const vx = rnd(260, 420);
+      this.p.emit({ x: bounds.minX - 80, y: rnd(bounds.minY, bounds.maxY), vx, vy: rnd(-30, 30), life: Math.min(3, largeur / vx), size: rnd(8, 16), sizeEnd: rnd(8, 14), img, alpha: 0.9, alphaEnd: 0.6, layer: 1, rotV: rnd(-9, 9) });
     }
     if (weather === 'heat' && T.heat <= 0) {
       T.heat = 0.12; const c = this.img('light_') || this.img('circle_');
@@ -89,7 +98,8 @@ export class Effects {
     }
     if (weather === 'blizzard' && T.snow <= 0) {
       T.snow = 0.012; const img = this.img('snowflake_') || this.img('circle_');
-      this.p.emit({ x: bounds.minX - 60, y: rnd(bounds.minY - 100, bounds.maxY), vx: rnd(280, 460), vy: rnd(60, 140), life: 3, size: rnd(3, 8), sizeEnd: rnd(3, 7), img, alpha: 0.9, alphaEnd: 0.5, layer: 1 });
+      const vx = rnd(280, 460);
+      this.p.emit({ x: bounds.minX - 60, y: rnd(bounds.minY - 100, bounds.maxY), vx, vy: rnd(60, 140), life: Math.min(3, largeur / vx), size: rnd(3, 8), sizeEnd: rnd(3, 7), img, alpha: 0.9, alphaEnd: 0.5, layer: 1 });
     }
     if (weather === 'storm' && T.snow <= 0) {
       T.snow = 0.03; const c = this.img('circle_');
@@ -104,12 +114,13 @@ export class Effects {
   }
 
   update(dt) {
-    for (const t of this.texts) t.t += dt; this.texts = this.texts.filter((t) => t.t < t.life);
-    for (const r of this.rings) r.t += dt; this.rings = this.rings.filter((r) => r.t < 1.3 + (r.dmax || 0));
+    // tri sur place : pas de nouveau tableau à chaque pas de simulation
+    const T = this.texts; let n = 0; for (let i = 0; i < T.length; i++) { const t = T[i]; t.t += dt; if (t.t < t.life) T[n++] = t; } T.length = n;
+    const R = this.rings; n = 0; for (let i = 0; i < R.length; i++) { const r = R[i]; r.t += dt; if (r.t < 1.3 + (r.dmax || 0)) R[n++] = r; } R.length = n;
     for (const [k, d] of this.drops) { d.t += dt; if (d.t > 0.6) this.drops.delete(k); }
     for (const [k, a] of this.faunaAnim) { a.t += dt; if (a.t > 0.8) this.faunaAnim.delete(k); }
     for (const f of this.flights) { f.t += dt; if (!f.born && f.t >= 0) { f.born = true; if (f.cell) this.ring([f.cell], f.color); } if (!f.done && f.t >= f.life) { f.done = true; if (f.onArrive) f.onArrive(f); } }
-    this.flights = this.flights.filter((f) => f.t < f.life + 0.25);
+    const F = this.flights; n = 0; for (let i = 0; i < F.length; i++) if (F[i].t < F[i].life + 0.25) F[n++] = F[i]; F.length = n;
   }
   /** Vide les vols en cours en appelant leurs arrivées (fin d'île, changement de scène) : rien ne reste en suspens. */
   flushFlights() { for (const f of this.flights) if (!f.done) { f.done = true; if (f.onArrive) f.onArrive(f); } this.flights = []; }

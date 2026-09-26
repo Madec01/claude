@@ -1210,6 +1210,9 @@ class IslandScene {
     const isl = this.isl; if (!isl) return;
     if (this.runDirty) { this.runTimer += dt; if (this.runTimer > 5) this.saveRun(true); }
     if (this.paused) { input.endFrame(); return; }
+    // budget de l'ambiance (feuilles, neige, fumées, reflets) : fixe, quelle que soit la taille de l'île ; plus bas sur
+    // téléphone et encore plus bas quand les i/s baissent. Les gerbes de jeu (pose, fermeture) n'y sont pas soumises.
+    this.particles.ambiance = this.renderer.lowFx ? 200 : STAGE.compact ? 320 : 400;   // mesuré : 260 au plus fort d'un blizzard, ~100 en automne
     if (this.finale && !this.finale.done) { this.finale.update(dt); this.cam.update(dt); this.particles.update(dt); this.fx.update(dt); this.shake.update(dt); const b0 = this.bounds(); this.fx.ambient(dt, isl.season, b0, 1, this._sources); this.fx.life(dt, { objects: this.renderer.decor.objects, tiles: this._tiles || [], season: isl.season, weather: null, bounds: b0 }); input.endFrame(); return; }
     // déplacement de la vue
     if (this.drag && (input.mouse.right || input.mouse.left)) { const dx = input.mouse.x - this.drag.x, dy = input.mouse.y - this.drag.y; this.cam.pan(dx, dy); this.drag.x = input.mouse.x; this.drag.y = input.mouse.y; }
