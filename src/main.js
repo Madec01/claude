@@ -697,9 +697,15 @@ class IslandScene {
       input.on('wheel', (dy) => { if (this.paused) return; this.cam.zoomBy(dy > 0 ? 0.9 : 1.1, input.mouse.x, input.mouse.y); }),
       input.on('keydown', (k) => this.onKey(k)),
       input.on('tap', (x, y) => this.onTap(x, y)),
-      input.on('pan', (dx, dy) => { if (!this.paused) this.cam.pan(dx, dy); }),
-      input.on('pinch', (f, cx, cy) => { if (!this.paused) this.cam.zoomBy(f, cx, cy); }),
+      input.on('pan', (dx, dy) => { if (!this.paused) { this.oublierVisee(); this.cam.pan(dx, dy); } }),
+      input.on('pinch', (f, cx, cy) => { if (!this.paused) { this.oublierVisee(); this.cam.zoomBy(f, cx, cy); } }),
     ];
+    // Au doigt, une case se vise d'un toucher et se pose au second. Tout appui AILLEURS (un bouton, la file, la main,
+    // les vœux, la fiche de tuile…) oublie la case visée : sinon, après « Défausser » ou le choix d'une autre tuile, un
+    // seul toucher sur la même case posait aussitôt une tuile que l'on n'avait pas vue en aperçu. Seuls « Poser ici » et
+    // le panneau des actions agissent sur la case visée : ils la gardent.
+    this.onAppuiAilleurs = (e) => { if (!this.armed || e.target === canvas || (e.target.closest && e.target.closest('.hud-place, .hud-actions'))) return; this.oublierVisee(); };
+    document.addEventListener('pointerdown', this.onAppuiAilleurs, true);
     // l'application passe en arrière-plan (onglet caché, téléphone verrouillé, appel) : on range la partie tout de suite
     this.onHide = () => { if (document.visibilityState === 'hidden') this.saveRun(true); };
     this.onLeave = () => this.saveRun(true);
@@ -753,6 +759,7 @@ class IslandScene {
     document.removeEventListener('visibilitychange', this.onHide);
     window.removeEventListener('pagehide', this.onLeave);
     window.removeEventListener('blur', this.onLeave);
+    document.removeEventListener('pointerdown', this.onAppuiAilleurs, true);
     for (const u of this.unsubs || []) u();
     this.hud && this.hud.destroy(); document.getElementById('hud').classList.remove('on', 'tempo', 'brume');
     this.tutorial && this.tutorial.destroy(); document.getElementById('tutorial').classList.remove('on', 'brume');
@@ -1001,6 +1008,8 @@ class IslandScene {
   }
   /** Désarme la case ou la tuile choisie et replie les boutons du bandeau. */
   disarm() { this.armed = null; this.hud.setPlaceButton(null); this.hud.setActions(null); }
+  /** Oublie la case visée (appui ailleurs, glissé, autre tuile) : le prochain toucher sur elle la visera de nouveau, sans poser. */
+  oublierVisee() { if (!this.armed) return; this.disarm(); this.renderer.hover = null; }
   /** Le bouton « Bâtir » du bandeau : fait briller les tuiles qui ont une action et dit ce qu'on peut y faire. */
   buildHint() {
     if (!this.isl || this.isl.ended) return;
@@ -1225,6 +1234,8 @@ class IslandScene {
     // pas à chaque pas de simulation. Quand une image est lente, la boucle rattrape jusqu'à huit pas : on refaisait huit
     // aperçus et huit bandeaux, donc plus le téléphone ramait, plus on lui en demandait.
     const uiFrame = !this._uiFait; this._uiFait = true;
+    // la tuile du moment a changé (défausse, annulation, main, raccourci clavier) : la case visée l'était pour l'autre tuile
+    { const cur = isl.current ? `${isl.current.id}|${isl.current.family}` : ''; if (cur !== this._tuileVisee) { if (this._tuileVisee !== undefined && this.armed && !this.armed.build) this.oublierVisee(); this._tuileVisee = cur; } }
     // survol
     if (!uiFrame) { /* déjà fait pour cette image */ }
     else if (!isl.ended && input.lastPointer === 'touch') {
