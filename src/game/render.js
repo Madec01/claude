@@ -161,12 +161,15 @@ export class IslandRenderer {
   startTransition(from, to) { this.transition = { from, to, t: 0 }; }
 
   seasonFor(worldX) {
+    // `_saison` : une image gardée se peint dans UNE saison (celle d'avant ou celle d'après le balayage)
+    if (this._saison) return this._saison;
     const s = this.isl.season;
     if (!this.transition) return s;
     // balayage diagonal de gauche à droite
     const p = this.transition.t / 1.6;
     const sx = this.cam.toScreen(worldX, 0).x;
-    const sweep = -200 + p * (STAGE.W + 400);
+    // `_balayage` : le front dans le repère d'une image gardée (voir drawGarde)
+    const sweep = this._balayage != null ? this._balayage : -200 + p * (STAGE.W + 400);
     // une case ne bascule qu'une fois ENTIÈREMENT passée sous le front (sa demi-largeur, 60 unités) :
     // au centre près, l'escalier des colonnes d'hexagones dépassait la bande et se voyait en clair
     return sx + 60 * this.cam.zoom < sweep ? this.transition.to : this.transition.from;
@@ -185,8 +188,9 @@ export class IslandRenderer {
   render(ctx, alpha, dt) {
     this.time += dt;
     if (this.transition) { this.transition.t += dt * (this.transitionSpeed || 1); if (this.transition.t > 1.9) { this.transition = null; this.transitionSpeed = 1; } }
-    const isl = this.isl, cam = this.cam;
+    const isl = this.isl;
     const season = isl.season;
+    this._gardeFaite = false;
     this.drawSea(ctx, season, dt);
     this.drawShallows(ctx);
     this.drawEmptyCells(ctx);
@@ -204,6 +208,42 @@ export class IslandRenderer {
     this.drawWeather(ctx, dt);
     this.drawTransition(ctx);
     this.drawFlights(ctx);
+    if (ctx.canvas && ctx.canvas.id === 'game') this.preparerLentilles();
+  }
+
+  /**
+   * Les langues de sol (`groundLens`) se calculent pixel par pixel, à la première demande : au premier
+   * changement de saison, ou à la première tournée finale (qui fait défiler les quatre), c'étaient
+   * des dizaines de lentilles d'un coup, et l'image se figeait. Les temps morts les préparent donc à
+   * l'avance, une par image au plus : la saison suivante d'abord, puis les deux autres. Jamais quand
+   * l'image est déjà chargée (une couche gardée refaite, un balayage, la caméra en route).
+   */
+  preparerLentilles() {
+    if (this.legacy || this.noLens || this.transition || this._gardeFaite || this._gardeBouge) return;
+    const b = this.isl.board;
+    if (!this._aPreparer || this._aPreparer.v !== b.version || this._aPreparer.s !== this.isl.season) {
+      // les combinaisons que `drawSols` demandera : sol débordant, direction, variante (même tirage que lui)
+      const combos = new Set();
+      for (const t of b.tiles.values()) {
+        const g = this.decor.groundFor(t);
+        for (let dir = 0; dir < 6; dir++) {
+          const n = b.get(t.q + DIRS[dir][0], t.r + DIRS[dir][1]); if (!n) continue;
+          const gn = this.decor.groundFor(n); if (gn === g || !deborde(gn, g)) continue;
+          const h = hash2(t.q * 7 + dir, t.r * 13); combos.add(`${gn}|${dir}|${h < 1 / 3 ? 0 : h < 2 / 3 ? 1 : 2}`);
+        }
+      }
+      const i0 = SEASONS.indexOf(this.isl.season), liste = [];
+      for (const k of [1, 2, 3, 0]) for (const c of combos) liste.push([SEASONS[(i0 + k) % 4], ...c.split('|')]);
+      this._aPreparer = { v: b.version, s: this.isl.season, liste, i: 0 };
+    }
+    const P = this._aPreparer;
+    while (P.i < P.liste.length) {
+      const [s, g, d, v] = P.liste[P.i];
+      if ((this._lens && this._lens.has(`${g}|${s}|${d}|${v}`)) || !Assets.img(groundKey(g, s))) { P.i++; continue; }
+      // le masque d'abord, s'il manque (c'est lui le plus long), la lentille à l'image suivante
+      if (!this._masques || !this._masques.has(`${+d}|${+v}`)) { this.masqueLentille(+d, +v); return; }
+      this.groundLens(g, s, +d, +v); P.i++; return;
+    }
   }
 
   /** Particules exprimées en coordonnées monde : on applique la caméra avant de les dessiner. */
@@ -263,6 +303,14 @@ export class IslandRenderer {
 
   /** Transformation caméra : ce qui suit se dessine en coordonnées monde. */
   worldSpace(ctx) { const cam = this.cam; ctx.translate(STAGE.W / 2 + cam.offsetX, STAGE.H / 2 + cam.offsetY); ctx.scale(cam.zoom, cam.zoom); ctx.translate(-cam.x, -cam.y); }
+  /**
+   * La transformation exacte de `cam.toScreen`, respiration comprise. Un chemin gardé en coordonnées monde
+   * s'y dessine au même endroit que s'il avait été projeté point par point, comme avant — mais en un seul
+   * appel au lieu d'un millier.
+   */
+  ecranSpace(ctx) { const cam = this.cam, z = cam.z; ctx.translate(STAGE.W / 2 + cam.offsetX, STAGE.H / 2 + cam.offsetY); ctx.scale(z, z); ctx.translate(-cam.x - cam.bx, -cam.y - cam.by); }
+  /** Découpe sur un chemin monde, sans toucher à la transformation courante (la découpe, elle, reste jusqu'au `restore`). */
+  clipMonde(ctx, chemin) { const m = ctx.getTransform(); this.ecranSpace(ctx); ctx.clip(chemin); ctx.setTransform(m); }
 
   drawSea(ctx, season, dt = 0.016) {
     const cl = this.isl.climate; const cols = (cl && cl.sea) || SEA[season] || SEA.spring;
@@ -420,16 +468,17 @@ export class IslandRenderer {
     // le bouton « Bâtir » du bandeau fait briller les cibles trois secondes, plus fort et plus vite
     const flash = (this.flashTargets || 0) > this.time;
     const puls = flash ? 0.7 + 0.3 * Math.sin(this.time * 7) : 0.55 + 0.25 * Math.sin(this.time * 2.4);
-    ctx.save();
-    for (const c of list) {
-      const w = toWorld(c.q, c.r); const p = cam.toScreen(w.x, w.y);
-      if (p.x < -100 || p.x > STAGE.W + 100 || p.y < -100 || p.y > STAGE.H + 100) continue;
-      const pts = corners(p.x, p.y, SIZE * cam.zoom * 0.9);
-      ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]); for (let i = 1; i < 6; i++) ctx.lineTo(pts[i][0], pts[i][1]); ctx.closePath();
-      ctx.strokeStyle = c.kind === 'fuse' ? `rgba(138,111,181,${puls})` : `rgba(224,163,58,${puls})`;
-      ctx.lineWidth = Math.max(1.5, (flash ? 3.4 : 2.4) * cam.zoom); ctx.setLineDash([7 * cam.zoom, 5 * cam.zoom]);
-      ctx.stroke();
+    // deux chemins monde (fusion, bâtir), gardés tant que la liste ne change pas
+    if (!this._cibles || this._cibles.list !== list) {
+      const fus = new Path2D(), bat = new Path2D();
+      for (const c of list) { const w = toWorld(c.q, c.r); const pts = corners(w.x, w.y, SIZE * 0.9); const p = c.kind === 'fuse' ? fus : bat; p.moveTo(pts[0][0], pts[0][1]); for (let i = 1; i < 6; i++) p.lineTo(pts[i][0], pts[i][1]); p.closePath(); }
+      this._cibles = { list, fus, bat, aFus: list.some((c) => c.kind === 'fuse'), aBat: list.some((c) => c.kind !== 'fuse') };
     }
+    const C = this._cibles, z = cam.z;
+    ctx.save(); this.ecranSpace(ctx);
+    ctx.lineWidth = Math.max(1.5, (flash ? 3.4 : 2.4) * cam.zoom) / z; ctx.setLineDash([7 * cam.zoom / z, 5 * cam.zoom / z]);
+    if (C.aBat) { ctx.strokeStyle = `rgba(224,163,58,${puls})`; ctx.stroke(C.bat); }
+    if (C.aFus) { ctx.strokeStyle = `rgba(138,111,181,${puls})`; ctx.stroke(C.fus); }
     ctx.restore();
   }
 
@@ -439,21 +488,28 @@ export class IslandRenderer {
     // jamais posées s'efface en sept dixièmes de seconde, et ne revient pas.
     const nu = this.nuAvance();
     if (nu >= 1) return;
-    const legal = new Set(b.legalCells().map((c) => key(c.q, c.r)));
-    ctx.save();
-    for (const k of b.mask) {
-      if (b.tiles.has(k) || b.fog.has(k)) continue;   // la brume a son propre dessin (drawBrume)
-      const [q, r] = parse(k); const w = toWorld(q, r); const c = cam.toScreen(w.x, w.y);
-      if (c.x < -100 || c.x > STAGE.W + 100 || c.y < -100 || c.y > STAGE.H + 100) continue;
-      const pts = corners(c.x, c.y, SIZE * cam.zoom * 0.96);
-      ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]); for (let i = 1; i < 6; i++) ctx.lineTo(pts[i][0], pts[i][1]); ctx.closePath();
-      if (this.finale || nu > 0) { ctx.fillStyle = `rgba(244,239,230,${(0.14 * (1 - nu)).toFixed(3)})`; ctx.fill(); continue; }
-      ctx.fillStyle = legal.has(k) ? 'rgba(244,239,230,0.55)' : 'rgba(244,239,230,0.28)';
-      ctx.fill();
-      ctx.strokeStyle = legal.has(k) ? 'rgba(255,255,255,0.8)' : 'rgba(255,255,255,0.35)';
-      ctx.lineWidth = legal.has(k) ? 1.5 : 1; ctx.setLineDash(legal.has(k) ? [] : [4, 6]);
-      ctx.stroke();
+    // Deux chemins monde, gardés tant que le plateau ne change pas : les cases jouables, les autres.
+    // Chaque case était retracée et remplie à part, à chaque image (six cents appels au contexte).
+    const sig = `${b.version}|${b.tiles.size}|${b.fog.size}|${b.mask.size}`;
+    if (!this._vides || this._vides.sig !== sig) {
+      const legal = new Set(b.legalCells().map((c) => key(c.q, c.r)));
+      const jouables = new Path2D(), autres = new Path2D();
+      for (const k of b.mask) {
+        if (b.tiles.has(k) || b.fog.has(k)) continue;   // la brume a son propre dessin (drawBrume)
+        const [q, r] = parse(k); const w = toWorld(q, r); const pts = corners(w.x, w.y, SIZE * 0.96);
+        const p = legal.has(k) ? jouables : autres;
+        p.moveTo(pts[0][0], pts[0][1]); for (let i = 1; i < 6; i++) p.lineTo(pts[i][0], pts[i][1]); p.closePath();
+      }
+      this._vides = { sig, jouables, autres };
     }
+    const { jouables, autres } = this._vides, z = cam.z;
+    ctx.save(); this.ecranSpace(ctx);
+    if (this.finale || nu > 0) { ctx.fillStyle = `rgba(244,239,230,${(0.14 * (1 - nu)).toFixed(3)})`; ctx.fill(jouables); ctx.fill(autres); ctx.restore(); return; }
+    // les épaisseurs et les pointillés sont en pixels d'écran : on les ramène au repère monde
+    ctx.fillStyle = 'rgba(244,239,230,0.28)'; ctx.fill(autres);
+    ctx.strokeStyle = 'rgba(255,255,255,0.35)'; ctx.lineWidth = 1 / z; ctx.setLineDash([4 / z, 6 / z]); ctx.stroke(autres);
+    ctx.fillStyle = 'rgba(244,239,230,0.55)'; ctx.fill(jouables);
+    ctx.strokeStyle = 'rgba(255,255,255,0.8)'; ctx.lineWidth = 1.5 / z; ctx.setLineDash([]); ctx.stroke(jouables);
     ctx.restore();
   }
 
@@ -496,9 +552,8 @@ export class IslandRenderer {
    */
   drawSols(ctx, tiles, dropping, anses, vis) {
     const cam = this.cam, b = this.isl.board, z = cam.zoom;
-    const proj = (p) => cam.toScreen(p.x, p.y);
     ctx.save();
-    ctx.beginPath(); this.cheminCote(ctx, proj); ctx.clip();
+    this.clipMonde(ctx, this.cheminMonde());
     // sols
     const images = Assets.manifest().images || {};
     for (const t of tiles) {
@@ -617,36 +672,207 @@ export class IslandRenderer {
    * image un peu plus grande que l'écran, et chaque image la recopie en un seul dessin, décalée et mise à l'échelle
    * comme la caméra a bougé depuis (la respiration du mode repos, un petit glissé). Elle est refaite quand l'île, la
    * saison, `extra` ou la taille de l'écran changent, quand la caméra a trop bougé, ou quand une image manquait. Pendant
-   * une animation (tuile qui tombe, changement de saison, île nue qui se dévoile) ou pendant que la caméra bouge, on
-   * dessine directement, comme avant. Jamais pour la carte postale (un autre canevas).
+   * une animation courte (tuile qui tombe, île nue qui se dévoile), on dessine directement, comme avant. Jamais pour
+   * la carte postale (un autre canevas).
+   *
+   * Deux moments repassaient tout en direct à chaque image, et c'est là que le téléphone souffrait le plus :
+   * - LA CAMÉRA QUI BOUGE (la tournée finale n'est que zooms et panoramiques, le doigt qui glisse) : l'image est
+   *   refaite en route dès qu'elle peut servir trois images de suite, et recopiée mise à l'échelle (de 1 à 5 %
+   *   selon la vitesse du zoom) — un flou que le mouvement couvre. Elle est refaite nette dès que la caméra se
+   *   pose, si elle ne tombait pas pile ;
+   * - LE CHANGEMENT DE SAISON : deux images, l'ancienne saison et la nouvelle, que le balayage compose par
+   *   découpe. Seule la bande du front est peinte en direct : celle où une case ou un arbre peut encore être
+   *   de l'une ou de l'autre (`demi` : la plus grande demi-largeur de ce que la couche peint, en unités monde).
+   *
+   * `dessin(ctx, bande)` peint la couche ; `bande` ({ a, b } en x écran), s'il est donné, limite ce qu'il peint aux
+   * éléments ancrés dans cette bande.
    */
-  drawGarde(nom, ctx, extra, dropping, dessin) {
-    const cam = this.cam, b = this.isl.board, M = SOLS_MARGE;
+  drawGarde(nom, ctx, extra, dropping, dessin, demi = 0) {
+    const cam = this.cam, b = this.isl.board, M = SOLS_MARGE, W = STAGE.W, H = STAGE.H;
     const nu = this.nuAvance();
     this._gardes = this._gardes || {};
-    const direct = () => { this._solsManque = false; dessin(ctx); };
-    if (this.solsDirect || !ctx.canvas || ctx.canvas.id !== 'game' || this.transition || dropping.size || (nu > 0 && nu < 1)) { this._gardes[nom] = null; direct(); return; }
-    const cle = `${b.version}|${b.tiles.size}|${this.isl.season}|${this.noLens ? 1 : 0}|${nu}|${STAGE.W}x${STAGE.H}@${STAGE.dpr}|${extra}`;
-    const z1 = cam.z, X1 = cam.x + cam.bx, Y1 = cam.y + cam.by, C1x = STAGE.W / 2 + cam.offsetX, C1y = STAGE.H / 2 + cam.offsetY;
-    // la caméra bouge-t-elle depuis l'image précédente ? (une signature par image, partagée par les couches)
-    if (this._gardeT !== this.time) { this._gardeT = this.time; const sig = `${Math.round(z1 * 2000)}|${Math.round(X1 * 2)}|${Math.round(Y1 * 2)}|${Math.round(C1x)}|${Math.round(C1y)}`; this._gardeBouge = this._gardeSig !== sig; this._gardeSig = sig; }
+    const G = this._gardes[nom] || (this._gardes[nom] = new Map());   // saison → image gardée
+    const direct = () => { this._solsManque = false; dessin(ctx, null); };
+    if (this.solsDirect || !ctx.canvas || ctx.canvas.id !== 'game' || dropping.size || (nu > 0 && nu < 1)) { this.lacher(G); direct(); return; }
+    const z1 = cam.z, X1 = cam.x + cam.bx, Y1 = cam.y + cam.by, C1x = W / 2 + cam.offsetX, C1y = H / 2 + cam.offsetY;
+    this.suivreCamera(z1, X1, Y1, C1x, C1y);
+    // L'écart d'échelle toléré : 3 % pendant la respiration du mode repos, comme avant (elle ne s'arrête jamais :
+    // on ne va pas refaire l'image au rythme de son souffle) ; sinon selon la vitesse du zoom — un zoom rapide
+    // couvre le flou d'une image agrandie de 5 %, un plan qui avance à peine (la fin d'un plan de la tournée, le
+    // recul des quatre saisons, qu'on regarde) n'en tolère qu'un pour cent.
+    const bouge = this._gardeBouge;
+    const tol = cam.bAmp > 0.001 ? 0.03 : Math.min(0.05, Math.max(0.01, 4 * (this._gardeDz || 0)));
+    // (la saison de l'île n'y est pas : tout ce que peignent les couches gardées prend sa saison de `seasonFor`)
+    const base = `${this.signaturePlateau()}|${this.noLens ? 1 : 0}|${nu}|${W}x${H}@${STAGE.dpr}|${extra}`;
+    // Où tombe aujourd'hui une image faite avec la caméra d'alors : x_écran = tx + r · x_image. `null` si elle
+    // ne couvre plus l'écran ou si le zoom a trop changé.
     const place = (S) => {
       const r = z1 / S.z, tx = C1x - S.cx * r + (S.X - X1) * z1, ty = C1y - S.cy * r + (S.Y - Y1) * z1;
-      const p = { dx: -M * r + tx, dy: -M * r + ty, dw: (STAGE.W + 2 * M) * r, dh: (STAGE.H + 2 * M) * r };
-      return Math.abs(r - 1) <= 0.03 && p.dx <= 0 && p.dy <= 0 && p.dx + p.dw >= STAGE.W && p.dy + p.dh >= STAGE.H ? p : null;
+      const dx = -M * r + tx, dy = -M * r + ty, dw = (W + 2 * M) * r, dh = (H + 2 * M) * r;
+      return Math.abs(r - 1) <= tol && dx <= 0 && dy <= 0 && dx + dw >= W && dy + dh >= H ? { r, tx, ty } : null;
     };
-    let S = this._gardes[nom]; let p = S && S.cle === cle && !S.manque ? place(S) : null;
-    if (!p) {
-      if (this._gardeBouge) { direct(); return; }   // la caméra glisse ou zoome : on refera l'image quand elle se posera
-      const dpr = STAGE.dpr || 1, w = Math.round((STAGE.W + 2 * M) * dpr), h = Math.round((STAGE.H + 2 * M) * dpr);
-      const cv = S && S.canvas.width === w && S.canvas.height === h ? S.canvas : document.createElement('canvas');
-      if (cv.width !== w) cv.width = w; if (cv.height !== h) cv.height = h;
+    // Encore bonne : la même clé, rien ne manquait, et elle se place. Une image qui ne tombe pas pile (échelle ou
+    // place à une fraction de pixel près) est refaite une fois, nette, quand la caméra s'arrête : celle faite en
+    // route dès qu'elle ralentit, les autres quand elle ne bouge presque plus (la traîne d'un glissé ou d'un zoom,
+    // que la signature arrondie ne voit plus). La respiration du mode repos, qui ne s'arrête jamais, garde son
+    // image décalée, comme avant.
+    const bonne = (saison) => {
+      const S = G.get(saison); if (!S || S.cle !== `${saison}|${base}` || S.manque) return null;
+      const P = place(S); if (!P) return null;
+      const pile = Math.abs(P.r - 1) <= 1e-4 && Math.abs(P.tx) <= 0.02 && Math.abs(P.ty) <= 0.02;
+      if (!pile && ((S.mobile && !bouge) || this._gardeImmobile)) return null;
+      return S;
+    };
+    // la caméra va-t-elle trop vite pour qu'une image faite maintenant serve trois images de suite ?
+    const tropVite = () => bouge && this.vieGarde(tol) < 3;
+    // Peint l'image d'une saison, avec la caméra `E` (celle de l'image sœur, pendant un changement de saison) ou la caméra courante.
+    const faire = (saison, E = null) => {
+      const S0 = G.get(saison), dpr = STAGE.dpr || 1, w = Math.round((W + 2 * M) * dpr), h = Math.round((H + 2 * M) * dpr);
+      const cv = S0 && S0.canvas.width === w && S0.canvas.height === h ? S0.canvas : this.toile(w, h);
       const c2 = cv.getContext('2d'); c2.setTransform(1, 0, 0, 1, 0, 0); c2.clearRect(0, 0, w, h); c2.setTransform(dpr, 0, 0, dpr, M * dpr, M * dpr);
-      this._solsManque = false; dessin(c2);
-      S = this._gardes[nom] = { canvas: cv, cle, manque: this._solsManque, z: z1, X: X1, Y: Y1, cx: C1x, cy: C1y };
-      p = place(S);
+      const E1 = E || this.etatCamera();
+      this._solsManque = false;
+      this.avecCamera(E1, () => { this._saison = saison; try { dessin(c2, null); } finally { this._saison = null; } });
+      const S = { canvas: cv, cle: `${saison}|${base}`, manque: this._solsManque, mobile: !!bouge, E: E1, ...this.vue(E1) };
+      G.set(saison, S); this._gardeFaite = true;
+      return S;
+    };
+    const tr = this.transition;
+    if (!tr) {
+      const s = this.isl.season; let S = bonne(s);
+      this.lacher(G, [s]);
+      if (!S) { if (tropVite()) { direct(); return; } S = faire(s); }   // la caméra glisse trop vite : on la refera plus loin
+      const P = place(S); if (!P) { direct(); return; }
+      ctx.drawImage(S.canvas, -M * P.r + P.tx, -M * P.r + P.ty, (W + 2 * M) * P.r, (H + 2 * M) * P.r);
+      return;
     }
-    ctx.drawImage(S.canvas, p.dx, p.dy, p.dw, p.dh);
+    // LE FRONT. Pour `seasonFor`, ce qui est ancré à gauche de B est déjà de la nouvelle saison, le reste de
+    // l'ancienne. Rien de ce qui est ancré à plus de `demi` d'une abscisse ne la touche : à gauche de B − demi,
+    // l'image de la nouvelle saison est donc exacte, à droite de B + demi celle de l'ancienne ; entre les deux
+    // on peint en direct, découpé à la bande. Les deux images partagent UNE caméra (celle de la première faite),
+    // et la bande se peint avec elle : le tout est recopié ensemble, mis à l'échelle d'un bloc, sans raccord qui
+    // bouge quand la caméra avance (la tournée finale recule doucement pendant ses quatre saisons).
+    this.lacher(G, [tr.from, tr.to]);
+    let A = bonne(tr.to), Z = bonne(tr.from);
+    if (A && Z && A.E !== Z.E) { if (Math.abs(A.z - z1) > Math.abs(Z.z - z1)) A = null; else Z = null; }   // deux caméras : on garde la plus proche
+    let E = (A || Z) ? (A || Z).E : null;
+    if (!E && tropVite()) { direct(); return; }
+    const V = E ? this.vue(E) : { z: z1 };
+    const P = E ? place(A || Z) : { r: 1, tx: 0, ty: 0 };
+    // tout ce qui suit est en repère de l'image : x_écran = tx + r · x
+    const zoomE = E ? E.zoom : cam.zoom;
+    const balayage = (-200 + tr.t / 1.6 * (W + 400) - P.tx) / P.r;
+    const Bx = balayage - 60 * zoomE, hw = demi * V.z;
+    ctx.save(); ctx.transform(P.r, 0, 0, P.r, P.tx, P.ty);
+    // bords de bande calés sur les pixels du canevas : deux découpes lissées qui se partagent un pixel
+    // laisseraient transparaître le fond en un fil
+    const m = ctx.getTransform(), a = m.a || 1, e = m.e;
+    const cale = (x) => (Math.round(x * a + e) - e) / a;
+    const L = cale(Bx - hw), R = Math.max(L, cale(Bx + hw));
+    const x0 = -P.tx / P.r, x1 = (W - P.tx) / P.r;   // l'écran, en repère de l'image
+    if (L > x0 && !A) { A = faire(tr.to, E); E = A.E; }
+    if (R < x1 && !Z) { Z = faire(tr.from, E); E = Z.E; }
+    const bande = (xa, xb, f) => { ctx.save(); ctx.beginPath(); ctx.rect(xa, -2 * H, xb - xa, 5 * H); ctx.clip(); f(); ctx.restore(); };
+    if (L > x0) bande(x0 - W, L, () => ctx.drawImage(A.canvas, -M, -M, W + 2 * M, H + 2 * M));
+    if (R < x1) bande(R, x1 + W, () => ctx.drawImage(Z.canvas, -M, -M, W + 2 * M, H + 2 * M));
+    if (R > x0 && L < x1) {
+      bande(L, R, () => this.avecCamera(E || this.etatCamera(), () => {
+        this._solsManque = false; this._balayage = balayage;
+        try { dessin(ctx, { a: L - hw - 1, b: R + hw + 1 }); } finally { this._balayage = null; }
+      }));
+    }
+    ctx.restore();
+  }
+
+  /**
+   * Ce que contient le plateau, plutôt que son numéro de version. Un changement de saison « touche » le plateau
+   * sans rien y changer (la tournée finale le fait quatre fois de suite) : avec la version dans la clé, l'image de
+   * l'ancienne saison, pourtant toujours juste, était refaite à chaque front. Calculée une fois par version.
+   */
+  signaturePlateau() {
+    const b = this.isl.board;
+    if (this._sigP && this._sigP.v === b.version) return this._sigP.s;
+    let s;
+    try {
+      let h = 2166136261; const mix = (str) => { for (let i = 0; i < str.length; i++) h = Math.imul(h ^ str.charCodeAt(i), 16777619); };
+      for (const [k, t] of b.tiles) { mix(k); mix(JSON.stringify(t)); }
+      // (les régions payées changent le décor des bourgs : `regionPaid`)
+      mix(`|${b.mask.size}|${[...b.fog].join(';')}|${b._rule || ''}|${b.closedRegions ? b.closedRegions.size : 0}`);
+      s = `${b.tiles.size}:${(h >>> 0).toString(36)}`;
+    } catch (e) { s = `v${b.version}`; }   // une tuile qu'on ne sait pas écrire : on s'en tient à la version
+    this._sigP = { v: b.version, s };
+    return s;
+  }
+
+  /** L'état de la caméra, de quoi la remettre exactement : une image gardée se peint avec la caméra qu'elle garde. */
+  etatCamera() { const c = this.cam; return { x: c.x, y: c.y, zoom: c.zoom, bx: c.bx, by: c.by, bz: c.bz, ox: c.offsetX, oy: c.offsetY }; }
+  /** Ce qu'il faut d'un état de caméra pour placer une image : zoom réel, centre visé, centre à l'écran. */
+  vue(E) { return { z: E.zoom * (E.bz || 1), X: E.x + E.bx, Y: E.y + E.by, cx: STAGE.W / 2 + E.ox, cy: STAGE.H / 2 + E.oy }; }
+  /** Exécute `f` avec la caméra mise dans l'état `E`, puis la remet comme elle était. */
+  avecCamera(E, f) {
+    const c = this.cam, avant = this.etatCamera();
+    const poser = (s) => { c.x = s.x; c.y = s.y; c.zoom = s.zoom; c.bx = s.bx; c.by = s.by; c.bz = s.bz; c.offsetX = s.ox; c.offsetY = s.oy; };
+    poser(E); try { return f(); } finally { poser(avant); }
+  }
+
+  /**
+   * La caméra, une fois par image : bouge-t-elle (signature partagée par les couches), et de combien — ce qui
+   * dit combien d'images une image gardée refaite maintenant pourrait servir.
+   */
+  suivreCamera(z1, X1, Y1, C1x, C1y) {
+    if (this._gardeT === this.time) return;
+    this._gardeT = this.time;
+    const sig = `${Math.round(z1 * 2000)}|${Math.round(X1 * 2)}|${Math.round(Y1 * 2)}|${Math.round(C1x)}|${Math.round(C1y)}`;
+    this._gardeBouge = this._gardeSig !== sig; this._gardeSig = sig;
+    const P = this._gardeCam;
+    this._gardeDz = P ? Math.abs(Math.log(z1 / P.z)) : 0;   // zoom, en part par image
+    // glissement à l'écran, en px par image, plus ce que le zoom déplace au bord de l'écran
+    this._gardeDp = P ? Math.hypot((X1 - P.X) * z1 - (C1x - P.cx), (Y1 - P.Y) * z1 - (C1y - P.cy)) + this._gardeDz * Math.max(STAGE.W, STAGE.H) : 0;
+    // immobile : la caméra ne bouge plus qu'à un millionième de zoom et un cinquantième de pixel par image (la
+    // traîne de son lissage met des secondes à s'éteindre tout à fait)
+    this._gardeImmobile = !!P && this._gardeDz < 1e-6 && this._gardeDp < 0.02;
+    this._gardeCam = { z: z1, X: X1, Y: Y1, cx: C1x, cy: C1y };
+  }
+  /** Combien d'images une image gardée faite maintenant tiendrait, au train où va la caméra (tolérance de zoom `tol`, marge SOLS_MARGE). */
+  vieGarde(tol) {
+    const dz = this._gardeDz || 0, dp = this._gardeDp || 0;
+    return Math.min(dz > 1e-9 ? tol / dz : Infinity, dp > 1e-6 ? SOLS_MARGE / dp : Infinity);
+  }
+  /** Les canevas des images gardées : une petite réserve, pour ne pas en réallouer un à chaque changement de saison. */
+  toile(w, h) {
+    const pool = this._toiles || (this._toiles = []);
+    const i = pool.findIndex((c) => c.width === w && c.height === h); if (i >= 0) return pool.splice(i, 1)[0];
+    const cv = document.createElement('canvas'); cv.width = w; cv.height = h; return cv;
+  }
+  /** Oublie les images d'une couche, sauf celles des saisons `garder` ; leurs canevas retournent à la réserve (deux au plus). */
+  lacher(G, garder = []) {
+    for (const [s, S] of G) {
+      if (garder.includes(s)) continue;
+      G.delete(s); const pool = this._toiles || (this._toiles = []); if (pool.length < 2) pool.push(S.canvas);
+    }
+  }
+
+  /**
+   * La plus grande demi-largeur d'un objet du décor, en unités monde, mesurée depuis son point
+   * d'ancrage (le pied, ou le centre de la tuile composée). C'est la largeur de la bande que le front
+   * d'un changement de saison doit peindre en direct pour que le reste puisse venir des images gardées.
+   */
+  etendueObjets(images) {
+    const objs = this.decor.objects;
+    if (this._etendue && this._etendue.objs === objs && this._etendue.n === objs.length) return this._etendue.v;
+    let v = TILE_W * 0.55;
+    for (const o of objs) {
+      if (o.composed) { const cw = toWorld(o.tile.q, o.tile.r); v = Math.max(v, Math.abs(cw.x - o.x) + TILE_W * 0.55); continue; }
+      // la même largeur que `drawObjets`, dans chacune des quatre saisons (un sprite absent n'est pas dessiné)
+      for (const s of SEASONS) {
+        const sk = spriteKey(o.tpl, s), m = images[sk], img = m ? null : Assets.img(sk);
+        const w = m ? m.w : img ? img.width : 0;
+        v = Math.max(v, w / (o.wave ? 3 : 2) * (o.scale || 1) / 2);
+      }
+    }
+    v += 4;
+    this._etendue = { objs, n: objs.length, v };
+    return v;
   }
 
   /** Le décor posé (arbres, maisons, rochers, fleurs…), avec son ombre de contact. Statique : `drawGarde` le garde en image. */
@@ -694,12 +920,12 @@ export class IslandRenderer {
     // ombres hexagonales dépassaient dans la mer partout où la côte érodée recule sur la tuile, et
     // leurs arêtes droites redessinaient la grille sous l'eau (mesuré : c'était la dernière arête
     // verticale qui restait). Même retrait qu'avant : six unités vers le bas, un bord doux.
-    const proj = (p) => cam.toScreen(p.x, p.y);
     ctx.save(); ctx.translate(0, 6 * z); ctx.fillStyle = '#000'; ctx.strokeStyle = '#000'; ctx.lineJoin = 'round';
-    ctx.beginPath(); this.cheminCote(ctx, proj);
-    ctx.globalAlpha = 0.22; ctx.fill(); ctx.globalAlpha = 0.08; ctx.lineWidth = 6 * z; ctx.stroke();
+    this.ecranSpace(ctx); const cote = this.cheminMonde();
+    ctx.globalAlpha = 0.22; ctx.fill(cote); ctx.globalAlpha = 0.08; ctx.lineWidth = 6 * z / cam.z; ctx.stroke(cote);
     ctx.restore();
     this.drawShore(ctx);
+    // (`drawShore` : l'écume seule ; la terre qu'elle borde est la première chose de la couche des sols)
     // LE MASQUE DE L'ÎLE : tout le passage des sols est découpé sur le trait de côte, une seule fois
     // par image. Chaque tuile dessine son hexagone entier, et c'est la découpe qui lui donne sa
     // côte érodée ; aucune tuile, terre ou eau, ne peut déborder. Les objets, eux, restent hors du
@@ -708,13 +934,16 @@ export class IslandRenderer {
     // LE MASQUE DE L'ÎLE : les sols, gardés en image tant que rien ne change (voir drawGarde)
     const dropping = new Map(); for (const t of tiles) { const k = key(t.q, t.r); const d = this.fx.dropTransform(k); if (d.dy !== 0 || d.s !== 1) dropping.set(k, d); }
     const anses = this.anses();
-    this.drawGarde('sols', ctx, '', dropping, (c2) => this.drawSols(c2, tiles, dropping, anses, vis));
+    // `bande` : pendant un changement de saison, seule la bande du front est peinte ici (voir drawGarde)
+    const visB = (bande) => (bande ? (c, m) => c.x > bande.a && c.x < bande.b && vis(c, m) : vis);
+    // la couche des sols : la terre du pied de l'île, les sols, puis les cours des bourgs
+    this.drawGarde('sols', ctx, '', dropping, (c2, bande) => { const v = visB(bande); this.drawTerre(c2, v); this.drawSols(c2, tiles, dropping, anses, v); this.drawCourts(c2, dropping, v); }, SIZE * 1.8);
     const images = Assets.manifest().images || {};
-    this.drawCourts(ctx, dropping);
     this.drawWater(ctx, dropping);
+    // les sentiers restent hors des images gardées : leur teinte suit la saison de l'île d'un coup, pas le front
     this.drawPaths(ctx);
-    // objets (arbres, maisons, rochers…), gardés en image comme les sols
-    this.drawGarde('objets', ctx, `${this.isl.rule || ''}|${this.weather || ''}`, dropping, (c2) => this.drawObjets(c2, dropping, anses, vis, images));
+    // les objets (arbres, maisons, rochers…), gardés en image comme les sols
+    this.drawGarde('objets', ctx, `${this.isl.rule || ''}|${this.weather || ''}`, dropping, (c2, bande) => this.drawObjets(c2, dropping, anses, visB(bande), images), this.etendueObjets(images));
     for (const t of tiles) if (t.bloom) { const w = toWorld(t.q, t.r); const c = cam.toScreen(w.x, w.y); if (vis(c)) this.drawBloom(ctx, c.x, c.y); }
     // option « Grille discrète » : fin contour sur les tuiles posées, par-dessus les sols et les objets (sinon les fondus le couvrent)
     if (Save.options.grid) {
@@ -734,6 +963,11 @@ export class IslandRenderer {
     if (!bodies.length && !(this.decor.holes && this.decor.holes.length)) return;
     const vis = (c, m = 200) => !(c.x < -m || c.x > STAGE.W + m || c.y < -m || c.y > STAGE.H + m);
     const S = (p) => cam.toScreen(p.x, p.y);
+    // Tout se dessine en repère MONDE (`ecranSpace`) avec des formes gardées (`blobMonde`, `Path2D`) : une
+    // mare, un lac, c'étaient une trentaine d'appels au contexte par tache, reprojetés à chaque image. Les
+    // tailles étaient en pixels d'écran proportionnels au zoom (`× cam.zoom`) : en unités monde, elles
+    // deviennent `× kz` (1, sauf pendant la respiration du mode repos, où le zoom réel `cam.z` en diffère d'un poil).
+    const kz = z / cam.z;
     const jit = (a, c) => { const h = Math.sin(a.x * 12.9898 + a.y * 78.233 + c.x * 37.719 + c.y * 4.1) * 43758.5453; return (h - Math.floor(h)) - 0.5; };
     const trace = (sp) => { ctx.beginPath(); ctx.moveTo(sp[0].x, sp[0].y); if (sp.length === 2) ctx.lineTo(sp[1].x, sp[1].y); else { for (let i = 1; i < sp.length - 1; i++) { const mx = (sp[i].x + sp[i + 1].x) / 2, my = (sp[i].y + sp[i + 1].y) / 2; ctx.quadraticCurveTo(sp[i].x, sp[i].y, mx, my); } ctx.lineTo(sp[sp.length - 1].x, sp[sp.length - 1].y); } };
     const meander = (pts) => {
@@ -748,28 +982,37 @@ export class IslandRenderer {
       }
       return out;
     };
-    // tracé lissé tronçon par tronçon, largeur variable (bouts ronds)
-    const tapered = (sp, wAt, mul, color) => {
-      ctx.strokeStyle = color;
-      if (sp.length < 3) { ctx.lineWidth = wAt(0) * mul; ctx.beginPath(); ctx.moveTo(sp[0].x, sp[0].y); ctx.lineTo(sp[sp.length - 1].x, sp[sp.length - 1].y); ctx.stroke(); return; }
+    // tracé lissé tronçon par tronçon, largeur variable (bouts ronds) ; les tronçons sont gardés en `Path2D`
+    const troncons = (sp) => {
+      const out = [];
+      if (sp.length < 3) { const p = new Path2D(); p.moveTo(sp[0].x, sp[0].y); p.lineTo(sp[sp.length - 1].x, sp[sp.length - 1].y); out.push({ p, i: 0 }); return out; }
       let px = sp[0].x, py = sp[0].y;
       for (let i = 1; i < sp.length - 1; i++) {
         const mx = (sp[i].x + sp[i + 1].x) / 2, my = (sp[i].y + sp[i + 1].y) / 2;
-        ctx.lineWidth = wAt(i) * mul; ctx.beginPath(); ctx.moveTo(px, py); ctx.quadraticCurveTo(sp[i].x, sp[i].y, mx, my); ctx.stroke(); px = mx; py = my;
+        const p = new Path2D(); p.moveTo(px, py); p.quadraticCurveTo(sp[i].x, sp[i].y, mx, my); out.push({ p, i }); px = mx; py = my;
       }
-      ctx.lineWidth = wAt(sp.length - 1) * mul; ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(sp[sp.length - 1].x, sp[sp.length - 1].y); ctx.stroke();
+      const p = new Path2D(); p.moveTo(px, py); p.lineTo(sp[sp.length - 1].x, sp[sp.length - 1].y); out.push({ p, i: sp.length - 1 });
+      return out;
     };
-    ctx.save(); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    const tapered = (tr, wAt, mul, color) => { ctx.strokeStyle = color; for (const { p, i } of tr) { ctx.lineWidth = wAt(i) * mul; ctx.stroke(p); } };
+    const base = ctx.getTransform();
+    // les fissures de la glace sont tirées de la position À L'ÉCRAN de leurs points : on les dessine dans le repère d'avant
+    const fissures = (pts) => { const m = ctx.getTransform(); ctx.setTransform(base); this.drawCracks(ctx, pts.map(S), z); ctx.setTransform(m); };
+    const cache = this._eaux && this._eaux.bodies === bodies ? this._eaux : (this._eaux = { bodies, m: new WeakMap() });
+    ctx.save(); this.ecranSpace(ctx); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    const mare = (c0, k, frozen, pal) => {
+      const rr = SIZE * k * kz;
+      ctx.fillStyle = pal.edge; ctx.fill(this.blobMonde(c0.x, c0.y, rr * 1.03, c0));
+      ctx.fillStyle = pal.deep; ctx.fill(this.blobMonde(c0.x, c0.y, rr, c0));
+      ctx.fillStyle = pal.shoal; ctx.fill(this.blobMonde(c0.x, c0.y + 3.5 * kz, rr * 0.92, c0));
+      if (!frozen) { ctx.strokeStyle = pal.foam; ctx.lineWidth = RIDE.trait * 0.7 * kz; ctx.beginPath(); ctx.ellipse(c0.x - rr * 0.2, c0.y - rr * 0.25, rr * 0.35, rr * 0.16, -0.4, 0, TAU); ctx.stroke(); }
+      else fissures([c0]);
+    };
     for (const h of this.decor.holes || []) {
       // lagune : une mare comme un étang, gelée en hiver
-      const c0 = toWorld(h.q, h.r); const c = S(c0); if (!vis(c)) continue;
-      const frozen = this.isl.season === 'winter'; const pal = frozen ? ICE : (WATER[this.seasonFor(c0.x)] || WATER.spring);
-      const rr = SIZE * 0.7 * z;
-      ctx.fillStyle = pal.edge; this.blob(ctx, c.x, c.y, rr * 1.03, c0); ctx.fill();
-      ctx.fillStyle = pal.deep; this.blob(ctx, c.x, c.y, rr, c0); ctx.fill();
-      ctx.fillStyle = pal.shoal; this.blob(ctx, c.x, c.y + 3.5 * z, rr * 0.92, c0); ctx.fill();
-      if (!frozen) { ctx.strokeStyle = pal.foam; ctx.lineWidth = RIDE.trait * 0.7 * z; ctx.beginPath(); ctx.ellipse(c.x - rr * 0.2, c.y - rr * 0.25, rr * 0.35, rr * 0.16, -0.4, 0, TAU); ctx.stroke(); }
-      else this.drawCracks(ctx, [c], z);
+      const c0 = toWorld(h.q, h.r); if (!vis(S(c0))) continue;
+      const frozen = this.isl.season === 'winter';
+      mare(c0, 0.7, frozen, frozen ? ICE : (WATER[this.seasonFor(c0.x)] || WATER.spring));
     }
     const ordered = [...bodies].sort((a, b) => (a.kind === 'river') - (b.kind === 'river'));   // nappes d'abord, rubans par-dessus (la rivière se jette dans le lac)
     const anses = this.anses();
@@ -780,93 +1023,121 @@ export class IslandRenderer {
       const c0 = toWorld(body.cells[0].q, body.cells[0].r);
       const pal = frozen ? ICE : (WATER[this.seasonFor(c0.x)] || WATER.spring);
       if (body.kind === 'river') {
-        // ruban de la source à l'embouchure, prolongé vers la montagne et vers la mer
-        const pts = body.chain.map((k) => { const [q, r] = parse(k); return toWorld(q, r); });
-        const first = body.cells.find((c) => key(c.q, c.r) === body.chain[0]); const last = body.cells.find((c) => key(c.q, c.r) === body.chain[body.chain.length - 1]);
-        // `aval` : le point suivant du ruban. Une source ne se prolonge que vers l'AMONT — vers une roche
-        // placée du côté de l'aval, le ruban faisait demi-tour et finissait en os (deux lobes)
-        const ext = (cell, pred, pt, len, aval = null) => { for (let d = 0; d < 6; d++) { const n = b.get(cell.q + DIRS[d][0], cell.r + DIRS[d][1]); const sea = b.isSea(cell.q + DIRS[d][0], cell.r + DIRS[d][1]); if (pred(n, sea)) { const m = edgeMid(pt.x, pt.y, d); if (aval && (m.x - pt.x) * (aval.x - pt.x) + (m.y - pt.y) * (aval.y - pt.y) > -1) continue; return { x: pt.x + (m.x - pt.x) * len, y: pt.y + (m.y - pt.y) * len }; } } return null; };
-        const src = first ? ext(first, (n) => n && (n.family === 'rock' || n.family === 'hill' || (n.rare && n.family === 'watchtower')), pts[0], 0.75, pts.length > 1 ? pts[1] : null) : null;
-        let mouth = body.mouth && last ? ext(last, (n, sea) => sea, pts[pts.length - 1], 1.05) : null;
-        if (!mouth && body.intoLake) { const [lq, lr] = parse(body.intoLake); const lw = toWorld(lq, lr); const e = pts[pts.length - 1]; mouth = { x: e.x + (lw.x - e.x) * 0.55, y: e.y + (lw.y - e.y) * 0.55 }; }   // le ruban entre dans la nappe
-        // méandres : trois points par segment, décalés en alternance d'un côté puis de l'autre (serpent) avec une part de hasard déterministe
-        const full = meander([...(src ? [src] : []), ...pts, ...(mouth ? [mouth] : [])]);
-        const sp = full.map(S); if (!sp.some((p) => vis(p))) continue;
+        // ruban de la source à l'embouchure, prolongé vers la montagne et vers la mer ; la géométrie (monde) est
+        // gardée par rivière tant que le plateau ne change pas
+        let R = cache.m.get(body);
+        if (!R) {
+          const pts = body.chain.map((k) => { const [q, r] = parse(k); return toWorld(q, r); });
+          const first = body.cells.find((c) => key(c.q, c.r) === body.chain[0]); const last = body.cells.find((c) => key(c.q, c.r) === body.chain[body.chain.length - 1]);
+          // `aval` : le point suivant du ruban. Une source ne se prolonge que vers l'AMONT — vers une roche
+          // placée du côté de l'aval, le ruban faisait demi-tour et finissait en os (deux lobes)
+          const ext = (cell, pred, pt, len, aval = null) => { for (let d = 0; d < 6; d++) { const n = b.get(cell.q + DIRS[d][0], cell.r + DIRS[d][1]); const sea = b.isSea(cell.q + DIRS[d][0], cell.r + DIRS[d][1]); if (pred(n, sea)) { const m = edgeMid(pt.x, pt.y, d); if (aval && (m.x - pt.x) * (aval.x - pt.x) + (m.y - pt.y) * (aval.y - pt.y) > -1) continue; return { x: pt.x + (m.x - pt.x) * len, y: pt.y + (m.y - pt.y) * len }; } } return null; };
+          const src = first ? ext(first, (n) => n && (n.family === 'rock' || n.family === 'hill' || (n.rare && n.family === 'watchtower')), pts[0], 0.75, pts.length > 1 ? pts[1] : null) : null;
+          let mouth = body.mouth && last ? ext(last, (n, sea) => sea, pts[pts.length - 1], 1.05) : null;
+          if (!mouth && body.intoLake) { const [lq, lr] = parse(body.intoLake); const lw = toWorld(lq, lr); const e = pts[pts.length - 1]; mouth = { x: e.x + (lw.x - e.x) * 0.55, y: e.y + (lw.y - e.y) * 0.55 }; }   // le ruban entre dans la nappe
+          // méandres : trois points par segment, décalés en alternance d'un côté puis de l'autre (serpent) avec une part de hasard déterministe
+          const sp = meander([...(src ? [src] : []), ...pts, ...(mouth ? [mouth] : [])]);
+          R = { sp, mouth, tr: troncons(sp) }; cache.m.set(body, R);
+        }
+        const { sp, mouth, tr } = R;
+        if (!sp.some((p) => vis(S(p)))) continue;
         // une rivière qui se jette dans la mer (ou dans une anse, qui est de la mer) s'arrête au trait de
         // côte : son bout rond et la tache d'embouchure se posaient sinon SUR la mer, en bulle plus claire
         const coupe = mouth && (body.mouth || anses.has(body.intoLake));
-        if (coupe) { ctx.save(); ctx.beginPath(); this.cheminCote(ctx, S); ctx.clip(); }
+        if (coupe) { ctx.save(); ctx.clip(this.cheminMonde()); }
         // filet qui s'élargit de la source à l'embouchure : chaque tronçon lissé a sa propre largeur (bouts ronds : pas de joint visible)
-        const wAt = (i) => { const t = i / Math.max(1, sp.length - 1); return (16 + 12 * t + 3 * Math.sin(i * 2.3)) * z; };
+        const wAt = (i) => { const t = i / Math.max(1, sp.length - 1); return (16 + 12 * t + 3 * Math.sin(i * 2.3)) * kz; };
         ctx.globalAlpha = 1;
         // le lit est creusé : bord sombre, fond à l'ombre, puis le filet d'eau clair décalé vers le bas
-        tapered(sp, wAt, 1.12, pal.edge);
-        tapered(sp, wAt, 1, pal.deep);
-        ctx.save(); ctx.translate(0, 2.5 * z); tapered(sp, wAt, 0.88, pal.shoal); ctx.restore();
-        if (mouth) { const m = S(mouth); ctx.fillStyle = pal.fill; ctx.beginPath(); ctx.ellipse(m.x, m.y, 26 * z, 16 * z, 0, 0, TAU); ctx.fill(); }
-        if (!frozen) { ctx.strokeStyle = pal.foam; ctx.lineWidth = (this.finale ? 3 : RIDE.trait) * z; ctx.setLineDash(RIDE.tirets.map((v) => v * z)); ctx.lineDashOffset = -this.time * (this.finale ? 120 : 40) * z; trace(sp); ctx.stroke(); ctx.setLineDash([]); }
-        else this.drawCracks(ctx, sp, z);
+        tapered(tr, wAt, 1.12, pal.edge);
+        tapered(tr, wAt, 1, pal.deep);
+        ctx.save(); ctx.translate(0, 2.5 * kz); tapered(tr, wAt, 0.88, pal.shoal); ctx.restore();
+        if (mouth) { ctx.fillStyle = pal.fill; ctx.beginPath(); ctx.ellipse(mouth.x, mouth.y, 26 * kz, 16 * kz, 0, 0, TAU); ctx.fill(); }
+        if (!frozen) { ctx.strokeStyle = pal.foam; ctx.lineWidth = (this.finale ? 3 : RIDE.trait) * kz; ctx.setLineDash(RIDE.tirets.map((v) => v * kz)); ctx.lineDashOffset = -this.time * (this.finale ? 120 : 40) * kz; trace(sp); ctx.stroke(); ctx.setLineDash([]); }
+        else fissures(sp);
         if (coupe) ctx.restore();
       } else if (body.kind === 'pond') {
-        const c = S(c0); if (!vis(c)) continue;
-        const rr = SIZE * 0.66 * z;
-        ctx.fillStyle = pal.edge; this.blob(ctx, c.x, c.y, rr * 1.03, c0); ctx.fill();
-        ctx.fillStyle = pal.deep; this.blob(ctx, c.x, c.y, rr, c0); ctx.fill();
-        ctx.fillStyle = pal.shoal; this.blob(ctx, c.x, c.y + 3.5 * z, rr * 0.92, c0); ctx.fill();
-        if (!frozen) { ctx.strokeStyle = pal.foam; ctx.lineWidth = RIDE.trait * 0.7 * z; ctx.beginPath(); ctx.ellipse(c.x - rr * 0.2, c.y - rr * 0.25, rr * 0.35, rr * 0.16, -0.4, 0, TAU); ctx.stroke(); }
+        if (!vis(S(c0))) continue;
+        mare(c0, 0.66, frozen, pal);
       } else {
         // lac : union de mares arrondies (une par case, forme irrégulière) reliées par des ponts arrondis entre cases voisines ;
         // tout est de la même couleur, donc aucune couture : le lac devient une nappe organique aux rives lobées
-        const cs = body.cells.map((cell) => { const w = toWorld(cell.q, cell.r); return { w, s: S(w), cell }; });
-        if (!cs.some((c) => vis(c.s))) continue;
-        const bridges = []; for (const a of cs) for (let d = 0; d < 3; d++) { const nk = key(a.cell.q + DIRS[d][0], a.cell.r + DIRS[d][1]); if (!body.keys.has(nk)) continue; const o = cs.find((c) => key(c.cell.q, c.cell.r) === nk); if (o) bridges.push([a, o]); }
+        let L = cache.m.get(body);
+        if (!L) {
+          const cs = body.cells.map((cell) => ({ w: toWorld(cell.q, cell.r), cell }));
+          const bridges = []; for (const a of cs) for (let d = 0; d < 3; d++) { const nk = key(a.cell.q + DIRS[d][0], a.cell.r + DIRS[d][1]); if (!body.keys.has(nk)) continue; const o = cs.find((c) => key(c.cell.q, c.cell.r) === nk); if (o) bridges.push([a, o]); }
+          let y0 = Infinity, y1 = -Infinity; for (const c of cs) { y0 = Math.min(y0, c.w.y); y1 = Math.max(y1, c.w.y); }
+          L = { cs, bridges, y0, y1, nappes: new Map() }; cache.m.set(body, L);
+        }
+        const { cs, bridges } = L;
+        if (!cs.some((c) => vis(S(c.w)))) continue;
+        // Une nappe : toutes ses taches (une par case, un pont par arête partagée) en UN chemin. Elles sont de la
+        // même couleur, opaque : les remplir d'un coup ou une à une donne la même chose, en un seul appel.
         const nappe = (color, grow, dy = 0) => {
-          ctx.fillStyle = color; ctx.strokeStyle = color;
-          for (const c of cs) { this.blob(ctx, c.s.x, c.s.y + dy, (SIZE * 0.92 + grow) * z, c.w); ctx.fill(); }
-          // le pont entre deux cases du même lac est une tache ronde posée sur l'arête partagée : le
-          // trait épais d'avant avait des bords DROITS, qui redessinaient l'hexagone de la terre enclavée
-          for (const [a, o] of bridges) { this.blob(ctx, (a.s.x + o.s.x) / 2, (a.s.y + o.s.y) / 2 + dy, (SIZE * 0.74 + grow) * z, { x: (a.w.x + o.w.x) / 2, y: (a.w.y + o.w.y) / 2 }); ctx.fill(); }
+          const k = `${grow}|${dy}|${kz}`; let p = L.nappes.get(k);
+          if (!p) {
+            p = new Path2D();
+            for (const c of cs) p.addPath(this.blobMonde(c.w.x, c.w.y + dy, (SIZE * 0.92 + grow) * kz, c.w));
+            // le pont entre deux cases du même lac est une tache ronde posée sur l'arête partagée : le
+            // trait épais d'avant avait des bords DROITS, qui redessinaient l'hexagone de la terre enclavée
+            for (const [a, o] of bridges) { const m = { x: (a.w.x + o.w.x) / 2, y: (a.w.y + o.w.y) / 2 }; p.addPath(this.blobMonde(m.x, m.y + dy, (SIZE * 0.74 + grow) * kz, m)); }
+            if (L.nappes.size > 12) L.nappes.clear();
+            L.nappes.set(k, p);
+          }
+          ctx.fillStyle = color; ctx.fill(p);
         };
         // Une CUVETTE, pas un monticule. Une ombre portée à l'extérieur et vers le bas est la signature
         // d'un objet posé SUR le sol : c'est exactement l'inverse de ce qu'on veut. L'ombre va donc
         // DEDANS, en croissant sous la lèvre proche (le bord haut), et le fond s'éclaircit en
         // s'éloignant. On l'obtient sans découpe : la nappe entière au ton le plus sombre, puis la même
         // forme rétrécie et descendue par-dessus — ce qui reste à découvert est le croissant du haut.
-        let grad = null;
-        { let y0 = Infinity, y1 = -Infinity; for (const c of cs) { y0 = Math.min(y0, c.s.y); y1 = Math.max(y1, c.s.y); }
-          grad = ctx.createLinearGradient(0, y0 - SIZE * 0.6 * z, 0, y1 + SIZE * z);
-          grad.addColorStop(0, pal.fill); grad.addColorStop(0.75, pal.shoal); grad.addColorStop(1, pal.shoal); }
-        nappe(pal.edge, 2);            // la lèvre : un liseré sombre au contact de la terre, sans débord
-        nappe(pal.deep, 0);            // le fond, à l'ombre
-        nappe(grad, -4, 4 * z);        // le plan d'eau, un peu rétréci et descendu : ombre fine sous la lèvre
+        const grad = ctx.createLinearGradient(0, L.y0 - SIZE * 0.6 * kz, 0, L.y1 + SIZE * kz);
+        grad.addColorStop(0, pal.fill); grad.addColorStop(0.75, pal.shoal); grad.addColorStop(1, pal.shoal);
+        nappe(pal.edge, 2);               // la lèvre : un liseré sombre au contact de la terre, sans débord
+        nappe(pal.deep, 0);               // le fond, à l'ombre
+        nappe(grad, -4, 4 * kz);          // le plan d'eau, un peu rétréci et descendu : ombre fine sous la lèvre
         if (!frozen) {
           // la rive scintille : un liseré clair qui court le long du contour, et qui BOUGE — sans
           // l'animation ce n'est qu'un trait peint, et c'est ce mouvement qui fait lire « de l'eau »
-          ctx.save(); ctx.strokeStyle = pal.foam; ctx.lineWidth = RIDE.trait * z;
-          ctx.setLineDash(RIDE.tirets.map((v) => v * z)); ctx.lineDashOffset = -this.time * 12 * z;
+          ctx.save(); ctx.strokeStyle = pal.foam; ctx.lineWidth = RIDE.trait * kz;
+          ctx.setLineDash(RIDE.tirets.map((v) => v * kz)); ctx.lineDashOffset = -this.time * 12 * kz;
           // le liseré ne court que sur la RIVE : la part du contour d'une case qui tombe dans une
           // voisine du même lac, ou dans le pont qui les relie, est de l'eau — on l'exclut par découpe
           for (const c of cs) {
             ctx.save();
             for (const o of cs) {
-              if (o === c || Math.hypot(o.s.x - c.s.x, o.s.y - c.s.y) > SIZE * 2.2 * z) continue;
-              ctx.beginPath(); ctx.rect(-1e4, -1e4, 3e4, 3e4); this.blob(ctx, o.s.x, o.s.y, SIZE * 0.92 * z, o.w, true); ctx.clip('evenodd');
+              if (o === c || Math.hypot(o.w.x - c.w.x, o.w.y - c.w.y) > SIZE * 2.2 * kz) continue;
+              ctx.clip(this.blobMonde(o.w.x, o.w.y, SIZE * 0.92 * kz, o.w, true), 'evenodd');
             }
             for (const [a, o] of bridges) {
               if (a !== c && o !== c) continue;
-              ctx.beginPath(); ctx.rect(-1e4, -1e4, 3e4, 3e4); this.blob(ctx, (a.s.x + o.s.x) / 2, (a.s.y + o.s.y) / 2, SIZE * 0.70 * z, { x: (a.w.x + o.w.x) / 2, y: (a.w.y + o.w.y) / 2 }, true); ctx.clip('evenodd');
+              const m = { x: (a.w.x + o.w.x) / 2, y: (a.w.y + o.w.y) / 2 };
+              ctx.clip(this.blobMonde(m.x, m.y, SIZE * 0.70 * kz, m, true), 'evenodd');
             }
-            this.blob(ctx, c.s.x, c.s.y, SIZE * 0.9 * z, c.w); ctx.stroke(); ctx.restore();
+            ctx.stroke(this.blobMonde(c.w.x, c.w.y, SIZE * 0.9 * kz, c.w)); ctx.restore();
           }
           ctx.restore();
           // reflets : une ride par case, placée de façon déterministe
-          ctx.strokeStyle = pal.foam; ctx.lineWidth = RIDE.trait * 0.7 * z; ctx.beginPath();
-          for (const c of cs) { const j = jit(c.w, { x: 1, y: 1 }); const rr = SIZE * 0.86 * z; ctx.moveTo(c.s.x - rr * 0.3 + j * rr * 0.4, c.s.y - rr * 0.2 + j * rr * 0.3); ctx.bezierCurveTo(c.s.x - rr * 0.1, c.s.y - rr * 0.35 + j * rr * 0.3, c.s.x + rr * 0.1, c.s.y - rr * 0.05 + j * rr * 0.3, c.s.x + rr * 0.3, c.s.y - rr * 0.2 + j * rr * 0.3); }
+          ctx.strokeStyle = pal.foam; ctx.lineWidth = RIDE.trait * 0.7 * kz; ctx.beginPath();
+          for (const c of cs) { const j = jit(c.w, { x: 1, y: 1 }); const rr = SIZE * 0.86 * kz; const x = c.w.x, y = c.w.y; ctx.moveTo(x - rr * 0.3 + j * rr * 0.4, y - rr * 0.2 + j * rr * 0.3); ctx.bezierCurveTo(x - rr * 0.1, y - rr * 0.35 + j * rr * 0.3, x + rr * 0.1, y - rr * 0.05 + j * rr * 0.3, x + rr * 0.3, y - rr * 0.2 + j * rr * 0.3); }
           ctx.stroke();
-        } else this.drawCracks(ctx, cs.map((c) => c.s), z);
+        } else fissures(cs.map((c) => c.w));
       }
     }
     ctx.restore();
+  }
+
+  /**
+   * `blob` en coordonnées monde, gardé : la même tache (mêmes points, même lissage) en `Path2D`. `trou` : la
+   * tache percée dans un très grand rectangle, pour une découpe « tout sauf la tache » (règle pair-impair).
+   */
+  blobMonde(cx, cy, r, seed, trou = false) {
+    const k = `${cx}|${cy}|${r}|${seed.x}|${seed.y}|${trou ? 1 : 0}`;
+    const M = this._blobs || (this._blobs = new Map()); let p = M.get(k); if (p) return p;
+    if (M.size > 3000) M.clear();
+    p = new Path2D(); if (trou) p.rect(-1e5, -1e5, 3e5, 3e5);
+    this.blob(p, cx, cy, r, seed, true);
+    M.set(k, p); return p;
   }
 
   /**
@@ -903,14 +1174,15 @@ export class IslandRenderer {
    * image masquée par saison, posée autant de fois qu'il y a de bâtiments : les disques voisins se recouvrent
    * et font une place, sans couture puisqu'ils partagent la même texture. L'opacité dit la taille du bourg.
    */
-  drawCourts(ctx, dropping) {
+  drawCourts(ctx, dropping, vis = null) {
     const courts = this.decor.courts; if (!courts || !courts.length) return;
     const cam = this.cam, z = cam.zoom;
     ctx.save();
     for (const c of courts) {
       if (dropping.has(c.cell)) continue;
       const p = cam.toScreen(c.x, c.y); const rr = c.r * z;
-      if (p.x + rr < 0 || p.x - rr > STAGE.W || p.y + rr < 0 || p.y - rr > STAGE.H) continue;
+      // dans l'image gardée, la marge autour de l'écran compte aussi
+      if (vis ? !vis(p, rr + SOLS_MARGE) : (p.x + rr < 0 || p.x - rr > STAGE.W || p.y + rr < 0 || p.y - rr > STAGE.H)) continue;
       const img = this.courtImage('dirt', this.seasonFor(c.x)); if (!img) continue;
       ctx.globalAlpha = c.a;
       ctx.drawImage(img, p.x - rr, p.y - rr, rr * 2, rr * 2);
@@ -1010,10 +1282,15 @@ export class IslandRenderer {
 
   drawClimateTint(ctx) {
     const cl = this.isl.climate; if (!cl || !cl.tint) return;
-    const cam = this.cam, b = this.isl.board; ctx.save(); ctx.globalCompositeOperation = 'multiply'; ctx.fillStyle = cl.tint; ctx.beginPath();
-    this.cheminCote(ctx, (p) => cam.toScreen(p.x, p.y));   // la même silhouette que les sols, côte érodée comprise
-    for (const h of this.decor.holes || []) { const w = toWorld(h.q, h.r); const c = cam.toScreen(w.x, w.y); const pts = corners(c.x, c.y, SIZE * cam.zoom * 1.01); ctx.moveTo(pts[0][0], pts[0][1]); for (let i = 1; i < 6; i++) ctx.lineTo(pts[i][0], pts[i][1]); ctx.closePath(); }
-    ctx.fill(); ctx.restore();
+    ctx.save(); ctx.globalCompositeOperation = 'multiply'; ctx.fillStyle = cl.tint;
+    // la même silhouette que les sols, côte érodée comprise, plus les lagunes : un seul chemin monde, gardé
+    const cote = this.cheminMonde(), holes = this.decor.holes || [];
+    if (!this._teinte || this._teinte.cote !== cote || this._teinte.holes !== holes || this._teinte.n !== holes.length) {
+      const p = new Path2D(); p.addPath(cote);
+      for (const h of holes) { const w = toWorld(h.q, h.r); const pts = corners(w.x, w.y, SIZE * 1.01); p.moveTo(pts[0][0], pts[0][1]); for (let i = 1; i < 6; i++) p.lineTo(pts[i][0], pts[i][1]); p.closePath(); }
+      this._teinte = { cote, holes, n: holes.length, p };
+    }
+    this.ecranSpace(ctx); ctx.fill(this._teinte.p); ctx.restore();
   }
 
   /**
@@ -1158,8 +1435,24 @@ export class IslandRenderer {
    */
   traitCote(ctx, proj, style) {
     const nu = this.nuAvance();
-    ctx.strokeStyle = style(1); ctx.beginPath(); this.cheminCote(ctx, proj, 'mer'); ctx.stroke();
-    if (nu > 0.002) { ctx.strokeStyle = style(nu); ctx.beginPath(); this.cheminCote(ctx, proj, 'vide'); ctx.stroke(); }
+    const trace = (quoi) => { if (proj) { ctx.beginPath(); this.cheminCote(ctx, proj, quoi); ctx.stroke(); } else ctx.stroke(this.cheminMonde(quoi)); };
+    ctx.strokeStyle = style(1); trace('mer');
+    if (nu > 0.002) { ctx.strokeStyle = style(nu); trace('vide'); }
+  }
+
+  /**
+   * Le trait de côte en coordonnées monde, gardé en `Path2D`. Il était reconstruit point par point
+   * cinq à sept fois par image (ombre, écume, haut-fond, découpe des sols, teinte du climat…) : sur
+   * une grande île, près de trois mille appels au contexte pour une ligne qui ne bouge pas. Il ne
+   * change qu'avec la forme de l'île (`contourIle`) et le fondu de l'île nue (`nu`).
+   */
+  cheminMonde(quoi = 'tout') {
+    const cote = this.contourIle(), nu = this.nuAvance();
+    if (!this._chemins || this._chemins.cote !== cote) this._chemins = { cote, m: new Map() };
+    const k = `${quoi}|${nu}`; let p = this._chemins.m.get(k); if (p) return p;
+    if (this._chemins.m.size > 12) this._chemins.m.clear();   // pendant le fondu de l'île nue, `nu` change à chaque image
+    p = new Path2D(); this.cheminCote(p, null, quoi); this._chemins.m.set(k, p);
+    return p;
   }
 
   /** Le sol de RIVE d'une case d'eau : la terre de ses voisines, à défaut du sable. */
@@ -1190,13 +1483,13 @@ export class IslandRenderer {
   }
 
   /**
-   * Le pied de l'île : l'écume le long du trait de côte, puis, sous chaque tuile de bord, sa propre
-   * terre débordant largement de l'hexagone mais découpée sur la côte — c'est elle qui colore ce que
-   * l'érosion a gagné sur la mer. Dessiné entre l'ombre portée et les sols.
+   * Le pied de l'île : l'écume le long du trait de côte, qui respire. Puis, sous chaque tuile de bord,
+   * sa propre terre débordant largement de l'hexagone mais découpée sur la côte — c'est elle qui
+   * colore ce que l'érosion a gagné sur la mer (`drawTerre`, gardée avec les sols). Dessiné entre
+   * l'ombre portée et les sols.
    */
   drawShore(ctx) {
     const cote = this.rivage(); if (!cote.length) return;
-    const images = Assets.manifest().images || {};
     const nu = this.nuAvance();
     const winter = this.isl.season === 'winter', storm = this.weather === 'storm';
     ctx.save(); this.worldSpace(ctx);
@@ -1209,8 +1502,23 @@ export class IslandRenderer {
     // Le liseré FIN ne paraît pas sur l'île nue : sur une image fixe l'œil lit un contour dessiné
     // plutôt qu'un rivage. Il ne reste alors que l'écume large.
     if (nu < 1) ecume(4.5, ((winter ? 0.40 : 0.52) + 0.18 * breath) * (1 - nu));
-    ctx.beginPath(); this.cheminCote(ctx, null); ctx.clip();
+    ctx.restore();
+    // la terre qui recouvre la moitié intérieure de l'écume vient juste après, en tête de la couche
+    // gardée des sols (`drawTerre`) : elle ne bouge pas, l'écume si
+  }
+
+  /**
+   * La terre du pied de l'île : sous chaque tuile de bord, sa propre terre débordant largement de
+   * l'hexagone, découpée sur la côte. Statique : peinte avec les sols dans leur image gardée.
+   * `vis` ne sert qu'à ne peindre qu'une bande de l'écran (le front d'un changement de saison).
+   */
+  drawTerre(ctx, vis) {
+    const cote = this.rivage(); if (!cote.length) return;
+    const images = Assets.manifest().images || {}; const cam = this.cam;
+    ctx.save(); this.worldSpace(ctx);
+    ctx.clip(this.cheminMonde());
     for (const { t, w } of cote) {
+      if (vis && !vis(cam.toScreen(w.x, w.y), 400)) continue;
       const season = this.seasonFor(w.x);
       // Une case d'EAU au bord prend la couleur de sa RIVE, pas la sienne : de l'eau posée sur la
       // mer est invisible. Avec la terre de ses voisines, l'étang se lit comme tenu par le rivage,
@@ -1267,28 +1575,34 @@ export class IslandRenderer {
    * texturée) pour que les croisements restent propres.
    */
   drawPaths(ctx) {
-    const b = this.isl.board, cam = this.cam, z = cam.zoom;
+    const b = this.isl.board, cam = this.cam;
     const shapes = pathShapes(b);
     if (!shapes.length) return;
     const season = this.isl.season;
     const col = { spring: '#c9a570', summer: '#d1ab74', autumn: '#bf9463', winter: '#dcd2c3' }[season] || '#c9a570';
     const dark = { spring: '#a37f4c', summer: '#ab864f', autumn: '#966f42', winter: '#b7ab9a' }[season] || '#a37f4c';
-    const hors = (pts) => pts.every((p) => p.x < -200 || p.x > STAGE.W + 200 || p.y < -200 || p.y > STAGE.H + 200);
-    const polygone = (r) => {
-      const g = r.gauche.map((p) => cam.toScreen(p.x, p.y)), d = r.droite.map((p) => cam.toScreen(p.x, p.y));
-      if (hors(g)) return false;
-      ctx.beginPath(); ctx.moveTo(g[0].x, g[0].y);
-      for (let i = 1; i < g.length; i++) ctx.lineTo(g[i].x, g[i].y);
-      for (let i = d.length - 1; i >= 0; i--) ctx.lineTo(d[i].x, d[i].y);
-      ctx.closePath(); return true;
-    };
-    ctx.save(); ctx.lineJoin = 'round';
-    ctx.globalAlpha = 0.5; ctx.fillStyle = dark; for (const s of shapes) if (polygone(s.bordure)) ctx.fill();
+    // Les polygones sont gardés en coordonnées monde (`Path2D`), avec leur boîte : ils ne changent
+    // qu'avec le plateau, et on les reprojetait point par point à chaque image (1 800 appels au contexte).
+    if (!this._rubans || this._rubans.shapes !== shapes) {
+      const poly = (r) => {
+        const p = new Path2D(), g = r.gauche, d = r.droite; let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+        for (const q of g) { x0 = Math.min(x0, q.x); x1 = Math.max(x1, q.x); y0 = Math.min(y0, q.y); y1 = Math.max(y1, q.y); }
+        p.moveTo(g[0].x, g[0].y); for (let i = 1; i < g.length; i++) p.lineTo(g[i].x, g[i].y);
+        for (let i = d.length - 1; i >= 0; i--) p.lineTo(d[i].x, d[i].y);
+        p.closePath(); return { p, x0, x1, y0, y1 };
+      };
+      this._rubans = { shapes, l: shapes.map((s) => ({ bordure: poly(s.bordure), ruban: poly(s.ruban) })) };
+    }
+    // même règle qu'avant : un polygone dont tout le bord gauche est à plus de 200 px hors de l'écran est sauté
+    const dedans = (r) => { const a = cam.toScreen(r.x0, r.y0), c = cam.toScreen(r.x1, r.y1); return !(c.x < -200 || a.x > STAGE.W + 200 || c.y < -200 || a.y > STAGE.H + 200); };
+    ctx.save(); this.ecranSpace(ctx);
+    ctx.globalAlpha = 0.5; ctx.fillStyle = dark; for (const s of this._rubans.l) if (dedans(s.bordure)) ctx.fill(s.bordure.p);
     ctx.globalAlpha = 1;
-    // la terre : le motif est accroché au monde (il suit la caméra), pas à l'écran
+    // la terre : le motif est accroché au monde (il suit la caméra), pas à l'écran. On dessine déjà en
+    // repère monde : le motif n'a plus qu'à suivre l'échelle du zoom (hors respiration, comme avant)
     const motif = this.motifChemin(season); let fill = col;
-    if (motif && typeof DOMMatrix === 'function') { const pat = ctx.createPattern(motif, 'repeat'); const o = cam.toScreen(0, 0); if (pat && pat.setTransform) { pat.setTransform(new DOMMatrix([z, 0, 0, z, o.x, o.y])); fill = pat; } }
-    ctx.fillStyle = fill; for (const s of shapes) if (polygone(s.ruban)) ctx.fill();
+    if (motif && typeof DOMMatrix === 'function') { const pat = ctx.createPattern(motif, 'repeat'); const k = cam.zoom / cam.z; if (pat && pat.setTransform) { pat.setTransform(new DOMMatrix([k, 0, 0, k, 0, 0])); fill = pat; } }
+    ctx.fillStyle = fill; for (const s of this._rubans.l) if (dedans(s.ruban)) ctx.fill(s.ruban.p);
     ctx.restore();
   }
 
