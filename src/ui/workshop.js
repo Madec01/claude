@@ -1,12 +1,12 @@
 // L'Atelier des saisons : dépenser les graines en améliorations.
 import { h, button, icon, append } from './dom.js';
 import { campaignMechanics, mechIsland } from '../data/campaign.js';
-import { UPGRADES, upgradeCost, upgradeMax, playerChapter } from '../data/upgrades.js';
+import { UPGRADES, upgradeCost, upgradeMax, playerChapter, upgradesAPortee } from '../data/upgrades.js';
 import { CHAPTERS } from '../data/campaign.js';
 import { Save } from '../core/save.js';
 import { AudioSys } from '../core/audio.js';
 
-export function buildWorkshop({ onContinue, intro }) {
+export function buildWorkshop({ onContinue, intro, continuer = false }) {
   const c = Save.campaign;
   const root = h('div', { class: 'panel panel-workshop' });
   const seedsEl = h('div', { class: 'seeds', title: 'Graines' }, icon('icon_leaf'), h('b', {}, String(c.seeds)), h('span', {}, 'graines'));
@@ -23,6 +23,8 @@ export function buildWorkshop({ onContinue, intro }) {
   const render = () => {
     grid.innerHTML = '';
     seedsEl.querySelector('b').textContent = String(c.seeds);
+    // ce que le joueur a vu à portée ici : le bilan et le passage entre deux îles ne rappellent l'Atelier que pour ce qui est nouveau depuis
+    c.atelierVu = upgradesAPortee(c).map((u) => u.id); Save.save();
     for (const u of UPGRADES) {
       const lvl = c.upgrades[u.id] || 0, max = upgradeMax(u), cost = upgradeCost(u, lvl);
       // une amélioration s'ouvre à son chapitre (et, pour certaines, une fois sa mécanique arrivée) ; les suivantes restent visibles, grisées
@@ -58,7 +60,7 @@ export function buildWorkshop({ onContinue, intro }) {
     // au milieu des autres sans que rien ne les signale
     chapLine ? h('p', { class: 'ws-chap' }, chapLine) : null,
     grid,
-    h('div', { class: 'panel-actions' }, button('Retour', onContinue, { cls: 'btn-primary', iconName: 'icon_return' })),
+    h('div', { class: 'panel-actions' }, continuer ? button('Continuer', onContinue, { cls: 'btn-primary', iconName: 'icon_arrow_right', title: 'Vers l’île suivante' }) : button('Retour', onContinue, { cls: 'btn-primary', iconName: 'icon_return' })),
   );
   return root;
 }

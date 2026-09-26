@@ -94,6 +94,7 @@ const defaults = () => ({
     prologueSeen: false, completed: false, islandsPlayed: 0, memoriesRead: [],
     insignes: { iles: {}, chapitres: [] },   // archétypes gagnés par île ({ 12: ['sauvage', …] }) et chapitres clos
     announced: [],   // déblocages déjà annoncés par une bannière (modes de jeu, chapitre d'Atelier) : chacun ne passe qu'une fois
+    atelierVu: [],   // améliorations vues à portée lors de la dernière visite de l'Atelier : le bilan et le passage entre deux îles ne rappellent que ce qui est nouveau
   },
   cloud: { choice: null, uid: null, pending: null },   // sauvegarde en ligne : choix de connexion (null = pas encore demandé, 'anon', 'google', 'none') ; `pending` = redirection Google en cours
   seen: {},   // cartes explicatives déjà vues (sentiers, rivière-lac), une seule fois par joueur

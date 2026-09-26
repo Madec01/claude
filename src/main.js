@@ -39,7 +39,7 @@ import { buildResults } from './ui/results.js';
 import { buildCollection } from './ui/collection.js';
 import { buildWorkshop } from './ui/workshop.js';
 import { celebrate, celebrateThing } from './ui/achievements.js';
-import { UPGRADES, playerChapter } from './data/upgrades.js';
+import { UPGRADES, playerChapter, upgradesNeuvesAPortee } from './data/upgrades.js';
 import { Version } from './core/version.js';
 import { tempoDef, entrainementDef, defiDuJourDef, recordsTempo, OBJECTIF_PAR_ID } from './data/tempo.js';
 import { FAMILIES } from './data/tiles.js';
@@ -538,8 +538,14 @@ const Game = {
     // passe directement à l'écran de départ de l'île suivante ; l'Atelier attend au menu.
     this.remindBackup();
     if (def.id === CAMPAIGN_SIZE) { scenes.go('story', { screens: endingScreens(), skippable: false, onDone: () => scenes.go('ending') }); return; }
-    if (c.unlockedIsland > def.id) this.startIsland(def.id + 1);
-    else { this.showMenu(); const t = gateText(c, Math.ceil(def.id / CHAPTER_LEN)); if (t) this.toast(t, 7000); }
+    if (c.unlockedIsland > def.id) {
+      // les graines dormaient dans la poche (le commanditaire lui-même avait oublié l'Atelier) : quand elles paient une
+      // amélioration que le joueur n'a pas encore vue à portée, l'Atelier s'ouvre une fois sur le chemin de l'île suivante.
+      // Il note ce qu'il montre : décliner ne le fait pas revenir tant que rien de nouveau n'est à portée.
+      const neuves = this.testMode ? [] : upgradesNeuvesAPortee(c);
+      if (neuves.length) { scenes.go('workshop', { continuer: true, intro: `Tes ${c.seeds} graine${c.seeds > 1 ? 's' : ''} paient ${neuves.length === 1 ? 'une amélioration' : `${neuves.length} améliorations`} que tu n’as pas encore vue${neuves.length > 1 ? 's' : ''} à portée${neuves.length <= 4 ? ` : ${neuves.map((u) => u.name).join(', ')}` : ''}. Choisis, ou continue — l’Atelier reste au menu.`, onContinue: () => this.startIsland(def.id + 1) }); return; }
+      this.startIsland(def.id + 1);
+    } else { this.showMenu(); const t = gateText(c, Math.ceil(def.id / CHAPTER_LEN)); if (t) this.toast(t, 7000); }
   },
   /** L'Atelier des saisons, depuis le menu. */
   showWorkshop() { scenes.go('workshop', { onContinue: () => this.showMenu() }); },
@@ -1270,7 +1276,7 @@ class ResultsScene {
   async enter({ result, def, newRecord, seedsGained, daily }) {
     AudioSys.playMusic('results', { fade: 1.5 });
     this.bg = scenes.scenes.get('menu').ensureBg();
-    const show = () => showUI(buildResults({ result, def, newRecord, seedsGained, daily, memory: def.daily || def.infinite || def.garden ? [] : islandMemoryScreens(def, result).map((x) => x.text), onContinue: () => Game.afterResults(result, def), onRetry: () => (def.tempo ? Game.rejouerTempo(def) : Game.startIsland(def.id, { skipIntro: true })), onMenu: () => scenes.go('menu'), onPostcard: result.postcard ? () => showUI(buildPostcard({ canvas: result.postcard.canvas, filename: result.postcard.filename, onBack: show }), 'panel-wrap') : null }), 'results-wrap'); show();
+    const show = () => showUI(buildResults({ result, def, newRecord, seedsGained, daily, memory: def.daily || def.infinite || def.garden ? [] : islandMemoryScreens(def, result).map((x) => x.text), onContinue: () => Game.afterResults(result, def), onRetry: () => (def.tempo ? Game.rejouerTempo(def) : Game.startIsland(def.id, { skipIntro: true })), onMenu: () => scenes.go('menu'), onPostcard: result.postcard ? () => showUI(buildPostcard({ canvas: result.postcard.canvas, filename: result.postcard.filename, onBack: show }), 'panel-wrap') : null, onWorkshop: () => showUI(buildWorkshop({ onContinue: show }), 'workshop-wrap') }), 'results-wrap'); show();
   }
   exit() { hideUI(); }
   update(dt) { this.bg.update(dt); input.endFrame(); }
@@ -1284,7 +1290,7 @@ class PrepScene {
   render(ctx, alpha, dt) { this.bg.render(ctx, alpha, dt); ctx.fillStyle = 'rgba(244,239,230,0.45)'; ctx.fillRect(0, 0, STAGE.W, STAGE.H); }
 }
 class WorkshopScene {
-  async enter({ onContinue }) { AudioSys.playMusic('results', { fade: 1.5 }); this.bg = scenes.scenes.get('menu').ensureBg(); showUI(buildWorkshop({ onContinue }), 'workshop-wrap'); }
+  async enter({ onContinue, intro, continuer }) { AudioSys.playMusic('results', { fade: 1.5 }); this.bg = scenes.scenes.get('menu').ensureBg(); showUI(buildWorkshop({ onContinue, intro, continuer }), 'workshop-wrap'); }
   exit() { hideUI(); }
   update(dt) { this.bg.update(dt); input.endFrame(); }
   render(ctx, alpha, dt) { this.bg.render(ctx, alpha, dt); ctx.fillStyle = 'rgba(244,239,230,0.5)'; ctx.fillRect(0, 0, STAGE.W, STAGE.H); }

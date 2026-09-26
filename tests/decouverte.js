@@ -128,6 +128,29 @@ const btn = (page, label) => page.evaluate((l) => {
   });
   check(trace > 0, `le plateau entoure les tuiles visées (${trace} contour(s))`);
 
+  // --- 5 bis. les graines qui dorment : le bilan offre l'Atelier, et l'Atelier s'ouvre une fois entre deux îles
+  const bilan = await page.evaluate(async () => {
+    const { buildResults } = await import('/src/ui/results.js');
+    const faux = { island: 11, stars: 2, gold: false, goldThreshold: 300, thresholds: [100, 200, 260], score: 210, cells: 40, filled: 38, seasons: 4, placements: 38, wishesDone: 0, wishesTotal: 0, stats: { closed: 3, biggestRegion: 4, faunaMax: 2 }, tally: { edges: 100 } };
+    const el = buildResults({ result: faux, def: { id: 11, name: 'Essai' }, onContinue: () => {}, onRetry: () => {}, onMenu: () => {}, onWorkshop: () => {} });
+    const b = el.querySelector('.btn-atelier'); const note = el.querySelector('.res-note');
+    return { bouton: b ? b.textContent : null, titre: b ? b.getAttribute('title') || '' : '', note: note ? note.textContent : '', graines: window.CS.Save.campaign.seeds };
+  });
+  check(!!bilan.bouton && /Atelier · \d+ à portée/.test(bilan.bouton), `avec ${bilan.graines} graines, le bilan offre un bouton « ${bilan.bouton} »`);
+  check(/paient déjà/.test(bilan.note) && /graines/.test(bilan.titre), 'et dit ce que les graines paient');
+  await page.evaluate(() => { const c = window.CS.Save.campaign; c.atelierVu = []; window.CS.Save.save(); window.CS.Game.afterResults({ island: 11 }, window.CS.campaignIsland(11)); });
+  await page.waitForTimeout(600);
+  const atelier1 = await page.evaluate(() => ({ scene: window.CS.scenes.currentName, bouton: (document.querySelector('.panel-workshop .panel-actions .btn-primary') || {}).textContent || '', intro: (document.querySelector('.ws-intro') || {}).textContent || '', vu: (window.CS.Save.campaign.atelierVu || []).length }));
+  check(atelier1.scene === 'workshop' && /Continuer/.test(atelier1.bouton), `après le bilan, l’Atelier s’ouvre une fois, avec « Continuer » (${atelier1.scene}, « ${atelier1.bouton} »)`);
+  check(/pas encore vue/.test(atelier1.intro) && atelier1.vu > 0, `il dit pourquoi et note ce qu’il montre (${atelier1.vu} vue(s))`);
+  await page.click('.panel-workshop .panel-actions .btn-primary');
+  await page.waitForFunction(() => ['prep', 'island', 'story'].includes(window.CS.scenes.currentName), null, { timeout: 25000 });
+  check(true, 'Continuer mène à l’île suivante');
+  await page.evaluate(() => window.CS.Game.afterResults({ island: 11 }, window.CS.campaignIsland(11)));
+  await page.waitForTimeout(600);
+  const atelier2 = await page.evaluate(() => window.CS.scenes.currentName);
+  check(atelier2 !== 'workshop', `rien de nouveau à portée : l’Atelier ne revient pas (${atelier2})`);
+
   // --- 6. l'étoile d'or se montre dès deux étoiles
   const or = await page.evaluate(async () => {
     const { buildResults } = await import('/src/ui/results.js');

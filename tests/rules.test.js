@@ -152,7 +152,13 @@ check(affinity('meadow', 'water') === 0, 'prairie-eau = 0');
 
 // --- Atelier par chapitre : cohérence des données et effets des nouvelles améliorations
 {
-  const { UPGRADES, playerChapter } = await import('../src/data/upgrades.js');
+  const { UPGRADES, playerChapter, upgradesAPortee, upgradesNeuvesAPortee } = await import('../src/data/upgrades.js');
+  // les graines qui paient : ce que le menu, le bilan et le passage entre deux îles rappellent
+  { const c = { unlockedIsland: 12, seeds: 8, upgrades: {}, atelierVu: [] };
+    const ap = upgradesAPortee(c); check(ap.length >= 1 && ap.every((u) => u.chapter <= 4 && u.costs[0] <= 8), `île 12, 8 graines : ${ap.length} amélioration(s) à portée (${ap.map((u) => u.id).join(', ')})`);
+    check(upgradesAPortee({ ...c, seeds: 0 }).length === 0, 'sans graine, rien à portée');
+    c.atelierVu = ap.map((u) => u.id); check(upgradesNeuvesAPortee(c).length === 0, 'une fois vues, plus rien de neuf');
+    c.seeds = 30; check(upgradesNeuvesAPortee(c).length === upgradesAPortee(c).length - ap.length, 'davantage de graines : seules les nouvelles à portée sont neuves'); }
   let prevCh = 0;
   for (const u of UPGRADES) { check(u.chapter >= prevCh && u.chapter >= 1 && u.chapter <= CHAPTERS.length, `amélioration ${u.id} : chapitre croissant`); prevCh = u.chapter; if (u.requires) { const at = mechIsland(u.requires); check(at !== null && Math.ceil(at / 5) <= u.chapter, `amélioration ${u.id} : sa mécanique (${u.requires}, île ${at}) arrive avant son chapitre ${u.chapter}`); } check(u.levels.length === u.costs.length + 1, `amélioration ${u.id} : niveaux et coûts`); }
   check(playerChapter(1) === 1 && playerChapter(CHAPTER_LEN) === 1 && playerChapter(CHAPTER_LEN + 1) === 2 && playerChapter(CAMPAIGN_SIZE) === CHAPTERS.length, 'chapitre du joueur');

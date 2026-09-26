@@ -3,9 +3,11 @@ import { h, button, icon, fmtInt, stagger, append } from './dom.js';
 import { STORY } from '../data/story.js';
 import { AudioSys } from '../core/audio.js';
 import { Save } from '../core/save.js';
+import { upgradesAPortee } from '../data/upgrades.js';
 import { recordsTempo } from '../data/tempo.js';
 
-export function buildResults({ result, def, onContinue, onRetry, onMenu, onPostcard = null, newRecord, seedsGained, daily, memory = [] }) {
+export function buildResults({ result, def, onContinue, onRetry, onMenu, onPostcard = null, onWorkshop = null, newRecord, seedsGained, daily, memory = [] }) {
+  const c = Save.campaign, aPortee = upgradesAPortee(c);
   const { stars, score, thresholds } = result;
   const brume = result.brume || null;
   const tempo = result.island === 'tempo'; const vides = tempo && result.stats.vides;
@@ -53,10 +55,12 @@ export function buildResults({ result, def, onContinue, onRetry, onMenu, onPostc
     result.tally ? whyBlock(result) : null,
     // sans étoile, l'île est terminée quand même : plus personne n'est muré sur une île (les étoiles ne gardent que les portes de chapitre)
     !special && !daily && stars === 0 ? h('p', { class: 'res-note' }, 'L’île est terminée : la suivante s’ouvre quand même. Les étoiles ne gardent que les portes de chapitre, et elles se rattrapent quand tu veux.') : null,
-    tempo ? h('p', { class: 'res-note' }, def && def.tuto ? 'Entraînement avec le tutoriel : le temps s’arrêtait sous les cartes, cette partie ne fait pas de record.' : def && def.defi ? (() => { const tp = recordsTempo(Save.data.tempo || {}); const b = ((tp.defi || {}).best || {})[def.defi]; return `Le défi du jour : la même île pour tout le monde, un record par jour${b ? ` — le tien aujourd’hui : ${b}` : ''}. Demain, une autre île.`; })() : (() => { const tp = recordsTempo(Save.data.tempo || {}); const cad = (def && def.cadran) || 3; return `Le Souffle court : une île neuve à chaque partie, un meilleur score par temps choisi${tp.bests[cad] ? ` — le tien à ${cad} s : ${tp.bests[cad]}` : ''}.`; })()) : daily ? h('p', { class: 'res-note' }, 'Île du jour : la même île pour tout le monde, un meilleur score par jour. Demain, une autre île.') : special ? null : h('p', { class: 'res-note' }, Save.options.testMode ? 'Mode test : les graines et les étoiles ne sont pas enregistrées.' : seedsGained ? 'Graines : 1 par nouvelle étoile, 1 par vœu exaucé et 3 pour l’île, la première fois. Elles se dépensent dans l’Atelier des saisons, depuis le menu.' : 'Pas de nouvelle graine : elles viennent des nouvelles étoiles, des vœux exaucés et de la première fois qu’une île est terminée.'),
+    tempo ? h('p', { class: 'res-note' }, def && def.tuto ? 'Entraînement avec le tutoriel : le temps s’arrêtait sous les cartes, cette partie ne fait pas de record.' : def && def.defi ? (() => { const tp = recordsTempo(Save.data.tempo || {}); const b = ((tp.defi || {}).best || {})[def.defi]; return `Le défi du jour : la même île pour tout le monde, un record par jour${b ? ` — le tien aujourd’hui : ${b}` : ''}. Demain, une autre île.`; })() : (() => { const tp = recordsTempo(Save.data.tempo || {}); const cad = (def && def.cadran) || 3; return `Le Souffle court : une île neuve à chaque partie, un meilleur score par temps choisi${tp.bests[cad] ? ` — le tien à ${cad} s : ${tp.bests[cad]}` : ''}.`; })()) : daily ? h('p', { class: 'res-note' }, 'Île du jour : la même île pour tout le monde, un meilleur score par jour. Demain, une autre île.') : special ? null : h('p', { class: 'res-note' }, Save.options.testMode ? 'Mode test : les graines et les étoiles ne sont pas enregistrées.' : aPortee.length ? `Tes ${c.seeds} graine${c.seeds > 1 ? 's' : ''} paient déjà ${aPortee.length === 1 ? 'une amélioration' : `${aPortee.length} améliorations`} de l’Atelier des saisons${aPortee.length <= 3 ? ` (${aPortee.map((u) => u.name).join(', ')})` : ''} : elles ne servent à rien dans la poche.` : seedsGained ? 'Graines : 1 par nouvelle étoile, 1 par vœu exaucé et 3 pour l’île, la première fois. Elles se dépensent dans l’Atelier des saisons, depuis le menu.' : 'Pas de nouvelle graine : elles viennent des nouvelles étoiles, des vœux exaucés et de la première fois qu’une île est terminée.'),
     newRecord ? h('div', { class: 'res-record' }, 'Nouveau record !') : null,
     h('div', { class: 'panel-actions' },
       button(special ? 'Rejouer' : 'Continuer', onContinue, { cls: 'btn-primary', iconName: 'icon_arrow_right' }),
+      // les graines dormaient : le commanditaire lui-même avait oublié l'Atelier. Quand elles paient une amélioration, le bilan le dit par un bouton, pas par une phrase
+      onWorkshop && aPortee.length && !special && !Save.options.testMode ? button(`Atelier · ${aPortee.length} à portée`, onWorkshop, { cls: 'btn-atelier', iconName: 'icon_gear', title: `${c.seeds} graine${c.seeds > 1 ? 's' : ''} : ${aPortee.map((u) => u.name).join(', ')}` }) : null,
       tempo && def && !def.entrainement ? button('Rejouer cette île', onRetry, { iconName: 'icon_return', title: 'La même île, le même délai : pour comparer deux plans' }) : special || result.island === 'daily' ? null : button('Rejouer l’île', onRetry, { iconName: 'icon_return' }),
       onPostcard ? button('Carte postale', onPostcard, { iconName: 'icon_save' }) : null,
       button('Menu', onMenu, { cls: 'btn-ghost', iconName: 'icon_home' }),

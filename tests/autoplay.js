@@ -103,6 +103,7 @@ function parseList(s) {
         if (name === 'story') { await page.keyboard.press('Escape'); await page.waitForTimeout(600); }
         else if (name === 'prep') { await page.screenshot({ path: path.join(OUT, `depart-${id + 1}.png`) }); break; }
         else if (name === 'ending') { await page.screenshot({ path: path.join(OUT, 'ending.png') }); break; }
+        else if (name === 'workshop') { await page.screenshot({ path: path.join(OUT, `atelier-${id}.png`) }); await page.click('.panel-workshop .panel-actions .btn-primary'); await page.waitForTimeout(700); }
         else break;
       }
     }

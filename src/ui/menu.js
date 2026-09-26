@@ -11,7 +11,7 @@ import { ISLANDS } from '../data/islands.js';
 import { STORY } from '../data/story.js';
 import { dailyKey, dailyLabel } from '../data/daily.js';
 import { recordsTempo } from '../data/tempo.js';
-import { UPGRADES, upgradeCost, playerChapter } from '../data/upgrades.js';
+import { UPGRADES, upgradeCost, playerChapter, upgradesAPortee } from '../data/upgrades.js';
 import { insigne, insignesGagnes, rangeeArchetypes, srcChapitre } from './collection.js';
 import { campaignMechanics } from '../data/campaign.js';
 
@@ -44,7 +44,7 @@ export function buildMenu({ game }) {
   // une partie laissée en plan attend sur l'appareil : elle passe devant tout le reste
   // (sauf si l'île ne peut plus être reconstruite : l'île du jour d'hier, par exemple)
   // une amélioration ouverte, pas au maximum, que les graines paient
-  const atPortee = () => { const chap = playerChapter(c.unlockedIsland), mech = campaignMechanics(Math.max(1, c.unlockedIsland || 1)); return UPGRADES.some((u) => { const cost = upgradeCost(u, c.upgrades[u.id] || 0); return u.chapter <= chap && (!u.requires || mech.has(u.requires)) && cost !== null && c.seeds >= cost; }); };
+  const atPortee = () => upgradesAPortee(c).length > 0;
   const run = (() => { const d = RunSave.describe(); return d && game.defFromWhere(d.where) ? d : null; })();
   append(nav, 
     run ? navButton('Reprendre', () => game.resumeRun(), { cls: 'btn-primary btn-big btn-resume', iconName: 'icon_return', title: `${run.title} · ${run.placements} tuile${run.placements > 1 ? 's' : ''} posée${run.placements > 1 ? 's' : ''} · ${SEASON_FR[run.season] || ''} · laissée ${run.when}`, sub: `${run.title} · ${run.placements} tuile${run.placements > 1 ? 's' : ''}` }) : null,

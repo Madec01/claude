@@ -1,6 +1,6 @@
 // L'Atelier des saisons : améliorations achetées en graines. Chaque amélioration s'ouvre à un chapitre de la campagne
 // (`chapter`) et, pour certaines, une fois sa mécanique introduite (`requires`, voir MECH_AT dans campaign.js).
-import { CHAPTER_LEN } from './campaign.js';
+import { CHAPTER_LEN, campaignMechanics } from './campaign.js';
 
 export const UPGRADES = [
   // chapitre 1 : prise en main
@@ -28,5 +28,12 @@ export const upgradeCost = (u, level) => (level < u.costs.length ? u.costs[level
 export const upgradeMax = (u) => u.costs.length;
 /** Chapitre atteint par le joueur d'après la dernière île débloquée. */
 export const playerChapter = (unlockedIsland) => Math.max(1, Math.ceil(Math.max(1, unlockedIsland || 1) / CHAPTER_LEN));
+/** Les améliorations ouvertes (chapitre atteint, mécanique arrivée), pas au maximum, que les graines paient maintenant. */
+export function upgradesAPortee(c) {
+  const chap = playerChapter(c.unlockedIsland), mech = campaignMechanics(Math.max(1, c.unlockedIsland || 1));
+  return UPGRADES.filter((u) => { const cost = upgradeCost(u, (c.upgrades || {})[u.id] || 0); return u.chapter <= chap && (!u.requires || mech.has(u.requires)) && cost !== null && (c.seeds || 0) >= cost; });
+}
+/** Celles que le joueur n'a pas encore vues à portée : l'Atelier note ce qu'il montre (`atelierVu`), et c'est ce qui manque à cette liste qui vaut un rappel. */
+export const upgradesNeuvesAPortee = (c) => upgradesAPortee(c).filter((u) => !(c.atelierVu || []).includes(u.id));
 /** Première île qui introduit la mécanique requise par l'amélioration (null si aucune). */
 export const upgradeUnlockIsland = (u, islands) => (u.requires ? (islands.find((i) => i.mechanics.includes(u.requires)) || { id: null }).id : null);
