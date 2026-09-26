@@ -34,7 +34,10 @@ for (let n = range[0]; n <= (range[1] ?? range[0]); n++) {
   // Échelle mesurée sur quatre niveaux de jeu (cinquante îles, trois parties chacun) rapportés à cette médiane :
   // jeu au hasard 0,43 · joueur tranquille 0,66 · joueur appliqué 0,70 · meilleur coup immédiat 0,73.
   // D'où 45 % (« tu as joué, pas posé au hasard »), 65 % (« bonne partie »), 85 % (« très bonne »), 100 % pour l'or.
-  const m = med(strong); out[n] = [0.45, 0.65, 0.85, 1.0].map((f) => Math.round((m / def.cells) * f * 10) / 10);
+  // à partir de l'île 11 (bâtir, fusions, faune qui se prépare de loin), le joueur du meilleur coup immédiat ne fait plus que 59 à 77 % du bot
+  // fort, contre 86 à 96 % avant : les seuils passent à 40 / 58 / 75 % pour qu'un joueur appliqué y ait ses trois étoiles (26 septembre)
+  const FACT = n >= 11 ? [0.40, 0.58, 0.75, 1.0] : [0.45, 0.65, 0.85, 1.0];
+  const m = med(strong); out[n] = FACT.map((f) => Math.round((m / def.cells) * f * 10) / 10);
   rows.push({ île: def.id, cases: def.cells, glouton: Math.round(med(greedy)), fort_med: Math.round(m), fort_min: Math.min(...strong), fort_max: Math.max(...strong), par_case: (m / def.cells).toFixed(2), vœux: (wishes.reduce((a, b) => a + b, 0) / N).toFixed(2), seuils_actuels: (def.starFactors || [2.8, 5.2, 7.8]).map((f) => Math.round(def.cells * f)).join('/'), nouveaux: out[n].join('/'), s: ((Date.now() - t0) / 1000).toFixed(1) });
   console.error(`île ${def.id} : ${rows[rows.length - 1].s} s`);
 }

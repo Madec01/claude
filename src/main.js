@@ -805,6 +805,8 @@ class IslandScene {
       // au Souffle court, un seul texte flottant par pose (le total) et pas de ruban de coup : le regard reste sur l'île ; le mot va sur la tuile
       const sobre = !!this.tempo;
       for (const bs of e.result.base) { if (!sobre) setTimeout(() => fx.floatText(w.x, w.y + 30, `+${bs.pts} ${bs.label}`, '#5aa7d6', 18, 1.2), 90 * i++); if (bs.label === 'rivière') this.tutorial.onEvent('river'); }
+      // la première grande région : une carte l'explique, une seule fois par joueur
+      if (!sobre && e.result.base.some((x) => /grande région/.test(x.label))) { const seen = Save.data.seen || (Save.data.seen = {}); if (!seen.grandeRegion) { seen.grandeRegion = true; Save.save(); this.tutorial.pushCard('grandeRegion', STORY.mechCards.grandeRegion); } }
       if (e.result.total !== 0) setTimeout(() => fx.floatText(w.x, w.y - 40, `${e.result.total > 0 ? '+' : ''}${e.result.total}`, e.result.total > 0 ? '#2b2a26' : '#d95f4b', 26, 1.4), 90 * i + 60);
       if (sobre && this.tempo.dernier && !this.tempo.attend) this.hud.retourTempo(this.tempo.dernier);
       // commentaire du coup, série et paliers de score

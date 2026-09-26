@@ -31,7 +31,7 @@ function pairs(f) {
 
 const TABS = {
   tiles: { label: 'Tuiles', build: () => h('div', {},
-    h('p', { class: 'g-intro' }, 'Chaque bord partagé entre deux tuiles rapporte les points de leur affinité (affichés avant de poser). Une même famille vaut +1, une bonne paire +2, une mauvaise −1. Encercler complètement une région rapporte sa taille en tuiles (×2 pour un hameau, qui devient un bourg).'),
+    h('p', { class: 'g-intro' }, 'Chaque bord partagé entre deux tuiles rapporte les points de leur affinité (affichés avant de poser). Une même famille vaut +1, une bonne paire +2, une mauvaise −1. Encercler complètement une région rapporte sa taille en tuiles (×2 pour un hameau, qui devient un bourg). Une grande région paie davantage : à partir de cinq tuiles, chaque tuile qui l’agrandit gagne +1 (+2 à partir de dix) et sa prime de fermeture est multipliée par 1,5 (par 2 à partir de dix).'),
     h('div', { class: 'g-grid' }, ...FAMILIES.map((f) => h('div', { class: 'g-card' }, tileImg(f), h('div', {},
       h('h4', {}, name(f), FAMILY_FROM[f] ? h('span', { class: 'g-tag' }, `dès l’île ${FAMILY_FROM[f]}`) : null),
       h('p', {}, blurb(f)), pairs(f))))),

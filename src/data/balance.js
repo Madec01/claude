@@ -5,6 +5,9 @@ export const BALANCE = {
   season: { baseLength: 12 },
   points: { springHeath: 1, pathSeason: 1,
     closeBonusMul: { hamlet: 2 },      // prime de fermeture = taille × mul (1 par défaut)
+    // les grandes régions (décision du commanditaire, 26 septembre) : une pose qui agrandit une région de 5 tuiles ou plus
+    // gagne +1 (+2 à partir de 10) ; la prime de fermeture d'une région de 5 tuiles ou plus est multipliée par 1,5 (×2 à partir de 10)
+    grandeRegion: { des: 5, pose: 1, prime: 1.5, tresGrande: 10, poseTresGrande: 2, primeTresGrande: 2 },
     river: 2, pond: 1, lake: 1, mouth: 3, pondSeason: 1, springWater: 1, summerIrrigation: 1, springMarsh: 2, autumnHarvest: 2, winterVeillee: 3,
     faunaSeason: 3, wish: 10,
   },

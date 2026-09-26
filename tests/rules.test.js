@@ -663,6 +663,23 @@ for (const def of ISLANDS.slice(0, 4)) {
   { const S = { best: 420, bestSerie: 9, parties: 4, cadran: 5 }; recordsTempo(S); const une = JSON.stringify(S); recordsTempo(S); S.bests[5] = 100; recordsTempo(S);
     check(S.bests[3] === 420 && S.series[3] === 9 && une === JSON.stringify({ ...S, bests: { 3: 420 } }) && S.bests[5] === 100, `records rangés par délai : l'ancien passe à 3 s (${S.bests[3]}), la migration ne se rejoue pas`); }
 }
+// --- les grandes régions (26 septembre 2026) : +1 par pose qui agrandit une région de 5 tuiles ou plus (+2 à 10),
+// prime de fermeture ×1,5 à partir de 5 tuiles (×2 à 10), en plus du double des hameaux
+{
+  const G = BALANCE.points.grandeRegion;
+  const b = new Board(new Set(['0,0', '1,0', '2,0', '3,0', '4,0', '5,0', '6,0', '7,0', '8,0', '9,0', '10,0', '0,1', '1,1']));
+  for (let x = 0; x < 4; x++) b.place(x, 0, { family: 'forest', variant: 1 });
+  const p4 = preview(b, 4, 0, { family: 'forest', variant: 1 }, 'summer', {});
+  check(p4 && p4.base.some((x) => x.label === 'grande région' && x.pts === G.pose), `la cinquième forêt d'une région gagne +${G.pose} « grande région »`);
+  const p3 = preview(b, 0, 1, { family: 'field', variant: 1 }, 'summer', {});
+  check(p3 && !p3.base.some((x) => /grande région/.test(x.label)), 'une tuile seule de sa famille ne gagne rien');
+  for (let x = 4; x < 9; x++) b.place(x, 0, { family: 'forest', variant: 1 });
+  const p10 = preview(b, 9, 0, { family: 'forest', variant: 1 }, 'summer', {});
+  check(p10 && p10.base.some((x) => x.label === 'très grande région' && x.pts === G.poseTresGrande), `la dixième forêt gagne +${G.poseTresGrande} « très grande région »`);
+  // fermetures : une région de 6 rapporte 9 au lieu de 6 ; de 4, toujours 4 ; un bourg de 6 rapporte 18
+  const ferme = (fam, n) => { const cells = new Set(); for (let x = 0; x < n; x++) cells.add(`${x},0`); const bb = new Board(cells); for (let x = 0; x < n - 1; x++) bb.place(x, 0, { family: fam, variant: 1 }); const pv = preview(bb, n - 1, 0, { family: fam, variant: 1 }, 'summer', {}); return pv.closes.reduce((a, c) => a + c.bonus, 0); };
+  check(ferme('forest', 4) === 4 && ferme('forest', 6) === 9 && ferme('forest', 10) === 20 && ferme('hamlet', 6) === 18, `primes de fermeture : 4 → ${ferme('forest', 4)}, 6 → ${ferme('forest', 6)}, 10 → ${ferme('forest', 10)}, bourg de 6 → ${ferme('hamlet', 6)}`);
+}
 // --- vœux faisables (25 septembre 2026) : chaque vœu promet ses tuiles, la file les donne avant 80 % de l'échéance,
 // quel que soit le semis et pour toute île du jour (retour du commanditaire : « trois vergers » avec un seul verger en jeu)
 {

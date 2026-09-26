@@ -120,6 +120,9 @@ export function preview(board, q, r, tile, season, mods = {}) {
     board.version++; board._water = null;
   }
   if (mods.rule === 'feux' && Board.isFamily(placed, 'forest') && neighbors(q, r).some(([a, b]) => Board.isFamily(board.get(a, b), 'water'))) { base.push({ pts: 2, label: 'pare-feu' }); total += 2; }
+  // une grande région : la tuile qui agrandit une région de sa famille de 5 tuiles ou plus gagne +1 (+2 à partir de 10)
+  { const G = P.grandeRegion; const fam = placed.rare ? null : placed.family; const reg = fam ? board.region(q, r, fam) : null;
+    if (reg && reg.size >= G.des) { const pts = reg.size >= G.tresGrande ? G.poseTresGrande : G.pose; base.push({ pts, label: reg.size >= G.tresGrande ? 'très grande région' : 'grande région' }); total += pts; } }
   const closes = closedRegionsAround(board, q, r);
   for (const c of closes) total += c.bonus;
   board.remove(q, r);
@@ -141,11 +144,12 @@ export function closedRegionsAround(board, q, r) {
       seen.add(reg.id);
       if (fam === 'rock' && reg.cells.every((c) => c.rare || c.start)) continue; // les rochers de départ ne font pas de prime
       const closed = board.isRegionClosed(reg) || (reg.cells.some((c) => c.family === 'watchtower' || c.family === 'fort') && openCells(board, reg) <= 1);
-      const mul = P.closeBonusMul[fam] || 1;
+      // une grande région fermée : sa prime ×1,5 à partir de 5 tuiles, ×2 à partir de 10 (en plus du double des hameaux)
+      const G = P.grandeRegion; const mul = (P.closeBonusMul[fam] || 1) * (reg.size >= G.tresGrande ? G.primeTresGrande : reg.size >= G.des ? G.prime : 1);
       // la prime ne porte que sur ce qui n'a pas déjà été payé : une région close qui regrandit paie
       // son agrandissement, du côté qu'on veut, et jamais deux fois la même case
       const neuf = board.regionUnpaid(reg);
-      if (closed && neuf > 0) out.push({ family: fam, size: reg.size, newSize: neuf, bonus: neuf * mul, keys: reg.keys, id: reg.id, cells: reg.cells, again: neuf < reg.size });
+      if (closed && neuf > 0) out.push({ family: fam, size: reg.size, newSize: neuf, bonus: Math.round(neuf * mul), keys: reg.keys, id: reg.id, cells: reg.cells, again: neuf < reg.size });
     }
   }
   return out;
