@@ -251,6 +251,9 @@ html.compact .hud-ribbon.msg { font-size: 13px; padding: 4px 10px; }
 @keyframes rule-in { 0% { opacity: 0; transform: translateY(4px); } 40% { opacity: 0; } 100% { opacity: 0.75; transform: none; } }
 @keyframes score-hit { 0% { transform: scale(1); } 35% { transform: scale(1.22); color: var(--gold, #e0a33a); } 100% { transform: scale(1); } }
 .hud-score b.hit { display: inline-block; animation: score-hit 0.32s ease-out; }
+/* la même animation sous un autre nom : le HUD alterne les deux pour relancer le battement sans forcer de mise en page */
+@keyframes score-hit-bis { 0% { transform: scale(1); } 35% { transform: scale(1.22); color: var(--gold, #e0a33a); } 100% { transform: scale(1); } }
+.hud-score b.hit.bis { animation-name: score-hit-bis; }
 .panel-results .stars .gold-star .icon { opacity: 0.12; }
 .panel-results .stars .gold-star.on .icon, .panel-results .stars .gold-star.on.pop .icon { opacity: 1; filter: sepia(1) saturate(5) brightness(1.2) drop-shadow(0 0 10px rgba(224,163,58,0.9)); }
 .res-gold { text-align: center; font-family: var(--font-title); color: var(--gold, #e0a33a); margin: -4px 0 8px; }
@@ -404,7 +407,10 @@ html.compact .tempo-chrono .tc-cadre { width: 170px; height: 11px; }
 .brume-tirage.malus { border-color: #d95f4b; } .brume-tirage.malus .bt-kicker, .brume-tirage.malus b { color: #b0432f; }
 @keyframes tirage-pop { 0% { transform: translate(-50%, -50%) scale(1); } 40% { transform: translate(-50%, -50%) scale(1.08); } 100% { transform: translate(-50%, -50%) scale(1); } }
 /* le tutoriel montre ce dont il parle */
-.tuto-focus { outline: 3px solid var(--breath); outline-offset: 4px; border-radius: 14px; animation: tuto-focus 0.9s ease-in-out infinite alternate; }
+/* Le contour pulse cinq fois (4,5 s) puis reste allumé : une animation de couleur de contour ne tourne pas sur le
+   compositeur, elle repeignait toute la file à chaque image tant que la carte restait ouverte. Cinq allers impairs :
+   elle finit sur « to », la couleur pleine, identique au contour de repos — aucun saut à l'arrêt. */
+.tuto-focus { outline: 3px solid var(--breath); outline-offset: 4px; border-radius: 14px; animation: tuto-focus 0.9s ease-in-out 5 alternate; }
 @keyframes tuto-focus { from { outline-color: rgba(47,158,143,0.35); } to { outline-color: rgba(47,158,143,1); } }
 .brume-attente { text-align: center; font-style: italic; margin: 10px 0 0; animation: brume-attente 1.2s ease-in-out infinite alternate; }
 @keyframes brume-attente { from { opacity: 0.45; } to { opacity: 1; } }

@@ -17,6 +17,24 @@ const icon = (name, cls = '') => `<img class="hud-icon ${cls}" src="assets/img/u
 /** Les messages qui passent aussi dans le ruban (les autres ne vont qu'au journal), avec leur couleur. */
 const RIBBON_KINDS = { warn: '#b5523f', wish: '#8e6bb5', gold: '#b8862b', rare: '#8a6fb5', special: '#2f7f74' };
 const SEASON_ICON = { spring: 'icon_leaf', summer: 'icon_sun', autumn: 'icon_wind', winter: 'icon_snow' };
+/**
+ * L'image d'une tuile de la file, par famille, variante et saison. `Assets.keysStarting` parcourt et trie toutes les
+ * clés d'images : fait pour chaque tuile de la file à chaque image, c'était le gros du temps du HUD. Les images
+ * des tuiles sont toutes chargées avant la première partie (aucune n'est « lazy ») : la réponse ne change plus.
+ */
+const SRC_TUILE = new Map();
+function srcTuile(family, variant, season) {
+  const cle = `${family}_${variant}_${season}`;
+  let src = SRC_TUILE.get(cle);
+  if (src !== undefined) return src;
+  const alt = Assets.keysStarting(`${family}_`);
+  const k = Assets.has(cle) ? cle : (alt.find((x) => x.endsWith(`_${season}`)) || alt[0]);
+  src = k ? `assets/img/${Assets.manifest().images[k].file}` : '';
+  // une rare sans image de tuile (la ruche, le menhir) se montre par son objet principal
+  if (!k && RARE_DECOR[family]) { const d = RARE_DECOR[family][0]; const sk = spriteKey(d.tpl, season); const im = sk && Assets.manifest().images[sk]; src = im ? `assets/img/${im.file}` : ''; }
+  if (Assets.manifest()) SRC_TUILE.set(cle, src);
+  return src;
+}
 
 export class Hud {
   constructor(root, island, { title, onPause, onPick, onDiscard, onUndo, onGardenPick, onPlace, onMove, onAction, onActionHover, onBuildHint, compact = false, mechanics }) {
@@ -71,6 +89,11 @@ export class Hud {
     this.log = []; this.unread = 0;
     // Sous la brume, au téléphone : la ligne du bas change de hauteur avec l'inventaire ; la faune et « Poser ici » la suivent (--queue-h)
     if (island.brume && typeof ResizeObserver !== 'undefined') { this._ro = new ResizeObserver(() => { const h = Math.round(this.r.queue.getBoundingClientRect().height / (STAGE.scale || 1)); root.style.setProperty('--queue-h', `${h}px`); (root.parentNode || document.documentElement).style.setProperty('--hud-queue-h', `${h}px`); }); this._ro.observe(this.r.queue); }
+    // La hauteur réelle de la barre du haut (elle passe sur deux lignes en portrait) : les panneaux dessous s'y calent.
+    // Lue quand elle change, et non plus toutes les vingt images dans la boucle (lire offsetHeight après une écriture force une mise en page).
+    if (typeof ResizeObserver !== 'undefined') { this._roTop = new ResizeObserver(() => this.noteTopH(this.r.top.offsetHeight)); this._roTop.observe(this.r.top); }
+    // Souffle court : la hauteur de la file, pour la garder dans l'écran (setQueueTop), lue de même
+    if (island.tempo && typeof ResizeObserver !== 'undefined') { this._roQ = new ResizeObserver(() => { this._qH = this.r.queue.offsetHeight || this._qH; }); this._roQ.observe(this.r.queue); }
     this.r.thClose.addEventListener('click', (e) => { e.stopPropagation(); this.setTileHelp(false); });
     // Sur téléphone la fiche est repliée à deux lignes : un appui la déplie en entier (les tuiles bavardes — l'eau, la
     // lande — disent leurs effets passifs en cinq lignes). Le choix tient jusqu'à la fin de l'île, pas au-delà.
@@ -91,13 +114,8 @@ export class Hud {
   }
 
   tileHtml(t, cls = '') {
-    const seasonKey = `${t.family}_${t.variant || 1}_${this.isl.season}`;
-    const alt = Assets.keysStarting(`${t.family}_`);
-    const k = Assets.has(seasonKey) ? seasonKey : (alt.find((x) => x.endsWith(`_${this.isl.season}`)) || alt[0]);
     const name = (STORY.tiles[t.family] || {}).name || t.family;
-    let src = k ? `assets/img/${Assets.manifest().images[k].file}` : '';
-    // une rare sans image de tuile (la ruche, le menhir) se montre par son objet principal
-    if (!k && RARE_DECOR[t.family]) { const d = RARE_DECOR[t.family][0]; const sk = spriteKey(d.tpl, this.isl.season); const im = sk && Assets.manifest().images[sk]; src = im ? `assets/img/${im.file}` : ''; }
+    const src = srcTuile(t.family, t.variant || 1, this.isl.season);
     const help = cls === 'current' ? '<button class="q-help" data-ref="qHelp" title="Fiche de la tuile (H)">?</button>' : '';
     const cadran = cls === 'current' && this.isl.tempo ? '<i class="q-cadran"></i><b class="q-serie"></b><em class="q-temps"></em><span class="q-retour"></span>' : '';
     return `<div class="qtile ${cls} ${t.rare ? 'rare' : ''}" style="--fam:${FAMILY_COLORS[t.family] || '#999'}" title="${name}${t.rare ? ' (rare)' : ''} — ${(STORY.tiles[t.family] || {}).blurb || ''}">${cadran}${src ? `<img src="${src}" alt="${name}">` : ''}<span class="qname">${name}${(t.level || 1) >= 2 ? ` <i class="qlvl">niv. ${t.level}</i>` : ''}</span>${help}</div>`;
@@ -136,7 +154,7 @@ export class Hud {
   /** Fiche de la tuile à poser : nom, effet, bonnes et mauvaises paires. */
   renderTileHelp() {
     const t = this.isl.current; const on = Save.options.tileHelp !== false && !this.helpHidden && !!t && !this.isl.ended;
-    const qh = this.r.queueList.querySelector('.q-help'); if (qh) qh.classList.toggle('on', on);
+    const qh = this._qHelp; if (qh && this._qHelpOn !== on) { this._qHelpOn = on; qh.classList.toggle('on', on); }
     const id = on ? `${t.family}:${t.id}` : 'off';
     if (id === this.last.helpId) return; this.last.helpId = id;
     this.r.tileHelp.classList.toggle('hidden', !on);
@@ -155,12 +173,16 @@ export class Hud {
     const q = this.isl.queue;
     // Le Souffle court : jamais la tuile suivante ; au printemps, les deux tuiles proposées sont deux choix de même rang
     const liste = this.isl.tempo && this.isl.season !== 'spring' ? q.list.slice(0, 1) : q.list;
-    const html = liste.map((t, i) => this.tileHtml(t, i === 0 ? 'current' : this.isl.tempo ? 'choix' : 'next')).join('');
-    const cle = html;
+    // Le HTML de la file ne dépend que de ces champs (et de données fixes) : on compare une clé courte à chaque
+    // image et on ne fabrique le HTML que lorsqu'elle change — ce qui s'affiche est exactement le même qu'avant.
+    let cle = `${this.isl.season}|${this.isl.tempo ? 1 : 0}|${this.isl.handOn ? 1 : 0}`;
+    for (const t of liste) cle += `|${t.family}.${t.variant || 1}.${t.rare ? 1 : 0}.${t.level || 1}`;
     if (cle !== this.last.queue) {
       this.last.queue = cle;
+      const html = liste.map((t, i) => this.tileHtml(t, i === 0 ? 'current' : this.isl.tempo ? 'choix' : 'next')).join('');
       this.r.queueList.innerHTML = html || '<div class="qempty">Plus de tuiles</div>';
-      const qh = this.r.queueList.querySelector('.q-help'); if (qh) qh.addEventListener('click', (e) => { e.stopPropagation(); this.setTileHelp(this.helpHidden || Save.options.tileHelp === false); });
+      const qh = this._qHelp = this.r.queueList.querySelector('.q-help'); this._qHelpOn = undefined;
+      if (qh) qh.addEventListener('click', (e) => { e.stopPropagation(); this.setTileHelp(this.helpHidden || Save.options.tileHelp === false); });
       this.r.queueList.querySelectorAll('.qtile').forEach((el, i) => {
         if (i > 0 && this.isl.handOn) { el.classList.add('pickable'); el.addEventListener('click', (e) => { e.stopPropagation(); this.onPick(i); }); el.title += ' — clic : jouer cette tuile'; }
       });
@@ -173,14 +195,21 @@ export class Hud {
   renderBrume(moving = false) {
     const isl = this.isl, B = isl.brume; if (!B) return;
     const nom = (id) => (id === 'tresor' ? 'trésor' : NOMS_COULEURS[id] || ((STORY.tiles[id] || {}).name || id).toLowerCase());
-    const inv = B.saison && B.saison.nuit ? [] : isl.inventaireBrume;
-    const html = B.saison && B.saison.nuit ? '<span class="binv vide">nuit noire : inventaire caché</span>' : inv.map((e) => `<span class="binv ${e.id === 'tresor' || (STORY.tiles[e.id] && B.cachees && [...B.cachees.values()].some((t) => t.tresor && t.family === e.id)) ? 'tresor' : ''}" style="--fam:${FAMILY_COLORS[e.id] || '#8a867c'}">${e.n > 1 ? `${e.n} ` : ''}${nom(e.id)}</span>`).join('') || '<span class="binv vide">plus rien de caché</span>';
-    if (html !== this.last.brumeInv) { this.last.brumeInv = html; this.r.brumeInv.innerHTML = html; }
+    // l'inventaire parcourt toutes les cases cachées : refait seulement quand elles changent (la carte est remplacée
+    // à l'annulation ; un dévoilement ou une case gagnée change sa taille et la version du plateau)
+    const nuit = !!(B.saison && B.saison.nuit);
+    const invCle = `${nuit ? 1 : 0}|${B.cachees ? B.cachees.size : 0}|${isl.board.version}`;
+    if (B.cachees !== this._brumeCachees || invCle !== this.last.brumeInvCle) {
+      this._brumeCachees = B.cachees; this.last.brumeInvCle = invCle;
+      const inv = nuit ? [] : isl.inventaireBrume;
+      const html = nuit ? '<span class="binv vide">nuit noire : inventaire caché</span>' : inv.map((e) => `<span class="binv ${e.id === 'tresor' || (STORY.tiles[e.id] && B.cachees && [...B.cachees.values()].some((t) => t.tresor && t.family === e.id)) ? 'tresor' : ''}" style="--fam:${FAMILY_COLORS[e.id] || '#8a867c'}">${e.n > 1 ? `${e.n} ` : ''}${nom(e.id)}</span>`).join('') || '<span class="binv vide">plus rien de caché</span>';
+      if (html !== this.last.brumeInv) { this.last.brumeInv = html; this.r.brumeInv.innerHTML = html; }
+    }
     const left = isl.board.fog.size ? `${isl.board.fog.size} case${isl.board.fog.size > 1 ? 's' : ''} · dévoilée${B.cran.devoile > 1 ? 's' : ''} à ${B.cran.devoile} voisines` : '';
     if (left !== this.last.brumeLeft) { this.last.brumeLeft = left; this.r.brumeLeft.textContent = left; }
     const j = !isl.board.fog.size ? '' : B.jalonSaison ? 'Jalon planté cette saison' : B.cran.jalonObligatoire ? `Jalon à planter (sinon ${PB.jalonManque}) : touche une case de brume` : 'Jalon possible : touche une case de brume';
     if (j !== this.last.brumeJalon) { this.last.brumeJalon = j; this.r.brumeJalon.textContent = j; this.r.brumeJalon.classList.toggle('due', !B.jalonSaison && B.cran.jalonObligatoire); }
-    this.r.brumeMove.classList.toggle('on', !!moving);
+    if (this.last.brumeMoving !== !!moving) { this.last.brumeMoving = !!moving; this.r.brumeMove.classList.toggle('on', !!moving); }
     this.r.brumeMove.disabled = isl.ended || !(isl.queue.list.length || (B.saison && B.saison.gratuits));
     // la carte de la saison, sous le bandeau, avec la chance de bonus à côté
     const c = B.carte; const ratio = `${Math.round((B.ratio ?? 0.5) * 100)} % bonus`;
@@ -197,6 +226,11 @@ export class Hud {
 
   renderWishes() {
     if (!this.isl.wishes.length) return;
+    // l'échéance affichée ne dépend que du nombre de poses ; le reste, de l'état de chaque vœu
+    let cle = String(this.isl.placements);
+    for (const w of this.isl.wishes) cle += `|${w.def.id}.${w.status}.${w.progress}.${w.target}.${w.failedAt}`;
+    if (cle === this.last.wishKey) return;
+    this.last.wishKey = cle;
     const ctx = this.isl.wishCtx;
     const html = this.isl.wishes.map((w) => {
       const s = STORY.wishes[w.def.id] || { giver: '', title: w.def.id, text: '' };
@@ -209,11 +243,16 @@ export class Hud {
   }
 
   renderFauna() {
+    const fauna = this.isl.fauna;
+    if (fauna === this._faunaMap && fauna.size === this._faunaN) return;   // island.js remplace la carte à chaque changement
+    this._faunaMap = fauna; this._faunaN = fauna.size;
     const counts = {};
     for (const a of this.isl.fauna.values()) counts[a.species] = (counts[a.species] || 0) + 1;
     const html = Object.entries(counts).map(([sp, n]) => `<span class="fauna-chip" title="${(STORY.fauna[sp] || {}).habitat || ''}"><img src="assets/img/fauna/fauna_${sp}.webp" alt="">${(STORY.fauna[sp] || {}).name || sp}${n > 1 ? ` ×${n}` : ''}</span>`).join('');
     if (html !== this.last.fauna) { this.last.fauna = html; this.r.fauna.innerHTML = html; }
   }
+
+  noteTopH(hh) { if (hh && hh !== this._topH) { this._topH = hh; this.root.style.setProperty('--hud-top-h', `${hh}px`); } }
 
   set(key, value) { if (this.last[key] !== value) { this.last[key] = value; this.r[key].textContent = value; } }
 
@@ -241,7 +280,12 @@ export class Hud {
     AudioSys.play(`star_${Math.min(3, n)}`, { volume: 0.55 });
     const words = STORY.starReached || []; if (words[n - 1]) this.ribbon(words[n - 1], '#e0a33a', 1600, 'gold');
   }
-  release(pts) { this.hold = Math.max(0, (this.hold || 0) - pts); if (this.hold === 0) this.shownScore = this.isl.score; const b = this.r.score; b.classList.remove('hit'); void b.offsetWidth; b.classList.add('hit'); }
+  /**
+   * Chaque étincelle arrivée fait battre le compteur. Relancer l'animation par « retirer la classe, lire offsetWidth,
+   * la remettre » forçait une mise en page complète à chaque étincelle (une trentaine par seconde après une belle pose).
+   * On alterne entre deux animations identiques de noms différents (hud.css) : changer de nom la relance, sans rien lire.
+   */
+  release(pts) { this.hold = Math.max(0, (this.hold || 0) - pts); if (this.hold === 0) this.shownScore = this.isl.score; const b = this.r.score; this._hitBis = !this._hitBis; if (!b.classList.contains('hit')) b.classList.add('hit'); b.classList.toggle('bis', this._hitBis); }
   /** Position écran (repère de la scène) du compteur de points : cible des étincelles. */
   scoreTarget() { const st = document.getElementById('stage'); const sr = st ? st.getBoundingClientRect() : { left: 0, top: 0 }; const r = this.r.score.getBoundingClientRect(); return { x: (r.left + r.width / 2 - sr.left) / STAGE.scale, y: (r.top + r.height / 2 - sr.top) / STAGE.scale }; }
   /** Le bandeau de saison se signale (la règle s'y écrit une seule fois). */
@@ -284,7 +328,7 @@ export class Hud {
     if (total === null || total === undefined) { if (!this.r.placeBtn.classList.contains('hidden')) this.r.placeBtn.classList.add('hidden'); this.setActions(null); return; }
     const txt = this.isl.brume ? (mode === 'move' ? 'Déplacer ici' : 'Poser ici') : `${mode === 'fuse' ? 'Fusionner ici' : mode === 'build' ? 'Bâtir ici' : mode === 'move' ? 'Déplacer ici' : 'Poser ici'} · ${total >= 0 ? '+' : ''}${total}`;   // sous la brume, pas de points avant la pose
     if (this.last.placeTxt !== txt) { this.last.placeTxt = txt; this.r.placeBtn.textContent = txt; this.r.placeBtn.classList.toggle('neg', total < 0); }
-    this.r.placeBtn.classList.remove('hidden');
+    if (this.r.placeBtn.classList.contains('hidden')) this.r.placeBtn.classList.remove('hidden');   // retirer une classe absente réécrit quand même l'attribut : une mutation et un style à revoir par image
   }
 
   /**
@@ -301,7 +345,7 @@ export class Hud {
       const sig = a.level >= 3 && STORY.level3[t.family]; return sig ? `${sig.name} <small>(niveau 3)</small>` : `Agrandir <small>(niveau ${a.level})</small>`;
     };
     const cle = `${q},${r}|${sel}|` + list.map((a) => `${a.kind}:${a.recipe ? a.recipe.id : a.level}:${a.cost}:${a.pv.total}:${a.first ? 1 : 0}`).join(';');
-    if (cle === this.last.actions) { this.r.actions.classList.remove('hidden'); return; }
+    if (cle === this.last.actions) { if (this.r.actions.classList.contains('hidden')) this.r.actions.classList.remove('hidden'); return; }
     this.last.actions = cle;
     this.r.actions.innerHTML = `<div class="act-head"><b>${nom(t.family)}${(t.level || 1) > 1 ? ` · niveau ${t.level}` : ''}</b><button class="act-close" title="Fermer">✕</button></div>` +
       list.map((a, i) => `<button class="act act-${a.kind} ${i === sel ? 'sel' : ''}" data-i="${i}"><b>${libelle(a)}</b><span><em>${a.cost} souffle${a.cost > 1 ? 's' : ''}</em> · ${a.pv.total >= 0 ? '+' : ''}${a.pv.total}${a.first ? ' · ★ recette nouvelle' : ''}</span></button>`).join('');
@@ -322,8 +366,8 @@ export class Hud {
     // l'objectif personnel du Souffle court, suivi sous les points
     if (isl.tempo && isl.def.objectif && OBJECTIF_PAR_ID[isl.def.objectif]) { const o = OBJECTIF_PAR_ID[isl.def.objectif]; const txt = `${o.nom} · ${o.suivi(isl)}`; if (txt !== this.last.objectif) { this.last.objectif = txt; r.objectif.textContent = txt; r.objectif.classList.remove('hidden'); r.objectif.classList.toggle('manque', !o.atteint(isl)); } }
     // pips
-    const pipHtml = isl.garden || isl.def.entrainement ? '' : Array.from({ length: isl.seasonLength }, (_, i) => `<i class="${i < isl.inSeason ? 'on' : ''}"></i>`).join('');
-    if (pipHtml !== this.last.pips) { this.last.pips = pipHtml; r.pips.innerHTML = pipHtml; }
+    const pipCle = isl.garden || isl.def.entrainement ? '' : `${isl.seasonLength}|${isl.inSeason}`;
+    if (pipCle !== this.last.pips) { this.last.pips = pipCle; r.pips.innerHTML = pipCle ? Array.from({ length: isl.seasonLength }, (_, i) => `<i class="${i < isl.inSeason ? 'on' : ''}"></i>`).join('') : ''; }
     const choose = !!isl.garden;
     if (choose !== this.last.choose) { this.last.choose = choose; r.gardenPick.classList.toggle('hidden', !choose); if (choose) r.pickTitle.textContent = 'Choisir'; }
     // le compteur monte vers la vraie valeur (tic-tac), sans jamais traîner plus d'une seconde
@@ -332,7 +376,7 @@ export class Hud {
     if (this.shownScore !== target) { const diff = target - this.shownScore; const step = Math.max(1, Math.ceil(Math.abs(diff) * 0.12)); this.shownScore += Math.sign(diff) * Math.min(Math.abs(diff), step); }
     this.set('score', String(this.shownScore));
     // hauteur réelle de la barre du haut (elle passe sur deux lignes en portrait) : les panneaux dessous s'y calent
-    if ((this._frame = (this._frame || 0) + 1) % 20 === 0) { const hh = this.r.top ? this.r.top.offsetHeight : 0; if (hh && hh !== this._topH) { this._topH = hh; this.root.style.setProperty('--hud-top-h', `${hh}px`); } }
+    if (!this._roTop && (this._frame = (this._frame || 0) + 1) % 20 === 0) this.noteTopH(this.r.top ? this.r.top.offsetHeight : 0);   // sans ResizeObserver seulement
     if (!this.r.scorePop.classList.contains('hidden') && this._scorePopScore !== isl.score) this.renderScorePop();
     if (!isl.infinite && !isl.garden && !isl.tempo && !isl.brume) {
       // l'étoile d'or ne se montre qu'au bilan : pendant la partie, un seul juge, les trois étoiles
@@ -391,12 +435,13 @@ export class Hud {
   /** Souffle court : la file (la tuile à poser) suit le bas de l'île, sans jamais sortir de l'écran. */
   setQueueTop(y) {
     const q = this.r.queue; if (!q) return;
-    if ((this._qFrame = (this._qFrame || 0) + 1) % 20 === 1) this._qH = q.offsetHeight || this._qH || 140;
+    if (!this._roQ && (this._qFrame = (this._qFrame || 0) + 1) % 20 === 1) this._qH = q.offsetHeight || this._qH || 140;
+    if (!this._qH) this._qH = q.offsetHeight || 140;
     const top = Math.round(Math.min(y + 6, STAGE.H - this._qH - 8));
     if (this._qTop !== top) { this._qTop = top; q.style.top = `${top}px`; }
   }
   /** La tuile est perdue : le chiffre éclate, la barre flashe. */
   chronoCasse() { const el = this._chrono; if (!el) return; el.classList.remove('casse'); void el.offsetWidth; el.classList.add('casse'); }
 
-  destroy() { if (this._ro) this._ro.disconnect(); this.root.style.removeProperty('--queue-h'); (this.root.parentNode || document.documentElement).style.removeProperty('--hud-queue-h'); this.root.innerHTML = ''; }
+  destroy() { if (this._ro) this._ro.disconnect(); if (this._roTop) this._roTop.disconnect(); if (this._roQ) this._roQ.disconnect(); this.root.style.removeProperty('--queue-h'); (this.root.parentNode || document.documentElement).style.removeProperty('--hud-queue-h'); this.root.innerHTML = ''; }
 }

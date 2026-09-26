@@ -71,9 +71,18 @@ button { font-family: inherit; }
 .btn-primary { background: var(--breath); border-color: var(--breath); color: #fff; } .btn-primary .icon { filter: none; }
 .btn-primary:hover:not(:disabled) { background: #279183; color: #fff; }
 .btn-ghost { border-color: transparent; background: transparent; box-shadow: none; opacity: 0.85; }
-.btn-atelier { border-color: var(--gold); background: #fffaf0; color: var(--ink); box-shadow: 0 0 0 3px rgba(224,163,58,0.22), 0 2px 0 rgba(43,42,38,0.08); animation: atelier-appel 2.4s ease-in-out infinite; }
-.btn-atelier:hover:not(:disabled) { background: #fff3d6; }
-@keyframes atelier-appel { 0%, 100% { box-shadow: 0 0 0 3px rgba(224,163,58,0.22), 0 2px 0 rgba(43,42,38,0.08); } 50% { box-shadow: 0 0 0 6px rgba(224,163,58,0.1), 0 2px 0 rgba(43,42,38,0.08); } }
+/* L'Atelier appelle : un halo doré qui respire autour du bouton. Animer box-shadow ne tourne pas sur le compositeur :
+   style et peinture du bouton à chaque image, sans fin, tant que le bilan reste ouvert (mesuré : 40 recalculs de style
+   par seconde). Les deux anneaux (3 px appuyé, 6 px léger) sont posés une fois pour toutes sur deux pseudo-éléments,
+   et seule leur opacité s'échange : même respiration à l'œil, sur le compositeur. Huit respirations (une vingtaine de
+   secondes) puis l'anneau appuyé reste : l'appel est entendu, le bilan n'a plus à battre sans fin. */
+.btn-atelier { position: relative; border-color: var(--gold); background: #fffaf0; color: var(--ink); box-shadow: 0 2px 0 rgba(43,42,38,0.08); }
+.btn-atelier::before, .btn-atelier::after { content: ''; position: absolute; inset: -1px; border-radius: inherit; pointer-events: none; animation: atelier-appel 2.4s ease-in-out 8; }
+.btn-atelier::before { box-shadow: 0 0 0 3px rgba(224,163,58,0.22); }
+.btn-atelier::after { box-shadow: 0 0 0 6px rgba(224,163,58,0.1); opacity: 0; animation-name: atelier-appel-large; }
+.btn-atelier:hover:not(:disabled) { background: #fff3d6; box-shadow: 0 2px 0 rgba(43,42,38,0.08); }
+@keyframes atelier-appel { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+@keyframes atelier-appel-large { 0%, 100% { opacity: 0; } 50% { opacity: 1; } }
 .btn-danger { border-color: rgba(217,95,75,0.5); color: var(--loss); }
 .btn-big { font-size: 22px; padding: 14px 26px; }
 .btn-small { font-size: 15px; padding: 6px 12px; border-radius: 9px; }
