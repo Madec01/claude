@@ -85,6 +85,8 @@ html.compact .q-help { width: 20px; height: 20px; font-size: 12px; line-height: 
 /* Vœux */
 .hud-wishes { position: absolute; right: 14px; top: 84px; width: 240px; pointer-events: all; }
 .wish-list { display: flex; flex-direction: column; gap: 6px; }
+/* le chevron et la ligne de résumé n'existent qu'au téléphone en portrait (mobile.css) */
+.wish-plier, .wish-resume { display: none; }
 .wish { background: rgba(255,253,248,0.94); border: 1px solid rgba(43,42,38,0.12); border-left: 5px solid var(--wish); border-radius: 12px; padding: 8px 10px; box-shadow: 0 4px 14px rgba(30,50,70,0.1); }
 .wish.done { border-left-color: var(--breath); opacity: 0.8; } .wish.failed { border-left-color: var(--loss); opacity: 0.6; }
 .wish-head { display: flex; justify-content: space-between; gap: 6px; align-items: baseline; }

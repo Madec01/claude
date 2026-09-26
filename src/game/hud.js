@@ -53,7 +53,7 @@ export class Hud {
         </div>
         <div class="hud-block hud-score"><span class="hud-label">Points</span><b data-ref="score">0</b><span class="score-delta" data-ref="scoreDelta"></span><span class="hud-stars" data-ref="starsLine" title="Seuils des étoiles"></span><span class="hud-harmonie ${island.harmonieOn ? '' : 'hidden'}" data-ref="harmonie" title="Harmonie : trois fleurs, comptées à la fin de l’île (toucher)">${FLEURS.map((f) => `<img class="fleur" data-fleur="${f.id}" src="assets/img/deco/${f.img}.webp" alt="${f.nom}">`).join('')}</span><div class="score-pop harmo-pop hidden" data-ref="harmoPop"></div><span class="hud-objectif hidden" data-ref="objectif"></span><div class="score-pop hidden" data-ref="scorePop"></div></div>
         <div class="hud-block hud-breaths ${m.has('breath') ? '' : 'hidden'}" title="Souffles"><span class="hud-label">Souffles</span><b data-ref="breaths">0</b></div>
-        <span class="hud-ile" data-ref="ileNum">${typeof island.def.id === 'number' ? `Île ${island.def.id}` : island.def.daily ? 'Île du jour' : island.def.infinite ? 'Île infinie' : ''}</span>
+        <span class="hud-ile" data-ref="ileNum">${typeof island.def.id === 'number' ? `<span class="hud-label">Île</span><b>${island.def.id}</b>` : island.def.daily ? '<span class="hud-label">Île</span><b>du jour</b>' : island.def.infinite ? '<span class="hud-label">Île</span><b>∞</b>' : ''}</span>
         <button class="hud-pause" data-ref="pause" title="Pause (Échap) : journal, plein écran, options">${icon('icon_pause')}</button>
       </div>
       <div class="hud-carte ${island.brume ? '' : 'hidden'}" data-ref="carte"><span class="hc-kicker" data-ref="carteKicker">Saison</span><b data-ref="carteNom">—</b><span class="hc-texte" data-ref="carteTexte"></span><span class="hc-ratio" data-ref="carteRatio" title="Chance de tirer un bonus à la prochaine saison"></span></div>
@@ -72,7 +72,7 @@ export class Hud {
         </div>
         <div class="garden-pick ${island.garden ? '' : 'hidden'}" data-ref="gardenPick"><div class="queue-title" data-ref="pickTitle">Choisir</div><div class="gpick-list" data-ref="pickList"></div></div>
       </div>
-      <div class="hud-wishes ${island.wishes.length ? '' : 'hidden'} ${compact && !STAGE.portrait ? 'collapsed' : ''}" data-ref="wishes"><button class="wish-toggle" data-ref="wishToggle" title="Afficher les vœux">Vœux <b data-ref="wishCount"></b></button><div class="queue-title">Vœux</div><div class="wish-list" data-ref="wishList"></div></div>
+      <div class="hud-wishes ${island.wishes.length ? '' : 'hidden'} ${compact && !STAGE.portrait ? 'collapsed' : ''}" data-ref="wishes"><button class="wish-toggle" data-ref="wishToggle" title="Afficher les vœux">Vœux <b data-ref="wishCount"></b></button><div class="queue-title">Vœux</div><button class="wish-plier" data-ref="wishPlier" title="Replier ou déplier les vœux"></button><div class="wish-resume" data-ref="wishResume"></div><div class="wish-list" data-ref="wishList"></div></div>
       <div class="hud-actions hidden" data-ref="actions"></div>
       <div class="hud-logpanel hidden" data-ref="logPanel"><div class="log-head"><span>Journal de l’île</span><button class="log-close" data-ref="logClose" title="Fermer">✕</button></div><div class="log-list" data-ref="logList"></div></div>
       <div class="tile-help hidden" data-ref="tileHelp"><div class="th-head"><b data-ref="thName"></b><button class="th-close" data-ref="thClose" title="Masquer la fiche (H)">✕</button></div><p class="th-blurb" data-ref="thBlurb"></p><div class="th-pairs" data-ref="thPairs"></div></div>
@@ -92,7 +92,15 @@ export class Hud {
     this.r.brumeMove.addEventListener('click', (e) => { e.stopPropagation(); onMove && onMove(); });
     this.log = []; this.unread = 0;
     // au téléphone en portrait, le cadre des vœux se pose juste au-dessus de la file, quelle que soit sa hauteur (--hud-queue-bas)
-    if (STAGE.compact && STAGE.portrait && !island.brume && !island.tempo && typeof ResizeObserver !== 'undefined') { this._roBas = new ResizeObserver(() => { const hq = Math.round(this.r.queue.getBoundingClientRect().height / (STAGE.scale || 1)); if (hq) root.style.setProperty('--hud-queue-bas', `${hq}px`); }); this._roBas.observe(this.r.queue); }
+    if (STAGE.compact && STAGE.portrait && !island.brume && !island.tempo && typeof ResizeObserver !== 'undefined') {
+      // les pastilles (tuiles restantes, souffles) se calent sur les tuiles suivantes : même bord gauche, posées sur le haut de la tuile du moment
+      const caler = () => {
+        const k = STAGE.scale || 1, q = this.r.queue.getBoundingClientRect(); const hq = Math.round(q.height / k); if (hq) root.style.setProperty('--hud-queue-bas', `${hq}px`);
+        const tuiles = this.r.queueList.querySelectorAll('.qtile'); const cur = tuiles[0], suiv = tuiles[1];
+        if (cur) { const c = cur.getBoundingClientRect(); const s = suiv ? suiv.getBoundingClientRect() : null; root.style.setProperty('--q-suiv-x', `${Math.round(((s ? s.left : c.right + 6) - q.left) / k)}px`); root.style.setProperty('--q-suiv-y', `${Math.round((c.top - q.top) / k)}px`); }
+      };
+      this._roBas = new ResizeObserver(caler); this._roBas.observe(this.r.queue); this._roBas.observe(this.r.queueList); this._caler = caler;
+    }
     // Sous la brume, au téléphone : la ligne du bas change de hauteur avec l'inventaire ; la faune et « Poser ici » la suivent (--queue-h)
     if (island.brume && typeof ResizeObserver !== 'undefined') { this._ro = new ResizeObserver(() => { const h = Math.round(this.r.queue.getBoundingClientRect().height / (STAGE.scale || 1)); root.style.setProperty('--queue-h', `${h}px`); (root.parentNode || document.documentElement).style.setProperty('--hud-queue-h', `${h}px`); }); this._ro.observe(this.r.queue); }
     // La hauteur réelle de la barre du haut (elle passe sur deux lignes en portrait) : les panneaux dessous s'y calent.
@@ -110,8 +118,11 @@ export class Hud {
     this.r.actions.addEventListener('mouseover', (e) => { const b = e.target.closest('button.act'); if (b) this.onActionHover(Number(b.dataset.i)); });
     this.onActionHover = onActionHover || (() => {});
     this.r.wishToggle.addEventListener('click', (e) => { e.stopPropagation(); this.r.wishes.classList.toggle('collapsed'); });
-    // au téléphone, les vœux sont des lignes discrètes sous l'île : toucher un vœu montre (ou cache) son texte
-    this.r.wishList.addEventListener('click', (e) => { const el = e.target.closest('.wish'); if (!el || this.r.wishes.classList.contains('collapsed')) return; e.stopPropagation(); this.wishOuvert = this.wishOuvert === el.dataset.w ? null : el.dataset.w; this.last.wishKey = null; this.renderWishes(); });
+    // au téléphone en portrait, le cadre des vœux sous l'île se replie en une ligne de résumé (choix gardé d'une île à l'autre)
+    // replié d'office sur un écran bas (moins de 720 px : le cadre entier mangerait l'île), tant que le joueur n'a pas choisi
+    this.voeuxPlies = Save.options.voeuxPlies !== undefined ? !!Save.options.voeuxPlies : (STAGE.compact && STAGE.portrait && STAGE.H < 720); this.r.wishes.classList.toggle('plie', this.voeuxPlies);
+    const plier = (e) => { e.stopPropagation(); this.voeuxPlies = !this.voeuxPlies; this.r.wishes.classList.toggle('plie', this.voeuxPlies); Save.options.voeuxPlies = this.voeuxPlies; Save.save(); AudioSys.play(this.voeuxPlies ? 'ui_close' : 'ui_open', { volume: 0.3 }); };
+    this.r.wishPlier.addEventListener('click', plier); this.r.wishResume.addEventListener('click', plier);
 
     this.onPick = onPick || (() => {}); this.onGardenPick = onGardenPick;
     this.last = {};
@@ -218,6 +229,7 @@ export class Hud {
       this.last.queue = cle;
       const html = liste.map((t, i) => this.tileHtml(t, i === 0 ? 'current' : this.isl.tempo ? 'choix' : 'next')).join('');
       this.r.queueList.innerHTML = html || '<div class="qempty">Plus de tuiles</div>';
+      if (this._caler) requestAnimationFrame(this._caler);
       const qh = this._qHelp = this.r.queueList.querySelector('.q-help'); this._qHelpOn = undefined;
       if (qh) qh.addEventListener('click', (e) => { e.stopPropagation(); this.setTileHelp(this.helpHidden || Save.options.tileHelp === false); });
       this.r.queueList.querySelectorAll('.qtile').forEach((el, i) => {
@@ -264,7 +276,7 @@ export class Hud {
   renderWishes() {
     if (!this.isl.wishes.length) return;
     // l'échéance affichée ne dépend que du nombre de poses ; le reste, de l'état de chaque vœu
-    let cle = `${this.isl.placements}|${this.wishOuvert || ''}`;
+    let cle = String(this.isl.placements);
     for (const w of this.isl.wishes) cle += `|${w.def.id}.${w.status}.${w.progress}.${w.target}.${w.failedAt}`;
     if (cle === this.last.wishKey) return;
     this.last.wishKey = cle;
@@ -274,11 +286,15 @@ export class Hud {
       const pct = Math.min(100, Math.round((w.progress / w.target) * 100));
       // ce que le vœu rapporterait exaucé maintenant : autant que les poses qui restent avant son échéance
       const val = w.status === 'open' ? `<b class="wish-pts">+${this.isl.valeurVoeu(w)}</b>` : w.status === 'done' && w.pts ? `<b class="wish-pts">+${w.pts}</b>` : '';
-      return `<div class="wish ${w.status} ${this.wishOuvert === w.def.id ? 'ouvert' : ''}" data-w="${w.def.id}"><div class="wish-head"><b>${s.title}</b><span class="wish-giver">${s.giver}</span></div><div class="wish-text">${s.text}</div><div class="wish-bar"><div style="width:${pct}%"></div></div><div class="wish-foot"><span>${w.progress} / ${w.target}</span><span class="wish-dl">${w.status === 'open' ? deadlineLabel(w, ctx, STORY) : w.status === 'done' ? 'exaucé' : `trop tard (pose ${w.failedAt || '?'})`}${val ? ` · ${val}` : ''}</span></div></div>`;
+      return `<div class="wish ${w.status}" data-w="${w.def.id}"><div class="wish-head"><b>${s.title}</b><span class="wish-giver">${s.giver}</span></div><div class="wish-text">${s.text}</div><div class="wish-bar"><div style="width:${pct}%"></div></div><div class="wish-foot"><span>${w.progress} / ${w.target}</span><span class="wish-dl">${w.status === 'open' ? deadlineLabel(w, ctx, STORY) : w.status === 'done' ? 'exaucé' : `trop tard (pose ${w.failedAt || '?'})`}${val ? ` · ${val}` : ''}</span></div></div>`;
     }).join('');
     if (html !== this.last.wishes) { this.last.wishes = html; this.r.wishList.innerHTML = html; }
     const cnt = `${this.isl.wishes.filter((w) => w.status === 'done').length} / ${this.isl.wishes.length}`;
     if (cnt !== this.last.wishCount) { this.last.wishCount = cnt; this.r.wishCount.textContent = cnt; }
+    // replié : une ligne, les vœux ouverts avec leur avancée (« Vœux 1/3 · Quatre espèces 2/4 · Une ferme 0/1 »)
+    const ouverts = this.isl.wishes.filter((w) => w.status === 'open').map((w) => `<span>${(STORY.wishes[w.def.id] || { title: w.def.id }).title} <b>${w.progress}/${w.target}</b></span>`).join('');
+    const resume = `<b class="wr-cnt">Vœux ${cnt}</b>${ouverts || '<span>tous rendus</span>'}`;
+    if (resume !== this.last.wishResume) { this.last.wishResume = resume; this.r.wishResume.innerHTML = resume; }
   }
 
   renderFauna() {

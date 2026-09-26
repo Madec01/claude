@@ -43,6 +43,7 @@ html.compact .hud-queue > .queue-title { display: block; position: absolute; lef
 html.compact .hud-queue > .queue-title > span:first-child { display: none; }
 html.compact .hud-queue > .queue-title:has(.queue-left:empty) { display: none; }
 html.compact.landscape .hud-queue > .queue-title { position: static; margin: 0; align-self: flex-start; }
+html.compact.landscape .ql-mot { display: none; }   /* la colonne est étroite : le chiffre seul, en pastille */
 html.compact.portrait .hud-queue > .queue-title { bottom: auto; top: 10px; left: auto; right: 10px; margin: 0; }
 html.compact .qtile { padding: 4px 6px; gap: 4px; border-radius: 9px; }
 html.compact .qtile.rare::after { font-size: 8px; right: 4px; top: 2px; }
@@ -344,38 +345,48 @@ html.compact.landscape #hud.brume .queue-list { gap: 3px; }
 html.compact.landscape #hud.brume .pw.brume-move { flex: 0 0 auto; }   /* sorti de son bloc, il héritait du flex: 1 des souffles et s’étirait */
 html.compact.landscape #hud.brume .qtile:not(.current) { padding: 2px 6px; } html.compact.landscape #hud.brume .qtile:not(.current) img { width: 22px; height: 26px; }
 
-/* ————— Téléphone en portrait (dessin du commanditaire) : les vœux dans un cadre discret sous l'île, les tuiles
-   restantes et les souffles en petite rangée au-dessus des tuiles suivantes, le numéro de l'île à côté de la pause,
-   les animaux sous la saison. La Brume et le Souffle court gardent leur propre disposition. ————— */
+/* ————— Téléphone en portrait (dessin du commanditaire) : les vœux dans un cadre sous l'île, repliable ; les tuiles
+   restantes et les souffles en pastilles calées sur les tuiles suivantes ; le numéro de l'île à côté de la pause ; les
+   animaux sous la saison. Un seul vocabulaire de formes : le fond, la bordure, le rayon et l'ombre des blocs du haut.
+   La Brume et le Souffle court gardent leur propre disposition. ————— */
 .hud-ile { display: none; }
-html.compact.portrait #hud:not(.brume):not(.tempo) .hud-ile { display: block; margin-left: auto; align-self: center; font-family: var(--font-title); font-size: 15px; color: var(--ink); opacity: 0.8; white-space: nowrap; padding: 0 6px; }
-html.compact.portrait #hud:not(.brume):not(.tempo) .hud-ile + .hud-pause { margin-left: 0; }
-/* les vœux : une ligne chacun, sans titre de cadre, fond léger ; toucher un vœu montre son texte */
-html.compact.portrait #hud:not(.brume):not(.tempo) .hud-wishes { top: auto; left: 8px; right: 8px; bottom: calc(var(--hud-queue-bas, 118px) + 6px); width: auto; max-width: none; display: block; pointer-events: all; }
+html.compact.portrait #hud:not(.brume):not(.tempo) { --hud-fond: rgba(255,253,248,0.92); --hud-bord: 1px solid rgba(43,42,38,0.12); --hud-rayon: 9px; --hud-ombre: 0 2px 8px rgba(30,50,70,0.12); }
+/* en-tête : les points et les souffles se partagent toute la largeur jusqu'à la pause, plus de trou */
+html.compact.portrait #hud:not(.brume):not(.tempo) .hud-score, html.compact.portrait #hud:not(.brume):not(.tempo) .hud-breaths { flex: 1 1 0; min-width: 0; justify-content: center; }
+html.compact.portrait #hud:not(.brume):not(.tempo) .hud-score { flex-grow: 1.6; }
+html.compact.portrait #hud:not(.brume):not(.tempo) .hud-ile { display: flex; align-items: center; justify-content: center; gap: 5px; flex: 0 0 auto; align-self: stretch; padding: 0 9px; background: var(--hud-fond); border: var(--hud-bord); border-radius: var(--hud-rayon); box-shadow: var(--hud-ombre); color: var(--ink); white-space: nowrap; }
+html.compact.portrait #hud:not(.brume):not(.tempo) .hud-ile b { font-size: 16px; font-weight: 700; }
+html.compact.portrait #hud:not(.brume):not(.tempo) .hud-pause { margin-left: 0; }
+/* les vœux : un cadre sous l'île, chaque vœu en entier (titre, qui le demande, texte, avancée, échéance, valeur) ;
+   le chevron replie le cadre en une ligne de résumé, choix gardé d'une île à l'autre */
+html.compact.portrait #hud:not(.brume):not(.tempo) .hud-wishes { top: auto; left: 6px; right: 6px; bottom: calc(var(--hud-queue-bas, 118px) + 6px); width: auto; max-width: none; display: block; pointer-events: all; background: var(--hud-fond); border: var(--hud-bord); border-radius: var(--hud-rayon); box-shadow: var(--hud-ombre); padding: 6px 30px 6px 10px; position: absolute; }
 html.compact.portrait #hud:not(.brume):not(.tempo) .hud-wishes .wish-toggle { display: none; }
-html.compact.portrait #hud:not(.brume):not(.tempo) .wish-list { width: auto; max-height: none; overflow: visible; gap: 0; background: rgba(255,253,248,0.72); border-radius: 12px; padding: 3px 10px; box-shadow: 0 2px 10px rgba(30,50,70,0.10); }
-html.compact.portrait #hud:not(.brume):not(.tempo) .wish { display: grid; grid-template-columns: 1fr auto auto; grid-template-areas: 'titre avance echeance' 'barre barre barre' 'texte texte texte'; column-gap: 8px; align-items: center; background: none; border: none; border-radius: 0; box-shadow: none; padding: 4px 0 3px; border-bottom: 1px dotted rgba(43,42,38,0.12); }
-html.compact.portrait #hud:not(.brume):not(.tempo) .wish:last-child { border-bottom: none; }
-html.compact.portrait #hud:not(.brume):not(.tempo) .wish-head { grid-area: titre; min-width: 0; }
-html.compact.portrait #hud:not(.brume):not(.tempo) .wish-head b { font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
-html.compact.portrait #hud:not(.brume):not(.tempo) .wish-giver { display: none; }
-html.compact.portrait #hud:not(.brume):not(.tempo) .wish-foot { display: contents; }
-html.compact.portrait #hud:not(.brume):not(.tempo) .wish-foot > span:first-child { grid-area: avance; font-size: 11px; font-weight: 800; color: var(--wish); }
-html.compact.portrait #hud:not(.brume):not(.tempo) .wish-dl { grid-area: echeance; font-size: 11px; font-weight: 700; opacity: 0.8; white-space: nowrap; }
-html.compact.portrait #hud:not(.brume):not(.tempo) .wish-bar { grid-area: barre; height: 3px; margin-top: 3px; }
-html.compact.portrait #hud:not(.brume):not(.tempo) .wish-text { grid-area: texte; display: none; font-size: 11px; margin: 4px 0 1px; }
-html.compact.portrait #hud:not(.brume):not(.tempo) .wish.ouvert .wish-text { display: block; }
-html.compact.portrait #hud:not(.brume):not(.tempo) .wish.done { opacity: 0.55; } html.compact.portrait #hud:not(.brume):not(.tempo) .wish.failed { display: none; }
-/* les animaux remontent sous la saison (le bas appartient maintenant aux vœux) */
+html.compact.portrait #hud:not(.brume):not(.tempo) .wish-plier { display: block; position: absolute; top: 4px; right: 4px; width: 24px; height: 24px; border: none; background: none; cursor: pointer; padding: 0; }
+html.compact.portrait #hud:not(.brume):not(.tempo) .wish-plier::before { content: ''; position: absolute; left: 8px; top: 6px; width: 7px; height: 7px; border-right: 2px solid var(--ink); border-bottom: 2px solid var(--ink); transform: rotate(45deg); opacity: 0.6; transition: transform 0.25s; }
+html.compact.portrait #hud:not(.brume):not(.tempo) .hud-wishes.plie .wish-plier::before { transform: rotate(-135deg); top: 10px; }
+html.compact.portrait #hud:not(.brume):not(.tempo) .wish-resume { display: none; font-size: 11px; line-height: 20px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+html.compact.portrait #hud:not(.brume):not(.tempo) .wish-resume .wr-cnt { color: var(--wish); margin-right: 6px; }
+html.compact.portrait #hud:not(.brume):not(.tempo) .wish-resume span { margin-right: 8px; opacity: 0.85; } html.compact.portrait #hud:not(.brume):not(.tempo) .wish-resume span b { color: var(--wish); }
+html.compact.portrait #hud:not(.brume):not(.tempo) .hud-wishes.plie .wish-resume { display: block; }
+html.compact.portrait #hud:not(.brume):not(.tempo) .hud-wishes.plie .wish-list { display: none; }
+html.compact.portrait #hud:not(.brume):not(.tempo) .wish-list { width: auto; max-height: 30vh; overflow: auto; gap: 0; scrollbar-width: none; }   /* jamais plus du tiers de l'écran : au-delà, le cadre défile */
+html.compact.portrait #hud:not(.brume):not(.tempo) .wish { background: none; border: none; border-radius: 0; box-shadow: none; padding: 4px 0 5px; border-bottom: 1px dotted rgba(43,42,38,0.14); }
+html.compact.portrait #hud:not(.brume):not(.tempo) .wish:last-child { border-bottom: none; padding-bottom: 2px; }
+html.compact.portrait #hud:not(.brume):not(.tempo) .wish-head b { font-size: 12px; } html.compact.portrait #hud:not(.brume):not(.tempo) .wish-giver { font-size: 10px; }
+html.compact.portrait #hud:not(.brume):not(.tempo) .wish-text { display: block; font-size: 11px; line-height: 1.3; margin: 1px 0 3px; opacity: 0.8; }
+html.compact.portrait #hud:not(.brume):not(.tempo) .wish-bar { height: 3px; }
+html.compact.portrait #hud:not(.brume):not(.tempo) .wish-foot { font-size: 11px; margin-top: 3px; }
+html.compact.portrait #hud:not(.brume):not(.tempo) .wish.done { opacity: 0.55; } html.compact.portrait #hud:not(.brume):not(.tempo) .wish.done .wish-text { display: none; }
+html.compact.portrait #hud:not(.brume):not(.tempo) .wish.failed { display: none; }
+/* les animaux remontent sous la saison (le bas appartient aux vœux) */
 html.compact.portrait #hud:not(.brume):not(.tempo) .hud-fauna { top: calc(var(--hud-top-h, 96px) + 6px); bottom: auto; }
-/* la file : au-dessus des tuiles suivantes, une rangée avec le compte des tuiles et les souffles en icônes rondes */
-/* la file : dans l'espace libre au-dessus des tuiles suivantes, juste à droite de la tuile du moment, la pastille ronde
-   des tuiles restantes puis les pastilles Défausser et Annuler (dessin du commanditaire) */
-html.compact.portrait #hud:not(.brume):not(.tempo) .hud-queue > .queue-title { top: 4px; bottom: auto; left: 104px; right: auto; margin: 0; width: 38px; height: 38px; padding: 0; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
-html.compact.portrait #hud:not(.brume):not(.tempo) .hud-queue > .queue-title .queue-left b { font-size: 16px; margin: 0; }
+/* la file : les pastilles (tuiles restantes, Défausser, Annuler) posées sur le haut de la tuile du moment, calées sur le
+   bord gauche des tuiles suivantes (mesuré par le bandeau : --q-suiv-x, --q-suiv-y) ; 28 px, comme des boutons */
+html.compact.portrait #hud:not(.brume):not(.tempo) .hud-queue > .queue-title { position: absolute; top: var(--q-suiv-y, 6px); left: var(--q-suiv-x, 104px); right: auto; bottom: auto; margin: 0; height: 28px; min-width: 28px; padding: 0 8px; border-radius: 14px; display: flex; align-items: center; justify-content: center; background: #fff; border: var(--hud-bord); box-shadow: none; opacity: 1; }
+html.compact.portrait #hud:not(.brume):not(.tempo) .hud-queue > .queue-title .queue-left b { font-size: 14px; margin: 0; }
 html.compact.portrait #hud:not(.brume):not(.tempo) .ql-mot { display: none; }
-html.compact.portrait #hud:not(.brume):not(.tempo) .powers { position: absolute; top: 6px; left: 150px; right: auto; flex-direction: row; gap: 6px; }
-html.compact.portrait #hud:not(.brume):not(.tempo) .pw { flex-direction: row; align-items: center; gap: 3px; padding: 0 9px; height: 34px; border-radius: 17px; }
+html.compact.portrait #hud:not(.brume):not(.tempo) .powers { position: absolute; top: var(--q-suiv-y, 6px); left: calc(var(--q-suiv-x, 104px) + 36px); right: auto; flex-direction: row; gap: 6px; }
+html.compact.portrait #hud:not(.brume):not(.tempo) .pw { flex-direction: row; align-items: center; gap: 3px; padding: 0 8px; height: 28px; border-radius: 14px; border: var(--hud-bord); }
 html.compact.portrait #hud:not(.brume):not(.tempo) .pw span { display: none; }
-html.compact.portrait #hud:not(.brume):not(.tempo) .pw .hud-icon { width: 16px; height: 16px; }
+html.compact.portrait #hud:not(.brume):not(.tempo) .pw .hud-icon { width: 14px; height: 14px; }
 html.compact.portrait #hud:not(.brume):not(.tempo) .pw em { font-size: 11px; }
