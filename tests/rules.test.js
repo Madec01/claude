@@ -475,7 +475,7 @@ for (const def of ISLANDS.slice(0, 4)) {
   check(gateText({ stars: { 1: 3, 2: 3 }, contracts: {} }, 1) === null, 'porte ouverte : plus rien à afficher');
 }
 
-// --- l'échelle des étoiles : 45 / 65 / 85 % de la médiane du bot fort, l'or à 100 %
+// --- l'échelle des étoiles : 45 / 65 / 85 % de la médiane du bot fort jusqu'à l'île 10, 40 / 58 / 75 % ensuite (26 septembre), l'or à 100 %
 // (mesuré sur quatre niveaux de jeu, cinquante îles : hasard 0,43 · tranquille 0,66 · meilleur coup immédiat 0,73
 //  de cette médiane. À 55 % la première étoile valait le jeu au hasard et un joueur ordinaire plafonnait à
 //  cinq étoiles par chapitre, une de moins que la porte.)
@@ -486,11 +486,11 @@ for (const def of ISLANDS.slice(0, 4)) {
     if (f.length === 4 && f[0] < f[1] && f[1] < f[2] && f[2] < f[3]) ordre++;
     // les trois seuils tombent bien à 45 / 65 / 85 % de l'étoile d'or (les quatre colonnes sont arrondies au
     // dixième, d'où une marge de 0,1 : l'étoile d'or elle-même n'est la médiane qu'à l'arrondi près)
-    if ([0.45, 0.65, 0.85].every((x, i) => Math.abs(f[i] - f[3] * x) <= 0.1)) bornes++;
+    if ((n >= 11 ? [0.40, 0.58, 0.75] : [0.45, 0.65, 0.85]).every((x, i) => Math.abs(f[i] - f[3] * x) <= 0.1)) bornes++;
     if (islandCells(def) > 0 && islandThresholds(def).length === 4) cases++;
   }
   check(ordre === CAMPAIGN_SIZE, `les quatre seuils montent sur les ${CAMPAIGN_SIZE} îles (${ordre})`);
-  check(bornes === CAMPAIGN_SIZE, `et valent 45 / 65 / 85 % de l’étoile d’or (${bornes})`);
+  check(bornes === CAMPAIGN_SIZE, `et valent 45 / 65 / 85 % de l’étoile d’or jusqu’à l’île 10, 40 / 58 / 75 % ensuite (${bornes})`);
   check(cases === CAMPAIGN_SIZE, `le nombre de cases se calcule sans jouer la partie (${cases})`);
   // Island.thresholds doit donner exactement la même chose : c'est ce qui rend le rattrapage juste
   const def7 = campaignIsland(7); const isl7 = new Island(def7, islandOptions(def7));
