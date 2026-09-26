@@ -624,11 +624,12 @@ export class Island {
   /** Aperçu d'un déplacement (points de la tuile reposée en (tq, tr)). */
   previewMove(q, r, tq, tr) {
     if (!this.canMove(q, r)) return null;
-    const t = this.board.get(q, r); this.board.tiles.delete(key(q, r)); this.board.version++;
-    const ok = this.board.canPlace(tq, tr) && !(tq === q && tr === r);
-    const pv = ok ? preview(this.board, tq, tr, { family: t.family, variant: t.variant, rare: t.rare, id: t.id }, this.season, this.mods) : null;
-    this.board.tiles.set(key(q, r), t); this.board.version++;
-    return pv;
+    const t = this.board.get(q, r);
+    return this.board.simulate(() => {
+      this.board.tiles.delete(key(q, r)); this.board.version++;
+      try { const ok = this.board.canPlace(tq, tr) && !(tq === q && tr === r); return ok ? preview(this.board, tq, tr, { family: t.family, variant: t.variant, rare: t.rare, id: t.id }, this.season, this.mods) : null; }
+      finally { this.board.tiles.set(key(q, r), t); }
+    });
   }
   /**
    * Déplace une tuile posée, au prix de la prochaine tuile à poser (elle est perdue). La tuile reposée compte comme une

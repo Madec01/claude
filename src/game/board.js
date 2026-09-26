@@ -2,6 +2,9 @@
 import { key, parse, neighbors } from './hex.js';
 import { RARE_AS } from '../data/tiles.js';
 
+// caches dérivés du plateau, rangés sur lui et indexés sur `version` (water.js, paths.js) : une simulation les rend intacts
+const SIM_CACHES = ['_water', '_waterVersion', '_links', '_linksVersion', '_shapes', '_shapesVersion', '_pathPts', '_pathPtsVersion'];
+
 export class Board {
   constructor(mask) {
     this.version = 0;
@@ -74,6 +77,19 @@ export class Board {
   remove(q, r) { this.tiles.delete(key(q, r)); this.version = (this.version || 0) + 1; }
   /** À appeler quand des tuiles changent d'état sans pose (saison : sèche, gelée). */
   touch() { this.version = (this.version || 0) + 1; }
+  /**
+   * Une simulation (aperçu d'une pose, d'une fusion, d'un déplacement) : `fn` peut poser, retirer, changer des tuiles et
+   * faire monter la version pour ses propres calculs (eau, régions) ; elle DOIT remettre les tuiles comme elle les a
+   * trouvées. Au retour, la version et les caches dérivés (eau, sentiers) sont ceux d'avant. Sans ça, chaque aperçu
+   * changeait la version : le décor, l'eau, les sentiers et les cibles de bâtir se reconstruisaient à chaque image,
+   * d'autant plus cher que l'île est grande (le téléphone ramait en fin de campagne).
+   */
+  simulate(fn) {
+    const v = this.version, caches = {};
+    for (const k of SIM_CACHES) caches[k] = this[k];
+    try { return fn(); }
+    finally { this.version = v; for (const k of SIM_CACHES) this[k] = caches[k]; }
+  }
 
   /** Familles effectives d'une tuile (une rare compte pour plusieurs familles). */
   static familiesOf(tile) { if (tile.blighted) return []; return tile.rare ? (RARE_AS[tile.family] || []) : [tile.family]; }   // une friche ne compte pour rien

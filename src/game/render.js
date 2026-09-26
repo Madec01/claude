@@ -118,6 +118,10 @@ const WATER = { spring: nappeDe('spring'), summer: nappeDe('summer'), autumn: na
 const ICE = { fill: '#dbe9f4', deep: '#cfe0ee', shoal: '#e8f2fa', edge: '#bdd2e2', foam: 'rgba(255,255,255,0.8)' };
 
 
+// marge de l'image gardée des sols, en px de scène, de chaque côté : de quoi respirer et glisser un peu sans la refaire
+const SOLS_MARGE = 120;
+const SANS_CHUTE = { dy: 0, s: 1 };
+
 export class IslandRenderer {
   constructor(island, camera, effects, particles) {
     this.isl = island; this.cam = camera; this.fx = effects; this.p = particles;
@@ -486,34 +490,20 @@ export class IslandRenderer {
    * Rendu par couches : ombres → sols → raccords entre sols identiques → sentiers → objets du décor (triés par pied) et tuiles rares.
    * Les objets sont générés par région (src/game/decor.js), ce qui donne forêts continues, massifs et villages.
    */
-  drawLayered(ctx) {
+  /**
+   * Tout ce qui se dessine dans le masque de l'île : sols, ourlet des bords, lagunes, raccords, langues de sol.
+   * Statique tant que l'île, la saison et la caméra ne bougent pas : `drawGarde` le garde en image.
+   */
+  drawSols(ctx, tiles, dropping, anses, vis) {
     const cam = this.cam, b = this.isl.board, z = cam.zoom;
-    this.decor.sync(b);
-    const tiles = [...b.tiles.values()];
-    const vis = (c, m = 170) => !(c.x < -m || c.x > STAGE.W + m || c.y < -m || c.y > STAGE.H + m);
-    // L'ombre portée de l'île : celle du trait de côte, pas une ombre d'hexagone par tuile. Les
-    // ombres hexagonales dépassaient dans la mer partout où la côte érodée recule sur la tuile, et
-    // leurs arêtes droites redessinaient la grille sous l'eau (mesuré : c'était la dernière arête
-    // verticale qui restait). Même retrait qu'avant : six unités vers le bas, un bord doux.
     const proj = (p) => cam.toScreen(p.x, p.y);
-    ctx.save(); ctx.translate(0, 6 * z); ctx.fillStyle = '#000'; ctx.strokeStyle = '#000'; ctx.lineJoin = 'round';
-    ctx.beginPath(); this.cheminCote(ctx, proj);
-    ctx.globalAlpha = 0.22; ctx.fill(); ctx.globalAlpha = 0.08; ctx.lineWidth = 6 * z; ctx.stroke();
-    ctx.restore();
-    this.drawShore(ctx);
-    // LE MASQUE DE L'ÎLE : tout le passage des sols est découpé sur le trait de côte, une seule fois
-    // par image. Chaque tuile dessine son hexagone entier, et c'est la découpe qui lui donne sa
-    // côte érodée ; aucune tuile, terre ou eau, ne peut déborder. Les objets, eux, restent hors du
-    // masque : un arbre du bord a le droit de surplomber l'eau, c'est même ce qui fait qu'il pousse
-    // au bord.
     ctx.save();
     ctx.beginPath(); this.cheminCote(ctx, proj); ctx.clip();
     // sols
-    const dropping = new Map(); const anses = this.anses();
     const images = Assets.manifest().images || {};
     for (const t of tiles) {
       const w = toWorld(t.q, t.r); const c = cam.toScreen(w.x, w.y);
-      const k = key(t.q, t.r); const d = this.fx.dropTransform(k); if (d.dy !== 0 || d.s !== 1) dropping.set(k, d);
+      const k = key(t.q, t.r); const d = dropping.get(k) || SANS_CHUTE;
       if (!vis(c) || anses.has(k)) continue;
       const season = this.seasonFor(w.x); const g = this.decor.groundFor(t);
       // Une case d'eau qui touche la MER ne dessine pas son eau : elle dessine sa rive. Son hexagone
@@ -527,7 +517,7 @@ export class IslandRenderer {
       // l'anticrénelage, un fil de la mer (bleu) entre elles ; la découpe de côte reprend le débord
       const zz = z * d.s * 1.02, cy = c.y + d.dy * z;
       if (img) ctx.drawImage(img, c.x - TILE_W * zz / 2, cy - TILE_H * zz / 2, TILE_W * zz, TILE_H * zz);
-      else this.drawTileAt(ctx, t, c.x, cy, d.s, 1);
+      else { this._solsManque = true; this.drawTileAt(ctx, t, c.x, cy, d.s, 1); }   // image pas encore chargée : l'image gardée sera refaite
     }
     // L'OURLET des sols de bord. Chaque image de sol porte son propre liseré (le rebord ombré du
     // marais, la bordure du champ, l'arête claire du pré) : là où la côte érodée dépasse l'hexagone,
@@ -618,10 +608,50 @@ export class IslandRenderer {
       }
     }
     ctx.restore();   // fin du masque de l'île
-    this.drawCourts(ctx, dropping);
-    this.drawWater(ctx, dropping);
-    this.drawPaths(ctx);
-    // objets
+  }
+
+  /**
+   * Une couche gardée en image. Une grande île, c'est deux mille dessins par image (sols, langues de sol, raccords, puis
+   * mille trois cents arbres et maisons avec leur ombre), soixante fois par seconde, pour un paysage qui ne bouge pas :
+   * le téléphone ramait en fin de campagne. Une couche statique (les sols, le décor) est donc peinte une fois dans une
+   * image un peu plus grande que l'écran, et chaque image la recopie en un seul dessin, décalée et mise à l'échelle
+   * comme la caméra a bougé depuis (la respiration du mode repos, un petit glissé). Elle est refaite quand l'île, la
+   * saison, `extra` ou la taille de l'écran changent, quand la caméra a trop bougé, ou quand une image manquait. Pendant
+   * une animation (tuile qui tombe, changement de saison, île nue qui se dévoile) ou pendant que la caméra bouge, on
+   * dessine directement, comme avant. Jamais pour la carte postale (un autre canevas).
+   */
+  drawGarde(nom, ctx, extra, dropping, dessin) {
+    const cam = this.cam, b = this.isl.board, M = SOLS_MARGE;
+    const nu = this.nuAvance();
+    this._gardes = this._gardes || {};
+    const direct = () => { this._solsManque = false; dessin(ctx); };
+    if (this.solsDirect || !ctx.canvas || ctx.canvas.id !== 'game' || this.transition || dropping.size || (nu > 0 && nu < 1)) { this._gardes[nom] = null; direct(); return; }
+    const cle = `${b.version}|${b.tiles.size}|${this.isl.season}|${this.noLens ? 1 : 0}|${nu}|${STAGE.W}x${STAGE.H}@${STAGE.dpr}|${extra}`;
+    const z1 = cam.z, X1 = cam.x + cam.bx, Y1 = cam.y + cam.by, C1x = STAGE.W / 2 + cam.offsetX, C1y = STAGE.H / 2 + cam.offsetY;
+    // la caméra bouge-t-elle depuis l'image précédente ? (une signature par image, partagée par les couches)
+    if (this._gardeT !== this.time) { this._gardeT = this.time; const sig = `${Math.round(z1 * 2000)}|${Math.round(X1 * 2)}|${Math.round(Y1 * 2)}|${Math.round(C1x)}|${Math.round(C1y)}`; this._gardeBouge = this._gardeSig !== sig; this._gardeSig = sig; }
+    const place = (S) => {
+      const r = z1 / S.z, tx = C1x - S.cx * r + (S.X - X1) * z1, ty = C1y - S.cy * r + (S.Y - Y1) * z1;
+      const p = { dx: -M * r + tx, dy: -M * r + ty, dw: (STAGE.W + 2 * M) * r, dh: (STAGE.H + 2 * M) * r };
+      return Math.abs(r - 1) <= 0.03 && p.dx <= 0 && p.dy <= 0 && p.dx + p.dw >= STAGE.W && p.dy + p.dh >= STAGE.H ? p : null;
+    };
+    let S = this._gardes[nom]; let p = S && S.cle === cle && !S.manque ? place(S) : null;
+    if (!p) {
+      if (this._gardeBouge) { direct(); return; }   // la caméra glisse ou zoome : on refera l'image quand elle se posera
+      const dpr = STAGE.dpr || 1, w = Math.round((STAGE.W + 2 * M) * dpr), h = Math.round((STAGE.H + 2 * M) * dpr);
+      const cv = S && S.canvas.width === w && S.canvas.height === h ? S.canvas : document.createElement('canvas');
+      if (cv.width !== w) cv.width = w; if (cv.height !== h) cv.height = h;
+      const c2 = cv.getContext('2d'); c2.setTransform(1, 0, 0, 1, 0, 0); c2.clearRect(0, 0, w, h); c2.setTransform(dpr, 0, 0, dpr, M * dpr, M * dpr);
+      this._solsManque = false; dessin(c2);
+      S = this._gardes[nom] = { canvas: cv, cle, manque: this._solsManque, z: z1, X: X1, Y: Y1, cx: C1x, cy: C1y };
+      p = place(S);
+    }
+    ctx.drawImage(S.canvas, p.dx, p.dy, p.dw, p.dh);
+  }
+
+  /** Le décor posé (arbres, maisons, rochers, fleurs…), avec son ombre de contact. Statique : `drawGarde` le garde en image. */
+  drawObjets(ctx, dropping, anses, vis, images) {
+    const cam = this.cam, z = cam.zoom;
     const rule = this.isl.rule || null, wkey = this.weather || null;
     for (const o of this.decor.objects) {
       if (anses.has(o.cell)) continue;   // une anse est de la mer : ni nénuphar ni roseau
@@ -633,7 +663,7 @@ export class IslandRenderer {
       if (o.rules && !o.rules.includes(rule)) continue;
       if (o.notRules && o.notRules.includes(rule)) continue;
       if (o.composed) { const cw = toWorld(o.tile.q, o.tile.r); const cc = cam.toScreen(cw.x, cw.y); const dd = d || { s: 1, dy: 0 }; this.drawTileAt(ctx, o.tile, cc.x, cc.y + dd.dy * z, dd.s, 1); continue; }
-      const sk = spriteKey(o.tpl, season); let img = Assets.img(sk); if (!img) continue;
+      const sk = spriteKey(o.tpl, season); let img = Assets.img(sk); if (!img) { this._solsManque = true; continue; }   // pas encore chargée : l'image gardée sera refaite
       if (o.wave) img = this.vagueFondue(img);
       const m = images[sk]; const div = o.wave ? 3 : 2;
       const os = o.scale || 1;
@@ -653,6 +683,38 @@ export class IslandRenderer {
       else ctx.drawImage(img, c.x - w * sc / 2, c.y + dy - h * sc, w * sc, h * sc);
       ctx.restore();
     }
+  }
+
+  drawLayered(ctx) {
+    const cam = this.cam, b = this.isl.board, z = cam.zoom;
+    this.decor.sync(b);
+    const tiles = [...b.tiles.values()];
+    const vis = (c, m = 170) => !(c.x < -m || c.x > STAGE.W + m || c.y < -m || c.y > STAGE.H + m);
+    // L'ombre portée de l'île : celle du trait de côte, pas une ombre d'hexagone par tuile. Les
+    // ombres hexagonales dépassaient dans la mer partout où la côte érodée recule sur la tuile, et
+    // leurs arêtes droites redessinaient la grille sous l'eau (mesuré : c'était la dernière arête
+    // verticale qui restait). Même retrait qu'avant : six unités vers le bas, un bord doux.
+    const proj = (p) => cam.toScreen(p.x, p.y);
+    ctx.save(); ctx.translate(0, 6 * z); ctx.fillStyle = '#000'; ctx.strokeStyle = '#000'; ctx.lineJoin = 'round';
+    ctx.beginPath(); this.cheminCote(ctx, proj);
+    ctx.globalAlpha = 0.22; ctx.fill(); ctx.globalAlpha = 0.08; ctx.lineWidth = 6 * z; ctx.stroke();
+    ctx.restore();
+    this.drawShore(ctx);
+    // LE MASQUE DE L'ÎLE : tout le passage des sols est découpé sur le trait de côte, une seule fois
+    // par image. Chaque tuile dessine son hexagone entier, et c'est la découpe qui lui donne sa
+    // côte érodée ; aucune tuile, terre ou eau, ne peut déborder. Les objets, eux, restent hors du
+    // masque : un arbre du bord a le droit de surplomber l'eau, c'est même ce qui fait qu'il pousse
+    // au bord.
+    // LE MASQUE DE L'ÎLE : les sols, gardés en image tant que rien ne change (voir drawGarde)
+    const dropping = new Map(); for (const t of tiles) { const k = key(t.q, t.r); const d = this.fx.dropTransform(k); if (d.dy !== 0 || d.s !== 1) dropping.set(k, d); }
+    const anses = this.anses();
+    this.drawGarde('sols', ctx, '', dropping, (c2) => this.drawSols(c2, tiles, dropping, anses, vis));
+    const images = Assets.manifest().images || {};
+    this.drawCourts(ctx, dropping);
+    this.drawWater(ctx, dropping);
+    this.drawPaths(ctx);
+    // objets (arbres, maisons, rochers…), gardés en image comme les sols
+    this.drawGarde('objets', ctx, `${this.isl.rule || ''}|${this.weather || ''}`, dropping, (c2) => this.drawObjets(c2, dropping, anses, vis, images));
     for (const t of tiles) if (t.bloom) { const w = toWorld(t.q, t.r); const c = cam.toScreen(w.x, w.y); if (vis(c)) this.drawBloom(ctx, c.x, c.y); }
     // option « Grille discrète » : fin contour sur les tuiles posées, par-dessus les sols et les objets (sinon les fondus le couvrent)
     if (Save.options.grid) {

@@ -57,10 +57,10 @@ function deltaEdges(board, q, r, t, up, season, mods) {
 
 /** Régions que fermerait la tuile `up` mise à la place de `t` en (q, r) (simulation, le plateau est rendu tel quel). */
 function closesIf(board, q, r, t, up) {
-  const k = key(q, r); board.tiles.set(k, up); board.version++; board._water = null;
-  const closes = closedRegionsAround(board, q, r);
-  board.tiles.set(k, t); board.version++; board._water = null;
-  return closes;
+  return board.simulate(() => {
+    const k = key(q, r); board.tiles.set(k, up); board.version++; board._water = null;
+    try { return closedRegionsAround(board, q, r); } finally { board.tiles.set(k, t); }
+  });
 }
 
 /**
@@ -157,7 +157,8 @@ export function preview(board, q, r, tile, season, mods = {}) {
     if (mods.brumeMauvais && pts < 0) pts *= 2;   // la carte « Mauvais voisinage » : les mauvaises paires comptent double
     if (pts !== 0) { edges.push({ d, q: q + dq, r: r + dr, pts, label: mul > 1 ? `${e.label ? e.label + " " : ""}×${mul}` : e.label }); total += pts; }
   });
-  // simulation de la pose pour rivières et fermetures
+  // simulation de la pose pour rivières et fermetures (la version et les caches du plateau sont rendus intacts)
+  return board.simulate(() => {
   const placed = board.place(q, r, tile);
   let river = null;
   if (Board.isFamily(placed, 'water')) {
@@ -186,10 +187,11 @@ export function preview(board, q, r, tile, season, mods = {}) {
     if (reg && reg.size >= G.des) { const pts = reg.size >= G.tresGrande ? G.poseTresGrande : G.pose; base.push({ pts, label: reg.size >= G.tresGrande ? 'très grande région' : 'grande région' }); total += pts; } }
   const closes = closedRegionsAround(board, q, r);
   for (const c of closes) total += c.bonus;
-  board.remove(q, r);
+  board.tiles.delete(key(q, r));
   // friche : une pose qui coûte des points (bords et contraintes) laisse une tuile morte, qui ne rapportera plus rien
   const blight = total < 0 && !tile.rare;
   return { total, edges, closes, river, base, blight };
+  });
 }
 
 /** Régions qui seraient closes après une pose en (q, r) (la tuile doit déjà être posée). */

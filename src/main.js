@@ -1221,8 +1221,13 @@ class IslandScene {
       this.hud.setChrono({ t: this.hold ? this.tempo.limit : this.tempo.t, f: this.hold ? 1 : this.tempo.fraction, fige: tutoTient || this.tempo.attend, puls: Math.pow(1 - battement, 3), urgent: !this.hold && this.tempo.t <= 1, y: this.cam.toScreen(0, this._chronoY).y });
       this.hud.setQueueTop(this.cam.toScreen(0, this._basY).y);   // la tuile à poser se cale juste sous l'île, pas au bord de l'écran
     }
+    // Ce qui suit (aperçu sous le doigt ou la souris, bandeau) ne dépend que de l'image affichée : une fois par image,
+    // pas à chaque pas de simulation. Quand une image est lente, la boucle rattrape jusqu'à huit pas : on refaisait huit
+    // aperçus et huit bandeaux, donc plus le téléphone ramait, plus on lui en demandait.
+    const uiFrame = !this._uiFait; this._uiFait = true;
     // survol
-    if (!isl.ended && input.lastPointer === 'touch') {
+    if (!uiFrame) { /* déjà fait pour cette image */ }
+    else if (!isl.ended && input.lastPointer === 'touch') {
       if (this.armed && this.armed.move && this.renderer.moveFrom) { const f = this.renderer.moveFrom; const pv = isl.previewMove(f.q, f.r, this.armed.q, this.armed.r); if (pv) { this.renderer.hover = { q: this.armed.q, r: this.armed.r, preview: pv, tile: isl.board.get(f.q, f.r) }; this.hud.setPlaceButton(pv.total, 'move'); } else { this.armed = null; this.renderer.hover = null; this.hud.setPlaceButton(null); } }
       else if (this.armed && this.armed.build) { const acts = isl.actions(this.armed.q, this.armed.r); const a = acts[this.armed.i] || acts[0]; if (a) { this.renderer.hover = { q: this.armed.q, r: this.armed.r, preview: a.pv }; this.hud.setActions(acts, this.armed.q, this.armed.r, acts.indexOf(a)); } else this.disarm(); }
       else if (this.armed && !this.armed.build && isl.canPlace(this.armed.q, this.armed.r)) { const pv = isl.preview(this.armed.q, this.armed.r); this.renderer.hover = { q: this.armed.q, r: this.armed.r, preview: pv }; this.hud.setPlaceButton(pv ? pv.total : null); }
@@ -1259,12 +1264,13 @@ class IslandScene {
     this.fx.ambient(dt, isl.season, b, 1, this._sources);
     this.fx.life(dt, { objects: objs, tiles: this._tiles, season: isl.season, weather: wkey, bounds: b });
     if (wkey === 'storm') { this.thunderTimer = (this.thunderTimer || 8) - dt; if (this.thunderTimer <= 0) { this.thunderTimer = 7 + Math.random() * 9; this.renderer.flash = 0.16; AudioSys.play('thunder', { volume: 0.6 }); this.shake.trigger(0.15); } }
-    this.hud.update();
+    if (uiFrame) this.hud.update();
     if (this.finished) { this.endTimer += dt; if (this.endTimer > 2.2) { this.finished = false; try { isl.result.postcard = { canvas: renderPostcard(this), filename: postcardName(this) }; } catch (e) { console.warn('carte postale', e); } Game.afterIsland(isl.result, this.def); } }
     if (this.debugEl) this.debugEl.textContent = `placements=${isl.placements} season=${isl.season} ${isl.inSeason}/${isl.seasonLength} score=${isl.score} breaths=${isl.breaths} fauna=${isl.fauna.size} queue=${isl.queue.remaining} fps=${loop.fps} particles=${this.particles.count} zoom=${this.cam.zoom.toFixed(2)}`;
     input.endFrame();
   }
   render(ctx, alpha, dt) {
+    this._uiFait = false;
     ctx.save(); ctx.translate(this.shake.x, this.shake.y);
     this.renderer.render(ctx, alpha, dt);
     ctx.restore();
