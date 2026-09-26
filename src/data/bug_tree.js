@@ -87,7 +87,7 @@ export const TREE = [
         f('bords', 'Chiffres sur les bords des cases', 'Ils se chevauchent ?', 'Le badge du total sort de l’écran ?'),
         f('ruban', 'Ruban des mots et notifications', 'Deux messages se marchent dessus ?', 'Ça cache la file ?'),
         f('boutons', 'Boutons ronds (pause, journal, plein écran)', 'Trop petits à toucher ?', 'Sous l’encoche du téléphone ?'),
-        f('poser', 'Bouton « Poser ici »', 'Il reste après la pose ?', 'Il cache la case visée ?'),
+        f('poser', 'Pose au double toucher', 'Le premier toucher ne montre pas l’aperçu ?', 'Le second toucher ne pose pas ?'),
         f('fiche', 'Fiche de la tuile', 'Elle masque le plateau ?', 'Elle déborde ?'),
         autre('Quel bloc du HUD s’affiche mal ?'),
       ] },
@@ -280,7 +280,7 @@ export const TREE = [
     i: 'Quel geste aimerais-tu plus court, ou moins risqué ?',
     e: [
       { id: 'poser', n: 'Poser une tuile', q: [], e: [
-        f('rien', 'La pose ne part pas', 'Combien de touchers as-tu faits ?', 'Le bouton « Poser ici » apparaissait-il ?'),
+        f('rien', 'La pose ne part pas', 'Combien de touchers as-tu faits ?', 'L’aperçu de la case apparaissait-il au premier toucher ?'),
         f('ailleurs', 'La pose part au mauvais endroit', 'Quel niveau de zoom ?', 'Tu visais quelle case ?'),
         f('refus', 'Le refus est incompris', 'Quel message exact ?'),
         f('dessus', 'Bâtir / fusionner au doigt', 'Les deux touchers marchent-ils ?', 'La case était-elle soulignée ?'),

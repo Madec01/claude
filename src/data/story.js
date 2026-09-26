@@ -111,7 +111,7 @@ export const STORY = {
       ],
       tutorial: [
         { id: 'rare', text: 'Tuiles rares : le moulin vaut champ et hameau, la chapelle réchauffe l’hiver, la tour clôt malgré un trou, le puits garde l’eau, le campement attire.' },
-        { id: 'build', text: 'Bâtir : touche une tuile d’une région close (2 souffles, aucune tuile de la file n’y passe). Elle passe au niveau 2 : ses bords valent +1 de plus, son décor s’épaissit. Les tuiles qui attendent une action ont un liseré doré, et le bouton Bâtir du bandeau les compte.' },
+        { id: 'build', text: 'Bâtir : touche une tuile d’une région close (2 souffles, aucune tuile de la file n’y passe). Elle passe au niveau 2 : ses bords valent +1 de plus, son décor s’épaissit. Les tuiles qui attendent une action ont un liseré doré.' },
       ],
     },
     7: {
@@ -673,7 +673,7 @@ export const STORY = {
     hill: 'La colline aime le pré et la forêt ; deux collines qui se touchent attirent le cheval. Une rivière peut en naître.',
     rare2: 'Nouvelles rares : le grenier (+1 par bord avec un champ, pas de dormance d’hiver), la ruche (+1 par verger ou prairie voisin à chaque saison) et le menhir (+1 par roche ou colline voisine à chaque saison).',
     heath: 'La lande fleurit au printemps (+1) et attire la vache en lisière des prés.',
-    build: 'Bâtir : touche une tuile d’une région close (2 souffles, sans tuile de la file). Elle passe au niveau 2 : ses bords valent +1 de plus. Les tuiles qui attendent une action ont un liseré doré ; le bouton Bâtir du bandeau les compte.',
+    build: 'Bâtir : touche une tuile d’une région close (2 souffles, sans tuile de la file). Elle passe au niveau 2 : ses bords valent +1 de plus. Les tuiles qui attendent une action ont un liseré doré.',
     climate: 'Climat : chaque archipel a le sien. Il change la file, donne un avantage permanent et une contrainte, affichés à côté de la saison.',
     fuse: 'Fusionner : touche une tuile qui a une voisine avec laquelle elle fait recette (2 souffles, sans tuile de la file ; champ + eau = rizière…). La tuile touchée devient la tuile composée, la voisine reste ; elle compte pour ses deux familles et rapporte à chaque saison. Chaque recette découverte s’écrit dans le Cahier du Guide.',
     grandeRegion: 'Une grande région : à partir de cinq tuiles d’une même famille, chaque tuile qui l’agrandit gagne +1 (+2 à partir de dix), et sa prime de fermeture est multipliée par 1,5 (par 2 à partir de dix).',

@@ -58,9 +58,9 @@ const boot = (p) => p.waitForFunction(() => !document.getElementById('boot'), nu
   await toucher(cible2.p);
   e = await etat(); check(e.poses === p1 && e.armed !== null, `et le toucher suivant vise sans poser (${JSON.stringify(e)})`);
 
-  // 3. « Poser ici » garde la case visée et pose
-  await page.tap('.hud-place'); await page.waitForTimeout(300);
-  e = await etat(); check(e.poses === p1 + 1, `« Poser ici » pose la case visée (${JSON.stringify(e)})`);
+  // 3. le second toucher sur la case visée pose (il n'y a plus de bouton « Poser ici »)
+  await toucher(cible2.p);
+  e = await etat(); check(e.poses === p1 + 1, `le second toucher pose la case visée (${JSON.stringify(e)})`);
 
   // 4. un glissé sur l'île oublie la case visée
   const cible3 = await page.evaluate(async () => {

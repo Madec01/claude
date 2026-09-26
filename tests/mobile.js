@@ -60,7 +60,7 @@ async function touchDrag(cdp, pts) {
     const page = await boot(context);
     // les souffles étaient poussés hors de l'écran par une file trop longue (retour joueur) : plus jamais
     const hudDehors = async () => page.evaluate(() => {
-      const el = [...document.querySelectorAll('.pw, .hud-place:not(.hidden), .hud-pause, .q-help')];
+      const el = [...document.querySelectorAll('.pw, .hud-pause, .q-help')];
       return el.filter((b) => { const r = b.getBoundingClientRect(); return r.width > 0 && (r.right > innerWidth + 1 || r.left < -1 || r.bottom > innerHeight + 1 || r.top < -1); })
         .map((b) => { const r = b.getBoundingClientRect(); const bords = [r.right > innerWidth + 1 ? `droite ${Math.round(r.right)}>${innerWidth}` : null, r.left < -1 ? `gauche ${Math.round(r.left)}` : null, r.bottom > innerHeight + 1 ? `bas ${Math.round(r.bottom)}>${innerHeight}` : null, r.top < -1 ? `haut ${Math.round(r.top)}` : null].filter(Boolean);
           return `${(b.textContent || b.className).trim().slice(0, 12)} [${bords.join(', ')}]`; });
@@ -102,18 +102,17 @@ async function touchDrag(cdp, pts) {
     const cdp = await context.newCDPSession(page);
     let c = await legalCellScreen(page);
     await page.touchscreen.tap(c.x, c.y); await page.waitForTimeout(300);
-    let s1 = await page.evaluate(() => ({ armed: window.CS.scenes.current.armed, placements: window.CS.scenes.current.isl.placements, btn: !document.querySelector('.hud-place').classList.contains('hidden'), txt: document.querySelector('.hud-place').textContent }));
-    check(s1.armed && s1.armed.q === c.q && s1.armed.r === c.r && s1.placements === 0, `${name} : première touche = case armée (${s1.txt})`);
-    check(s1.btn, `${name} : bouton « Poser ici » visible`);
+    let s1 = await page.evaluate(() => ({ armed: window.CS.scenes.current.armed, placements: window.CS.scenes.current.isl.placements, pv: !!window.CS.scenes.current.renderer.hover }));
+    check(s1.armed && s1.armed.q === c.q && s1.armed.r === c.r && s1.placements === 0 && s1.pv, `${name} : première touche = case armée, aperçu affiché`);
+    check(!(await page.$('.hud-place')), `${name} : plus de bouton « Poser ici » (le second toucher pose)`);
     await page.screenshot({ path: path.join(OUT, `mobile-${tag}-armed.png`) });
     await page.touchscreen.tap(c.x, c.y); await page.waitForTimeout(400);
-    let s2 = await page.evaluate(() => ({ placements: window.CS.scenes.current.isl.placements, btn: !document.querySelector('.hud-place').classList.contains('hidden') }));
-    check(s2.placements === 1 && !s2.btn, `${name} : seconde touche = tuile posée`);
-    // bouton Poser ici
-    c = await legalCellScreen(page); await page.touchscreen.tap(c.x, c.y); await page.waitForTimeout(250);
-    await page.tap('.hud-place'); await page.waitForTimeout(400);
+    let s2 = await page.evaluate(() => ({ placements: window.CS.scenes.current.isl.placements, armed: !!window.CS.scenes.current.armed }));
+    check(s2.placements === 1 && !s2.armed, `${name} : seconde touche = tuile posée`);
+    // une seconde pose au double toucher
+    c = await legalCellScreen(page); await page.touchscreen.tap(c.x, c.y); await page.waitForTimeout(250); await page.touchscreen.tap(c.x, c.y); await page.waitForTimeout(400);
     s2 = await page.evaluate(() => window.CS.scenes.current.isl.placements);
-    check(s2 === 2, `${name} : bouton « Poser ici » pose la tuile`);
+    check(s2 === 2, `${name} : une deuxième tuile posée au double toucher`);
     // déplacement à un doigt (CDP)
     const cam0 = await page.evaluate(() => ({ x: window.CS.scenes.current.cam.x, z: window.CS.scenes.current.cam.zoom }));
     const cx = st.W / 2, cy = st.H / 2;
@@ -131,8 +130,9 @@ async function touchDrag(cdp, pts) {
     for (let i = 0; i < 14; i++) { c = await legalCellScreen(page); await page.touchscreen.tap(c.x, c.y); await page.waitForTimeout(60); await page.touchscreen.tap(c.x, c.y); await page.waitForTimeout(120); }
     c = await legalCellScreen(page); await page.touchscreen.tap(c.x, c.y); await page.waitForTimeout(500);
     await page.screenshot({ path: path.join(OUT, `mobile-${tag}-island.png`) });
-    // vœux dépliés
-    await page.tap('.wish-toggle'); await page.waitForTimeout(300); await page.screenshot({ path: path.join(OUT, `mobile-${tag}-wishes.png`) }); await page.tap('.wish-toggle');
+    // vœux : en portrait, un cadre discret sous l'île (toucher un vœu montre son texte) ; en paysage, repliés derrière un bouton
+    if (await page.$('.wish-toggle:visible')) { await page.tap('.wish-toggle'); await page.waitForTimeout(300); await page.screenshot({ path: path.join(OUT, `mobile-${tag}-wishes.png`) }); await page.tap('.wish-toggle'); }
+    else if (await page.$('.wish-list .wish')) { await page.tap('.wish-list .wish'); await page.waitForTimeout(300); check(await page.evaluate(() => !!document.querySelector('.wish.ouvert .wish-text') && getComputedStyle(document.querySelector('.wish.ouvert .wish-text')).display !== 'none'), `${name} : toucher un vœu montre son texte`); await page.screenshot({ path: path.join(OUT, `mobile-${tag}-wishes.png`) }); await page.tap('.wish-list .wish'); }
     // pause
     { const d = await hudDehors(); check(d.length === 0, `${name} : les souffles et les boutons du jeu restent dans l’écran${d.length ? ` (dehors : ${d.join(', ')})` : ''}`); }
     await page.tap('[data-ref="pause"]'); await page.waitForTimeout(400); await page.evaluate(() => [...document.querySelectorAll('.panel-pause button')].find((b) => b.textContent.includes('Journal')).click()); await page.waitForTimeout(400);   // le journal s'ouvre depuis la pause await page.screenshot({ path: path.join(OUT, `mobile-${tag}-log.png`) }); check(await page.evaluate(() => document.querySelectorAll('.log-item').length > 0), `${name} : journal des événements ouvert avec des entrées`); await page.tap('.log-close'); await page.waitForTimeout(200);

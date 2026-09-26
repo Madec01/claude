@@ -40,7 +40,7 @@ function srcTuile(family, variant, season) {
 }
 
 export class Hud {
-  constructor(root, island, { title, onPause, onPick, onDiscard, onUndo, onGardenPick, onPlace, onMove, onAction, onActionHover, onBuildHint, compact = false, mechanics }) {
+  constructor(root, island, { title, onPause, onPick, onDiscard, onUndo, onGardenPick, onPlace, onMove, onAction, onActionHover, compact = false, mechanics }) {
     this.root = root; this.isl = island; this.mech = mechanics;
     const m = mechanics;
     root.innerHTML = `
@@ -53,6 +53,7 @@ export class Hud {
         </div>
         <div class="hud-block hud-score"><span class="hud-label">Points</span><b data-ref="score">0</b><span class="score-delta" data-ref="scoreDelta"></span><span class="hud-stars" data-ref="starsLine" title="Seuils des étoiles"></span><span class="hud-harmonie ${island.harmonieOn ? '' : 'hidden'}" data-ref="harmonie" title="Harmonie : trois fleurs, comptées à la fin de l’île (toucher)">${FLEURS.map((f) => `<img class="fleur" data-fleur="${f.id}" src="assets/img/deco/${f.img}.webp" alt="${f.nom}">`).join('')}</span><div class="score-pop harmo-pop hidden" data-ref="harmoPop"></div><span class="hud-objectif hidden" data-ref="objectif"></span><div class="score-pop hidden" data-ref="scorePop"></div></div>
         <div class="hud-block hud-breaths ${m.has('breath') ? '' : 'hidden'}" title="Souffles"><span class="hud-label">Souffles</span><b data-ref="breaths">0</b></div>
+        <span class="hud-ile" data-ref="ileNum">${typeof island.def.id === 'number' ? `Île ${island.def.id}` : island.def.daily ? 'Île du jour' : island.def.infinite ? 'Île infinie' : ''}</span>
         <button class="hud-pause" data-ref="pause" title="Pause (Échap) : journal, plein écran, options">${icon('icon_pause')}</button>
       </div>
       <div class="hud-carte ${island.brume ? '' : 'hidden'}" data-ref="carte"><span class="hc-kicker" data-ref="carteKicker">Saison</span><b data-ref="carteNom">—</b><span class="hc-texte" data-ref="carteTexte"></span><span class="hc-ratio" data-ref="carteRatio" title="Chance de tirer un bonus à la prochaine saison"></span></div>
@@ -62,7 +63,6 @@ export class Hud {
         <div class="powers ${m.has('breath') ? '' : 'hidden'}" data-ref="powers">
           <button class="pw" data-ref="pwDiscard" title="Défausser la tuile (X)">${icon('icon_cross')}<span>Défausser</span><em>${BALANCE.breaths.discard}</em></button>
           <button class="pw" data-ref="pwUndo" title="Annuler la dernière pose (Z), une fois par saison">${icon('icon_return')}<span>Annuler</span><em data-ref="undoCost">${BALANCE.breaths.undo}</em></button>
-          <button class="pw pw-build ${m.has('build') || m.has('fuse') ? '' : 'hidden'}" data-ref="pwBuild" title="Les tuiles posées qui attendent une action : bâtir une région close (2 souffles), fusionner deux voisines qui font recette (2), réparer une friche (1). Touche-les sur l’île.">${icon('icon_wrench')}<span>Bâtir</span><em data-ref="buildCount">0</em></button>
         </div>
         <div class="hud-brume ${island.brume ? '' : 'hidden'}" data-ref="brume">
           <div class="queue-title"><span>Sous la brume</span><span class="brume-left" data-ref="brumeLeft"></span></div>
@@ -72,8 +72,7 @@ export class Hud {
         </div>
         <div class="garden-pick ${island.garden ? '' : 'hidden'}" data-ref="gardenPick"><div class="queue-title" data-ref="pickTitle">Choisir</div><div class="gpick-list" data-ref="pickList"></div></div>
       </div>
-      <div class="hud-wishes ${island.wishes.length ? '' : 'hidden'} ${compact ? 'collapsed' : ''}" data-ref="wishes"><button class="wish-toggle" data-ref="wishToggle" title="Afficher les vœux">Vœux <b data-ref="wishCount"></b></button><div class="queue-title">Vœux</div><div class="wish-list" data-ref="wishList"></div></div>
-      <button class="hud-place hidden" data-ref="placeBtn"></button>
+      <div class="hud-wishes ${island.wishes.length ? '' : 'hidden'} ${compact && !STAGE.portrait ? 'collapsed' : ''}" data-ref="wishes"><button class="wish-toggle" data-ref="wishToggle" title="Afficher les vœux">Vœux <b data-ref="wishCount"></b></button><div class="queue-title">Vœux</div><div class="wish-list" data-ref="wishList"></div></div>
       <div class="hud-actions hidden" data-ref="actions"></div>
       <div class="hud-logpanel hidden" data-ref="logPanel"><div class="log-head"><span>Journal de l’île</span><button class="log-close" data-ref="logClose" title="Fermer">✕</button></div><div class="log-list" data-ref="logList"></div></div>
       <div class="tile-help hidden" data-ref="tileHelp"><div class="th-head"><b data-ref="thName"></b><button class="th-close" data-ref="thClose" title="Masquer la fiche (H)">✕</button></div><p class="th-blurb" data-ref="thBlurb"></p><div class="th-pairs" data-ref="thPairs"></div></div>
@@ -92,6 +91,8 @@ export class Hud {
     this.r.pwUndo.addEventListener('click', (e) => { e.stopPropagation(); onUndo(); });
     this.r.brumeMove.addEventListener('click', (e) => { e.stopPropagation(); onMove && onMove(); });
     this.log = []; this.unread = 0;
+    // au téléphone en portrait, le cadre des vœux se pose juste au-dessus de la file, quelle que soit sa hauteur (--hud-queue-bas)
+    if (STAGE.compact && STAGE.portrait && !island.brume && !island.tempo && typeof ResizeObserver !== 'undefined') { this._roBas = new ResizeObserver(() => { const hq = Math.round(this.r.queue.getBoundingClientRect().height / (STAGE.scale || 1)); if (hq) root.style.setProperty('--hud-queue-bas', `${hq}px`); }); this._roBas.observe(this.r.queue); }
     // Sous la brume, au téléphone : la ligne du bas change de hauteur avec l'inventaire ; la faune et « Poser ici » la suivent (--queue-h)
     if (island.brume && typeof ResizeObserver !== 'undefined') { this._ro = new ResizeObserver(() => { const h = Math.round(this.r.queue.getBoundingClientRect().height / (STAGE.scale || 1)); root.style.setProperty('--queue-h', `${h}px`); (root.parentNode || document.documentElement).style.setProperty('--hud-queue-h', `${h}px`); }); this._ro.observe(this.r.queue); }
     // La hauteur réelle de la barre du haut (elle passe sur deux lignes en portrait) : les panneaux dessous s'y calent.
@@ -104,13 +105,13 @@ export class Hud {
     // lande — disent leurs effets passifs en cinq lignes). Le choix tient jusqu'à la fin de l'île, pas au-delà.
     this.r.tileHelp.addEventListener('click', (e) => { e.stopPropagation(); this.helpOpen = !this.helpOpen; this.r.tileHelp.classList.toggle('open', this.helpOpen); });
     this.r.logClose.addEventListener('click', (e) => { e.stopPropagation(); this.toggleLog(false); });
-    this.r.placeBtn.addEventListener('click', (e) => { e.stopPropagation(); onPlace && onPlace(); });
-    this.r.pwBuild.addEventListener('click', (e) => { e.stopPropagation(); onBuildHint && onBuildHint(); });
     // les actions d'une tuile posée : un bouton par action ; le survol d'un bouton change l'aperçu sur l'île, le clic fait l'action
     this.r.actions.addEventListener('click', (e) => { e.stopPropagation(); const b = e.target.closest('button'); if (!b) return; if (b.classList.contains('act-close')) { this.setActions(null); this.onActionHover(-1); return; } onAction && onAction(Number(b.dataset.i)); });
     this.r.actions.addEventListener('mouseover', (e) => { const b = e.target.closest('button.act'); if (b) this.onActionHover(Number(b.dataset.i)); });
     this.onActionHover = onActionHover || (() => {});
     this.r.wishToggle.addEventListener('click', (e) => { e.stopPropagation(); this.r.wishes.classList.toggle('collapsed'); });
+    // au téléphone, les vœux sont des lignes discrètes sous l'île : toucher un vœu montre (ou cache) son texte
+    this.r.wishList.addEventListener('click', (e) => { const el = e.target.closest('.wish'); if (!el || this.r.wishes.classList.contains('collapsed')) return; e.stopPropagation(); this.wishOuvert = this.wishOuvert === el.dataset.w ? null : el.dataset.w; this.last.wishKey = null; this.renderWishes(); });
 
     this.onPick = onPick || (() => {}); this.onGardenPick = onGardenPick;
     this.last = {};
@@ -263,7 +264,7 @@ export class Hud {
   renderWishes() {
     if (!this.isl.wishes.length) return;
     // l'échéance affichée ne dépend que du nombre de poses ; le reste, de l'état de chaque vœu
-    let cle = String(this.isl.placements);
+    let cle = `${this.isl.placements}|${this.wishOuvert || ''}`;
     for (const w of this.isl.wishes) cle += `|${w.def.id}.${w.status}.${w.progress}.${w.target}.${w.failedAt}`;
     if (cle === this.last.wishKey) return;
     this.last.wishKey = cle;
@@ -273,7 +274,7 @@ export class Hud {
       const pct = Math.min(100, Math.round((w.progress / w.target) * 100));
       // ce que le vœu rapporterait exaucé maintenant : autant que les poses qui restent avant son échéance
       const val = w.status === 'open' ? `<b class="wish-pts">+${this.isl.valeurVoeu(w)}</b>` : w.status === 'done' && w.pts ? `<b class="wish-pts">+${w.pts}</b>` : '';
-      return `<div class="wish ${w.status}"><div class="wish-head"><b>${s.title}</b><span class="wish-giver">${s.giver}</span></div><div class="wish-text">${s.text}</div><div class="wish-bar"><div style="width:${pct}%"></div></div><div class="wish-foot"><span>${w.progress} / ${w.target}</span><span class="wish-dl">${w.status === 'open' ? deadlineLabel(w, ctx, STORY) : w.status === 'done' ? 'exaucé' : `trop tard (pose ${w.failedAt || '?'})`}${val ? ` · ${val}` : ''}</span></div></div>`;
+      return `<div class="wish ${w.status} ${this.wishOuvert === w.def.id ? 'ouvert' : ''}" data-w="${w.def.id}"><div class="wish-head"><b>${s.title}</b><span class="wish-giver">${s.giver}</span></div><div class="wish-text">${s.text}</div><div class="wish-bar"><div style="width:${pct}%"></div></div><div class="wish-foot"><span>${w.progress} / ${w.target}</span><span class="wish-dl">${w.status === 'open' ? deadlineLabel(w, ctx, STORY) : w.status === 'done' ? 'exaucé' : `trop tard (pose ${w.failedAt || '?'})`}${val ? ` · ${val}` : ''}</span></div></div>`;
     }).join('');
     if (html !== this.last.wishes) { this.last.wishes = html; this.r.wishList.innerHTML = html; }
     const cnt = `${this.isl.wishes.filter((w) => w.status === 'done').length} / ${this.isl.wishes.length}`;
@@ -290,6 +291,11 @@ export class Hud {
     if (html !== this.last.fauna) { this.last.fauna = html; this.r.fauna.innerHTML = html; }
   }
 
+  /** Au téléphone en portrait : la hauteur occupée en bas de l'écran (file de tuiles et cadre des vœux), pour cadrer l'île au-dessus. */
+  hauteurBas() {
+    const q = this.r.queue.getBoundingClientRect(), w = this.r.wishes.classList.contains('hidden') ? null : this.r.wishes.getBoundingClientRect(); const k = STAGE.scale || 1;
+    return Math.round(((w && w.height ? (q.bottom - w.top) : q.height)) / k);
+  }
   noteTopH(hh) { if (hh && hh !== this._topH) { this._topH = hh; this.root.style.setProperty('--hud-top-h', `${hh}px`); } }
 
   set(key, value) { if (this.last[key] !== value) { this.last[key] = value; this.r[key].textContent = value; } }
@@ -362,12 +368,9 @@ export class Hud {
   setResting(on) { if (this._resting === on) return; this._resting = on; this.root.classList.toggle('resting', !!on); }
 
   /** Bouton « Poser ici » (tactile) : total de la pose armée, ou null pour le masquer. */
-  setPlaceButton(total, mode = 'place') {
-    if (total === null || total === undefined) { if (!this.r.placeBtn.classList.contains('hidden')) this.r.placeBtn.classList.add('hidden'); this.setActions(null); return; }
-    const txt = this.isl.brume ? (mode === 'move' ? 'Déplacer ici' : 'Poser ici') : `${mode === 'fuse' ? 'Fusionner ici' : mode === 'build' ? 'Bâtir ici' : mode === 'move' ? 'Déplacer ici' : 'Poser ici'} · ${total >= 0 ? '+' : ''}${total}`;   // sous la brume, pas de points avant la pose
-    if (this.last.placeTxt !== txt) { this.last.placeTxt = txt; this.r.placeBtn.textContent = txt; this.r.placeBtn.classList.toggle('neg', total < 0); }
-    if (this.r.placeBtn.classList.contains('hidden')) this.r.placeBtn.classList.remove('hidden');   // retirer une classe absente réécrit quand même l'attribut : une mutation et un style à revoir par image
-  }
+  /** Le bouton « Poser ici » est retiré (on pose d'un second toucher) : il ne reste qu'à replier le panneau des actions. */
+  setPlaceButton(total) { if (total === null || total === undefined) this.setActions(null); }
+
 
   /**
    * Les actions d'une tuile posée (bâtir, fusionner, remettre en état) : un bouton par action avec son coût en souffles
@@ -433,14 +436,13 @@ export class Hud {
       const cle = libre ? '' : `${n}`;
       if (this.last.left !== cle) {
         this.last.left = cle;
-        r.left.innerHTML = libre ? '' : `<b>${n}</b> tuile${n > 1 ? 's' : ''} restante${n > 1 ? 's' : ''}`;
+        r.left.innerHTML = libre ? '' : `<b>${n}</b><span class="ql-mot"> tuile${n > 1 ? 's' : ''} restante${n > 1 ? 's' : ''}</span>`;   // au téléphone en portrait, seul le chiffre, en pastille
         r.left.classList.toggle('peu', !libre && n <= Math.max(5, isl.seasonLength) && n > 3);
         r.left.classList.toggle('tres-peu', !libre && n <= 3);
         if (!libre && this._leftN !== undefined && n < this._leftN && n <= Math.max(5, isl.seasonLength)) { r.left.classList.remove('bat'); void r.left.offsetWidth; r.left.classList.add('bat'); }
         this._leftN = n;
       } }
     r.pwDiscard.disabled = !isl.canDiscard();
-    if (isl.buildOn || isl.fuseOn) { const n = isl.buildTargets().length; if (n !== this.last.buildCount) { this.last.buildCount = n; r.buildCount.textContent = String(n); r.pwBuild.classList.toggle('some', n > 0); } }
     r.pwUndo.disabled = !isl.canUndo(); if (isl.brume && !this.last.undoHidden) { this.last.undoHidden = true; r.pwUndo.classList.add('hidden'); }   // pas de souvenir sous la brume
     this.renderQueue(); this.renderWishes(); this.renderFauna(); this.renderTileHelp(); this.renderHarmonie();
   }
@@ -491,5 +493,5 @@ export class Hud {
   /** La tuile est perdue : le chiffre éclate, la barre flashe. */
   chronoCasse() { const el = this._chrono; if (!el) return; el.classList.remove('casse'); void el.offsetWidth; el.classList.add('casse'); }
 
-  destroy() { if (this._ro) this._ro.disconnect(); if (this._roTop) this._roTop.disconnect(); if (this._roQ) this._roQ.disconnect(); this.root.style.removeProperty('--queue-h'); (this.root.parentNode || document.documentElement).style.removeProperty('--hud-queue-h'); this.root.innerHTML = ''; }
+  destroy() { if (this._roBas) { this._roBas.disconnect(); this.root.style.removeProperty('--hud-queue-bas'); } if (this._ro) this._ro.disconnect(); if (this._roTop) this._roTop.disconnect(); if (this._roQ) this._roQ.disconnect(); this.root.style.removeProperty('--queue-h'); (this.root.parentNode || document.documentElement).style.removeProperty('--hud-queue-h'); this.root.innerHTML = ''; }
 }

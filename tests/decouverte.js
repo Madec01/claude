@@ -102,12 +102,7 @@ const btn = (page, label) => page.evaluate((l) => {
   check(cible.n > 0 && cible.genres.includes('level') && cible.genres.includes('restore'), `${cible.n} tuile(s) posée(s) attendent une action (${cible.genres.join(', ')})`);
   check(cible.acts.includes('level:2'), `sur la région close, bâtir le niveau 2 pour 2 souffles (${cible.acts.join(', ')})`);
   await page.waitForTimeout(700);
-  const bouton = await page.evaluate(() => {
-    const el = document.querySelector('.pw-build');
-    return el ? { n: Number(el.querySelector('em').textContent), titre: el.getAttribute('title') || '', visible: !el.classList.contains('hidden') } : null;
-  });
-  check(!!bouton && bouton.visible && bouton.n === cible.n, `le bandeau les compte sur le bouton Bâtir (« ${bouton ? bouton.n : 'ABSENT'} »)`);
-  check(!!bouton && /touche/i.test(bouton.titre), 'et l’explique au survol pour qui a une souris');
+  check(!(await page.$('.pw-build')), 'plus de bouton « Bâtir » dans le bandeau (le liseré sur l’île suffit, retour du commanditaire)');
   // toucher une tuile qui attend : ses actions s'affichent, avec leur coût et leur gain
   const panneau = await page.evaluate(() => {
     const sc = window.CS.scenes.current; const isl = sc.isl; const t = isl.buildTargets()[0];

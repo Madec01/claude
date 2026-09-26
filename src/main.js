@@ -635,7 +635,8 @@ class IslandScene {
     if (!this.resumed) { RunSave.archiveKept(); RunSave.clear(); }   // une nouvelle île remplace la partie gardée : celle qu'on laisse passe dans l'historique, pour pouvoir l'illustrer plus tard
     this.isl = isl;
     this.runDirty = false; this.runTimer = 0;
-    this.marges = () => uiMargins(def.tempo ? 'tempo' : 'island');
+    // au téléphone en portrait, le bas de l'écran porte la file et, au-dessus, le cadre des vœux : l'île se cadre au-dessus des deux
+    this.marges = () => { const m = uiMargins(def.tempo ? 'tempo' : 'island'); if (STAGE.compact && STAGE.portrait && !def.tempo && !def.brume && this.hud && this.hud.hauteurBas) { const hb = this.hud.hauteurBas(); if (hb > 0) m.uiBottom = Math.max(m.uiBottom, hb + 10); } return m; };
     this.cam = new Camera(); this.cam.fit(isl.board.mask, { ...this.marges(), immediate: true });
     this.moving = false;   // Sous la brume : mode Déplacer
     this.armed = null;   // tactile : case « armée » (aperçu affiché) en attente d'une seconde touche
@@ -655,11 +656,11 @@ class IslandScene {
       onPlace: () => this.placeArmed(),
       onAction: (i) => this.doAction(i),
       onActionHover: (i) => { if (this.armed && this.armed.build) this.armed.i = i; },
-      onBuildHint: () => this.buildHint(),
       onMove: () => this.toggleMove(),
       compact: STAGE.compact,
     });
     document.getElementById('hud').classList.add('on');
+    requestAnimationFrame(() => { if (this.cam && this.isl && !this.isl.ended) this.cam.fit(this.isl.board.mask, { ...this.marges(), immediate: true }); });   // la file et les vœux ont maintenant leur taille
     // les deux modes à part ont leur tutoriel pas à pas : la première fois, ou à la demande (`def.tuto`) ; jamais en mode test
     // la case « Revoir le tutoriel » cochée dans le panneau l'emporte sur l'option « Sauter les tutoriels » : c'est une demande explicite
     const tutoMode = (def.tempo || def.brume) && !Game.testMode && (def.tuto || (!Save.options.skipTutorial && !((Save.data.seen || {})[def.tempo ? 'tuto_tempo' : 'tuto_brume'])));
@@ -1010,15 +1011,7 @@ class IslandScene {
   disarm() { this.armed = null; this.hud.setPlaceButton(null); this.hud.setActions(null); }
   /** Oublie la case visée (appui ailleurs, glissé, autre tuile) : le prochain toucher sur elle la visera de nouveau, sans poser. */
   oublierVisee() { if (!this.armed) return; this.disarm(); this.renderer.hover = null; }
-  /** Le bouton « Bâtir » du bandeau : fait briller les tuiles qui ont une action et dit ce qu'on peut y faire. */
-  buildHint() {
-    if (!this.isl || this.isl.ended) return;
-    const n = this.isl.buildTargets().length;
-    this.renderer.flashTargets = this.renderer.time + 3;
-    AudioSys.play('ui_click', { volume: 0.4 });
-    if (n) this.hud.notify(`${n} tuile${n > 1 ? 's' : ''} attend${n > 1 ? 'ent' : ''} une action : touche-la${n > 1 ? ' ' : ''}${n > 1 ? '(bâtir une région close, fusionner deux voisines, réparer une friche)' : ''}`, 'info');
-    else this.hud.notify(this.isl.fuseOn ? 'Rien à bâtir pour l’instant : il faut une région close, deux voisines qui font recette ou une friche, et des souffles' : 'Rien à bâtir pour l’instant : il faut une région close et des souffles', 'info');
-  }
+
   onMouseUp(b, x, y) { if (b === 2 || b === 1) this.drag = null; }
   onResize() { if (this.cam && this.isl) this.cam.fit(this.isl.board.mask, this.marges()); }
   /** Tactile : première touche = aperçu (case armée), seconde touche sur la même case = pose. */
