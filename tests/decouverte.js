@@ -122,11 +122,13 @@ const btn = (page, label) => page.evaluate((l) => {
   // le plateau entoure les tuiles visées
   const trace = await page.evaluate(() => {
     const R = window.CS.scenes.current.renderer; let n = 0;
-    const ctx = { save() {}, restore() {}, beginPath() { n++; }, moveTo() {}, lineTo() {}, closePath() {}, stroke() {}, fill() {}, setLineDash() {}, strokeStyle: '', fillStyle: '', lineWidth: 0 };
+    // un vrai contexte hors écran : le rendu garde les contours en tracés (Path2D) sous la transformation de la caméra
+    const cv = document.createElement('canvas'); cv.width = 400; cv.height = 400; const ctx = cv.getContext('2d');
+    const st = ctx.stroke.bind(ctx); ctx.stroke = (...a) => { n++; return st(...a); };
     R.drawBuildTargets(ctx);
-    return n;
+    return n && R._cibles ? R._cibles.list.length : 0;
   });
-  check(trace > 0, `le plateau entoure les tuiles visées (${trace} contour(s))`);
+  check(trace > 0, `le plateau entoure les tuiles visées (${trace} contour(s) tracé(s))`);
 
   // --- 5 bis. les graines qui dorment : le bilan offre l'Atelier, et l'Atelier s'ouvre une fois entre deux îles
   const bilan = await page.evaluate(async () => {
