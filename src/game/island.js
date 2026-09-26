@@ -522,14 +522,41 @@ export class Island {
     for (const e of ev) {
       if (e.type === 'done') {
         this.stats.wishesDone++;
-        this.score += BALANCE.points.wish; this.tally.wishes += BALANCE.points.wish;
+        // un vœu rapporte autant de points qu'il restait de poses avant son échéance : l'exaucer tôt paie (idée du commanditaire)
+        const pts = this.valeurVoeu(e.wish); e.wish.pts = pts;
+        this.score += pts; this.tally.wishes += pts;
         this.breaths += BALANCE.breaths.wish;
         const rare = this.pickRare();
         this.queue.inject(this.queue.makeRare(rare), false);
-        this.emit({ type: 'wish', kind: 'done', wish: e.wish, rare });
+        this.emit({ type: 'wish', kind: 'done', wish: e.wish, rare, pts });
       } else this.emit({ type: 'wish', kind: 'failed', wish: e.wish });
     }
   }
+
+  /**
+   * Les poses qui restent avant l'échéance d'un vœu : une échéance en poses se lit telle quelle ; une échéance de saison
+   * se compte en déroulant les saisons à venir (la saison longue d'un climat revient une fois) ; sans échéance, ce qui
+   * reste dans la file.
+   */
+  posesAvantEcheance(w) {
+    const dl = (w.def || w).deadline;
+    if (!dl) return this.queue.remaining;
+    if (dl.placements !== undefined) return Math.max(0, dl.placements - this.placements);
+    if (dl.season) {
+      const cycle = dl.cycle || 1; let vus = this.seasonsPassed.filter((s) => s === dl.season).length;
+      if (vus >= cycle) return 0;
+      let n = this.seasonLength - this.inSeason, s = this.season, longFait = this.longSeasonDone;
+      for (let i = 0; i < 16; i++) {
+        if (this.climate.longSeason === s && !longFait) longFait = true; else { s = nextSeason(s); if (s !== this.climate.longSeason) longFait = false; }
+        if (s === dl.season && ++vus >= cycle) return n;
+        n += this.seasonLength;
+      }
+      return n;
+    }
+    return this.queue.remaining;
+  }
+  /** Ce qu'un vœu rapporterait s'il était exaucé maintenant (au moins un point). */
+  valeurVoeu(w) { return Math.max(1, this.posesAvantEcheance(w)); }
 
   pickRare() {
     const id = typeof this.def.id === 'number' ? this.def.id : 99;
@@ -835,7 +862,7 @@ export class Island {
     if (this.tempo) { const m = videsMalus(this.board); this.stats.vides = m; if (m.total) this.addBonus(-m.total, 'vides'); }
     // l'harmonie : les fleurs ouvertes paient à la fin, avant que les étoiles se comptent
     let harmo = null;
-    if (this.harmonieOn && !this.tempo && !this.brume && !this.garden) { const h = harmonie(this.board, this.def); harmo = { fleurs: h.fleurs.map((f) => ({ id: f.id, nom: f.nom, ok: f.ok, detail: f.detail })), ouvertes: h.ouvertes, pts: h.pts, total: h.total }; this.stats.harmonie = h.ouvertes; if (h.total) this.addBonus(h.total, 'harmonie'); }
+    if (this.harmonieOn && !this.tempo && !this.brume && !this.garden) { const h = harmonie(this.board, this.def); harmo = { fleurs: h.fleurs.map((f) => ({ id: f.id, nom: f.nom, ok: f.ok, detail: f.detail, valeur: f.valeur, seuil: f.seuil, friches: f.friches || 0 })), ouvertes: h.ouvertes, pts: h.pts, total: h.total }; this.stats.harmonie = h.ouvertes; if (h.total) this.addBonus(h.total, 'harmonie'); }
     const cells = this.board.cells;
     const th = this.thresholds;
     let stars = 0;

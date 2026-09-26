@@ -43,11 +43,8 @@ export function buildResults({ result, def, onContinue, onRetry, onMenu, onPostc
       result.stats.perfect ? row('Coups parfaits', result.stats.perfect, 'good') : null,
       row('Animaux (au plus)', result.stats.faunaMax, result.stats.faunaMax ? 'good' : ''),
       result.wishesTotal ? row('Vœux exaucés', `${result.wishesDone} / ${result.wishesTotal}`, result.wishesDone === result.wishesTotal ? 'gold' : '') : null,
-      // l'harmonie : les trois fleurs s'ouvrent l'une après l'autre ; ce qui a manqué est dit, pour la prochaine fois
-      result.harmonie ? h('div', { class: `res-row res-harmonie ${result.harmonie.ouvertes === 3 ? 'gold' : result.harmonie.ouvertes ? 'good' : ''}` },
-        h('span', {}, 'Harmonie', ...result.harmonie.fleurs.map((f, i) => h('img', { class: `res-fleur ${f.ok ? 'on' : ''}`, style: `--i:${i}`, src: `assets/img/deco/${FLEUR_IMG[f.id]}.webp`, alt: f.nom, title: `${f.nom} : ${f.detail}` }))),
-        h('b', {}, `${result.harmonie.ouvertes} / 3${result.harmonie.total ? ` (+${result.harmonie.total})` : ''}`)) : null,
-      result.harmonie && result.harmonie.ouvertes < 3 ? h('p', { class: 'res-harmo-manque' }, `Manquait : ${result.harmonie.fleurs.filter((f) => !f.ok).map((f) => `${f.nom.toLowerCase()} (${f.detail})`).join(' ; ')}.`) : null,
+      // l'harmonie : les trois fleurs s'ouvrent l'une après l'autre ; les toucher déplie où l'on en est de chaque objectif
+      result.harmonie ? blocHarmonie(result.harmonie) : null,
       brume ? row('Cases dévoilées', `${brume.devoilees} / ${brume.depart}`, brume.restantes.length ? '' : 'good') : null,
       brume && (brume.justes + brume.fausses) ? row('Jalons justes', `${brume.justes} / ${brume.justes + brume.fausses}`, brume.justes ? 'good' : '') : null,
       brume && brume.tresor ? row('Trésor', (STORY.tiles[brume.tresor] || {}).name || brume.tresor, 'gold') : null,
@@ -82,6 +79,30 @@ export function buildResults({ result, def, onContinue, onRetry, onMenu, onPostc
 
 /** D'où viennent les points : une barre par source, et le meilleur coup de la partie. */
 const FLEUR_IMG = { variete: 'obj_flowerBlue', equilibre: 'obj_flowerRed', acheve: 'obj_flowerYellow' };
+/**
+ * Au bilan, la ligne de l'harmonie : les trois fleurs et le compte. Un toucher déplie, pour chaque fleur, une barre qui
+ * dit où l'on en est de l'objectif (la marque dorée est le seuil) et ce qui a manqué ; un second toucher replie.
+ */
+function blocHarmonie(hr) {
+  const pct = (x) => `${Math.round(x * 100)} %`;
+  const barre = (f) => {
+    // remplissage : la part de l'objectif atteinte ; pour l'équilibre (plus petit vaut mieux), la jauge montre la plus grande région face au plafond
+    let rempli, seuil, lu;
+    if (f.id === 'variete') { rempli = Math.min(1, f.valeur / Math.max(1, f.seuil + 2)); seuil = f.seuil / Math.max(1, f.seuil + 2); lu = `${f.valeur} famille${f.valeur > 1 ? 's' : ''} tenue${f.valeur > 1 ? 's' : ''} · objectif ${f.seuil}`; }
+    else if (f.id === 'equilibre') { rempli = Math.min(1, f.valeur / 0.5); seuil = f.seuil / 0.5; lu = `plus grande région : ${pct(f.valeur)} de l’île · au plus ${pct(f.seuil)}`; }
+    else { rempli = Math.min(1, f.valeur); seuil = f.seuil; lu = `${pct(f.valeur)} en régions closes · au moins ${pct(f.seuil)}${f.friches ? ` · ${f.friches} friche${f.friches > 1 ? 's' : ''}` : ''}`; }
+    return h('div', { class: `rh-item ${f.ok ? 'on' : ''}` },
+      h('div', { class: 'rh-top' }, h('img', { src: `assets/img/deco/${FLEUR_IMG[f.id]}.webp`, alt: '' }), h('b', {}, f.nom), h('span', {}, f.ok ? 'ouverte' : 'fermée')),
+      h('div', { class: `rh-bar ${f.id === 'equilibre' ? 'inverse' : ''}` }, h('i', { style: `width:${Math.round(rempli * 100)}%` }), h('em', { style: `left:${Math.round(seuil * 100)}%` })),
+      h('small', {}, lu));
+  };
+  const detail = h('div', { class: 'res-harmo-detail hidden' }, ...hr.fleurs.map(barre));
+  const ligne = h('div', { class: `res-row res-harmonie ${hr.ouvertes === 3 ? 'gold' : hr.ouvertes ? 'good' : ''}`, title: 'Toucher : où en est chaque objectif' },
+    h('span', {}, 'Harmonie', ...hr.fleurs.map((f, i) => h('img', { class: `res-fleur ${f.ok ? 'on' : ''}`, style: `--i:${i}`, src: `assets/img/deco/${FLEUR_IMG[f.id]}.webp`, alt: f.nom })), h('i', { class: 'rh-plus' }, '›')),
+    h('b', {}, `${hr.ouvertes} / 3${hr.total ? ` (+${hr.total})` : ''}`));
+  ligne.addEventListener('click', (e) => { e.stopPropagation(); const ouvert = detail.classList.toggle('hidden') === false; ligne.classList.toggle('ouvert', ouvert); });
+  return h('div', { class: 'res-harmo-bloc' }, ligne, detail);
+}
 export const TALLY_LABELS = { harmonie: 'Harmonie (fleurs)', edges: 'Bords et affinités', closes: 'Régions fermées', fauna: 'Faune', wishes: 'Vœux', base: 'Rivières et primes de pose', build: 'Bâtir', fusions: 'Fusions', paths: 'Sentiers entre villages',
   // les primes de saison, une par nature (anciennement toutes sous « Saisons »)
   s_harvest: 'Récoltes', s_veillee: 'Veillées d’hiver', s_bloom: 'Marais en fleurs', s_heather: 'Lande en fleurs', s_pond: 'Étangs', s_mild: 'Hiver doux', s_cold: 'Grand froid', s_firewood: 'Bois de chauffage', s_fair: 'Grande foire', s_hunt: 'Chasse et cueillette', s_rare: 'Tuiles rares', s_level3: 'Niveau 3', s_fusion: 'Fusions (primes de saison)',

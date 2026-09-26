@@ -39,7 +39,7 @@ html.compact .tuto-hint { display: none; }
 /* file de tuiles */
 html.compact .queue-title { display: none; }
 /* au téléphone, le titre de la file s'efface mais le compte des tuiles reste, en étiquette au-dessus de la file */
-html.compact .hud-queue > .queue-title { display: block; position: absolute; left: 10px; bottom: 100%; margin-bottom: 4px; padding: 1px 8px; border-radius: 10px; background: rgba(255,253,248,0.85); opacity: 0.85; pointer-events: none; }
+html.compact .hud-queue > .queue-title { display: block; position: absolute; left: 10px; bottom: 100%; margin-bottom: 4px; padding: 2px 10px; border-radius: 12px; background: rgba(255,253,248,0.96); border: 1px solid rgba(224,163,58,0.45); box-shadow: 0 2px 8px rgba(30,50,70,0.14); opacity: 1; pointer-events: none; }
 html.compact .hud-queue > .queue-title > span:first-child { display: none; }
 html.compact .hud-queue > .queue-title:has(.queue-left:empty) { display: none; }
 html.compact.landscape .hud-queue > .queue-title { position: static; margin: 0; align-self: flex-start; }
@@ -55,7 +55,17 @@ html.compact .hud-wishes { right: 6px; top: 46px; width: auto; max-width: 236px;
 html.compact .hud-wishes .queue-title { display: none; }
 html.compact .wish-toggle { display: inline-flex; align-items: center; gap: 6px; font-family: inherit; font-weight: 800; font-size: 12px; padding: 5px 10px; border-radius: 16px; border: 1px solid rgba(43,42,38,0.14); border-left: 4px solid var(--wish); background: rgba(255,253,248,0.94); color: var(--ink); cursor: pointer; box-shadow: 0 3px 10px rgba(30,50,70,0.12); }
 html.compact .wish-toggle b { color: var(--wish); }
-html.compact .hud-wishes.collapsed .wish-list { display: none; }
+/* repliés (par défaut au téléphone) : une ligne par vœu ouvert — titre, avancée, échéance et ce qu'il rapporte —
+   sans le texte ; les vœux exaucés ou manqués se cachent. Déplié (bouton « Vœux »), tout revient. */
+html.compact .hud-wishes.collapsed { pointer-events: none; }
+html.compact .hud-wishes.collapsed .wish-toggle { pointer-events: all; }
+html.compact .hud-wishes.collapsed .wish-list { width: 182px; max-height: none; overflow: visible; gap: 3px; pointer-events: none; }   /* au doigt, la liste repliée laisse passer les touchers vers l'île qu'elle recouvre ; le bouton « Vœux » la déplie */
+html.compact .hud-wishes.collapsed .wish.done, html.compact .hud-wishes.collapsed .wish.failed { display: none; }
+html.compact .hud-wishes.collapsed .wish { padding: 3px 7px 4px; border-left-width: 4px; border-radius: 8px; }
+html.compact .hud-wishes.collapsed .wish-text, html.compact .hud-wishes.collapsed .wish-giver { display: none; }
+html.compact .hud-wishes.collapsed .wish-head b { font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+html.compact .hud-wishes.collapsed .wish-bar { height: 3px; margin-top: 2px; }
+html.compact .hud-wishes.collapsed .wish-foot { font-size: 10px; margin-top: 2px; }
 html.compact .wish-list { width: 230px; max-height: 52vh; overflow: auto; gap: 4px; }
 html.compact .wish { padding: 6px 8px; border-radius: 9px; }
 html.compact .wish-head b { font-size: 12px; } html.compact .wish-giver { font-size: 10px; }

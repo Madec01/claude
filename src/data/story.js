@@ -347,8 +347,8 @@ export const STORY = {
     c_veillee: { giver: 'Les deux hameaux', title: 'La veillée', text: 'Que la glace relie deux hameaux en hiver. On a des choses à se dire.', done: 'La glace a tenu toute la veillée. On a tout dit. Presque.', failed: 'Pas de glace. On a crié d’une rive à l’autre.' },
     c_closedSeason: { giver: 'La passeuse du pont', title: 'Deux régions en une saison', text: 'Deux régions closes dans la même saison. Je veux voir l’île se fermer d’un coup.', done: 'Deux régions, une saison. La passeuse a applaudi seule.', failed: 'Une région par saison. C’est bien aussi, dit-elle. Elle ment.' },
     c_level: { giver: 'Le charpentier', title: 'Deux tuiles bâties', text: 'Bâtis deux tuiles au niveau 2. Une île qui ne monte pas s’étale.', done: 'Deux tuiles bâties. Le charpentier regarde le ciel avec envie.', failed: 'Rien de bâti. Le charpentier a fait une chaise.' },
-    c_paddy: { giver: 'La repiqueuse', title: 'Une rizière', text: 'Un champ sous l’eau, ou l’eau sur un champ : une rizière. J’ai les pieds faits pour ça.', done: 'La rizière brille. La repiqueuse y marche comme sur un miroir.', failed: 'Pas de rizière. Elle repique des cailloux, par principe.' },
-    c_farm: { giver: 'La fermière', title: 'Une ferme', text: 'Un hameau sur un champ, ou un champ sur un hameau : une ferme. Les poules y seront chez elles.', done: 'La ferme est là. Les poules ont pris le pouvoir.', failed: 'Pas de ferme. Les poules errent, dignes.' },
+    c_paddy: { giver: 'La repiqueuse', title: 'Une rizière', text: 'Un champ à côté de l’eau, et on les fusionne : une rizière. J’ai les pieds faits pour ça.', done: 'La rizière brille. La repiqueuse y marche comme sur un miroir.', failed: 'Pas de rizière. Elle repique des cailloux, par principe.' },
+    c_farm: { giver: 'La fermière', title: 'Une ferme', text: 'Un hameau à côté d’un champ, et on les fusionne : une ferme. Les poules y seront chez elles.', done: 'La ferme est là. Les poules ont pris le pouvoir.', failed: 'Pas de ferme. Les poules errent, dignes.' },
     w8_1: {
       giver: 'Le garde-forestier',
       title: 'Le pas de l’élan',

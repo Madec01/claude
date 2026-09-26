@@ -6,6 +6,28 @@ import { STORY } from '../data/story.js';
 import { BALANCE } from '../data/balance.js';
 import { SEMIS } from '../data/semis.js';
 import { targetOf } from '../game/wishes.js';
+import { islandOptions } from '../data/campaign.js';
+import { ptsFleur, varieteDemandee } from '../game/harmonie.js';
+import { Save } from '../core/save.js';
+
+/**
+ * L'harmonie présentée avant la première pose : la première fois en entier (les trois fleurs, ce qu'elles demandent,
+ * ce qu'elles rapportent sur cette île) — même tutoriel coupé, c'est ici que tout joueur passe ; ensuite une ligne.
+ */
+function blocHarmonie(def) {
+  const H = BALANCE.harmonie, pts = ptsFleur(def.cells || 60), nv = varieteDemandee(def);
+  const fleur = (img) => h('img', { class: 'prep-fleur', src: `assets/img/deco/${img}.webp`, alt: '' });
+  const premiere = !((Save.data.seen || {}).harmonie);
+  if (!premiere) return [h('p', { class: 'prep-harmo-ligne' }, fleur('obj_flowerBlue'), fleur('obj_flowerRed'), fleur('obj_flowerYellow'), h('span', {}, `Harmonie : trois fleurs à +${pts} chacune — variété, équilibre, achèvement.`))];
+  return [
+    h('h3', { class: 'prep-h' }, 'L’harmonie ', h('span', { class: 'prep-new' }, 'nouveau')),
+    h('p', { class: 'ws-intro' }, `En plus des étoiles, trois fleurs récompensent une île variée et bien finie. Chaque fleur ouverte à la fin de l’île rapporte +${pts} ici. Elles s’affichent à côté du score ; les toucher dit ce qui manque.`),
+    h('div', { class: 'prep-harmo' },
+      h('div', {}, fleur('obj_flowerBlue'), h('span', {}, h('b', {}, 'Variété'), `${nv} familles tiennent chacune une région d’au moins ${H.regionMin} tuiles.`)),
+      h('div', {}, fleur('obj_flowerRed'), h('span', {}, h('b', {}, 'Équilibre'), `aucune région ne couvre plus de ${Math.round(H.equilibre * 100)} % de l’île.`)),
+      h('div', {}, fleur('obj_flowerYellow'), h('span', {}, h('b', {}, 'Achèvement'), `au moins ${Math.round(H.acheve * 100)} % des tuiles dans des régions closes, et aucune friche.`))),
+  ];
+}
 
 export function buildIslandPrep({ def, semis = true, screens = [], onStart, onBack = null }) {
   const root = h('div', { class: 'panel panel-wishes-intro' });
@@ -14,7 +36,7 @@ export function buildIslandPrep({ def, semis = true, screens = [], onStart, onBa
   const semisCards = semis ? SEMIS.map((s) => { const el = h('button', { class: `semis-card ${s.id === chosen ? 'on' : ''}`, type: 'button' }, h('b', {}, s.name), h('span', {}, s.desc)); el.addEventListener('click', () => { chosen = s.id; root.querySelectorAll('.semis-card').forEach((c) => c.classList.toggle('on', c === el)); }); return el; }) : [];
   const wishes = (def.wishes || []).map((w) => {
     const s = STORY.wishes[w.id] || { giver: '', title: w.id, text: '' };
-    const dl = w.deadline ? (w.deadline.placements ? `avant ${w.deadline.placements} poses` : w.deadline.season ? `avant ${(STORY.seasons[w.deadline.season] || {}).name || w.deadline.season}` : '') : 'sans échéance';
+    const dl = w.deadline ? (w.deadline.placements ? `avant ${w.deadline.placements} poses · jusqu’à +${w.deadline.placements}` : w.deadline.season ? `avant ${(STORY.seasons[w.deadline.season] || {}).name || w.deadline.season}` : '') : 'sans échéance';
     return h('div', { class: 'wi-card' }, h('div', { class: 'wi-head' }, h('b', {}, s.title), h('span', { class: 'wi-giver' }, s.giver)), h('p', { class: 'wi-text' }, s.text), h('div', { class: 'wi-foot' }, h('span', {}, `Objectif : ${targetOf(w)}`), h('span', { class: 'wi-dl' }, dl)));
   });
   // le récit : l'écran-titre donne le chapitre et le nom, les voix sans intitulé donnent le texte (la signature a sa ligne à part)
@@ -29,10 +51,11 @@ export function buildIslandPrep({ def, semis = true, screens = [], onStart, onBa
     semis ? h('h3', { class: 'prep-h' }, 'Choisis ton semis') : null,
     semis ? h('p', { class: 'ws-intro' }, 'Ce que la file donnera plutôt. Un penchant, pas une garantie.') : null,
     semis ? h('div', { class: 'semis-list' }, ...semisCards) : null,
+    ...(def.mech && islandOptions(def).harmonie ? blocHarmonie(def) : []),
     wishes.length ? h('h3', { class: 'prep-h' }, 'Les habitants demandent') : null,
-    wishes.length ? h('p', { class: 'ws-intro' }, `Chaque vœu exaucé rapporte ${BALANCE.points.wish} points, ${BALANCE.breaths.wish} souffles, une tuile rare et une graine. Ils restent affichés pendant la partie.`) : null,
+    wishes.length ? h('p', { class: 'ws-intro' }, `Chaque vœu exaucé rapporte autant de points qu’il reste de poses avant son échéance — l’exaucer tôt paie davantage —, ${BALANCE.breaths.wish} souffles, une tuile rare et une graine. Ils restent affichés pendant la partie.`) : null,
     wishes.length ? h('div', { class: 'wi-list' }, ...wishes) : null,
-    h('div', { class: 'panel-actions' }, button('C’est parti', () => onStart(chosen), { cls: 'btn-primary btn-big', iconName: 'icon_play' }), onBack ? button('Menu', onBack, { cls: 'btn-ghost', iconName: 'icon_home' }) : null),
+    h('div', { class: 'panel-actions' }, button('C’est parti', () => { if (def.mech && islandOptions(def).harmonie) { Save.data.seen = Save.data.seen || {}; if (!Save.data.seen.harmonie) { Save.data.seen.harmonie = true; Save.save(); } } onStart(chosen); }, { cls: 'btn-primary btn-big', iconName: 'icon_play' }), onBack ? button('Menu', onBack, { cls: 'btn-ghost', iconName: 'icon_home' }) : null),
   );
   return root;
 }

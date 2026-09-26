@@ -111,6 +111,7 @@ export class Hud {
     this.r.actions.addEventListener('mouseover', (e) => { const b = e.target.closest('button.act'); if (b) this.onActionHover(Number(b.dataset.i)); });
     this.onActionHover = onActionHover || (() => {});
     this.r.wishToggle.addEventListener('click', (e) => { e.stopPropagation(); this.r.wishes.classList.toggle('collapsed'); });
+
     this.onPick = onPick || (() => {}); this.onGardenPick = onGardenPick;
     this.last = {};
     this.notes = [];
@@ -270,7 +271,9 @@ export class Hud {
     const html = this.isl.wishes.map((w) => {
       const s = STORY.wishes[w.def.id] || { giver: '', title: w.def.id, text: '' };
       const pct = Math.min(100, Math.round((w.progress / w.target) * 100));
-      return `<div class="wish ${w.status}"><div class="wish-head"><b>${s.title}</b><span class="wish-giver">${s.giver}</span></div><div class="wish-text">${s.text}</div><div class="wish-bar"><div style="width:${pct}%"></div></div><div class="wish-foot"><span>${w.progress} / ${w.target}</span><span class="wish-dl">${w.status === 'open' ? deadlineLabel(w, ctx, STORY) : w.status === 'done' ? 'exaucé' : `trop tard (pose ${w.failedAt || '?'})`}</span></div></div>`;
+      // ce que le vœu rapporterait exaucé maintenant : autant que les poses qui restent avant son échéance
+      const val = w.status === 'open' ? `<b class="wish-pts">+${this.isl.valeurVoeu(w)}</b>` : w.status === 'done' && w.pts ? `<b class="wish-pts">+${w.pts}</b>` : '';
+      return `<div class="wish ${w.status}"><div class="wish-head"><b>${s.title}</b><span class="wish-giver">${s.giver}</span></div><div class="wish-text">${s.text}</div><div class="wish-bar"><div style="width:${pct}%"></div></div><div class="wish-foot"><span>${w.progress} / ${w.target}</span><span class="wish-dl">${w.status === 'open' ? deadlineLabel(w, ctx, STORY) : w.status === 'done' ? 'exaucé' : `trop tard (pose ${w.failedAt || '?'})`}${val ? ` · ${val}` : ''}</span></div></div>`;
     }).join('');
     if (html !== this.last.wishes) { this.last.wishes = html; this.r.wishList.innerHTML = html; }
     const cnt = `${this.isl.wishes.filter((w) => w.status === 'done').length} / ${this.isl.wishes.length}`;
@@ -425,7 +428,17 @@ export class Hud {
     }
     this.set('breaths', String(isl.breaths));
     if (isl.brume) this.renderBrume(this.moving);
-    this.set('left', isl.infinite || isl.garden ? '' : `${isl.queue.remaining} restante${isl.queue.remaining > 1 ? 's' : ''}`);
+    // les tuiles qui restent : le chiffre en gros, et en couleur quand la fin approche (moins d'une saison)
+    { const n = isl.queue.remaining, libre = isl.infinite || isl.garden;
+      const cle = libre ? '' : `${n}`;
+      if (this.last.left !== cle) {
+        this.last.left = cle;
+        r.left.innerHTML = libre ? '' : `<b>${n}</b> tuile${n > 1 ? 's' : ''} restante${n > 1 ? 's' : ''}`;
+        r.left.classList.toggle('peu', !libre && n <= Math.max(5, isl.seasonLength) && n > 3);
+        r.left.classList.toggle('tres-peu', !libre && n <= 3);
+        if (!libre && this._leftN !== undefined && n < this._leftN && n <= Math.max(5, isl.seasonLength)) { r.left.classList.remove('bat'); void r.left.offsetWidth; r.left.classList.add('bat'); }
+        this._leftN = n;
+      } }
     r.pwDiscard.disabled = !isl.canDiscard();
     if (isl.buildOn || isl.fuseOn) { const n = isl.buildTargets().length; if (n !== this.last.buildCount) { this.last.buildCount = n; r.buildCount.textContent = String(n); r.pwBuild.classList.toggle('some', n > 0); } }
     r.pwUndo.disabled = !isl.canUndo(); if (isl.brume && !this.last.undoHidden) { this.last.undoHidden = true; r.pwUndo.classList.add('hidden'); }   // pas de souvenir sous la brume

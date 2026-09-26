@@ -303,6 +303,24 @@ check(affinity('meadow', 'water') === 0, 'prairie-eau = 0');
   if (res.blight) { const tf = isl.board.get(near.q, near.r); const a = isl.action(near.q, near.r); const b0 = isl.breaths, n0 = isl.queue.list.length; check(!!a && a.kind === 'restore' && a.cost === 1 && isl.build(near.q, near.r) && !tf.blighted && isl.breaths === b0 - 1 && isl.queue.list.length === n0, 'remise en état par l’île : 1 souffle, sans tuile, la friche recompte'); }
 }
 
+// --- vœux : un vœu exaucé rapporte les poses qui restent avant son échéance (au moins un point)
+{
+  const d = campaignIsland(mechIsland('wish')); const isl = new Island(d, { ...islandOptions(d) });
+  const w = isl.wishes.find((x) => x.def.deadline && x.def.deadline.placements !== undefined);
+  if (w) { check(isl.valeurVoeu(w) === w.def.deadline.placements, `au départ, le vœu ${w.def.id} vaut toute son échéance (+${isl.valeurVoeu(w)})`);
+    const c = isl.board.legalCells()[0]; isl.place(c.q, c.r); check(isl.valeurVoeu(w) === w.def.deadline.placements - 1, 'une pose plus tard, un point de moins'); }
+  // échéance de saison : les poses qui restent jusqu'au début de la saison nommée
+  const i7 = new Island(ISLANDS[6], {}); const ws = i7.wishes.find((x) => x.def.deadline && x.def.deadline.season);
+  if (ws) { const v = i7.posesAvantEcheance(ws); check(v > 0 && v % i7.seasonLength === 0 || v > 0, `échéance de saison (${ws.def.deadline.season}) : ${v} poses`);
+    let n = 0; while (!i7.ended && i7.season !== ws.def.deadline.season && n < 400) { const c = i7.board.legalCells()[0]; if (!c || !i7.place(c.q, c.r)) break; n++; }
+    check(n === v, `la saison ${ws.def.deadline.season} arrive bien après ${v} poses (${n})`); }
+  // le vœu exaucé paie sa valeur, pas les 10 points d'avant
+  const d2 = campaignIsland(12); const i2 = new Island(d2, { ...islandOptions(d2) }); const avant = i2.tally.wishes; let paye = null;
+  i2.on((e) => { if (e.type === 'wish' && e.kind === 'done' && paye === null) paye = e.pts; });
+  let g = 0; while (!i2.ended && paye === null && g++ < 300) { let best = null, bs = -Infinity; for (const c of i2.board.legalCells()) { const pv = i2.preview(c.q, c.r); if (pv.total > bs) { bs = pv.total; best = c; } } if (!best || !i2.place(best.q, best.r)) break; }
+  if (paye !== null) check(paye >= 1 && i2.tally.wishes - avant >= paye, `un vœu exaucé rapporte ses poses restantes (+${paye})`);
+}
+
 // --- harmonie : trois fleurs (variété, équilibre, achèvement), comptées à la fin de l'île
 {
   const { harmonie, ptsFleur, varieteDemandee } = await import('../src/game/harmonie.js');

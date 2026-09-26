@@ -27,7 +27,13 @@
 .hud-queue { position: absolute; left: 14px; top: 84px; width: 190px; display: flex; flex-direction: column; gap: 8px; pointer-events: all; }
 .queue-title { font-size: 12px; text-transform: uppercase; letter-spacing: 0.12em; opacity: 0.6; font-weight: 700; padding-left: 4px; }
 .hud-queue > .queue-title { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; column-gap: 8px; }
-.queue-left { letter-spacing: 0.04em; text-transform: none; font-size: 12px; white-space: nowrap; }
+.queue-left { letter-spacing: 0.02em; text-transform: none; font-size: 13px; font-weight: 700; white-space: nowrap; color: var(--ink); }
+/* le nombre de tuiles restantes se lit d'un coup d'œil : chiffre en gros, doré puis rouge quand la fin approche */
+.queue-left b { font-size: 19px; font-weight: 800; margin-right: 2px; font-variant-numeric: tabular-nums; }
+.queue-left.peu b { color: var(--gold); }
+.queue-left.tres-peu b { color: var(--loss); }
+.queue-left.bat b { display: inline-block; animation: leftBat 0.5s var(--ease-out); }
+@keyframes leftBat { 0% { transform: scale(1); } 40% { transform: scale(1.35); } 100% { transform: scale(1); } }
 .queue-list { display: flex; flex-direction: column; gap: 6px; }
 .qtile { position: relative; display: flex; align-items: center; gap: 8px; background: rgba(255,253,248,0.94); border: 1px solid rgba(43,42,38,0.12); border-radius: 12px; padding: 6px 10px; box-shadow: 0 4px 14px rgba(30,50,70,0.1); transition: transform 0.15s, box-shadow 0.2s; }
 .qtile img { width: 54px; height: 63px; object-fit: contain; }
@@ -88,6 +94,7 @@ html.compact .q-help { width: 20px; height: 20px; font-size: 12px; line-height: 
 .wish-bar > div { height: 100%; background: var(--wish); transition: width 0.4s; }
 .wish.done .wish-bar > div { background: var(--breath); }
 .wish-foot { display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; margin-top: 4px; opacity: 0.8; }
+.wish-pts { color: var(--gold); font-weight: 800; }
 
 /* Faune */
 .hud-fauna { position: absolute; left: 220px; bottom: 14px; display: flex; gap: 6px; flex-wrap: wrap; max-width: 700px; }
@@ -440,4 +447,19 @@ html.compact .panel-brume .brume-regles { font-size: 12px; }
 .res-harmonie span { display: inline-flex; align-items: center; gap: 4px; }
 .res-fleur { width: 22px; height: 22px; object-fit: contain; filter: grayscale(1) opacity(0.35); }
 .res-fleur.on { filter: none; animation: fleurEclot 0.8s var(--ease-out) both; animation-delay: calc(0.6s + var(--i) * 0.35s); }
-.res-harmo-manque { font-size: 12px; opacity: 0.75; margin: -2px 0 4px; line-height: 1.35; }
+.res-harmonie { cursor: pointer; }
+.res-harmonie .rh-plus { font-style: normal; font-weight: 800; opacity: 0.5; margin-left: 4px; display: inline-block; transition: transform 0.25s; }
+.res-harmonie.ouvert .rh-plus { transform: rotate(90deg); }
+.res-harmo-detail { display: flex; flex-direction: column; gap: 8px; padding: 6px 2px 10px; }
+.res-harmo-detail.hidden { display: none; }
+.rh-item { opacity: 0.85; } .rh-item.on { opacity: 1; }
+.rh-top { display: flex; align-items: center; gap: 6px; font-size: 14px; }
+.rh-top img { width: 20px; height: 20px; object-fit: contain; filter: grayscale(1) opacity(0.5); }
+.rh-item.on .rh-top img { filter: none; }
+.rh-top span { margin-left: auto; font-size: 12px; opacity: 0.7; }
+.rh-bar { position: relative; height: 8px; border-radius: 4px; background: rgba(43,42,38,0.1); margin: 4px 0 3px; }
+.rh-bar i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 4px; background: var(--wish); }
+.rh-item.on .rh-bar i { background: var(--breath); }
+.rh-bar.inverse i { background: var(--loss); } .rh-item.on .rh-bar.inverse i { background: var(--breath); }
+.rh-bar em { position: absolute; top: -3px; bottom: -3px; width: 3px; margin-left: -1px; border-radius: 2px; background: var(--gold); }
+.rh-item small { font-size: 12px; opacity: 0.8; }
