@@ -44,6 +44,8 @@ const btn = (page, label) => page.evaluate((l) => {
   // une fois le mode lancé, la pastille disparaît
   await page.evaluate(() => window.CS.Game.noteMode('mode_daily'));
   await page.evaluate(() => window.CS.Game.showMenu()); await page.waitForTimeout(500);
+  // sous charge (trois tests navigateur à la fois), le menu se redessine plus tard : on attend l'état, pas un délai
+  await page.waitForFunction(() => { const b = [...document.querySelectorAll('.menu-nav .btn')].find((x) => x.textContent.startsWith('Île du jour')); return !!b && !b.querySelector('.btn-sub.btn-new'); }, null, { timeout: 8000 }).catch(() => {});
   const jour3 = await btn(page, 'Île du jour');
   check(!!jour3 && !jour3.neuf, 'une fois le mode essayé, la pastille « nouveau » s’éteint');
 
