@@ -136,6 +136,15 @@ Montage commun, calqué sur Le Souffle court et Sous la brume : une définition 
 | 11 | 579 / 679 / 707 | 468 / 412 / 508 | 19 | 18 / 17 / 18 | 2 / 2 / 1 |
 | 19 | 811 / 871 / 898 | 811 / 697 / 740 | 24 | 22 / 23 / 23 | 1 / 4 / 1 |
 
+Même mesure avec **relever à 2 souffles** :
+
+| Île | Score G1 | Score G2 | Ruines | Relevées | Première relevée à la pose |
+|---|---|---|---|---|---|
+| 11 | 579 / 679 / 707 | 468 / 346 / 430 | 19 | 11 / 5 / 10 | 7 / 16 / 15 |
+| 19 | 811 / 871 / 898 | 610 / 794 / 550 | 24 | 8 / 9 / 3 | 4 / 15 / 19 |
+
+À 2 souffles, le robot laisse la moitié des ruines et attend : le choix existe. Le score G2 tombe à 50–90 % de G1 — le record par génération le rend supportable, mais le début est sec (le document le craignait).
+
 Lecture : (1) avant l'île 11, réparer n'existe pas (`buildOn`) — le mode doit ouvrir la réparation partout, sinon les ruines ne sont qu'un handicap qui divise le score par deux ; (2) dès qu'il le peut, le robot relève **tout**, dès la première ou deuxième pose, avec les souffles qu'il gagne en fermant : c'est le risque annoncé plus haut, « le choix est faux ». Le réglage à essayer avant tout jugement : relever à **2 souffles**, ou une ruine relevée qui ne ferme pas de région à elle seule, puis remesurer ; le mode ne vaut que si le robot laisse des ruines et que le score G2 reste à 80–100 % de G1.
 
 ## 5. Les autres pistes, en quelques lignes
