@@ -412,7 +412,18 @@ check(CRANS.epaisse.indices === 1 && CRANS.epaisse.vise < CRANS.claire.vise, 'é
   check(new Island(brumeDef('claire', 4)).casesPourLaBrume().length === 0, 'au départ, la brume ne peut gagner nulle part (jamais collée)');
   { let i = null; for (let seed = 4; seed <= 14 && !i; seed++) { const c = new Island(brumeDef('claire', seed)); while (!c.ended && !c.casesPourLaBrume().length) joue(c, 5); if (!c.ended && c.casesPourLaBrume().length) i = c; }
     if (i) { const avant = i.board.fog.size; i.appliquerCarte('brumeGagne'); check(i.board.fog.size === avant + 1, 'La brume gagne : une case cachée de plus, là où elle ne colle à rien'); } else console.log('  (aucune île ne s’est prêtée à « La brume gagne » : non testé)'); check([...i.board.fog].every((k) => !neighbors(...parse(k)).some(([a, c]) => i.board.fog.has(key(a, c)))), 'et toujours aucune case cachée collée à une autre'); }
-  { const i = eff('crayonEfface'); const k = [...i.board.fog][0]; check(!i.noter(...parse(k), 'forest'), 'Crayon effacé : plus de note'); }
+  { const i = eff('crayonEfface'); const k = [...i.board.fog][0]; check(!i.noter(...parse(k), 'forest'), 'Crayon effacé (carte retirée, gardée pour une vieille partie) : plus de note'); }
+  // décision 1 (b) : les deux malus qui effaçaient le savoir du joueur ont quitté le tirage, deux malus qui coûtent des points les remplacent
+  check(!CARTES.malus.some((c) => c.id === 'nuitNoire' || c.id === 'crayonEfface') && CARTES.malus.some((c) => c.id === 'bordsTernes') && CARTES.malus.some((c) => c.id === 'jalonRisque') && !!CARTE_PAR_ID.nuitNoire, 'Nuit noire et Crayon effacé hors du tirage, Bords ternes et Jalon risqué dedans, les anciennes encore lisibles');
+  const { preview } = await import('../src/game/rules.js');
+  { const i = eff('bordsTernes'); const bd = new Board(['0,0', '1,0']); bd.place(1, 0, { family: 'forest', devoilee: true });
+    check(preview(bd, 0, 0, { family: 'forest' }, 'spring', i.mods).edges[0].pts === preview(bd, 0, 0, { family: 'forest' }, 'spring').edges[0].pts / 2, 'Bords ternes : une dévoilée ne vaut que simple'); }
+  { let seed = 3, kj = null; let e = null; for (; seed <= 12 && !kj; seed++) { e = new Island(brumeDef('claire', seed)); joue(e, 5); const p = e.casesPretes(); if (p.length) kj = p[0]; }
+    if (kj) { const cachee = e.brume.cachees.get(kj); const faux = Object.keys(COULEURS).find((f) => f !== cachee.family && !cachee.tresor);
+      const a = new Island(brumeDef('claire', seed - 1)), b = new Island(brumeDef('claire', seed - 1)); b.appliquerCarte('jalonRisque'); b.seasonLength = a.seasonLength;
+      a.planterJalon(...parse(kj), faux); b.planterJalon(...parse(kj), faux); joue(a, 5); joue(b, 5); a.leverBrume(); b.leverBrume();
+      check(a.score - b.score === P.jalonRisque - P.jalonFaux || a.score - b.score === -(P.jalonRisque - P.jalonFaux), `Jalon risqué : le faux coûte ${P.jalonRisque} au lieu de ${P.jalonFaux} (écart ${a.score - b.score})`); }
+    else check(false, 'Jalon risqué : aucune case prête trouvée'); }
   { const i = eff('indicesMuets'); joue(i, 2); check([...i.board.tiles.values()].every((t) => typeof t.indice !== 'number'), 'Indices muets : aucun indice lu'); }
   { const i = eff('longueVue'); const k = [...i.board.fog][0]; const n = i.board.fog.size; check(i.longueVue(...parse(k)) && i.board.fog.size === n - 1 && !i.brume.saison.longueVue, 'Longue-vue : la case touchée se dévoile, une fois'); }
   { const i = eff('deplacementOffert'); joue(i, 3); const libre = [...i.board.tiles.values()].find((t) => !t.start && !i.fogAround(t.q, t.r).length); if (libre) { const c = i.moveTargets(libre.q, libre.r)[0]; const reste = i.queue.remaining; if (c) { i.move(libre.q, libre.r, c.q, c.r); check(i.queue.remaining === reste, 'Déplacement offert : la tuile suivante n’est pas perdue'); } } }

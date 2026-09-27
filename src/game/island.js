@@ -194,7 +194,7 @@ export class Island {
     return this._av;
   }
 
-  get mods() { return { river: this.baseMods.river, refuge: this.baseMods.refuge, rule: this.rule, climate: this.climate, blight: this.buildOn, ...(this.brume ? { brumeDores: this.brume.saison.dores, brumeMauvais: this.brume.saison.mauvais } : {}) }; }
+  get mods() { return { river: this.baseMods.river, refuge: this.baseMods.refuge, rule: this.rule, climate: this.climate, blight: this.buildOn, ...(this.brume ? { brumeDores: this.brume.saison.dores, brumeMauvais: this.brume.saison.mauvais, brumeTernes: this.brume.saison.ternes } : {}) }; }
   /** L'habillage de la saison (pluie, vent, chaleur, neige, redoux), tiré de la surprise en cours : purement visuel. */
   get look() { return this.garden ? null : RULE_LOOK[this.rule] || null; }
 
@@ -815,7 +815,7 @@ export class Island {
       const tile = { ...cachee, devoilee: true }; if (juste) tile.jalon = true;
       const res = apply(this.board, q, r, tile, this.season, this.mods);
       let extra = 0;
-      if (juste === true) { extra += PB.jalonJuste; B.justes++; } else if (juste === false) { extra += PB.jalonFaux; B.fausses++; }
+      if (juste === true) { extra += PB.jalonJuste; B.justes++; } else if (juste === false) { extra += B.saison.jalonRisque ? PB.jalonRisque : PB.jalonFaux; B.fausses++; }   // « Jalon risqué » : le faux coûte plus cher
       if (cachee.tresor) { extra += PB.tresor; B.tresor = cachee.family; }
       if (!seulement && B.saison.prime) extra += B.saison.prime;   // « Prime de dévoilement »
       B.jalons.delete(k); B.crayon.delete(k); B.cachees.delete(k); B.marques.delete(k); B.devoilees++;
@@ -915,7 +915,9 @@ export class Island {
       case 'jalonForce': S.jalonForce = true; break;
       case 'brumeEpaisse': S.devoileDelta = 1; break;
       case 'mauvaisVoisinage': S.mauvais = true; break;
-      case 'nuitNoire': S.nuit = true; break;
+      case 'nuitNoire': S.nuit = true; break;   // carte retirée du tirage : une vieille partie peut encore la porter
+      case 'bordsTernes': S.ternes = true; break;
+      case 'jalonRisque': S.jalonRisque = true; break;
       case 'tuilePerdue': { const t = this.queue.take(); if (t) ev.push({ kind: 'perdue', tile: t }); break; }
       case 'crayonEfface': B.crayon.clear(); S.crayonBloque = true; break;
       case 'ventContraire': S.vent = true; break;

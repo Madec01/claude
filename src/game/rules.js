@@ -41,7 +41,7 @@ function edgePoints(tile, other, season, rule = null, climate = null) {
 }
 
 /** Multiplicateur de bord du mode « Sous la brume » : tuile dévoilée ×2 (jalon juste compris : sa récompense est le +8 fixe), ×3 sous « Bords dorés », sinon ×1. */
-function brumeMul(t, dores = false) { return t.devoilee ? (dores ? 3 : 2) : 1; }
+function brumeMul(t, dores = false, ternes = false) { return t.devoilee && !ternes ? (dores ? 3 : 2) : 1; }   // « Bords ternes » : les dévoilées ne valent que simple
 
 /** Points gagnés sur chaque bord si la tuile `t` en (q, r) devenait `up` : la différence entre après et avant, bord par bord. */
 function deltaEdges(board, q, r, t, up, season, mods) {
@@ -152,7 +152,7 @@ export function preview(board, q, r, tile, season, mods = {}) {
     const e = edgePoints(tile, n, season, mods.rule || null, mods.climate || null);
     // Sous la brume : un bord qui touche une tuile dévoilée compte double (dans les deux sens :
     // une mauvaise paire coûte d'autant plus). Aucune tuile n'a ces marques hors de ce mode.
-    const mul = Math.max(brumeMul(tile, !!mods.brumeDores), brumeMul(n, !!mods.brumeDores));
+    const mul = Math.max(brumeMul(tile, !!mods.brumeDores, !!mods.brumeTernes), brumeMul(n, !!mods.brumeDores, !!mods.brumeTernes));
     let pts = e.pts * mul;
     if (mods.brumeMauvais && pts < 0) pts *= 2;   // la carte « Mauvais voisinage » : les mauvaises paires comptent double
     if (pts !== 0) { edges.push({ d, q: q + dq, r: r + dr, pts, label: mul > 1 ? `${e.label ? e.label + " " : ""}×${mul}` : e.label }); total += pts; }

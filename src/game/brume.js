@@ -30,7 +30,7 @@ export const CRANS = {
  * `jalonJuste` : +8 fixe, bords ×2 comme toute case dévoilée (décision 4 de la feuille de brume : l'ancien +5 avec bords ×3
  * ajoutait de −4 à +10 points, un jalon juste sur huit y perdait ; 8 est la moyenne mesurée, 5 + 2,5).
  */
-export const P = { jalonJuste: 8, jalonFaux: -5, jalonManque: -3, tresor: 8, cachee: -3, prime: 4 };
+export const P = { jalonJuste: 8, jalonFaux: -5, jalonManque: -3, tresor: 8, cachee: -3, prime: 4, jalonRisque: -10 };   // `jalonRisque` : le jalon faux sous la carte « Jalon risqué »
 /** Un nombre de points écrit comme dans le jeu : « +4 », « −3 » (le vrai signe moins). */
 export const pts = (n) => (n < 0 ? `−${-n}` : `+${n}`);
 
@@ -61,13 +61,22 @@ export const CARTES = {
     { id: 'jalonForce', nom: 'Jalon forcé', texte: `Un jalon obligatoire cette saison, sinon ${pts(P.jalonManque)}.` },   // le chiffre est celui qu'on applique (audit B4 : le texte disait −5, le jeu retirait 3)
     { id: 'brumeEpaisse', nom: 'Brume épaisse', texte: 'Les cases se dévoilent avec une voisine posée de plus.', poids: 0.5 },
     { id: 'mauvaisVoisinage', nom: 'Mauvais voisinage', texte: 'Les mauvaises paires de bords comptent double.' },
-    { id: 'nuitNoire', nom: 'Nuit noire', texte: 'L’inventaire est caché toute la saison.' },
+    { id: 'bordsTernes', nom: 'Bords ternes', texte: 'Les cases dévoilées ne valent que simple cette saison, plus le double.' },
     { id: 'tuilePerdue', nom: 'Tuile perdue', texte: 'La première tuile de la main est perdue d’office.' },
-    { id: 'crayonEfface', nom: 'Crayon effacé', texte: 'Toutes les notes s’effacent, et le crayon est indisponible.' },
+    { id: 'jalonRisque', nom: 'Jalon risqué', texte: `Un jalon faux coûte ${pts(P.jalonRisque)} cette saison.` },
     { id: 'ventContraire', nom: 'Vent contraire', texte: 'Au prochain passage de saison, une tuile posée cette saison glisse sur une case libre voisine.' },
   ],
 };
-export const CARTE_PAR_ID = Object.fromEntries([...CARTES.bonus.map((c) => [c.id, { ...c, bonus: true }]), ...CARTES.malus.map((c) => [c.id, { ...c, bonus: false }])]);
+/**
+ * Deux malus retirés du tirage (feuille de brume, décision 1 : b) : ils effaçaient ce que le joueur savait — dans un jeu
+ * de déduction, ce n'est pas de la difficulté, c'est de la frustration. Gardés ici pour qu'une partie sauvée sous l'une
+ * d'elles se reprenne, et pour le test de la fiche sous Nuit noire (B-L).
+ */
+export const CARTES_RETIREES = [
+  { id: 'nuitNoire', nom: 'Nuit noire', texte: 'L’inventaire est caché toute la saison.' },
+  { id: 'crayonEfface', nom: 'Crayon effacé', texte: 'Toutes les notes s’effacent, et le crayon est indisponible.' },
+];
+export const CARTE_PAR_ID = Object.fromEntries([...CARTES.bonus.map((c) => [c.id, { ...c, bonus: true }]), ...CARTES.malus.map((c) => [c.id, { ...c, bonus: false }]), ...CARTES_RETIREES.map((c) => [c.id, { ...c, bonus: false }])]);
 /** Tire une carte : bonus avec la probabilité `ratio`, puis une carte au poids parmi celles qui restent possibles. */
 export function tirerCarte(rng, ratio, exclus = new Set()) {
   const bonus = rng.next() < ratio;
@@ -79,7 +88,7 @@ export function tirerCarte(rng, ratio, exclus = new Set()) {
 }
 /** L'état d'une saison sous la brume, remis à neuf à chaque tirage. */
 export function saisonNeuve() {
-  return { jalonsMax: 1, devoileDelta: 0, dores: false, muets: false, mauvais: false, nuit: false, crayonBloque: false, lanterne: false, gratuits: 0, crayonSur: false, boussole: false, prime: 0, vent: false, longueVue: false, jalonForce: false, mainCourte: false };
+  return { jalonsMax: 1, devoileDelta: 0, dores: false, muets: false, mauvais: false, nuit: false, crayonBloque: false, ternes: false, jalonRisque: false, lanterne: false, gratuits: 0, crayonSur: false, boussole: false, prime: 0, vent: false, longueVue: false, jalonForce: false, mainCourte: false };
 }
 /** Une famille ordinaire tirée selon les poids de l'île (la même loi que les tuiles cachées). */
 export function tirerFamille(rng, weights = WEIGHTS.balanced) {
