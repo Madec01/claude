@@ -338,6 +338,16 @@ export function preparerBrume(board, cran, seed, weights = WEIGHTS.balanced, ess
  * Définition d'une île « Sous la brume » : procédurale, une île par graine. 45 à 55 cases, saisons de cinq poses,
  * un hameau et une roche au départ, pas de vœux.
  */
+/**
+ * Une île partageable par un code (B-R) : le cran et la graine fixent tout — la brume, les tuiles cachées, la première main.
+ * « C-9IX » : Brume claire, graine en base 36. `lireCode` rend { cran, seed } ou null.
+ */
+export function codeIle(cran, seed) { return `${cran === 'epaisse' ? 'E' : 'C'}-${Math.max(1, Math.floor(seed)).toString(36).toUpperCase()}`; }
+export function lireCode(code) {
+  const m = /^\s*([CE])\s*-?\s*([0-9A-Z]{1,8})\s*$/i.exec(String(code || '')); if (!m) return null;
+  const seed = parseInt(m[2], 36); if (!Number.isFinite(seed) || seed < 1) return null;
+  return { cran: m[1].toUpperCase() === 'E' ? 'epaisse' : 'claire', seed };
+}
 export function brumeDef(cran = 'claire', seed = 1) {
   const rng = new RNG(seed * 97 + 3);
   const cells = 45 + Math.floor(rng.next() * 11);

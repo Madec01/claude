@@ -174,7 +174,7 @@ Règles communes à chaque lot, tirées de `CLAUDE.md` :
   - Une entrée « Énigmes » dans le panneau du cran, avec une étoile par énigme résolue sans jalon faux.
 - Test (`tests/brume.test.js`) : chaque énigme a une seule solution que le solveur atteint avec la main fournie.
 
-**B-R · Une île partageable par un code** · effort : petit · dépendances : aucune · statut : **à faire**
+**B-R · Une île partageable par un code** · effort : petit · dépendances : aucune · statut : **fait** (27 septembre)
 - Ce qu'on fait :
   - L'île est déjà entièrement fixée par le cran et la graine. `brumeDef(cran, seed)` est déterministe, et la graine est tirée à `main.js:397`.
   - Le bilan affiche un code court. Le panneau du cran accepte un code.

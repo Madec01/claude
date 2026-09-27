@@ -3,7 +3,7 @@ import { h, button, append } from './dom.js';
 import { STORY } from '../data/story.js';
 import { FAMILY_COLORS } from '../data/tiles.js';
 import { Save } from '../core/save.js';
-import { CRANS, NOMS_COULEURS, TRESORS, P, pts, normaliserNote } from '../game/brume.js';
+import { CRANS, NOMS_COULEURS, TRESORS, P, pts, normaliserNote, lireCode } from '../game/brume.js';
 
 const nom = (f) => (f === 'tresor' ? 'Trésor' : (STORY.tiles[f] || {}).name || f);
 
@@ -36,6 +36,11 @@ export function buildBrumeChoice({ onPick, onBack }) {
       carte('claire', ['Inventaire exact', 'Un indice à chaque pose contre la brume', 'Dévoilée à 2 voisines', 'Jalon facultatif']),
       carte('epaisse', ['Inventaire par couleur', 'Un indice à chaque pose contre la brume', 'Dévoilée à 3 voisines', `Jalon obligatoire (sinon ${pts(P.jalonManque)})`])),
     h('label', { class: 'tp-tuto' }, tuto, h('span', {}, dejaVu ? 'Revoir le tutoriel pas à pas' : 'Avec le tutoriel pas à pas (première fois)')),
+    // une île par son code (le bilan le donne) : même code, même brume, même première main — pour comparer entre amis
+    (() => { const champ = h('input', { class: 'brume-code', type: 'text', placeholder: 'Code d’une île (ex. C-9IX)', maxlength: 12, autocapitalize: 'characters', spellcheck: 'false' }); const err = h('span', { class: 'brume-code-err' });
+      const go = () => { const c = lireCode(champ.value); if (!c) { err.textContent = 'Code illisible : une lettre (C ou E), un tiret, puis des lettres et chiffres.'; return; } if (root.classList.contains('busy')) return; root.classList.add('busy'); root.querySelectorAll('button').forEach((x) => { x.disabled = true; }); root.querySelector('.panel-actions').before(h('p', { class: 'brume-attente' }, 'La brume se forme… un instant.')); onPick(c.cran, tuto.checked, c.seed); };
+      champ.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); go(); } });
+      return h('div', { class: 'brume-code-ligne' }, champ, button('Jouer ce code', go, { cls: 'btn-ghost brume-code-btn' }), err); })(),
     h('div', { class: 'panel-actions' }, button('Menu', onBack, { cls: 'btn-ghost', iconName: 'icon_home' })),
   );
   return root;

@@ -404,9 +404,9 @@ const Game = {
   /** Sous la brume : le choix du cran, puis une île tirée au hasard (une nouvelle à chaque partie). */
   startBrume() {
     this.noteMode('mode_brume');
-    scenes.go('prep', { node: buildBrumeChoice({ onPick: (cran, tuto) => {
+    scenes.go('prep', { node: buildBrumeChoice({ onPick: (cran, tuto, seed = null) => {
       AudioSys.play('ui_confirm', { volume: 0.5 });
-      const def = brumeDef(cran, 1 + Math.floor(Math.random() * 999999)); def.tuto = !!tuto;
+      const def = brumeDef(cran, seed || 1 + Math.floor(Math.random() * 999999)); def.tuto = !!tuto;   // `seed` : une île demandée par son code (B-R)
       // la brume se prépare hors du fil principal ; le panneau attend (sa fiche dit « la brume se forme »)
       // avec le tutoriel, la partie s'ouvre sur la mini-énigme (une vraie déduction, guidée) ; la vraie île vient après
       return this.preparerBrume(def).then((plan) => { if (plan) def.planBrume = plan; hideUI(); if (tuto) { const en = brumeEnigme(1); en.suite = def; scenes.go('island', { def: en }, { fade: 0.5 }); } else scenes.go('island', { def }, { fade: 0.5 }); });

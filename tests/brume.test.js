@@ -487,5 +487,15 @@ for (const e of ENIGMES) {
   check(!isl.ended, `énigme ${e.id} : l’île n’est pas finie (on la quitte par le tutoriel)`);
 }
 
+// --- B-R : une île partageable par un code — même code, même brume, mêmes tuiles cachées, même première main
+{
+  const { codeIle, lireCode } = await import('../src/game/brume.js');
+  const c = codeIle('epaisse', 12345); const lu = lireCode(c);
+  check(/^E-[0-9A-Z]+$/.test(c) && lu && lu.cran === 'epaisse' && lu.seed === 12345, `le code se lit (${c})`);
+  check(lireCode(' c-9ix ') && lireCode('c-9ix').cran === 'claire' && lireCode('c-9ix').seed === parseInt('9ix', 36) && lireCode('X-1') === null && lireCode('') === null && lireCode('C-0') === null, 'minuscules et espaces acceptés, le reste refusé');
+  const a = new Island(brumeDef(lu.cran, lu.seed)), b = new Island(brumeDef(lu.cran, lu.seed));
+  const cle = (i) => JSON.stringify({ m: [...i.board.mask].sort(), c: [...i.brume.cachees.entries()].map(([k, t]) => [k, t.family]).sort(), q: i.queue.list.slice(0, 5).map((t) => t.family) });
+  check(cle(a) === cle(b) && cle(a) !== cle(new Island(brumeDef('epaisse', 12346))), 'même code : même île, mêmes tuiles cachées, même première main ; une autre graine, une autre île');
+}
 console.log(failures ? `\n${failures} échec(s)` : '\nSous la brume : tout est bon.');
 process.exit(failures ? 1 : 0);

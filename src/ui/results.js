@@ -5,6 +5,7 @@ import { AudioSys } from '../core/audio.js';
 import { Save } from '../core/save.js';
 import { upgradesAPortee } from '../data/upgrades.js';
 import { recordsTempo } from '../data/tempo.js';
+import { codeIle } from '../game/brume.js';
 
 export function buildResults({ result, def, onContinue, onRetry, onMenu, onPostcard = null, onWorkshop = null, newRecord, seedsGained, daily, memory = [] }) {
   const c = Save.campaign, aPortee = upgradesAPortee(c);
@@ -49,6 +50,7 @@ export function buildResults({ result, def, onContinue, onRetry, onMenu, onPostc
       brume && (brume.justes + brume.fausses) ? row('Jalons justes', `${brume.justes} / ${brume.justes + brume.fausses}`, brume.justes ? 'good' : '') : null,
       brume && brume.tresor ? row('Trésor', (STORY.tiles[brume.tresor] || {}).name || brume.tresor, 'gold') : null,
       brume && brume.restantes.length ? row('Restées sous la brume', `${brume.restantes.length} (${brume.penalite})`) : null,
+      brume && def && def.seed ? row('Code de l’île', codeIle(def.brume, def.seed), 'code') : null,   // à partager : même code, même brume, même première main
       row('Saisons traversées', result.seasons),
       seedsGained ? row('Graines gagnées', `+${seedsGained}`, 'gold') : null,
       daily ? row('Meilleur du jour', daily.best, 'gold') : null,
