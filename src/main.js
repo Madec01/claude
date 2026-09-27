@@ -45,6 +45,9 @@ import { Version } from './core/version.js';
 import { tempoDef, entrainementDef, defiDuJourDef, recordsTempo, OBJECTIF_PAR_ID } from './data/tempo.js';
 import { FAMILIES } from './data/tiles.js';
 import { buildTempoPrep } from './ui/tempo_prep.js';
+import { buildFormesPrep } from './ui/formes_prep.js';
+import { formesDef, tirerForme, recordsFormes, noterPartieFormes } from './data/formes_mode.js';
+import { RNG } from './core/math.js';
 import { Tempo } from './game/tempo.js';
 import { buildWishesIntro } from './ui/wishes_intro.js';
 import { buildIslandPrep } from './ui/island_prep.js';
@@ -359,6 +362,7 @@ const Game = {
     if (def.garden) return { kind: 'garden' };
     if (def.infinite) return { kind: 'infinite' };
     if (def.tempo) return { kind: 'tempo' };
+    if (def.formes) return { kind: 'formes', forme: def.forme, seed: def.seed };
     if (def.daily) return { kind: 'daily', date: def.date };
     return { kind: 'campaign', id: def.id, semis: def.semis || null };
   },
@@ -369,6 +373,7 @@ const Game = {
     if (w.kind === 'garden') return GARDEN;
     if (w.kind === 'infinite') return INFINITE;
     if (w.kind === 'daily') return w.date === dailyKey() ? dailyDef(w.date) : null;
+    if (w.kind === 'formes') return formesDef(w.forme, w.seed, { familles: this.famillesConnues() });
     if (w.kind === 'campaign') {
       const def = campaignIsland(w.id); def.introduces = [];
       return w.semis && w.semis !== 'saisons' ? { ...def, weights: applySemis(def.weights, w.semis), semis: w.semis } : def;
@@ -401,6 +406,19 @@ const Game = {
   /** L'entraînement du Souffle court : six poses guidées sans chrono, puis douze à 8 s ; jamais de record. */
   startEntrainement() { AudioSys.play('ui_confirm', { volume: 0.5 }); const def = entrainementDef({ etire: this.etireTempo() }); def.musique = this.musiqueTempo(); if (def.musique) AudioSys.load('music', def.musique).catch(() => {}); hideUI(); scenes.go('island', { def }, { fade: 0.4 }); },
   startDaily() { this.noteMode('mode_daily'); const def = dailyDef(); this.prepIsland(def, dailyScreens(def)); },
+  /** « Terres étranges » : une forme tirée au sort (jamais vue tant qu'il en reste), ou une forme et une graine demandées (code, rejouer). */
+  startFormes(forme = null, seed = null) {
+    this.noteMode('mode_formes');
+    const S = recordsFormes(Save.data.formes || (Save.data.formes = { records: {}, vues: [], parties: 0, derniere: null }));
+    const rng = new RNG(Math.floor(Math.random() * 1e9) + 1);
+    const f = forme || tirerForme(rng, S.vues, S.derniere); const graine = seed || 1 + Math.floor(Math.random() * 999999);
+    const def = formesDef(f, graine, { familles: this.famillesConnues() });
+    scenes.go('prep', { node: buildFormesPrep({ def,
+      onStart: (d) => { AudioSys.play('ui_confirm', { volume: 0.5 }); hideUI(); scenes.go('island', { def: d, skipWishes: true }, { fade: 0.5 }); },
+      onAutre: () => { AudioSys.play('ui_click', { volume: 0.4 }); this.startFormes(null, null); },
+      onCode: (fc, sc) => { AudioSys.play('ui_click', { volume: 0.4 }); this.startFormes(fc, sc); },
+      onBack: () => this.showMenu() }) });
+  },
   /** Sous la brume : le choix du cran, puis une île tirée au hasard (une nouvelle à chaque partie). */
   startBrume() {
     this.noteMode('mode_brume');
@@ -442,6 +460,7 @@ const Game = {
     if (c.islandsPlayed >= 1) n += say('mode_garden', { kicker: 'Mode ouvert', name: 'Jardin', desc: 'Poser sans score ni saison, pour le plaisir. Depuis le menu.', iconName: 'icon_leaf' }) ? 1 : 0;
     if (c.unlockedIsland >= 6) n += say('mode_daily', { kicker: 'Mode ouvert', name: 'Île du jour', desc: 'La même île pour tout le monde, une par jour. Depuis le menu.', iconName: 'icon_sun' }) ? 1 : 0;
     if (Save.data.infinite.unlocked || c.unlockedIsland > 6) n += say('mode_tempo', { kicker: 'Mode ouvert', name: 'Le Souffle court', desc: 'Pas de file : la tuile arrive, trois secondes pour la poser. Depuis le menu.', iconName: 'icon_wind' }) ? 1 : 0;
+    if (Save.data.infinite.unlocked || c.unlockedIsland > 6) n += say('mode_formes', { kicker: 'Mode ouvert', name: 'Terres étranges', desc: 'Une île qui change de forme à chaque partie, de la plus simple à la plus étrange. Depuis le menu.', iconName: 'icon_swap' }) ? 1 : 0;
     if (Save.data.infinite.unlocked || c.unlockedIsland > 6) n += say('mode_infinite', { kicker: 'Mode ouvert', name: 'Île infinie', desc: 'Une île qui ne finit jamais : jusqu’où tiendras-tu ?', iconName: 'icon_tree' }) ? 1 : 0;
     if (c.islandsPlayed >= 1) n += say('postcard', { kicker: 'Bon à savoir', name: 'La carte postale', desc: 'Au bilan et en pause : ton île en grand, à garder ou à partager.', iconName: 'icon_save' }) ? 1 : 0;
     if ((c.recipes || []).length >= 1) n += say('cahier', { kicker: 'Bon à savoir', name: 'Le Cahier des recettes', desc: 'Les fusions trouvées se rangent dans le Guide, onglet Cahier.', iconName: 'icon_question' }) ? 1 : 0;
@@ -465,6 +484,13 @@ const Game = {
       return;
     }
     if (def.garden) { scenes.go('results', { result, def }); return; }
+    if (def.formes) {
+      // Terres étranges : un record par forme, la forme est découverte ; pas d'étoile, pas de graine
+      const S = recordsFormes(Save.data.formes || (Save.data.formes = { records: {}, vues: [], parties: 0, derniere: null }));
+      if (!test) { const r = noterPartieFormes(S, def, result.score); newRecord = r.record && r.precedent > 0; Save.save(); }
+      scenes.go('results', { result, def, newRecord });
+      return;
+    }
     if (def.tempo) {
       const T = Save.data.tempo || (Save.data.tempo = { best: 0, bestSerie: 0, parties: 0 });
       // une partie jouée avec le tutoriel est un entraînement : le temps s'y arrête sous les cartes, elle ne fait pas de record
@@ -537,6 +563,7 @@ const Game = {
     if (def.tempo) { this.startTempo(); return; }
     if (def.brume) { this.startBrume(); return; }
     if (def.daily) { this.showMenu(); return; }
+    if (def.formes) { this.startFormes(); return; }   // « Rejouer » : une autre forme
     const c = Save.campaign;
     // Terminer une île suffit : elle ouvre la suivante, avec ou sans étoile. Les étoiles ne gardent plus que les
     // portes de chapitre — et une porte a deux clés (voir gateOpen). Le souvenir s'est lu au bilan : du bilan on
@@ -1225,7 +1252,7 @@ class IslandScene {
   pauseSub() {
     const d = this.def; const ch = d.chapter ? CHAPTERS[d.chapter - 1] : null;
     const cl = d.climate && d.climate !== 'temperate' && STORY.climates && STORY.climates[d.climate] ? ` · ${STORY.climates[d.climate].name}` : '';
-    return ch ? `Chapitre ${ch.id} · ${ch.name} · île ${d.id}${cl}` : d.daily ? 'Île du jour' : d.infinite ? 'Île infinie' : d.garden ? 'Jardin' : d.tempo ? 'Le Souffle court' : d.brume ? 'Sous la brume' : '';
+    return ch ? `Chapitre ${ch.id} · ${ch.name} · île ${d.id}${cl}` : d.daily ? 'Île du jour' : d.formes ? `Terres étranges · ${d.name || ''}` : d.infinite ? 'Île infinie' : d.garden ? 'Jardin' : d.tempo ? 'Le Souffle court' : d.brume ? 'Sous la brume' : '';
   }
   togglePause(force) {
     if (!this.isl || this.isl.ended) return;
@@ -1335,7 +1362,7 @@ class ResultsScene {
   async enter({ result, def, newRecord, seedsGained, daily }) {
     AudioSys.playMusic('results', { fade: 1.5 });
     this.bg = scenes.scenes.get('menu').ensureBg();
-    const show = () => showUI(buildResults({ result, def, newRecord, seedsGained, daily, memory: def.daily || def.infinite || def.garden ? [] : islandMemoryScreens(def, result).map((x) => x.text), onContinue: () => Game.afterResults(result, def), onRetry: () => (def.tempo ? Game.rejouerTempo(def) : Game.startIsland(def.id, { skipIntro: true })), onMenu: () => scenes.go('menu'), onPostcard: result.postcard ? () => showUI(buildPostcard({ canvas: result.postcard.canvas, filename: result.postcard.filename, onBack: show }), 'panel-wrap') : null, onWorkshop: () => showUI(buildWorkshop({ onContinue: show }), 'workshop-wrap') }), 'results-wrap'); show();
+    const show = () => showUI(buildResults({ result, def, newRecord, seedsGained, daily, memory: def.daily || def.infinite || def.garden ? [] : islandMemoryScreens(def, result).map((x) => x.text), onContinue: () => Game.afterResults(result, def), onRetry: () => (def.tempo ? Game.rejouerTempo(def) : def.formes ? (() => { hideUI(); scenes.go('island', { def: formesDef(def.forme, def.seed, { familles: Game.famillesConnues() }), skipWishes: true }, { fade: 0.4 }); })() : Game.startIsland(def.id, { skipIntro: true })), onMenu: () => scenes.go('menu'), onPostcard: result.postcard ? () => showUI(buildPostcard({ canvas: result.postcard.canvas, filename: result.postcard.filename, onBack: show }), 'panel-wrap') : null, onWorkshop: () => showUI(buildWorkshop({ onContinue: show }), 'workshop-wrap') }), 'results-wrap'); show();
   }
   exit() { hideUI(); }
   update(dt) { this.bg.update(dt); input.endFrame(); }

@@ -941,5 +941,35 @@ for (const def of ISLANDS.slice(0, 4)) {
   check(S.avantSaisons && S.avantSaisons.bests[3] === 120 && Object.keys(S.bests).length === 0, 'les records d’avant sont archivés une fois, à part');
   recordsTempo(S); check(S.avantSaisons.bests[3] === 120 && Object.keys(S.bests).length === 0, 'et archiver deux fois ne change rien');
 }
+// --- « Terres étranges » : une île qui change de forme à chaque partie (mode à part, sans étoile)
+{
+  const { formesDef, tirerForme, listeFormes, codeForme, lireCodeForme, recordsFormes, noterPartieFormes } = await import('../src/data/formes_mode.js');
+  const { FORMES } = await import('../src/data/islands.js');
+  const { RNG } = await import('../src/core/math.js');
+  const liste = listeFormes();
+  check(liste.length === Object.keys(FORMES).length && liste.length >= 10, `toutes les formes sont dans la galerie (${liste.length})`);
+  // le tirage : jamais vue tant qu'il en reste, les plus douces d'abord ; puis n'importe laquelle sauf la dernière
+  const rng = new RNG(5); const vues = []; let derniere = null;
+  for (let k = 0; k < liste.length; k++) { const f = tirerForme(rng, vues, derniere); check(!vues.includes(f), `tirage ${k + 1} : une forme jamais vue (${f})`); vues.push(f); derniere = f; }
+  const famOrdre = vues.map((f) => ['douce', 'construite', 'etrange'].indexOf(FORMES[f].famille || 'construite'));
+  check(famOrdre.every((x, i) => i === 0 || x >= famOrdre[i - 1]), 'on monte en étrangeté : les douces, puis les construites, puis les étranges');
+  let memes = 0; for (let k = 0; k < 30; k++) { const f = tirerForme(rng, vues, derniere); if (f === derniere) memes++; derniere = f; }
+  check(memes === 0, 'toutes vues : jamais deux fois la même d’affilée');
+  // la définition : déterministe, la forme s'applique, pas d'étoile, le mode est libre (bâtir, main, harmonie)
+  const a = formesDef('archipel', 4242), b = formesDef('archipel', 4242);
+  check(JSON.stringify(a) === JSON.stringify(b) && a.formes && a.forme === 'archipel' && a.cells >= 60 && a.cells <= 90 && a.wishes.length === 2, 'même forme, même graine : même île');
+  const ia = new Island(a, { ...islandOptions(a) }); const ronde = new Island({ ...a, forme: null }, { ...islandOptions(a) });
+  check(ia.buildOn && ia.handOn && ia.harmonieOn && ia.board.mask.size !== ronde.board.mask.size || [...ia.board.mask].some((k) => !ronde.board.mask.has(k)), 'la forme change le masque, le mode est ouvert');
+  const g = 0; void g; let guard = 0; while (!ia.ended && guard++ < 400) { const c = ia.board.legalCells()[0]; if (!c) { ia.checkEnd(); break; } ia.place(c.q, c.r); }
+  check(ia.result && ia.result.stars === 0 && ia.result.seeds === 0 && ia.result.island === 'formes', 'pas d’étoile ni de graine d’île');
+  const dc = formesDef('crete', 77); check(dc.start.length > 2 && dc.start.some((t) => t.family === 'rock' && !(t.q === 2 && t.r === -1)), 'une forme à tuiles de départ les pose (la crête)');
+  const dh = formesDef('archipel', 9, { familles: new Set(['meadow', 'forest', 'field', 'hamlet', 'water']) }); check(!dh.weights.hill && !dh.weights.heath, 'pas de colline ni de lande quand on ne les connaît pas');
+  // le code
+  const code = codeForme('anneau', 12345); const lu = lireCodeForme(code);
+  check(/^F-[0-9A-Z]+-[0-9A-Z]+$/.test(code) && lu && lu.forme === 'anneau' && lu.seed === 12345 && lireCodeForme(' f-0-1 ') && lireCodeForme('F-ZZ-1') === null && lireCodeForme('C-1') === null, `le code se lit (${code})`);
+  // les records
+  const S = recordsFormes({}); const r1 = noterPartieFormes(S, a, 300); const r2 = noterPartieFormes(S, a, 250); const r3 = noterPartieFormes(S, a, 320);
+  check(r1.record && r1.precedent === 0 && !r2.record && r3.record && r3.precedent === 300 && S.records.archipel === 320 && S.vues.length === 1 && S.parties === 3 && S.derniere === 'archipel', 'un record par forme, la forme est vue');
+}
 console.log(failures ? `${failures} échec(s)` : 'Tous les tests passent.');
 process.exit(failures ? 1 : 0);

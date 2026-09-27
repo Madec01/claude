@@ -184,6 +184,25 @@ const btn = (page, label) => page.evaluate((l) => {
   check(true, 'la carte se ferme par la construction réelle, pas par « Compris »');
   await page.evaluate(() => { window.CS.Save.options.skipTutorial = true; window.CS.Save.save(); });
 
+  // --- 8. Terres étranges : la tuile du menu, l'écran de départ (forme, galerie, code), l'île qui a bien la forme tirée
+  await save(page, { unlockedIsland: 12, stars: {}, plays: {}, islandsPlayed: 11, seeds: 0, announced: ['mode_garden', 'mode_daily', 'mode_infinite', 'mode_tempo', 'mode_brume', 'postcard'] }, { formes: { records: { archipel: 210 }, vues: ['archipel'], parties: 1, derniere: 'archipel' }, seen: { mode_formes: true } });
+  const tuile = await btn(page, 'Terres étranges');
+  check(!!tuile && !tuile.ferme && /1 \/ \d+ formes/.test(tuile.sub), `la tuile du menu compte les formes découvertes (« ${tuile && tuile.sub} »)`);
+  await page.evaluate(() => window.CS.Game.startFormes());
+  await page.waitForFunction(() => window.CS.scenes.currentName === 'prep', null, { timeout: 20000 }); await page.waitForTimeout(500);
+  const prep = await page.evaluate(() => ({ nom: (document.querySelector('.formes-nom') || {}).textContent, forme: null, puces: document.querySelectorAll('.forme-puce').length, vues: document.querySelectorAll('.forme-puce.vue').length, code: ((document.querySelector('.formes-code') || {}).textContent || '').trim() }));
+  check(!!prep.nom && prep.puces >= 10 && prep.vues === 2 && /^Code : F-/.test(prep.code), `l’écran de départ tire une forme jamais vue (« ${prep.nom} »), la galerie montre ${prep.vues} formes sur ${prep.puces}, un code (${prep.code})`);
+  // un code demandé : la forme et la graine sont celles du code
+  await page.evaluate(() => { const i = document.querySelector('.brume-code'); i.value = 'F-0-2S'; [...document.querySelectorAll('button')].find((b) => b.textContent.includes('Jouer ce code')).click(); });
+  await page.waitForTimeout(600);
+  const parCode = await page.evaluate(() => ((document.querySelector('.formes-code') || {}).textContent || '').trim());
+  check(parCode === 'Code : F-0-2S', `un code demandé donne la même île (${parCode})`);
+  await page.evaluate(() => { const x = [...document.querySelectorAll('button')].find((y) => y.textContent.includes('C’est parti')); x.click(); });
+  await page.waitForFunction(() => window.CS.scenes.currentName === 'island', null, { timeout: 25000 }); await page.waitForTimeout(600);
+  const ile = await page.evaluate(() => { const sc = window.CS.scenes.current; const isl = sc.isl; return { forme: isl.def.forme, seed: isl.def.seed, libre: isl.buildOn && isl.handOn, hud: (document.querySelector('.hud-ile') || {}).textContent || '', titre: sc.title }; });
+  check(ile.seed === parseInt('2S', 36) && ile.forme === 'archipel' && ile.libre && ile.titre === 'L’archipel', `l’île a la forme et la graine du code (${ile.forme}, ${ile.seed}, ouvert ${ile.libre}, titre « ${ile.titre} »), le mode est ouvert`);
+  await page.evaluate(() => window.CS.Game.showMenu()); await page.waitForTimeout(400);
+
   await b.close();
   console.log(errors.length ? `\n${errors.length} problème(s) :\n` + errors.join('\n') : '\nDécouverte : tout est bon.');
   process.exit(errors.length ? 1 : 0);

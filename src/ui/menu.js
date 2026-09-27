@@ -11,6 +11,7 @@ import { ISLANDS } from '../data/islands.js';
 import { STORY } from '../data/story.js';
 import { dailyKey, dailyLabel } from '../data/daily.js';
 import { recordsTempo } from '../data/tempo.js';
+import { recordsFormes, listeFormes } from '../data/formes_mode.js';
 import { UPGRADES, upgradeCost, playerChapter, upgradesAPortee } from '../data/upgrades.js';
 import { insigne, insignesGagnes, rangeeArchetypes, srcChapitre } from './collection.js';
 import { campaignMechanics } from '../data/campaign.js';
@@ -65,6 +66,8 @@ export function buildMenu({ game }) {
         mode(Save.data.infinite.unlocked || c.unlockedIsland > 6 || testMode, { key: 'mode_tempo', text: 's’ouvre après l’île 6' }, (() => { const tp = recordsTempo(Save.data.tempo || {}); const cad = [3, 5, 8].includes(tp.cadran) ? tp.cadran : 3; return tp.bests[cad] ? `${tp.bests[cad]} pts à ${cad} s` : `${cad} secondes par tuile`; })()))),
       navButton('Sous la brume', () => game.startBrume(), Object.assign({ cls: 'btn-mode', iconName: 'icon_cloud', disabled: !(Save.data.infinite.unlocked || c.unlockedIsland > 6 || testMode), title: 'Des tuiles cachées sous la brume : déduire, parier, dévoiler' },
         mode(Save.data.infinite.unlocked || c.unlockedIsland > 6 || testMode, { key: 'mode_brume', text: 's’ouvre après l’île 6' }, (() => { const b = Save.data.brume || {}; const m = Math.max((b.claire || {}).best || 0, (b.epaisse || {}).best || 0); return m ? `${m} pts` : 'déduire, parier'; })()))),
+      navButton('Terres étranges', () => game.startFormes(), Object.assign({ cls: 'btn-mode', iconName: 'icon_swap', disabled: !(Save.data.infinite.unlocked || c.unlockedIsland > 6 || testMode), title: 'Une île qui change de forme à chaque partie, de la plus simple à la plus étrange' },
+        mode(Save.data.infinite.unlocked || c.unlockedIsland > 6 || testMode, { key: 'mode_formes', text: 's’ouvre après l’île 6' }, (() => { const F = recordsFormes(Save.data.formes || {}); const n = F.vues.length; return n ? `${n} / ${listeFormes().length} formes` : 'une forme par partie'; })()))),
       navButton('Île infinie', () => game.startInfinite(), Object.assign({ cls: 'btn-mode', iconName: 'icon_tree', disabled: !(Save.data.infinite.unlocked || c.unlockedIsland > 6 || testMode), title: 'Se déverrouille après l’île 6' },
         mode(Save.data.infinite.unlocked || c.unlockedIsland > 6 || testMode, { key: 'mode_infinite', text: 's’ouvre après l’île 6' }, Save.data.infinite.best ? `${Save.data.infinite.best} pts` : 'sans fin')))),
     navButton('Île du jour', () => game.startDaily(), Object.assign({ iconName: 'icon_sun', disabled: !(c.unlockedIsland >= 6 || testMode), title: `Se déverrouille après l’île 5 · ${dailyLabel(dailyKey())}` },

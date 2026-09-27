@@ -391,3 +391,6 @@ html.compact.portrait #hud:not(.brume):not(.tempo) .pw { flex-direction: row; al
 html.compact.portrait #hud:not(.brume):not(.tempo) .pw span { display: none; }
 html.compact.portrait #hud:not(.brume):not(.tempo) .pw .hud-icon { width: 14px; height: 14px; }
 html.compact.portrait #hud:not(.brume):not(.tempo) .pw em { font-size: 11px; }
+
+/* quatre tuiles de mode : deux par ligne au téléphone en portrait */
+html.compact.portrait .menu-nav .menu-modes { grid-template-columns: repeat(2, 1fr); }

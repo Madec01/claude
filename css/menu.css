@@ -263,7 +263,7 @@ html:not(.compact) .menu-nav > .menu-histoire { grid-column: 1 / -1; }
 @keyframes histoire-ouvre { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
 .menu-histoire-choix .btn { opacity: 1; transform: none; }   /* pas d'entrée en cascade : ils apparaissent d'un coup, à la place du bouton */
 /* Les trois modes à part : trois tuiles de même taille sur une ligne, l'icône au-dessus du nom */
-.menu-modes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.menu-modes { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }   /* quatre modes à part : Souffle court, Sous la brume, Terres étranges, Île infinie */
 html:not(.compact) .menu-nav > .menu-modes { grid-column: 1 / -1; }
 .menu-nav .btn-mode { flex-direction: column; justify-content: center; align-items: center; text-align: center; gap: 5px; padding: 12px 8px 10px; font-size: 16px; line-height: 1.15; min-height: 108px; }
 .menu-nav .btn-mode .icon { width: 28px; height: 28px; }
@@ -295,3 +295,16 @@ html.compact .tp-regle { padding: 8px 10px; gap: 10px; } html.compact .tp-regle 
 .brume-code-ligne { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 8px 0 4px; }
 .brume-code { font: inherit; font-size: 15px; padding: 8px 10px; border: 2px solid rgba(43,42,38,0.15); border-radius: 10px; background: rgba(255,255,255,0.8); width: 11em; text-transform: uppercase; }
 .brume-code-err { flex-basis: 100%; font-size: 12.5px; color: #d95f4b; }
+
+/* Terres étranges : la forme tirée et la galerie des formes */
+.formes-tirage { background: rgba(255,255,255,0.75); border-left: 4px solid var(--gold, #e0a33a); border-radius: 12px; padding: 10px 14px; margin: 8px 0; }
+.formes-nom { font-family: var(--font-title); font-size: 24px; margin: 2px 0 4px; }
+.formes-record { font-size: 13.5px; opacity: 0.85; margin: 4px 0 0; }
+.formes-code { font-family: monospace; opacity: 0.8; }
+.formes-galerie { display: flex; flex-direction: column; gap: 6px; margin: 4px 0 8px; }
+.formes-famille h4 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.6; margin: 4px 0 4px; }
+.formes-puces { display: flex; flex-wrap: wrap; gap: 6px; }
+.forme-puce { font-size: 12.5px; padding: 4px 9px; border-radius: 999px; background: rgba(43,42,38,0.06); border: 1.5px solid rgba(43,42,38,0.12); opacity: 0.55; }
+.forme-puce.vue { opacity: 1; background: rgba(255,255,255,0.85); }
+.forme-puce.on { border-color: var(--gold, #e0a33a); box-shadow: 0 0 0 2px rgba(224,163,58,0.25); }
+.forme-puce b { font-weight: 700; color: var(--gold-ink, #8a6a1e); }

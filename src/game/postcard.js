@@ -52,7 +52,7 @@ export function habillerCarte(ctx, scene, w, h, { bandes = 1, lettres = 1, etoil
   // les textes
   const s = STORY.seasons[isl.season] || { name: isl.season };
   const ch = def.chapter ? CHAPTERS[def.chapter - 1] : null;
-  const kicker = def.infinite ? `Île infinie · ${isl.seasonsPassed.length} saisons` : def.garden ? 'Jardin' : def.daily ? 'Île du jour' : ch ? `Chapitre ${ch.id} · ${ch.name} · île ${def.id}` : `Île ${def.id}`;
+  const kicker = def.infinite ? `Île infinie · ${isl.seasonsPassed.length} saisons` : def.garden ? 'Jardin' : def.daily ? 'Île du jour' : def.formes ? 'Terres étranges' : ch ? `Chapitre ${ch.id} · ${ch.name} · île ${def.id}` : `Île ${def.id}`;
   const climate = isl.climate && isl.climate.id !== 'temperate' && STORY.climates && STORY.climates[isl.climate.id] ? ` · ${STORY.climates[isl.climate.id].name}` : '';
   ctx.fillStyle = INK; ctx.textBaseline = 'alphabetic';
   ctx.font = `600 ${f(20)}px Quicksand, sans-serif`; ctx.globalAlpha = 0.65 * bandes; ctx.fillText((kicker + climate).toUpperCase().replace(/ /g, '  '), frame + f(10), f(48) - dh);
@@ -112,6 +112,6 @@ export function renderPostcard(scene, { w = 1600, h = 1000 } = {}) {
 /** Nom de fichier lisible : cent-saisons-ile-08-la-pointe-des-joncs.png */
 export function postcardName(scene) {
   const def = scene.def; const slug = (scene.title || def.name || 'ile').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-  const id = def.infinite ? 'infinie' : def.garden ? 'jardin' : def.daily ? 'jour' : String(def.id).padStart(2, '0');
+  const id = def.infinite ? 'infinie' : def.garden ? 'jardin' : def.daily ? 'jour' : def.formes ? `forme-${def.forme}` : String(def.id).padStart(2, '0');
   return `cent-saisons-ile-${id}-${slug}.png`;
 }

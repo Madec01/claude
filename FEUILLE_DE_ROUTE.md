@@ -16,6 +16,16 @@ chaque feuille finit par les décisions à prendre par le commanditaire, avec un
 
 Statut : **en cours** (27 septembre : « go pour tout le reste », recommandations par défaut appliquées ; Histoire étapes 1 à 4 faites, Souffle court décision 3 appliquée, Brume en cours).
 
+## Formes d'îles et mode « Terres étranges » (27 septembre)
+
+Le commanditaire a choisi : des îles de campagne plus naturelles (baies, bras de mer, grands lacs) **sans durcir le jeu**, les trois formes fortes sur les îles 14, 16 et 28, et un mode à part où l'île change de forme à chaque partie (une trentaine de formes, de la plus simple à la plus étrange). Les pistes de gameplay (`docs/PISTES_GAMEPLAY.md`) et le mode « L'île qui se souvient » sont écartés pour l'instant.
+
+| # | Lot | Statut |
+|---|---|---|
+| F1 | Mode « Terres étranges » : tirage (jamais vue tant qu'il en reste), galerie, record par forme, code, bilan | **fait** |
+| F2 | Vingt formes de plus (dix douces, dix étranges), `famille` et `difficulte` mesurée | en cours (agent) |
+| F3 | Campagne : archipel → 14, anneau → 16, étoile → 28 ; formes douces sur les îles générées ; mesure ±5 % ; recalibrage ; captures | à faire |
+
 ## Retenu par le commanditaire (prochain lot)
 
 | # | Idée | Décision de design | Statut |

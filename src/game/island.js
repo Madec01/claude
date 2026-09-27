@@ -36,10 +36,10 @@ export class Island {
     this.longSeasonDone = false;
     // Sans option, les mécaniques suivent le numéro d'île (MECH_AT, campaign.js) : la campagne passe toujours par
     // `islandOptions`, qui fait foi ; les modes libres et l'Île du jour ont tout.
-    const libre = !!def.infinite || !!def.garden || !!def.daily; const des = (m) => typeof def.id === 'number' && def.id >= (mechIsland(m) || 1);
+    const libre = !!def.infinite || !!def.garden || !!def.daily || !!def.formes; const des = (m) => typeof def.id === 'number' && def.id >= (mechIsland(m) || 1);
     this.buildOn = o.build !== undefined ? !!o.build : (libre || des('build'));
     // croissance : le caractère du chapitre 9 en campagne, toujours là dans les modes libres — une tuile bien entourée des siennes monte au niveau 2 toute seule
-    this.growOn = o.growth !== undefined ? !!o.growth : (!!def.infinite || !!def.daily || des('growth'));
+    this.growOn = o.growth !== undefined ? !!o.growth : (!!def.infinite || !!def.daily || !!def.formes || des('growth'));
     // fusionner ; `known` = recettes déjà découvertes (sauvegarde)
     this.fuseOn = o.fuse !== undefined ? !!o.fuse : (libre || des('fuse'));
     this.known = o.known || new Set();
@@ -994,7 +994,7 @@ export class Island {
     const counts = {}; let placedN = 0; for (const t of this.board.tiles.values()) { const f = Board.familiesOf(t)[0] || t.family; counts[f] = (counts[f] || 0) + 1; placedN++; }
     const dom = ['hamlet', 'water', 'forest'].map((f) => ({ family: f, share: placedN ? (counts[f] || 0) / placedN : 0 })).sort((a, b) => b.share - a.share)[0];
     const dominant = dom && dom.share >= 0.3 ? dom : null;
-    const libre = this.infinite || this.garden || !!this.brume || !!this.tempo;   // pas d'étoiles ni de graines d'île hors campagne et Île du jour
+    const libre = this.infinite || this.garden || !!this.brume || !!this.tempo || !!this.def.formes;   // pas d'étoiles ni de graines d'île hors campagne et Île du jour
     const seeds = (libre ? 0 : stars) * BALANCE.seeds.star + this.stats.wishesDone * BALANCE.seeds.wish + (libre ? 0 : BALANCE.seeds.island);
     this.result = { island: this.def.id, score: this.score, stars: libre ? 0 : stars, gold: gold && !this.brume, brume, goldThreshold: this.goldThreshold, thresholds: th, tally: { ...this.tally }, bestMove: this.bestMove, dominant, archetype: (() => { const a = archetypeOf(this.board); return a ? { id: a.id, family: a.family, size: a.size } : null; })(), reason, placements: this.placements, seasons: this.seasonsPassed.length, stats: { ...this.stats }, harmonie: harmo, fauna: this.fauna.size, wishesDone: this.stats.wishesDone, wishesTotal, seeds, cells, filled: this.board.placed };
     this.emit({ type: 'end', result: this.result });
