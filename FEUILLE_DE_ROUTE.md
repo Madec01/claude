@@ -14,7 +14,7 @@ chaque feuille finit par les décisions à prendre par le commanditaire, avec un
 | Le Souffle court | `docs/FEUILLE_SOUFFLE_COURT.md` | **fait** (25 septembre, journal 160 à 163) : les quatre étapes ; reste le tampon, la validation avec des joueurs et la décision 3 |
 | Sous la brume | `docs/FEUILLE_BRUME.md` | indices toujours exacts, règles affichées = règles appliquées |
 
-Statut : **à faire**, en attente des décisions du commanditaire.
+Statut : **en cours** (27 septembre : « go pour tout le reste », recommandations par défaut appliquées ; Histoire étape 1 faite, Brume en cours).
 
 ## Retenu par le commanditaire (prochain lot)
 

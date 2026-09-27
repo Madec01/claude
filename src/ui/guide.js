@@ -2,7 +2,7 @@
 import { mechIsland, CHAPTER_GATE, CHAPTER_PATIENCE, GROWTH_CHAPTER } from '../data/campaign.js';
 // Tout est dérivé des données du jeu (tiles.js, balance.js, upgrades.js, story.js) : aucune valeur n'est recopiée à la main.
 import { h, button, icon, append } from './dom.js';
-import { FAMILIES, RARE, RARE_AS, FAMILY_FROM, RARE_LATE, SEASONS, affinity, FUSIONS } from '../data/tiles.js';
+import { FAMILIES, RARE, RARE_AS, SEASONS, affinity, FUSIONS } from '../data/tiles.js';
 import { Save } from '../core/save.js';
 import { BALANCE } from '../data/balance.js';
 import { UPGRADES } from '../data/upgrades.js';
@@ -13,6 +13,9 @@ import { AudioSys } from '../core/audio.js';
 const B = BALANCE;
 const name = (f) => (STORY.tiles[f] || {}).name || f;
 const blurb = (f) => (STORY.tiles[f] || {}).blurb || '';
+// l'île d'arrivée d'une famille ou d'une rare tardive vient de MECH_AT (une seule source de numéros)
+const familyFrom = (f) => f === 'hill' ? mechIsland('hill') : f === 'heath' ? mechIsland('heath') : null;
+const rareFrom = (f) => ['granary', 'hive', 'menhir'].includes(f) ? mechIsland('rare2') : null;
 const tileImg = (f, rare = false) => h('img', { src: `assets/img/tiles/${f}_${rare ? '' : '1_'}spring.webp`, alt: name(f), loading: 'lazy' });
 const faunaImg = (sp) => h('img', { src: `assets/img/fauna/fauna_${sp}.webp`, alt: (STORY.fauna[sp] || {}).name || sp, loading: 'lazy' });
 const SEASON_ICON = { spring: 'icon_leaf', summer: 'icon_sun', autumn: 'icon_wind', winter: 'icon_snow' };
@@ -33,7 +36,7 @@ const TABS = {
   tiles: { label: 'Tuiles', build: () => h('div', {},
     h('p', { class: 'g-intro' }, 'Chaque bord partagé entre deux tuiles rapporte les points de leur affinité (affichés avant de poser). Une même famille vaut +1, une bonne paire +2, une mauvaise −1. Encercler complètement une région rapporte sa taille en tuiles (×2 pour un hameau, qui devient un bourg). Une grande région paie davantage : à partir de cinq tuiles, chaque tuile qui l’agrandit gagne +1 (+2 à partir de dix) et sa prime de fermeture est multipliée par 1,5 (par 2 à partir de dix).'),
     h('div', { class: 'g-grid' }, ...FAMILIES.map((f) => h('div', { class: 'g-card' }, tileImg(f), h('div', {},
-      h('h4', {}, name(f), FAMILY_FROM[f] ? h('span', { class: 'g-tag' }, `dès l’île ${FAMILY_FROM[f]}`) : null),
+      h('h4', {}, name(f), familyFrom(f) ? h('span', { class: 'g-tag' }, `dès l’île ${familyFrom(f)}`) : null),
       h('p', {}, blurb(f)), pairs(f))))),
   ) },
   hand: { label: 'File, main et semis', build: () => h('div', {},
@@ -66,7 +69,7 @@ const TABS = {
     h('h3', {}, icon('icon_star'), 'Tuiles rares'),
     h('p', { class: 'g-intro' }, 'Une tuile rare est offerte à chaque vœu exaucé (et par l’amélioration « Semence rare »). Elle compte comme une ou plusieurs familles pour les affinités et possède un pouvoir propre.'),
     h('div', { class: 'g-grid' }, ...[...RARE, 'ruins'].map((f) => h('div', { class: 'g-card' }, tileImg(f, true), h('div', {},
-      h('h4', {}, name(f), RARE_LATE[f] ? h('span', { class: 'g-tag' }, `dès l’île ${RARE_LATE[f]}`) : null),
+      h('h4', {}, name(f), rareFrom(f) ? h('span', { class: 'g-tag' }, `dès l’île ${rareFrom(f)}`) : null),
       h('p', {}, blurb(f)),
       RARE_AS[f] && RARE_AS[f].length ? h('p', { class: 'g-note' }, `Compte comme : ${RARE_AS[f].map(name).join(', ')}.`) : null)))),
   ) },
@@ -81,8 +84,8 @@ const TABS = {
     h('p', { class: 'g-intro' }, `Une tuile entourée d’assez de voisines de sa propre famille pendant ${B.growth.seasons} saisons passe au niveau 2 d’elle-même, sans souffle : le hameau devient un village (${B.growth.at.hamlet} voisins suffisent), le verger se remplit (${B.growth.at.orchard}), la forêt, le champ et la prairie s’épaississent (${B.growth.at.forest}). Une saison avant, de jeunes pousses l’annoncent sur la tuile ; poser autre chose à côté annule la croissance. Au plus ${B.growth.perSeason} tuiles par changement de saison, et jamais deux dans la même région. Le temps épaissit ; le niveau 3 et les signatures restent réservés à bâtir, et une tuile poussée par le temps ne compte pas pour le vœu qui demande de bâtir.`),
     h('h3', {}, icon('icon_leaf'), `L’harmonie (dès l’île ${mechIsland('harmonie')})`),
     h('p', { class: 'g-intro' }, `Trois fleurs sous le score récompensent une île variée et bien finie, ce que les autres points ne font pas. Variété : ${B.harmonie.variete} familles (moins si la file de l’île en offre peu) tiennent chacune une région d’au moins ${B.harmonie.regionMin} tuiles. Équilibre : aucune région ne couvre plus de ${Math.round(B.harmonie.equilibre * 100)} % des tuiles posées — le contrepoids des grandes régions. Achèvement : au moins ${Math.round(B.harmonie.acheve * 100)} % des tuiles dans des régions closes, et aucune friche. Chaque fleur ouverte à la fin de l’île rapporte la surface de l’île divisée par ${B.harmonie.casesParPoint} (une île de cent cases : vingt points par fleur). Une fleur peut s’ouvrir et se refermer en cours de partie ; seules comptent celles qui sont ouvertes à la fin. Toucher les fleurs dit ce qui manque.`),
-    h('h3', {}, icon('icon_leaf'), 'La friche'),
-    h('p', { class: 'g-intro' }, `Une pose qui coûte des points (bords et contraintes, total négatif) laisse une friche : ruine pour un hameau, lit asséché pour l’eau, terre morte ailleurs. Elle ne rapporte plus rien, ne compte plus pour sa famille (régions, vœux, faune) et ses bords ne valent rien pour ses voisines. La toucher la remet en état (${B.build.restore} souffle, sans tuile) : seuls ses bons voisins comptent alors, et elle peut fermer une région.`),
+    h('h3', {}, icon('icon_leaf'), `La friche (dès l’île ${mechIsland('build')})`),
+    h('p', { class: 'g-intro' }, `Dès l’île qui ouvre bâtir (avant, une pose négative coûte ses points, c’est tout), une pose qui coûte des points (bords et contraintes, total négatif) laisse une friche : ruine pour un hameau, lit asséché pour l’eau, terre morte ailleurs. Elle ne rapporte plus rien, ne compte plus pour sa famille (régions, vœux, faune) et ses bords ne valent rien pour ses voisines. La toucher la remet en état (${B.build.restore} souffle, sans tuile) : seuls ses bons voisins comptent alors, et elle peut fermer une région.`),
     h('h3', {}, icon('icon_star'), 'Les vœux et les étoiles'),
     h('p', { class: 'g-intro' }, `Dès l’île ${mechIsland('wish')}, les habitants formulent des vœux à échéance (un nombre de poses ou une saison). Un vœu exaucé rapporte autant de points qu’il reste de poses avant son échéance (l’exaucer tôt paie davantage ; la valeur du moment s’affiche en « +N » sous chaque vœu), ${B.breaths.wish} souffles et une tuile rare.`),
     h('p', { class: 'g-intro' }, 'L’Île du jour (menu) est générée depuis la date, identique pour tout le monde, avec trois vœux tirés au sort et les surprises de saison. Le meilleur score du jour et les jours joués d’affilée sont conservés.'),

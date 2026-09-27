@@ -49,7 +49,7 @@ const GUIDED = {
     { id: 'g6', target: [0, 1], text: 'Un champ ici. Regarde la ligne de saison en haut : à la sixième pose, la saison change.', done: (i) => i.placements >= 6 },
     { id: 'g7', text: 'L’été ! Chaque saison apporte une règle, lisible en haut de l’écran : en été, une prairie sans eau, forêt ni marais voisin sèche. La nôtre touche l’eau et la forêt : elle tient.', info: true, when: (i) => i.seasonsPassed.length >= 1, timeout: 40 },
     { id: 'g8', target: [1, 1], text: 'Le verger aime la prairie (+2). Pose-le ici : la prairie n’aura plus aucune case vide autour. Une région entourée se ferme et rapporte sa taille en points.', done: (i) => i.placements >= 7 },
-    { id: 'g9', text: 'Région close ! Plus la région est grande, plus la prime est belle (les hameaux comptent double). Des animaux viendront aussi d’eux-mêmes, là où leur habitat existe : chacun rapporte des points à chaque saison. À toi de jouer : remplis l’île. Une étoile suffit pour débloquer la suivante, et le Guide (pause) rappelle toutes les paires.', info: true, timeout: 30 },
+    { id: 'g9', text: 'Région close ! Plus la région est grande, plus la prime est belle (les hameaux comptent double). Des animaux viendront aussi d’eux-mêmes, là où leur habitat existe : chacun rapporte des points à chaque saison. À toi de jouer : remplis l’île. Une île terminée ouvre la suivante ; les étoiles ouvrent les chapitres. Le Guide (pause) rappelle toutes les paires.', info: true, timeout: 30 },
   ],
 };
 
@@ -94,7 +94,7 @@ export class Tutorial {
     if (modeSteps && enabled) steps = modeSteps.map((st) => ({ ...st }));
     else if (!this.guided && enabled) {
       const num = def && typeof def === 'object' ? def.id : null;
-      const hand = sdef && sdef.tutorial ? sdef.tutorial.filter((st) => !mech || !MECH_STEP_IDS.has(st.id) || (mech.has(st.id) && (num === null || mechIsland(st.id) === null || mechIsland(st.id) === num))) : [];   // une mécanique déjà présentée sur une île précédente ne se répète pas
+      const hand = sdef && sdef.tutorial ? sdef.tutorial.filter((st) => !mech || !MECH_STEP_IDS.has(st.id) || (mech.has(st.id) && (num === null || mechIsland(st.id) === null || mechIsland(st.id) === num || !!GUIDED[mechIsland(st.id)]))) : [];   // une mécanique déjà présentée sur une île précédente ne se répète pas ; celle qu'un parcours guidé a seulement fait jouer garde sa carte sur l'île dessinée qui en parle
       const introduced = def && typeof def === 'object' && def.introduces ? def.introduces.filter((m) => STORY.mechCards[m] && !hand.some((st) => st.id === m)) : [];
       steps = [...introduced.map((m) => ({ id: m, text: STORY.mechCards[m] })), ...hand];
     }

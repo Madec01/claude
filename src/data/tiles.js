@@ -1,10 +1,7 @@
 // Familles de tuiles, variantes graphiques, table des affinités.
 export const FAMILIES = ['meadow', 'forest', 'field', 'hamlet', 'orchard', 'water', 'marsh', 'rock', 'sand', 'hill', 'heath'];
-/** Île à partir de laquelle une famille peut apparaître (absente = dès le début). */
-export const FAMILY_FROM = { hill: 12, heath: 14 };
 export const RARE = ['mill', 'chapel', 'watchtower', 'well', 'camp', 'granary', 'hive', 'menhir'];
-/** Tuiles rares réservées aux îles tardives (et aux modes libres). */
-export const RARE_LATE = { granary: 13, hive: 13, menhir: 13 };
+// L'île où une famille ou une rare arrive n'est écrite qu'à un endroit : MECH_AT dans campaign.js (`hill`, `heath`, `rare2`).
 /**
  * Rares et tuiles d'événement retirées par l'audit de simplification (22 septembre) : ce qu'elles deviennent si une
  * partie reprise, ou une file en cours, en contient encore — une tuile ordinaire de la famille qu'elles comptaient.
@@ -58,9 +55,9 @@ const PAIRS = {
   'field|hamlet': 2, 'orchard|meadow': 2, 'orchard|hamlet': 2, 'marsh|water': 2, 'forest|rock': 2, 'sand|water': 2,
   'meadow|forest': 1, 'hamlet|water': 1, 'field|meadow': 1, 'marsh|forest': 1, 'rock|water': 1,
   'hamlet|marsh': -1, 'field|rock': -1, 'field|sand': -1, 'forest|sand': -1, 'hamlet|rock': -1, 'orchard|sand': -1,
-  // collines (dès l'île 7) : relief, coteaux, belvédères
+  // collines (île de MECH_AT.hill) : relief, coteaux, belvédères
   'hill|hill': 1, 'hill|rock': 2, 'forest|hill': 1, 'hill|meadow': 1, 'hill|orchard': 1, 'hamlet|hill': 1, 'field|hill': -1, 'hill|marsh': -1,
-  // landes (dès l'île 9) : sols pauvres qui ne craignent pas l'été
+  // landes (île de MECH_AT.heath) : sols pauvres qui ne craignent pas l'été
   'heath|heath': 1, 'heath|rock': 1, 'heath|meadow': 1, 'forest|heath': 1, 'heath|sand': 1, 'field|heath': -1, 'heath|orchard': -1,
 };
 

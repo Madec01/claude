@@ -289,9 +289,10 @@ check(affinity('meadow', 'water') === 0, 'prairie-eau = 0');
   const cells = []; for (let q = -2; q <= 3; q++) for (let r = -2; r <= 2; r++) cells.push(`${q},${r}`);
   const b = new Board(cells);
   b.place(0, 0, { family: 'rock', variant: 1 }); b.place(1, -1, { family: 'sand', variant: 1 });
-  const pv = preview(b, 1, 0, { family: 'field', variant: 1 }, 'spring');   // champ contre roche (−1) et sable (−1)
+  const pv = preview(b, 1, 0, { family: 'field', variant: 1 }, 'spring', { blight: true });   // champ contre roche (−1) et sable (−1) ; la friche est un réglage de l'île (avec bâtir)
   check(pv.total < 0 && pv.blight, `champ contre roche et sable : pose négative, friche annoncée (${pv.total})`);
-  apply(b, 1, 0, { family: 'field', variant: 1 }, 'spring');
+  check(!preview(b, 1, 0, { family: 'field', variant: 1 }, 'spring').blight, 'sans le réglage de l’île, aucune friche');
+  apply(b, 1, 0, { family: 'field', variant: 1 }, 'spring', { blight: true });
   const t = b.get(1, 0); check(t.blighted && Board.familiesOf(t).length === 0 && b.regions('field').length === 0, 'la friche ne compte pour aucune famille');
   const pv2 = preview(b, 2, -1, { family: 'field', variant: 1 }, 'spring'); check(!pv2.edges.some((e) => e.q === 1 && e.r === 0), 'un bord contre une friche ne vaut rien');
   check(canRestore(b, 1, 0) && !canRestore(b, 0, 0), 'une friche se remet en état, une tuile saine non');
@@ -795,6 +796,50 @@ for (const def of ISLANDS.slice(0, 4)) {
   const fini = { stars: {}, completed: true, unlockedIsland: 50 }; migrerVers30(fini); check(fini.unlockedIsland === CAMPAIGN_SIZE && fini.completed, 'une campagne finie reste finie');
   const p1 = migrerPartie({ v: 1, at: 1, where: { kind: 'campaign', id: 20 }, isl: {} }), p2 = migrerPartie({ v: 1, at: 1, where: { kind: 'campaign', id: 17 }, isl: {} }), p3 = migrerPartie({ v: 1, at: 1, where: { kind: 'daily', date: 'x' }, isl: {} });
   check(p1 && p1.v === 2 && p1.where.id === 20 && p2 === null && p3 && p3.v === 2, 'partie en cours : renumérotée, oubliée si l’île est retirée, intacte pour l’Île du jour');
+}
+// --- feuille Histoire, étape 1 : ce qui est affiché est ce qui est appliqué
+{
+  const fs = await import('node:fs');
+  // J-A : l'annulation n'est permise que si les souffles restaurés paient son coût
+  const d = campaignIsland(mechIsland('build')); const isl = new Island(d, { ...islandOptions(d), surprise: true });
+  let ferme = null, garde = 0;
+  while (!ferme && !isl.ended && garde++ < 80) {
+    const cells = isl.board.legalCells(); const c = cells.find((x) => { const p = isl.preview(x.q, x.r); return p && p.closes.length > 0; });
+    if (c) ferme = c; else { const b = cells[0]; isl.place(b.q, b.r); }
+  }
+  if (ferme) {
+    isl.breaths = isl.undoCost - 1; isl.undoUsedThisSeason = false;
+    isl.place(ferme.q, ferme.r);
+    check(isl.breaths >= isl.undoCost && !isl.canUndo(), `une pose qui rapporte des souffles n'ouvre pas une annulation impayable (${isl.breaths} souffles après, ${isl.undoCost - 1} avant)`);
+    isl.history[isl.history.length - 1].breaths = isl.undoCost; check(isl.canUndo() && isl.undo() && isl.breaths === 0, 'annuler paie sur les souffles restaurés');
+  } else check(false, 'J-A : aucune fermeture trouvée pour le test');
+  // J-A : rejouer le même coup après annulation redonne le même hasard (surprise de saison comprise)
+  const i2 = new Island(d, { ...islandOptions(d), surprise: true }); i2.breaths = 9;
+  let dernier = null; garde = 0;
+  while (i2.seasonsPassed.length === 0 && !i2.ended && garde++ < 40) { const c = i2.board.legalCells()[0]; dernier = c; i2.place(c.q, c.r); }
+  const regle = i2.rule, graine = i2.rng.s, apres = i2.season;
+  check(i2.canUndo() && i2.undo() && i2.seasonsPassed.length === 0 && i2.season !== apres, 'annuler la pose qui a changé la saison ramène à la saison d’avant');
+  i2.place(dernier.q, dernier.r);
+  check(i2.rule === regle && i2.rng.s === graine, `le même coup rejoué redonne la même surprise (${i2.rule} = ${regle}) et le même générateur`);
+  // J-K : soixante aperçus sur la même case ne touchent ni à la version du plateau ni à ses caches
+  const i3 = new Island(d, { ...islandOptions(d) }); const c3 = i3.board.legalCells()[0]; i3.board.region(c3.q, c3.r + 1, 'meadow');
+  const v0 = i3.board.version, sh0 = i3.board._shapes, w0 = i3.board._water;
+  for (let k = 0; k < 60; k++) i3.preview(c3.q, c3.r);
+  check(i3.board.version === v0 && i3.board._shapes === sh0 && i3.board._water === w0, 'soixante aperçus : version et caches du plateau intacts');
+  // J-C : pas de friche avant l'île qui ouvre « bâtir » ; friche réparable à partir d'elle
+  const negatif = (isl) => { for (const c of isl.board.legalCells()) for (const fam of ['field', 'hamlet', 'forest', 'orchard']) { const t = { family: fam, variant: 1, rare: false, id: 9000 }; const p = isl.preview(c.q, c.r, t); if (p && p.total < 0) return { c, t }; } return null; };
+  const d3 = campaignIsland(3); const i4 = new Island(d3, { ...islandOptions(d3) }); const n4 = negatif(i4);
+  if (n4) { const res = i4.place(n4.c.q, n4.c.r, n4.t); check(res && !res.blight && !i4.board.get(n4.c.q, n4.c.r).blighted && i4.score < 0, `île 3 : une pose négative (${res && res.total}) coûte ses points, sans friche`); }
+  else check(false, 'J-C : aucune pose négative trouvée sur l’île 3');
+  const i5 = new Island(d, { ...islandOptions(d) }); i5.breaths = 1; const n5 = negatif(i5);
+  if (n5) { const res = i5.place(n5.c.q, n5.c.r, n5.t); const a = i5.action(n5.c.q, n5.c.r); check(res && res.blight && i5.board.get(n5.c.q, n5.c.r).blighted && a && a.kind === 'restore', `île ${d.id} : la même pose fait une friche réparable`); }
+  else check(false, `J-C : aucune pose négative trouvée sur l’île ${d.id}`);
+  // J-B : une seule source pour les numéros d'îles ; le tutoriel ne parle plus d'étoile nécessaire
+  const tiles = await import('../src/data/tiles.js');
+  check(tiles.FAMILY_FROM === undefined && tiles.RARE_LATE === undefined && !fs.readFileSync('src/ui/guide.js', 'utf8').includes('FAMILY_FROM'), 'le Guide lit les numéros d’îles dans MECH_AT');
+  check(mechIsland('river') === 1 && mechIsland('season') === 1 && mechIsland('hill') === 8 && mechIsland('heath') === 10 && mechIsland('rare2') === 9, 'rivière et saisons à l’île 1 ; collines 8, rares tardives 9, landes 10');
+  const tuto = fs.readFileSync('src/game/tutorial.js', 'utf8').split('\n');
+  check(!tuto.some((l) => /débloquer/.test(l) && /étoile/.test(l)), 'aucune carte du tutoriel ne lie « débloquer » à « étoile »');
 }
 console.log(failures ? `${failures} échec(s)` : 'Tous les tests passent.');
 process.exit(failures ? 1 : 0);

@@ -155,7 +155,7 @@ export class Island {
     this.queue.promettre(promesses, depart);
   }
 
-  get mods() { return { river: this.baseMods.river, refuge: this.baseMods.refuge, rule: this.rule, climate: this.climate, ...(this.brume ? { brumeDores: this.brume.saison.dores, brumeMauvais: this.brume.saison.mauvais } : {}) }; }
+  get mods() { return { river: this.baseMods.river, refuge: this.baseMods.refuge, rule: this.rule, climate: this.climate, blight: this.buildOn, ...(this.brume ? { brumeDores: this.brume.saison.dores, brumeMauvais: this.brume.saison.mauvais } : {}) }; }
   /** L'habillage de la saison (pluie, vent, chaleur, neige, redoux), tiré de la surprise en cours : purement visuel. */
   get look() { return this.garden ? null : RULE_LOOK[this.rule] || null; }
 
@@ -576,11 +576,15 @@ export class Island {
   canDiscard() { return this.queue.list.length > 0 && this.breaths >= this.discardCost(); }
   discard() { if (!this.canDiscard()) return false; this.breaths -= this.discardCost(); const t = this.queue.discard(); this.emit({ type: 'breath', kind: 'discard', tile: t }); this.checkEnd(); return true; }
 
-  canUndo() { return !this.brume && this.history.length > 0 && this.breaths >= this.undoCost && !this.undoUsedThisSeason; }
+  /** Annuler n'est permis que si les souffles *restaurés* paient son coût : une pose qui a rapporté des souffles ne doit pas ouvrir une annulation impayable. */
+  canUndo() { const s = this.history[this.history.length - 1]; return !this.brume && !!s && s.breaths >= this.undoCost && !this.undoUsedThisSeason; }
   undo() {
     if (!this.canUndo()) return false;
     const s = this.history.pop();
     this.board.restore(s.board); this.queue.restore(s.queue); this.rule = s.rule || this.rule; this.huntSeason = !!s.huntSeason;
+    // le hasard de l'île revient aussi en arrière : rejouer le même coup redonne la même surprise de saison
+    if (s.rngS !== undefined) this.rng.s = s.rngS;
+    this.longSeasonDone = !!s.longSeasonDone; this.pendingOpening = [...(s.pendingOpening || [])];
     this.score = s.score; this.placements = s.placements; this.inSeason = s.inSeason; this.season = s.season; this.seasonsPassed = [...s.seasonsPassed];
     this.stats = { ...s.stats }; if (s.tally) this.tally = { ...s.tally }; this.bestMove = s.bestMove ? { ...s.bestMove } : null; this.wishes = s.wishes.map((w) => ({ ...w }));
     this.breaths = s.breaths - this.undoCost;
@@ -591,7 +595,7 @@ export class Island {
   }
 
   pushHistory() {
-    this.history.push({ tally: { ...this.tally }, bestMove: this.bestMove ? { ...this.bestMove } : null, rule: this.rule, huntSeason: this.huntSeason, board: this.board.snapshot(), queue: this.queue.snapshot(), score: this.score, placements: this.placements, inSeason: this.inSeason, season: this.season, seasonsPassed: [...this.seasonsPassed], stats: { ...this.stats }, wishes: this.wishes.map((w) => ({ ...w })), breaths: this.breaths, fauna: new Map(this.fauna) });
+    this.history.push({ rngS: this.rng.s, longSeasonDone: !!this.longSeasonDone, pendingOpening: [...this.pendingOpening], tally: { ...this.tally }, bestMove: this.bestMove ? { ...this.bestMove } : null, rule: this.rule, huntSeason: this.huntSeason, board: this.board.snapshot(), queue: this.queue.snapshot(), score: this.score, placements: this.placements, inSeason: this.inSeason, season: this.season, seasonsPassed: [...this.seasonsPassed], stats: { ...this.stats }, wishes: this.wishes.map((w) => ({ ...w })), breaths: this.breaths, fauna: new Map(this.fauna) });
     if (this.history.length > 3) this.history.shift();
   }
 

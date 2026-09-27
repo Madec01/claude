@@ -188,8 +188,9 @@ export function preview(board, q, r, tile, season, mods = {}) {
   const closes = closedRegionsAround(board, q, r);
   for (const c of closes) total += c.bonus;
   board.tiles.delete(key(q, r));
-  // friche : une pose qui coûte des points (bords et contraintes) laisse une tuile morte, qui ne rapportera plus rien
-  const blight = total < 0 && !tile.rare;
+  // friche : une pose qui coûte des points (bords et contraintes) laisse une tuile morte, qui ne rapportera plus rien —
+  // seulement là où « bâtir » existe (`mods.blight`) : une conséquence qu'on ne peut pas réparer n'est qu'une punition
+  const blight = !!mods.blight && total < 0 && !tile.rare;
   return { total, edges, closes, river, base, blight };
   });
 }

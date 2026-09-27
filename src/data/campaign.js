@@ -16,7 +16,7 @@ export const GROWTH_CHAPTER = 9;
 
 /** Mécaniques introduites par île (cumulatives ; la croissance, elle, n'est active que sur son chapitre). */
 export const MECH_AT = {
-  1: ['affinity', 'close', 'fauna'], 2: ['river', 'season'], 3: ['semis'],
+  1: ['affinity', 'close', 'fauna', 'river', 'season'], 3: ['semis'],   // la rivière et les saisons jouent dès la première île, où le parcours guidé les montre
   4: ['wish', 'hand'], 5: ['breath'], 6: ['rare', 'harmonie'],
   7: ['surprise'], 8: ['hill'], 9: ['rare2'], 10: ['heath'],
   11: ['build'],
