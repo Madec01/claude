@@ -20,7 +20,7 @@ import { pickRule, BASE_RULE, RULE_LOOK } from './seasonrules.js';
 import { gradeMove } from './feedback.js';
 import { RNG } from '../core/math.js';
 import { key, parse, neighbors } from './hex.js';
-import { CRANS, P as PB, preparerBrume, indice as indiceBrume, inventaire as inventaireBrume, TIRAGE, CARTE_PAR_ID, tirerCarte, saisonNeuve, tirerFamille, compte as compteBrume } from './brume.js';
+import { CRANS, P as PB, preparerBrume, indice as indiceBrume, portee as porteeBrume, inventaire as inventaireBrume, TIRAGE, CARTE_PAR_ID, tirerCarte, saisonNeuve, tirerFamille, compte as compteBrume, COULEURS, normaliserNote } from './brume.js';
 
 export class Island {
   /**
@@ -52,7 +52,7 @@ export class Island {
     this.harmonieOn = o.harmonie !== undefined ? !!o.harmonie : ((libre && !def.garden) || des('harmonie'));
     const seed = def.seed + (o.seedOffset || 0);
     this.rng = new RNG(seed * 7 + 1);
-    this.board = new Board(generateMask(seed, def.cells, { roughness: def.roughness, holes: def.holes, etire: def.etire || 1, isthme: !!def.isthme, garde: (def.start || []).map((t) => key(t.q, t.r)) }));
+    this.board = new Board(def.mask ? def.mask : generateMask(seed, def.cells, { roughness: def.roughness, holes: def.holes, etire: def.etire || 1, isthme: !!def.isthme, garde: (def.start || []).map((t) => key(t.q, t.r)) }));   // `def.mask` : une forme fixée (les énigmes de la brume)
     if (this.climate.linkMax) this.board.linkMax = this.climate.linkMax;
     this.garden = !!def.garden;
     this.infinite = !!def.infinite;
@@ -74,7 +74,7 @@ export class Island {
       // le plan vient du worker (`def.planBrume`, voir brume_worker.js) ou d'une reprise ; sinon il se calcule ici (tests, repli)
       const plan = def.planBrume ? { fog: new Set(def.planBrume.fog), cachees: new Map((def.planBrume.cachees || []).map(([k, t]) => [k, { ...t }])), deduc: def.planBrume.deduc || 0 } : preparerBrume(this.board, cran, seed, def.weights);
       this.board.fog = new Set(plan.fog);
-      this.brume = { cran, cachees: plan.cachees, deduc: plan.deduc, jalons: new Map(), crayon: new Map(), jalonSaison: false, jalonsPoses: 0, contre: 0, devoilees: 0, justes: 0, fausses: 0, tresor: null, depart: plan.fog.size,
+      this.brume = { cran, cachees: plan.cachees, deduc: plan.deduc, jalons: new Map(), crayon: new Map(), jalonSaison: false, jalonsPoses: 0, contre: 0, devoilees: 0, justes: 0, fausses: 0, tresor: null, depart: plan.fog.size, passagePret: false,
         // le tirage de saison : la chance de bonus (bouge à chaque coup), la carte en cours, l'état de la saison, les marques de la Lanterne
         ratio: TIRAGE.depart, carte: null, saison: saisonNeuve(), marques: new Map(), posesSaison: [], rngCartes: new RNG(seed * 13 + 5) };
       for (const k of ['buildOn', 'growOn', 'fuseOn', 'level3On', 'harmonieOn']) this[k] = false;
@@ -216,7 +216,7 @@ export class Island {
     return preview(this.board, q, r, tile, this.season, this.mods);
   }
 
-  canPlace(q, r) { return !this.ended && !!this.current && this.board.canPlace(q, r) && (!this.restrict || this.restrict.has(key(q, r))); }
+  canPlace(q, r) { return !this.ended && !!this.current && !this.passagePret && this.board.canPlace(q, r) && (!this.restrict || this.restrict.has(key(q, r))); }
 
   // ---- Bâtir, fusionner, remettre en état : des actions sur une tuile posée, payées en souffles, sans tuile ----
   /**
@@ -327,7 +327,7 @@ export class Island {
 
   /** Pose la tuile courante. */
   place(q, r, tileOverride = null) {
-    if (this.ended) return null;
+    if (this.ended || this.passagePret) return null;   // sous la brume, entre la dernière pose de la saison et « Lever la brume », aucune pose
     const tile = tileOverride || this.current;
     if (!tile || !this.board.canPlace(q, r) || (this.restrict && !this.restrict.has(key(q, r)))) return null;
     this.pushHistory();
@@ -358,7 +358,7 @@ export class Island {
     for (const c of res.closes) this.emit({ type: 'close', ...c, breath: BALANCE.breaths.close });
     // rappel : dix poses avant l'échéance d'un vœu encore ouvert
     for (const w of this.wishes) { const dl = w.def.deadline; if (w.status === 'open' && dl && dl.placements && dl.placements - this.placements === 10) this.emit({ type: 'wish', kind: 'soon', wish: w, left: 10 }); }
-    if (!this.garden && this.inSeason >= this.seasonLength) this.advanceSeason();
+    if (!this.garden && this.inSeason >= this.seasonLength) { if (this.brume) this.preparerPassage(); else this.advanceSeason(); }   // sous la brume, le passage attend « Lever la brume »
     if (this.infinite && this.placements % BALANCE.infinite.growEvery === 0 && this.board.cells < BALANCE.infinite.maxCells) {
       const added = this.board.grow(BALANCE.infinite.growCells, this.rng);
       this.fillEnclosedHoles();   // la bordure neuve peut cerner une case : elle devient une mare, pas un trou
@@ -615,7 +615,7 @@ export class Island {
   pick(i) { if (!this.canPick(i) || !this.queue.swap(i)) return false; this.emit({ type: 'pick', i }); return true; }
   /** Défausser : coûte des souffles, sauf pour un ouvrage (gratuit : on ne bloque jamais la file). */
   discardCost() { return BALANCE.breaths.discard; }
-  canDiscard() { return this.queue.list.length > 0 && this.breaths >= this.discardCost(); }
+  canDiscard() { return this.queue.list.length > 0 && this.breaths >= this.discardCost() && !this.passagePret; }
   discard() { if (!this.canDiscard()) return false; this.breaths -= this.discardCost(); const t = this.queue.discard(); this.emit({ type: 'breath', kind: 'discard', tile: t }); this.checkEnd(); return true; }
 
   /** Annuler n'est permis que si les souffles *restaurés* paient son coût : une pose qui a rapporté des souffles ne doit pas ouvrir une annulation impayable. */
@@ -650,6 +650,31 @@ export class Island {
 
   /** Cases cachées voisines de (q, r). */
   fogAround(q, r) { return neighbors(q, r).filter(([a, b]) => this.board.fog.has(key(a, b))); }
+  /** Sous la brume, la saison est finie et le passage attend « Lever la brume » : on observe, on plante, on note ; on ne pose pas. */
+  get passagePret() { return !!(this.brume && this.brume.passagePret); }
+  /** Les cases cachées qui se dévoileront au passage : assez de voisines posées pour le seuil de la saison. */
+  casesPretes() {
+    const B = this.brume; if (!B || !this.board.fog.size) return [];
+    const seuil = this.seuilDevoile();
+    return [...this.board.fog].filter((k) => { const [q, r] = parse(k); return neighbors(q, r).filter(([a, b]) => this.board.tiles.has(key(a, b))).length >= seuil; }).sort();
+  }
+  /**
+   * La dernière pose de la saison ne lève pas la brume : l'île passe en « passage prêt » (B-F). Les cases qui vont se
+   * dévoiler battent, le jalon et le crayon restent ouverts, aucune pose n'est possible, et le dernier indice sert
+   * enfin à quelque chose. `leverBrume()` fait le passage. Sans plus rien de caché, le passage se fait tout de suite.
+   */
+  preparerPassage() {
+    const B = this.brume; if (!B) return;
+    if (!this.board.fog.size) { this.advanceSeason(); return; }
+    B.passagePret = true; this.board.touch();
+    this.emit({ type: 'brume', kind: 'passagePret', prets: this.casesPretes() });
+  }
+  /** « Lever la brume » : le passage de saison, avec ses dévoilements. */
+  leverBrume() {
+    const B = this.brume; if (!B || !B.passagePret || this.ended) return false;
+    B.passagePret = false; this.advanceSeason(); this.checkEnd();
+    return true;
+  }
 
   /**
    * La tuile posée en (q, r) touche la brume : elle lit son indice, combien de ses voisines cachées sont de sa famille.
@@ -659,6 +684,10 @@ export class Island {
     const B = this.brume, t = this.board.get(q, r);
     if (!B || !t || !this.fogAround(q, r).length) return;
     B.contre++;
+    // la portée : les voisines cachées à cet instant. Le chiffre montré ensuite (`indiceActuel`) ne compte que celles
+    // qui sont encore cachées, et la pastille s'efface quand toute la portée est dévoilée — une case ajoutée plus tard
+    // par « La brume gagne » ne ressuscite pas un vieil indice
+    t.portee = porteeBrume(this.board, q, r);
     if (B.saison.muets || (!force && B.cran.indices === 2 && B.contre % 2 === 0)) { t.muette = true; delete t.indice; return; }
     t.indice = indiceBrume(this.board, B.cachees, q, r, t); delete t.muette;
     // la Lanterne : une fois dans la saison, l'indice dit QUELLES voisines cachées sont de la famille de la tuile
@@ -667,28 +696,57 @@ export class Island {
 
   /** Inventaire montré : familles (Brume claire) ou couleurs (Brume épaisse), avec le trésor. */
   get inventaireBrume() { return this.brume ? inventaireBrume(this.brume.cachees, this.brume.cran) : []; }
+  /**
+   * Les familles qu'on peut annoncer sur une case (jalon, crayon) : celles de l'inventaire, ou toutes celles des
+   * couleurs annoncées en Brume épaisse. Sous « Nuit noire », l'inventaire est caché : la liste est la même pour toute
+   * île (les neuf familles ordinaires et « trésor »), sinon la fiche d'une case le laisserait fuir.
+   */
+  famillesAnnoncables() {
+    const B = this.brume; if (!B) return [];
+    if (B.saison && B.saison.nuit) return [...Object.keys(COULEURS), 'tresor'];
+    const inv = this.inventaireBrume;
+    if (B.cran.inventaire !== 'couleur') return inv.map((e) => e.id);
+    const out = [];
+    for (const e of inv) {
+      if (e.id === 'tresor') out.push('tresor');
+      else for (const [f, c] of Object.entries(COULEURS)) if (c === e.id) out.push(f);
+    }
+    return out;
+  }
 
   /** Peut-on planter un jalon en (q, r) ? Un par saison, sur une case cachée qui n'en a pas. */
   canJalon(q, r) { const B = this.brume; return !!B && !this.ended && B.jalonsPoses < B.saison.jalonsMax && this.board.fog.has(key(q, r)) && !B.jalons.has(key(q, r)); }
-  /** Plante un jalon : on annonce la famille cachée (ou « tresor »). Juste au dévoilement : +5 et bords ×3 ; faux : −5. */
+  /** Plante un jalon : on annonce la famille cachée (ou « tresor »). Juste au dévoilement : `P.jalonJuste` (+8) ; faux : `P.jalonFaux` (−5). */
   planterJalon(q, r, famille) {
     if (!this.canJalon(q, r) || !famille) return false;
     this.brume.jalons.set(key(q, r), famille); this.brume.jalonsPoses++; this.brume.jalonSaison = this.brume.jalonsPoses >= this.brume.saison.jalonsMax;
     this.board.touch(); this.emit({ type: 'brume', kind: 'jalon', q, r, famille });
     return true;
   }
-  /** Le crayon : une note sur une case cachée, sans effet sur rien (`null` l'efface). */
-  noter(q, r, famille) {
+  /**
+   * Le crayon : des notes sur une case cachée, sans effet sur rien. `etat` : 'oui' coche la famille (encore possible), 'non' la
+   * barre (exclue), `null` la retire de la note ; sans famille, la note s'efface. « Crayon sûr » répond sur la première famille
+   * cochée ou barrée de la saison.
+   */
+  noter(q, r, famille, etat = 'oui') {
     const B = this.brume; const k = key(q, r); if (!B || !this.board.fog.has(k) || B.saison.crayonBloque) return false;
-    if (famille) B.crayon.set(k, famille); else B.crayon.delete(k);
-    if (famille && B.saison.crayonSur) { B.saison.crayonSur = false; const c = B.cachees.get(k); const juste = !!c && (famille === c.family || (famille === 'tresor' && !!c.tresor)); this.emit({ type: 'brume', kind: 'crayonSur', q, r, famille, juste }); }
+    if (!famille) B.crayon.delete(k);
+    else {
+      const n = normaliserNote(B.crayon.get(k)) || { oui: [], non: [] };
+      n.oui = n.oui.filter((f) => f !== famille); n.non = n.non.filter((f) => f !== famille);
+      if (etat === 'oui') n.oui.push(famille); else if (etat === 'non') n.non.push(famille);
+      if (n.oui.length || n.non.length) B.crayon.set(k, n); else B.crayon.delete(k);
+      if (etat && B.saison.crayonSur) { B.saison.crayonSur = false; const c = B.cachees.get(k); const est = !!c && (famille === c.family || (famille === 'tresor' && !!c.tresor)); this.emit({ type: 'brume', kind: 'crayonSur', q, r, famille, etat, juste: etat === 'oui' ? est : !est }); }
+    }
     this.board.touch(); return true;
   }
+  /** La note d'une case ({ oui, non }) ou null. */
+  noteDe(q, r) { return this.brume ? normaliserNote(this.brume.crayon.get(key(q, r))) : null; }
 
   /** Peut-on déplacer la tuile de (q, r) ? Pas une tuile de départ, dévoilée, en friche, ni engagée contre la brume. */
   canMove(q, r) {
     const t = this.board.get(q, r);
-    return !!this.brume && !this.ended && !!t && !t.start && !t.devoilee && !t.blighted && !this.fogAround(q, r).length && (this.queue.list.length > 0 || this.brume.saison.gratuits > 0);
+    return !!this.brume && !this.ended && !this.passagePret && !!t && !t.start && !t.devoilee && !t.blighted && !this.fogAround(q, r).length && (this.queue.list.length > 0 || this.brume.saison.gratuits > 0);
   }
   /** Où la tuile de (q, r) peut aller (la case d'origine, libérée, n'en fait pas partie). */
   moveTargets(q, r) {
@@ -726,7 +784,7 @@ export class Island {
     this.emit({ type: 'brume', kind: 'move', from: { q, r }, q: tq, r: tr, tile: this.board.get(tq, tr), result: res, lost: perdue });
     for (const c of res.closes) this.emit({ type: 'close', ...c, breath: BALANCE.breaths.close });
     this.updateFauna();
-    if (this.inSeason >= this.seasonLength) this.advanceSeason();
+    if (this.inSeason >= this.seasonLength) this.preparerPassage();
     this.checkEnd();
     return res;
   }
@@ -741,15 +799,14 @@ export class Island {
 
   /**
    * Dévoile les cases cachées qui ont assez de voisines posées (2 en Brume claire, 3 en épaisse). Elles comptent comme
-   * posées à l'instant : leurs bords (×2, ×3 sous un jalon juste), leurs fermetures ; puis jalon et trésor.
+   * posées à l'instant : leurs bords (×2), leurs fermetures ; puis jalon (+8 juste, −5 faux) et trésor.
    * `fin` : le dernier dévoilement, à la fin de la partie.
    */
   /** Le nombre de voisines posées qu'il faut pour se dévoiler cette saison (le cran, plus la carte tirée). */
   seuilDevoile() { const B = this.brume; return Math.max(1, B.cran.devoile + (B.saison.devoileDelta || 0)); }
   devoiler(fin = false, seulement = null) {
     const B = this.brume; if (!B || !this.board.fog.size) return [];
-    const seuil = this.seuilDevoile();
-    const prets = seulement ? seulement.filter((k) => this.board.fog.has(k)) : [...this.board.fog].filter((k) => { const [q, r] = parse(k); return neighbors(q, r).filter(([a, b]) => this.board.tiles.has(key(a, b))).length >= seuil; }).sort();
+    const prets = seulement ? seulement.filter((k) => this.board.fog.has(k)) : this.casesPretes();
     const out = []; let pts = 0;
     for (const k of prets) {
       const [q, r] = parse(k); const cachee = B.cachees.get(k); const jalon = B.jalons.get(k);
@@ -782,13 +839,14 @@ export class Island {
     }
     B.jalonsPoses = 0; B.jalonSaison = false;
     this.devoiler(false);
-    // « Vent contraire » : une tuile posée cette saison glisse sur une case libre voisine
+    // « Vent contraire » : une tuile posée cette saison glisse sur une case libre voisine — jamais une tuile engagée
+    // contre la brume (la règle de Déplacer : « une tuile qui touche la brume ne bouge plus »)
     if (B.saison.vent) {
-      const cand = B.posesSaison.filter((k) => { const t = this.board.tiles.get(k); if (!t || t.start || t.devoilee) return false; const [q, r] = parse(k); return neighbors(q, r).some(([a, b]) => this.board.isEmpty(a, b)); });
+      const cand = B.posesSaison.filter((k) => { const t = this.board.tiles.get(k); if (!t || t.start || t.devoilee) return false; const [q, r] = parse(k); return !this.fogAround(q, r).length && neighbors(q, r).some(([a, b]) => this.board.isEmpty(a, b)); });
       if (cand.length) {
         const k = cand[Math.floor(B.rngCartes.next() * cand.length)]; const [q, r] = parse(k); const t = this.board.tiles.get(k);
         const libres = neighbors(q, r).filter(([a, b]) => this.board.isEmpty(a, b)); const [tq, tr] = libres[Math.floor(B.rngCartes.next() * libres.length)];
-        this.board.tiles.delete(k); const nt = { ...t, q: tq, r: tr }; delete nt.indice; delete nt.muette; this.board.tiles.set(key(tq, tr), nt); this.board.touch();
+        this.board.tiles.delete(k); const nt = { ...t, q: tq, r: tr }; delete nt.indice; delete nt.muette; delete nt.portee; this.board.tiles.set(key(tq, tr), nt); this.board.touch();
         this.lireIndice(tq, tr, true);
         this.emit({ type: 'brume', kind: 'vent', from: { q, r }, q: tq, r: tr, tile: nt });
       }
@@ -798,13 +856,23 @@ export class Island {
     B.posesSaison = [];
   }
 
-  /** Un coup est jugé avant la pose : meilleur tiers des places possibles, la chance de bonus monte ; pire tiers, elle baisse. */
+  /** Une pose contre la brume est une vraie question si l'inventaire (ce que le joueur sait) peut cacher la famille de la tuile près d'elle. */
+  questionPossible(q, r, tile) {
+    const B = this.brume; if (!B || !this.fogAround(q, r).length) return false;
+    const fams = Board.familiesOf(tile); const inv = this.inventaireBrume;
+    return fams.some((f) => (B.cran.inventaire === 'couleur' ? inv.some((e) => e.id === COULEURS[f]) : inv.some((e) => e.id === f)));
+  }
+  /**
+   * Un coup est jugé avant la pose : meilleur tiers des places possibles, la chance de bonus monte ; pire tiers, elle baisse.
+   * Une pose contre la brume qui pose une vraie question n'est jamais « mauvaise » (B-O) : on ne punit pas de demander.
+   */
   jugerCoup(q, r, tile) {
     const B = this.brume; const cells = this.board.legalCells(); if (cells.length < 3) return;
     const totaux = cells.map((c) => { const p = preview(this.board, c.q, c.r, tile, this.season, this.mods); return { k: key(c.q, c.r), v: p ? p.total : -Infinity }; });
     const tri = totaux.map((x) => x.v).sort((a, b) => b - a); const v = (totaux.find((x) => x.k === key(q, r)) || {}).v; if (v === undefined) return;
     const haut = tri[Math.floor((tri.length - 1) / 3)], bas = tri[Math.ceil((tri.length - 1) * 2 / 3)];
     let sens = 0; if (v >= haut && v > bas) sens = 1; else if (v <= bas && v < haut) sens = -1;
+    if (sens < 0 && this.questionPossible(q, r, tile)) sens = 0;
     if (!sens) return;
     B.ratio = Math.max(TIRAGE.min, Math.min(TIRAGE.max, B.ratio + sens * TIRAGE.pas));
     this.emit({ type: 'brume', kind: 'coup', bon: sens > 0, ratio: B.ratio });
@@ -836,7 +904,7 @@ export class Island {
       case 'boussole': S.boussole = true; break;
       case 'deplacementOffert': S.gratuits = 1; break;
       case 'crayonSur': S.crayonSur = true; break;
-      case 'primeDevoilement': S.prime = 4; break;
+      case 'primeDevoilement': S.prime = PB.prime; break;
       case 'mainLarge': this.queue.setVisible(6); break;
       case 'brumeGagne': {
         const cand = this.casesPourLaBrume();
@@ -882,20 +950,24 @@ export class Island {
   serializeBrume() {
     const B = this.brume;
     return { cran: B.cran.id, cachees: [...B.cachees.entries()].map(([k, t]) => [k, { ...t }]), jalons: [...B.jalons.entries()], crayon: [...B.crayon.entries()],
-      jalonSaison: B.jalonSaison, jalonsPoses: B.jalonsPoses, contre: B.contre, devoilees: B.devoilees, justes: B.justes, fausses: B.fausses, tresor: B.tresor, depart: B.depart, deduc: B.deduc,
-      ratio: B.ratio, carte: B.carte, saison: { ...B.saison }, marques: [...B.marques.entries()], posesSaison: [...B.posesSaison], rngCartes: B.rngCartes.s };
+      jalonSaison: B.jalonSaison, jalonsPoses: B.jalonsPoses, contre: B.contre, devoilees: B.devoilees, justes: B.justes, fausses: B.fausses, tresor: B.tresor, depart: B.depart, deduc: B.deduc, passagePret: !!B.passagePret,
+      ratio: B.ratio, carte: B.carte, saison: { ...B.saison }, marques: [...B.marques.entries()], posesSaison: [...B.posesSaison], rngCartes: B.rngCartes.s,
+      // la portée de chaque indice lu (les clés cachées à la lecture) : sans elle, une reprise afficherait un chiffre faux
+      portees: [...this.board.tiles.values()].filter((t) => t.portee).map((t) => [key(t.q, t.r), [...t.portee]]) };
   }
   restoreBrume(s) {
     const B = this.brume;
-    B.cachees = new Map(s.cachees.map(([k, t]) => [k, { ...t }])); B.jalons = new Map(s.jalons || []); B.crayon = new Map(s.crayon || []);
-    Object.assign(B, { jalonSaison: !!s.jalonSaison, jalonsPoses: s.jalonsPoses || 0, contre: s.contre || 0, devoilees: s.devoilees || 0, justes: s.justes || 0, fausses: s.fausses || 0, tresor: s.tresor || null, depart: s.depart || B.depart, deduc: s.deduc ?? B.deduc,
+    B.cachees = new Map(s.cachees.map(([k, t]) => [k, { ...t }])); B.jalons = new Map(s.jalons || []);
+    B.crayon = new Map((s.crayon || []).map(([k, v]) => [k, normaliserNote(v)]).filter(([, v]) => v));   // l'ancien format (une famille) devient une coche
+    Object.assign(B, { jalonSaison: !!s.jalonSaison, jalonsPoses: s.jalonsPoses || 0, contre: s.contre || 0, devoilees: s.devoilees || 0, justes: s.justes || 0, fausses: s.fausses || 0, tresor: s.tresor || null, depart: s.depart || B.depart, deduc: s.deduc ?? B.deduc, passagePret: !!s.passagePret,
       ratio: s.ratio ?? TIRAGE.depart, carte: s.carte || null, saison: { ...saisonNeuve(), ...(s.saison || {}) }, marques: new Map(s.marques || []), posesSaison: [...(s.posesSaison || [])] });
     if (s.rngCartes !== undefined) B.rngCartes.s = s.rngCartes;
+    for (const [k, p] of s.portees || []) { const t = this.board.tiles.get(k); if (t) t.portee = [...p]; }
     if (B.saison.mainCourte) this.seasonLength = 4; if (B.carte && B.carte.id === 'mainLarge') this.queue.setVisible(6);
   }
 
   checkEnd() {
-    if (this.ended) return;
+    if (this.ended || this.passagePret) return;   // passage prêt : la fin, comme le passage, attend « Lever la brume »
     const noTile = this.queue.empty;
     const noMove = this.board.legalCells().length === 0;
     const fini = !!(this.def.maxPoses && this.placements + (this.stats.lost || 0) >= this.def.maxPoses);   // l'entraînement du Souffle court : dix-huit tuiles, puis le bilan

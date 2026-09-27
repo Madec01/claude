@@ -11,7 +11,7 @@ import { harmonie } from './harmonie.js';
 import { Assets } from '../core/assets.js';
 import { AudioSys } from '../core/audio.js';
 import { RARE_DECOR, spriteKey } from './decor.js';
-import { NOMS_COULEURS, P as PB } from './brume.js';
+import { NOMS_COULEURS, P as PB, pts as ptsBrume } from './brume.js';
 import { reserveEte, OBJECTIF_PAR_ID, fr } from '../data/tempo.js';
 
 // les trois fleurs d'harmonie : des fleurs du décor, grisées tant qu'elles ne sont pas gagnées
@@ -40,7 +40,7 @@ function srcTuile(family, variant, season) {
 }
 
 export class Hud {
-  constructor(root, island, { title, onPause, onPick, onDiscard, onUndo, onGardenPick, onPlace, onMove, onAction, onActionHover, compact = false, mechanics }) {
+  constructor(root, island, { title, onPause, onPick, onDiscard, onUndo, onGardenPick, onPlace, onMove, onLever, onAction, onActionHover, compact = false, mechanics }) {
     this.root = root; this.isl = island; this.mech = mechanics;
     const m = mechanics;
     root.innerHTML = `
@@ -69,6 +69,7 @@ export class Hud {
           <div class="brume-inv" data-ref="brumeInv"></div>
           <div class="brume-jalon" data-ref="brumeJalon"></div>
           <button class="pw brume-move" data-ref="brumeMove" title="Déplacer une tuile posée : la prochaine tuile est perdue">${icon('icon_return')}<span>Déplacer</span><em>1 tuile</em></button>
+          <button class="pw brume-lever hidden" data-ref="brumeLever" title="La saison est finie : les cases qui battent vont se dévoiler. Observe, plante ton jalon, puis lève la brume">${icon('icon_sun')}<span>Lever la brume</span></button>
         </div>
         <div class="garden-pick ${island.garden ? '' : 'hidden'}" data-ref="gardenPick"><div class="queue-title" data-ref="pickTitle">Choisir</div><div class="gpick-list" data-ref="pickList"></div></div>
       </div>
@@ -90,6 +91,7 @@ export class Hud {
     this.r.pwDiscard.addEventListener('click', (e) => { e.stopPropagation(); onDiscard(); });
     this.r.pwUndo.addEventListener('click', (e) => { e.stopPropagation(); onUndo(); });
     this.r.brumeMove.addEventListener('click', (e) => { e.stopPropagation(); onMove && onMove(); });
+    this.r.brumeLever.addEventListener('click', (e) => { e.stopPropagation(); onLever && onLever(); });
     this.log = []; this.unread = 0;
     // au téléphone en portrait, le cadre des vœux se pose juste au-dessus de la file, quelle que soit sa hauteur (--hud-queue-bas)
     if (STAGE.compact && STAGE.portrait && !island.brume && !island.tempo && typeof ResizeObserver !== 'undefined') {
@@ -259,12 +261,18 @@ export class Hud {
       const html = nuit ? '<span class="binv vide">nuit noire : inventaire caché</span>' : inv.map((e) => `<span class="binv ${e.id === 'tresor' || (STORY.tiles[e.id] && B.cachees && [...B.cachees.values()].some((t) => t.tresor && t.family === e.id)) ? 'tresor' : ''}" style="--fam:${FAMILY_COLORS[e.id] || '#8a867c'}">${e.n > 1 ? `${e.n} ` : ''}${nom(e.id)}</span>`).join('') || '<span class="binv vide">plus rien de caché</span>';
       if (html !== this.last.brumeInv) { this.last.brumeInv = html; this.r.brumeInv.innerHTML = html; }
     }
-    const left = isl.board.fog.size ? `${isl.board.fog.size} case${isl.board.fog.size > 1 ? 's' : ''} · dévoilée${B.cran.devoile > 1 ? 's' : ''} à ${B.cran.devoile} voisines` : '';
+    // les règles affichées sont celles qu'on applique : le seuil suit la carte (Marée basse, Brume épaisse), le jalon est dû aussi sous « Jalon forcé »
+    const seuil = isl.seuilDevoile();
+    const left = isl.board.fog.size ? `${isl.board.fog.size} case${isl.board.fog.size > 1 ? 's' : ''} · dévoilée${seuil > 1 ? 's' : ''} à ${seuil} voisine${seuil > 1 ? 's' : ''}` : '';
     if (left !== this.last.brumeLeft) { this.last.brumeLeft = left; this.r.brumeLeft.textContent = left; }
-    const j = !isl.board.fog.size ? '' : B.jalonSaison ? 'Jalon planté cette saison' : B.cran.jalonObligatoire ? `Jalon à planter (sinon ${PB.jalonManque}) : touche une case de brume` : 'Jalon possible : touche une case de brume';
-    if (j !== this.last.brumeJalon) { this.last.brumeJalon = j; this.r.brumeJalon.textContent = j; this.r.brumeJalon.classList.toggle('due', !B.jalonSaison && B.cran.jalonObligatoire); }
+    const jalonDu = B.cran.jalonObligatoire || !!(B.saison && B.saison.jalonForce);
+    const pret = isl.passagePret;
+    const j = !isl.board.fog.size ? '' : B.jalonSaison ? (pret ? 'Jalon planté : lève la brume quand tu veux' : 'Jalon planté cette saison') : pret ? `Saison finie : plante ton jalon${jalonDu ? ` (sinon ${ptsBrume(PB.jalonManque)})` : ' si tu es sûr'}, puis lève la brume` : jalonDu ? `Jalon à planter (sinon ${ptsBrume(PB.jalonManque)}) : touche une case de brume` : 'Jalon possible : touche une case de brume';
+    if (j !== this.last.brumeJalon) { this.last.brumeJalon = j; this.r.brumeJalon.textContent = j; this.r.brumeJalon.classList.toggle('due', !B.jalonSaison && jalonDu); }
     if (this.last.brumeMoving !== !!moving) { this.last.brumeMoving = !!moving; this.r.brumeMove.classList.toggle('on', !!moving); }
-    this.r.brumeMove.disabled = isl.ended || !(isl.queue.list.length || (B.saison && B.saison.gratuits));
+    this.r.brumeMove.disabled = isl.ended || pret || !(isl.queue.list.length || (B.saison && B.saison.gratuits));
+    // passage prêt : « Lever la brume » prend la place de Déplacer
+    if (this.last.brumePret !== pret) { this.last.brumePret = pret; this.r.brumeLever.classList.toggle('hidden', !pret); this.r.brumeMove.classList.toggle('hidden', pret); }
     // la carte de la saison, sous le bandeau, avec la chance de bonus à côté
     const c = B.carte; const ratio = `${Math.round((B.ratio ?? 0.5) * 100)} % bonus`;
     const ck = `${c ? (c.bonus ? 'Bonus' : 'Malus') : 'Saison'}|${c ? c.nom : 'Sans carte'}|${c ? c.texte : 'Le tirage vient au changement de saison.'}|${ratio}`;

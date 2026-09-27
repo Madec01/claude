@@ -67,7 +67,7 @@ Règles communes à chaque lot, tirées de `CLAUDE.md` :
 
 ### 1 · Fiabilité : un indice ne ment jamais, une règle affichée est la règle appliquée
 
-**B-A.1 · Indices exacts** · effort : petit à moyen · dépendances : aucune · statut : **à faire**
+**B-A.1 · Indices exacts** · effort : petit à moyen · dépendances : aucune · statut : **fait**
 - Ce qu'on fait :
   - À la lecture, `lireIndice` (`island.js`) garde la **portée** de l'indice, `t.portee`, c'est-à-dire les clés des voisines cachées à cet instant.
   - Le chiffre montré compte les cases de cette portée **encore cachées** et de la famille lue. Nouvelle fonction `indiceActuel(t)` dans `brume.js`.
@@ -78,7 +78,7 @@ Règles communes à chaque lot, tirées de `CLAUDE.md` :
   - puis 30 parties jouées, où chaque pastille affichée doit égaler le compte réel sur sa portée après chaque dévoilement, Longue-vue, vent et « La brume gagne » ;
   - enfin, la portée passe par la reprise.
 
-**B-A.2 · Règles affichées = règles appliquées** · effort : petit · dépendances : aucune · statut : **à faire**
+**B-A.2 · Règles affichées = règles appliquées** · effort : petit · dépendances : aucune · statut : **fait**
 - Ce qu'on fait :
   - Le texte de « Jalon forcé » se construit à partir de `P.jalonManque` et affiche la pénalité réellement appliquée, soit −3 (`brume.js:52`).
   - Le HUD (`hud.js:182`, `184`) et la fiche d'une case (`ui/brume.js:74`) lisent `isl.seuilDevoile()` et `saison.jalonForce`.
@@ -87,33 +87,33 @@ Règles communes à chaque lot, tirées de `CLAUDE.md` :
   - `tests/brume.test.js` : tout nombre écrit dans un texte de carte vient de `P` ou de `CRANS` ;
   - `tests/brume.js` (navigateur) : sous « Marée basse », la ligne du HUD dit « à 1 voisine », et sous « Jalon forcé » en claire, la ligne du jalon dit « sinon −3 ».
 
-**B-L · La Nuit noire ne fuit plus par la fiche** · effort : petit · dépendances : aucune · statut : **à faire**
+**B-L · La Nuit noire ne fuit plus par la fiche** · effort : petit · dépendances : aucune · statut : **fait**
 - Ce qu'on fait :
   - `famillesPossibles` passe dans l'île sous le nom `isl.famillesAnnoncables()`, pour pouvoir la tester sans navigateur.
   - Sous Nuit noire, elle rend les neuf familles ordinaires et « trésor », pas l'inventaire.
   - `planterJalon` accepte déjà « tresor ».
 - Test (`tests/brume.test.js`) : sous Nuit noire, la liste ne dépend pas de ce qui est caché. Deux îles différentes donnent la même liste.
 
-**B-M · Le trésor et l'indice : une règle dite ou retirée** · effort : petit · dépendances : décision 9 · statut : **à faire**
+**B-M · Le trésor et l'indice : une règle dite ou retirée** · effort : petit · dépendances : décision 9 · statut : **fait**
 - Ce qu'on fait, selon la décision 9 :
   - **par défaut, le trésor ne compte pour aucun indice** : `compte` ignore les tuiles `tresor` dans `indice`, dans `deductibilite` et dans le solveur, et le tutoriel dit « le trésor ne répond à aucun chiffre » ;
   - sinon, on garde la règle actuelle, mais la pastille du trésor dans l'inventaire et la carte « indice » du tutoriel le disent (« le moulin compte comme champ et hameau »).
 - Test (`tests/brume.test.js`) : un moulin caché ne change pas l'indice d'un champ (option par défaut).
 
-**B-N · Le Vent contraire respecte la règle de Déplacer** · effort : petit · dépendances : décision 1 · statut : **à faire**
+**B-N · Le Vent contraire respecte la règle de Déplacer** · effort : petit · dépendances : décision 1 · statut : **fait**
 - Ce qu'on fait : les candidats du vent (`island.js:678`) excluent les tuiles qui touchent la brume.
 - Test (`tests/brume.test.js`) : sur une île où la seule tuile de la saison touche la brume, le vent ne la déplace pas.
 
 ### 2 · Découverte : lire un indice, faire une vraie déduction une fois
 
-**B-E · Montrer la portée du chiffre** · effort : petit à moyen · dépendances : B-A.1 · statut : **à faire**
+**B-E · Montrer la portée du chiffre** · effort : petit à moyen · dépendances : B-A.1 · statut : **fait**
 - Ce qu'on fait :
   - Toucher une tuile qui porte un indice (`tapBrume`, `main.js`) cerne les cases de sa portée encore cachées (`drawBrume`).
   - Une ligne dit : « Parmi ces 2 cases cachées : 1 forêt ».
   - Aucun point n'est montré.
 - Test (`tests/brume.js`) : toucher une tuile à indice cerne exactement `portee ∩ brume`, et la ligne donne le même chiffre que la pastille.
 
-**B-F · Observer avant de lever la brume** · effort : moyen · dépendances : B-A.1 · statut : **à faire**
+**B-F · Observer avant de lever la brume** · effort : moyen · dépendances : B-A.1 · statut : **fait**
 - Ce qu'on fait :
   - Sous la brume, la dernière pose de la saison n'appelle plus `advanceSeason`. L'île passe en « passage prêt » : les cases qui vont se dévoiler battent doucement, et le jalon et le crayon restent ouverts.
   - Aucune pose n'est possible dans cet état.
@@ -124,7 +124,7 @@ Règles communes à chaque lot, tirées de `CLAUDE.md` :
   - `tests/brume.test.js` : après cinq poses, rien n'est dévoilé ; `planterJalon` marche ; `place` refuse ; `leverBrume` dévoile ; la reprise garde l'état ;
   - `tests/brume.js` : le bouton apparaît et le toucher dévoile.
 
-**B-H · Une mini-énigme guidée en tête du tutoriel** · effort : moyen · dépendances : B-A.1, B-E ; B-F utile · statut : **à faire**
+**B-H · Une mini-énigme guidée en tête du tutoriel** · effort : moyen · dépendances : B-A.1, B-E ; B-F utile · statut : **fait**
 - Ce qu'on fait :
   - Une petite île préparée, `brumeEnigme(id)` dans un nouveau `src/data/brume_enigmes.js`. Elle a trois cases cachées, un plan fixé par `planBrume` et une main fixée par `opening`.
   - Deux poses imposées donnent deux indices croisés. Avec l'indice par famille actuel : une forêt voit A et B et dit « 1 » ; une forêt voit B et C et dit « 0 ». Donc A est la forêt.

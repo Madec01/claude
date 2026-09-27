@@ -19,11 +19,20 @@ import { RNG } from '../core/math.js';
  */
 export const CRANS = {
   claire: { id: 'claire', nom: 'Brume claire', devoile: 2, indices: 1, inventaire: 'exact', jalonObligatoire: false, part: 0.3, vise: 0.4 },
-  epaisse: { id: 'epaisse', nom: 'Brume épaisse', devoile: 3, indices: 2, inventaire: 'couleur', jalonObligatoire: true, part: 0.3, vise: 0.15 },
+  // épaisse : un indice à chaque pose (feuille de brume, B-P : une pose sur deux retirait surtout de l'information, 6 % des cases
+  // déductibles au passage) ; l'inventaire par couleur et le seuil de 3 font la difficulté. Mesuré à un indice par pose : médiane 0,23,
+  // troisième quartile 0,31 ; `vise` 0,3 garde les îles les plus déductibles, comme 0,4 en claire
+  epaisse: { id: 'epaisse', nom: 'Brume épaisse', devoile: 3, indices: 1, inventaire: 'couleur', jalonObligatoire: true, part: 0.3, vise: 0.3 },
 };
 
-/** Les points propres au mode. Le trésor est une première valeur, à régler en jouant. */
-export const P = { jalonJuste: 5, jalonFaux: -5, jalonManque: -3, tresor: 8, cachee: -3 };
+/**
+ * Les points propres au mode. Le trésor est une première valeur, à régler en jouant. `prime` : « Prime de dévoilement ».
+ * `jalonJuste` : +8 fixe, bords ×2 comme toute case dévoilée (décision 4 de la feuille de brume : l'ancien +5 avec bords ×3
+ * ajoutait de −4 à +10 points, un jalon juste sur huit y perdait ; 8 est la moyenne mesurée, 5 + 2,5).
+ */
+export const P = { jalonJuste: 8, jalonFaux: -5, jalonManque: -3, tresor: 8, cachee: -3, prime: 4 };
+/** Un nombre de points écrit comme dans le jeu : « +4 », « −3 » (le vrai signe moins). */
+export const pts = (n) => (n < 0 ? `−${-n}` : `+${n}`);
 
 /**
  * Le tirage de saison (décision du commanditaire) : à chaque passage de saison, une carte, bonus ou malus, pour la saison
@@ -42,14 +51,14 @@ export const CARTES = {
     { id: 'boussole', nom: 'Boussole', texte: 'La case du trésor est signalée, pas ce qu’il est.' },
     { id: 'deplacementOffert', nom: 'Déplacement offert', texte: 'Un déplacement gratuit, sans perdre la tuile suivante.' },
     { id: 'crayonSur', nom: 'Crayon sûr', texte: 'Ta première note au crayon de la saison te dit si elle est juste.' },
-    { id: 'primeDevoilement', nom: 'Prime de dévoilement', texte: '+4 points par case dévoilée au prochain passage de saison.' },
+    { id: 'primeDevoilement', nom: 'Prime de dévoilement', texte: `${pts(P.prime)} points par case dévoilée au prochain passage de saison.` },
     { id: 'mainLarge', nom: 'Main large', texte: 'Une tuile de plus dans la main : tu choisis parmi six.' },
   ],
   malus: [
     { id: 'brumeGagne', nom: 'La brume gagne', texte: 'Une case libre passe sous la brume, avec une tuile de plus à deviner.' },
     { id: 'indicesMuets', nom: 'Indices muets', texte: 'Les tuiles posées contre la brume ne lisent pas d’indice cette saison.' },
     { id: 'mainCourte', nom: 'Main courte', texte: 'Quatre poses cette saison au lieu de cinq.' },
-    { id: 'jalonForce', nom: 'Jalon forcé', texte: 'Un jalon obligatoire cette saison, sinon −5.' },
+    { id: 'jalonForce', nom: 'Jalon forcé', texte: `Un jalon obligatoire cette saison, sinon ${pts(P.jalonManque)}.` },   // le chiffre est celui qu'on applique (audit B4 : le texte disait −5, le jeu retirait 3)
     { id: 'brumeEpaisse', nom: 'Brume épaisse', texte: 'Les cases se dévoilent avec une voisine posée de plus.', poids: 0.5 },
     { id: 'mauvaisVoisinage', nom: 'Mauvais voisinage', texte: 'Les mauvaises paires de bords comptent double.' },
     { id: 'nuitNoire', nom: 'Nuit noire', texte: 'L’inventaire est caché toute la saison.' },
@@ -81,6 +90,22 @@ export function tirerFamille(rng, weights = WEIGHTS.balanced) {
   return fams[0];
 }
 
+/**
+ * Le crayon note plusieurs possibilités sur une case (B-I) : `oui`, les familles encore possibles (cochées) ; `non`, celles
+ * qu'on a exclues (barrées). Rien ne se valide tout seul. Une vieille sauvegarde n'avait qu'une famille : on la lit comme une coche.
+ */
+export function normaliserNote(v) {
+  if (!v) return null;
+  if (typeof v === 'string') return { oui: [v], non: [] };
+  const n = { oui: [...(v.oui || [])], non: [...(v.non || [])] };
+  return n.oui.length || n.non.length ? n : null;
+}
+/** Le texte d'une note, court, pour le plateau : « forêt / eau ? », ou « pas eau, champ » quand on n'a que des exclusions. */
+export function noteTexte(note, nom = (f) => f) {
+  const n = normaliserNote(note); if (!n) return '';
+  return n.oui.length ? `${n.oui.map(nom).join(' / ')} ?` : `pas ${n.non.map(nom).join(', ')}`;
+}
+
 /** Les trésors possibles : les cinq rares de base. */
 export const TRESORS = ['mill', 'chapel', 'watchtower', 'well', 'camp'];
 
@@ -93,8 +118,12 @@ export function couleurDe(t) { return t.rare ? 'tresor' : COULEURS[t.family] || 
 /** Familles « effectives » d'une sorte de tuile (une rare compte pour celles qu'elle représente). */
 function famillesDe(sorte) { return RARE_AS[sorte] || [sorte]; }
 
-/** Une tuile cachée de sorte `sorte` compte-t-elle dans l'indice d'une tuile posée de familles `fams` ? */
-export function compte(sorte, fams) { const f = famillesDe(sorte); return fams.some((x) => f.includes(x)); }
+/**
+ * Une tuile cachée de sorte `sorte` compte-t-elle dans l'indice d'une tuile posée de familles `fams` ?
+ * Le trésor ne compte pour aucun indice (décision 9 de la feuille de brume : une règle de moins à expliquer, et aucun
+ * indice trompeur en Brume épaisse, où l'on ne sait pas quel trésor se cache).
+ */
+export function compte(sorte, fams) { if (TRESORS.includes(sorte)) return false; const f = famillesDe(sorte); return fams.some((x) => f.includes(x)); }
 
 /**
  * Indice lu à la pose : combien des voisines cachées de (q, r) sont de la famille de `tile`.
@@ -105,6 +134,21 @@ export function indice(board, cachees, q, r, tile) {
   let n = 0;
   for (const [a, b] of neighbors(q, r)) { const k = key(a, b); if (board.fog.has(k) && cachees.has(k) && compte(cachees.get(k).family, fams)) n++; }
   return n;
+}
+/** La portée d'un indice : les voisines cachées de (q, r) à l'instant de la lecture (leurs clés). */
+export function portee(board, q, r) { return neighbors(q, r).filter(([a, b]) => board.fog.has(key(a, b))).map(([a, b]) => key(a, b)); }
+/** Les cases de la portée de la tuile `t` encore sous la brume (sans portée gardée — vieille sauvegarde — : ses voisines cachées d'aujourd'hui). */
+export function porteeCachee(board, t) { return (t.portee || portee(board, t.q, t.r)).filter((k) => board.fog.has(k)); }
+/**
+ * Le chiffre montré sur une tuile qui a lu un indice : parmi les cases de sa portée ENCORE cachées, combien sont de sa
+ * famille. La question et la portée sont fixées à la pose (« un seul indice, lu à la pose, jamais mis à jour ») ; on
+ * retire seulement les cases que le joueur voit déjà dévoilées, donc le chiffre ne ment jamais et n'apprend rien.
+ * `null` si la tuile n'a pas d'indice (muette, ou jamais contre la brume).
+ */
+export function indiceActuel(board, cachees, t) {
+  if (typeof t.indice !== 'number') return null;
+  const fams = Board.familiesOf(t);
+  return porteeCachee(board, t).filter((k) => cachees.has(k) && compte(cachees.get(k).family, fams)).length;
 }
 
 /** Voisines « solides » d'une case cachée : des cases de l'île qui ne sont pas sous la brume. */

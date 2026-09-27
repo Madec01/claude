@@ -11,6 +11,7 @@ import { Save } from '../core/save.js';
 import { Decor, groundOf, groundKey, GROUND_COLORS, spriteKey } from './decor.js';
 import { pathShapes } from './paths.js';
 import { waterBodies } from './water.js';
+import { porteeCachee, indiceActuel, noteTexte } from './brume.js';
 // arête i (sommet i → i+1 de corners()) → indice dans DIRS du voisin de l'autre côté ; mesuré, pas deviné
 const EDGE_DIR = [1, 0, 5, 4, 3, 2];
 /** Décors déjà posés à plat sur le sol : ils ne reçoivent pas d'ombre de contact. */
@@ -1723,7 +1724,7 @@ export class IslandRenderer {
   /**
    * Sous la brume. Chaque case cachée est un banc de brume : des dégradés radiaux blancs qui dérivent lentement et
    * débordent un peu sur les voisines (aucune image dessinée, seulement des dégradés). Par-dessus : la note au crayon,
-   * le jalon planté ; sur les tuiles posées contre la brume, leur indice ; sur les tuiles dévoilées, un liseré (×2, ×3).
+   * le jalon planté ; sur les tuiles posées contre la brume, leur indice ; sur les tuiles dévoilées, un liseré (×2, violet sous un jalon juste).
    * À la fin, ce qui est resté caché apparaît, pâle, sous une brume qui s'est levée.
    */
   drawBrume(ctx) {
@@ -1731,21 +1732,25 @@ export class IslandRenderer {
     const fin = isl.ended || !!this.finale;
     const onScreen = (c) => c.x > -150 && c.x < STAGE.W + 150 && c.y > -150 && c.y < STAGE.H + 150;
     const nomCourt = (f) => (f === 'tresor' ? 'trésor' : ((STORY.tiles[f] || {}).name || f)).toLowerCase();
+    // passage prêt : les cases qui vont se dévoiler battent doucement (les mêmes dégradés, dont l'opacité et l'échelle respirent)
+    const prets = !fin && isl.passagePret ? new Set(isl.casesPretes()) : null;
     ctx.save();
     for (const k of b.fog) {
       const [q, r] = parse(k); const w = toWorld(q, r); const c = cam.toScreen(w.x, w.y); if (!onScreen(c)) continue;
       const h = (q * 928371 + r * 12377) % 997 / 997;   // chaque banc a son propre rythme
       if (fin) { const cach = B.cachees.get(k); if (cach) this.drawTileAt(ctx, { ...cach, q, r }, c.x, c.y, 1, 0.55); }
-      const a = fin ? 0.35 : 1;
+      const bat = prets && prets.has(k) ? 0.5 + 0.5 * Math.sin(t * 2.6 + h * 4) : 0;   // 0 : immobile ; sinon un battement lent
+      const a = fin ? 0.35 : 1 - 0.35 * bat, ech = 1 + 0.07 * bat;
       // le fond : la case entière voilée, en dégradé du centre vers les bords, pour qu'on la lise comme une case
-      { const pts0 = corners(c.x, c.y, SIZE * z * 1.02); const g0 = ctx.createRadialGradient(c.x, c.y - 10 * z, SIZE * z * 0.1, c.x, c.y, SIZE * z * 1.05);
+      { const pts0 = corners(c.x, c.y, SIZE * z * 1.02 * ech); const g0 = ctx.createRadialGradient(c.x, c.y - 10 * z, SIZE * z * 0.1, c.x, c.y, SIZE * z * 1.05 * ech);
         g0.addColorStop(0, `rgba(246,245,242,${(0.92 * a).toFixed(3)})`); g0.addColorStop(1, `rgba(222,226,230,${(0.8 * a).toFixed(3)})`);
         ctx.fillStyle = g0; ctx.beginPath(); ctx.moveTo(pts0[0][0], pts0[0][1]); for (let i = 1; i < 6; i++) ctx.lineTo(pts0[i][0], pts0[i][1]); ctx.closePath(); ctx.fill(); }
+      if (bat) this.outline(ctx, c.x, c.y, '#8a6fb5', 0.25 + 0.55 * bat);
       // les volutes : des dégradés qui dérivent et débordent sur les voisines
       for (let i = 0; i < 5; i++) {
         const ang = h * TAU + i * 1.7 + t * (0.12 + i * 0.03);
-        const ox = Math.cos(ang) * SIZE * z * 0.42, oy = Math.sin(ang * 1.3) * SIZE * z * 0.3;
-        const rad = SIZE * z * (0.75 + 0.15 * Math.sin(t * 0.6 + i + h * 5));
+        const ox = Math.cos(ang) * SIZE * z * 0.42 * ech, oy = Math.sin(ang * 1.3) * SIZE * z * 0.3 * ech;
+        const rad = SIZE * z * ech * (0.75 + 0.15 * Math.sin(t * 0.6 + i + h * 5));
         const g = ctx.createRadialGradient(c.x + ox, c.y + oy, 0, c.x + ox, c.y + oy, rad);
         g.addColorStop(0, `rgba(255,255,255,${(0.7 * a).toFixed(3)})`); g.addColorStop(0.5, `rgba(248,248,250,${(0.35 * a).toFixed(3)})`); g.addColorStop(1, 'rgba(240,242,246,0)');
         ctx.fillStyle = g; ctx.beginPath(); ctx.arc(c.x + ox, c.y + oy, rad, 0, TAU); ctx.fill();
@@ -1762,20 +1767,40 @@ export class IslandRenderer {
       const marque = B.marques && B.marques.get(k);
       if (marque && !jal) { ctx.font = `700 ${Math.round(13 * fz)}px Quicksand, sans-serif`; this.pill(ctx, c.x, c.y - 8 * z, `= ${nomCourt(marque)}`, FAMILY_COLORS[marque] || '#2b2a26'); }
       if (jal) { ctx.font = `700 ${Math.round(13 * fz)}px Quicksand, sans-serif`; this.pill(ctx, c.x, c.y - 8 * z, `⚑ ${nomCourt(jal)}`, '#8a6fb5'); }
-      if (note) { ctx.font = `italic 600 ${Math.round(13 * fz)}px Quicksand, sans-serif`; ctx.fillStyle = 'rgba(70,66,60,0.85)'; ctx.fillText(`${nomCourt(note)} ?`, c.x, c.y + (jal ? 18 : 0) * z); }
+      if (note) { ctx.font = `italic 600 ${Math.round(13 * fz)}px Quicksand, sans-serif`; ctx.fillStyle = 'rgba(70,66,60,0.85)'; ctx.fillText(noteTexte(note, nomCourt), c.x, c.y + (jal ? 18 : 0) * z); }
+    }
+    // toutes les portées (une carte de l'énigme le demande) : chaque tuile à indice cerne ses cases, dans sa couleur
+    if (!fin && this.porteesToutes) {
+      for (const pt of b.tiles.values()) {
+        if (typeof pt.indice !== 'number') continue; const cases = porteeCachee(b, pt); if (!cases.length) continue;
+        const col = FAMILY_COLORS[pt.family] || '#2b2a26'; const pulse = 0.5 + 0.3 * Math.sin(t * 3 + pt.q);
+        for (const k of cases) { const [q, r] = parse(k); const w = toWorld(q, r); const c = cam.toScreen(w.x, w.y); if (onScreen(c)) this.outline(ctx, c.x, c.y, col, pulse); }
+      }
+    }
+    // la portée du chiffre touché (B-E) : les cases de sa portée encore cachées sont cernées de la couleur de sa famille
+    if (!fin && this.porteeDe) {
+      const pt = b.tiles.get(key(this.porteeDe.q, this.porteeDe.r)); const cases = pt ? porteeCachee(b, pt) : [];
+      if (!cases.length) this.porteeDe = null;
+      else {
+        const col = FAMILY_COLORS[pt.family] || '#2b2a26'; const pulse = 0.55 + 0.35 * Math.sin(t * 4);
+        { const w = toWorld(pt.q, pt.r); const c = cam.toScreen(w.x, w.y); this.outline(ctx, c.x, c.y, col, pulse); }
+        for (const k of cases) { const [q, r] = parse(k); const w = toWorld(q, r); const c = cam.toScreen(w.x, w.y); if (!onScreen(c)) continue; this.outline(ctx, c.x, c.y, col, pulse); this.outline(ctx, c.x, c.y, '#ffffff', 0.35 * pulse); }
+      }
     }
     if (!fin) {
       // indices : sur les tuiles qui touchent encore la brume
       const fz = clamp(z, 0.8, 1.3);
       ctx.font = `800 ${Math.round(15 * fz)}px Quicksand, sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      // le chiffre ne ment jamais : il compte les cases de la portée de l'indice encore cachées (indiceActuel), et la
+      // pastille s'efface quand toute la portée est dévoilée
       for (const tile of b.tiles.values()) {
         if (typeof tile.indice !== 'number' && !tile.muette) continue;
-        if (!isl.fogAround(tile.q, tile.r).length) continue;
+        if (!porteeCachee(b, tile).length) continue;
         const w = toWorld(tile.q, tile.r); const c = cam.toScreen(w.x, w.y); if (!onScreen(c)) continue;
         const x = c.x + 30 * z, y = c.y - 34 * z, rr = 13 * fz;
         ctx.fillStyle = tile.muette ? 'rgba(138,134,124,0.9)' : '#2b2a26'; ctx.beginPath(); ctx.arc(x, y, rr, 0, TAU); ctx.fill();
         ctx.strokeStyle = tile.muette ? '#fff' : (FAMILY_COLORS[tile.family] || '#fff'); ctx.lineWidth = 2.5; ctx.stroke();
-        ctx.fillStyle = '#fff'; ctx.fillText(tile.muette ? '·' : String(tile.indice), x, y + 1);
+        ctx.fillStyle = '#fff'; ctx.fillText(tile.muette ? '·' : String(indiceActuel(b, B.cachees, tile)), x, y + 1);
       }
     }
     // tuiles dévoilées : un liseré doré, plus marqué sous un jalon juste

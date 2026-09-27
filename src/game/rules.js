@@ -40,8 +40,8 @@ function edgePoints(tile, other, season, rule = null, climate = null) {
   return { pts: best, label: bestKey ? (PAIR_LABELS[bestKey] || '') : '' };
 }
 
-/** Multiplicateur de bord du mode « Sous la brume » : jalon juste ×3, tuile dévoilée ×2, sinon ×1. */
-function brumeMul(t, dores = false) { return t.jalon ? 3 : t.devoilee ? (dores ? 3 : 2) : 1; }
+/** Multiplicateur de bord du mode « Sous la brume » : tuile dévoilée ×2 (jalon juste compris : sa récompense est le +8 fixe), ×3 sous « Bords dorés », sinon ×1. */
+function brumeMul(t, dores = false) { return t.devoilee ? (dores ? 3 : 2) : 1; }
 
 /** Points gagnés sur chaque bord si la tuile `t` en (q, r) devenait `up` : la différence entre après et avant, bord par bord. */
 function deltaEdges(board, q, r, t, up, season, mods) {
@@ -150,7 +150,7 @@ export function preview(board, q, r, tile, season, mods = {}) {
     const n = board.get(q + dq, r + dr);
     if (!n) return;
     const e = edgePoints(tile, n, season, mods.rule || null, mods.climate || null);
-    // Sous la brume : un bord qui touche une tuile dévoilée compte double, un jalon juste le triple (dans les deux sens :
+    // Sous la brume : un bord qui touche une tuile dévoilée compte double (dans les deux sens :
     // une mauvaise paire coûte d'autant plus). Aucune tuile n'a ces marques hors de ce mode.
     const mul = Math.max(brumeMul(tile, !!mods.brumeDores), brumeMul(n, !!mods.brumeDores));
     let pts = e.pts * mul;
