@@ -120,6 +120,8 @@ Une route est une composante connexe de cases de mer qui touche au moins deux **
 
 ### Archipels et contraintes d'île
 
+> Dix **formes d'îles** sont prototypées et mesurées (27 septembre, `docs/PISTES_FORMES.md`, option `forme` de `generateMask`) : archipel, chapelet, anneau, croissant, deux baies, longue côte, lagunes, étoile, crête, plateau, cuvette. Recommandé pour la campagne : l'archipel à l'île 14, l'anneau à la 16, l'étoile à la 28 ; les autres à l'Île du jour (baies, chapelet, croissant, côte, lagunes) et à l'Île infinie (plateau, crête). **À trancher par le commanditaire**, puis recalibrer les îles touchées.
+
 Un niveau = un deck, un compte de saisons, deux à quatre îles. Contraintes possibles : **réserve** (ni hameau ni champ, seule la faune paie), **montagnard** (roche et collines, pas d'eau douce, la mer est la seule eau), **brume** (météo permanente), **volcanique** (roche double, forêt brûle l'été), **île de vœux** (vœux accomplis par les routes seulement).
 
 ### Chapitres 11 à 15
