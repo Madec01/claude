@@ -2,7 +2,7 @@
 // Usage : node tests/brume.test.js
 import { Island } from '../src/game/island.js';
 import { Board } from '../src/game/board.js';
-import { brumeDef, CRANS, P, pts, possibles, inventaire, indice, compte, indiceActuel, porteeCachee, CARTES, CARTE_PAR_ID, TIRAGE, tirerCarte, COULEURS } from '../src/game/brume.js';
+import { brumeDef, CRANS, P, pts, possibles, inventaire, indice, compte, indiceActuel, porteeCachee, CARTES, CARTE_PAR_ID, TIRAGE, tirerCarte, COULEURS, TRESORS as TRESORS_IDS, normaliserNote, noteTexte } from '../src/game/brume.js';
 import { RNG } from '../src/core/math.js';
 import { ENIGMES, brumeEnigme } from '../src/data/brume_enigmes.js';
 import { key, parse, neighbors } from '../src/game/hex.js';
@@ -195,17 +195,17 @@ for (const cran of ['claire', 'epaisse']) {
   check(de < dc, 'épaisse : moins déductible que claire');
 }
 
-// --- indices à la pose : toujours en claire, une pose sur deux en épaisse
+// --- indices à la pose : à chaque pose contre la brume, dans les deux crans (B-P : l'épaisse parlait une fois sur deux)
 for (const cran of ['claire', 'epaisse']) {
   const isl = new Island(brumeDef(cran, 4));
   const poses = [];
   isl.on((e) => { if (e.type === 'place' && isl.fogAround(e.q, e.r).length) poses.push(isl.board.get(e.q, e.r)); });
   joue(isl, 25);
   const parlantes = poses.filter((t) => typeof t.indice === 'number').length;
-  if (cran === 'claire') check(poses.length > 0 && parlantes === poses.length, `claire : chaque pose contre la brume a son indice (${parlantes}/${poses.length})`);
-  else check(poses.length > 1 && parlantes === Math.ceil(poses.length / 2), `épaisse : une pose sur deux parle (${parlantes}/${poses.length})`);
+  check(poses.length > 0 && parlantes === poses.length, `${cran} : chaque pose contre la brume a son indice (${parlantes}/${poses.length})`);
   for (const t of poses.filter((x) => typeof x.indice === 'number')) check(t.indice <= 6, 'un indice reste un nombre de voisines');
 }
+check(CRANS.epaisse.indices === 1 && CRANS.epaisse.vise < CRANS.claire.vise, 'épaisse : un indice à chaque pose, et une part déductible visée plus basse que la claire');
 
 // --- dévoilement au passage de saison, bords ×2, jalon juste ×3 et +5, trésor
 {
@@ -223,7 +223,7 @@ for (const cran of ['claire', 'epaisse']) {
   check(toutes.length === isl.result.brume.devoilees, 'chaque dévoilement est annoncé');
   check(toutes.every((c) => c.tile.devoilee), 'une tuile dévoilée est marquée');
   const j = toutes.find((c) => `${c.q},${c.r}` === k0);
-  if (j) { check(j.juste === true && j.tile.jalon && j.extra >= P.jalonJuste, 'jalon juste : +5 et marque ×3'); }
+  if (j) { check(j.juste === true && j.tile.jalon && j.extra >= P.jalonJuste, `jalon juste : ${P.jalonJuste} de plus`); }
   const t = toutes.find((c) => c.tresor);
   if (t) check(t.extra >= P.tresor && isl.result.brume.tresor === t.tile.family, 'le trésor dévoilé rapporte sa prime');
   // un bord contre une tuile dévoilée compte double
@@ -240,9 +240,11 @@ for (const cran of ['claire', 'epaisse']) {
   const simple = preview(b1, 0, 0, { family: 'forest' }, 'spring');
   const double = preview(b, 0, 0, { family: 'forest' }, 'spring');
   const b3 = new Board(['0,0', '1,0']); b3.place(1, 0, { family: 'forest', devoilee: true, jalon: true });
-  const triple = preview(b3, 0, 0, { family: 'forest' }, 'spring');
+  const jalon = preview(b3, 0, 0, { family: 'forest' }, 'spring');
   check(double.edges[0].pts === 2 * simple.edges[0].pts, `bord contre une dévoilée ×2 (${double.edges[0].pts})`);
-  check(triple.edges[0].pts === 3 * simple.edges[0].pts, `bord contre un jalon juste ×3 (${triple.edges[0].pts})`);
+  check(jalon.edges[0].pts === 2 * simple.edges[0].pts, `bord contre un jalon juste : ×2 comme toute dévoilée (${jalon.edges[0].pts})`);
+  const bd = new Board(['0,0', '1,0']); bd.place(1, 0, { family: 'forest', devoilee: true });
+  check(preview(bd, 0, 0, { family: 'forest' }, 'spring', { brumeDores: true }).edges[0].pts === 3 * simple.edges[0].pts, 'Bords dorés : ×3');
   const bm = new Board(['0,0', '1,0']); bm.place(1, 0, { family: 'rock', devoilee: true });
   const mauvais = preview(bm, 0, 0, { family: 'field' }, 'spring');
   check(mauvais.edges[0].pts === -2, 'une mauvaise paire contre une dévoilée coûte double');
@@ -269,11 +271,66 @@ for (const cran of ['claire', 'epaisse']) {
   joue(c, 5); c.leverBrume(); check(m2 === 0, 'claire : le jalon est facultatif');
 }
 
-// --- le crayon ne change rien au score
+// --- le crayon ne change rien au score ; il coche et barre plusieurs familles (B-I) ; une vieille sauvegarde se reprend
 {
-  const isl = new Island(brumeDef('claire', 6)); const k = fogKeys(isl)[0];
-  const s = isl.score; check(isl.noter(...parse(k), 'forest') && isl.brume.crayon.get(k) === 'forest' && isl.score === s, 'le crayon note, sans effet');
-  check(!isl.noter(0, 0, 'forest'), 'on ne note qu’une case cachée'); isl.noter(...parse(k), null); check(!isl.brume.crayon.has(k), 'le crayon s’efface');
+  const isl = new Island(brumeDef('claire', 6)); const k = fogKeys(isl)[0]; const [q, r] = parse(k);
+  const s = isl.score; check(isl.noter(q, r, 'forest') && isl.noteDe(q, r).oui.join() === 'forest' && isl.score === s, 'le crayon coche, sans effet');
+  check(!isl.noter(0, 0, 'forest'), 'on ne note qu’une case cachée');
+  isl.noter(q, r, 'water'); isl.noter(q, r, 'field', 'non');
+  check(isl.noteDe(q, r).oui.join() === 'forest,water' && isl.noteDe(q, r).non.join() === 'field', 'deux familles cochées, une barrée');
+  check(noteTexte(isl.noteDe(q, r)) === 'forest / water ?', `le plateau écrit « forêt / eau ? » (${noteTexte(isl.noteDe(q, r))})`);
+  isl.noter(q, r, 'forest', 'non'); check(isl.noteDe(q, r).oui.join() === 'water' && isl.noteDe(q, r).non.join() === 'field,forest', 'une famille cochée passe barrée');
+  isl.noter(q, r, 'water', null); isl.noter(q, r, 'field', null); check(isl.noteDe(q, r).oui.length === 0 && isl.noteDe(q, r).non.join() === 'forest' && noteTexte(isl.noteDe(q, r)) === 'pas forest', 'retirer une famille ; il ne reste que des exclusions');
+  isl.noter(q, r, 'forest', null); check(!isl.brume.crayon.has(k), 'la dernière retirée efface la note');
+  isl.noter(q, r, 'forest'); isl.noter(q, r, null); check(!isl.brume.crayon.has(k) && isl.score === s, 'le crayon s’efface d’un coup, le score n’a jamais bougé');
+  // la reprise : le nouveau format passe, et l'ancien (une famille par case) devient une coche
+  isl.noter(q, r, 'forest'); isl.noter(q, r, 'sand', 'non');
+  const sv = JSON.parse(JSON.stringify(isl.serialize())); const k2 = fogKeys(isl)[1]; sv.brume.crayon.push([k2, 'water']);
+  const b = new Island(brumeDef('claire', 6)); b.restoreRun(sv);
+  check(b.noteDe(q, r).oui.join() === 'forest' && b.noteDe(q, r).non.join() === 'sand' && b.noteDe(...parse(k2)).oui.join() === 'water' && b.noteDe(...parse(k2)).non.length === 0, 'la reprise garde les notes et lit l’ancien format');
+  check(JSON.stringify(normaliserNote('forest')) === JSON.stringify({ oui: ['forest'], non: [] }) && normaliserNote({ oui: [], non: [] }) === null, 'normaliserNote');
+  // Crayon sûr répond sur la première famille cochée ou barrée de la saison
+  const c = new Island(brumeDef('claire', 6)); c.appliquerCarte('crayonSur'); const ev = []; c.on((e) => { if (e.type === 'brume' && e.kind === 'crayonSur') ev.push(e); });
+  const vraie = c.brume.cachees.get(k).family; c.noter(q, r, vraie, 'non'); c.noter(q, r, vraie, 'oui');
+  check(ev.length === 1 && ev[0].etat === 'non' && ev[0].juste === false, 'Crayon sûr : une famille barrée à tort est dite fausse, une seule fois');
+}
+
+// --- B-K : un jalon juste rapporte exactement P.jalonJuste de plus que la même case dévoilée sans jalon
+{
+  let seed = 3, kj = null, fam = null;
+  for (; seed <= 12 && !kj; seed++) { const e = new Island(brumeDef('claire', seed)); joue(e, 5); const p = e.casesPretes(); if (p.length) { kj = p[0]; fam = e.brume.cachees.get(kj).family; } }
+  seed--;
+  const a = new Island(brumeDef('claire', seed)), b = new Island(brumeDef('claire', seed));
+  check(b.planterJalon(...parse(kj), fam), 'un jalon juste est planté sur une case qui va se dévoiler');
+  joue(a, 5); joue(b, 5); check(a.score === b.score && a.passagePret && b.passagePret, 'avant le passage, le jalon ne change rien');
+  a.leverBrume(); b.leverBrume();
+  check(b.score - a.score === P.jalonJuste, `après le passage, le jalon juste rapporte exactement ${P.jalonJuste} de plus (${b.score - a.score})`);
+}
+
+// --- B-O : une vraie question n'est jamais un « mauvais coup ». Le questionneur pose contre la brume une tuile dont la
+// famille est dans l'inventaire, puis vise les points ; sur six graines, aucune de ses questions n'est jugée mauvaise.
+{
+  let questions = 0, mauvaises = 0, mauvaisAilleurs = 0;
+  for (let seed = 1; seed <= 6; seed++) {
+    const isl = new Island(brumeDef(seed % 2 ? 'claire' : 'epaisse', seed));
+    let coup = null; isl.on((e) => { if (e.type === 'brume' && e.kind === 'coup') coup = e; });
+    while (!isl.ended) {
+      if (isl.passagePret) { isl.leverBrume(); continue; }
+      let best = null;
+      isl.queue.list.forEach((t, i) => { for (const c of isl.board.legalCells()) { const p = isl.preview(c.q, c.r, t); if (!p) continue; const q = isl.questionPossible(c.q, c.r, t); const v = p.total + (q ? 100 : 0); if (!best || v > best.v) best = { i, c, v, q }; } });
+      if (!best) { isl.checkEnd(); break; }
+      if (best.i) isl.pick(best.i);
+      coup = null; isl.place(best.c.q, best.c.r);
+      if (best.q) { questions++; if (coup && !coup.bon) mauvaises++; } else if (coup && !coup.bon) mauvaisAilleurs++;
+    }
+  }
+  check(questions > 100 && mauvaises === 0, `le questionneur : ${questions} vraies questions, ${mauvaises} jugée(s) mauvaise(s)`);
+  console.log(`  questionneur : ${questions} questions, ${mauvaisAilleurs} mauvais coups hors question`);
+  // et une pose contre la brume dont la famille ne peut pas se cacher n'est pas une question
+  const i = new Island(brumeDef('claire', 2)); const c = i.board.legalCells().find((c) => i.fogAround(c.q, c.r).length);
+  const absente = ['meadow', 'forest', 'orchard', 'water', 'marsh', 'field', 'sand', 'hamlet', 'rock'].find((f) => !i.inventaireBrume.some((e) => e.id === f));
+  if (absente) check(!i.questionPossible(c.q, c.r, { family: absente }), `une famille absente de l’inventaire (${absente}) n’est pas une question`);
+  check(i.inventaireBrume.some((e) => i.questionPossible(c.q, c.r, { family: e.id }) || TRESORS_IDS.includes(e.id)), 'une famille de l’inventaire en est une');
 }
 
 // --- déplacement : coûte la prochaine tuile ; une tuile engagée contre la brume ne bouge pas ; nouvel indice

@@ -103,9 +103,17 @@ const passerLaCarte = async (page, t = 60000) => { try { await page.waitForFunct
   const k1 = await page.evaluate(() => [...window.CS.scenes.current.isl.board.fog].sort()[1]);
   await page.evaluate((k) => { const [q, r] = k.split(',').map(Number); window.CS.scenes.current.tapBrume(q, r, false); }, k1);
   await page.waitForTimeout(400);
-  await page.evaluate(() => { const l = document.querySelectorAll('.panel-brume-case .brume-section .gpick-list'); l[l.length - 1].querySelector('.gpick').click(); });
-  await page.waitForTimeout(300);
-  check(await page.evaluate((k) => !!window.CS.scenes.current.isl.brume.crayon.get(k), k1), 'le crayon note une case');
+  // le crayon : un toucher coche (encore possible), un second barre (exclue), la fiche reste ouverte ; « Fermer » la range
+  const crayon = await page.evaluate(async (k) => {
+    const [q, r] = k.split(',').map(Number); const isl = window.CS.scenes.current.isl; const attend = () => new Promise((x) => setTimeout(x, 150));
+    const liste = () => { const l = document.querySelectorAll('.panel-brume-case .brume-section .gpick-list'); return l[l.length - 1]; };
+    liste().querySelector('.gpick').click(); await attend(); const n1 = isl.noteDe(q, r); const on = liste().querySelector('.gpick').classList.contains('on');
+    liste().querySelector('.gpick').click(); await attend(); const n2 = isl.noteDe(q, r); const off = liste().querySelector('.gpick').classList.contains('off');
+    liste().querySelectorAll('.gpick')[1].click(); await attend(); const n3 = isl.noteDe(q, r);
+    const ouverte = !!document.querySelector('.panel-brume-case'); document.querySelector('.panel-brume-case .panel-actions .btn-primary').click(); await attend();
+    return { n1, on, n2, off, n3, ouverte, fermee: !document.querySelector('.panel-brume-case') };
+  }, k1);
+  check(crayon.n1 && crayon.n1.oui.length === 1 && crayon.on && crayon.n2.non.length === 1 && crayon.n2.oui.length === 0 && crayon.off && crayon.n3.oui.length === 1 && crayon.n3.non.length === 1 && crayon.ouverte && crayon.fermee, `le crayon coche puis barre, plusieurs familles, la fiche reste ouverte puis se ferme (${JSON.stringify(crayon)})`);
 
   // une tuile libre de la brume est nécessaire (l'île est tirée au hasard) : on pose jusqu'à en avoir une
   for (let i = 0; i < 8 && !(await page.evaluate(() => { const isl = window.CS.scenes.current.isl; return [...isl.board.tiles.values()].some((x) => isl.canMove(x.q, x.r)); })); i++) await joue(1);

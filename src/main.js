@@ -11,7 +11,7 @@ import { SceneManager, wait } from './core/scenes.js';
 import { ParticleSystem } from './core/particles.js';
 import { Shake } from './core/shake.js';
 import { Island } from './game/island.js';
-import { brumeDef, CARTES, porteeCachee, indiceActuel } from './game/brume.js';
+import { brumeDef, CARTES, porteeCachee, indiceActuel, P as PBrume, pts as ptsBrume } from './game/brume.js';
 import { brumeEnigme } from './data/brume_enigmes.js';
 import { buildBrumeChoice, buildBrumePicker } from './ui/brume.js';
 import { IslandRenderer } from './game/render.js';
@@ -1118,7 +1118,7 @@ class IslandScene {
     const close = () => { hideUI(); this.hold = false; };
     showUI(buildBrumePicker({ isl, q, r,
       onJalon: (f) => { if (isl.planterJalon(q, r, f)) AudioSys.play('ui_confirm', { volume: 0.5 }); close(); },
-      onNote: (f) => { isl.noter(q, r, f); AudioSys.play('ui_click', { volume: 0.4 }); close(); },
+      onNote: (f, etat) => { isl.noter(q, r, f, etat); AudioSys.play('ui_click', { volume: 0.4 }); },   // la fiche reste ouverte : on coche, on barre, on referme soi-même
       onLongueVue: () => { close(); if (isl.longueVue(q, r)) AudioSys.play('ui_confirm', { volume: 0.5 }); },
       onClose: () => { AudioSys.play('ui_close', { volume: 0.4 }); close(); } }), 'panel-wrap');
   }
@@ -1156,7 +1156,7 @@ class IslandScene {
         const w = toWorld(c.q, c.r); fx.drop(key(c.q, c.r)); fx.ring([{ q: c.q, r: c.r }], c.juste ? '#8a6fb5' : '#e0a33a'); fx.closeBurst(w.x, w.y - 10, c.tresor ? 7 : 3);
         const pts = c.result.total + c.extra;
         fx.floatText(w.x, w.y - 40, `${pts >= 0 ? '+' : ''}${pts}`, pts >= 0 ? '#2b2a26' : '#d95f4b', 24, 1.5);
-        if (c.juste === true) { fx.floatText(w.x, w.y + 24, 'jalon juste ×3', '#8a6fb5', 18, 1.6); AudioSys.play('star_1', { volume: 0.6 }); }
+        if (c.juste === true) { fx.floatText(w.x, w.y + 24, `jalon juste ${ptsBrume(PBrume.jalonJuste)}`, '#8a6fb5', 18, 1.6); AudioSys.play('star_1', { volume: 0.6 }); }
         if (c.juste === false) { fx.floatText(w.x, w.y + 24, `jalon faux (${nom(c.jalon)})`, '#d95f4b', 18, 1.6); AudioSys.play('point_bad', { volume: 0.5 }); }
         if (c.tresor) { this.hud.ribbon(`Trésor : ${nom(c.tile.family)} !`, '#e0a33a', 2000, 'master'); AudioSys.play('rare_tile', { volume: 0.7 }); this.shake.trigger(0.12); }
         this.hud.bumpScore(pts);
@@ -1168,7 +1168,7 @@ class IslandScene {
       // la chance de bonus bouge d'un cran : un mot sur le bandeau, pas plus
       this.hud.notify(`${e.bon ? 'Bon coup' : 'Mauvais coup'} : ${Math.round(e.ratio * 100)} % de bonus à la prochaine saison`, e.bon ? 'info' : 'warn');
     } else if (e.kind === 'crayonSur') {
-      this.hud.ribbon(e.juste ? `Crayon sûr : ${nom(e.famille)}, juste !` : `Crayon sûr : ce n’est pas ${nom(e.famille)}`, e.juste ? '#2f9e8f' : '#d95f4b', 1800, e.juste ? 'streak' : 'warn');
+      this.hud.ribbon(e.etat === 'non' ? (e.juste ? `Crayon sûr : en effet, pas de ${nom(e.famille)} ici` : `Crayon sûr : c’est pourtant bien ${nom(e.famille)}`) : (e.juste ? `Crayon sûr : ${nom(e.famille)}, juste !` : `Crayon sûr : ce n’est pas ${nom(e.famille)}`), e.juste ? '#2f9e8f' : '#d95f4b', 1800, e.juste ? 'streak' : 'warn');
       AudioSys.play(e.juste ? 'star_1' : 'point_bad', { volume: 0.5 });
     } else if (e.kind === 'lanterne') {
       this.hud.notify(`Lanterne : les voisines cachées de sa famille sont marquées (${e.n})`, 'special');

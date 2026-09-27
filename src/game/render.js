@@ -11,7 +11,7 @@ import { Save } from '../core/save.js';
 import { Decor, groundOf, groundKey, GROUND_COLORS, spriteKey } from './decor.js';
 import { pathShapes } from './paths.js';
 import { waterBodies } from './water.js';
-import { porteeCachee, indiceActuel } from './brume.js';
+import { porteeCachee, indiceActuel, noteTexte } from './brume.js';
 // arête i (sommet i → i+1 de corners()) → indice dans DIRS du voisin de l'autre côté ; mesuré, pas deviné
 const EDGE_DIR = [1, 0, 5, 4, 3, 2];
 /** Décors déjà posés à plat sur le sol : ils ne reçoivent pas d'ombre de contact. */
@@ -1719,7 +1719,7 @@ export class IslandRenderer {
   /**
    * Sous la brume. Chaque case cachée est un banc de brume : des dégradés radiaux blancs qui dérivent lentement et
    * débordent un peu sur les voisines (aucune image dessinée, seulement des dégradés). Par-dessus : la note au crayon,
-   * le jalon planté ; sur les tuiles posées contre la brume, leur indice ; sur les tuiles dévoilées, un liseré (×2, ×3).
+   * le jalon planté ; sur les tuiles posées contre la brume, leur indice ; sur les tuiles dévoilées, un liseré (×2, violet sous un jalon juste).
    * À la fin, ce qui est resté caché apparaît, pâle, sous une brume qui s'est levée.
    */
   drawBrume(ctx) {
@@ -1762,7 +1762,7 @@ export class IslandRenderer {
       const marque = B.marques && B.marques.get(k);
       if (marque && !jal) { ctx.font = `700 ${Math.round(13 * fz)}px Quicksand, sans-serif`; this.pill(ctx, c.x, c.y - 8 * z, `= ${nomCourt(marque)}`, FAMILY_COLORS[marque] || '#2b2a26'); }
       if (jal) { ctx.font = `700 ${Math.round(13 * fz)}px Quicksand, sans-serif`; this.pill(ctx, c.x, c.y - 8 * z, `⚑ ${nomCourt(jal)}`, '#8a6fb5'); }
-      if (note) { ctx.font = `italic 600 ${Math.round(13 * fz)}px Quicksand, sans-serif`; ctx.fillStyle = 'rgba(70,66,60,0.85)'; ctx.fillText(`${nomCourt(note)} ?`, c.x, c.y + (jal ? 18 : 0) * z); }
+      if (note) { ctx.font = `italic 600 ${Math.round(13 * fz)}px Quicksand, sans-serif`; ctx.fillStyle = 'rgba(70,66,60,0.85)'; ctx.fillText(noteTexte(note, nomCourt), c.x, c.y + (jal ? 18 : 0) * z); }
     }
     // toutes les portées (une carte de l'énigme le demande) : chaque tuile à indice cerne ses cases, dans sa couleur
     if (!fin && this.porteesToutes) {

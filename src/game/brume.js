@@ -19,11 +19,18 @@ import { RNG } from '../core/math.js';
  */
 export const CRANS = {
   claire: { id: 'claire', nom: 'Brume claire', devoile: 2, indices: 1, inventaire: 'exact', jalonObligatoire: false, part: 0.3, vise: 0.4 },
-  epaisse: { id: 'epaisse', nom: 'Brume épaisse', devoile: 3, indices: 2, inventaire: 'couleur', jalonObligatoire: true, part: 0.3, vise: 0.15 },
+  // épaisse : un indice à chaque pose (feuille de brume, B-P : une pose sur deux retirait surtout de l'information, 6 % des cases
+  // déductibles au passage) ; l'inventaire par couleur et le seuil de 3 font la difficulté. Mesuré à un indice par pose : médiane 0,23,
+  // troisième quartile 0,31 ; `vise` 0,3 garde les îles les plus déductibles, comme 0,4 en claire
+  epaisse: { id: 'epaisse', nom: 'Brume épaisse', devoile: 3, indices: 1, inventaire: 'couleur', jalonObligatoire: true, part: 0.3, vise: 0.3 },
 };
 
-/** Les points propres au mode. Le trésor est une première valeur, à régler en jouant. `prime` : « Prime de dévoilement ». */
-export const P = { jalonJuste: 5, jalonFaux: -5, jalonManque: -3, tresor: 8, cachee: -3, prime: 4 };
+/**
+ * Les points propres au mode. Le trésor est une première valeur, à régler en jouant. `prime` : « Prime de dévoilement ».
+ * `jalonJuste` : +8 fixe, bords ×2 comme toute case dévoilée (décision 4 de la feuille de brume : l'ancien +5 avec bords ×3
+ * ajoutait de −4 à +10 points, un jalon juste sur huit y perdait ; 8 est la moyenne mesurée, 5 + 2,5).
+ */
+export const P = { jalonJuste: 8, jalonFaux: -5, jalonManque: -3, tresor: 8, cachee: -3, prime: 4 };
 /** Un nombre de points écrit comme dans le jeu : « +4 », « −3 » (le vrai signe moins). */
 export const pts = (n) => (n < 0 ? `−${-n}` : `+${n}`);
 
@@ -81,6 +88,22 @@ export function tirerFamille(rng, weights = WEIGHTS.balanced) {
   let x = rng.next() * somme;
   for (const f of fams) { x -= weights[f]; if (x <= 0) return f; }
   return fams[0];
+}
+
+/**
+ * Le crayon note plusieurs possibilités sur une case (B-I) : `oui`, les familles encore possibles (cochées) ; `non`, celles
+ * qu'on a exclues (barrées). Rien ne se valide tout seul. Une vieille sauvegarde n'avait qu'une famille : on la lit comme une coche.
+ */
+export function normaliserNote(v) {
+  if (!v) return null;
+  if (typeof v === 'string') return { oui: [v], non: [] };
+  const n = { oui: [...(v.oui || [])], non: [...(v.non || [])] };
+  return n.oui.length || n.non.length ? n : null;
+}
+/** Le texte d'une note, court, pour le plateau : « forêt / eau ? », ou « pas eau, champ » quand on n'a que des exclusions. */
+export function noteTexte(note, nom = (f) => f) {
+  const n = normaliserNote(note); if (!n) return '';
+  return n.oui.length ? `${n.oui.map(nom).join(' / ')} ?` : `pas ${n.non.map(nom).join(', ')}`;
 }
 
 /** Les trésors possibles : les cinq rares de base. */

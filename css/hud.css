@@ -443,6 +443,7 @@ html.compact .tempo-chrono .tc-cadre { width: 170px; height: 11px; }
 .panel-brume-case h3 { font-size: 14px; margin: 10px 0 6px; }
 .brume-inv-line, .brume-jalon-line { font-size: 14px; font-weight: 600; margin: 4px 0; }
 .gpick.on { background: rgba(47,158,143,0.14); border-color: var(--breath); }
+.gpick.off { text-decoration: line-through; opacity: 0.55; background: rgba(217,95,75,0.08); border-color: rgba(217,95,75,0.5); }   /* barrée : exclue */
 .gpick.tresor { border-left-color: #e0a33a; }
 html.compact .hud-brume { margin-top: 3px; gap: 2px; }
 html.compact .binv { font-size: 10px; padding: 1px 4px; }

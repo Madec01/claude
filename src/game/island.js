@@ -19,7 +19,7 @@ import { pickRule, BASE_RULE, RULE_LOOK } from './seasonrules.js';
 import { gradeMove } from './feedback.js';
 import { RNG } from '../core/math.js';
 import { key, parse, neighbors } from './hex.js';
-import { CRANS, P as PB, preparerBrume, indice as indiceBrume, portee as porteeBrume, inventaire as inventaireBrume, TIRAGE, CARTE_PAR_ID, tirerCarte, saisonNeuve, tirerFamille, compte as compteBrume, COULEURS } from './brume.js';
+import { CRANS, P as PB, preparerBrume, indice as indiceBrume, portee as porteeBrume, inventaire as inventaireBrume, TIRAGE, CARTE_PAR_ID, tirerCarte, saisonNeuve, tirerFamille, compte as compteBrume, COULEURS, normaliserNote } from './brume.js';
 
 export class Island {
   /**
@@ -669,20 +669,32 @@ export class Island {
 
   /** Peut-on planter un jalon en (q, r) ? Un par saison, sur une case cachée qui n'en a pas. */
   canJalon(q, r) { const B = this.brume; return !!B && !this.ended && B.jalonsPoses < B.saison.jalonsMax && this.board.fog.has(key(q, r)) && !B.jalons.has(key(q, r)); }
-  /** Plante un jalon : on annonce la famille cachée (ou « tresor »). Juste au dévoilement : +5 et bords ×3 ; faux : −5. */
+  /** Plante un jalon : on annonce la famille cachée (ou « tresor »). Juste au dévoilement : `P.jalonJuste` (+8) ; faux : `P.jalonFaux` (−5). */
   planterJalon(q, r, famille) {
     if (!this.canJalon(q, r) || !famille) return false;
     this.brume.jalons.set(key(q, r), famille); this.brume.jalonsPoses++; this.brume.jalonSaison = this.brume.jalonsPoses >= this.brume.saison.jalonsMax;
     this.board.touch(); this.emit({ type: 'brume', kind: 'jalon', q, r, famille });
     return true;
   }
-  /** Le crayon : une note sur une case cachée, sans effet sur rien (`null` l'efface). */
-  noter(q, r, famille) {
+  /**
+   * Le crayon : des notes sur une case cachée, sans effet sur rien. `etat` : 'oui' coche la famille (encore possible), 'non' la
+   * barre (exclue), `null` la retire de la note ; sans famille, la note s'efface. « Crayon sûr » répond sur la première famille
+   * cochée ou barrée de la saison.
+   */
+  noter(q, r, famille, etat = 'oui') {
     const B = this.brume; const k = key(q, r); if (!B || !this.board.fog.has(k) || B.saison.crayonBloque) return false;
-    if (famille) B.crayon.set(k, famille); else B.crayon.delete(k);
-    if (famille && B.saison.crayonSur) { B.saison.crayonSur = false; const c = B.cachees.get(k); const juste = !!c && (famille === c.family || (famille === 'tresor' && !!c.tresor)); this.emit({ type: 'brume', kind: 'crayonSur', q, r, famille, juste }); }
+    if (!famille) B.crayon.delete(k);
+    else {
+      const n = normaliserNote(B.crayon.get(k)) || { oui: [], non: [] };
+      n.oui = n.oui.filter((f) => f !== famille); n.non = n.non.filter((f) => f !== famille);
+      if (etat === 'oui') n.oui.push(famille); else if (etat === 'non') n.non.push(famille);
+      if (n.oui.length || n.non.length) B.crayon.set(k, n); else B.crayon.delete(k);
+      if (etat && B.saison.crayonSur) { B.saison.crayonSur = false; const c = B.cachees.get(k); const est = !!c && (famille === c.family || (famille === 'tresor' && !!c.tresor)); this.emit({ type: 'brume', kind: 'crayonSur', q, r, famille, etat, juste: etat === 'oui' ? est : !est }); }
+    }
     this.board.touch(); return true;
   }
+  /** La note d'une case ({ oui, non }) ou null. */
+  noteDe(q, r) { return this.brume ? normaliserNote(this.brume.crayon.get(key(q, r))) : null; }
 
   /** Peut-on déplacer la tuile de (q, r) ? Pas une tuile de départ, dévoilée, en friche, ni engagée contre la brume. */
   canMove(q, r) {
@@ -740,7 +752,7 @@ export class Island {
 
   /**
    * Dévoile les cases cachées qui ont assez de voisines posées (2 en Brume claire, 3 en épaisse). Elles comptent comme
-   * posées à l'instant : leurs bords (×2, ×3 sous un jalon juste), leurs fermetures ; puis jalon et trésor.
+   * posées à l'instant : leurs bords (×2), leurs fermetures ; puis jalon (+8 juste, −5 faux) et trésor.
    * `fin` : le dernier dévoilement, à la fin de la partie.
    */
   /** Le nombre de voisines posées qu'il faut pour se dévoiler cette saison (le cran, plus la carte tirée). */
@@ -797,13 +809,23 @@ export class Island {
     B.posesSaison = [];
   }
 
-  /** Un coup est jugé avant la pose : meilleur tiers des places possibles, la chance de bonus monte ; pire tiers, elle baisse. */
+  /** Une pose contre la brume est une vraie question si l'inventaire (ce que le joueur sait) peut cacher la famille de la tuile près d'elle. */
+  questionPossible(q, r, tile) {
+    const B = this.brume; if (!B || !this.fogAround(q, r).length) return false;
+    const fams = Board.familiesOf(tile); const inv = this.inventaireBrume;
+    return fams.some((f) => (B.cran.inventaire === 'couleur' ? inv.some((e) => e.id === COULEURS[f]) : inv.some((e) => e.id === f)));
+  }
+  /**
+   * Un coup est jugé avant la pose : meilleur tiers des places possibles, la chance de bonus monte ; pire tiers, elle baisse.
+   * Une pose contre la brume qui pose une vraie question n'est jamais « mauvaise » (B-O) : on ne punit pas de demander.
+   */
   jugerCoup(q, r, tile) {
     const B = this.brume; const cells = this.board.legalCells(); if (cells.length < 3) return;
     const totaux = cells.map((c) => { const p = preview(this.board, c.q, c.r, tile, this.season, this.mods); return { k: key(c.q, c.r), v: p ? p.total : -Infinity }; });
     const tri = totaux.map((x) => x.v).sort((a, b) => b - a); const v = (totaux.find((x) => x.k === key(q, r)) || {}).v; if (v === undefined) return;
     const haut = tri[Math.floor((tri.length - 1) / 3)], bas = tri[Math.ceil((tri.length - 1) * 2 / 3)];
     let sens = 0; if (v >= haut && v > bas) sens = 1; else if (v <= bas && v < haut) sens = -1;
+    if (sens < 0 && this.questionPossible(q, r, tile)) sens = 0;
     if (!sens) return;
     B.ratio = Math.max(TIRAGE.min, Math.min(TIRAGE.max, B.ratio + sens * TIRAGE.pas));
     this.emit({ type: 'brume', kind: 'coup', bon: sens > 0, ratio: B.ratio });
@@ -888,7 +910,8 @@ export class Island {
   }
   restoreBrume(s) {
     const B = this.brume;
-    B.cachees = new Map(s.cachees.map(([k, t]) => [k, { ...t }])); B.jalons = new Map(s.jalons || []); B.crayon = new Map(s.crayon || []);
+    B.cachees = new Map(s.cachees.map(([k, t]) => [k, { ...t }])); B.jalons = new Map(s.jalons || []);
+    B.crayon = new Map((s.crayon || []).map(([k, v]) => [k, normaliserNote(v)]).filter(([, v]) => v));   // l'ancien format (une famille) devient une coche
     Object.assign(B, { jalonSaison: !!s.jalonSaison, jalonsPoses: s.jalonsPoses || 0, contre: s.contre || 0, devoilees: s.devoilees || 0, justes: s.justes || 0, fausses: s.fausses || 0, tresor: s.tresor || null, depart: s.depart || B.depart, deduc: s.deduc ?? B.deduc, passagePret: !!s.passagePret,
       ratio: s.ratio ?? TIRAGE.depart, carte: s.carte || null, saison: { ...saisonNeuve(), ...(s.saison || {}) }, marques: new Map(s.marques || []), posesSaison: [...(s.posesSaison || [])] });
     if (s.rngCartes !== undefined) B.rngCartes.s = s.rngCartes;
