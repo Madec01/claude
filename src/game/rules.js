@@ -157,6 +157,13 @@ export function preview(board, q, r, tile, season, mods = {}) {
     if (mods.brumeMauvais && pts < 0) pts *= 2;   // la carte « Mauvais voisinage » : les mauvaises paires comptent double
     if (pts !== 0) { edges.push({ d, q: q + dq, r: r + dr, pts, label: mul > 1 ? `${e.label ? e.label + " " : ""}×${mul}` : e.label }); total += pts; }
   });
+  // le bord de mer : la mer est de l'eau aussi (retour du commanditaire : « un marais posé en bord de mer ne rapportait rien »).
+  // Une tuile qui touche la mer gagne une fois sa bonne paire avec l'eau (marais et sable +2, hameau et roche +1) — une fois,
+  // pas par bord, sinon la côte vaudrait plus que n'importe quelle rivière. L'eau elle-même a déjà son embouchure.
+  if (!tile.rare && !tile.blighted && !Board.isFamily(tile, 'water') && neighbors(q, r).some(([a, b]) => board.isSea(a, b))) {
+    const v = Math.max(0, ...Board.familiesOf(tile).map((f) => affinity(f, 'water')));
+    if (v > 0) { base.push({ pts: v, label: 'bord de mer' }); total += v; }
+  }
   // simulation de la pose pour rivières et fermetures (la version et les caches du plateau sont rendus intacts)
   return board.simulate(() => {
   const placed = board.place(q, r, tile);

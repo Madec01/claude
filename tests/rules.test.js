@@ -971,5 +971,19 @@ for (const def of ISLANDS.slice(0, 4)) {
   const S = recordsFormes({}); const r1 = noterPartieFormes(S, a, 300); const r2 = noterPartieFormes(S, a, 250); const r3 = noterPartieFormes(S, a, 320);
   check(r1.record && r1.precedent === 0 && !r2.record && r3.record && r3.precedent === 300 && S.records.archipel === 320 && S.vues.length === 1 && S.parties === 3 && S.derniere === 'archipel', 'un record par forme, la forme est vue');
 }
+// --- le bord de mer : la mer est de l'eau aussi (retour du commanditaire)
+{
+  const { evaluate } = await import('../src/game/fauna.js');
+  const b = new Board(['0,0', '1,0', '2,0', '1,-1']);   // une bande de quatre cases : tout le reste est la mer
+  b.place(1, 0, { family: 'meadow', variant: 1 });
+  const marais = preview(b, 0, 0, { family: 'marsh', variant: 1, id: 1 }, 'spring'); const sable = preview(b, 0, 0, { family: 'sand', variant: 1, id: 2 }, 'spring'); const pre = preview(b, 0, 0, { family: 'meadow', variant: 1, id: 3 }, 'spring'); const eau = preview(b, 0, 0, { family: 'water', variant: 1, id: 4 }, 'spring');
+  const bm = (p) => p.base.find((x) => x.label === 'bord de mer');
+  check(bm(marais) && bm(marais).pts === 2 && bm(sable) && bm(sable).pts === 2, `un marais et un sable en bord de mer gagnent +2 (${bm(marais) && bm(marais).pts})`);
+  check(!bm(pre) && !bm(eau), 'une prairie n’aime pas l’eau, l’eau a déjà son embouchure : pas de bord de mer');
+  // une fois, pas par bord : trois cases de mer autour, +2 quand même
+  check(bm(marais).pts === 2 && neighbors(0, 0).filter(([a, c]) => b.isSea(a, c)).length >= 3, 'le bord de mer se compte une fois, pas par bord');
+  b.place(0, 0, { family: 'marsh', variant: 1 });
+  check([...evaluate(b, 'spring').values()].some((a) => a.species === 'frog'), 'un marais qui touche la mer a ses grenouilles');
+}
 console.log(failures ? `${failures} échec(s)` : 'Tous les tests passent.');
 process.exit(failures ? 1 : 0);

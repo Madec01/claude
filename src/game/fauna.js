@@ -72,7 +72,7 @@ export function evaluate(board, season, rule = null) {
     if (season === 'winter' && frozen && reg.size >= F.penguin) add('penguin', reg);
   }
   for (const reg of board.regions('marsh')) {
-    if (board.regionTouches(reg, 'water')) add('frog', reg);
+    if (board.regionTouches(reg, 'water') || board.regionTouchesSea(reg)) add('frog', reg);   // la mer est de l'eau aussi : un marais salant a ses grenouilles
   }
   // poules : un hameau bordé d'au moins deux champs
   for (const reg of board.regions('hamlet')) {
