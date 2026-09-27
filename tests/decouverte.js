@@ -200,7 +200,8 @@ const btn = (page, label) => page.evaluate((l) => {
   await page.evaluate(() => { const x = [...document.querySelectorAll('button')].find((y) => y.textContent.includes('C’est parti')); x.click(); });
   await page.waitForFunction(() => window.CS.scenes.currentName === 'island', null, { timeout: 25000 }); await page.waitForTimeout(600);
   const ile = await page.evaluate(() => { const sc = window.CS.scenes.current; const isl = sc.isl; return { forme: isl.def.forme, seed: isl.def.seed, libre: isl.buildOn && isl.handOn, hud: (document.querySelector('.hud-ile') || {}).textContent || '', titre: sc.title }; });
-  check(ile.seed === parseInt('2S', 36) && ile.forme === 'archipel' && ile.libre && ile.titre === 'L’archipel', `l’île a la forme et la graine du code (${ile.forme}, ${ile.seed}, ouvert ${ile.libre}, titre « ${ile.titre} »), le mode est ouvert`);
+  const premiere = await page.evaluate(async () => { const m = await import('/src/data/formes_mode.js'); const { FORMES } = await import('/src/data/islands.js'); const id = m.listeFormes()[0]; return { id, nom: FORMES[id].nom }; });   // F-0 : la première forme de la galerie
+  check(ile.seed === parseInt('2S', 36) && ile.forme === premiere.id && ile.libre && ile.titre === premiere.nom, `l’île a la forme et la graine du code (${ile.forme}, ${ile.seed}, ouvert ${ile.libre}, titre « ${ile.titre} »), le mode est ouvert`);
   await page.evaluate(() => window.CS.Game.showMenu()); await page.waitForTimeout(400);
 
   await b.close();

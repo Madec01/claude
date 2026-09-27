@@ -7,7 +7,8 @@
 import { ISLANDS, WEIGHTS, generateMask, enclosedHoles } from './islands.js';
 import { CAMPAIGN_TEXTS, INTENTIONS } from './campaign_texts.js';
 import { CAMPAIGN_STARS } from './campaign_stars.js';
-import { SIGNATURE_OF, applySignature } from './signatures.js';
+import { SIGNATURE_OF, FORME_OF, applySignature } from './signatures.js';
+import { FORMES } from './islands.js';
 
 export const CAMPAIGN_SIZE = 30;
 export const CHAPTER_LEN = 3;      // îles par chapitre
@@ -135,6 +136,13 @@ export function campaignIsland(n) {
     const w2 = def.weights; const tot = Object.values(w2).reduce((a, b) => a + b, 0); const sh = (f) => (w2[f] || 0) / (tot || 1);
     def.wishes = def.wishes.filter((w) => !((w.type === 'river' || w.type === 'lake') && sh('water') < 0.08) && !(w.type === 'river' && !w2.rock && !w2.hill) && !(w.id === 'c_bloom' && sh('marsh') < 0.04) && !((w.id === 'c_bourg' || w.id === 'c_pairs' || w.id === 'c_veillee') && !w2.hamlet));
   }
+  // la forme douce de l'île (baie, fjord, grand lac…) : dite sur l'écran de départ, avec la signature s'il y en a une
+  if (FORME_OF[from] && FORMES[FORME_OF[from]]) {
+    const f = FORME_OF[from], F = FORMES[f]; def = { ...def, forme: f, start: def.start.map((t) => ({ ...t })) };
+    def.signature = def.signature ? { ...def.signature, text: `${def.signature.text} Et l’île a une forme : ${F.nom.toLowerCase()}.` } : { id: f, name: F.nom, text: F.intention || '' };
+  }
+  // une forme qui déplace le hameau de départ (l'anneau) : ses tuiles de départ remplacent les nôtres
+  if (def.forme && FORMES[def.forme] && FORMES[def.forme].depart) def = { ...def, start: FORMES[def.forme].depart.map((t) => ({ ...t })) };
   return def;
 }
 

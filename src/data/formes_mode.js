@@ -49,7 +49,7 @@ export function formesDef(forme, seed = 1, { familles = null } = {}) {
   const pool = [...DAILY_WISHES]; const wishes = [];
   while (wishes.length < 2 && pool.length) wishes.push(pool.splice(Math.floor(rng.next() * pool.length), 1)[0]);
   const roughness = 0.35 + rng.next() * 0.15;
-  let start = [{ q: 0, r: 0, family: 'hamlet' }, { q: 2, r: -1, family: 'rock' }];
+  let start = FORMES[f].depart ? FORMES[f].depart.map((t) => ({ ...t })) : [{ q: 0, r: 0, family: 'hamlet' }, { q: 2, r: -1, family: 'rock' }];   // certaines formes déplacent le hameau (l'anneau, l'ourlet, l'atoll)
   // les formes à tuiles de départ (crête, plateau, cuvette…) les posent sur le masque qu'on va avoir
   const mask = generateMask(seed, cells, { roughness, holes: 0, forme: f, garde: start.map((t) => `${t.q},${t.r}`) });
   const departs = departsDeForme(f, mask, start.map((t) => `${t.q},${t.r}`));

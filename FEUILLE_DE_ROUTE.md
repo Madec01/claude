@@ -23,8 +23,8 @@ Le commanditaire a choisi : des îles de campagne plus naturelles (baies, bras d
 | # | Lot | Statut |
 |---|---|---|
 | F1 | Mode « Terres étranges » : tirage (jamais vue tant qu'il en reste), galerie, record par forme, code, bilan | **fait** |
-| F2 | Vingt formes de plus (dix douces, dix étranges), `famille` et `difficulte` mesurée | en cours (agent) |
-| F3 | Campagne : archipel → 14, anneau → 16, étoile → 28 (**fait**, recalibrées) ; formes douces sur les îles générées, mesure ±5 %, recalibrage, captures | en cours |
+| F2 | Vingt formes de plus (dix douces, dix étranges), `famille` et `difficulte` mesurée | **fait** |
+| F3 | Campagne : archipel → 14, anneau → 16, étoile → 28 ; dix formes douces sur 4, 7, 11, 13, 19, 22, 24, 25, 26, 27 ; mesure, recalibrage, captures | **fait** |
 
 ## Retenu par le commanditaire (prochain lot)
 

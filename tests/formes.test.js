@@ -186,7 +186,7 @@ for (const n of ILES) {
   check(a === b && a === c, 'sans forme (ou forme inconnue), le masque est celui d’avant');
   const d8 = campaignIsland(8); check(d8.isthme && !d8.forme, 'la campagne ne porte aucune forme : le passage étroit reste une option à part');
   // les formes branchées dans la campagne (27 septembre, « go » du commanditaire) : l'archipel sur 14, l'anneau sur 16, l'étoile sur 28 — et rien d'autre
-  const branchees = { 14: 'archipel', 16: 'anneau', 28: 'etoile' };
+  const branchees = { 4: 'goutte', 7: 'lagune', 11: 'presquile', 13: 'baie', 14: 'archipel', 16: 'anneau', 19: 'fjord', 22: 'anses', 24: 'delta', 25: 'lac', 26: 'haricot', 27: 'double', 28: 'etoile' };   // et dix formes douces (§ 6 du document)
   for (let n = 1; n <= 30; n++) check((campaignIsland(n).forme || null) === (branchees[n] || null), `île ${n} : forme ${branchees[n] || 'aucune'} (${campaignIsland(n).forme || 'aucune'})`);
 }
 // --- relier : deux morceaux séparés d'une case sont reliés par une seule case

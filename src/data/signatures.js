@@ -27,6 +27,12 @@ export const SIGNATURES = {
   puzzle_riviere:  { name: 'La rivière à finir', text: 'Une rivière est commencée depuis la roche de l’ouest. Mène-la jusqu’à la mer avec les tuiles qui viennent : c’est le puzzle de l’île.', apply: (d) => { d.start = [{ q: 0, r: 0, family: 'hamlet' }, { q: -4, r: 1, family: 'rock' }, { q: -3, r: 1, family: 'water' }, { q: -2, r: 1, family: 'water' }]; d.weights.water = Math.round((d.weights.water || 4) * 1.6); d.opening = ['water', 'meadow', 'water', 'field']; d.wishes = [{ id: 'c_mouth', type: 'river', minLen: 3, mouth: true, deadline: { placements: Math.round(d.cells * 0.45) } }, ...d.wishes.filter((w) => w.id !== 'c_mouth' && w.id !== 'c_river').slice(0, 2)]; } },
 };
 /** Signature de chaque île générée de la fin de campagne (les îles dessinées n'en ont pas). */
+/**
+ * Les formes douces des îles générées (docs/PISTES_FORMES.md § 6 ; « des baies, des bras de mer, de grands lacs, des formes
+ * plus naturelles, sans rendre le jeu plus dur » — le commanditaire). Clé : ancien numéro (`from`), comme SIGNATURE_OF.
+ * Toutes mesurées « aucune » difficulté au robot fort. Une île qui a déjà une signature la garde ; la forme s'y ajoute.
+ */
+export const FORME_OF = { 6: 'goutte', 11: 'lagune', 16: 'presquile', 21: 'baie', 31: 'fjord', 36: 'anses', 39: 'delta', 41: 'lac', 43: 'haricot', 45: 'double' };
 export const SIGNATURE_OF = { 12: 'passage_etroit', 23: 'archipel', 26: 'anneau', 29: 'puzzle_riviere', 36: 'dunes', 37: 'deux_sources', 38: 'pierres_dressees', 39: 'marais_sud', 40: 'lac_central', 41: 'champs_ouverts', 42: 'riviere_deja', 43: 'foret_profonde', 44: 'sans_roche', 45: 'tout_verger', 46: 'etoile', 47: 'deux_villages', 48: 'saisons_longues', 49: 'file_courte' };
 export function applySignature(def, id) {
   const sg = SIGNATURES[id]; if (!sg) return def;
