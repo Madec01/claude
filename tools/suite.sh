@@ -1,7 +1,7 @@
 #!/bin/bash
 # Lance la suite de tests, en deux vitesses (règle de CLAUDE.md, journal 107).
 #
-#   tools/suite.sh court   ~1 min 30 : les cinq tests Node (règles, événements, nuage, reprise, brume)
+#   tools/suite.sh court   ~1 min 30 : les tests Node (règles, événements, nuage, reprise, brume, décor, formes)
 #                                      et gate.js comme test de fumée dans Chromium
 #   tools/suite.sh complet   ~5 min  : la suite courte puis les autres tests navigateur (dont brume)
 #
@@ -45,7 +45,7 @@ lance() {
   fi
 }
 
-for t in rules events cloud run brume decor; do lance "$t.test.js"; done
+for t in rules events cloud run brume decor formes; do lance "$t.test.js"; done
 
 # les tests navigateur : chacun écrit son propre journal, recopié dans $LOG une fois tous finis
 lance_fond() {
