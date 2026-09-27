@@ -226,17 +226,17 @@ export class Finale {
       this.phase = 'rejouer'; this.stepT = 0; this.phaseT = 0; this.plan = null;
       this.camA = this.instantane(); this.camB = this.centre;
     }
-    const n = this.isl.poses.length; const duree = auto ? (n > 80 ? 5 : 4) : (n > 80 ? 12 : 10);   // en tête de tournée : très vite
+    const n = this.isl.poses.length; const duree = auto ? (n > 80 ? 3 : 2.5) : (n > 80 ? 12 : 10);   // en tête de tournée : très vite (« un peu plus rapide, ce sera top »)
     this.boardReel = this.isl.board; this.isl.board = new Board(this.boardReel.mask);
     this.isl.board.eauFinale = classifyWater(this.boardReel);   // l'eau se classe comme sur l'île finie : une rivière reste une rivière (voir water.js)
     this.r.decor.sync(this.boardReel); this.isl.board.decorFinal = { objects: this.r.decor.objects.slice(), courts: this.r.decor.courts.slice() };   // et le décor est celui de l'île finie, révélé case par case (voir decor.js)
-    this.rj = { i: 0, t: auto ? -0.2 : -0.6, pas: duree / n, fini: 0, posees: [], par: new Map(), reveil: 0, auto, dernierTic: -1 };
+    this.rj = { i: 0, t: auto ? -0.2 : -0.6, pas: duree / n, fini: 0, posees: [], par: new Map(), reveil: 0, auto, dernierTic: -1, chute: auto ? 0.36 : 0.55 };   // `chute` : le temps de tomber, plus vif en tête de tournée
     // les tuiles de départ (le hameau, les roches, l'eau d'une rivière commencée) ne sont pas des poses : elles
     // tombent en premier, vite, avant la première pose du joueur — sinon elles n'arrivaient qu'à la fin, d'un
     // coup (le commanditaire, 27 septembre)
     const depart = [...this.boardReel.tiles.values()].filter((t) => t.start).sort((a, c) => (a.r - c.r) || (a.q - c.q));
-    depart.forEach((t, i) => { const e = { q: t.q, r: t.r, t: { ...t }, at: this.t + 0.15 + i * (auto ? 0.08 : 0.16), pop: -1, posee: false }; this.rj.par.set(key(t.q, t.r), e); this.rj.posees.push(e); });
-    this.rj.t = (auto ? -0.2 : -0.6) - depart.length * (auto ? 0.08 : 0.16);
+    depart.forEach((t, i) => { const e = { q: t.q, r: t.r, t: { ...t }, at: this.t + 0.15 + i * (auto ? 0.05 : 0.16), pop: -1, posee: false }; this.rj.par.set(key(t.q, t.r), e); this.rj.posees.push(e); });
+    this.rj.t = (auto ? -0.2 : -0.6) - depart.length * (auto ? 0.05 : 0.16);
     if (!auto) this.isl.season = this.isl.poses[0].s;   // en tête de tournée, la saison ne bouge pas : elle est celle de la fin
     this.isl.board.touch();
     this.r.rejoue = true; this.r.transition = null; this.r.nu = false;   // les cases vides se voient : les tuiles tombent sur la forme de l'île, pas sur la mer
@@ -245,9 +245,9 @@ export class Finale {
     const rj = this.rj, poses = this.isl.poses;
     if (!rj.auto) this.majCamera(doux(clamp(this.stepT / 1.2, 0, 1)));
     if (rj.reveil > 0) { rj.reveil += dt; if (rj.reveil > 1.2) { this.rj = null; this.entrer('carte'); } return; }   // tout est posé : on regarde l'île un instant
-    if (rj.i >= poses.length && !rj.posees.length) { rj.fini += dt; if (rj.fini > (rj.auto ? 0.5 : 0.4)) this.finirRejouer(); return; }
+    if (rj.i >= poses.length && !rj.posees.length) { rj.fini += dt; if (rj.fini > (rj.auto ? 0.35 : 0.4)) this.finirRejouer(); return; }
     rj.t += dt;
-    for (const e of rj.posees) if (!e.posee && this.t - e.at >= 0.55) { e.posee = true; this.isl.board.place(e.q, e.r, { ...e.t }); }
+    for (const e of rj.posees) if (!e.posee && this.t - e.at >= rj.chute) { e.posee = true; this.isl.board.place(e.q, e.r, { ...e.t }); }
     rj.posees = rj.posees.filter((e) => !e.posee);   // posée : le plateau la dessine, fondue à ses voisines
     while (rj.t >= rj.pas && rj.i < poses.length) {
       rj.t -= rj.pas; const p = poses[rj.i++];
@@ -268,7 +268,7 @@ export class Finale {
       const w = toWorld(e.q, e.r); const c = cam.toScreen(w.x, w.y);
       if (this.t < e.at) continue;   // pas encore partie
       if (c.x < -150 || c.x > STAGE.W + 150 || c.y < -220 || c.y > STAGE.H + 160) continue;
-      const a = clamp((this.t - e.at) / 0.55, 0, 1);                       // la chute : d'assez haut, et un rebond à l'arrivée
+      const a = clamp((this.t - e.at) / rj.chute, 0, 1);                   // la chute : d'assez haut, et un rebond à l'arrivée
       let dy = -(1 - a) * (1 - a) * 170, s = 0.88 + 0.12 * easeOutBack(a), alpha = 0.35 + 0.65 * Math.min(1, a * 2.5);
       if (e.pop >= 0) { const b = clamp((this.t - e.pop) / 0.4, 0, 1); s *= 1 + 0.12 * Math.sin(b * Math.PI); }   // le sursaut d'un bâti
       if (a < 1 && this.r.hexShadow) { ctx.save(); ctx.globalAlpha = 0.28 * a; const sw = TILE_W * z, sh = TILE_H * z; ctx.drawImage(this.r.hexShadow, c.x - sw / 2 + 4 * z, c.y - sh / 2 + 10 * z, sw, sh); ctx.restore(); }
