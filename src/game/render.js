@@ -743,17 +743,21 @@ export class IslandRenderer {
       // le décor est composé par région (massifs de roche, cours et ruelles des bourgs) : une tuile qui rejoint une région
       // déplace des objets sur d'autres cases — elles aussi sont à retoucher (le commanditaire : « les roches et les
       // hameaux apparaissent à la fin, d'un coup, ou pas »)
-      let delta = S0 && cv === S0.canvas && S0.sigs && !S0.manque && S0.extraCle === extraCle && this.memeCamera(S0.E, E1) ? this.deltaTuiles(S0.sigs, sigs) : null;
+      // La caméra a bougé un peu (le recul de la tournée finale pendant la construction) : on retouche dans le repère de
+      // l'image, avec SA caméra, tant qu'elle se place encore à l'écran (voir `place`) ; l'image reste recopiée mise à
+      // l'échelle, comme avant. Pas pendant un changement de saison (`E` imposé : les deux images partagent une caméra).
+      const Ep = !S0 ? null : this.memeCamera(S0.E, E1) ? E1 : (!E && place(S0) ? S0.E : null);
+      let delta = S0 && cv === S0.canvas && S0.sigs && !S0.manque && S0.extraCle === extraCle && Ep ? this.deltaTuiles(S0.sigs, sigs) : null;
       if (delta) { const dd = this.deltaDecor(S0.sigsD || new Map(), sigsD); if (!dd) delta = null; else { for (const k of dd) if (!delta.includes(k)) delta.push(k); if (delta.length > 10) delta = null; } }
       // une retouche qui couvrirait plus de la moitié de l'île coûte plus qu'un repeint (la découpe en plus) : on repeint tout
       if (delta && delta.length) { const b0 = this.isl.board; let n = 0; for (const k of this.voisinage(delta, 2)) if (b0.tiles.has(k)) n++; if (b0.tiles.size >= 30 && n > 0.6 * b0.tiles.size) delta = null; }
       this._solsManque = false;
       c2.setTransform(dpr, 0, 0, dpr, M * dpr, M * dpr);
       this._stats = this._stats || { retouches: 0, repeints: 0, raisons: {} };
-      if (!delta) { const raison = !S0 ? 'aucune' : cv !== S0.canvas ? 'taille' : !S0.sigs ? 'sigs' : S0.manque ? 'manque' : S0.extraCle !== extraCle ? 'extra' : !this.memeCamera(S0.E, E1) ? 'camera' : 'delta'; this._stats.raisons[raison] = (this._stats.raisons[raison] || 0) + 1; }
+      if (!delta) { const raison = !S0 ? 'aucune' : cv !== S0.canvas ? 'taille' : !S0.sigs ? 'sigs' : S0.manque ? 'manque' : S0.extraCle !== extraCle ? 'extra' : !Ep ? 'camera' : 'delta'; this._stats.raisons[raison] = (this._stats.raisons[raison] || 0) + 1; }
       if (delta) { this._stats.retouches++; } else this._stats.repeints++;
       if (delta) {
-        if (delta.length) this.avecCamera(E1, () => {
+        if (delta.length) this.avecCamera(Ep, () => {
           this._saison = saison; this._seulement = this.voisinage(delta, 2);
           try { const zone = this.zoneRetouche(this.voisinage(delta, 1)); c2.save(); c2.clip(zone); c2.clearRect(-M, -M, W + 2 * M, H + 2 * M); dessin(c2, null); c2.restore(); }
           finally { this._saison = null; this._seulement = null; }
@@ -762,7 +766,7 @@ export class IslandRenderer {
         c2.setTransform(1, 0, 0, 1, 0, 0); c2.clearRect(0, 0, w, h); c2.setTransform(dpr, 0, 0, dpr, M * dpr, M * dpr);
         this.avecCamera(E1, () => { this._saison = saison; try { dessin(c2, null); } finally { this._saison = null; } });
       }
-      const S = { canvas: cv, cle: `${saison}|${base}`, manque: this._solsManque, mobile: !!bouge, E: E1, sigs, sigsD, extraCle, ...this.vue(E1) };
+      const Ef = delta ? Ep : E1; const S = { canvas: cv, cle: `${saison}|${base}`, manque: this._solsManque, mobile: delta ? S0.mobile : !!bouge, E: Ef, sigs, sigsD, extraCle, ...this.vue(Ef) };
       G.set(saison, S); this._gardeFaite = true;
       return S;
     };
