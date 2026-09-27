@@ -128,6 +128,16 @@ Montage commun, calqué sur Le Souffle court et Sous la brume : une définition 
 
 **Le prototype le moins cher.** Deux heures, sans interface : un script Node qui fait jouer le robot fort sur l'île 7, garde ses régions closes en ruines, puis le fait rejouer avec 0 souffle — le robot sait déjà réparer (`actions` propose `restore`) ; on lit le score de la génération 2 contre la 1, le nombre de ruines relevées, et à quelle pose la première l'est. Puis, pour le ressenti, un raccourci en mode test qui charge la génération 2 de la dernière île jouée : une soirée, pas un lot.
 
+**Premier prototype mesuré (27 septembre, script Node hors dépôt, robot fort, trois hasards, ruines = régions closes plafonnées à 30 %, relever à 1 souffle, 0 souffle au départ).**
+
+| Île | Score G1 | Score G2 | Ruines | Relevées | Première relevée à la pose |
+|---|---|---|---|---|---|
+| 7 (avant bâtir) | 474 / 441 / 489 | 213 / 241 / 196 | 18 | 0 | — |
+| 11 | 579 / 679 / 707 | 468 / 412 / 508 | 19 | 18 / 17 / 18 | 2 / 2 / 1 |
+| 19 | 811 / 871 / 898 | 811 / 697 / 740 | 24 | 22 / 23 / 23 | 1 / 4 / 1 |
+
+Lecture : (1) avant l'île 11, réparer n'existe pas (`buildOn`) — le mode doit ouvrir la réparation partout, sinon les ruines ne sont qu'un handicap qui divise le score par deux ; (2) dès qu'il le peut, le robot relève **tout**, dès la première ou deuxième pose, avec les souffles qu'il gagne en fermant : c'est le risque annoncé plus haut, « le choix est faux ». Le réglage à essayer avant tout jugement : relever à **2 souffles**, ou une ruine relevée qui ne ferme pas de région à elle seule, puis remesurer ; le mode ne vaut que si le robot laisse des ruines et que le score G2 reste à 80–100 % de G1.
+
 ## 5. Les autres pistes, en quelques lignes
 
 - **« Deux îles » (une file, deux plateaux).** Sans écran double : une seule île dont le masque est coupé en deux terres sans pont — `creuserIsthme` le fait presque (l'île 8 garde deux cases de gué ; sans elles, deux terres). Le plateau, les régions et le contour de côte savent déjà traiter plusieurs boucles (les trous). La décision « quelle terre reçoit la tuile » existe alors dans le jeu tel quel, comme une **signature** (« Les deux terres ») pour une île de campagne ou un jour de l'Île du jour, sans mode ni rendu nouveau. À mesurer avec le robot sur un masque coupé avant de l'annoncer : si les deux terres se jouent l'une après l'autre sans interaction, il manque la règle qui les lie (une seule saison, un vœu qui demande une famille sur chaque terre).
