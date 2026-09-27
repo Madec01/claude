@@ -18,7 +18,7 @@ import { STORY } from '../data/story.js';
 import { STAGE } from '../core/stage.js';
 import { Save } from '../core/save.js';
 import { clamp, TAU, rnd, easeOutBack } from '../core/math.js';
-import { waterBodies } from './water.js';
+import { waterBodies, classifyWater } from './water.js';
 import { SEASONS } from '../data/tiles.js';
 import { cadreCarte, habillerCarte, geoCarte, renderPostcard, postcardName } from './postcard.js';
 import { insignesDe, TAMPON } from './tampon.js';
@@ -219,7 +219,15 @@ export class Finale {
     this.camA = this.instantane(); this.camB = this.centre;
     const n = this.isl.poses.length; const duree = n > 80 ? 12 : 10;
     this.boardReel = this.isl.board; this.isl.board = new Board(this.boardReel.mask);
+    this.isl.board.eauFinale = classifyWater(this.boardReel);   // l'eau se classe comme sur l'île finie : une rivière reste une rivière (voir water.js)
+    this.r.decor.sync(this.boardReel); this.isl.board.decorFinal = { objects: this.r.decor.objects.slice(), courts: this.r.decor.courts.slice() };   // et le décor est celui de l'île finie, révélé case par case (voir decor.js)
     this.rj = { i: 0, t: -0.6, pas: duree / n, fini: 0, posees: [], par: new Map(), reveil: 0 };
+    // les tuiles de départ (le hameau, les roches, l'eau d'une rivière commencée) ne sont pas des poses : elles
+    // tombent en premier, vite, avant la première pose du joueur — sinon elles n'arrivaient qu'à la fin, d'un
+    // coup (le commanditaire, 27 septembre)
+    const depart = [...this.boardReel.tiles.values()].filter((t) => t.start).sort((a, c) => (a.r - c.r) || (a.q - c.q));
+    depart.forEach((t, i) => { const e = { q: t.q, r: t.r, t: { ...t }, at: this.t + 0.15 + i * 0.16, pop: -1, posee: false }; this.rj.par.set(key(t.q, t.r), e); this.rj.posees.push(e); });
+    this.rj.t = -0.6 - depart.length * 0.16;
     this.isl.season = this.isl.poses[0].s; this.isl.board.touch();
     this.r.rejoue = true; this.r.transition = null; this.r.nu = false;   // les cases vides se voient : les tuiles tombent sur la forme de l'île, pas sur la mer
   }
@@ -248,6 +256,7 @@ export class Finale {
     const cam = this.cam, z = cam.z;
     for (const e of rj.posees) {
       const w = toWorld(e.q, e.r); const c = cam.toScreen(w.x, w.y);
+      if (this.t < e.at) continue;   // pas encore partie
       if (c.x < -150 || c.x > STAGE.W + 150 || c.y < -220 || c.y > STAGE.H + 160) continue;
       const a = clamp((this.t - e.at) / 0.55, 0, 1);                       // la chute : d'assez haut, et un rebond à l'arrivée
       let dy = -(1 - a) * (1 - a) * 170, s = 0.88 + 0.12 * easeOutBack(a), alpha = 0.35 + 0.65 * Math.min(1, a * 2.5);

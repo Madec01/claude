@@ -993,5 +993,24 @@ for (const def of ISLANDS.slice(0, 4)) {
   check(isl5.canUndo() && isl5.undo() && isl5.poses.length === 0, 'annuler retire la pose de la construction');
 }
 
+// --- l'eau du rejeu : la classification de l'île finie, réduite aux cases posées (27 septembre)
+{
+  const { classifyWater, waterBodies } = await import('../src/game/water.js');
+  const { playStrong } = await import('./bot.js');
+  const d17 = campaignIsland(17); const { isl: fini } = playStrong(d17, { seedOffset: 0 });
+  const riv = waterBodies(fini.board).find((b) => b.kind === 'river');
+  check(!!riv, 'l’île 17 finie par le robot a une rivière');
+  if (riv) {
+    const b = new Board(fini.board.mask); b.eauFinale = classifyWater(fini.board);
+    const c0 = riv.cells[0]; b.place(c0.q, c0.r, { ...fini.board.get(c0.q, c0.r) });
+    check(waterBodies(b).length === 1 && waterBodies(b)[0].kind === 'pond', 'une seule case de la rivière posée : une mare, pas une anse');
+    for (const c of riv.cells.slice(1)) b.place(c.q, c.r, { ...fini.board.get(c.q, c.r) });
+    const corps = waterBodies(b);
+    check(corps.length === 1 && corps[0].kind === 'river' && corps[0].chain.length === riv.cells.length, `la rivière entière posée : une rivière de ${riv.cells.length} cases`);
+    const b2 = new Board(fini.board.mask); for (const c of riv.cells) b2.place(c.q, c.r, { ...fini.board.get(c.q, c.r) });
+    check(waterBodies(b2).every((x) => x.kind !== 'river'), 'sans la classification imposée, la même eau seule ne se lit pas comme une rivière');
+  }
+}
+
 console.log(failures ? `${failures} échec(s)` : 'Tous les tests passent.');
 process.exit(failures ? 1 : 0);

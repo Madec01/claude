@@ -11,6 +11,7 @@ const isMountain = (t) => !!t && (Board.isFamily(t, 'rock') || Board.isFamily(t,
 /** @returns {Map<string, { id, kind:'pond'|'lake'|'river'|'mountainLake', cells, keys, size, source, mouth, chain:string[], intoLake?, fedBy? }>} par clé de cellule */
 export function classifyWater(board) {
   if (board._water && board._waterVersion === board.version) return board._water;
+  if (board.eauFinale) { const w = eauImposee(board, board.eauFinale); board._water = w; board._waterVersion = board.version; return w; }
   const byCell = new Map(); const bodies = [];
   const sizeOf = (cells) => cells.reduce((s, c) => s + (c.level || 1), 0);
   const touchesSea = (cells) => cells.some((t) => neighbors(t.q, t.r).some(([a, b]) => board.isSea(a, b)));
@@ -61,3 +62,36 @@ export const waterBodies = (board) => classifyWater(board).bodies;
 export const rivers = (board) => waterBodies(board).filter((b) => b.kind === 'river');
 export const lakes = (board) => waterBodies(board).filter((b) => b.kind === 'lake' || b.kind === 'mountainLake');
 export const KIND_LABEL = { pond: 'étang', lake: 'lac', river: 'rivière', mountainLake: 'lac de montagne' };
+
+/**
+ * La construction rejouée (27 septembre) : l'eau d'un plateau incomplet se classe de travers — un bout de rivière isolé
+ * se lit comme une anse ou un lac, puis redevient rivière d'un coup à la fin (le commanditaire). Quand le plateau
+ * porte `eauFinale` (la classification du plateau fini), on la reprend telle quelle, réduite aux cases déjà posées :
+ * un lac reste un lac dès sa première case, une rivière reste une rivière, tronçon par tronçon (une seule case : une
+ * mare, en attendant la suivante). L'embouchure ne compte que sur le tronçon qui la porte.
+ */
+function eauImposee(board, finale) {
+  const byCell = new Map(); const bodies = [];
+  const present = (c) => board.tiles.has(key(c.q, c.r));
+  const push = (body) => { bodies.push(body); for (const k of body.keys) byCell.set(k, body); };
+  for (const f of finale.bodies) {
+    if (f.kind === 'river') {
+      const runs = []; let run = [];
+      for (const c of f.cells) { if (present(c)) run.push(c); else if (run.length) { runs.push(run); run = []; } }
+      if (run.length) runs.push(run);
+      const dernier = f.cells[f.cells.length - 1];
+      runs.forEach((cells, i) => {
+        const keys = new Set(cells.map((c) => key(c.q, c.r)));
+        const porteBout = cells.includes(dernier);
+        if (cells.length === 1) { push({ id: `${f.id}:${i}`, kind: 'pond', cells, keys, size: 1, source: cells.includes(f.cells[0]), mouth: !!(porteBout && f.mouth), chain: [] }); return; }
+        push({ id: `${f.id}:${i}`, kind: 'river', cells, keys, size: cells.reduce((s, c) => s + (c.level || 1), 0), source: cells.includes(f.cells[0]), mouth: !!(porteBout && f.mouth), chain: cells.map((c) => key(c.q, c.r)), intoLake: porteBout ? f.intoLake : undefined });
+      });
+      continue;
+    }
+    const cells = f.cells.filter(present); if (!cells.length) continue;
+    const keys = new Set(cells.map((c) => key(c.q, c.r)));
+    push({ ...f, cells, keys, size: cells.reduce((s, c) => s + (c.level || 1), 0), mouth: f.mouth && cells.some((t) => neighbors(t.q, t.r).some(([a, b]) => board.isSea(a, b))) });
+  }
+  byCell.bodies = bodies;
+  return byCell;
+}

@@ -744,7 +744,9 @@ export class IslandRenderer {
       // déplace des objets sur d'autres cases — elles aussi sont à retoucher (le commanditaire : « les roches et les
       // hameaux apparaissent à la fin, d'un coup, ou pas »)
       let delta = S0 && cv === S0.canvas && S0.sigs && !S0.manque && S0.extraCle === extraCle && this.memeCamera(S0.E, E1) ? this.deltaTuiles(S0.sigs, sigs) : null;
-      if (delta) { const dd = this.deltaDecor(S0.sigsD || new Map(), sigsD); if (!dd) delta = null; else { for (const k of dd) if (!delta.includes(k)) delta.push(k); if (delta.length > 14) delta = null; } }
+      if (delta) { const dd = this.deltaDecor(S0.sigsD || new Map(), sigsD); if (!dd) delta = null; else { for (const k of dd) if (!delta.includes(k)) delta.push(k); if (delta.length > 10) delta = null; } }
+      // une retouche qui couvrirait plus de la moitié de l'île coûte plus qu'un repeint (la découpe en plus) : on repeint tout
+      if (delta && delta.length) { const b0 = this.isl.board; let n = 0; for (const k of this.voisinage(delta, 2)) if (b0.tiles.has(k)) n++; if (b0.tiles.size >= 30 && n > 0.6 * b0.tiles.size) delta = null; }
       this._solsManque = false;
       c2.setTransform(dpr, 0, 0, dpr, M * dpr, M * dpr);
       this._stats = this._stats || { retouches: 0, repeints: 0, raisons: {} };

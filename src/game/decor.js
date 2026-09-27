@@ -160,6 +160,11 @@ export class Decor {
     this.version = board.version;
     this.water = classifyWater(board);
     this.bank = this.computeBanks(board);
+    // La construction rejouée (27 septembre) : le décor est composé par région (forêts denses sur les lisières, massifs,
+    // cours des bourgs) et se rebattait à chaque tuile, toute la région avec elle — la retouche des images gardées n'y
+    // pouvait rien. Quand le plateau porte `decorFinal` (le décor de l'île finie), on le reprend tel quel, réduit aux
+    // cases déjà posées : chaque tuile arrive avec ses arbres définitifs, et rien ne bouge autour d'elle.
+    if (board.decorFinal) { const F = board.decorFinal; this.courts = F.courts.filter((c) => board.tiles.has(c.cell)); this.objects = F.objects.filter((o) => !o.cell || board.tiles.has(o.cell)); return; }
     this.courts = [];                       // rempli par generate : les cours suivent le bâti des bourgs
     this.objects = this.generate(board);
   }
