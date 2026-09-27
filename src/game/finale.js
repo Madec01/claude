@@ -12,12 +12,12 @@
 // Il y a eu un tour de cadran (jour, nuit, jour) pendant le recul, d'abord en fondu, puis en fronts qui
 // traversaient l'île, avec des halos au pied des maisons. Le commanditaire l'a trouvé bizarre et l'a
 // fait retirer entièrement (journal 92) : le recul est un recul, rien d'autre.
-import { toWorld, key } from './hex.js';
+import { toWorld, key, TILE_W, TILE_H } from './hex.js';
 import { Board } from './board.js';
 import { STORY } from '../data/story.js';
 import { STAGE } from '../core/stage.js';
 import { Save } from '../core/save.js';
-import { clamp, TAU, rnd } from '../core/math.js';
+import { clamp, TAU, rnd, easeOutBack } from '../core/math.js';
 import { waterBodies } from './water.js';
 import { SEASONS } from '../data/tiles.js';
 import { cadreCarte, habillerCarte, geoCarte, renderPostcard, postcardName } from './postcard.js';
@@ -113,7 +113,7 @@ export class Finale {
     if (this.done) return;
     // sur la carte, aucun toucher ne passe : seuls les boutons (ou Entrée) mènent au récapitulatif
     if (this.phase === 'carte') { if (k === 'Enter' || k === 'NumpadEnter' || k === 'Space') this.finish(); return; }
-    if (this.phase === 'rejouer') { this.finirRejouer(); return; }   // un toucher rend la carte
+    if (this.phase === 'rejouer') { if (this.rj && this.rj.reveil > 0) { this.rj = null; this.entrer('carte'); } else this.finirRejouer(); return; }   // un toucher rend l'île vraie, un second la carte
     if (this.vitesse < 2) { this.vitesse = 2.6; if (this.r.transition) this.r.transitionSpeed *= 2.6; return; }   // le premier toucher presse le pas
     this.entrer('carte');   // le second saute à la carte, qui attend
   }
@@ -200,9 +200,15 @@ export class Finale {
   }
 
   /**
-   * La construction rejouée : un plateau vide prend la place du vrai, et les poses y reviennent une à une, dans
-   * l'ordre, avec leurs saisons — dix secondes pour toute l'île (douze au-delà de quatre-vingts poses), puis la
-   * carte revient. Un toucher passe. La faune n'est pas dessinée : elle n'est pas encore arrivée.
+   * La construction rejouée : le plateau est mis de côté et l'île repart de la mer nue ; chaque tuile TOMBE à sa
+   * place, dans l'ordre des poses, avec ses saisons — dix secondes pour toute l'île (douze au-delà de
+   * quatre-vingts poses). Puis le vrai plateau revient d'un coup, sols fondus, décor et rivières compris, et la
+   * carte suit. Un toucher passe.
+   *
+   * Première version (27 septembre, le matin) : chaque pose entrait dans un plateau et l'île entière était
+   * recomposée à chaque fois — mesuré 40 à 80 ms par pose, sept poses par seconde : « très saccadé » (le
+   * commanditaire). Ici le plateau ne bouge plus pendant le rejeu : les tuiles posées sont des sprites dessinés
+   * par-dessus (`drawTileAt`, quelques dizaines d'images par image), et l'île n'est recomposée qu'une fois, à la fin.
    */
   rejouer() {
     if (this.phase === 'rejouer' || !this.isl.poses || !this.isl.poses.length) return;
@@ -211,28 +217,46 @@ export class Finale {
     this.camA = this.instantane(); this.camB = this.centre;
     const n = this.isl.poses.length; const duree = n > 80 ? 12 : 10;
     this.boardReel = this.isl.board; this.isl.board = new Board(this.boardReel.mask);
-    this.rj = { i: 0, t: -0.6, pas: duree / n, fini: 0 };
+    this.rj = { i: 0, t: -0.6, pas: duree / n, fini: 0, posees: [], par: new Map(), reveil: 0 };
     this.isl.season = this.isl.poses[0].s; this.isl.board.touch();
-    this.r.rejoue = true; this.r.transition = null;
+    this.r.rejoue = true; this.r.transition = null; this.r.nu = false;   // les cases vides se voient : les tuiles tombent sur la forme de l'île, pas sur la mer
   }
   majRejouer(dt) {
-    const rj = this.rj, poses = this.isl.poses, b = this.isl.board;
+    const rj = this.rj, poses = this.isl.poses;
     this.majCamera(doux(clamp(this.stepT / 1.2, 0, 1)));
-    if (rj.i >= poses.length) { rj.fini += dt; if (rj.fini > 1.6) this.finirRejouer(); return; }
+    if (rj.reveil > 0) { rj.reveil += dt; if (rj.reveil > 1.4) { this.rj = null; this.entrer('carte'); } return; }   // l'île vraie est revenue : on la regarde un instant
+    if (rj.i >= poses.length) { rj.fini += dt; if (rj.fini > 1.0) this.finirRejouer(); return; }
     rj.t += dt;
     while (rj.t >= rj.pas && rj.i < poses.length) {
       rj.t -= rj.pas; const p = poses[rj.i++];
       if (p.s !== this.isl.season) { this.r.startTransition(this.isl.season, p.s); this.r.transitionSpeed = 2.2 * this.vitesse; this.isl.season = p.s; this.sc.playSfx('season_sweep', 0.22); }
-      if (p.kind === 'build') { b.tiles.set(key(p.q, p.r), { ...p.t, q: p.q, r: p.r }); b.touch(); } else b.place(p.q, p.r, { ...p.t });
+      const k = key(p.q, p.r); const deja = rj.par.get(k);
+      if (deja) { deja.t = { ...p.t, q: p.q, r: p.r }; deja.pop = this.t; }   // bâti, fusion, croissance : la tuile change sur place, d'un petit sursaut
+      else { const e = { q: p.q, r: p.r, t: { ...p.t, q: p.q, r: p.r }, at: this.t, pop: -1 }; rj.par.set(k, e); rj.posees.push(e); rj.posees.sort((a, c) => (a.r - c.r) || (a.q - c.q)); }
       // un tic discret, jamais plus de six par seconde : la construction s'entend sans couvrir la musique
       if (rj.pas >= 0.16 || rj.i % 2 === 0) this.sc.playSfx(`tile_place_${1 + (rj.i % 4)}`, 0.14);
     }
   }
+  /** Les tuiles du rejeu, dessinées par-dessus la mer nue : celles qui tombent, puis celles qui sont posées. */
+  dessinerRejeu(ctx) {
+    const rj = this.rj; if (!rj || !rj.posees.length) return;
+    const cam = this.cam, z = cam.z;
+    for (const e of rj.posees) {
+      const w = toWorld(e.q, e.r); const c = cam.toScreen(w.x, w.y);
+      if (c.x < -150 || c.x > STAGE.W + 150 || c.y < -220 || c.y > STAGE.H + 160) continue;
+      const a = clamp((this.t - e.at) / 0.55, 0, 1);                       // la chute : d'assez haut, et un rebond à l'arrivée
+      let dy = -(1 - a) * (1 - a) * 170, s = 0.88 + 0.12 * easeOutBack(a), alpha = 0.35 + 0.65 * Math.min(1, a * 2.5);
+      if (e.pop >= 0) { const b = clamp((this.t - e.pop) / 0.4, 0, 1); s *= 1 + 0.12 * Math.sin(b * Math.PI); }   // le sursaut d'un bâti
+      if (a < 1 && this.r.hexShadow) { ctx.save(); ctx.globalAlpha = 0.28 * a; const sw = TILE_W * z, sh = TILE_H * z; ctx.drawImage(this.r.hexShadow, c.x - sw / 2 + 4 * z, c.y - sh / 2 + 10 * z, sw, sh); ctx.restore(); }
+      this.r.drawTileAt(ctx, e.t, c.x, c.y + dy * z, s, alpha);
+    }
+  }
   finirRejouer() {
     if (this.boardReel) { this.isl.board = this.boardReel; this.boardReel = null; }
-    this.r.rejoue = false; this.r.transition = null; this.rj = null;
+    this.r.rejoue = false; this.r.transition = null; this.r.nu = true; this.r._nu0 = this.r.time - 10;   // l'île nue, d'un coup, comme sur la carte
     this.isl.season = this.season0; this.isl.board.touch();
-    this.entrer('carte');
+    if (this.rj && this.phase === 'rejouer') { this.rj.reveil = 0.001; this.rj.posees = []; this.sc.playSfx('region_close', 0.35); return; }   // l'île vraie apparaît, on la laisse respirer avant la carte
+    this.rj = null; this.entrer('carte');
   }
 
   entrerPlan() {
@@ -354,8 +378,9 @@ export class Finale {
   render(ctx) {
     if (this.done) return;
     if (this.phase === 'rejouer') {
+      this.dessinerRejeu(ctx);
       const W = STAGE.W, H = this.hCarte, compact = STAGE.compact; const n = this.isl.poses.length;
-      ctx.save(); ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.globalAlpha = clamp(this.stepT / 0.6, 0, 1);
+      ctx.save(); ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.globalAlpha = clamp(this.stepT / 0.6, 0, 1) * (this.rj && this.rj.reveil > 0 ? Math.max(0, 1 - this.rj.reveil * 2) : 1);
       ctx.font = `700 ${compact ? 13 : 16}px Quicksand, sans-serif`; ctx.lineWidth = 5; ctx.strokeStyle = 'rgba(255,253,248,0.9)'; ctx.fillStyle = '#2b2a26';
       const mot = `La construction · ${Math.min(n, this.rj ? this.rj.i : 0)} / ${n}`;
       ctx.strokeText(mot, W / 2, H - (compact ? 30 : 44)); ctx.fillText(mot, W / 2, H - (compact ? 30 : 44));

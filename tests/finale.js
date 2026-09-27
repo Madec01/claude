@@ -92,7 +92,7 @@ ${(e.stack || '').split('\n').slice(0, 5).join('\n')}`));
     btn.click();
     const t0 = performance.now(); let minTuiles = Infinity, maxAvant = 0;
     const tick = () => {
-      if (f.phase === 'rejouer') { minTuiles = Math.min(minTuiles, sc.isl.board.tiles.size); maxAvant = Math.max(maxAvant, sc.isl.board.tiles.size); }
+      if (f.phase === 'rejouer') { minTuiles = Math.min(minTuiles, sc.isl.board.tiles.size); maxAvant = Math.max(maxAvant, f.rj ? f.rj.par.size : sc.isl.board.tiles.size); }
       if (f.phase === 'carte' && minTuiles < Infinity) return res({ minTuiles, maxAvant, reelles, poses, apres: sc.isl.board.tiles.size, faune: !!sc.renderer.rejoue, boutons: document.querySelectorAll('.carte-actions button').length });
       if (performance.now() - t0 > 30000) return res({ bloque: true, phase: f.phase });
       requestAnimationFrame(tick);
@@ -101,7 +101,7 @@ ${(e.stack || '').split('\n').slice(0, 5).join('\n')}`));
   }));
   check(!rejeu.absent && !rejeu.pasDeBouton && !rejeu.bloque, `la construction se rejoue et rend la carte (${JSON.stringify(rejeu)})`);
   if (!rejeu.bloque && !rejeu.absent && !rejeu.pasDeBouton) {
-    check(rejeu.minTuiles < rejeu.reelles / 3 && rejeu.maxAvant >= rejeu.reelles - 1, `l’île se rebâtit du presque vide (${rejeu.minTuiles}) au complet (${rejeu.maxAvant} / ${rejeu.reelles})`);
+    check(rejeu.minTuiles === 0 && rejeu.maxAvant >= rejeu.reelles - 1, `l’île se rebâtit de la mer nue (${rejeu.minTuiles} tuile au plateau) au complet (${rejeu.maxAvant} / ${rejeu.reelles} tuiles tombées)`);
     check(rejeu.apres === rejeu.reelles && !rejeu.faune && rejeu.boutons === 3, 'le vrai plateau revient, la faune aussi, et les trois boutons');
   }
 
@@ -116,26 +116,6 @@ ${(e.stack || '').split('\n').slice(0, 5).join('\n')}`));
   check(carte.boutons.length === 3 && carte.boutons.some((b) => /Enregistrer/.test(b)) && carte.boutons.some((b) => /récapitulatif/.test(b)) && carte.boutons.some((b) => /Revoir/.test(b)), `la carte porte ses trois boutons (${carte.boutons.join(' / ')})`);
   check(carte.apresToucher === 'carte', 'un toucher sur la carte ne la fait pas passer');
 
-  // --- 2 ter. depuis le bilan, « Revoir la construction » rouvre l'île finie, rejoue, rend la carte, puis le bilan
-  await page.waitForFunction(() => window.CS.scenes.currentName === 'results', null, { timeout: 20000 });
-  const depuisBilan = await page.evaluate(() => new Promise((res) => {
-    const btn = [...document.querySelectorAll('button')].find((b) => /Revoir la construction/.test(b.textContent)); if (!btn) return res({ pasDeBouton: true });
-    btn.click();
-    const t0 = performance.now(); let vuRejouer = false, minTuiles = Infinity;
-    const tick = () => {
-      const sc = window.CS.scenes.current, nom = window.CS.scenes.currentName;
-      if (nom === 'rejeu' && sc.finale && sc.finale.phase === 'rejouer') { vuRejouer = true; minTuiles = Math.min(minTuiles, sc.isl.board.tiles.size); }
-      if (nom === 'rejeu' && sc.finale && sc.finale.phase === 'carte' && vuRejouer) {
-        const voir = [...document.querySelectorAll('.carte-actions button')].find((b) => /récapitulatif/.test(b.textContent)); if (voir) voir.click();
-        setTimeout(() => res({ vuRejouer, minTuiles, retour: window.CS.scenes.currentName, boutonRevenu: !![...document.querySelectorAll('button')].find((b) => /Revoir la construction/.test(b.textContent)), tuiles: sc.isl.board.tiles.size }), 600); return;
-      }
-      if (performance.now() - t0 > 30000) return res({ bloque: true, nom, phase: sc.finale && sc.finale.phase });
-      requestAnimationFrame(tick);
-    };
-    tick();
-  }));
-  check(!depuisBilan.pasDeBouton && !depuisBilan.bloque && depuisBilan.vuRejouer, `le bilan propose « Revoir la construction » et la scène de rejeu tourne (${JSON.stringify(depuisBilan)})`);
-  if (depuisBilan.vuRejouer) check(depuisBilan.minTuiles < 5 && depuisBilan.retour === 'results' && depuisBilan.boutonRevenu, 'l’île se rebâtit depuis le vide, la carte rend le bilan, et le bouton est toujours là');
 
   check(carte.fini && !carte.ui, 'le bouton « Voir le récapitulatif » mène au bilan et retire les boutons');
   const apres = await page.evaluate(() => {
@@ -161,6 +141,29 @@ ${(e.stack || '').split('\n').slice(0, 5).join('\n')}`));
   check(court.court, 'île déjà terminée : version courte');
   check(court.plans.length === 1, `un seul plan en version courte (${court.plans.length})`);
   await page.evaluate(() => { const f = window.CS.scenes.current.finale; if (f) f.finish(); });
+
+  // --- 4 bis. depuis le bilan, « Revoir la construction » rouvre l'île finie : une première réussite menée à sa carte, puis au bilan
+  await preparer(page, 12, {});
+  await page.evaluate(() => new Promise((res) => { const f = window.CS.scenes.current.finale; f.skip(); f.skip(); let n = 0; const tick = () => { if (f.phase === 'carte' && document.querySelector('.carte-actions')) { const voir = [...document.querySelectorAll('.carte-actions button')].find((b) => /récapitulatif/.test(b.textContent)); if (voir) voir.click(); return res(true); } if (++n > 1800) return res(false); requestAnimationFrame(tick); }; tick(); }));
+  await page.waitForFunction(() => window.CS.scenes.currentName === 'results', null, { timeout: 20000 });
+  const depuisBilan = await page.evaluate(() => new Promise((res) => {
+    const btn = [...document.querySelectorAll('button')].find((b) => /Revoir la construction/.test(b.textContent)); if (!btn) return res({ pasDeBouton: true });
+    btn.click();
+    const t0 = performance.now(); let vuRejouer = false, minTuiles = Infinity;
+    const tick = () => {
+      const sc = window.CS.scenes.current, nom = window.CS.scenes.currentName;
+      if (nom === 'rejeu' && sc.finale && sc.finale.phase === 'rejouer') { vuRejouer = true; minTuiles = Math.min(minTuiles, sc.isl.board.tiles.size); }
+      if (nom === 'rejeu' && sc.finale && sc.finale.phase === 'carte' && vuRejouer) {
+        const voir = [...document.querySelectorAll('.carte-actions button')].find((b) => /récapitulatif/.test(b.textContent)); if (voir) voir.click();
+        setTimeout(() => res({ vuRejouer, minTuiles, retour: window.CS.scenes.currentName, boutonRevenu: !![...document.querySelectorAll('button')].find((b) => /Revoir la construction/.test(b.textContent)), tuiles: sc.isl.board.tiles.size }), 600); return;
+      }
+      if (performance.now() - t0 > 30000) return res({ bloque: true, nom, phase: sc.finale && sc.finale.phase });
+      requestAnimationFrame(tick);
+    };
+    tick();
+  }));
+  check(!depuisBilan.pasDeBouton && !depuisBilan.bloque && depuisBilan.vuRejouer, `le bilan propose « Revoir la construction » et la scène de rejeu tourne (${JSON.stringify(depuisBilan)})`);
+  if (depuisBilan.vuRejouer) check(depuisBilan.minTuiles < 5 && depuisBilan.retour === 'results' && depuisBilan.boutonRevenu, 'l’île se rebâtit depuis le vide, la carte rend le bilan, et le bouton est toujours là');
 
   // --- 5. la tournée d'avant est toujours là, et toujours valide
   const vieille = await page.evaluate(async () => {
