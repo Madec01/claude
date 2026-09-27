@@ -2,7 +2,7 @@
 // plante un jalon et prend une note, Déplacer déplace, la partie va au bout et le bilan dit ce que la brume cachait.
 // Usage : node tests/brume.js   (serveur statique sur http://127.0.0.1:8765/) ; SHOTS=dossier pour garder des captures
 const { chromium } = require('/opt/node22/lib/node_modules/playwright');
-const URL = 'http://127.0.0.1:8765/index.html';
+const URL = `http://127.0.0.1:${process.env.PORT || 8765}/index.html`;   // PORT : un autre serveur (un worktree, par exemple)
 const SHOTS = process.env.SHOTS || null;
 const errors = []; const check = (ok, m) => { if (!ok) errors.push(m); console.log(`${ok ? 'OK ' : 'KO '} ${m}`); };
 const boot = (p) => p.waitForFunction(() => !document.getElementById('boot'), null, { timeout: 90000 });
