@@ -114,7 +114,9 @@ for (const n of ILES) {
   const a = [...generateMask(d.seed, d.cells, o)].join(), b = [...generateMask(d.seed, d.cells, { ...o, forme: null })].join(), c = [...generateMask(d.seed, d.cells, { ...o, forme: 'inconnue' })].join();
   check(a === b && a === c, 'sans forme (ou forme inconnue), le masque est celui d’avant');
   const d8 = campaignIsland(8); check(d8.isthme && !d8.forme, 'la campagne ne porte aucune forme : le passage étroit reste une option à part');
-  for (let n = 1; n <= 30; n++) check(!campaignIsland(n).forme, `île ${n} : pas de forme branchée dans la campagne`);
+  // les formes branchées dans la campagne (27 septembre, « go » du commanditaire) : l'archipel sur 14, l'anneau sur 16, l'étoile sur 28 — et rien d'autre
+  const branchees = { 14: 'archipel', 16: 'anneau', 28: 'etoile' };
+  for (let n = 1; n <= 30; n++) check((campaignIsland(n).forme || null) === (branchees[n] || null), `île ${n} : forme ${branchees[n] || 'aucune'} (${campaignIsland(n).forme || 'aucune'})`);
 }
 // --- relier : deux morceaux séparés d'une case sont reliés par une seule case
 {
