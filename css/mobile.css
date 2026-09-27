@@ -327,6 +327,7 @@ html.compact.portrait #hud.brume .qtile { padding: 3px 4px; }
 html.compact.portrait #hud.brume .qtile:not(.current) .qname { display: none; }
 html.compact.portrait #hud.brume .powers { grid-area: powers; align-self: end; }
 html.compact.portrait #hud.brume .pw.brume-move { grid-area: move; flex-direction: column; gap: 0; padding: 3px 7px; }
+html.compact.portrait #hud.brume .pw.brume-lever { grid-area: move; flex-direction: column; gap: 0; padding: 3px 7px; }
 /* la ligne du bas est plus haute : la faune, « Poser ici » et les cartes du tutoriel montent d'autant (--queue-h, mesurée par le HUD) */
 html.compact.portrait #hud.brume .hud-fauna { bottom: calc(var(--queue-h, 190px) + 6px); }
 html.compact.portrait #hud.brume .hud-place { bottom: calc(var(--queue-h, 190px) + 36px); }

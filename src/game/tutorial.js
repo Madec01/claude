@@ -77,7 +77,8 @@ const MODE_STEPS = {
     { id: 'br2', info: true, when: (i) => [...i.board.tiles.values()].some((t) => typeof t.indice === 'number'), done: (i) => i.placements >= 3, text: 'Le chiffre sur la tuile est son indice : combien de ses voisines cachées sont de sa famille (le trésor ne répond à aucun chiffre). Choisir quelle tuile poser contre la brume, c’est choisir ta question.' },
     { id: 'br3', info: true, when: (i) => i.placements >= 2, done: (i) => i.brume && (i.brume.jalons.size >= 1 || i.brume.crayon.size >= 1), timeout: 60, focus: '.brume-jalon', text: 'Touche une case de brume pour ouvrir sa fiche. Le jalon de la saison annonce une famille : juste au dévoilement, +5 et ses bords valent triple ; faux, −5. Le crayon note sans rien coûter.' },
     { id: 'br4', info: true, when: (i) => i.placements >= 4, done: () => false, timeout: 35, focus: '.brume-move', text: 'Déplacer : une tuile déjà posée peut changer de place, au prix de la prochaine tuile. Reposée contre la brume, elle lit un nouvel indice. Une tuile qui touche la brume ne bouge plus.' },
-    { id: 'br5', info: true, when: (i) => i.seasonsPassed.length >= 1, done: () => false, timeout: 40, focus: '.hud-season, .hud-carte', text: 'Passage de saison : les cases cachées assez entourées se dévoilent et comptent comme posées à l’instant, bords doublés. Un trésor se cache parmi elles. À la fin, chaque case restée cachée coûte des points.' },
+    { id: 'br5', info: true, when: (i) => i.passagePret, done: () => false, timeout: 40, focus: '.brume-lever', text: 'Cinquième pose : la saison est finie, et les cases qui vont se dévoiler battent. Rien ne presse : lis les chiffres, plante ton jalon si tu es sûr, puis lève la brume.' },
+    { id: 'br6', info: true, when: (i) => i.seasonsPassed.length >= 1, done: () => false, timeout: 40, focus: '.hud-season, .hud-carte', text: 'Passage de saison : les cases dévoilées comptent comme posées à l’instant, bords doublés. Un trésor se cache parmi elles. À la fin, chaque case restée cachée coûte des points.' },
   ],
 };
 
@@ -88,7 +89,8 @@ export class Tutorial {
     const storyId = def && typeof def === 'object' ? def.story : def;
     const sdef = storyId ? STORY.islands[storyId] : null;
     const mech = def && typeof def === 'object' && def.mech ? def.mech : null;
-    this.guided = enabled && storyId && GUIDED[storyId] ? GUIDED[storyId] : null;
+    // les énigmes de la brume portent leurs propres étapes guidées (data/brume_enigmes.js)
+    this.guided = enabled && storyId && GUIDED[storyId] ? GUIDED[storyId] : enabled && def && typeof def === 'object' && def.enigme && def.enigme.etapes ? def.enigme.etapes : null;
     let steps = [];
     const modeSteps = def && typeof def === 'object' ? (def.tempo ? MODE_STEPS.tempo : def.brume ? MODE_STEPS.brume : null) : null;
     if (modeSteps && enabled) steps = modeSteps.map((st) => ({ ...st }));

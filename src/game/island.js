@@ -51,7 +51,7 @@ export class Island {
     this.harmonieOn = o.harmonie !== undefined ? !!o.harmonie : ((libre && !def.garden) || des('harmonie'));
     const seed = def.seed + (o.seedOffset || 0);
     this.rng = new RNG(seed * 7 + 1);
-    this.board = new Board(generateMask(seed, def.cells, { roughness: def.roughness, holes: def.holes, etire: def.etire || 1 }));
+    this.board = new Board(def.mask ? def.mask : generateMask(seed, def.cells, { roughness: def.roughness, holes: def.holes, etire: def.etire || 1 }));   // `def.mask` : une forme fixée (les énigmes de la brume)
     if (this.climate.linkMax) this.board.linkMax = this.climate.linkMax;
     this.garden = !!def.garden;
     this.infinite = !!def.infinite;
@@ -73,7 +73,7 @@ export class Island {
       // le plan vient du worker (`def.planBrume`, voir brume_worker.js) ou d'une reprise ; sinon il se calcule ici (tests, repli)
       const plan = def.planBrume ? { fog: new Set(def.planBrume.fog), cachees: new Map((def.planBrume.cachees || []).map(([k, t]) => [k, { ...t }])), deduc: def.planBrume.deduc || 0 } : preparerBrume(this.board, cran, seed, def.weights);
       this.board.fog = new Set(plan.fog);
-      this.brume = { cran, cachees: plan.cachees, deduc: plan.deduc, jalons: new Map(), crayon: new Map(), jalonSaison: false, jalonsPoses: 0, contre: 0, devoilees: 0, justes: 0, fausses: 0, tresor: null, depart: plan.fog.size,
+      this.brume = { cran, cachees: plan.cachees, deduc: plan.deduc, jalons: new Map(), crayon: new Map(), jalonSaison: false, jalonsPoses: 0, contre: 0, devoilees: 0, justes: 0, fausses: 0, tresor: null, depart: plan.fog.size, passagePret: false,
         // le tirage de saison : la chance de bonus (bouge à chaque coup), la carte en cours, l'état de la saison, les marques de la Lanterne
         ratio: TIRAGE.depart, carte: null, saison: saisonNeuve(), marques: new Map(), posesSaison: [], rngCartes: new RNG(seed * 13 + 5) };
       for (const k of ['buildOn', 'growOn', 'fuseOn', 'level3On', 'harmonieOn']) this[k] = false;
@@ -177,7 +177,7 @@ export class Island {
     return preview(this.board, q, r, tile, this.season, this.mods);
   }
 
-  canPlace(q, r) { return !this.ended && !!this.current && this.board.canPlace(q, r) && (!this.restrict || this.restrict.has(key(q, r))); }
+  canPlace(q, r) { return !this.ended && !!this.current && !this.passagePret && this.board.canPlace(q, r) && (!this.restrict || this.restrict.has(key(q, r))); }
 
   // ---- Bâtir, fusionner, remettre en état : des actions sur une tuile posée, payées en souffles, sans tuile ----
   /**
@@ -288,7 +288,7 @@ export class Island {
 
   /** Pose la tuile courante. */
   place(q, r, tileOverride = null) {
-    if (this.ended) return null;
+    if (this.ended || this.passagePret) return null;   // sous la brume, entre la dernière pose de la saison et « Lever la brume », aucune pose
     const tile = tileOverride || this.current;
     if (!tile || !this.board.canPlace(q, r) || (this.restrict && !this.restrict.has(key(q, r)))) return null;
     this.pushHistory();
@@ -317,7 +317,7 @@ export class Island {
     this.checkWishes();
     // rappel : dix poses avant l'échéance d'un vœu encore ouvert
     for (const w of this.wishes) { const dl = w.def.deadline; if (w.status === 'open' && dl && dl.placements && dl.placements - this.placements === 10) this.emit({ type: 'wish', kind: 'soon', wish: w, left: 10 }); }
-    if (!this.garden && this.inSeason >= this.seasonLength) this.advanceSeason();
+    if (!this.garden && this.inSeason >= this.seasonLength) { if (this.brume) this.preparerPassage(); else this.advanceSeason(); }   // sous la brume, le passage attend « Lever la brume »
     if (this.infinite && this.placements % BALANCE.infinite.growEvery === 0 && this.board.cells < BALANCE.infinite.maxCells) {
       const added = this.board.grow(BALANCE.infinite.growCells, this.rng);
       this.fillEnclosedHoles();   // la bordure neuve peut cerner une case : elle devient une mare, pas un trou
@@ -573,7 +573,7 @@ export class Island {
   pick(i) { if (!this.canPick(i) || !this.queue.swap(i)) return false; this.emit({ type: 'pick', i }); return true; }
   /** Défausser : coûte des souffles, sauf pour un ouvrage (gratuit : on ne bloque jamais la file). */
   discardCost() { return BALANCE.breaths.discard; }
-  canDiscard() { return this.queue.list.length > 0 && this.breaths >= this.discardCost(); }
+  canDiscard() { return this.queue.list.length > 0 && this.breaths >= this.discardCost() && !this.passagePret; }
   discard() { if (!this.canDiscard()) return false; this.breaths -= this.discardCost(); const t = this.queue.discard(); this.emit({ type: 'breath', kind: 'discard', tile: t }); this.checkEnd(); return true; }
 
   canUndo() { return !this.brume && this.history.length > 0 && this.breaths >= this.undoCost && !this.undoUsedThisSeason; }
@@ -603,6 +603,31 @@ export class Island {
 
   /** Cases cachées voisines de (q, r). */
   fogAround(q, r) { return neighbors(q, r).filter(([a, b]) => this.board.fog.has(key(a, b))); }
+  /** Sous la brume, la saison est finie et le passage attend « Lever la brume » : on observe, on plante, on note ; on ne pose pas. */
+  get passagePret() { return !!(this.brume && this.brume.passagePret); }
+  /** Les cases cachées qui se dévoileront au passage : assez de voisines posées pour le seuil de la saison. */
+  casesPretes() {
+    const B = this.brume; if (!B || !this.board.fog.size) return [];
+    const seuil = this.seuilDevoile();
+    return [...this.board.fog].filter((k) => { const [q, r] = parse(k); return neighbors(q, r).filter(([a, b]) => this.board.tiles.has(key(a, b))).length >= seuil; }).sort();
+  }
+  /**
+   * La dernière pose de la saison ne lève pas la brume : l'île passe en « passage prêt » (B-F). Les cases qui vont se
+   * dévoiler battent, le jalon et le crayon restent ouverts, aucune pose n'est possible, et le dernier indice sert
+   * enfin à quelque chose. `leverBrume()` fait le passage. Sans plus rien de caché, le passage se fait tout de suite.
+   */
+  preparerPassage() {
+    const B = this.brume; if (!B) return;
+    if (!this.board.fog.size) { this.advanceSeason(); return; }
+    B.passagePret = true; this.board.touch();
+    this.emit({ type: 'brume', kind: 'passagePret', prets: this.casesPretes() });
+  }
+  /** « Lever la brume » : le passage de saison, avec ses dévoilements. */
+  leverBrume() {
+    const B = this.brume; if (!B || !B.passagePret || this.ended) return false;
+    B.passagePret = false; this.advanceSeason(); this.checkEnd();
+    return true;
+  }
 
   /**
    * La tuile posée en (q, r) touche la brume : elle lit son indice, combien de ses voisines cachées sont de sa famille.
@@ -662,7 +687,7 @@ export class Island {
   /** Peut-on déplacer la tuile de (q, r) ? Pas une tuile de départ, dévoilée, en friche, ni engagée contre la brume. */
   canMove(q, r) {
     const t = this.board.get(q, r);
-    return !!this.brume && !this.ended && !!t && !t.start && !t.devoilee && !t.blighted && !this.fogAround(q, r).length && (this.queue.list.length > 0 || this.brume.saison.gratuits > 0);
+    return !!this.brume && !this.ended && !this.passagePret && !!t && !t.start && !t.devoilee && !t.blighted && !this.fogAround(q, r).length && (this.queue.list.length > 0 || this.brume.saison.gratuits > 0);
   }
   /** Où la tuile de (q, r) peut aller (la case d'origine, libérée, n'en fait pas partie). */
   moveTargets(q, r) {
@@ -700,7 +725,7 @@ export class Island {
     this.emit({ type: 'brume', kind: 'move', from: { q, r }, q: tq, r: tr, tile: this.board.get(tq, tr), result: res, lost: perdue });
     for (const c of res.closes) this.emit({ type: 'close', ...c, breath: BALANCE.breaths.close });
     this.updateFauna();
-    if (this.inSeason >= this.seasonLength) this.advanceSeason();
+    if (this.inSeason >= this.seasonLength) this.preparerPassage();
     this.checkEnd();
     return res;
   }
@@ -722,8 +747,7 @@ export class Island {
   seuilDevoile() { const B = this.brume; return Math.max(1, B.cran.devoile + (B.saison.devoileDelta || 0)); }
   devoiler(fin = false, seulement = null) {
     const B = this.brume; if (!B || !this.board.fog.size) return [];
-    const seuil = this.seuilDevoile();
-    const prets = seulement ? seulement.filter((k) => this.board.fog.has(k)) : [...this.board.fog].filter((k) => { const [q, r] = parse(k); return neighbors(q, r).filter(([a, b]) => this.board.tiles.has(key(a, b))).length >= seuil; }).sort();
+    const prets = seulement ? seulement.filter((k) => this.board.fog.has(k)) : this.casesPretes();
     const out = []; let pts = 0;
     for (const k of prets) {
       const [q, r] = parse(k); const cachee = B.cachees.get(k); const jalon = B.jalons.get(k);
@@ -857,7 +881,7 @@ export class Island {
   serializeBrume() {
     const B = this.brume;
     return { cran: B.cran.id, cachees: [...B.cachees.entries()].map(([k, t]) => [k, { ...t }]), jalons: [...B.jalons.entries()], crayon: [...B.crayon.entries()],
-      jalonSaison: B.jalonSaison, jalonsPoses: B.jalonsPoses, contre: B.contre, devoilees: B.devoilees, justes: B.justes, fausses: B.fausses, tresor: B.tresor, depart: B.depart, deduc: B.deduc,
+      jalonSaison: B.jalonSaison, jalonsPoses: B.jalonsPoses, contre: B.contre, devoilees: B.devoilees, justes: B.justes, fausses: B.fausses, tresor: B.tresor, depart: B.depart, deduc: B.deduc, passagePret: !!B.passagePret,
       ratio: B.ratio, carte: B.carte, saison: { ...B.saison }, marques: [...B.marques.entries()], posesSaison: [...B.posesSaison], rngCartes: B.rngCartes.s,
       // la portée de chaque indice lu (les clés cachées à la lecture) : sans elle, une reprise afficherait un chiffre faux
       portees: [...this.board.tiles.values()].filter((t) => t.portee).map((t) => [key(t.q, t.r), [...t.portee]]) };
@@ -865,7 +889,7 @@ export class Island {
   restoreBrume(s) {
     const B = this.brume;
     B.cachees = new Map(s.cachees.map(([k, t]) => [k, { ...t }])); B.jalons = new Map(s.jalons || []); B.crayon = new Map(s.crayon || []);
-    Object.assign(B, { jalonSaison: !!s.jalonSaison, jalonsPoses: s.jalonsPoses || 0, contre: s.contre || 0, devoilees: s.devoilees || 0, justes: s.justes || 0, fausses: s.fausses || 0, tresor: s.tresor || null, depart: s.depart || B.depart, deduc: s.deduc ?? B.deduc,
+    Object.assign(B, { jalonSaison: !!s.jalonSaison, jalonsPoses: s.jalonsPoses || 0, contre: s.contre || 0, devoilees: s.devoilees || 0, justes: s.justes || 0, fausses: s.fausses || 0, tresor: s.tresor || null, depart: s.depart || B.depart, deduc: s.deduc ?? B.deduc, passagePret: !!s.passagePret,
       ratio: s.ratio ?? TIRAGE.depart, carte: s.carte || null, saison: { ...saisonNeuve(), ...(s.saison || {}) }, marques: new Map(s.marques || []), posesSaison: [...(s.posesSaison || [])] });
     if (s.rngCartes !== undefined) B.rngCartes.s = s.rngCartes;
     for (const [k, p] of s.portees || []) { const t = this.board.tiles.get(k); if (t) t.portee = [...p]; }
@@ -873,7 +897,7 @@ export class Island {
   }
 
   checkEnd() {
-    if (this.ended) return;
+    if (this.ended || this.passagePret) return;   // passage prêt : la fin, comme le passage, attend « Lever la brume »
     const noTile = this.queue.empty;
     const noMove = this.board.legalCells().length === 0;
     const fini = !!(this.def.maxPoses && this.placements + (this.stats.lost || 0) >= this.def.maxPoses);   // l'entraînement du Souffle court : dix-huit tuiles, puis le bilan

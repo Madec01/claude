@@ -11,7 +11,8 @@ import { SceneManager, wait } from './core/scenes.js';
 import { ParticleSystem } from './core/particles.js';
 import { Shake } from './core/shake.js';
 import { Island } from './game/island.js';
-import { brumeDef, CARTES } from './game/brume.js';
+import { brumeDef, CARTES, porteeCachee, indiceActuel } from './game/brume.js';
+import { brumeEnigme } from './data/brume_enigmes.js';
 import { buildBrumeChoice, buildBrumePicker } from './ui/brume.js';
 import { IslandRenderer } from './game/render.js';
 import { Camera } from './game/camera.js';
@@ -353,6 +354,7 @@ const Game = {
   /** De quoi retrouver l'île plus tard : le strict nécessaire pour la reconstruire à l'identique. */
   whereOf(def) {
     if (!def) return null;
+    if (def.enigme) return null;   // une énigme de la brume ne se reprend pas : elle se rejoue
     if (def.brume) return { kind: 'brume', cran: def.brume, seed: def.seed };
     if (def.garden) return { kind: 'garden' };
     if (def.infinite) return { kind: 'infinite' };
@@ -406,9 +408,12 @@ const Game = {
       AudioSys.play('ui_confirm', { volume: 0.5 });
       const def = brumeDef(cran, 1 + Math.floor(Math.random() * 999999)); def.tuto = !!tuto;
       // la brume se prépare hors du fil principal ; le panneau attend (sa fiche dit « la brume se forme »)
-      return this.preparerBrume(def).then((plan) => { if (plan) def.planBrume = plan; hideUI(); scenes.go('island', { def }, { fade: 0.5 }); });
+      // avec le tutoriel, la partie s'ouvre sur la mini-énigme (une vraie déduction, guidée) ; la vraie île vient après
+      return this.preparerBrume(def).then((plan) => { if (plan) def.planBrume = plan; hideUI(); if (tuto) { const en = brumeEnigme(1); en.suite = def; scenes.go('island', { def: en }, { fade: 0.5 }); } else scenes.go('island', { def }, { fade: 0.5 }); });
     }, onBack: () => this.showMenu() }) });
   },
+  /** L'énigme est résolue et expliquée : la vraie île, avec son tutoriel pas à pas. */
+  apresEnigme(def) { hideUI(); scenes.go('island', { def: def.suite || brumeDef('claire', 1 + Math.floor(Math.random() * 999999)) }, { fade: 0.6 }); },
   /**
    * Sous la brume : le plan de l'île (brume, tuiles cachées, dosage) se calcule dans un worker, parce que le solveur
    * prend des secondes. Sans worker, ou s'il échoue ou tarde, on rend `null` et l'île se prépare sur place.
@@ -657,6 +662,7 @@ class IslandScene {
       onAction: (i) => this.doAction(i),
       onActionHover: (i) => { if (this.armed && this.armed.build) this.armed.i = i; },
       onMove: () => this.toggleMove(),
+      onLever: () => this.leverBrume(),
       compact: STAGE.compact,
     });
     document.getElementById('hud').classList.add('on');
@@ -671,7 +677,7 @@ class IslandScene {
     if (isl.wishes.length && !def.garden && !skipWishes && !this.resumed) { this.hold = true; showUI(buildWishesIntro({ island: isl, onStart: () => { hideUI(); this.hold = false; AudioSys.play('ui_confirm', { volume: 0.5 }); } }), 'panel-wrap'); }
     document.getElementById('tutorial').classList.add('on');
     isl.on((e) => this.onEvent(e));
-    isl.on((e) => { if (!Game.testMode && !def.tempo) Achievements.onIslandEvent(e, isl); });
+    isl.on((e) => { if (!Game.testMode && !def.tempo && !def.enigme) Achievements.onIslandEvent(e, isl); });   // une énigme de la brume est une leçon : pas de succès
     // Le Souffle court : le cadran, la série et les saisons à effets ; la brume d'automne est lue par le rendu
     // le HUD sait dans quel mode il est : au téléphone, la brume range son inventaire au-dessus des tuiles
     if (isl.brume) { document.getElementById('hud').classList.add('brume'); document.getElementById('tutorial').classList.add('brume'); }
@@ -749,7 +755,7 @@ class IslandScene {
   /** Range la partie en cours (appareil seulement, jamais en ligne). */
   saveRun(now = false) {
     const isl = this.isl;
-    if (!isl || isl.ended || this.finished || this.finale || Game.testMode || this.def.tempo) return;
+    if (!isl || isl.ended || this.finished || this.finale || Game.testMode || this.def.tempo || this.def.enigme) return;
     if (!now && !this.runDirty) return;
     this.runDirty = false; this.runTimer = 0;
     RunSave.write(Game.whereOf(this.def), isl, this.title);
@@ -1048,7 +1054,12 @@ class IslandScene {
    */
   tapBrume(q, r, immediat) {
     const isl = this.isl, k = key(q, r);
+    const pd = this.renderer.porteeDe; if (pd && !(pd.q === q && pd.r === r)) this.renderer.porteeDe = null;   // un autre geste efface la portée montrée
     if (isl.board.fog.has(k)) { this.armed = null; this.hud.setPlaceButton(null); this.openBrumeCase(q, r); return true; }
+    // toucher une tuile qui porte un indice cerne sa portée encore cachée et dit ce que son chiffre compte — jamais de points (B-E)
+    if (!this.moving) { const t = isl.board.get(q, r); if (t && (typeof t.indice === 'number' || t.muette) && porteeCachee(isl.board, t).length) { this.montrerPortee(q, r); return true; } }
+    // passage prêt : la saison est finie, on ne pose plus avant d'avoir levé la brume
+    if (isl.passagePret && !this.moving && isl.board.canPlace(q, r)) { this.armed = null; this.hud.setPlaceButton(null); AudioSys.play('tile_invalid', { volume: 0.5 }); this.hud.notify('La saison est finie : observe, plante ton jalon, puis lève la brume (le bouton en bas)', 'warn'); return true; }
     if (!this.moving) return false;
     const from = this.renderer.moveFrom;
     const t = isl.board.get(q, r);
@@ -1064,6 +1075,30 @@ class IslandScene {
     if (immediat || (this.armed && this.armed.move && this.armed.q === q && this.armed.r === r)) { this.armed = null; this.doMove(q, r); return true; }
     this.armed = { q, r, move: true }; AudioSys.play('tile_hover', { volume: 0.3 });
     return true;
+  }
+  /** La portée d'un chiffre : les cases qu'il compte, cernées, et une ligne « Parmi ces 2 cases cachées : 1 forêt ». Un second toucher l'efface. */
+  montrerPortee(q, r) {
+    const isl = this.isl, t = isl.board.get(q, r); const pd = this.renderer.porteeDe;
+    if (pd && pd.q === q && pd.r === r) { this.renderer.porteeDe = null; return ''; }
+    this.renderer.porteeDe = { q, r }; this.armed = null; this.hud.setPlaceButton(null);
+    const texte = this.textePortee(t);
+    this.hud.notify(texte, 'info'); AudioSys.play('tile_hover', { volume: 0.3 });
+    return texte;
+  }
+  textePortee(t) {
+    const isl = this.isl; const cases = porteeCachee(isl.board, t); const n = cases.length;
+    const ou = `Parmi ${n > 1 ? `ces ${n} cases cachées` : 'cette case cachée'}`;
+    if (t.muette) return `${ou} : cette tuile est restée muette`;
+    const c = indiceActuel(isl.board, isl.brume.cachees, t); const nom = ((STORY.tiles[t.family] || {}).name || t.family).toLowerCase();
+    const pl = c > 1 ? (/eau$/.test(nom) ? `${nom}x` : /[sx]$/.test(nom) ? nom : `${nom}s`) : nom;
+    return `${ou} : ${c} ${pl}`;
+  }
+  /** « Lever la brume » : le passage de saison attendait ce geste. */
+  leverBrume() {
+    if (!this.isl || !this.isl.brume || this.paused || this.hold) return false;
+    this.renderer.porteeDe = null;
+    if (!this.isl.leverBrume()) return false;
+    AudioSys.play('ui_confirm', { volume: 0.5 }); return true;
   }
   setMoveFrom(c) { this.renderer.moveFrom = c; this.renderer.moveTargets = c ? this.isl.moveTargets(c.q, c.r) : null; this.armed = null; this.hud.setPlaceButton(null); }
   toggleMove(force) {
@@ -1147,6 +1182,11 @@ class IslandScene {
       this.hud.notify(`Jalon planté : ${nom(e.famille)}`, 'info');
     } else if (e.kind === 'jalonManque') {
       this.hud.notify(`Pas de jalon cette saison : ${e.pts}`, 'warn');
+    } else if (e.kind === 'passagePret') {
+      // la saison est finie : les cases prêtes battent, le bouton apparaît ; on observe avant de lever la brume
+      this.armed = null; this.hud.setPlaceButton(null); if (this.moving) this.toggleMove(false);
+      AudioSys.play('ui_open', { volume: 0.4 });
+      this.hud.notify(e.prets.length ? `Saison finie : ${e.prets.length} case${e.prets.length > 1 ? 's' : ''} va${e.prets.length > 1 ? 'ont' : ''} se dévoiler. Observe, plante ton jalon, puis lève la brume` : 'Saison finie : aucune case n’est assez entourée pour se dévoiler. Lève la brume pour continuer', 'special');
     } else if (e.kind === 'move') {
       const w = toWorld(e.q, e.r); fx.drop(key(e.q, e.r)); fx.placeBurst(w.x, w.y, e.result.total > 0);
       AudioSys.play(`tile_place_${1 + Math.floor(Math.random() * 4)}`, { volume: 0.7 });
@@ -1214,6 +1254,11 @@ class IslandScene {
     this.cam.update(dt);
     // sous une carte du tutoriel, le temps s'arrête : on lit, puis on joue (le tutoriel se met à jour d'abord, pour qu'une carte qui apparaît arrête le temps dans la même image)
     this.tutorial.update(dt);
+    if (this.def.enigme) {
+      // une carte de l'énigme peut demander toutes les portées cernées ; l'énigme finie et expliquée, la vraie île
+      this.renderer.porteesToutes = !!(this.tutorial.current && this.tutorial.current.step.porteesToutes);
+      if (this.tutorial.doneAll && !this.enigmeFinie) { this.enigmeFinie = true; Game.apresEnigme(this.def); input.endFrame(); return; }
+    }
     const tutoTient = this.tutoTient();
     if (this.tempo && !this.hold && !tutoTient && !isl.ended) { this.tempo.update(dt); this.hud.setTempo(this.tempo); }
     if (this.tempo && !isl.ended) {

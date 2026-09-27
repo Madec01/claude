@@ -106,14 +106,14 @@ Règles communes à chaque lot, tirées de `CLAUDE.md` :
 
 ### 2 · Découverte : lire un indice, faire une vraie déduction une fois
 
-**B-E · Montrer la portée du chiffre** · effort : petit à moyen · dépendances : B-A.1 · statut : **à faire**
+**B-E · Montrer la portée du chiffre** · effort : petit à moyen · dépendances : B-A.1 · statut : **fait**
 - Ce qu'on fait :
   - Toucher une tuile qui porte un indice (`tapBrume`, `main.js`) cerne les cases de sa portée encore cachées (`drawBrume`).
   - Une ligne dit : « Parmi ces 2 cases cachées : 1 forêt ».
   - Aucun point n'est montré.
 - Test (`tests/brume.js`) : toucher une tuile à indice cerne exactement `portee ∩ brume`, et la ligne donne le même chiffre que la pastille.
 
-**B-F · Observer avant de lever la brume** · effort : moyen · dépendances : B-A.1 · statut : **à faire**
+**B-F · Observer avant de lever la brume** · effort : moyen · dépendances : B-A.1 · statut : **fait**
 - Ce qu'on fait :
   - Sous la brume, la dernière pose de la saison n'appelle plus `advanceSeason`. L'île passe en « passage prêt » : les cases qui vont se dévoiler battent doucement, et le jalon et le crayon restent ouverts.
   - Aucune pose n'est possible dans cet état.
@@ -124,7 +124,7 @@ Règles communes à chaque lot, tirées de `CLAUDE.md` :
   - `tests/brume.test.js` : après cinq poses, rien n'est dévoilé ; `planterJalon` marche ; `place` refuse ; `leverBrume` dévoile ; la reprise garde l'état ;
   - `tests/brume.js` : le bouton apparaît et le toucher dévoile.
 
-**B-H · Une mini-énigme guidée en tête du tutoriel** · effort : moyen · dépendances : B-A.1, B-E ; B-F utile · statut : **à faire**
+**B-H · Une mini-énigme guidée en tête du tutoriel** · effort : moyen · dépendances : B-A.1, B-E ; B-F utile · statut : **fait**
 - Ce qu'on fait :
   - Une petite île préparée, `brumeEnigme(id)` dans un nouveau `src/data/brume_enigmes.js`. Elle a trois cases cachées, un plan fixé par `planBrume` et une main fixée par `opening`.
   - Deux poses imposées donnent deux indices croisés. Avec l'indice par famille actuel : une forêt voit A et B et dit « 1 » ; une forêt voit B et C et dit « 0 ». Donc A est la forêt.

@@ -405,6 +405,9 @@ html.compact .tempo-chrono .tc-cadre { width: 170px; height: 11px; }
 .brume-jalon.due { color: #8a6fb5; }
 .pw.brume-move { flex-direction: row; justify-content: center; gap: 6px; }
 .pw.brume-move.on { border-color: #2f7f74; background: rgba(47,127,116,0.14); }
+/* passage prêt : le bouton qui lève la brume bat au rythme des cases prêtes */
+.pw.brume-lever { flex-direction: row; justify-content: center; gap: 6px; border-color: #8a6fb5; background: rgba(138,111,181,0.14); color: #5e4b85; animation: brume-lever 1.6s ease-in-out infinite alternate; }
+@keyframes brume-lever { from { box-shadow: 0 0 0 0 rgba(138,111,181,0.35); } to { box-shadow: 0 0 0 5px rgba(138,111,181,0); } }
 .panel-brume .brume-regles { margin: 8px 0 12px; padding-left: 18px; font-size: 14px; line-height: 1.45; }
 .brume-crans { display: flex; gap: 14px; flex-wrap: wrap; }
 .brume-cran { flex: 1 1 240px; display: flex; flex-direction: column; gap: 6px; }

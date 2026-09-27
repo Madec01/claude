@@ -4,16 +4,19 @@ import { Island } from '../src/game/island.js';
 import { Board } from '../src/game/board.js';
 import { brumeDef, CRANS, P, pts, possibles, inventaire, indice, compte, indiceActuel, porteeCachee, CARTES, CARTE_PAR_ID, TIRAGE, tirerCarte, COULEURS } from '../src/game/brume.js';
 import { RNG } from '../src/core/math.js';
+import { ENIGMES, brumeEnigme } from '../src/data/brume_enigmes.js';
 import { key, parse, neighbors } from '../src/game/hex.js';
 
 let failures = 0;
 const check = (cond, msg) => { if (!cond) { failures++; console.error('ÉCHEC :', msg); } };
 const fogKeys = (isl) => [...isl.board.fog].sort();
 
-// Joueur glouton déterministe : la meilleure case pour la meilleure tuile de la main.
+// Joueur glouton déterministe : la meilleure case pour la meilleure tuile de la main. Quand le passage est prêt
+// (dernière pose de la saison), il lève la brume — ce que le bouton du HUD fait pour le joueur.
 function joue(isl, k = Infinity) {
   let n = 0;
   while (n < k && !isl.ended) {
+    if (isl.passagePret) { isl.leverBrume(); continue; }
     let best = null;
     isl.queue.list.forEach((t, i) => { for (const c of isl.board.legalCells()) { const p = isl.preview(c.q, c.r, t); if (p && (!best || p.total > best.v)) best = { i, c, v: p.total }; } });
     if (!best) { isl.checkEnd(); break; }
@@ -164,7 +167,7 @@ for (const cran of ['claire', 'epaisse']) {
     if (isl.fogAround(c.q, c.r).length && (!t || t.family !== fam)) bouge++;
     if (t && t.family === fam && isl.fogAround(c.q, c.r).length) restees++;
     // et une tuile libre de la brume, elle, glisse encore
-    const j = new Island(brumeDef('claire', seed)); joue(j, 5);   // une saison est passée : une carte est tirée, on la remplace
+    const j = new Island(brumeDef('claire', seed)); joue(j, 5); j.leverBrume();   // une saison est passée : une carte est tirée, on la remplace
     j.appliquerCarte('ventContraire'); j.brume.posesSaison = [];
     const cl = j.board.legalCells().find((c) => !j.fogAround(c.q, c.r).length && neighbors(c.q, c.r).some(([a, b]) => j.board.isEmpty(a, b)));
     if (cl) { j.place(cl.q, cl.r); const e2 = []; j.on((e) => { if (e.type === 'brume' && e.kind === 'vent') e2.push(e); }); j.passageBrume(); if (e2.length) libresBougees++; }
@@ -260,10 +263,10 @@ for (const cran of ['claire', 'epaisse']) {
 {
   const isl = new Island(brumeDef('epaisse', 5));
   let manques = 0; isl.on((e) => { if (e.type === 'brume' && e.kind === 'jalonManque') manques++; });
-  joue(isl, 5);
+  joue(isl, 5); isl.leverBrume();
   check(manques === 1 && isl.tally.brume <= P.jalonManque, 'épaisse : une saison sans jalon coûte −3');
   const c = new Island(brumeDef('claire', 5)); let m2 = 0; c.on((e) => { if (e.type === 'brume' && e.kind === 'jalonManque') m2++; });
-  joue(c, 5); check(m2 === 0, 'claire : le jalon est facultatif');
+  joue(c, 5); c.leverBrume(); check(m2 === 0, 'claire : le jalon est facultatif');
 }
 
 // --- le crayon ne change rien au score
@@ -339,7 +342,7 @@ for (const cran of ['claire', 'epaisse']) {
   check(B.ratio === TIRAGE.depart && B.carte === null, 'première saison : 50 / 50, pas de carte');
   joue(isl, 4);
   check(B.ratio >= TIRAGE.min && B.ratio <= TIRAGE.max && B.ratio !== TIRAGE.depart, `la chance a bougé (${B.ratio.toFixed(2)})`);
-  joue(isl, 1);
+  joue(isl, 1); isl.leverBrume();
   check(isl.seasonsPassed.length === 1 && !!B.carte && !!CARTE_PAR_ID[B.carte.id], `au passage de saison, une carte est tirée (${B.carte && B.carte.nom})`);
   // les effets, un à un, sur une île fraîche
   const eff = (id) => { const i = new Island(brumeDef('claire', 4)); i.appliquerCarte(id); return i; };
@@ -358,6 +361,62 @@ for (const cran of ['claire', 'epaisse']) {
   { const i = eff('deplacementOffert'); joue(i, 3); const libre = [...i.board.tiles.values()].find((t) => !t.start && !i.fogAround(t.q, t.r).length); if (libre) { const c = i.moveTargets(libre.q, libre.r)[0]; const reste = i.queue.remaining; if (c) { i.move(libre.q, libre.r, c.q, c.r); check(i.queue.remaining === reste, 'Déplacement offert : la tuile suivante n’est pas perdue'); } } }
   // sauvegarde : le tirage revient tel quel
   { const i = new Island(brumeDef('claire', 5)); joue(i, 5); const j = new Island(brumeDef('claire', 5)); j.restoreRun(i.serialize()); check(j.brume.ratio === i.brume.ratio && JSON.stringify(j.brume.carte) === JSON.stringify(i.brume.carte) && JSON.stringify(j.brume.saison) === JSON.stringify(i.brume.saison), 'le tirage se sauvegarde et se reprend'); }
+}
+
+// --- B-F : observer avant de lever la brume. La dernière pose de la saison ne dévoile rien : le passage attend « Lever la brume ».
+{
+  const isl = new Island(brumeDef('claire', 7)); const ev = [];
+  isl.on((e) => { if (e.type === 'brume' && (e.kind === 'reveal' || e.kind === 'passagePret')) ev.push(e); });
+  const depart = isl.board.fog.size;
+  joue(isl, 4); check(!isl.passagePret && isl.inSeason === 4, 'quatre poses : la saison court');
+  joue(isl, 1);
+  const pret = ev.find((e) => e.kind === 'passagePret');
+  check(isl.passagePret && isl.seasonsPassed.length === 0 && !!pret && !ev.some((e) => e.kind === 'reveal') && isl.board.fog.size === depart, 'après cinq poses, rien n’est dévoilé : le passage est prêt');
+  const prets = isl.casesPretes();
+  check(prets.length > 0 && prets.join() === pret.prets.join(), `les cases qui vont se dévoiler sont annoncées (${prets.length})`);
+  // le dernier indice sert : la cinquième tuile, contre la brume, a son chiffre avant le dévoilement
+  const derniere = isl.board.get(...parse(isl.brume.posesSaison[isl.brume.posesSaison.length - 1]));
+  if (isl.fogAround(derniere.q, derniere.r).length) check(typeof derniere.indice === 'number', 'le dernier indice de la saison se lit avant que la brume se lève');
+  const libre = isl.board.legalCells()[0];
+  check(!!libre && !isl.canPlace(libre.q, libre.r) && isl.place(libre.q, libre.r) === null && isl.placements === 5, 'aucune pose possible');
+  check(!isl.canDiscard() && [...isl.board.tiles.values()].every((t) => !isl.canMove(t.q, t.r)), 'ni défausse ni déplacement');
+  const kj = prets[0]; const fam = isl.brume.cachees.get(kj).family;
+  check(isl.planterJalon(...parse(kj), fam) && isl.noter(...parse(prets[prets.length - 1]), 'water'), 'le jalon et le crayon restent ouverts');
+  // la reprise garde l'état
+  const sv = JSON.parse(JSON.stringify(isl.serialize())); const b = new Island(brumeDef('claire', 7)); b.restoreRun(sv);
+  check(b.passagePret && b.casesPretes().join() === prets.join() && !b.canPlace(libre.q, libre.r) && b.brume.jalons.get(kj) === fam, 'la reprise garde le passage prêt, ses cases et le jalon');
+  // lever la brume : le passage, avec ses dévoilements
+  const s0 = isl.score;
+  check(isl.leverBrume() && !isl.passagePret && isl.seasonsPassed.length === 1, 'Lever la brume fait le passage');
+  const rev = ev.find((e) => e.kind === 'reveal');
+  check(!!rev && rev.cells.map((c) => key(c.q, c.r)).sort().join() === prets.join() && rev.cells.find((c) => key(c.q, c.r) === kj).juste === true && isl.score > s0, 'les cases annoncées se dévoilent, le jalon est jugé');
+  check(!isl.leverBrume() && b.leverBrume() && b.seasonsPassed.length === 1, 'on ne lève pas deux fois ; la partie reprise se lève aussi');
+  check(isl.canPlace(libre.q, libre.r) || isl.board.get(libre.q, libre.r), 'la saison suivante, on pose de nouveau');
+  joue(isl); check(isl.ended, 'la partie va au bout');
+  // sans plus rien de caché, le passage se fait tout seul
+  const j = new Island(brumeDef('claire', 8)); joue(j, 3); while (j.board.fog.size) { j.brume.saison.longueVue = true; j.longueVue(...parse([...j.board.fog][0])); }
+  joue(j, 2); check(!j.passagePret && j.seasonsPassed.length === 1, 'plus rien de caché : la saison passe sans attendre');
+}
+
+// --- B-H : les énigmes. Pour chacune, le solveur ne tranche la case visée qu'après les deux indices, jamais avant.
+for (const e of ENIGMES) {
+  const def = brumeEnigme(e.id); const isl = new Island(def);
+  check(!!isl.brume && isl.board.fog.size === Object.keys(e.cachees).length && isl.board.tiles.size === e.start.length, `énigme ${e.id} : la forme, les tuiles de départ et les cases cachées sont celles du plan`);
+  check(isl.queue.list.every((t) => t.family === e.opening[0]), `énigme ${e.id} : la main est fixée`);
+  const cases = [...isl.board.fog].sort(); const inv = isl.inventaireBrume; const contraintes = [];
+  check(possibles(cases, inv, [], CRANS.claire).get(e.cible).size > 1, `énigme ${e.id} : sans indice, la cible est un pari`);
+  e.poses.forEach(([q, r], i) => {
+    check(isl.canPlace(q, r), `énigme ${e.id} : la pose ${i + 1} est possible`); isl.place(q, r);
+    const t = isl.board.get(q, r); check(t && typeof t.indice === 'number', `énigme ${e.id} : la pose ${i + 1} lit un indice`);
+    contraintes.push({ voisines: t.portee, fams: Board.familiesOf(t), n: t.indice });
+    const pos = possibles(cases, inv, contraintes, CRANS.claire).get(e.cible);
+    if (i < e.poses.length - 1) check(pos.size > 1, `énigme ${e.id} : après ${i + 1} indice(s), la cible n’est pas encore sûre`);
+    else check(pos.size === 1 && pos.has(e.famille), `énigme ${e.id} : après les deux indices, la cible est sûre (${e.famille})`);
+  });
+  check(isl.passagePret && isl.casesPretes().join() === cases.join(), `énigme ${e.id} : après les poses imposées, le passage est prêt et toutes les cases vont se dévoiler`);
+  for (const st of e.etapes) { const tx = typeof st.text === 'function' ? st.text(isl) : st.text; check(typeof tx === 'string' && tx.length > 20, `énigme ${e.id} : l’étape ${st.id} a son texte`); }
+  check(isl.planterJalon(...parse(e.cible), e.famille) && isl.leverBrume() && isl.brume.justes === 1 && isl.board.fog.size === 0 && isl.brume.carte === null, `énigme ${e.id} : jalon juste, brume levée, tout dévoilé, pas de tirage`);
+  check(!isl.ended, `énigme ${e.id} : l’île n’est pas finie (on la quitte par le tutoriel)`);
 }
 
 console.log(failures ? `\n${failures} échec(s)` : '\nSous la brume : tout est bon.');
