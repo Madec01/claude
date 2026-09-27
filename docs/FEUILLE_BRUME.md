@@ -143,7 +143,7 @@ Règles communes à chaque lot, tirées de `CLAUDE.md` :
   - Le temps du worker se mesure au téléphone avant de fixer le nombre d'essais.
 - Test (`tests/brume.test.js`) : pour les graines 1 à 6, l'île retenue offre une case sûre avant le premier passage au joueur modèle, et la part déclarée égale la mesure refaite.
 
-**B-I · Un crayon à plusieurs possibilités** · effort : moyen · dépendances : aucune · statut : **à faire**
+**B-I · Un crayon à plusieurs possibilités** · effort : moyen · dépendances : aucune · statut : **fait** (27 septembre)
 - Ce qu'on fait :
   - `B.crayon` associe désormais une clé à un ensemble de familles encore possibles. La fiche d'une case (`buildBrumePicker`) coche et barre les familles, et `drawBrume` écrit « forêt / eau ? ».
   - Rien ne se valide tout seul.
@@ -151,18 +151,18 @@ Règles communes à chaque lot, tirées de `CLAUDE.md` :
   - La reprise accepte l'ancien format, une seule famille.
 - Test (`tests/brume.test.js`) : cocher et barrer, effacer, reprendre une vieille sauvegarde ; le score n'en bouge jamais.
 
-**B-K · Une récompense de jalon prévisible** · effort : petit · dépendances : décisions 3 et 4 · statut : **à faire**
+**B-K · Une récompense de jalon prévisible** · effort : petit · dépendances : décisions 3 et 4 · statut : **fait** (27 septembre)
 - Ce qu'on fait, selon la décision 4, avec l'option recommandée :
   - `brumeMul` (`rules.js:44`) traite un jalon juste comme une tuile dévoilée (×2) ;
   - `P.jalonJuste` passe à +8, soit la moyenne mesurée de 5 + 2,5 ;
   - on met à jour les textes de `ui/brume.js`, `tutorial.js` et `FEUILLE_DE_ROUTE.md`, puis on recalibre.
 - Test (`tests/brume.test.js`) : un jalon juste rapporte exactement `P.jalonJuste` de plus que la même case dévoilée sans jalon.
 
-**B-O · Juger une question comme un coup** · effort : petit · dépendances : décision 2 · statut : **à faire**
+**B-O · Juger une question comme un coup** · effort : petit · dépendances : décision 2 · statut : **fait** (27 septembre)
 - Ce qu'on fait, avec l'option recommandée : dans `jugerCoup` (`island.js:693`), une pose contre la brume dont la famille peut se cacher dans une voisine n'est jamais jugée mauvaise. La notification « Mauvais coup » ne tombe donc plus sur une vraie question.
 - Test (`tests/brume.test.js`) : le questionneur sur 6 graines n'a aucun « mauvais coup » contre la brume.
 
-**B-P · La Brume épaisse redevient un jeu de déduction** · effort : petit · dépendances : décision 6 · statut : **à faire**
+**B-P · La Brume épaisse redevient un jeu de déduction** · effort : petit · dépendances : décision 6 · statut : **fait** (27 septembre)
 - Ce qu'on fait, avec l'option recommandée : `CRANS.epaisse.indices = 1`, on recale `vise` sur la nouvelle mesure, et le texte du cran change (`ui/brume.js:37`).
 - Test (`tests/brume.test.js`) : en épaisse, chaque pose contre la brume parle, et l'épaisse reste moins déductible que la claire.
 
@@ -185,7 +185,7 @@ Règles communes à chaque lot, tirées de `CLAUDE.md` :
 Chaque question est fermée. L'option **en gras** est ma recommandation par défaut : les lots avancent avec elle si rien
 n'est tranché.
 
-1. **Les vingt cartes du tirage (audit B-C).**
+1. **Les vingt cartes du tirage (audit B-C).** — **Appliqué le 27 septembre en (b)** : « Bords ternes » (les dévoilées ne valent que simple cette saison) et « Jalon risqué » (un jalon faux coûte −10) remplacent « Nuit noire » et « Crayon effacé », gardées seulement pour lire une vieille partie.
    - Options :
      - (a) les garder telles quelles, une fois corrigées (étape 1) ;
      - **(b) garder le tirage, mais remplacer les deux malus qui effacent ce que le joueur sait déjà, « Crayon effacé » et « Nuit noire », par deux malus qui coûtent des points sans toucher au raisonnement.** Exemples : « Bords ternes », où les dévoilées ne valent que simple cette saison, et « Jalon risqué », où un jalon faux coûte −10 cette saison ;
