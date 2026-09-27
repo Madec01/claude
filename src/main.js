@@ -28,7 +28,7 @@ import { buildOptions } from './ui/options.js';
 import { buildCredits, loadCredits } from './ui/credits.js';
 import { buildGuide } from './ui/guide.js';
 import { dailyDef, dailyKey, yesterdayKey } from './data/daily.js';
-import { Finale } from './game/finale.js';
+import { Finale, choisirLieux } from './game/finale.js';
 import { FinaleClassique } from './game/finale_classique.js';
 import { prechargerTampons } from './game/tampon.js';   // la tournée d'avant, gardée au cas où (option `finaleClassique`)
 import { campaignIsland, campaignMechanics, islandOptions, CAMPAIGN_SIZE, CHAPTER_LEN, MECH_AT, climateCardFor, unlockedUpTo, gateText, restarFromBest, CHAPTERS } from './data/campaign.js';
@@ -47,7 +47,7 @@ import { FAMILIES } from './data/tiles.js';
 import { buildTempoPrep } from './ui/tempo_prep.js';
 import { buildFormesPrep } from './ui/formes_prep.js';
 import { formesDef, tirerForme, recordsFormes, noterPartieFormes } from './data/formes_mode.js';
-import { RNG } from './core/math.js';
+import { RNG, clamp } from './core/math.js';
 import { Tempo } from './game/tempo.js';
 import { buildWishesIntro } from './ui/wishes_intro.js';
 import { buildIslandPrep } from './ui/island_prep.js';
@@ -649,6 +649,8 @@ class StoryScene {
   render(ctx, alpha, dt) { this.bg.render(ctx, alpha, dt); ctx.fillStyle = 'rgba(244,239,230,0.45)'; ctx.fillRect(0, 0, STAGE.W, STAGE.H); }
 }
 
+const lisse = (t) => t * t * (3 - 2 * t);   // l'adoucissement de la tournée finale, pour l'observation
+
 // ---------- Scène de jeu ----------
 class IslandScene {
   async enter({ def, skipWishes = false, resume = null }) {
@@ -685,6 +687,7 @@ class IslandScene {
       onDiscard: () => { if (isl.discard()) AudioSys.play('tile_discard', { volume: 0.6 }); else AudioSys.play('ui_error', { volume: 0.4 }); },
       onUndo: () => { if (isl.undo()) { AudioSys.play('tile_undo', { volume: 0.6 }); this.hud.notify('La dernière pose est annulée', 'info'); } else AudioSys.play('ui_error', { volume: 0.4 }); },
       onGardenPick: (fam) => { isl.setGardenTile(fam); AudioSys.play('ui_click', { volume: 0.4 }); },
+      onCadre: def.garden ? () => this.entrerCadre() : null,
       onPlace: () => this.placeArmed(),
       onAction: (i) => this.doAction(i),
       onActionHover: (i) => { if (this.armed && this.armed.build) this.armed.i = i; },
@@ -728,11 +731,11 @@ class IslandScene {
     this.unsubs = [
       input.on('mousedown', (b, x, y) => this.onMouseDown(b, x, y)),
       input.on('mouseup', (b, x, y) => this.onMouseUp(b, x, y)),
-      input.on('wheel', (dy) => { if (this.paused) return; this.cam.zoomBy(dy > 0 ? 0.9 : 1.1, input.mouse.x, input.mouse.y); }),
+      input.on('wheel', (dy) => { if (this.paused) return; if (this.obs) this.finirObservation(); this.cam.zoomBy(dy > 0 ? 0.9 : 1.1, input.mouse.x, input.mouse.y); }),
       input.on('keydown', (k) => this.onKey(k)),
       input.on('tap', (x, y) => this.onTap(x, y)),
-      input.on('pan', (dx, dy) => { if (!this.paused) { this.oublierVisee(); this.cam.pan(dx, dy); } }),
-      input.on('pinch', (f, cx, cy) => { if (!this.paused) { this.oublierVisee(); this.cam.zoomBy(f, cx, cy); } }),
+      input.on('pan', (dx, dy) => { if (!this.paused) { if (this.obs) this.finirObservation(); this.oublierVisee(); this.cam.pan(dx, dy); } }),
+      input.on('pinch', (f, cx, cy) => { if (!this.paused) { if (this.obs) this.finirObservation(); this.oublierVisee(); this.cam.zoomBy(f, cx, cy); } }),
     ];
     // Au doigt, une case se vise d'un toucher et se pose au second. Tout appui AILLEURS (un bouton, la file, la main,
     // les vœux, la fiche de tuile…) oublie la case visée : sinon, après « Défausser » ou le choix d'une autre tuile, un
@@ -803,20 +806,36 @@ class IslandScene {
   }
 
   updateAmbience(immediate = false) {
-    // le paysage sonore lit l'île : les oiseaux suivent la forêt et les vergers, le ruisseau les rivières, les grillons les prés et les champs en été,
-    // le vent la roche, les collines et la lande, la mer le sable et les rives
+    // Le paysage sonore lit l'île : les oiseaux suivent la forêt et les vergers, le ruisseau les rivières, les grillons
+    // les prés et les champs en été, le vent la roche, les collines et la lande, la mer le sable et les rives.
+    // Et il suit la CAMÉRA (27 septembre) : une tuile à l'écran compte plein, une tuile hors champ compte pour un
+    // quart (l'île entière reste audible), chaque source vient du côté où elle est, et la mer monte quand on regarde
+    // le large. Rien de nouveau à charger : les mêmes huit boucles, dosées et placées autrement.
     const isl = this.isl; const b = isl.board;
-    const n = {}; let total = 0; for (const t of b.tiles.values()) { n[t.family] = (n[t.family] || 0) + 1; total++; }
+    const cam = this.cam; const vue = this.bounds(); const demiL = Math.max(1, (vue.maxX - vue.minX) / 2);
+    const cx = (vue.minX + vue.maxX) / 2, cy = (vue.minY + vue.maxY) / 2;
+    const poids = (x, y) => (x >= vue.minX && x <= vue.maxX && y >= vue.minY && y <= vue.maxY) ? 1 : 0.25;
+    const n = {}, px = {}; let total = 0;
+    for (const t of b.tiles.values()) { const w = toWorld(t.q, t.r); const p = poids(w.x, w.y); n[t.family] = (n[t.family] || 0) + p; px[t.family] = (px[t.family] || 0) + p * (w.x - cx); total += p; }
     const c = (f) => n[f] || 0; const share = (...fs) => total ? fs.reduce((a, f) => a + c(f), 0) / total : 0;
+    // le panoramique d'une source : la position moyenne de ses tuiles par rapport au centre de la vue, bornée aux bords de l'écran
+    const pan = (...fs) => { const k = fs.reduce((a, f) => a + c(f), 0); if (!k) return 0; const x = fs.reduce((a, f) => a + (px[f] || 0), 0) / k; return Math.max(-0.8, Math.min(0.8, x / demiL)); };
     const rivers = waterBodies(b).filter((w) => w.kind === 'river').reduce((a, w) => a + (w.cells ? w.cells.length : w.size || 0), 0) + c('cascade');
+    // la mer : la part de la vue qui est hors de l'île (grille de points), et le côté où elle domine
+    let mer = 0, merX = 0, pts = 0;
+    for (let i = 0; i < 9; i++) for (let j = 0; j < 7; j++) {
+      const x = vue.minX + (i + 0.5) / 9 * (vue.maxX - vue.minX), y = vue.minY + (j + 0.5) / 7 * (vue.maxY - vue.minY);
+      const h = fromWorld(x, y); pts++; if (!b.mask.has(key(h.q, h.r))) { mer++; merX += x - cx; }
+    }
+    const partMer = pts ? mer / pts : 0.4; const panMer = mer ? Math.max(-0.8, Math.min(0.8, (merX / mer) / demiL)) : 0;
     const s = isl.season;
     const fade = immediate ? 1 : 3;
-    AudioSys.setAmbience('birds', s === 'winter' ? 0.06 + share('forest') * 0.1 : Math.min(0.65, 0.12 + (c('forest') + c('orchard') * 0.6) * 0.04), fade);
-    AudioSys.setAmbience('stream', Math.min(0.45, rivers * 0.06 + c('water') * 0.01), fade);
-    AudioSys.setAmbience('wind', (s === 'autumn' ? 0.3 : s === 'winter' ? 0.2 : 0.08) + share('rock', 'hill', 'heath') * 0.5, fade);
+    AudioSys.setAmbience('birds', s === 'winter' ? 0.06 + share('forest') * 0.1 : Math.min(0.65, 0.12 + (c('forest') + c('orchard') * 0.6) * 0.04), fade, pan('forest', 'orchard'));
+    AudioSys.setAmbience('stream', Math.min(0.45, rivers * 0.06 + c('water') * 0.01), fade, pan('water'));
+    AudioSys.setAmbience('wind', (s === 'autumn' ? 0.3 : s === 'winter' ? 0.2 : 0.08) + share('rock', 'hill', 'heath') * 0.5, fade, pan('rock', 'hill', 'heath') * 0.5);
     AudioSys.setAmbience('winter', s === 'winter' ? 0.4 : 0, fade);
-    AudioSys.setAmbience('crickets', s === 'summer' ? Math.min(0.6, 0.15 + share('meadow', 'field') * 0.9) : 0, fade);
-    AudioSys.setAmbience('sea', 0.18 + share('sand') * 0.6, fade);
+    AudioSys.setAmbience('crickets', s === 'summer' ? Math.min(0.6, 0.15 + share('meadow', 'field') * 0.9) : 0, fade, pan('meadow', 'field'));
+    AudioSys.setAmbience('sea', Math.min(0.7, 0.1 + partMer * 0.5 + share('sand') * 0.4), fade, panMer);
     const w = isl.look || null;   // l'habillage de la surprise en cours
     AudioSys.setAmbience('rain', w === 'storm' ? 0.55 : 0, fade);
     if (AudioSys.has('storm', 'ambience')) AudioSys.setAmbience('storm', w === 'storm' ? 0.6 : 0, fade);
@@ -824,6 +843,52 @@ class IslandScene {
     if (w === 'blizzard') { AudioSys.setAmbience('winter', 0.8, fade); AudioSys.setAmbience('wind', 0.5, fade); }
     if (w === 'heat') AudioSys.setAmbience('crickets', 0.6, fade);
     if (w === 'thaw') AudioSys.setAmbience('stream', 0.5, fade);
+    this._ambCam = { x: cam.x, y: cam.y, z: cam.zoom };
+  }
+
+  // ---- mode cadre (Jardin, 27 septembre) : l'île seule, sans interface, jusqu'au prochain toucher sur l'île
+  entrerCadre() {
+    if (this.cadre) return; this.cadre = true; this.disarm(); this.hud.setCadre(true);
+    const hint = h('div', { class: 'cadre-hint' }, 'Toucher l’île pour revenir'); document.body.appendChild(hint); setTimeout(() => hint.remove(), 3200);
+    AudioSys.play('page_flip_1', { volume: 0.35 });
+  }
+  sortirCadre() { if (!this.cadre) return; this.cadre = false; this.hud.setCadre(false); }
+
+  // ---- observation : la caméra visite l'île tant qu'on ne touche à rien
+  commencerObservation() {
+    const isl = this.isl, c = this.cam;
+    const lieux = choisirLieux(isl, STAGE.compact ? 3 : 4); if (!lieux.length) return;
+    // le cadrage de l'île entière, calculé sans y aller : c'est lui qui donne le zoom des plans et la dernière étape
+    const avant = { x: c.tx, y: c.ty, z: c.tzoom, ox: c.offsetX, oy: c.offsetY };
+    c.fit(isl.board.mask, this.marges()); const entier = { x: c.tx, y: c.ty, z: c.tzoom };
+    c.tx = avant.x; c.ty = avant.y; c.tzoom = avant.z; c.offsetX = avant.ox; c.offsetY = avant.oy;
+    this.obs = { lieux, entier, i: -1, t: 0, retour: avant, a: null, b: null };
+    this.disarm(); this.hud.setObserving(true);
+    this.obsSuivant();
+  }
+  obsSuivant() {
+    const o = this.obs, c = this.cam; o.i++; o.t = 0; o.a = { x: c.x, y: c.y, z: c.zoom };
+    if (o.i >= o.lieux.length) { o.i = -1; o.b = { ...o.entier, tenue: 6 }; return; }   // l'île entière, puis on recommence
+    const p = o.lieux[o.i];
+    o.b = { x: p.x, y: p.y, z: clamp(o.entier.z * (p.cells.length <= 2 ? 2.0 : 1.7), minZoom(), BALANCE.camera.maxZoom), tenue: 5 };
+  }
+  majObservation(dt) {
+    const o = this.obs, c = this.cam; o.t += dt;
+    const dur = 4.5; const e = lisse(clamp(o.t / dur, 0, 1)) + Math.max(0, (o.t - dur) / (o.b.tenue || 5)) * 0.05;   // arrive, puis continue d'avancer un rien : un plan qui vit
+    c.x = c.tx = o.a.x + (o.b.x - o.a.x) * e; c.y = c.ty = o.a.y + (o.b.y - o.a.y) * e; c.zoom = c.tzoom = o.a.z + (o.b.z - o.a.z) * e;
+    if (o.t >= dur + (o.b.tenue || 5)) this.obsSuivant();
+  }
+  finirObservation() {
+    const o = this.obs; if (!o) return; this.obs = null;
+    const c = this.cam; c.tx = o.retour.x; c.ty = o.retour.y; c.tzoom = o.retour.z;   // la vue d'avant revient, lissée par la caméra
+    this.hud.setObserving(false); this._ambT = 0.5;
+  }
+
+  /** La caméra a bougé (déplacement, zoom, observation) : le paysage sonore se replace, au plus deux fois par seconde. */
+  suivreCamera(dt) {
+    this._ambT = (this._ambT || 0) + dt; if (this._ambT < 0.5) return; this._ambT = 0;
+    const c = this.cam, a = this._ambCam; if (!a) { this.updateAmbience(); return; }
+    if (Math.hypot(c.x - a.x, c.y - a.y) > 40 / Math.max(0.2, c.zoom) || Math.abs(c.zoom / a.z - 1) > 0.05) this.updateAmbience();
   }
 
   /** Cartes qui n'ont pas d'île attitrée : premier sentier, première rivière qui se jette dans un lac (une fois par joueur). */
@@ -968,7 +1033,13 @@ class IslandScene {
       const k = `${e.species}@${e.regionId}`;
       const w = toWorld(e.q, e.r);
       const s = STORY.fauna[e.species] || { name: e.species, arrive: '', leave: '' };
-      if (e.kind === 'arrive') { fx.fauna(k, 'arrive'); fx.faunaBurst(w.x, w.y - 20); if (e.bonus) setTimeout(() => fx.floatText(w.x, w.y - 50, `+${e.bonus} nichée`, '#e0a33a', 20, 1.4), 300); AudioSys.play('fauna_arrive', { volume: 0.6 }); setTimeout(() => AudioSys.play(AudioSys.has(`fauna_${e.species}`) ? `fauna_${e.species}` : 'fauna_rabbit', { volume: 0.5 }), 250); this.hud.notify(`${s.name} : ${s.arrive}`, 'fauna'); }
+      if (e.kind === 'arrive') { fx.fauna(k, 'arrive'); fx.faunaBurst(w.x, w.y - 20); if (e.bonus) setTimeout(() => fx.floatText(w.x, w.y - 50, `+${e.bonus} nichée`, '#e0a33a', 20, 1.4), 300);
+        // le carillon propre à l'espèce, puis son cri ; quand plusieurs animaux arrivent d'un coup (changement de saison),
+        // les arrivées s'espacent d'une demi-seconde, sinon les carillons se couvrent et plus rien ne se lit
+        const maintenant = performance.now(); const attente = Math.max(0, (this._carillonA || 0) - maintenant); this._carillonA = maintenant + attente + 520;
+        const carillon = AudioSys.has(`fauna_arrive_${e.species}`) ? `fauna_arrive_${e.species}` : 'fauna_arrive';
+        setTimeout(() => AudioSys.play(carillon, { volume: 0.6 }), attente);
+        setTimeout(() => AudioSys.play(AudioSys.has(`fauna_${e.species}`) ? `fauna_${e.species}` : 'fauna_rabbit', { volume: 0.5 }), 250); this.hud.notify(`${s.name} : ${s.arrive}`, 'fauna'); }
       else { const an = { t: 0, kind: 'leave', info: e }; fx.faunaAnim.set(k, an); AudioSys.play('fauna_leave', { volume: 0.5 }); this.hud.notify(`${s.name} : ${s.leave}`, 'warn'); }
       this.tutorial.onEvent('fauna');
     } else if (e.type === 'wish') {
@@ -1060,11 +1131,14 @@ class IslandScene {
       if (!this.isl.canBuild(q, r)) { this.disarm(); const why = this.isl.pourquoiPas(q, r); if (why) { AudioSys.play('tile_invalid', { volume: 0.5 }); this.hud.notify(why, 'warn'); } return; }
       this.armBuild(q, r); return;
     }
+    if (this.cadre) { this.sortirCadre(); return; }      // en mode cadre, le premier toucher rend l'interface
+    if (this.obs) { this.finirObservation(); return; }   // en observation, le premier toucher ne fait que réveiller
     if (!this.isl.board.has(q, r)) { this.disarm(); return; }
     if (!this.isl.canPlace(q, r)) { this.armed = null; this.hud.setPlaceButton(null); AudioSys.play('tile_invalid', { volume: 0.5 }); this.hud.notify(this.isl.restrict ? 'Pose la tuile sur la case qui brille' : 'Une tuile doit toucher une tuile posée', 'warn'); return; }
     if (this.armed && this.armed.q === q && this.armed.r === r) { this.placeArmed(); return; }
-    // Souffle court, option « poser d'un seul toucher » : la première touche sur une case légale pose
-    if (this.tempo && this.def.unToucher) { this.armed = { q, r }; this.placeArmed(); return; }
+    // « Poser d'un seul toucher » : la première touche sur une case légale pose. Née au Souffle court (son option de
+    // préparation), généralisée en option de confort le 27 septembre à la demande du commanditaire.
+    if ((this.tempo && this.def.unToucher) || Save.options.unToucher) { this.armed = { q, r }; this.placeArmed(); return; }
     this.armed = { q, r }; AudioSys.play('tile_hover', { volume: 0.3 });
   }
   placeArmed() {
@@ -1227,6 +1301,7 @@ class IslandScene {
 
   onKey(k) {
     if (this.finale && !this.finale.done) { if (k !== 'KeyM') this.finale.skip(k); return; }
+    if (this.cadre) { this.sortirCadre(); return; }
     if (k === 'Escape') { this.togglePause(); return; }
     if (k === 'KeyM') { const m = AudioSys.toggleMute(); Save.options.muted = m; Save.save(); return; }
     if (this.paused || this.hold || !this.isl || this.isl.ended) return;
@@ -1280,6 +1355,7 @@ class IslandScene {
     else if (this.drag && !input.mouse.right) this.drag = null;
     const pan = 320 * dt; if (input.isDown('ArrowLeft')) this.cam.pan(pan, 0); if (input.isDown('ArrowRight')) this.cam.pan(-pan, 0); if (input.isDown('ArrowUp')) this.cam.pan(0, pan); if (input.isDown('ArrowDown')) this.cam.pan(0, -pan);
     this.cam.update(dt);
+    this.suivreCamera(dt);
     // sous une carte du tutoriel, le temps s'arrête : on lit, puis on joue (le tutoriel se met à jour d'abord, pour qu'une carte qui apparaît arrête le temps dans la même image)
     this.tutorial.update(dt);
     if (this.def.enigme) {
@@ -1336,9 +1412,13 @@ class IslandScene {
     // quand les i/s baissent (téléphone modeste), la mer renonce à sa profondeur et à son écume large ; avec un peu
     // d'hystérésis pour ne pas clignoter autour du seuil
     if (loop.fps < 42) this.renderer.lowFx = true; else if (loop.fps > 52) this.renderer.lowFx = false;
-    // mode repos : après huit secondes sans geste, l'interface s'efface et la vue respire ; tout geste rétablit
-    const resting = Save.options.rest !== false && input.idleSeconds > 8 && !this.armed && !this.finale && !isl.ended && !isl.tempo;
-    this.hud.setResting(resting); this.cam.breathe(resting ? 1 : 0, dt);
+    // Mode repos, devenu observation (27 septembre, demande du commanditaire) : après huit secondes sans geste,
+    // l'interface s'efface et la caméra part visiter l'île — ses lieux, ceux de la tournée finale — pendant que le
+    // paysage sonore la suit. Tout geste rend la vue d'avant et l'interface.
+    const calme = Save.options.rest !== false && input.idleSeconds > 8 && !this.armed && !this.finale && !isl.ended && !isl.tempo && !this.hold && !this.paused && !tutoTient;
+    if (calme && !this.obs && !this.drag && !this.cadre) this.commencerObservation();
+    if (this.obs) { if (!calme) this.finirObservation(); else this.majObservation(dt); }
+    this.hud.setResting(calme); this.cam.breathe(calme ? 1 : 0, dt);
     const objs = this.renderer.decor.objects;
     if (this._srcV !== isl.board.version) { this._srcV = isl.board.version; this._sources = objs.filter((o) => o.tpl && (o.tpl.startsWith('obj_tree'))).map((o) => ({ x: o.x, y: o.y })); this._tiles = [...isl.board.tiles.values()].map((t) => { const w = toWorld(t.q, t.r); return { family: t.family, frozen: t.frozen, rare: t.rare, wx: w.x, wy: w.y }; }); }
     this.fx.ambient(dt, isl.season, b, 1, this._sources);

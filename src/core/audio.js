@@ -166,26 +166,32 @@ export const AudioSys = {
     this.music = { key: null, src: null, gain: null };
   },
 
-  /** Règle le volume cible d'une ambiance en boucle (0 = arrêt progressif). */
-  async setAmbience(key, target, fade = 2) {
+  /**
+   * Règle le volume cible d'une ambiance en boucle (0 = arrêt progressif) et, si on le donne, son panoramique
+   * (−1 à gauche, 1 à droite) : l'ambiance suit la caméra, la mer vient du côté où elle est.
+   */
+  async setAmbience(key, target, fade = 2, pan = null) {
     if (!this.manifest || !this.ctx) return;
     let a = this.ambience.get(key);
     if (!a) {
       if (target <= 0) return;
       const buf = await this.load('ambience', key);
       if (!buf) return;
-      if (this.ambience.get(key)) return this.setAmbience(key, target, fade);
+      if (this.ambience.get(key)) return this.setAmbience(key, target, fade, pan);
       const src = this.ctx.createBufferSource();
       src.buffer = buf; src.loop = true;
       const g = this.ctx.createGain();
       g.gain.value = 0.0001;
-      src.connect(g); g.connect(this.bus.ambience.gain);
+      let node = src, panner = null;
+      if (this.ctx.createStereoPanner) { panner = this.ctx.createStereoPanner(); panner.pan.value = 0; src.connect(panner); node = panner; }
+      node.connect(g); g.connect(this.bus.ambience.gain);
       src.start();
-      a = { src, gain: g, target: 0 };
+      a = { src, gain: g, panner, target: 0 };
       this.ambience.set(key, a);
     }
     a.target = target;
     a.gain.gain.setTargetAtTime(Math.max(0.0001, target), this.ctx.currentTime, fade / 3);
+    if (pan !== null && a.panner) a.panner.pan.setTargetAtTime(Math.max(-1, Math.min(1, pan)), this.ctx.currentTime, Math.max(0.3, fade / 3));
   },
 
   stopAllAmbience(fade = 1.5) {

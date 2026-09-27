@@ -203,7 +203,7 @@ export class IslandRenderer {
     this.particlesWorld(ctx, 0);
     this.drawHover(ctx);
     this.drawRings(ctx);
-    this.drawFauna(ctx, dt);
+    if (!this.rejoue) this.drawFauna(ctx, dt);
     this.particlesWorld(ctx, 1);
     this.drawTexts(ctx);
     this.drawWeather(ctx, dt);

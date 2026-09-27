@@ -127,5 +127,16 @@ for (const id of [4, 12, 23, 37, 46]) {
   console.log(`  partie en cours sur l’île 29 (150 cases) : ${Math.round(size / 1024)} Ko`);
 }
 
+// --- la construction enregistrée (27 septembre) : une pose par tuile posée, bâtie ou poussée ; elle suit la reprise
+{
+  const a = make(12); let n = 0;
+  while (!a.ended && n++ < 400) { const cells = a.board.legalCells(); if (!cells.length) break; const c = cells[Math.floor(n * 7919 % cells.length)]; a.place(c.q, c.r); }
+  check(a.poses.length >= a.placements && a.poses.every((p) => p.t && p.t.family && p.s), `île 12 : ${a.poses.length} poses enregistrées pour ${a.placements} placements`);
+  check(a.poses.filter((p) => !p.kind).length === a.placements, 'une pose enregistrée par placement, les autres sont des bâtis ou des croissances');
+  const snap = JSON.parse(JSON.stringify(a.serialize())); const b = make(12); b.restoreRun(snap);
+  check(b.poses.length === a.poses.length && JSON.stringify(b.poses[5]) === JSON.stringify(a.poses[5]), 'la reprise rend la construction, pose pour pose');
+  const c = make(12); c.restoreRun({ ...snap, poses: undefined }); check(c.poses.length === 0, 'une partie d’avant, sans construction, reprend sans elle');
+}
+
 console.log(failures ? `\n${failures} échec(s)` : '\nReprise : tout est bon.');
 process.exit(failures ? 1 : 0);

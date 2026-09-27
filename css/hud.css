@@ -299,6 +299,16 @@ html.compact .hud-ribbon.msg { font-size: 13px; padding: 4px 10px; }
    saison restent) ; la remontée est rapide, l'effacement lent. */
 .hud-wishes, .hud-fauna, .powers, .tile-help { transition: opacity 0.35s ease; }
 #hud.resting .hud-wishes, #hud.resting .hud-fauna, #hud.resting .powers, #hud.resting .tile-help { opacity: 0.35; transition: opacity 1.6s ease; }
+/* Mode observation (27 septembre) : la caméra visite l'île ; tout s'efface presque entièrement, le score et la saison
+   restent lisibles en filigrane. Les panneaux restent touchables : le premier geste rend la vue d'avant. */
+#hud > * { transition: opacity 0.35s ease; }
+#hud.observing > * { opacity: 0.08; transition: opacity 2.2s ease; }
+#hud.observing .hud-top { opacity: 0.45; }
+/* Mode cadre (Jardin) : plus rien, l'île seule. Le bouton « Cadre » ferme la palette du Jardin. */
+#hud.cadre > * { opacity: 0; pointer-events: none; transition: opacity 0.6s ease; }
+.gpick-cadre { border-left-color: var(--gold, #c9a23a); font-weight: 700; }
+.cadre-hint { position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%); padding: 6px 14px; border-radius: 14px; background: rgba(43,42,38,0.72); color: #fff; font: 600 13px Quicksand, sans-serif; pointer-events: none; z-index: 40; animation: cadre-hint 3.2s ease forwards; }
+@keyframes cadre-hint { 0% { opacity: 0; } 12% { opacity: 1; } 75% { opacity: 1; } 100% { opacity: 0; } }
 
 /* ---- correctifs de la chasse aux défauts d'interface ---- */
 /* Le ruban reçoit aussi des phrases (règle de météo, friche) : au téléphone elles étaient coupées d'une ellipse

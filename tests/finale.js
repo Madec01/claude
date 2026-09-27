@@ -83,7 +83,29 @@ ${(e.stack || '').split('\n').slice(0, 5).join('\n')}`));
   check(suivi.bandesMax > 0.99 && suivi.lettresMax > 0.99, 'la carte postale se pose entièrement et le nom s’écrit en entier');
   check(suivi.voilier, 'un voilier part pendant le titre');
 
-  // --- 2. la carte attend le joueur : deux boutons, un toucher ne passe pas, le bouton oui
+  // --- 2 bis. « Revoir la construction » : un plateau vide se rebâtit pose après pose, puis la carte revient
+  const rejeu = await page.evaluate(() => new Promise((res) => {
+    const sc = window.CS.scenes.current; const f = sc.finale;
+    if (!f || f.done) return res({ absent: true });
+    const reelles = sc.isl.board.tiles.size; const poses = sc.isl.poses.length;
+    const btn = [...document.querySelectorAll('.carte-actions button')].find((b) => /Revoir/.test(b.textContent)); if (!btn) return res({ pasDeBouton: true });
+    btn.click();
+    const t0 = performance.now(); let minTuiles = Infinity, maxAvant = 0;
+    const tick = () => {
+      if (f.phase === 'rejouer') { minTuiles = Math.min(minTuiles, sc.isl.board.tiles.size); maxAvant = Math.max(maxAvant, sc.isl.board.tiles.size); }
+      if (f.phase === 'carte' && minTuiles < Infinity) return res({ minTuiles, maxAvant, reelles, poses, apres: sc.isl.board.tiles.size, faune: !!sc.renderer.rejoue, boutons: document.querySelectorAll('.carte-actions button').length });
+      if (performance.now() - t0 > 30000) return res({ bloque: true, phase: f.phase });
+      requestAnimationFrame(tick);
+    };
+    tick();
+  }));
+  check(!rejeu.absent && !rejeu.pasDeBouton && !rejeu.bloque, `la construction se rejoue et rend la carte (${JSON.stringify(rejeu)})`);
+  if (!rejeu.bloque && !rejeu.absent && !rejeu.pasDeBouton) {
+    check(rejeu.minTuiles < rejeu.reelles / 3 && rejeu.maxAvant >= rejeu.reelles - 1, `l’île se rebâtit du presque vide (${rejeu.minTuiles}) au complet (${rejeu.maxAvant} / ${rejeu.reelles})`);
+    check(rejeu.apres === rejeu.reelles && !rejeu.faune && rejeu.boutons === 3, 'le vrai plateau revient, la faune aussi, et les trois boutons');
+  }
+
+  // --- 2. la carte attend le joueur : trois boutons, un toucher ne passe pas, le bouton oui
   const carte = await page.evaluate(() => {
     const sc = window.CS.scenes.current, f = sc.finale;
     const boutons = [...document.querySelectorAll('.carte-actions button')].map((b) => b.textContent.trim());
@@ -91,8 +113,9 @@ ${(e.stack || '').split('\n').slice(0, 5).join('\n')}`));
     const voir = [...document.querySelectorAll('.carte-actions button')].find((b) => /récapitulatif/.test(b.textContent)); if (voir) voir.click();
     return { boutons, apresToucher, fini: f.done, ui: !!document.querySelector('.carte-actions') };
   });
-  check(carte.boutons.length === 2 && carte.boutons.some((b) => /Enregistrer/.test(b)) && carte.boutons.some((b) => /récapitulatif/.test(b)), `la carte porte ses deux boutons (${carte.boutons.join(' / ')})`);
+  check(carte.boutons.length === 3 && carte.boutons.some((b) => /Enregistrer/.test(b)) && carte.boutons.some((b) => /récapitulatif/.test(b)) && carte.boutons.some((b) => /Revoir/.test(b)), `la carte porte ses trois boutons (${carte.boutons.join(' / ')})`);
   check(carte.apresToucher === 'carte', 'un toucher sur la carte ne la fait pas passer');
+
   check(carte.fini && !carte.ui, 'le bouton « Voir le récapitulatif » mène au bilan et retire les boutons');
   const apres = await page.evaluate(() => {
     const sc = window.CS.scenes.current, r = sc.renderer, f = sc.finale;

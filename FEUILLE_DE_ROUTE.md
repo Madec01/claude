@@ -316,7 +316,7 @@ Tutoriel pour le commanditaire : `docs/FIREBASE_TUTO.pdf`. Règles : `firestore.
 | Idée | Note | Statut |
 |---|---|---|
 | Îles par taille libre (30 à 200 cases, climat, graine) | Générateur déjà prêt ; écran « Nouvelle île » | plus tard (audit vers 10) |
-| Mode Contemplation (zen, sans score, saisons au sablier) | Différent du Jardin par saisons et faune vivantes | à faire |
+| Mode Contemplation (zen, sans score, saisons au sablier) | Différent du Jardin par saisons et faune vivantes. Le mode observation (27 septembre) en couvre l'essentiel sur toute île : la caméra visite les régions et les habitants dès qu'on ne joue plus | à revoir après l'observation |
 | Retours sensoriels et calme (notes sobres, étoile franchie, vibrations, mode repos, vague de fermeture) | Lots « respiration » et « calme » issus des listes apaisement / satisfaction | fait (journal 64 à 67) |
 | Direction artistique : bâtiments, arbres et rochers en modèles 3D KayKit (CC0) | Rendus isométriques à notre projection par `tools/render_kaykit.js` | fait (journal 68) |
 | Fontaine, abreuvoir, campement, botte de foin | Abreuvoir, campement et botte passés en volume (KayKit). La **fontaine** n'a aucun équivalent dans les packs : réduite et assombrie, elle reste le dernier aplat Kenney du décor | fait, sauf la fontaine |
@@ -335,14 +335,14 @@ Tutoriel pour le commanditaire : `docs/FIREBASE_TUTO.pdf`. Règles : `firestore.
 | Cahier de l'île (encyclopédie qui se remplit, pourcentage) | | à faire |
 | Cosmétiques à graines (palettes de saison, thème papier ancien, animaux rares) | Dépend des banques | à faire |
 | Choix de l'ouverture (trois départs proposés) | | fait (semis, journal 46) |
-| Musique adaptative par couches (stems) | Nécessite des pistes multipistes libres | à faire |
-| Ambiance spatialisée selon la caméra | | à faire |
-| Cloche des saisons et carillon propre à chaque habitant | | à faire |
-| Cycle jour / nuit lent (fenêtres allumées en hiver) | | à faire |
+| Musique adaptative par couches (stems) | Nécessite des pistes multipistes libres, introuvables en qualité suffisante | écarté (27 septembre, d'accord avec le commanditaire) |
+| Ambiance spatialisée selon la caméra | Une tuile à l'écran compte plein, hors champ pour un quart ; chaque boucle est panoramiquée vers ses tuiles ; la mer monte avec la part de large à l'écran. Rien de nouveau à charger | fait (27 septembre) |
+| Cloche des saisons et carillon propre à chaque habitant | Onze carillons de deux ou trois notes (boîte à musique et marimba pour la forêt, kalimba et célesta pour l'eau, xylophone et glockenspiel pour la ferme), à −8 dB, espacés d'une demi-seconde entre deux arrivées ; une note de cloche tubulaire à −11 dB au début de chaque changement de saison. « Lisible à l'oreille » : jamais deux carillons en même temps | fait (27 septembre) |
+| Cycle jour / nuit lent (fenêtres allumées en hiver) | Les halos de lumière essayés rendaient mal (tour de cadran retiré, journal 91) | écarté (27 septembre, le commanditaire : « bof ») |
 | Carte postale (export image de l'île finie) | Rendue « nue » : ni grille des cases vides, ni contour hexagonal | fait (journal 50, affiné depuis) |
-| Mode cadre dans le Jardin (interface masquée, export) | | à faire |
-| Rejouer la construction en accéléré au bilan | | à faire |
-| Accessibilité (motifs pour daltoniens, taille de texte, pose en un toucher) | | à faire |
+| Mode cadre dans le Jardin (interface masquée, export) | Bouton « Cadre » dans la palette du Jardin : plus aucune interface, l'île seule ; un toucher la rend. L'export est la carte postale du menu de pause | fait (27 septembre) |
+| Rejouer la construction en accéléré au bilan | Chaque pose, bâti et croissance s'enregistre dans la partie (et dans sa reprise). Sur la carte finale, « Revoir la construction » vide le plateau et le rebâtit dans l'ordre avec ses saisons, dix secondes (douze au-delà de quatre-vingts poses), un tic discret, puis la carte revient. Selon le rendu et l'essai du commanditaire, pourra entrer dans la tournée finale | fait (27 septembre) |
+| Accessibilité (motifs pour daltoniens, taille de texte, pose en un toucher) | La pose d'un seul toucher est une option de confort partout (27 septembre) ; motifs et taille de texte attendent d'autres joueurs que le commanditaire et ses deux amis | en attente (décision du 27 septembre) |
 | Décision de fin d'île (clore l'île contre une prime) | G4, jugée « bof » par le commanditaire | plus tard (audit vers 10) |
 | Deux difficultés Promenade / Saison | Seuils décalés de ±15 %, longueur des saisons | plus tard (audit vers 10) |
 | Palette par saison pilotée par la lisibilité | Écart de teinte garanti entre familles à chaque saison | plus tard (audit vers 10) |

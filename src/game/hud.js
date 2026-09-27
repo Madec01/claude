@@ -40,7 +40,7 @@ function srcTuile(family, variant, season) {
 }
 
 export class Hud {
-  constructor(root, island, { title, onPause, onPick, onDiscard, onUndo, onGardenPick, onPlace, onMove, onLever, onAction, onActionHover, compact = false, mechanics }) {
+  constructor(root, island, { title, onPause, onPick, onDiscard, onUndo, onGardenPick, onCadre = null, onPlace, onMove, onLever, onAction, onActionHover, compact = false, mechanics }) {
     this.root = root; this.isl = island; this.mech = mechanics;
     const m = mechanics;
     root.innerHTML = `
@@ -126,7 +126,7 @@ export class Hud {
     const plier = (e) => { e.stopPropagation(); this.voeuxPlies = !this.voeuxPlies; this.r.wishes.classList.toggle('plie', this.voeuxPlies); Save.options.voeuxPlies = this.voeuxPlies; Save.save(); AudioSys.play(this.voeuxPlies ? 'ui_close' : 'ui_open', { volume: 0.3 }); };
     this.r.wishPlier.addEventListener('click', plier); this.r.wishResume.addEventListener('click', plier);
 
-    this.onPick = onPick || (() => {}); this.onGardenPick = onGardenPick;
+    this.onPick = onPick || (() => {}); this.onGardenPick = onGardenPick; this.onCadre = onCadre;
     this.last = {};
     this.notes = [];
     this.buildGardenPick();
@@ -282,8 +282,9 @@ export class Hud {
   buildGardenPick() {
     const w = this.isl.def.weights || {};
     const fams = FAMILIES.filter((f) => this.isl.garden || (w[f] || 0) > 0);
-    this.r.pickList.innerHTML = fams.map((f) => `<button class="gpick" data-fam="${f}" style="--fam:${FAMILY_COLORS[f]}">${(STORY.tiles[f] || {}).name || f}</button>`).join('');
-    this.r.pickList.querySelectorAll('.gpick').forEach((b) => b.addEventListener('click', (e) => { e.stopPropagation(); this.onGardenPick(b.dataset.fam); }));
+    this.r.pickList.innerHTML = fams.map((f) => `<button class="gpick" data-fam="${f}" style="--fam:${FAMILY_COLORS[f]}">${(STORY.tiles[f] || {}).name || f}</button>`).join('')
+      + (this.isl.garden && this.onCadre ? '<button class="gpick gpick-cadre" title="L’île seule, sans interface : toucher l’île pour revenir">Cadre</button>' : '');
+    this.r.pickList.querySelectorAll('.gpick').forEach((b) => b.addEventListener('click', (e) => { e.stopPropagation(); if (b.classList.contains('gpick-cadre')) this.onCadre(); else this.onGardenPick(b.dataset.fam); }));
   }
 
   renderWishes() {
@@ -395,6 +396,10 @@ export class Hud {
 
   /** Mode repos : les panneaux périphériques s'estompent (jamais la file, le score ni la saison). */
   setResting(on) { if (this._resting === on) return; this._resting = on; this.root.classList.toggle('resting', !!on); }
+  /** Mode cadre (Jardin) : plus aucune interface, l'île seule ; le premier toucher la rend. */
+  setCadre(on) { if (this._cadre === on) return; this._cadre = on; this.root.classList.toggle('cadre', !!on); }
+  /** Mode observation : tout s'efface sauf le score et la saison ; le premier toucher rend l'interface. */
+  setObserving(on) { if (this._observing === on) return; this._observing = on; this.root.classList.toggle('observing', !!on); }
 
   /** Bouton « Poser ici » (tactile) : total de la pose armée, ou null pour le masquer. */
   /** Le bouton « Poser ici » est retiré (on pose d'un second toucher) : il ne reste qu'à replier le panneau des actions. */

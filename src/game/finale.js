@@ -13,6 +13,7 @@
 // traversaient l'île, avec des halos au pied des maisons. Le commanditaire l'a trouvé bizarre et l'a
 // fait retirer entièrement (journal 92) : le recul est un recul, rien d'autre.
 import { toWorld, key } from './hex.js';
+import { Board } from './board.js';
 import { STORY } from '../data/story.js';
 import { STAGE } from '../core/stage.js';
 import { Save } from '../core/save.js';
@@ -94,43 +95,7 @@ export class Finale {
    * seul geste. Les plans sont ensuite rangés d'ouest en est, pour que la caméra TRAVERSE l'île au lieu
    * de sauter d'un bout à l'autre.
    */
-  choisirPlans() {
-    const b = this.isl.board, isl = this.isl, cand = [];
-    const pousser = (cells, id, poids, titre, famille) => { if (cells && cells.length && titre) cand.push({ cells, id, poids, titre, famille }); };
-    const regions = [];
-    for (const fam of Object.keys(REGION_LABEL)) for (const reg of b.regions(fam)) if (reg.size >= 2) regions.push({ reg, fam });
-    // 1. la plus grande région : c'est elle qu'on a bâtie
-    const grande = regions.slice().sort((a, c) => c.reg.size - a.reg.size)[0];
-    if (grande) pousser(grande.reg.cells, grande.reg.id, 100, LIEU[grande.fam], grande.fam);
-    // 2. là où vit la faune, nommée par son animal
-    const parRegion = new Map();
-    for (const a of isl.fauna.values()) { if (!a.regionId) continue; const l = parRegion.get(a.regionId) || []; l.push(a); parRegion.set(a.regionId, l); }
-    let faune = null;
-    for (const [id, l] of parRegion) { const x = regions.find((y) => y.reg.id === id); if (x && (!faune || l.length > faune.l.length)) faune = { x, l }; }
-    if (faune && ANIMAL_LINE[faune.l[0].species]) pousser(faune.x.reg.cells, faune.x.reg.id, 86, maj(ANIMAL_LINE[faune.l[0].species]), faune.x.fam);
-    // 3. l'eau qui rejoint la mer, sinon la plus grande nappe
-    const eaux = waterBodies(b);
-    const riviere = eaux.find((w) => w.kind === 'river' && w.mouth);
-    if (riviere) pousser(riviere.cells, riviere.id, 80, 'Là où la rivière rejoint la mer', 'water');
-    else { const nappe = eaux.filter((w) => w.size >= 2).sort((a, c) => c.size - a.size)[0]; if (nappe) pousser(nappe.cells, nappe.id, 62, EAU[nappe.kind], 'water'); }
-    // 4. le village
-    const village = regions.filter((x) => x.fam === 'hamlet').sort((a, c) => c.reg.size - a.reg.size)[0];
-    if (village) pousser(village.reg.cells, village.reg.id, 74, LIEU.hamlet, 'hamlet');
-    // 5. une tuile rare : c'est souvent la plus jolie chose posée sur l'île
-    const rare = [...b.tiles.values()].find((t) => t.rare && STORY.tiles[t.family]);
-    if (rare) pousser([rare], `rare:${key(rare.q, rare.r)}`, 56, STORY.tiles[rare.family].name, rare.family);
-
-    const n = this.court ? 1 : STAGE.compact ? 3 : (b.tiles.size >= 60 ? 4 : 3);
-    const vus = new Set(), gardes = [];
-    for (const c of cand.sort((a, d) => d.poids - a.poids)) {
-      if (gardes.length >= n || vus.has(c.id)) continue;
-      // deux plans sur les mêmes cases, c'est deux fois le même plan
-      if (gardes.some((g) => g.cells.some((x) => c.cells.some((y) => x.q === y.q && x.r === y.r)))) continue;
-      vus.add(c.id); gardes.push(c);
-    }
-    for (const g of gardes) { let x = 0, y = 0; for (const c of g.cells) { const w = toWorld(c.q, c.r); x += w.x; y += w.y; } g.x = x / g.cells.length; g.y = y / g.cells.length; }
-    return gardes.sort((a, c) => a.x - c.x);
-  }
+  choisirPlans() { return choisirLieux(this.isl, this.court ? 1 : STAGE.compact ? 3 : (this.isl.board.tiles.size >= 60 ? 4 : 3)); }
 
   // --- caméra : on pilote la position ET la cible, si bien que le lissage de la caméra ne fait rien
   //     par-dessus et que le mouvement est exactement celui qu'on écrit ici.
@@ -148,6 +113,7 @@ export class Finale {
     if (this.done) return;
     // sur la carte, aucun toucher ne passe : seuls les boutons (ou Entrée) mènent au récapitulatif
     if (this.phase === 'carte') { if (k === 'Enter' || k === 'NumpadEnter' || k === 'Space') this.finish(); return; }
+    if (this.phase === 'rejouer') { this.finirRejouer(); return; }   // un toucher rend la carte
     if (this.vitesse < 2) { this.vitesse = 2.6; if (this.r.transition) this.r.transitionSpeed *= 2.6; return; }   // le premier toucher presse le pas
     this.entrer('carte');   // le second saute à la carte, qui attend
   }
@@ -155,6 +121,7 @@ export class Finale {
   finish() {
     if (this.done) return;
     this.done = true;
+    if (this.boardReel) { this.isl.board = this.boardReel; this.boardReel = null; this.r.rejoue = false; }
     this.isl.season = this.season0; this.isl.board.touch();
     this.r.transition = null; this.r.transitionSpeed = 1; this.r.finale = false; this.r.nu = false;
     if (this.boutons) { hideUI(); this.boutons = null; }
@@ -182,7 +149,9 @@ export class Finale {
     const court = this.barre > 0;   // sous la carte, sur une seule ligne : des libellés courts
     const voir = button(court ? 'Récapitulatif →' : 'Voir le récapitulatif →', () => this.finish(), { cls: 'btn-primary' });
     const garder = button(court ? 'Enregistrer' : 'Enregistrer la carte', () => { try { exporterCarte(renderPostcard(this.sc), postcardName(this.sc)); } catch (e) { console.warn('carte postale', e); } }, { iconName: 'icon_save' });
-    this.boutons = h('div', { class: 'carte-actions', style: `bottom:${this.barre ? Math.round((this.barre - 40) / 2) : g.bottom + 14}px` }, garder, voir);
+    // revoir la construction : l'île se rebâtit pose après pose, en dix secondes (27 septembre, demande du commanditaire)
+    const revoir = this.isl.poses && this.isl.poses.length >= 5 ? button(court ? 'Revoir' : 'Revoir la construction', () => this.rejouer(), { iconName: 'icon_return', title: 'L’île se rebâtit sous tes yeux, pose après pose' }) : null;
+    this.boutons = h('div', { class: 'carte-actions', style: `bottom:${this.barre ? Math.round((this.barre - 40) / 2) : g.bottom + 14}px` }, revoir, garder, voir);
     showUI(this.boutons, 'carte-wrap');
   }
 
@@ -224,8 +193,46 @@ export class Finale {
       this.majTitre();
     } else if (this.phase === 'carte') {
       this.majCamera(1);   // et rien d'autre : pas de minuterie, la carte attend le joueur
+    } else if (this.phase === 'rejouer') {
+      this.majRejouer(dt);
     }
     this.majScore();
+  }
+
+  /**
+   * La construction rejouée : un plateau vide prend la place du vrai, et les poses y reviennent une à une, dans
+   * l'ordre, avec leurs saisons — dix secondes pour toute l'île (douze au-delà de quatre-vingts poses), puis la
+   * carte revient. Un toucher passe. La faune n'est pas dessinée : elle n'est pas encore arrivée.
+   */
+  rejouer() {
+    if (this.phase === 'rejouer' || !this.isl.poses || !this.isl.poses.length) return;
+    if (this.boutons) { hideUI(); this.boutons = null; }
+    this.phase = 'rejouer'; this.stepT = 0; this.phaseT = 0; this.plan = null;
+    this.camA = this.instantane(); this.camB = this.centre;
+    const n = this.isl.poses.length; const duree = n > 80 ? 12 : 10;
+    this.boardReel = this.isl.board; this.isl.board = new Board(this.boardReel.mask);
+    this.rj = { i: 0, t: -0.6, pas: duree / n, fini: 0 };
+    this.isl.season = this.isl.poses[0].s; this.isl.board.touch();
+    this.r.rejoue = true; this.r.transition = null;
+  }
+  majRejouer(dt) {
+    const rj = this.rj, poses = this.isl.poses, b = this.isl.board;
+    this.majCamera(doux(clamp(this.stepT / 1.2, 0, 1)));
+    if (rj.i >= poses.length) { rj.fini += dt; if (rj.fini > 1.6) this.finirRejouer(); return; }
+    rj.t += dt;
+    while (rj.t >= rj.pas && rj.i < poses.length) {
+      rj.t -= rj.pas; const p = poses[rj.i++];
+      if (p.s !== this.isl.season) { this.r.startTransition(this.isl.season, p.s); this.r.transitionSpeed = 2.2 * this.vitesse; this.isl.season = p.s; this.sc.playSfx('season_sweep', 0.22); }
+      if (p.kind === 'build') { b.tiles.set(key(p.q, p.r), { ...p.t, q: p.q, r: p.r }); b.touch(); } else b.place(p.q, p.r, { ...p.t });
+      // un tic discret, jamais plus de six par seconde : la construction s'entend sans couvrir la musique
+      if (rj.pas >= 0.16 || rj.i % 2 === 0) this.sc.playSfx(`tile_place_${1 + (rj.i % 4)}`, 0.14);
+    }
+  }
+  finirRejouer() {
+    if (this.boardReel) { this.isl.board = this.boardReel; this.boardReel = null; }
+    this.r.rejoue = false; this.r.transition = null; this.rj = null;
+    this.isl.season = this.season0; this.isl.board.touch();
+    this.entrer('carte');
   }
 
   entrerPlan() {
@@ -346,6 +353,15 @@ export class Finale {
   /** Surimpression écran : le compteur, le nom du lieu visité, puis la carte postale. */
   render(ctx) {
     if (this.done) return;
+    if (this.phase === 'rejouer') {
+      const W = STAGE.W, H = this.hCarte, compact = STAGE.compact; const n = this.isl.poses.length;
+      ctx.save(); ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.globalAlpha = clamp(this.stepT / 0.6, 0, 1);
+      ctx.font = `700 ${compact ? 13 : 16}px Quicksand, sans-serif`; ctx.lineWidth = 5; ctx.strokeStyle = 'rgba(255,253,248,0.9)'; ctx.fillStyle = '#2b2a26';
+      const mot = `La construction · ${Math.min(n, this.rj ? this.rj.i : 0)} / ${n}`;
+      ctx.strokeText(mot, W / 2, H - (compact ? 30 : 44)); ctx.fillText(mot, W / 2, H - (compact ? 30 : 44));
+      ctx.globalAlpha *= 0.6; ctx.font = `700 ${compact ? 10 : 12}px Quicksand, sans-serif`; ctx.fillText('TOUCHER POUR PASSER', W / 2, H - (compact ? 14 : 22));
+      ctx.restore(); return;
+    }
     const W = STAGE.W, H = this.hCarte, compact = STAGE.compact;
     if (this.phase === 'carte') { habillerCarte(ctx, this.sc, W, H, { legendes: true }); this.bandeBoutons(ctx, 1); return; }
     const fin = this.phase === 'titre' ? clamp(this.stepT / (this.D.titre * 0.26), 0, 1) : 0;
@@ -377,4 +393,46 @@ export class Finale {
     ctx.fillText(this.vitesse > 1 ? 'TOUCHER POUR PASSER' : 'TOUCHER POUR ACCÉLÉRER', W / 2, H - (compact ? 14 : 22));
     ctx.restore();
   }
+}
+
+/**
+ * Les lieux d'une île, choisis pour ce qu'ils SONT, pas pour ce qu'ils rapportent : la plus grande région, là où
+ * vit la faune, l'eau qui rejoint la mer, le village, la tuile rare. La tournée finale les visite ; le mode
+ * observation aussi (27 septembre). Rangés d'ouest en est, pour que la caméra traverse l'île. `n` : combien on garde.
+ */
+export function choisirLieux(isl, n) {
+  const b = isl.board, cand = [];
+  const pousser = (cells, id, poids, titre, famille) => { if (cells && cells.length && titre) cand.push({ cells, id, poids, titre, famille }); };
+  const regions = [];
+  for (const fam of Object.keys(REGION_LABEL)) for (const reg of b.regions(fam)) if (reg.size >= 2) regions.push({ reg, fam });
+  // 1. la plus grande région : c'est elle qu'on a bâtie
+  const grande = regions.slice().sort((a, c) => c.reg.size - a.reg.size)[0];
+  if (grande) pousser(grande.reg.cells, grande.reg.id, 100, LIEU[grande.fam], grande.fam);
+  // 2. là où vit la faune, nommée par son animal
+  const parRegion = new Map();
+  for (const a of isl.fauna.values()) { if (!a.regionId) continue; const l = parRegion.get(a.regionId) || []; l.push(a); parRegion.set(a.regionId, l); }
+  let faune = null;
+  for (const [id, l] of parRegion) { const x = regions.find((y) => y.reg.id === id); if (x && (!faune || l.length > faune.l.length)) faune = { x, l }; }
+  if (faune && ANIMAL_LINE[faune.l[0].species]) pousser(faune.x.reg.cells, faune.x.reg.id, 86, maj(ANIMAL_LINE[faune.l[0].species]), faune.x.fam);
+  // 3. l'eau qui rejoint la mer, sinon la plus grande nappe
+  const eaux = waterBodies(b);
+  const riviere = eaux.find((w) => w.kind === 'river' && w.mouth);
+  if (riviere) pousser(riviere.cells, riviere.id, 80, 'Là où la rivière rejoint la mer', 'water');
+  else { const nappe = eaux.filter((w) => w.size >= 2).sort((a, c) => c.size - a.size)[0]; if (nappe) pousser(nappe.cells, nappe.id, 62, EAU[nappe.kind], 'water'); }
+  // 4. le village
+  const village = regions.filter((x) => x.fam === 'hamlet').sort((a, c) => c.reg.size - a.reg.size)[0];
+  if (village) pousser(village.reg.cells, village.reg.id, 74, LIEU.hamlet, 'hamlet');
+  // 5. une tuile rare : c'est souvent la plus jolie chose posée sur l'île
+  const rare = [...b.tiles.values()].find((t) => t.rare && STORY.tiles[t.family]);
+  if (rare) pousser([rare], `rare:${key(rare.q, rare.r)}`, 56, STORY.tiles[rare.family].name, rare.family);
+
+  const vus = new Set(), gardes = [];
+  for (const c of cand.sort((a, d) => d.poids - a.poids)) {
+    if (gardes.length >= n || vus.has(c.id)) continue;
+    // deux plans sur les mêmes cases, c'est deux fois le même plan
+    if (gardes.some((g) => g.cells.some((x) => c.cells.some((y) => x.q === y.q && x.r === y.r)))) continue;
+    vus.add(c.id); gardes.push(c);
+  }
+  for (const g of gardes) { let x = 0, y = 0; for (const c of g.cells) { const w = toWorld(c.q, c.r); x += w.x; y += w.y; } g.x = x / g.cells.length; g.y = y / g.cells.length; }
+  return gardes.sort((a, c) => a.x - c.x);
 }

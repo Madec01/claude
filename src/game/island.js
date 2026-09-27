@@ -109,6 +109,7 @@ export class Island {
     this.bestMove = null;
     this.stats = { grown: 0, harvest: 0, bloom: 0, closedThisSeason: 0, irrigatedSummer: 0, closed: 0, rivers: 0, faunaMax: 0, wishesDone: 0, biggestRegion: 0, undo: 0, links: 0, perfect: 0, streak: 0, bestStreak: 0, built: 0, fusions: 0, level3: 0, restored: 0 };
     this.history = [];         // instantanés pour le souvenir
+    this.poses = [];           // la construction, pose après pose (bâtir et croissance compris) : rejouée à la fin de l'île
     this.undoUsedThisSeason = false;
     this.ended = false;
     this.result = null;
@@ -318,6 +319,7 @@ export class Island {
       this.breaths -= a.cost; this.stats.built++; if (target.level >= 3) this.stats.level3++;
     }
     this.score += pv.total; this.tally[a.kind === 'fuse' ? 'fusions' : 'build'] += pv.total;
+    this.poses.push({ q, r, t: { ...placed }, s: this.season, kind: 'build' });
     this.emit({ type: 'build', kind: a.kind, q, r, tile: placed, level: placed.level || 1, result: pv, cost: a.cost, family: a.with ? a.with.family : target.family, recipe: a.recipe ? a.recipe.id : null, with: a.with || null, first: !!pv.first, milestone: Math.floor(this.score / 100) > Math.floor(scoreBefore / 100) ? Math.floor(this.score / 100) * 100 : 0 });
     for (const c of pv.closes || []) this.emit({ type: 'close', ...c, breath: BALANCE.breaths.close });
     this.updateFauna(); this.checkWishes();
@@ -339,6 +341,7 @@ export class Island {
     const voeuxAvant = this.wishes.map((w) => w.progress);   // pour dire, après la pose, quel vœu a avancé (un fait, pas un jugement)
     if (this.brume) this.jugerCoup(q, r, placedTile);
     const res = apply(this.board, q, r, placedTile, this.season, this.mods);
+    this.poses.push({ q, r, t: { ...placedTile }, s: this.season });
     if (this.brume) { this.lireIndice(q, r, false); this.brume.posesSaison.push(key(q, r)); }
     if (this.rule === 'semailles' && Board.isFamily(placedTile, 'orchard')) { const pt = this.board.get(q, r); if (pt) pt.sown = true; }
     this.placements++; this.inSeason++;
@@ -420,7 +423,7 @@ export class Island {
     const grown = [];
     for (const t of pick(ready)) { t.level = 2; t.grown = true; t.ripe = 0; t.builtAt = this.seasonsPassed.length; grown.push({ q: t.q, r: t.r, family: t.family }); }
     for (const t of pick(soon)) t.ripening = true;   // l'annonce ne porte que sur celles qui pousseront vraiment
-    if (grown.length) { this.board.touch(); this.stats.grown = (this.stats.grown || 0) + grown.length; }
+    if (grown.length) { this.board.touch(); this.stats.grown = (this.stats.grown || 0) + grown.length; for (const g of grown) { const t = this.board.get(g.q, g.r); if (t) this.poses.push({ q: g.q, r: g.r, t: { ...t }, s: this.season, kind: 'build' }); } }
     return grown;
   }
 
@@ -441,6 +444,7 @@ export class Island {
       undoUsedThisSeason: !!this.undoUsedThisSeason,
       huntSeason: !!this.huntSeason, rule: this.rule, nextRule: this.nextRule || null,
       brume: this.brume ? this.serializeBrume() : null,
+      poses: this.poses.map((p) => ({ q: p.q, r: p.r, t: { ...p.t }, s: p.s, ...(p.kind ? { kind: p.kind } : {}) })),
     };
   }
 
@@ -476,6 +480,7 @@ export class Island {
     this.undoUsedThisSeason = !!s.undoUsedThisSeason;
     this.huntSeason = !!s.huntSeason; this.rule = s.rule; this.nextRule = s.nextRule || this.tirerRegleSuivante();   // une partie d'avant l'annonce tire sa surprise maintenant
     if (this.brume && s.brume) this.restoreBrume(s.brume);
+    this.poses = (s.poses || []).map((p) => ({ q: p.q, r: p.r, t: { ...p.t }, s: p.s, ...(p.kind ? { kind: p.kind } : {}) }));   // une partie d'avant n'a pas sa construction : le bilan ne la rejouera pas
     this.history = []; this.ended = false; this.result = null;
     return true;
   }
@@ -633,12 +638,13 @@ export class Island {
     this.breaths = s.breaths - this.undoCost;
     this.undoUsedThisSeason = true; this.stats.undo++;
     this.fauna = new Map(s.fauna);
+    if (s.posesN !== undefined) this.poses.length = Math.min(this.poses.length, s.posesN);
     this.emit({ type: 'breath', kind: 'undo' });
     return true;
   }
 
   pushHistory() {
-    this.history.push({ rngS: this.rng.s, nextRule: this.nextRule || null, longSeasonDone: !!this.longSeasonDone, pendingOpening: [...this.pendingOpening], tally: { ...this.tally }, bestMove: this.bestMove ? { ...this.bestMove } : null, rule: this.rule, huntSeason: this.huntSeason, board: this.board.snapshot(), queue: this.queue.snapshot(), score: this.score, placements: this.placements, inSeason: this.inSeason, season: this.season, seasonsPassed: [...this.seasonsPassed], stats: { ...this.stats }, wishes: this.wishes.map((w) => ({ ...w })), breaths: this.breaths, fauna: new Map(this.fauna) });
+    this.history.push({ posesN: this.poses.length, rngS: this.rng.s, nextRule: this.nextRule || null, longSeasonDone: !!this.longSeasonDone, pendingOpening: [...this.pendingOpening], tally: { ...this.tally }, bestMove: this.bestMove ? { ...this.bestMove } : null, rule: this.rule, huntSeason: this.huntSeason, board: this.board.snapshot(), queue: this.queue.snapshot(), score: this.score, placements: this.placements, inSeason: this.inSeason, season: this.season, seasonsPassed: [...this.seasonsPassed], stats: { ...this.stats }, wishes: this.wishes.map((w) => ({ ...w })), breaths: this.breaths, fauna: new Map(this.fauna) });
     if (this.history.length > 3) this.history.shift();
   }
 

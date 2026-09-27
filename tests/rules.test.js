@@ -985,5 +985,13 @@ for (const def of ISLANDS.slice(0, 4)) {
   b.place(0, 0, { family: 'marsh', variant: 1 });
   check([...evaluate(b, 'spring').values()].some((a) => a.species === 'frog'), 'un marais qui touche la mer a ses grenouilles');
 }
+// --- la construction enregistrée suit l'annulation (27 septembre)
+{
+  const d5 = campaignIsland(5); const isl5 = new Island(d5, { ...islandOptions(d5) }); isl5.breaths = 9;
+  const c1 = isl5.board.legalCells()[0]; isl5.place(c1.q, c1.r); const n1 = isl5.poses.length;
+  check(n1 === 1 && isl5.poses[0].q === c1.q && isl5.poses[0].r === c1.r, 'la première pose est enregistrée à sa case');
+  check(isl5.canUndo() && isl5.undo() && isl5.poses.length === 0, 'annuler retire la pose de la construction');
+}
+
 console.log(failures ? `${failures} échec(s)` : 'Tous les tests passent.');
 process.exit(failures ? 1 : 0);
