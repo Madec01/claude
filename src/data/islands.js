@@ -7,7 +7,7 @@ import { neighbors, key } from '../game/hex.js';
  * @returns {Set<string>} clés "q,r"
  */
 /** `etire` : le rapport hauteur/largeur visé (1 = île ronde ; 1,4 = plus haute que large, pour un écran en portrait). */
-export function generateMask(seed, cells, { roughness = 0.35, holes = 0, etire = 1 } = {}) {
+export function generateMask(seed, cells, { roughness = 0.35, holes = 0, etire = 1, isthme = false, garde = [] } = {}) {
   const ex = Math.sqrt(etire), ey = 1 / ex;
   const rng = new RNG(seed);
   const mask = new Set([key(0, 0)]);
@@ -35,7 +35,37 @@ export function generateMask(seed, cells, { roughness = 0.35, holes = 0, etire =
     if (q === 0 && r === 0) continue;
     if (neighbors(q, r).every(([a, b]) => mask.has(key(a, b)))) mask.delete(k);
   }
+  if (isthme) creuserIsthme(mask, garde);
   return mask;
+}
+
+/**
+ * Le « passage étroit » (feuille Histoire, J-M) : deux terres reliées par deux cases. On retire une bande verticale
+ * d'une case de large (deux demi-colonnes de la grille), à droite du centre pour épargner les tuiles de départ, et
+ * l'on garde deux cases voisines qui font le pont — une dans chaque demi-colonne, sinon rien ne se toucherait.
+ * Les cases retirées deviennent la mer : un bras d'eau, un gué.
+ */
+function creuserIsthme(mask, garde = []) {
+  const cellules = [...mask].map((k) => { const [q, r] = k.split(',').map(Number); return { k, q, r, x: q + r / 2, y: r }; });
+  const interdit = new Set(garde);
+  const xs = cellules.map((c) => c.x).sort((a, b) => a - b); const med = Math.round(xs[Math.floor(xs.length / 2)]);
+  // la bande : celle qui partage l'île le plus également, chaque terre gardant au moins huit cases ; une tuile de départ
+  // qui s'y trouve (le hameau) reste et devient le gué lui-même
+  let choix = null;
+  for (const x0 of [med, med - 1, med + 1, med - 2, med + 2, med - 3, med + 3]) {
+    const bande = cellules.filter((c) => c.x >= x0 && c.x < x0 + 1);
+    const gauche = cellules.filter((c) => c.x < x0).length, droite = cellules.filter((c) => c.x >= x0 + 1).length;
+    if (bande.length < 4 || gauche < 8 || droite < 8) continue;
+    const ecart = Math.abs(gauche - droite); if (!choix || ecart < choix.ecart) choix = { x0, bande, ecart };
+  }
+  if (!choix) return;   // l'île est trop petite ou trop biscornue : on la laisse entière
+  const { x0, bande } = choix;
+  // le pont : une case de la demi-colonne x0 proche de l'axe, et une voisine de la demi-colonne x0 + 0,5
+  const axe = bande.filter((c) => c.x === x0).sort((a, b) => (interdit.has(b.k) - interdit.has(a.k)) || (Math.abs(a.y) - Math.abs(b.y)));   // la tuile de départ d'abord, puis la plus proche de l'axe
+  let pont = null;
+  for (const a of axe) { const b = neighbors(a.q, a.r).map(([q, r]) => key(q, r)).find((k) => mask.has(k) && bande.some((c) => c.k === k && c.x === x0 + 0.5)); if (b) { pont = [a.k, b]; break; } }
+  if (!pont) return;
+  for (const c of bande) if (!pont.includes(c.k) && !interdit.has(c.k)) mask.delete(c.k);
 }
 
 /**

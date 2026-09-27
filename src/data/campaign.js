@@ -5,7 +5,7 @@
 // Chaque mécanique arrive à une île précise (MECH_AT) ; les climats arrivent avec les archipels (chapitres 5 à 8).
 // Une carte de tutoriel propre au climat s'affiche à chaque île dont le climat diffère de la précédente (climateCardFor).
 import { ISLANDS, WEIGHTS, generateMask, enclosedHoles } from './islands.js';
-import { CAMPAIGN_TEXTS } from './campaign_texts.js';
+import { CAMPAIGN_TEXTS, INTENTIONS } from './campaign_texts.js';
 import { CAMPAIGN_STARS } from './campaign_stars.js';
 import { SIGNATURE_OF, applySignature } from './signatures.js';
 
@@ -95,7 +95,7 @@ export function campaignIsland(n) {
     // les vœux et tuiles de départ restent ; les vœux disparaissent si l'île est jouée avant l'arrivée des vœux
     // un vœu qui demande une mécanique pas encore arrivée tombe (Le Pont de Glace demande un fortin : les fusions ouvrent avant lui, désormais)
     const wishOk = (w) => !(w.type === 'fusion' && !mech.has('fuse')) && !(w.type === 'level' && !mech.has('build'));
-    return { ...h, id: n, story: h.id, chapter: ch.id, climate, memory: !!slot.memory, mech, wishes: mech.has('wish') ? h.wishes.filter(wishOk) : [], mechanics: [], starFactors: stars || h.starFactors, surprise: mech.has('surprise') };
+    return { ...h, id: n, story: h.id, chapter: ch.id, climate, memory: !!slot.memory, mech, intention: INTENTIONS[n] || null, wishes: mech.has('wish') ? h.wishes.filter(wishOk) : [], mechanics: [], starFactors: stars || h.starFactors, surprise: mech.has('surprise') };
   }
   const from = slot.from || n;   // l'ancien numéro : la graine et les textes lui restent attachés
   const seed = 5000 + from * 131;
@@ -125,7 +125,7 @@ export function campaignIsland(n) {
   if (cells >= 60) start.push({ q: -2, r: 2, family: rng() < 0.5 ? 'rock' : 'water' });
   if (cells >= 100) start.push({ q: 3, r: 1, family: 'meadow' });
   let def = {
-    id: n, story: null, chapter: ch.id, climate, memory: !!slot.memory, mech, arch: ch.id, cells, seed, roughness: 0.3 + rng() * 0.2, holes: cells >= 60 ? 1 + Math.floor(rng() * 2) : 0,
+    id: n, story: null, chapter: ch.id, climate, memory: !!slot.memory, mech, intention: INTENTIONS[n] || null, arch: ch.id, cells, seed, roughness: 0.3 + rng() * 0.2, holes: cells >= 60 ? 1 + Math.floor(rng() * 2) : 0,
     seasonLength, startSeason, weights: weightsFor(slot.w, climate, mech), tilesRatio, start, wishes, mechanics: [], surprise: mech.has('surprise'),
     name: t.name, intro: t.intro, memoryText: t.memory, starFactors: stars || [3.6, 5.2, 6.5, 7.2],
   };
@@ -210,7 +210,7 @@ export function unlockedUpTo(campaign) {
 const cellsCache = new Map();
 export function islandCells(def) {
   if (cellsCache.has(def.id)) return cellsCache.get(def.id);
-  const mask = generateMask(def.seed, def.cells, { roughness: def.roughness, holes: def.holes });
+  const mask = generateMask(def.seed, def.cells, { roughness: def.roughness, holes: def.holes, etire: def.etire || 1, isthme: !!def.isthme, garde: (def.start || []).map((t) => `${t.q},${t.r}`) });
   for (const [q, r] of def.ensure || []) mask.add(`${q},${r}`);
   for (const t of def.start || []) mask.add(`${t.q},${t.r}`);
   for (const c of enclosedHoles(mask)) mask.add(`${c.q},${c.r}`);   // une lagune est une case de l'île, avec sa tuile d'eau

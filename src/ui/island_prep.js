@@ -57,6 +57,7 @@ export function buildIslandPrep({ def, semis = true, screens = [], onStart, onBa
     head && head.sub && !def.signature ? h('p', { class: 'prep-sub' }, head.sub) : null,
     voices.length ? h('div', { class: 'prep-story' }, ...voices.map((t) => h('p', {}, t))) : null,
     def.signature ? h('p', { class: 'prep-signature' }, h('b', {}, `${def.signature.name} · `), def.signature.text) : null,
+    def.intention ? h('p', { class: 'prep-intention' }, def.intention) : null,   // l'intention de l'île : une phrase d'objectif de découverte (J-L)
     semis ? h('h3', { class: 'prep-h' }, 'Choisis ton semis') : null,
     semis ? h('p', { class: 'ws-intro' }, 'Ce que la file donnera plutôt. Un penchant, pas une garantie.') : null,
     semis ? h('div', { class: 'semis-list' }, ...semisCards) : null,

@@ -897,5 +897,33 @@ for (const def of ISLANDS.slice(0, 4)) {
   const dp = campaignIsland(4); const ip = new Island(dp, { ...islandOptions(dp), upgrades: { patience: 0 } }), ip2 = new Island(dp, { ...islandOptions(dp), upgrades: { patience: 2 } });
   check(ip2.seasonLength === ip.seasonLength + 2, 'le niveau passé à l’île fixe la longueur des saisons');
 }
+// --- feuille Histoire, étape 4 : des situations, pas des règles
+{
+  const { generateMask } = await import('../src/data/islands.js');
+  const { INTENTIONS } = await import('../src/data/campaign_texts.js');
+  // J-L : chaque île a son intention, une phrase
+  for (let n = 1; n <= CAMPAIGN_SIZE; n++) { const d = campaignIsland(n); check(typeof d.intention === 'string' && d.intention.startsWith('Ici') && d.intention.length < 170, `île ${n} : une intention (« ${(d.intention || '').slice(0, 40)}… »)`); }
+  check(Object.keys(INTENTIONS).length === CAMPAIGN_SIZE, 'trente intentions, pas une de plus');
+  // J-M : le passage étroit — deux terres reliées par deux cases, le hameau et la roche de départ épargnés
+  const d8 = campaignIsland(8); check(d8.isthme === true && d8.signature && d8.signature.id === 'passage_etroit', 'l’île 8 porte le passage étroit');
+  const i8 = new Island(d8, { ...islandOptions(d8) }); const m = i8.board.mask;
+  const xs = [...m].map((k) => { const [q, r] = k.split(',').map(Number); return q + r / 2; });
+  const colonnes = new Map(); for (const x of xs) colonnes.set(x, (colonnes.get(x) || 0) + 1);
+  const etroit = [...colonnes.entries()].filter(([x, n]) => n === 1 && colonnes.get(x + 0.5) === 1);
+  check(etroit.length >= 1, `une bande de deux demi-colonnes à une seule case : le passage (${etroit.map(([x]) => x).join(', ')})`);
+  check(d8.start.every((t) => m.has(`${t.q},${t.r}`)), 'les tuiles de départ sont restées sur l’île');
+  { // l'île reste d'un seul tenant
+    const start = [...m][0]; const vu = new Set([start]); const pile = [start];
+    while (pile.length) { const [q, r] = pile.pop().split(',').map(Number); for (const [a, b] of neighbors(q, r)) { const k = `${a},${b}`; if (m.has(k) && !vu.has(k)) { vu.add(k); pile.push(k); } } }
+    check(vu.size === m.size, `l’île reste d’un seul tenant (${vu.size} / ${m.size})`);
+  }
+  check(islandCells(d8) === m.size, 'le compte de cases de l’île suit le passage');
+  const sans = generateMask(d8.seed, d8.cells, { roughness: d8.roughness, holes: d8.holes }); check(sans.size > m.size, `le passage a retiré des cases (${sans.size} → ${m.size})`);
+  // J-N : le puzzle de rivière — une rivière commencée, un vœu d'embouchure en tête, la file qui donne de l'eau
+  const d17 = campaignIsland(17); check(d17.signature && d17.signature.id === 'puzzle_riviere' && d17.wishes[0] && d17.wishes[0].id === 'c_mouth', 'l’île 17 est le puzzle de rivière, vœu d’embouchure en tête');
+  const i17 = new Island(d17, { ...islandOptions(d17) });
+  check(i17.board.get(-4, 1) && i17.board.get(-4, 1).family === 'rock' && i17.board.get(-3, 1) && i17.board.get(-3, 1).family === 'water', 'la rivière est commencée depuis la roche');
+  check(i17.queue.list[0].family === 'water' && d17.opening[0] === 'water', 'la première tuile est de l’eau');
+}
 console.log(failures ? `${failures} échec(s)` : 'Tous les tests passent.');
 process.exit(failures ? 1 : 0);

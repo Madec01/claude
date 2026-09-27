@@ -72,9 +72,9 @@ existants (sans allonger la campagne) :
 
 | Id | Idée | Où | Effort | Statut |
 |---|---|---|---|---|
-| **J-L** | Une intention par île : une phrase d'objectif de découverte sur l'écran de départ (« Ici, apprends à garder une rivière ouverte »), bâtie sur les signatures existantes ; un vœu secondaire qui la contredit est retiré. | les 30 îles, `campaign_texts.js`, `signatures.js` | petit | à faire |
-| **J-M** | Une île « passage étroit » : deux terres reliées par peu de cases ; les tuiles du passage engagent la suite. | une île générée du chapitre 3 ou 4 | petit | à faire |
-| **J-N** | Un puzzle de rivière court : quelques tuiles fixées, un départ rocheux, une sortie à atteindre. | une île « pratique » d'un chapitre à climat humide | moyen | à faire |
+| **J-L** | Une intention par île : une phrase d'objectif de découverte sur l'écran de départ (« Ici, apprends à garder une rivière ouverte »), bâtie sur les signatures existantes ; un vœu secondaire qui la contredit est retiré. | les 30 îles, `campaign_texts.js`, `signatures.js` | petit | **fait** (27 septembre : trente intentions dans `campaign_texts.js`, lues sur l'écran de départ ; aucun vœu à retirer après relecture) |
+| **J-M** | Une île « passage étroit » : deux terres reliées par peu de cases ; les tuiles du passage engagent la suite. | une île générée du chapitre 3 ou 4 | petit | **fait** (27 septembre : île 8, Les Trois Buttes, signature « Le passage étroit », le hameau de départ est le gué) |
+| **J-N** | Un puzzle de rivière court : quelques tuiles fixées, un départ rocheux, une sortie à atteindre. | une île « pratique » d'un chapitre à climat humide | moyen | **fait** (27 septembre : île 17, Les Vergers Noyés, signature « La rivière à finir », vœu d'embouchure en tête) |
 
 Gardées en réserve, après validation des trois premières : deux projets au choix avant l'île, défi de fermeture volontaire,
 contrat de saison annoncée (après J-F), rejouer exactement le même tirage, un bilan qui montre une décision marquante.

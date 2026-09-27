@@ -48,7 +48,7 @@ const res = di.finish('full'); check(res.stars >= 0 && res.thresholds.length ===
     for (let i = 0; i < 25 && !isl2.ended; i++) { const c = greedy(isl2); if (!c) break; isl2.place(c.q, c.r); }
     // on se place à la saison précédente et on force le tirage vers la règle voulue (0,1 → base, 0,5 → deuxième, 0,9 → troisième)
     const order = ['spring', 'summer', 'autumn', 'winter']; isl2.season = order[(order.indexOf(season) + 3) % 4]; isl2.board.touch();
-    const pick = [0.1, 0.5, 0.9][list.indexOf(rule)]; const origNext = isl2.rng.next.bind(isl2.rng); isl2.rng.next = () => pick;
+    const pick = [0.1, 0.5, 0.9][list.indexOf(rule)]; const origNext = isl2.rng.next.bind(isl2.rng); isl2.rng.next = () => pick; isl2.nextRule = null;   // la surprise est tirée d'avance (J-F) : on efface ce tirage pour forcer celui de la saison qui vient
     const before = isl2.score; isl2.inSeason = isl2.seasonLength;
     const c = greedy(isl2); if (c) isl2.place(c.q, c.r);
     isl2.rng.next = origNext;

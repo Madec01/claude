@@ -287,3 +287,6 @@ html:not(.compact) .menu-nav > .menu-modes { grid-column: 1 / -1; }
 .tp-regle b { display: block; font-size: 15px; margin-bottom: 2px; }
 .tp-regle span { font-size: 13.5px; line-height: 1.4; opacity: 0.85; }
 html.compact .tp-regle { padding: 8px 10px; gap: 10px; } html.compact .tp-regle span { font-size: 12.5px; }
+
+/* l'intention de l'île sur l'écran de départ : une phrase d'objectif, en italique, sous le récit */
+.prep-intention { font-style: italic; color: var(--ink, #2b2a26); opacity: 0.85; margin: 4px 0 8px; padding-left: 10px; border-left: 3px solid var(--gold, #e0a33a); }
