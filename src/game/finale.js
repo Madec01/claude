@@ -202,13 +202,15 @@ export class Finale {
   /**
    * La construction rejouée : le plateau est mis de côté et l'île repart de la mer nue ; chaque tuile TOMBE à sa
    * place, dans l'ordre des poses, avec ses saisons — dix secondes pour toute l'île (douze au-delà de
-   * quatre-vingts poses). Puis le vrai plateau revient d'un coup, sols fondus, décor et rivières compris, et la
-   * carte suit. Un toucher passe.
+   * quatre-vingts poses) ; à l'atterrissage, la tuile entre dans le plateau et prend sa forme fondue, arbres et
+   * rives compris (l'image gardée n'est retouchée qu'autour d'elle : voir drawGarde). À la fin, le vrai plateau
+   * reprend la main et la carte suit. Un toucher passe.
    *
    * Première version (27 septembre, le matin) : chaque pose entrait dans un plateau et l'île entière était
    * recomposée à chaque fois — mesuré 40 à 80 ms par pose, sept poses par seconde : « très saccadé » (le
-   * commanditaire). Ici le plateau ne bouge plus pendant le rejeu : les tuiles posées sont des sprites dessinés
-   * par-dessus (`drawTileAt`, quelques dizaines d'images par image), et l'île n'est recomposée qu'une fois, à la fin.
+   * commanditaire). Deuxième version : des sprites qui tombent sur un plateau vide, l'île recomposée une fois à la
+   * fin — fluide, mais « je veux que les tuiles prennent leur forme naturelle en direct ». D'où la retouche des
+   * images gardées : une tuile qui atterrit ne fait repeindre que son voisinage.
    */
   rejouer() {
     if (this.phase === 'rejouer' || !this.isl.poses || !this.isl.poses.length) return;
@@ -224,15 +226,18 @@ export class Finale {
   majRejouer(dt) {
     const rj = this.rj, poses = this.isl.poses;
     this.majCamera(doux(clamp(this.stepT / 1.2, 0, 1)));
-    if (rj.reveil > 0) { rj.reveil += dt; if (rj.reveil > 1.4) { this.rj = null; this.entrer('carte'); } return; }   // l'île vraie est revenue : on la regarde un instant
-    if (rj.i >= poses.length) { rj.fini += dt; if (rj.fini > 1.0) this.finirRejouer(); return; }
+    if (rj.reveil > 0) { rj.reveil += dt; if (rj.reveil > 1.2) { this.rj = null; this.entrer('carte'); } return; }   // tout est posé : on regarde l'île un instant
+    if (rj.i >= poses.length && !rj.posees.length) { rj.fini += dt; if (rj.fini > 0.4) this.finirRejouer(); return; }
     rj.t += dt;
+    for (const e of rj.posees) if (!e.posee && this.t - e.at >= 0.55) { e.posee = true; this.isl.board.place(e.q, e.r, { ...e.t }); }
+    rj.posees = rj.posees.filter((e) => !e.posee);   // posée : le plateau la dessine, fondue à ses voisines
     while (rj.t >= rj.pas && rj.i < poses.length) {
       rj.t -= rj.pas; const p = poses[rj.i++];
       if (p.s !== this.isl.season) { this.r.startTransition(this.isl.season, p.s); this.r.transitionSpeed = 2.2 * this.vitesse; this.isl.season = p.s; this.sc.playSfx('season_sweep', 0.22); }
       const k = key(p.q, p.r); const deja = rj.par.get(k);
-      if (deja) { deja.t = { ...p.t, q: p.q, r: p.r }; deja.pop = this.t; }   // bâti, fusion, croissance : la tuile change sur place, d'un petit sursaut
-      else { const e = { q: p.q, r: p.r, t: { ...p.t, q: p.q, r: p.r }, at: this.t, pop: -1 }; rj.par.set(k, e); rj.posees.push(e); rj.posees.sort((a, c) => (a.r - c.r) || (a.q - c.q)); }
+      if (deja && deja.posee) { this.isl.board.tiles.set(k, { ...p.t, q: p.q, r: p.r }); this.isl.board.touch(); }   // bâti, fusion, croissance d'une tuile déjà posée : elle change dans le plateau (retouche de l'image)
+      else if (deja) { deja.t = { ...p.t, q: p.q, r: p.r }; deja.pop = this.t; }   // encore en l'air : elle change en vol
+      else { const e = { q: p.q, r: p.r, t: { ...p.t, q: p.q, r: p.r }, at: this.t, pop: -1, posee: false }; rj.par.set(k, e); rj.posees.push(e); rj.posees.sort((a, c) => (a.r - c.r) || (a.q - c.q)); }
       // un tic discret, jamais plus de six par seconde : la construction s'entend sans couvrir la musique
       if (rj.pas >= 0.16 || rj.i % 2 === 0) this.sc.playSfx(`tile_place_${1 + (rj.i % 4)}`, 0.14);
     }
@@ -255,7 +260,7 @@ export class Finale {
     if (this.boardReel) { this.isl.board = this.boardReel; this.boardReel = null; }
     this.r.rejoue = false; this.r.transition = null; this.r.nu = true; this.r._nu0 = this.r.time - 10;   // l'île nue, d'un coup, comme sur la carte
     this.isl.season = this.season0; this.isl.board.touch();
-    if (this.rj && this.phase === 'rejouer') { this.rj.reveil = 0.001; this.rj.posees = []; this.sc.playSfx('region_close', 0.35); return; }   // l'île vraie apparaît, on la laisse respirer avant la carte
+    if (this.rj && this.phase === 'rejouer') { this.rj.reveil = 0.001; this.rj.posees = []; this.sc.playSfx('region_close', 0.35); return; }   // le vrai plateau (sentiers, régions payées, faune) reprend la main ; on le laisse respirer avant la carte
     this.rj = null; this.entrer('carte');
   }
 

@@ -553,6 +553,7 @@ export class IslandRenderer {
    */
   drawSols(ctx, tiles, dropping, anses, vis) {
     const cam = this.cam, b = this.isl.board, z = cam.zoom;
+    const seul = this._seulement || null;   // retouche d'une image gardée : seules ces cases se repeignent (voir drawGarde)
     ctx.save();
     this.clipMonde(ctx, this.cheminMonde());
     // sols
@@ -560,6 +561,7 @@ export class IslandRenderer {
     for (const t of tiles) {
       const w = toWorld(t.q, t.r); const c = cam.toScreen(w.x, w.y);
       const k = key(t.q, t.r); const d = dropping.get(k) || SANS_CHUTE;
+      if (seul && !seul.has(k)) continue;
       if (!vis(c) || anses.has(k)) continue;
       const season = this.seasonFor(w.x); const g = this.decor.groundFor(t);
       // Une case d'eau qui touche la MER ne dessine pas son eau : elle dessine sa rive. Son hexagone
@@ -587,7 +589,7 @@ export class IslandRenderer {
       let g = this.decor.groundFor(t); if (g === 'water' || t.family === 'water') g = this.riveDe(t);
       if (RELIEF.has(g)) continue;
       const c = cam.toScreen(w.x, w.y); if (!vis(c)) continue;
-      const k = key(t.q, t.r); if (dropping.has(k)) continue;
+      const k = key(t.q, t.r); if (dropping.has(k) || (seul && !seul.has(k))) continue;
       const season = this.seasonFor(w.x);
       const col = GROUND_COLORS[g] || (images[groundKey(g, season)] || {}).ground_color; if (!col) continue;
       const dedans = corners(c.x, c.y, SIZE * z * 0.86);
@@ -610,7 +612,7 @@ export class IslandRenderer {
     }
     ctx.restore();
     // lagunes (trous du masque entourés de terre) : sol de rive puis mare, dessinées comme un étang
-    for (const h of this.decor.holes || []) {
+    for (const h of (seul ? [] : this.decor.holes || [])) {   // les lagunes ne changent pas à la pose : rien à retoucher
       const w = toWorld(h.q, h.r); const c = cam.toScreen(w.x, w.y); if (!vis(c)) continue;
       const img = this.waterGround(h, this.seasonFor(w.x)); if (img) ctx.drawImage(img, c.x - TILE_W * z / 2, c.y - TILE_H * z / 2, TILE_W * z, TILE_H * z);
     }
@@ -618,7 +620,7 @@ export class IslandRenderer {
     ctx.save();
     const half = SIZE * 0.46, e = 7;
     for (const t of tiles) {
-      const k = key(t.q, t.r); if (dropping.has(k)) continue;
+      const k = key(t.q, t.r); if (dropping.has(k) || (seul && !seul.has(k))) continue;
       const g = this.decor.groundFor(t);
       const w = toWorld(t.q, t.r);
       for (let d = 0; d < 3; d++) {
@@ -650,7 +652,7 @@ export class IslandRenderer {
       for (const t of tiles) {
         // les cases d'eau aussi : leur BERGE (le sol dessiné sous le plan d'eau) est un hexagone plein,
         // et contre un marais, en hiver, on voyait ses six arêtes autour de chaque mare gelée
-        const k = key(t.q, t.r); if (dropping.has(k) || anses.has(k)) continue;
+        const k = key(t.q, t.r); if (dropping.has(k) || anses.has(k) || (seul && !seul.has(k))) continue;
         const w = toWorld(t.q, t.r); const c = cam.toScreen(w.x, w.y); if (!vis(c)) continue;
         const season = this.seasonFor(w.x); const g = this.decor.groundFor(t);
         for (let dir = 0; dir < 6; dir++) {
@@ -730,11 +732,31 @@ export class IslandRenderer {
     const faire = (saison, E = null) => {
       const S0 = G.get(saison), dpr = STAGE.dpr || 1, w = Math.round((W + 2 * M) * dpr), h = Math.round((H + 2 * M) * dpr);
       const cv = S0 && S0.canvas.width === w && S0.canvas.height === h ? S0.canvas : this.toile(w, h);
-      const c2 = cv.getContext('2d'); c2.setTransform(1, 0, 0, 1, 0, 0); c2.clearRect(0, 0, w, h); c2.setTransform(dpr, 0, 0, dpr, M * dpr, M * dpr);
+      const c2 = cv.getContext('2d');
       const E1 = E || this.etatCamera();
+      // LA RETOUCHE. La même image, la même caméra, et seulement quelques tuiles posées ou changées depuis (une
+      // pose en jeu, la construction rejouée à la fin de l'île) : on n'efface et ne repeint que ces cases et leurs
+      // voisines, à deux cases à la ronde (tout ce qui peint dans la zone effacée : langues de sol, ourlets, arbres
+      // qui dépassent). Mesuré le 27 septembre : 40 à 80 ms pour repeindre l'île entière, quelques ms pour une
+      // retouche. Une tuile retirée, une région payée, la brume ou une règle qui change : on repeint tout.
+      const sigs = this.signaturesTuiles(); const extraCle = `${this.noLens ? 1 : 0}|${nu}|${W}x${H}@${STAGE.dpr}|${extra}|${this.signatureHorsTuiles()}`;
+      const delta = S0 && cv === S0.canvas && S0.sigs && !S0.manque && S0.extraCle === extraCle && this.memeCamera(S0.E, E1) ? this.deltaTuiles(S0.sigs, sigs) : null;
       this._solsManque = false;
-      this.avecCamera(E1, () => { this._saison = saison; try { dessin(c2, null); } finally { this._saison = null; } });
-      const S = { canvas: cv, cle: `${saison}|${base}`, manque: this._solsManque, mobile: !!bouge, E: E1, ...this.vue(E1) };
+      c2.setTransform(dpr, 0, 0, dpr, M * dpr, M * dpr);
+      this._stats = this._stats || { retouches: 0, repeints: 0, raisons: {} };
+      if (!delta) { const raison = !S0 ? 'aucune' : cv !== S0.canvas ? 'taille' : !S0.sigs ? 'sigs' : S0.manque ? 'manque' : S0.extraCle !== extraCle ? 'extra' : !this.memeCamera(S0.E, E1) ? 'camera' : 'delta'; this._stats.raisons[raison] = (this._stats.raisons[raison] || 0) + 1; }
+      if (delta) { this._stats.retouches++; } else this._stats.repeints++;
+      if (delta) {
+        if (delta.length) this.avecCamera(E1, () => {
+          this._saison = saison; this._seulement = this.voisinage(delta, 2);
+          try { const zone = this.zoneRetouche(this.voisinage(delta, 1)); c2.save(); c2.clip(zone); c2.clearRect(-M, -M, W + 2 * M, H + 2 * M); dessin(c2, null); c2.restore(); }
+          finally { this._saison = null; this._seulement = null; }
+        });
+      } else {
+        c2.setTransform(1, 0, 0, 1, 0, 0); c2.clearRect(0, 0, w, h); c2.setTransform(dpr, 0, 0, dpr, M * dpr, M * dpr);
+        this.avecCamera(E1, () => { this._saison = saison; try { dessin(c2, null); } finally { this._saison = null; } });
+      }
+      const S = { canvas: cv, cle: `${saison}|${base}`, manque: this._solsManque, mobile: !!bouge, E: E1, sigs, extraCle, ...this.vue(E1) };
       G.set(saison, S); this._gardeFaite = true;
       return S;
     };
@@ -803,6 +825,40 @@ export class IslandRenderer {
     } catch (e) { s = `v${b.version}`; }   // une tuile qu'on ne sait pas écrire : on s'en tient à la version
     this._sigP = { v: b.version, s };
     return s;
+  }
+
+  /** La signature d'une tuile telle que les couches gardées la peignent : une différence ici, et sa case est à repeindre. */
+  sigTuile(t) { return `${t.family}|${t.variant || 0}|${t.level || 1}|${t.blighted ? 1 : 0}|${t.dry ? 1 : 0}|${t.frozen ? 1 : 0}|${t.bloom ? 1 : 0}|${t.fusion || ''}|${t.rare ? 1 : 0}|${t.grown ? 1 : 0}|${t.sown ? 1 : 0}|${t.start ? 1 : 0}|${t.devoilee ? 1 : 0}`; }
+  /** Les signatures de toutes les tuiles, calculées une fois par version du plateau. */
+  signaturesTuiles() {
+    const b = this.isl.board;
+    if (this._sigsT && this._sigsT.v === b.version) return this._sigsT.m;
+    const m = new Map(); for (const [k, t] of b.tiles) m.set(k, this.sigTuile(t));
+    this._sigsT = { v: b.version, m }; return m;
+  }
+  /** Ce qui, hors les tuiles, change la peinture des couches : le masque, la brume, la règle, les régions payées. */
+  signatureHorsTuiles() { const b = this.isl.board; return `${b.mask.size}|${b.fog.size}|${b._rule || ''}|${b.closedRegions ? b.closedRegions.size : 0}`; }
+  /** Les cases posées ou changées entre deux jeux de signatures ; null si une case a disparu ou s'il y en a trop (on repeint tout). */
+  deltaTuiles(avant, apres) {
+    if (avant.size > apres.size) return null;
+    const delta = [];
+    for (const [k, s] of apres) { const a = avant.get(k); if (a === undefined) delta.push(k); else if (a !== s) delta.push(k); }
+    if (delta.length > 8) return null;
+    for (const k of avant.keys()) if (!apres.has(k)) return null;
+    return delta;
+  }
+  memeCamera(a, b) { return !!a && !!b && ['x', 'y', 'zoom', 'bx', 'by', 'bz', 'ox', 'oy'].every((f) => Math.abs((a[f] || 0) - (b[f] || 0)) < 1e-6); }
+  /** Les cases à au plus `dist` pas de celles données (elles comprises), en clés. */
+  voisinage(cles, dist) {
+    let front = new Set(cles); const tout = new Set(cles);
+    for (let d = 0; d < dist; d++) { const suivant = new Set(); for (const k of front) { const [q, r] = parse(k); for (const [dq, dr] of DIRS) { const nk = key(q + dq, r + dr); if (!tout.has(nk)) { tout.add(nk); suivant.add(nk); } } } front = suivant; }
+    return tout;
+  }
+  /** La zone à effacer puis repeindre : un hexagone large autour de chaque case (les langues et la côte érodée débordent). */
+  zoneRetouche(cles) {
+    const z = this.cam.z, zone = new Path2D();
+    for (const k of cles) { const [q, r] = parse(k); const w = toWorld(q, r); const c = this.cam.toScreen(w.x, w.y); const pts = corners(c.x, c.y, SIZE * z * 1.42); zone.moveTo(pts[0][0], pts[0][1]); for (let i = 1; i < 6; i++) zone.lineTo(pts[i][0], pts[i][1]); zone.closePath(); }
+    return zone;
   }
 
   /** L'état de la caméra, de quoi la remettre exactement : une image gardée se peint avec la caméra qu'elle garde. */
@@ -880,7 +936,9 @@ export class IslandRenderer {
   drawObjets(ctx, dropping, anses, vis, images) {
     const cam = this.cam, z = cam.zoom;
     const rule = this.isl.rule || null, wkey = this.weather || null;
+    const seul = this._seulement || null;
     for (const o of this.decor.objects) {
+      if (seul && o.cell && !seul.has(o.cell)) continue;   // retouche d'une image gardée (voir drawGarde)
       if (anses.has(o.cell)) continue;   // une anse est de la mer : ni nénuphar ni roseau
       const c = cam.toScreen(o.x, o.y); if (!vis(c)) continue;
       const d = dropping.get(o.cell); const season = this.seasonFor(o.x);
