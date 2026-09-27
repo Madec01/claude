@@ -57,6 +57,23 @@ const passerLaCarte = async (page, t = 60000) => { try { await page.waitForFunct
   const indices = await page.evaluate(() => [...window.CS.scenes.current.isl.board.tiles.values()].filter((t) => typeof t.indice === 'number').length);
   check(indices > 0, `des tuiles posées contre la brume portent un indice (${indices})`);
 
+  // B-A.2 : la règle affichée est la règle appliquée — sous « Marée basse », le HUD dit « à 1 voisine » ; sous « Jalon forcé »
+  // en Brume claire, la ligne du jalon dit « sinon −3 » (le chiffre de P.jalonManque, celui qu'on retire vraiment)
+  const regles = await page.evaluate(async () => {
+    const sc = window.CS.scenes.current, isl = sc.isl; const attend = () => new Promise((r) => setTimeout(r, 250));
+    isl.appliquerCarte('mareeBasse'); await attend();
+    const maree = { left: document.querySelector('.brume-left').textContent, seuil: isl.seuilDevoile() };
+    isl.appliquerCarte('jalonForce'); await attend();
+    const force = { jalon: document.querySelector('.brume-jalon').textContent, due: document.querySelector('.brume-jalon').classList.contains('due') };
+    sc.tapBrume(...[...isl.board.fog].sort()[0].split(',').map(Number), false); await attend();
+    const fiche = (document.querySelector('.panel-brume-case .res-line') || {}).textContent || ''; document.querySelector('.panel-brume-case .panel-actions .btn-primary').click(); await attend();
+    Object.assign(isl.brume.saison, { devoileDelta: 0, jalonForce: false }); isl.brume.carte = null;   // on rend la saison neutre pour la suite
+    return { maree, force, fiche };
+  });
+  check(regles.maree.seuil === 1 && /à 1 voisine\b/.test(regles.maree.left), `Marée basse : le HUD dit le seuil appliqué (« ${regles.maree.left} »)`);
+  check(/sinon −3/.test(regles.force.jalon) && regles.force.due, `Jalon forcé en claire : la ligne du jalon dit « sinon −3 » (« ${regles.force.jalon} »)`);
+  check(/\/ 2 pour se dévoiler/.test(regles.fiche), `la fiche d'une case lit le seuil appliqué (« ${regles.fiche.slice(0, 60)} »)`);
+
   // la fiche d'une case cachée : jalon, puis crayon sur une autre case
   const k0 = await page.evaluate(() => { const isl = window.CS.scenes.current.isl; return [...isl.board.fog].sort()[0]; });
   await page.evaluate((k) => { const [q, r] = k.split(',').map(Number); window.CS.scenes.current.tapBrume(q, r, false); }, k0);

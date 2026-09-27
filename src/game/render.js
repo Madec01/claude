@@ -11,6 +11,7 @@ import { Save } from '../core/save.js';
 import { Decor, groundOf, groundKey, GROUND_COLORS, spriteKey } from './decor.js';
 import { pathShapes } from './paths.js';
 import { waterBodies } from './water.js';
+import { porteeCachee, indiceActuel } from './brume.js';
 // arête i (sommet i → i+1 de corners()) → indice dans DIRS du voisin de l'autre côté ; mesuré, pas deviné
 const EDGE_DIR = [1, 0, 5, 4, 3, 2];
 /** Décors déjà posés à plat sur le sol : ils ne reçoivent pas d'ombre de contact. */
@@ -1763,14 +1764,16 @@ export class IslandRenderer {
       // indices : sur les tuiles qui touchent encore la brume
       const fz = clamp(z, 0.8, 1.3);
       ctx.font = `800 ${Math.round(15 * fz)}px Quicksand, sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      // le chiffre ne ment jamais : il compte les cases de la portée de l'indice encore cachées (indiceActuel), et la
+      // pastille s'efface quand toute la portée est dévoilée
       for (const tile of b.tiles.values()) {
         if (typeof tile.indice !== 'number' && !tile.muette) continue;
-        if (!isl.fogAround(tile.q, tile.r).length) continue;
+        if (!porteeCachee(b, tile).length) continue;
         const w = toWorld(tile.q, tile.r); const c = cam.toScreen(w.x, w.y); if (!onScreen(c)) continue;
         const x = c.x + 30 * z, y = c.y - 34 * z, rr = 13 * fz;
         ctx.fillStyle = tile.muette ? 'rgba(138,134,124,0.9)' : '#2b2a26'; ctx.beginPath(); ctx.arc(x, y, rr, 0, TAU); ctx.fill();
         ctx.strokeStyle = tile.muette ? '#fff' : (FAMILY_COLORS[tile.family] || '#fff'); ctx.lineWidth = 2.5; ctx.stroke();
-        ctx.fillStyle = '#fff'; ctx.fillText(tile.muette ? '·' : String(tile.indice), x, y + 1);
+        ctx.fillStyle = '#fff'; ctx.fillText(tile.muette ? '·' : String(indiceActuel(b, B.cachees, tile)), x, y + 1);
       }
     }
     // tuiles dévoilées : un liseré doré, plus marqué sous un jalon juste

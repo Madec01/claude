@@ -2,7 +2,7 @@
 // Usage : node tests/brume.test.js
 import { Island } from '../src/game/island.js';
 import { Board } from '../src/game/board.js';
-import { brumeDef, CRANS, P, possibles, inventaire, indice, compte, CARTES, CARTE_PAR_ID, TIRAGE, tirerCarte } from '../src/game/brume.js';
+import { brumeDef, CRANS, P, pts, possibles, inventaire, indice, compte, indiceActuel, porteeCachee, CARTES, CARTE_PAR_ID, TIRAGE, tirerCarte, COULEURS } from '../src/game/brume.js';
 import { RNG } from '../src/core/math.js';
 import { key, parse, neighbors } from '../src/game/hex.js';
 
@@ -65,15 +65,112 @@ for (const cran of ['claire', 'epaisse']) {
   check(b2.fog.has('1,0'), 'la brume passe par l’instantané');
 }
 
-// --- l'indice : les voisines cachées de la famille de la tuile posée (une rare compte pour ses familles)
+// --- l'indice : les voisines cachées de la famille de la tuile posée ; le trésor ne compte pour aucun indice (B-M, décision 9)
 {
   const b = new Board(['0,0', '1,0', '0,1', '-1,1']);
   b.fog = new Set(['1,0', '0,1', '-1,1']);
-  const cachees = new Map([['1,0', { family: 'forest' }], ['0,1', { family: 'forest' }], ['-1,1', { family: 'mill' }]]);
+  const cachees = new Map([['1,0', { family: 'forest' }], ['0,1', { family: 'forest' }], ['-1,1', { family: 'mill', tresor: true, rare: true }]]);
   check(indice(b, cachees, 0, 0, { family: 'forest' }) === 2, 'une forêt compte deux forêts');
-  check(indice(b, cachees, 0, 0, { family: 'field' }) === 1, 'un champ compte le moulin (champ et hameau)');
+  check(indice(b, cachees, 0, 0, { family: 'field' }) === 0, 'un moulin caché ne change pas l’indice d’un champ');
+  check(indice(b, cachees, 0, 0, { family: 'hamlet' }) === 0, 'ni celui d’un hameau');
   check(indice(b, cachees, 0, 0, { family: 'water' }) === 0, 'une eau ne compte rien');
-  check(compte('mill', ['hamlet']) && !compte('mill', ['rock']), 'le moulin compte pour le hameau, pas pour la roche');
+  check(!compte('mill', ['hamlet']) && !compte('mill', ['field']) && !compte('well', ['meadow']) && compte('forest', ['forest']), 'aucun trésor ne compte, une forêt compte pour une forêt');
+  // le solveur suit la même règle : le moulin ne répond pas à un champ
+  const pos = possibles(['a', 'b'], [{ id: 'field', n: 1 }, { id: 'mill', n: 1 }], [{ voisines: ['a'], fams: ['field'], n: 0 }], CRANS.claire);
+  check(pos.get('a').size === 1 && pos.get('a').has('mill') && pos.get('b').has('field'), 'solveur : un zéro au champ désigne le moulin');
+}
+
+// --- B-A.1 : un indice ne ment jamais. Le chiffre montré compte les cases de sa portée ENCORE cachées.
+{
+  // le cas de l'audit : une forêt lit « 1 » entre une forêt et une eau cachées ; la forêt se dévoile, le chiffre doit dire 0
+  const b = new Board(['0,0', '1,0', '0,1', '-1,1']); b.fog = new Set(['1,0', '0,1']);
+  const cachees = new Map([['1,0', { family: 'forest' }], ['0,1', { family: 'water' }]]);
+  const t = { family: 'forest', q: 0, r: 0, indice: indice(b, cachees, 0, 0, { family: 'forest' }), portee: ['1,0', '0,1'] };
+  check(t.indice === 1 && indiceActuel(b, cachees, t) === 1, 'lu 1');
+  b.fog.delete('1,0'); cachees.delete('1,0');
+  check(indiceActuel(b, cachees, t) === 0 && porteeCachee(b, t).join() === '0,1', 'forêt dévoilée : le chiffre dit 0, la portée cachée est l’eau');
+  b.fog.delete('0,1'); cachees.delete('0,1');
+  check(porteeCachee(b, t).length === 0, 'toute la portée dévoilée : plus de pastille');
+  // « La brume gagne » à côté (une case neuve, jamais une case dévoilée) : elle n'entre pas dans la portée, le vieil indice ne revient pas
+  b.fog.add('-1,1'); cachees.set('-1,1', { family: 'forest' });
+  check(porteeCachee(b, t).length === 0 && indiceActuel(b, cachees, t) === 0, 'une case gagnée par la brume ne ressuscite pas un vieil indice');
+  check(indiceActuel(b, cachees, { family: 'forest', q: 0, r: 0, muette: true }) === null, 'une tuile muette n’a pas de chiffre');
+  // une vieille sauvegarde sans portée : ses voisines cachées d'aujourd'hui
+  check(porteeCachee(b, { family: 'forest', q: 0, r: 0, indice: 0 }).join() === '-1,1', 'sans portée gardée, la portée est celle d’aujourd’hui');
+}
+// trente parties jouées : après chaque pose, dévoilement, Longue-vue, vent et « La brume gagne », chaque pastille affichée
+// égale le compte réel sur sa portée (recompté ici, à la main), et la portée lue à la pose est exactement ses voisines cachées
+{
+  let verifs = 0, tuiles = 0;
+  const reel = (isl, t) => { const fams = Board.familiesOf(t); return t.portee.filter((k) => isl.board.fog.has(k) && compte(isl.brume.cachees.get(k).family, fams)).length; };
+  const verifie = (isl, ou) => { for (const t of isl.board.tiles.values()) { if (typeof t.indice !== 'number') continue; verifs++; if (indiceActuel(isl.board, isl.brume.cachees, t) !== reel(isl, t)) { failures++; console.error(`ÉCHEC : pastille fausse ${ou}`); } } };
+  for (let seed = 1; seed <= 30; seed++) {
+    const isl = new Island(brumeDef(seed % 2 ? 'claire' : 'epaisse', seed));
+    isl.on((e) => {
+      if (e.type === 'place' && isl.fogAround(e.q, e.r).length) { const t = isl.board.get(e.q, e.r); tuiles++; if (!t.portee || t.portee.slice().sort().join() !== isl.fogAround(e.q, e.r).map(([a, b]) => key(a, b)).sort().join()) { failures++; console.error('ÉCHEC : la portée lue à la pose n’est pas ses voisines cachées'); } if (typeof t.indice === 'number' && indiceActuel(isl.board, isl.brume.cachees, t) !== t.indice) { failures++; console.error('ÉCHEC : à la pose, le chiffre montré diffère de l’indice lu'); } }
+      if (e.type === 'place' || (e.type === 'brume' && ['reveal', 'vent', 'brumeGagne', 'move'].includes(e.kind))) verifie(isl, `(graine ${seed}, ${e.type}/${e.kind || ''})`);
+    });
+    if (seed % 5 === 0) isl.appliquerCarte('longueVue');
+    joue(isl, 8);
+    if (seed % 5 === 0 && isl.board.fog.size) { isl.longueVue(...parse([...isl.board.fog][0])); verifie(isl, `(graine ${seed}, longue-vue)`); }
+    if (seed % 7 === 0) isl.appliquerCarte('ventContraire');
+    joue(isl);
+  }
+  check(verifs > 500 && tuiles > 100, `trente parties : ${verifs} pastilles vérifiées sur ${tuiles} tuiles lues`);
+  // la portée passe par la reprise (même en JSON), et une reprise garde le chiffre juste
+  const a = new Island(brumeDef('claire', 9)); joue(a, 6);
+  const s = JSON.parse(JSON.stringify(a.serialize()));
+  check((s.brume.portees || []).length > 0, 'les portées sont dans la sauvegarde');
+  const b = new Island(brumeDef('claire', 9)); b.restoreRun(s);
+  const lue = [...a.board.tiles.values()].filter((t) => t.portee);
+  check(lue.length > 0 && lue.every((t) => { const u = b.board.get(t.q, t.r); return u && u.portee && u.portee.join() === t.portee.join() && indiceActuel(b.board, b.brume.cachees, u) === indiceActuel(a.board, a.brume.cachees, t); }), 'la portée et le chiffre reviennent tels quels à la reprise');
+}
+
+// --- B-A.2 : une règle affichée est la règle appliquée
+{
+  // tout nombre écrit dans un texte de carte vient de P ou de CRANS
+  const connus = new Set([...Object.values(P), ...Object.values(CRANS).flatMap((c) => Object.values(c))].filter((v) => typeof v === 'number').map((v) => Math.abs(v)));
+  for (const c of [...CARTES.bonus, ...CARTES.malus]) for (const m of c.texte.match(/\d+/g) || []) check(connus.has(Number(m)), `carte « ${c.nom} » : le nombre ${m} vient de P ou de CRANS`);
+  check(CARTE_PAR_ID.jalonForce.texte.includes(pts(P.jalonManque)) && pts(P.jalonManque) === '−3', `« Jalon forcé » annonce ce qu’il applique (${CARTE_PAR_ID.jalonForce.texte})`);
+  check(CARTE_PAR_ID.primeDevoilement.texte.includes(pts(P.prime)), '« Prime de dévoilement » annonce P.prime');
+  const i = new Island(brumeDef('claire', 4)); i.appliquerCarte('primeDevoilement'); check(i.brume.saison.prime === P.prime, 'et applique P.prime');
+  check(pts(5) === '+5' && pts(-5) === '−5', 'pts écrit les signes du jeu');
+}
+
+// --- B-L : sous « Nuit noire », la fiche ne laisse rien fuir : la liste des familles ne dépend pas de ce qui est caché
+{
+  const a = new Island(brumeDef('claire', 11)), b = new Island(brumeDef('epaisse', 12));
+  check(a.famillesAnnoncables().join() === a.inventaireBrume.map((e) => e.id).join(), 'claire, sans carte : les familles de l’inventaire');
+  check(b.famillesAnnoncables().every((f) => f === 'tresor' || COULEURS[f]) && b.famillesAnnoncables().length > b.inventaireBrume.length, 'épaisse : toutes les familles des couleurs annoncées');
+  a.appliquerCarte('nuitNoire'); b.appliquerCarte('nuitNoire');
+  check(a.famillesAnnoncables().join() === b.famillesAnnoncables().join() && a.famillesAnnoncables().length === 10 && a.famillesAnnoncables().includes('tresor'), 'Nuit noire : deux îles différentes, la même liste (neuf familles et trésor)');
+  const k = [...a.board.fog][0]; check(a.planterJalon(...parse(k), 'tresor'), 'un jalon « trésor » se plante');
+}
+
+// --- B-N : le Vent contraire respecte la règle de Déplacer — une tuile qui touche la brume ne bouge pas
+// (le dévoilement précède le vent : une tuile dont toute la brume voisine vient de se lever n'est plus engagée, elle peut glisser)
+{
+  let bouge = 0, engagees = 0, restees = 0, libresBougees = 0;
+  for (let seed = 1; seed <= 12; seed++) {
+    const isl = new Island(brumeDef('claire', seed)); isl.appliquerCarte('ventContraire');
+    // au moment du vent, la tuile qui glisse ne touchait pas la brume
+    isl.on((e) => { if (e.type === 'brume' && e.kind === 'vent' && isl.fogAround(e.from.q, e.from.r).length) bouge++; });
+    // une seule pose de la saison, contre la brume, puis le passage de saison à la main
+    const c = isl.board.legalCells().find((c) => isl.fogAround(c.q, c.r).length && neighbors(c.q, c.r).some(([a, b]) => isl.board.isEmpty(a, b)));
+    if (!c) continue;
+    const fam = isl.current.family; isl.place(c.q, c.r); engagees++;
+    isl.passageBrume();
+    const t = isl.board.get(c.q, c.r);
+    if (isl.fogAround(c.q, c.r).length && (!t || t.family !== fam)) bouge++;
+    if (t && t.family === fam && isl.fogAround(c.q, c.r).length) restees++;
+    // et une tuile libre de la brume, elle, glisse encore
+    const j = new Island(brumeDef('claire', seed)); joue(j, 5);   // une saison est passée : une carte est tirée, on la remplace
+    j.appliquerCarte('ventContraire'); j.brume.posesSaison = [];
+    const cl = j.board.legalCells().find((c) => !j.fogAround(c.q, c.r).length && neighbors(c.q, c.r).some(([a, b]) => j.board.isEmpty(a, b)));
+    if (cl) { j.place(cl.q, cl.r); const e2 = []; j.on((e) => { if (e.type === 'brume' && e.kind === 'vent') e2.push(e); }); j.passageBrume(); if (e2.length) libresBougees++; }
+  }
+  check(engagees > 5 && restees > 0 && bouge === 0, `le vent ne déplace jamais une tuile engagée contre la brume (${engagees} essais, ${restees} restées engagées)`);
+  check(libresBougees > 0, `mais il déplace encore une tuile libre (${libresBougees})`);
 }
 
 // --- le solveur : ce qui se déduit, ce qui reste un pari

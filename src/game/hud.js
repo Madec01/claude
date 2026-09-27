@@ -11,7 +11,7 @@ import { harmonie } from './harmonie.js';
 import { Assets } from '../core/assets.js';
 import { AudioSys } from '../core/audio.js';
 import { RARE_DECOR, spriteKey } from './decor.js';
-import { NOMS_COULEURS, P as PB } from './brume.js';
+import { NOMS_COULEURS, P as PB, pts as ptsBrume } from './brume.js';
 import { reserveEte, OBJECTIF_PAR_ID, fr } from '../data/tempo.js';
 
 // les trois fleurs d'harmonie : des fleurs du décor, grisées tant qu'elles ne sont pas gagnées
@@ -254,10 +254,13 @@ export class Hud {
       const html = nuit ? '<span class="binv vide">nuit noire : inventaire caché</span>' : inv.map((e) => `<span class="binv ${e.id === 'tresor' || (STORY.tiles[e.id] && B.cachees && [...B.cachees.values()].some((t) => t.tresor && t.family === e.id)) ? 'tresor' : ''}" style="--fam:${FAMILY_COLORS[e.id] || '#8a867c'}">${e.n > 1 ? `${e.n} ` : ''}${nom(e.id)}</span>`).join('') || '<span class="binv vide">plus rien de caché</span>';
       if (html !== this.last.brumeInv) { this.last.brumeInv = html; this.r.brumeInv.innerHTML = html; }
     }
-    const left = isl.board.fog.size ? `${isl.board.fog.size} case${isl.board.fog.size > 1 ? 's' : ''} · dévoilée${B.cran.devoile > 1 ? 's' : ''} à ${B.cran.devoile} voisines` : '';
+    // les règles affichées sont celles qu'on applique : le seuil suit la carte (Marée basse, Brume épaisse), le jalon est dû aussi sous « Jalon forcé »
+    const seuil = isl.seuilDevoile();
+    const left = isl.board.fog.size ? `${isl.board.fog.size} case${isl.board.fog.size > 1 ? 's' : ''} · dévoilée${seuil > 1 ? 's' : ''} à ${seuil} voisine${seuil > 1 ? 's' : ''}` : '';
     if (left !== this.last.brumeLeft) { this.last.brumeLeft = left; this.r.brumeLeft.textContent = left; }
-    const j = !isl.board.fog.size ? '' : B.jalonSaison ? 'Jalon planté cette saison' : B.cran.jalonObligatoire ? `Jalon à planter (sinon ${PB.jalonManque}) : touche une case de brume` : 'Jalon possible : touche une case de brume';
-    if (j !== this.last.brumeJalon) { this.last.brumeJalon = j; this.r.brumeJalon.textContent = j; this.r.brumeJalon.classList.toggle('due', !B.jalonSaison && B.cran.jalonObligatoire); }
+    const jalonDu = B.cran.jalonObligatoire || !!(B.saison && B.saison.jalonForce);
+    const j = !isl.board.fog.size ? '' : B.jalonSaison ? 'Jalon planté cette saison' : jalonDu ? `Jalon à planter (sinon ${ptsBrume(PB.jalonManque)}) : touche une case de brume` : 'Jalon possible : touche une case de brume';
+    if (j !== this.last.brumeJalon) { this.last.brumeJalon = j; this.r.brumeJalon.textContent = j; this.r.brumeJalon.classList.toggle('due', !B.jalonSaison && jalonDu); }
     if (this.last.brumeMoving !== !!moving) { this.last.brumeMoving = !!moving; this.r.brumeMove.classList.toggle('on', !!moving); }
     this.r.brumeMove.disabled = isl.ended || !(isl.queue.list.length || (B.saison && B.saison.gratuits));
     // la carte de la saison, sous le bandeau, avec la chance de bonus à côté

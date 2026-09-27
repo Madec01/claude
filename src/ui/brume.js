@@ -3,7 +3,7 @@ import { h, button, append } from './dom.js';
 import { STORY } from '../data/story.js';
 import { FAMILY_COLORS } from '../data/tiles.js';
 import { Save } from '../core/save.js';
-import { CRANS, COULEURS, NOMS_COULEURS, TRESORS, P } from '../game/brume.js';
+import { CRANS, NOMS_COULEURS, TRESORS, P, pts } from '../game/brume.js';
 
 const nom = (f) => (f === 'tresor' ? 'Trésor' : (STORY.tiles[f] || {}).name || f);
 
@@ -29,35 +29,22 @@ export function buildBrumeChoice({ onPick, onBack }) {
     h('p', { class: 'res-line' }, 'Des cases de l’île cachent des tuiles déjà là. Tu sais ce qu’elles cachent, jamais où. Une tuile posée contre la brume dit combien de ses voisines cachées sont de sa famille : choisir sa tuile, c’est choisir sa question.'),
     h('ul', { class: 'brume-regles' },
       h('li', {}, 'Cinq poses par saison. Au passage de saison, une case assez entourée se dévoile et compte comme posée : ses bords valent double.'),
-      h('li', {}, `Un jalon par saison : touche une case de brume et annonce sa famille. Juste : +${P.jalonJuste} et ses bords valent triple. Faux : ${P.jalonFaux}.`),
+      h('li', {}, `Un jalon par saison : touche une case de brume et annonce sa famille. Juste : ${pts(P.jalonJuste)} et ses bords valent triple. Faux : ${pts(P.jalonFaux)}.`),
       h('li', {}, 'Le crayon note une case, gratuitement. Déplacer une tuile coûte la prochaine tuile, et une tuile déplacée contre la brume lit un nouvel indice.'),
-      h('li', {}, `Un trésor se cache aussi : +${P.tresor} au dévoilement. À la fin, chaque case restée cachée : ${P.cachee}.`)),
+      h('li', {}, `Un trésor se cache aussi : ${pts(P.tresor)} au dévoilement, et il ne répond à aucun chiffre. À la fin, chaque case restée cachée : ${pts(P.cachee)}.`)),
     h('div', { class: 'brume-crans' },
       carte('claire', ['Inventaire exact', 'Un indice à chaque pose contre la brume', 'Dévoilée à 2 voisines', 'Jalon facultatif']),
-      carte('epaisse', ['Inventaire par couleur', 'Un indice une pose sur deux', 'Dévoilée à 3 voisines', `Jalon obligatoire (sinon ${P.jalonManque})`])),
+      carte('epaisse', ['Inventaire par couleur', 'Un indice une pose sur deux', 'Dévoilée à 3 voisines', `Jalon obligatoire (sinon ${pts(P.jalonManque)})`])),
     h('label', { class: 'tp-tuto' }, tuto, h('span', {}, dejaVu ? 'Revoir le tutoriel pas à pas' : 'Avec le tutoriel pas à pas (première fois)')),
     h('div', { class: 'panel-actions' }, button('Menu', onBack, { cls: 'btn-ghost', iconName: 'icon_home' })),
   );
   return root;
 }
 
-/** Les familles qu'on peut annoncer sur une case : celles de l'inventaire, ou toutes celles des couleurs annoncées. */
-export function famillesPossibles(isl) {
-  const B = isl.brume; if (!B) return [];
-  const inv = isl.inventaireBrume;
-  if (B.cran.inventaire !== 'couleur') return inv.map((e) => e.id);
-  const out = [];
-  for (const e of inv) {
-    if (e.id === 'tresor') out.push('tresor');
-    else for (const [f, c] of Object.entries(COULEURS)) if (c === e.id) out.push(f);
-  }
-  return out;
-}
-
 /** La fiche d'une case cachée : planter le jalon de la saison, ou noter au crayon. */
 export function buildBrumePicker({ isl, q, r, onJalon, onNote, onLongueVue, onClose }) {
   const B = isl.brume; const k = `${q},${r}`;
-  const fams = famillesPossibles(isl);
+  const fams = isl.famillesAnnoncables();   // sous Nuit noire, la liste ne dépend pas de ce qui est caché (rien ne fuit par la fiche)
   const puce = (f, fn, on = false) => {
     const b = h('button', { class: `gpick ${on ? 'on' : ''} ${f === 'tresor' || TRESORS.includes(f) ? 'tresor' : ''}`, style: `--fam:${FAMILY_COLORS[f] || '#b8862b'}` }, nom(f));
     b.addEventListener('click', (e) => { e.stopPropagation(); fn(f); });
@@ -71,11 +58,11 @@ export function buildBrumePicker({ isl, q, r, onJalon, onNote, onLongueVue, onCl
   const posees = [[1, 0], [1, -1], [0, -1], [-1, 0], [-1, 1], [0, 1]].filter(([dq, dr]) => isl.board.get(q + dq, r + dr)).length;
   append(root,
     h('h2', { class: 'panel-title' }, 'Case sous la brume'),
-    h('p', { class: 'res-line' }, `Voisines posées : ${posees} / ${B.cran.devoile} pour se dévoiler au passage de saison${voisines ? ` · ${voisines} voisine${voisines > 1 ? 's' : ''} sous la brume` : ''}.`),
+    h('p', { class: 'res-line' }, `Voisines posées : ${posees} / ${isl.seuilDevoile()} pour se dévoiler au passage de saison${voisines ? ` · ${voisines} voisine${voisines > 1 ? 's' : ''} sous la brume` : ''}.`),
     h('p', { class: 'brume-inv-line' }, `Caché : ${inv}`),
     S.longueVue ? h('div', { class: 'brume-section brume-longue-vue' }, h('h3', {}, 'Longue-vue : cette case peut se dévoiler tout de suite'), button('Dévoiler cette case', () => onLongueVue && onLongueVue(), { cls: 'btn-primary', iconName: 'icon_sun' })) : null,
     jal ? h('p', { class: 'brume-jalon-line' }, `Jalon planté : ${nom(jal)}`)
-      : isl.canJalon(q, r) ? h('div', { class: 'brume-section' }, h('h3', {}, `Planter le jalon de la saison (juste : +${P.jalonJuste}, bords ×3 ; faux : ${P.jalonFaux})`), h('div', { class: 'gpick-list' }, ...fams.map((f) => puce(f, onJalon))))
+      : isl.canJalon(q, r) ? h('div', { class: 'brume-section' }, h('h3', {}, `Planter le jalon de la saison (juste : ${pts(P.jalonJuste)}, bords ×3 ; faux : ${pts(P.jalonFaux)})`), h('div', { class: 'gpick-list' }, ...fams.map((f) => puce(f, onJalon))))
       : h('p', { class: 'brume-jalon-line' }, B.jalonSaison ? 'Le jalon de cette saison est déjà planté.' : ''),
     S.crayonBloque ? h('p', { class: 'brume-jalon-line' }, 'Crayon effacé : pas de note cette saison.')
       : h('div', { class: 'brume-section' }, h('h3', {}, S.crayonSur ? 'Noter au crayon (Crayon sûr : ta première note te dira si elle est juste)' : 'Noter au crayon (sans effet sur les points)'),

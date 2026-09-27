@@ -19,7 +19,7 @@ import { pickRule, BASE_RULE, RULE_LOOK } from './seasonrules.js';
 import { gradeMove } from './feedback.js';
 import { RNG } from '../core/math.js';
 import { key, parse, neighbors } from './hex.js';
-import { CRANS, P as PB, preparerBrume, indice as indiceBrume, inventaire as inventaireBrume, TIRAGE, CARTE_PAR_ID, tirerCarte, saisonNeuve, tirerFamille, compte as compteBrume } from './brume.js';
+import { CRANS, P as PB, preparerBrume, indice as indiceBrume, portee as porteeBrume, inventaire as inventaireBrume, TIRAGE, CARTE_PAR_ID, tirerCarte, saisonNeuve, tirerFamille, compte as compteBrume, COULEURS } from './brume.js';
 
 export class Island {
   /**
@@ -612,6 +612,10 @@ export class Island {
     const B = this.brume, t = this.board.get(q, r);
     if (!B || !t || !this.fogAround(q, r).length) return;
     B.contre++;
+    // la portée : les voisines cachées à cet instant. Le chiffre montré ensuite (`indiceActuel`) ne compte que celles
+    // qui sont encore cachées, et la pastille s'efface quand toute la portée est dévoilée — une case ajoutée plus tard
+    // par « La brume gagne » ne ressuscite pas un vieil indice
+    t.portee = porteeBrume(this.board, q, r);
     if (B.saison.muets || (!force && B.cran.indices === 2 && B.contre % 2 === 0)) { t.muette = true; delete t.indice; return; }
     t.indice = indiceBrume(this.board, B.cachees, q, r, t); delete t.muette;
     // la Lanterne : une fois dans la saison, l'indice dit QUELLES voisines cachées sont de la famille de la tuile
@@ -620,6 +624,23 @@ export class Island {
 
   /** Inventaire montré : familles (Brume claire) ou couleurs (Brume épaisse), avec le trésor. */
   get inventaireBrume() { return this.brume ? inventaireBrume(this.brume.cachees, this.brume.cran) : []; }
+  /**
+   * Les familles qu'on peut annoncer sur une case (jalon, crayon) : celles de l'inventaire, ou toutes celles des
+   * couleurs annoncées en Brume épaisse. Sous « Nuit noire », l'inventaire est caché : la liste est la même pour toute
+   * île (les neuf familles ordinaires et « trésor »), sinon la fiche d'une case le laisserait fuir.
+   */
+  famillesAnnoncables() {
+    const B = this.brume; if (!B) return [];
+    if (B.saison && B.saison.nuit) return [...Object.keys(COULEURS), 'tresor'];
+    const inv = this.inventaireBrume;
+    if (B.cran.inventaire !== 'couleur') return inv.map((e) => e.id);
+    const out = [];
+    for (const e of inv) {
+      if (e.id === 'tresor') out.push('tresor');
+      else for (const [f, c] of Object.entries(COULEURS)) if (c === e.id) out.push(f);
+    }
+    return out;
+  }
 
   /** Peut-on planter un jalon en (q, r) ? Un par saison, sur une case cachée qui n'en a pas. */
   canJalon(q, r) { const B = this.brume; return !!B && !this.ended && B.jalonsPoses < B.saison.jalonsMax && this.board.fog.has(key(q, r)) && !B.jalons.has(key(q, r)); }
@@ -735,13 +756,14 @@ export class Island {
     }
     B.jalonsPoses = 0; B.jalonSaison = false;
     this.devoiler(false);
-    // « Vent contraire » : une tuile posée cette saison glisse sur une case libre voisine
+    // « Vent contraire » : une tuile posée cette saison glisse sur une case libre voisine — jamais une tuile engagée
+    // contre la brume (la règle de Déplacer : « une tuile qui touche la brume ne bouge plus »)
     if (B.saison.vent) {
-      const cand = B.posesSaison.filter((k) => { const t = this.board.tiles.get(k); if (!t || t.start || t.devoilee) return false; const [q, r] = parse(k); return neighbors(q, r).some(([a, b]) => this.board.isEmpty(a, b)); });
+      const cand = B.posesSaison.filter((k) => { const t = this.board.tiles.get(k); if (!t || t.start || t.devoilee) return false; const [q, r] = parse(k); return !this.fogAround(q, r).length && neighbors(q, r).some(([a, b]) => this.board.isEmpty(a, b)); });
       if (cand.length) {
         const k = cand[Math.floor(B.rngCartes.next() * cand.length)]; const [q, r] = parse(k); const t = this.board.tiles.get(k);
         const libres = neighbors(q, r).filter(([a, b]) => this.board.isEmpty(a, b)); const [tq, tr] = libres[Math.floor(B.rngCartes.next() * libres.length)];
-        this.board.tiles.delete(k); const nt = { ...t, q: tq, r: tr }; delete nt.indice; delete nt.muette; this.board.tiles.set(key(tq, tr), nt); this.board.touch();
+        this.board.tiles.delete(k); const nt = { ...t, q: tq, r: tr }; delete nt.indice; delete nt.muette; delete nt.portee; this.board.tiles.set(key(tq, tr), nt); this.board.touch();
         this.lireIndice(tq, tr, true);
         this.emit({ type: 'brume', kind: 'vent', from: { q, r }, q: tq, r: tr, tile: nt });
       }
@@ -789,7 +811,7 @@ export class Island {
       case 'boussole': S.boussole = true; break;
       case 'deplacementOffert': S.gratuits = 1; break;
       case 'crayonSur': S.crayonSur = true; break;
-      case 'primeDevoilement': S.prime = 4; break;
+      case 'primeDevoilement': S.prime = PB.prime; break;
       case 'mainLarge': this.queue.setVisible(6); break;
       case 'brumeGagne': {
         const cand = this.casesPourLaBrume();
@@ -836,7 +858,9 @@ export class Island {
     const B = this.brume;
     return { cran: B.cran.id, cachees: [...B.cachees.entries()].map(([k, t]) => [k, { ...t }]), jalons: [...B.jalons.entries()], crayon: [...B.crayon.entries()],
       jalonSaison: B.jalonSaison, jalonsPoses: B.jalonsPoses, contre: B.contre, devoilees: B.devoilees, justes: B.justes, fausses: B.fausses, tresor: B.tresor, depart: B.depart, deduc: B.deduc,
-      ratio: B.ratio, carte: B.carte, saison: { ...B.saison }, marques: [...B.marques.entries()], posesSaison: [...B.posesSaison], rngCartes: B.rngCartes.s };
+      ratio: B.ratio, carte: B.carte, saison: { ...B.saison }, marques: [...B.marques.entries()], posesSaison: [...B.posesSaison], rngCartes: B.rngCartes.s,
+      // la portée de chaque indice lu (les clés cachées à la lecture) : sans elle, une reprise afficherait un chiffre faux
+      portees: [...this.board.tiles.values()].filter((t) => t.portee).map((t) => [key(t.q, t.r), [...t.portee]]) };
   }
   restoreBrume(s) {
     const B = this.brume;
@@ -844,6 +868,7 @@ export class Island {
     Object.assign(B, { jalonSaison: !!s.jalonSaison, jalonsPoses: s.jalonsPoses || 0, contre: s.contre || 0, devoilees: s.devoilees || 0, justes: s.justes || 0, fausses: s.fausses || 0, tresor: s.tresor || null, depart: s.depart || B.depart, deduc: s.deduc ?? B.deduc,
       ratio: s.ratio ?? TIRAGE.depart, carte: s.carte || null, saison: { ...saisonNeuve(), ...(s.saison || {}) }, marques: new Map(s.marques || []), posesSaison: [...(s.posesSaison || [])] });
     if (s.rngCartes !== undefined) B.rngCartes.s = s.rngCartes;
+    for (const [k, p] of s.portees || []) { const t = this.board.tiles.get(k); if (t) t.portee = [...p]; }
     if (B.saison.mainCourte) this.seasonLength = 4; if (B.carte && B.carte.id === 'mainLarge') this.queue.setVisible(6);
   }
 
