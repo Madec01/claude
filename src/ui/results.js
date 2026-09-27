@@ -8,7 +8,7 @@ import { recordsTempo } from '../data/tempo.js';
 import { codeIle } from '../game/brume.js';
 import { codeForme } from '../data/formes_mode.js';
 
-export function buildResults({ result, def, onContinue, onRetry, onMenu, onPostcard = null, onWorkshop = null, newRecord, seedsGained, daily, memory = [] }) {
+export function buildResults({ result, def, onContinue, onRetry, onMenu, onPostcard = null, onWorkshop = null, onRejouer = null, newRecord, seedsGained, daily, memory = [] }) {
   const c = Save.campaign, aPortee = upgradesAPortee(c);
   const { stars, score, thresholds } = result;
   const brume = result.brume || null;
@@ -70,6 +70,7 @@ export function buildResults({ result, def, onContinue, onRetry, onMenu, onPostc
       // les graines dormaient : le commanditaire lui-même avait oublié l'Atelier. Quand elles paient une amélioration, le bilan le dit par un bouton, pas par une phrase
       onWorkshop && aPortee.length && !special && !Save.options.testMode ? button(`Atelier · ${aPortee.length} à portée`, onWorkshop, { cls: 'btn-atelier', iconName: 'icon_gear', title: `${c.seeds} graine${c.seeds > 1 ? 's' : ''} : ${aPortee.map((u) => u.name).join(', ')}` }) : null,
       tempo && def && !def.entrainement ? button('Rejouer cette île', onRetry, { iconName: 'icon_return', title: 'La même île, le même délai : pour comparer deux plans' }) : formes ? button('Rejouer cette forme', onRetry, { iconName: 'icon_return', title: 'La même île, la même forme : pour battre ton record' }) : special || result.island === 'daily' ? null : button('Rejouer l’île', onRetry, { iconName: 'icon_return' }),
+      onRejouer ? button('Revoir la construction', onRejouer, { iconName: 'icon_return', title: 'L’île se rebâtit sous tes yeux, pose après pose, puis la carte revient' }) : null,
       onPostcard ? button('Carte postale', onPostcard, { iconName: 'icon_save' }) : null,
       button('Menu', onMenu, { cls: 'btn-ghost', iconName: 'icon_home' }),
     ),

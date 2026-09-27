@@ -1425,7 +1425,7 @@ class IslandScene {
     this.fx.life(dt, { objects: objs, tiles: this._tiles, season: isl.season, weather: wkey, bounds: b });
     if (wkey === 'storm') { this.thunderTimer = (this.thunderTimer || 8) - dt; if (this.thunderTimer <= 0) { this.thunderTimer = 7 + Math.random() * 9; this.renderer.flash = 0.16; AudioSys.play('thunder', { volume: 0.6 }); this.shake.trigger(0.15); } }
     if (uiFrame) this.hud.update();
-    if (this.finished) { this.endTimer += dt; if (this.endTimer > 2.2) { this.finished = false; try { isl.result.postcard = { canvas: renderPostcard(this), filename: postcardName(this) }; } catch (e) { console.warn('carte postale', e); } Game.afterIsland(isl.result, this.def); } }
+    if (this.finished) { this.endTimer += dt; if (this.endTimer > 2.2) { this.finished = false; try { isl.result.postcard = { canvas: renderPostcard(this), filename: postcardName(this) }; } catch (e) { console.warn('carte postale', e); } Game.derniereIle = { isl, def: this.def, title: this.title }; Game.afterIsland(isl.result, this.def); } }
     if (this.debugEl) this.debugEl.textContent = `placements=${isl.placements} season=${isl.season} ${isl.inSeason}/${isl.seasonLength} score=${isl.score} breaths=${isl.breaths} fauna=${isl.fauna.size} queue=${isl.queue.remaining} fps=${loop.fps} particles=${this.particles.count} zoom=${this.cam.zoom.toFixed(2)}`;
     input.endFrame();
   }
@@ -1442,12 +1442,46 @@ class ResultsScene {
   async enter({ result, def, newRecord, seedsGained, daily }) {
     AudioSys.playMusic('results', { fade: 1.5 });
     this.bg = scenes.scenes.get('menu').ensureBg();
-    const show = () => showUI(buildResults({ result, def, newRecord, seedsGained, daily, memory: def.daily || def.infinite || def.garden ? [] : islandMemoryScreens(def, result).map((x) => x.text), onContinue: () => Game.afterResults(result, def), onRetry: () => (def.tempo ? Game.rejouerTempo(def) : def.formes ? (() => { hideUI(); scenes.go('island', { def: formesDef(def.forme, def.seed, { familles: Game.famillesConnues() }), skipWishes: true }, { fade: 0.4 }); })() : Game.startIsland(def.id, { skipIntro: true })), onMenu: () => scenes.go('menu'), onPostcard: result.postcard ? () => showUI(buildPostcard({ canvas: result.postcard.canvas, filename: result.postcard.filename, onBack: show }), 'panel-wrap') : null, onWorkshop: () => showUI(buildWorkshop({ onContinue: show }), 'workshop-wrap') }), 'results-wrap'); show();
+    const d = Game.derniereIle; const onRejouer = d && d.def === def && d.isl.poses && d.isl.poses.length >= 5 ? () => scenes.go('rejeu', { isl: d.isl, def, title: d.title, retour: { result, def, newRecord, seedsGained, daily } }) : null;
+    const show = () => showUI(buildResults({ result, def, newRecord, seedsGained, daily, onRejouer, memory: def.daily || def.infinite || def.garden ? [] : islandMemoryScreens(def, result).map((x) => x.text), onContinue: () => Game.afterResults(result, def), onRetry: () => (def.tempo ? Game.rejouerTempo(def) : def.formes ? (() => { hideUI(); scenes.go('island', { def: formesDef(def.forme, def.seed, { familles: Game.famillesConnues() }), skipWishes: true }, { fade: 0.4 }); })() : Game.startIsland(def.id, { skipIntro: true })), onMenu: () => scenes.go('menu'), onPostcard: result.postcard ? () => showUI(buildPostcard({ canvas: result.postcard.canvas, filename: result.postcard.filename, onBack: show }), 'panel-wrap') : null, onWorkshop: () => showUI(buildWorkshop({ onContinue: show }), 'workshop-wrap') }), 'results-wrap'); show();
   }
   exit() { hideUI(); }
   update(dt) { this.bg.update(dt); input.endFrame(); }
   render(ctx, alpha, dt) { this.bg.render(ctx, alpha, dt); ctx.fillStyle = 'rgba(244,239,230,0.5)'; ctx.fillRect(0, 0, STAGE.W, STAGE.H); }
 }
+/**
+ * Revoir la construction depuis le bilan (27 septembre : le commanditaire la cherchait au récapitulatif). L'île finie
+ * est rouverte sans interface, la construction se rejoue comme sur la carte de fin, puis la carte revient avec ses
+ * boutons ; « Voir le récapitulatif » ramène au bilan tel qu'on l'a quitté.
+ */
+class RejeuScene {
+  async enter({ isl, def, title, retour }) {
+    hideUI();
+    this.isl = isl; this.def = def; this.title = title; this.retour = retour;
+    this.cam = new Camera(); this.cam.fit(isl.board.mask, { ...uiMargins('ambient'), immediate: true });
+    this.particles = new ParticleSystem(1500); this.fx = new Effects(this.particles); this.shake = new Shake(); this.shake.enabled = false;
+    this.renderer = new IslandRenderer(isl, this.cam, this.fx, this.particles);
+    prechargerTampons(this);
+    this.finale = new Finale(this); this.finale.rejouer();
+    this.unsubs = [
+      input.on('tap', () => { if (this.finale && !this.finale.done) this.finale.skip(); }),
+      input.on('keydown', (k) => { if (this.finale && !this.finale.done && k !== 'KeyM') this.finale.skip(k); }),
+    ];
+  }
+  exit() { for (const u of this.unsubs || []) u(); this.unsubs = []; if (this.finale && !this.finale.done) { this.finale.done = true; if (this.finale.boardReel) { this.isl.board = this.finale.boardReel; this.finale.boardReel = null; } } hideUI(); }
+  bounds() { const tl = this.cam.toWorldPoint(0, 0), br = this.cam.toWorldPoint(STAGE.W, STAGE.H); return { minX: tl.x, maxX: br.x, minY: tl.y, maxY: br.y }; }
+  playSfx(key, volume = 0.6) { if (AudioSys.has(key)) AudioSys.play(key, { volume }); }
+  onFinaleDone() { scenes.go('results', this.retour); }
+  onResize() { if (this.cam && this.isl) this.cam.fit(this.isl.board.mask, uiMargins('ambient')); }
+  update(dt) {
+    if (!this.finale || this.finale.done) { input.endFrame(); return; }
+    this.finale.update(dt); this.cam.update(dt); this.particles.update(dt); this.fx.update(dt); this.shake.update(dt);
+    const b0 = this.bounds(); this.fx.ambient(dt, this.isl.season, b0, 1, []);
+    input.endFrame();
+  }
+  render(ctx, alpha, dt) { this.renderer.render(ctx, alpha, dt); if (this.finale && !this.finale.done) this.finale.render(ctx); }
+}
+
 /** L'écran de départ d'une île (récit, semis, vœux), sur le fond du menu. */
 class PrepScene {
   async enter({ node }) { this.bg = scenes.scenes.get('menu').ensureBg(); showUI(node, 'panel-wrap'); }
@@ -1479,6 +1513,7 @@ scenes.register('menu', new MenuScene());
 scenes.register('story', new StoryScene());
 scenes.register('island', new IslandScene());
 scenes.register('results', new ResultsScene());
+scenes.register('rejeu', new RejeuScene());
 scenes.register('prep', new PrepScene());
 scenes.register('workshop', new WorkshopScene());
 scenes.register('ending', new EndingScene());
