@@ -97,7 +97,7 @@ Fin de l'étape : il existe plusieurs façons de bien jouer, et le joueur voit p
 
 Chaque question est fermée. La recommandation en gras sera appliquée par défaut si rien n'est dit.
 
-**État au 25 septembre** : le commanditaire a dit « go » ; les recommandations ont été appliquées telles quelles (1 a, 2 a, 4 b, 5 b, 6 b, 7 a, 8 a, 9 a), sauf la **3** : les règles de saison de la campagne sont gardées et dites (elles étaient déjà dans la bannière ; les retirer touche au score et aux records, et le récapitulatif promet « comme sur toute île »). À trancher par le commanditaire s'il préfère b.
+**État au 25 septembre** : le commanditaire a dit « go » ; les recommandations ont été appliquées telles quelles (1 a, 2 a, 4 b, 5 b, 6 b, 7 a, 8 a, 9 a), sauf la **3**, gardée en attente. **27 septembre** : le commanditaire a dit « go pour tout le reste » — la 3 est appliquée en **b** : les règles de saison de la campagne (crue, sécheresse, récolte, veillée, et leurs surprises) ne jouent plus au Souffle court, la règle y vaut « aucune » ; le récapitulatif le dit ; les records joués avec elles sont archivés une fois dans `tempo.avantSaisons` (jamais effacés) et les tableaux repartent à zéro.
 
 1. **Été : la réserve suit-elle le délai ?** a) **Oui : 12 s à 3 s (ta valeur), 20 s à 5 s, 32 s à 8 s.** b) Non, 12 s partout (aujourd'hui). c) Retirer l'été spécial.
    Pour a : 8 s redevient plus facile toute la partie, et 3 s ne change pas. Contre a : l'été à 8 s devient long. Recommandation : **a**.

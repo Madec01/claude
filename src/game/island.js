@@ -119,7 +119,7 @@ export class Island {
     this.surpriseOn = def.brume ? false : o.surprise !== undefined ? (!!o.surprise || this.infinite) : (!!def.surprise || !!def.weather || this.infinite || des('surprise'));
     this.huntSeason = false;      // chasse et cueillette : les animaux des forêts rapportent +2 à la saison suivante
     this.rulesVariable = this.surpriseOn;
-    this.rule = this.garden ? BASE_RULE[this.season] : pickRule(this.season, () => this.rng.next(), this.rulesVariable);
+    this.rule = this.tempo ? 'aucune' : this.garden ? BASE_RULE[this.season] : pickRule(this.season, () => this.rng.next(), this.rulesVariable);   // Souffle court : aucune règle de saison de la campagne, seuls ses quatre effets (feuille Souffle court, décision 3 : b)
     this.nextRule = this.tirerRegleSuivante();   // la surprise de la saison qui vient est tirée d'avance : annoncée deux poses avant (audit, J-F)
     this.updateFauna();
   }
@@ -160,7 +160,7 @@ export class Island {
   /** La saison qui viendra après celle-ci (une saison longue du climat revient une fois). */
   saisonSuivante() { return this.climate.longSeason === this.season && !this.longSeasonDone ? this.season : nextSeason(this.season); }
   /** Tire la règle de la saison suivante, avec le générateur de l'île (déterministe pour une île donnée). */
-  tirerRegleSuivante() { if (this.garden || this.brume) return null; return pickRule(this.saisonSuivante(), () => this.rng.next(), this.rulesVariable); }
+  tirerRegleSuivante() { if (this.garden || this.brume || this.tempo) return null; return pickRule(this.saisonSuivante(), () => this.rng.next(), this.rulesVariable); }
   /**
    * L'annonce de la saison qui vient, dès qu'elle est à deux poses ou moins : { season, rule, dans } — ou null.
    * Le joueur a le temps d'une réponse sans perdre l'effet de découverte (feuille Histoire, décision 2 : a).
@@ -492,7 +492,7 @@ export class Island {
     this.stats.closedThisSeason = 0;
     this.undoUsedThisSeason = false;
     const prevRule = this.rule;
-    this.rule = this.nextRule || (this.garden ? BASE_RULE[this.season] : pickRule(this.season, () => this.rng.next(), this.rulesVariable));   // tirée d'avance (et annoncée) à la saison précédente
+    this.rule = this.tempo ? 'aucune' : this.nextRule || (this.garden ? BASE_RULE[this.season] : pickRule(this.season, () => this.rng.next(), this.rulesVariable));   // tirée d'avance (et annoncée) à la saison précédente
     this.nextRule = this.tirerRegleSuivante();
     const ev = transition(this.board, this.season, this.rule, this.climate);
     this.board.touch();

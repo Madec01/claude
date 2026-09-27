@@ -730,8 +730,9 @@ for (const def of ISLANDS.slice(0, 4)) {
   const b2 = new Island(tempoDef(7), opt).board;
   const m0 = videsMalus(b2); check(m0.vides === b2.cells - b2.tiles.size && m0.total > 0, `plateau de départ : ${m0.vides} cases vides comptées`);
   // records par délai : l'ancien record (joué à 3 s) migre une seule fois, jamais deux
+  // les records d'avant le choix du délai (joués à 3 s) passent à 3 s… dans l'archive d'avant les nouvelles règles de saison (27 septembre) ; la migration ne se rejoue pas
   { const S = { best: 420, bestSerie: 9, parties: 4, cadran: 5 }; recordsTempo(S); const une = JSON.stringify(S); recordsTempo(S); S.bests[5] = 100; recordsTempo(S);
-    check(S.bests[3] === 420 && S.series[3] === 9 && une === JSON.stringify({ ...S, bests: { 3: 420 } }) && S.bests[5] === 100, `records rangés par délai : l'ancien passe à 3 s (${S.bests[3]}), la migration ne se rejoue pas`); }
+    check(S.avantSaisons.bests[3] === 420 && S.avantSaisons.series[3] === 9 && une === JSON.stringify({ ...S, bests: {} }) && S.bests[5] === 100 && S.bests[3] === undefined, `records rangés par délai : l'ancien passe à 3 s dans l'archive (${S.avantSaisons.bests[3]}), la migration ne se rejoue pas`); }
 }
 // --- les grandes régions (26 septembre 2026) : +1 par pose qui agrandit une région de 5 tuiles ou plus (+2 à 10),
 // prime de fermeture ×1,5 à partir de 5 tuiles (×2 à 10), en plus du double des hameaux
@@ -924,6 +925,21 @@ for (const def of ISLANDS.slice(0, 4)) {
   const i17 = new Island(d17, { ...islandOptions(d17) });
   check(i17.board.get(-4, 1) && i17.board.get(-4, 1).family === 'rock' && i17.board.get(-3, 1) && i17.board.get(-3, 1).family === 'water', 'la rivière est commencée depuis la roche');
   check(i17.queue.list[0].family === 'water' && d17.opening[0] === 'water', 'la première tuile est de l’eau');
+}
+// --- feuille Souffle court, décision 3 (b) : aucune règle de saison de la campagne dans le mode
+{
+  const { transition } = await import('../src/game/seasons.js');
+  const { tempoDef, recordsTempo } = await import('../src/data/tempo.js');
+  const dt = tempoDef(7, { familles: new Set(['meadow', 'forest', 'field', 'hamlet', 'water', 'rock']) });
+  const it = new Island(dt, { build: false, fuse: false, hand: false, level3: false, growth: false, surprise: false, rareTier: 1 });
+  check(it.rule === 'aucune' && it.nextRule === null && it.annonce() === null, 'au Souffle court, la règle de saison est « aucune », rien à annoncer');
+  const bt = new Board(['0,0', '1,0', '2,0', '-1,0']); bt.place(0, 0, { family: 'meadow', variant: 1 }); bt.place(1, 0, { family: 'water', variant: 1 }); bt.place(2, 0, { family: 'field', variant: 1 });
+  check(transition(bt, 'summer', 'aucune').length === 0 && transition(bt, 'winter', 'aucune').length === 0 && !bt.get(0, 0).dry && !bt.get(1, 0).frozen, 'sous « aucune », l’été ne sèche rien et l’hiver ne gèle rien');
+  const pvA = preview(bt, -1, 0, { family: 'field', variant: 1 }, 'summer', { rule: 'aucune' }), pvB = preview(bt, -1, 0, { family: 'field', variant: 1 }, 'summer', {});
+  check(pvA.total <= pvB.total, `l’irrigation d’été ne joue pas sous « aucune » (${pvA.total} ≤ ${pvB.total})`);
+  const S = { bests: { 3: 120 }, series: { 3: 7 } }; recordsTempo(S);
+  check(S.avantSaisons && S.avantSaisons.bests[3] === 120 && Object.keys(S.bests).length === 0, 'les records d’avant sont archivés une fois, à part');
+  recordsTempo(S); check(S.avantSaisons.bests[3] === 120 && Object.keys(S.bests).length === 0, 'et archiver deux fois ne change rien');
 }
 console.log(failures ? `${failures} échec(s)` : 'Tous les tests passent.');
 process.exit(failures ? 1 : 0);

@@ -190,7 +190,7 @@ export class Hud {
     if (open) {
       const isl = this.isl; const s0 = STORY.seasons[isl.season] || { name: isl.season, line: '', rule: '' };
       const rl = isl.rule && STORY.seasonRules[isl.rule] ? STORY.seasonRules[isl.rule] : null;
-      const s = rl ? { name: isl.rulesVariable ? `${s0.name} · ${rl.name}` : s0.name, line: rl.line, rule: rl.rule } : s0;
+      const s = rl ? { name: isl.rulesVariable ? `${s0.name} · ${rl.name}` : s0.name, line: rl.line, rule: rl.rule } : isl.rule === 'aucune' ? { ...s0, rule: 'Au Souffle court, la saison ne change que le temps ou le plateau : aucune règle de points de la campagne.' } : s0;
       pop.innerHTML = `<b>${s.name}</b><em>${s.line}</em><span>${s.rule}</span><i>Toucher pour fermer</i>`;
       { const cl = isl.climate && isl.climate.id !== 'temperate' ? STORY.climates[isl.climate.id] : null; if (cl) pop.insertAdjacentHTML('beforeend', `<div class="pop-climate"><b>${cl.name}</b> — <em>${cl.line}</em><br>✓ ${cl.plus}<br>✗ ${cl.minus}</div>`); }
       // la saison annoncée : sa surprise et, sur l'île, les cases qu'elle abîmera (cernées tant que la surimpression est ouverte)
@@ -425,7 +425,7 @@ export class Hud {
     const effet = isl.tempo && !isl.def.sansEffets ? { spring: 'Deux tuiles proposées : pose celle que tu veux, l’autre est perdue.', summer: `Une réserve de ${fr(reserveEte(isl.def))} s pour les cinq tuiles.`, autumn: 'La brume couvre l’île ; poser la dissipe autour.', winter: `Cadran gelé, ×${fr(BALANCE.tempo.hiver)}.` }[isl.season] : null;
     // la saison qui vient s'annonce deux poses avant, avec sa surprise : de quoi préparer une réponse (audit, J-F)
     const an = isl.annonce ? isl.annonce() : null; const anTxt = an ? `${(STORY.seasons[an.season] || { name: an.season }).name} dans ${an.dans === 1 ? 'une pose' : `${an.dans} poses`} : ${(STORY.seasonRules[an.rule] || { name: an.rule }).name.toLowerCase()}` : '';
-    this.set('seasonName', rl && isl.rulesVariable ? `${s.name} · ${rl.name}` : s.name); this.set('seasonRule', (an ? `${anTxt} · ` : '') + (effet ? `${effet} ` : '') + (rl ? rl.rule : s.rule));
+    this.set('seasonName', rl && isl.rulesVariable ? `${s.name} · ${rl.name}` : s.name); this.set('seasonRule', (an ? `${anTxt} · ` : '') + (effet ? `${effet} ` : '') + (rl ? rl.rule : isl.rule === 'aucune' ? '' : s.rule));
     if (this.last.annonce !== anTxt) { this.last.annonce = anTxt; r.seasonBox.classList.toggle('annonce', !!an); }
     if (this.last.seasonKey !== isl.season) { this.last.seasonKey = isl.season; r.seasonIcon.innerHTML = icon(SEASON_ICON[isl.season] || 'icon_leaf'); r.seasonBox.classList.remove('s-spring', 's-summer', 's-autumn', 's-winter'); r.seasonBox.classList.add(`s-${isl.season}`); }
     // l'objectif personnel du Souffle court, suivi sous les points

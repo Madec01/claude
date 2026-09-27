@@ -17,7 +17,7 @@ function edgePoints(tile, other, season, rule = null, climate = null) {
   const fa = Board.familiesOf(tile), fb = Board.familiesOf(other);
   let best = 0, bestKey = null;
   for (const x of fa) for (const y of fb) {
-    if ((season === 'winter' || (season === 'autumn' && climate && climate.fieldsDormantAutumn)) && rule !== 'doux' && ((x === 'field' && y === 'hamlet') || (x === 'hamlet' && y === 'field')) && tile.family !== 'granary' && other.family !== 'granary') continue; // champs dormants (sauf grenier et hiver doux ; dès l'automne en climat froid)
+    if (rule !== 'aucune' && (season === 'winter' || (season === 'autumn' && climate && climate.fieldsDormantAutumn)) && rule !== 'doux' && ((x === 'field' && y === 'hamlet') || (x === 'hamlet' && y === 'field')) && tile.family !== 'granary' && other.family !== 'granary') continue; // champs dormants (sauf grenier et hiver doux ; dès l'automne en climat froid)
     const v = affinity(x, y);
     if (Math.abs(v) > Math.abs(best)) { best = v; bestKey = pairKey(x, y); }
   }
@@ -25,7 +25,7 @@ function edgePoints(tile, other, season, rule = null, climate = null) {
   if (rule === 'semailles' && ((fa.includes('field') && fb.includes('hamlet')) || (fa.includes('hamlet') && fb.includes('field')))) best += 2;
   if (rule === 'nichees' && fa.includes('meadow') && fb.includes('forest')) best += 1;
   // été : champ irrigué
-  if (season === 'summer' && ((fa.includes('field') && fb.includes('water')) || (fa.includes('water') && fb.includes('field')))) best += P.summerIrrigation;
+  if (rule !== 'aucune' && season === 'summer' && ((fa.includes('field') && fb.includes('water')) || (fa.includes('water') && fb.includes('field')))) best += P.summerIrrigation;
   // chapelle : tous les bords +1 en hiver
   if (season === 'winter' && (tile.family === 'chapel' || other.family === 'chapel')) best += 1;
   // grenier : +1 par bord avec un champ

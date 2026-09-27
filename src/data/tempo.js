@@ -72,6 +72,16 @@ export function reserveEte(def = {}) { const t = T(); return Math.round(t.etePar
 export function recordsTempo(S) {
   if (!S) return S;
   S.bests = S.bests || {}; S.series = S.series || {};
+  // les règles de saison de la campagne ont quitté le mode (27 septembre) : les records joués avec elles ne sont plus
+  // comparables ; ils passent une seule fois dans `avantSaisons`, jamais effacés, et les tableaux repartent à zéro
+  if (!S.saisonsRetirees) {
+    if (Object.keys(S.bests).length || Object.keys(S.series).length || (S.best || 0) > 0) {
+      if ((S.best || 0) > 0 && !Object.keys(S.bests).length) S.bests[3] = S.best;
+      if ((S.bestSerie || 0) > 0 && !Object.keys(S.series).length) S.series[3] = S.bestSerie;
+      S.avantSaisons = { bests: { ...S.bests }, series: { ...S.series } }; S.bests = {}; S.series = {}; S.best = 0; S.bestSerie = 0;
+    }
+    S.saisonsRetirees = true;   // le drapeau, pas l'archive : une sauvegarde neuve n'a rien à archiver et ne doit jamais le refaire
+  }
   if ((S.best || 0) > 0 && !Object.keys(S.bests).length) S.bests[3] = S.best;
   if ((S.bestSerie || 0) > 0 && !Object.keys(S.series).length) S.series[3] = S.bestSerie;
   return S;
