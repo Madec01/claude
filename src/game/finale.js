@@ -80,8 +80,9 @@ export class Finale {
     this.r.nu = true;    // la grille des cases vides et le contour autour du vide s'effacent
     // La construction, premier temps de la tournée (27 septembre, le commanditaire) : dès la dernière tuile posée,
     // l'île se vide et se rebâtit très vite pendant que la caméra recule — sans passer les saisons, elles ne
-    // tournent qu'une fois, plus loin —, puis la tournée présente les régions comme avant. Pas en version courte.
-    if (construction && !this.court && this.isl.poses && this.isl.poses.length >= 5) this.rejouer({ auto: true });
+    // tournent qu'une fois, plus loin —, puis la tournée présente les régions comme avant. En version courte aussi
+    // (île déjà terminée, Terres étranges dès la deuxième partie, Souffle court) : c'est elle qu'on veut revoir.
+    if (construction && this.isl.poses && this.isl.poses.length >= 5) this.rejouer({ auto: true });
   }
 
   /** Les bornes du monde de l'île : elles servent à semer les particules sur le front des saisons. */
