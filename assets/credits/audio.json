@@ -293,7 +293,18 @@
         "sfx/fauna_leave.ogg",
         "sfx/wish_new.ogg",
         "sfx/bud.ogg",
-        "sfx/weather.ogg"
+        "sfx/weather.ogg",
+        "sfx/fauna_arrive_rabbit.ogg",
+        "sfx/fauna_arrive_moose.ogg",
+        "sfx/fauna_arrive_bear.ogg",
+        "sfx/fauna_arrive_owl.ogg",
+        "sfx/fauna_arrive_duck.ogg",
+        "sfx/fauna_arrive_frog.ogg",
+        "sfx/fauna_arrive_penguin.ogg",
+        "sfx/fauna_arrive_goat.ogg",
+        "sfx/fauna_arrive_chicken.ogg",
+        "sfx/fauna_arrive_horse.ogg",
+        "sfx/fauna_arrive_cow.ogg"
       ]
     },
     {
@@ -384,7 +395,18 @@
         "sfx/seed.ogg",
         "sfx/upgrade.ogg",
         "sfx/achievement.ogg",
-        "sfx/intro.ogg"
+        "sfx/intro.ogg",
+        "sfx/fauna_arrive_rabbit.ogg",
+        "sfx/fauna_arrive_moose.ogg",
+        "sfx/fauna_arrive_bear.ogg",
+        "sfx/fauna_arrive_owl.ogg",
+        "sfx/fauna_arrive_duck.ogg",
+        "sfx/fauna_arrive_frog.ogg",
+        "sfx/fauna_arrive_penguin.ogg",
+        "sfx/fauna_arrive_goat.ogg",
+        "sfx/fauna_arrive_chicken.ogg",
+        "sfx/fauna_arrive_horse.ogg",
+        "sfx/fauna_arrive_cow.ogg"
       ]
     },
     {

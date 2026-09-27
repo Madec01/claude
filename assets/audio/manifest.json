@@ -538,7 +538,7 @@
       "file": "sfx/season_spring.ogg",
       "duration": 2.183,
       "loop": false,
-      "source": "flute D5/E5/G5 + orchestral_harp C4/E4/G4/C5 + glockenspiel G5",
+      "source": "tubular_bells E5 + flute D5/E5/G5 + orchestral_harp C4/E4/G4/C5 + glockenspiel G5",
       "author": "Frank Wen",
       "license": "CC BY 3.0",
       "packs": [
@@ -550,7 +550,7 @@
       "file": "sfx/season_summer.ogg",
       "duration": 2.157,
       "loop": false,
-      "source": "kalimba C4/E4/G4/A4/C5/E5 + marimba C3/G3/C4 + vibraphone G4/C5/E5",
+      "source": "tubular_bells G5 + kalimba C4/E4/G4/A4/C5/E5 + marimba C3/G3/C4 + vibraphone G4/C5/E5",
       "author": "Frank Wen",
       "license": "CC BY 3.0",
       "packs": [
@@ -560,9 +560,9 @@
     },
     "season_autumn": {
       "file": "sfx/season_autumn.ogg",
-      "duration": 2.679,
+      "duration": 2.68,
       "loop": false,
-      "source": "acoustic_guitar_nylon A2/E3/A3/C4/E4 + vibraphone E5/C5/A4",
+      "source": "tubular_bells D5 + acoustic_guitar_nylon A2/E3/A3/C4/E4 + vibraphone E5/C5/A4",
       "author": "Frank Wen",
       "license": "CC BY 3.0",
       "packs": [
@@ -574,7 +574,7 @@
       "file": "sfx/season_winter.ogg",
       "duration": 2.248,
       "loop": false,
-      "source": "music_box E5/B5/G5/E6 + celesta E4/G4/B4",
+      "source": "tubular_bells A4 + music_box E5/B5/G5/E6 + celesta E4/G4/B4",
       "author": "Frank Wen",
       "license": "CC BY 3.0",
       "packs": [
@@ -1048,6 +1048,149 @@
         "fluidr3"
       ],
       "note": "ouverture : montée 8-bit et glockenspiel, accord de harpe sur violoncelle, tintement (joué dans la vidéo du logo)"
+    },
+    "fauna_arrive_rabbit": {
+      "file": "sfx/fauna_arrive_rabbit.ogg",
+      "duration": 0.808,
+      "loop": false,
+      "source": "plop_02.ogg + music_box E6/G6",
+      "author": "rubberduck + Frank Wen",
+      "license": "CC0 1.0 + CC BY 3.0",
+      "packs": [
+        "rd_100sfx",
+        "fluidr3"
+      ],
+      "note": "rabbit qui apparaît : pop + carillon propre (music_box)"
+    },
+    "fauna_arrive_moose": {
+      "file": "sfx/fauna_arrive_moose.ogg",
+      "duration": 0.779,
+      "loop": false,
+      "source": "plop_02.ogg + marimba C4/G3",
+      "author": "rubberduck + Frank Wen",
+      "license": "CC0 1.0 + CC BY 3.0",
+      "packs": [
+        "rd_100sfx",
+        "fluidr3"
+      ],
+      "note": "moose qui apparaît : pop + carillon propre (marimba)"
+    },
+    "fauna_arrive_bear": {
+      "file": "sfx/fauna_arrive_bear.ogg",
+      "duration": 0.829,
+      "loop": false,
+      "source": "plop_02.ogg + marimba G3/C3",
+      "author": "rubberduck + Frank Wen",
+      "license": "CC0 1.0 + CC BY 3.0",
+      "packs": [
+        "rd_100sfx",
+        "fluidr3"
+      ],
+      "note": "bear qui apparaît : pop + carillon propre (marimba)"
+    },
+    "fauna_arrive_owl": {
+      "file": "sfx/fauna_arrive_owl.ogg",
+      "duration": 0.887,
+      "loop": false,
+      "source": "plop_02.ogg + music_box D5/A4",
+      "author": "rubberduck + Frank Wen",
+      "license": "CC0 1.0 + CC BY 3.0",
+      "packs": [
+        "rd_100sfx",
+        "fluidr3"
+      ],
+      "note": "owl qui apparaît : pop + carillon propre (music_box)"
+    },
+    "fauna_arrive_duck": {
+      "file": "sfx/fauna_arrive_duck.ogg",
+      "duration": 0.43,
+      "loop": false,
+      "source": "plop_02.ogg + kalimba A5/F5",
+      "author": "rubberduck + Frank Wen",
+      "license": "CC0 1.0 + CC BY 3.0",
+      "packs": [
+        "rd_100sfx",
+        "fluidr3"
+      ],
+      "note": "duck qui apparaît : pop + carillon propre (kalimba)"
+    },
+    "fauna_arrive_frog": {
+      "file": "sfx/fauna_arrive_frog.ogg",
+      "duration": 0.464,
+      "loop": false,
+      "source": "plop_02.ogg + kalimba G4/C5",
+      "author": "rubberduck + Frank Wen",
+      "license": "CC0 1.0 + CC BY 3.0",
+      "packs": [
+        "rd_100sfx",
+        "fluidr3"
+      ],
+      "note": "frog qui apparaît : pop + carillon propre (kalimba)"
+    },
+    "fauna_arrive_penguin": {
+      "file": "sfx/fauna_arrive_penguin.ogg",
+      "duration": 0.88,
+      "loop": false,
+      "source": "plop_02.ogg + celesta E5/E5",
+      "author": "rubberduck + Frank Wen",
+      "license": "CC0 1.0 + CC BY 3.0",
+      "packs": [
+        "rd_100sfx",
+        "fluidr3"
+      ],
+      "note": "penguin qui apparaît : pop + carillon propre (celesta)"
+    },
+    "fauna_arrive_goat": {
+      "file": "sfx/fauna_arrive_goat.ogg",
+      "duration": 0.245,
+      "loop": false,
+      "source": "plop_02.ogg + xylophone A5/B5",
+      "author": "rubberduck + Frank Wen",
+      "license": "CC0 1.0 + CC BY 3.0",
+      "packs": [
+        "rd_100sfx",
+        "fluidr3"
+      ],
+      "note": "goat qui apparaît : pop + carillon propre (xylophone)"
+    },
+    "fauna_arrive_chicken": {
+      "file": "sfx/fauna_arrive_chicken.ogg",
+      "duration": 0.323,
+      "loop": false,
+      "source": "plop_02.ogg + xylophone C6/E6/C6",
+      "author": "rubberduck + Frank Wen",
+      "license": "CC0 1.0 + CC BY 3.0",
+      "packs": [
+        "rd_100sfx",
+        "fluidr3"
+      ],
+      "note": "chicken qui apparaît : pop + carillon propre (xylophone)"
+    },
+    "fauna_arrive_horse": {
+      "file": "sfx/fauna_arrive_horse.ogg",
+      "duration": 0.842,
+      "loop": false,
+      "source": "plop_02.ogg + glockenspiel G5/C6/G5",
+      "author": "rubberduck + Frank Wen",
+      "license": "CC0 1.0 + CC BY 3.0",
+      "packs": [
+        "rd_100sfx",
+        "fluidr3"
+      ],
+      "note": "horse qui apparaît : pop + carillon propre (glockenspiel)"
+    },
+    "fauna_arrive_cow": {
+      "file": "sfx/fauna_arrive_cow.ogg",
+      "duration": 0.788,
+      "loop": false,
+      "source": "plop_02.ogg + marimba E4/C4",
+      "author": "rubberduck + Frank Wen",
+      "license": "CC0 1.0 + CC BY 3.0",
+      "packs": [
+        "rd_100sfx",
+        "fluidr3"
+      ],
+      "note": "cow qui apparaît : pop + carillon propre (marimba)"
     }
   }
 }

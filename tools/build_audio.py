@@ -721,32 +721,36 @@ def build_sfx(only: set[str] | None = None) -> dict:
 
     # ---- Saisons (jingles de 2–3 s, samples réels) ------------------------------
     R["season_spring"] = (lambda: ff_filter(stereo_spread(cut(mix(
+        (LF("tubular_bells", "E5"), 0.0, -11.0),   # la cloche des saisons (27 septembre) : une note, la même hauteur pour une même saison
         (held("flute", "D5", 0.6, 0.05, 0.3, 0.25), 0.0, -2.0),
         (held("flute", "E5", 0.6, 0.05, 0.3, 0.25), 0.3, -2.0),
         (held("flute", "G5", 1.7, 0.05, 1.2, 0.5), 0.6, 0.0),
         (LF("orchestral_harp", "C4"), 0.0, -4.0), (LF("orchestral_harp", "E4"), 0.05, -4.0),
         (LF("orchestral_harp", "G4"), 0.1, -4.0), (LF("orchestral_harp", "C5"), 0.62, -5.0),
         (LF("glockenspiel", "G5"), 0.62, -12.0)), 2.6, 0.5)), REVERB_SOFT),
-        [(F, "flute D5/E5/G5"), (F, "orchestral_harp C4/E4/G4/C5"), (F, "glockenspiel G5")],
+        [(F, "tubular_bells E5"), (F, "flute D5/E5/G5"), (F, "orchestral_harp C4/E4/G4/C5"), (F, "glockenspiel G5")],
         "printemps : flûte montante (ré mi sol) sur harpe")
     R["season_summer"] = (lambda: ff_filter(stereo_spread(cut(mix(
+        (LF("tubular_bells", "G5"), 0.0, -11.0),   # la cloche des saisons (27 septembre) : une note, la même hauteur pour une même saison
         (LF("kalimba", "C4"), 0.0, 0.0), (LF("kalimba", "E4"), 0.17, 0.0), (LF("kalimba", "G4"), 0.34, 0.0),
         (LF("kalimba", "A4"), 0.51, 0.0), (LF("kalimba", "C5"), 0.68, 0.0), (LF("kalimba", "E5"), 0.85, -1.0),
         (LF("marimba", "C3"), 0.0, -4.0), (LF("marimba", "G3"), 0.68, -6.0), (LF("marimba", "C4"), 1.02, -6.0),
         (LF("vibraphone", "G4"), 0.85, -9.0), (LF("vibraphone", "C5"), 1.02, -8.0), (LF("vibraphone", "E5"), 1.19, -9.0)), 2.5, 0.6)), REVERB_SOFT),
-        [(F, "kalimba C4/E4/G4/A4/C5/E5"), (F, "marimba C3/G3/C4"), (F, "vibraphone G4/C5/E5")],
+        [(F, "tubular_bells G5"), (F, "kalimba C4/E4/G4/A4/C5/E5"), (F, "marimba C3/G3/C4"), (F, "vibraphone G4/C5/E5")],
         "été : kalimba en pentatonique sur marimba, halo de vibraphone")
     R["season_autumn"] = (lambda: ff_filter(stereo_spread(cut(mix(
+        (LF("tubular_bells", "D5"), 0.0, -11.0),   # la cloche des saisons (27 septembre) : une note, la même hauteur pour une même saison
         (LF("acoustic_guitar_nylon", "A2"), 0.0, 0.0), (LF("acoustic_guitar_nylon", "E3"), 0.07, 0.0),
         (LF("acoustic_guitar_nylon", "A3"), 0.14, 0.0), (LF("acoustic_guitar_nylon", "C4"), 0.21, 0.0),
         (LF("acoustic_guitar_nylon", "E4"), 0.28, 0.0),
         (LF("vibraphone", "E5"), 0.55, -7.0), (LF("vibraphone", "C5"), 1.0, -8.0), (LF("vibraphone", "A4"), 1.45, -8.0)), 2.8, 0.7)), REVERB_SOFT),
-        [(F, "acoustic_guitar_nylon A2/E3/A3/C4/E4"), (F, "vibraphone E5/C5/A4")], "automne : guitare nylon (la mineur) et vibraphone descendant")
+        [(F, "tubular_bells D5"), (F, "acoustic_guitar_nylon A2/E3/A3/C4/E4"), (F, "vibraphone E5/C5/A4")], "automne : guitare nylon (la mineur) et vibraphone descendant")
     R["season_winter"] = (lambda: ff_filter(stereo_spread(cut(mix(
+        (LF("tubular_bells", "A4"), 0.0, -11.0),   # la cloche des saisons (27 septembre) : une note, la même hauteur pour une même saison
         (LF("music_box", "E5"), 0.0, 0.0), (LF("music_box", "B5"), 0.35, 0.0), (LF("music_box", "G5"), 0.7, 0.0),
         (LF("music_box", "E6"), 1.05, -1.0), (LF("music_box", "B5"), 1.4, -2.0),
         (LF("celesta", "E4"), 0.0, -9.0), (LF("celesta", "G4"), 0.02, -9.0), (LF("celesta", "B4"), 0.04, -9.0)), 3.0, 0.8)), REVERB_OUT),
-        [(F, "music_box E5/B5/G5/E6"), (F, "celesta E4/G4/B4")], "hiver : boîte à musique (mi mineur) sur célesta, réverbération froide")
+        [(F, "tubular_bells A4"), (F, "music_box E5/B5/G5/E6"), (F, "celesta E4/G4/B4")], "hiver : boîte à musique (mi mineur) sur célesta, réverbération froide")
     R["season_sweep"] = (lambda: fade(ff_filter(wind_gust(2.2), "highpass=f=150"), 0.5, 0.9),
                          [(P_FS_WIND, "wind.ogg")], "balayage de saison : rafale réelle de 2,2 s prise dans wind.ogg")
 
@@ -754,6 +758,28 @@ def build_sfx(only: set[str] | None = None) -> dict:
     R["fauna_arrive"] = (lambda: cut(mix((L(P_RD1, "plop_02.ogg"), 0.0, 0.0), (LF("glockenspiel", "A5"), 0.08, -6.0),
                                          (LF("glockenspiel", "E6"), 0.2, -8.0)), 0.9, 0.3),
                          [(P_RD1, "plop_02.ogg"), (F, "glockenspiel A5/E6")], "animal qui apparaît : pop + petit carillon")
+    # Un carillon propre à chaque habitant (27 septembre, demande du commanditaire : « lisible à l'oreille »). Le même
+    # pop que l'arrivée générique, puis deux ou trois notes d'un seul instrument, à −8 dB : la forêt en boîte à
+    # musique et marimba, l'eau en kalimba et célesta, la ferme en xylophone et glockenspiel. Le cri de l'animal
+    # vient ensuite, comme avant. Jamais deux carillons en même temps : la scène les espace (main.js).
+    CARILLONS = {
+        "rabbit": ("music_box", [("E6", 0.0), ("G6", 0.11)]),
+        "moose": ("marimba", [("C4", 0.0), ("G3", 0.18)]),
+        "bear": ("marimba", [("G3", 0.0), ("C3", 0.24)]),
+        "owl": ("music_box", [("D5", 0.0), ("A4", 0.24)]),
+        "duck": ("kalimba", [("A5", 0.0), ("F5", 0.13)]),
+        "frog": ("kalimba", [("G4", 0.0), ("C5", 0.15)]),
+        "penguin": ("celesta", [("E5", 0.0), ("E5", 0.2)]),
+        "goat": ("xylophone", [("A5", 0.0), ("B5", 0.12)]),
+        "chicken": ("xylophone", [("C6", 0.0), ("E6", 0.1), ("C6", 0.2)]),
+        "horse": ("glockenspiel", [("G5", 0.0), ("C6", 0.13), ("G5", 0.26)]),
+        "cow": ("marimba", [("E4", 0.0), ("C4", 0.28)]),
+    }
+    for _sp, (_inst, _notes) in CARILLONS.items():
+        def _carillon(inst=_inst, notes=_notes):
+            return cut(mix((L(P_RD1, "plop_02.ogg"), 0.0, -2.0), *[(LF(inst, n), 0.08 + t, -8.0 - 1.5 * i) for i, (n, t) in enumerate(notes)]), 1.0, 0.35)
+        R[f"fauna_arrive_{_sp}"] = (_carillon, [(P_RD1, "plop_02.ogg"), (F, f"{_inst} " + "/".join(n for n, _ in _notes))],
+                                    f"{_sp} qui apparaît : pop + carillon propre ({_inst})")
     R["fauna_leave"] = (lambda: cut(mix((L(P_RD1, "plop_02.ogg"), 0.0, 0.0),
                                         (resample_rate(L(P_RD1, "plop_01.ogg"), 0.75), 0.12, -2.0),
                                         (resample_rate(L(P_RD1, "plop_02.ogg"), 0.6), 0.24, -3.0)), 0.55, 0.08),
