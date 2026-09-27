@@ -31,7 +31,7 @@ import { Finale } from './game/finale.js';
 import { FinaleClassique } from './game/finale_classique.js';
 import { prechargerTampons } from './game/tampon.js';   // la tournée d'avant, gardée au cas où (option `finaleClassique`)
 import { campaignIsland, campaignMechanics, islandOptions, CAMPAIGN_SIZE, CHAPTER_LEN, MECH_AT, climateCardFor, unlockedUpTo, gateText, restarFromBest, CHAPTERS } from './data/campaign.js';
-import { GRADES, streakMilestone } from './game/feedback.js';
+import { GRADES, streakMilestone, motDePose } from './game/feedback.js';
 import { computeLinks } from './game/paths.js';
 import { waterBodies } from './game/water.js';
 import { buildStory, islandIntroScreens, islandMemoryScreens, prologueScreens, endingScreens, infiniteScreens, gardenScreens, dailyScreens, tempoScreens } from './ui/story.js';
@@ -829,10 +829,11 @@ class IslandScene {
       // commentaire du coup, série et paliers de score
       if (e.result.blight) { setTimeout(() => { this.hud.ribbon('En friche : cette tuile ne rapportera plus rien', '#d95f4b', 2200, 'bad'); AudioSys.play('point_bad', { volume: 0.5 }); }, 90 * i + 380); const seen = Save.data.seen || (Save.data.seen = {}); if (!seen.blight) { seen.blight = true; Save.save(); this.tutorial.pushCard('blight', STORY.mechCards.blight); } }
       if (e.grade && GRADES[e.grade] && !sobre) {
-        const g = GRADES[e.grade]; const texts = STORY.verdicts[e.grade]; const txt = texts[Math.floor(Math.random() * texts.length)];
+        // les célébrations gardent leurs mots ; une pose ordinaire dit un fait (vœu qui avance, région fermée) ou se tait
+        const g = GRADES[e.grade]; const texts = STORY.verdicts[e.grade]; const txt = texts ? texts[Math.floor(Math.random() * texts.length)] : motDePose(e, STORY);
         setTimeout(() => {
           // les mots vont dans le ruban sous la saison ; seuls les chiffres restent sur la case
-          this.hud.ribbon(e.grade === 'meh' && e.best > e.result.total ? `${txt} (+${e.best} possible)` : txt, g.color, e.grade === 'master' ? 1900 : 1400, e.grade);
+          if (txt) this.hud.ribbon(txt, texts ? g.color : '#7d7a72', e.grade === 'master' ? 1900 : 1400, texts ? e.grade : 'ok');
           if (g.burst) fx.closeBurst(w.x, w.y - 20, g.burst);
           if (e.grade === 'master') { AudioSys.play('star_1', { volume: 0.6 }); this.shake.trigger(0.12); Haptics.tap([10, 30, 10]); }
           if (g.streak && streakMilestone(e.streak)) { const st = STORY.verdicts.streak; setTimeout(() => { this.hud.ribbon((st[e.streak] || st.default).replace('{n}', e.streak), '#e0a33a', 1800, 'streak'); AudioSys.play('region_close', { volume: 0.5 }); fx.closeBurst(w.x, w.y - 60, 5); }, 250); }

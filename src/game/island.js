@@ -297,6 +297,7 @@ export class Island {
     let best = -Infinity; if (!this.garden) for (const c of this.board.legalCells()) { const p = preview(this.board, c.q, c.r, tile, this.season, this.mods); if (!p) continue; const v = p.total - p.closes.reduce((a, x) => a + x.bonus, 0); if (v > best) best = v; }
     if (!tileOverride) { this.queue.take(); if (this.pendingOpening.length && this.queue.list.length) this.queue.remplacer(this.queue.list.length - 1, this.pendingOpening.shift()); }
     const placedTile = tile;
+    const voeuxAvant = this.wishes.map((w) => w.progress);   // pour dire, après la pose, quel vœu a avancé (un fait, pas un jugement)
     if (this.brume) this.jugerCoup(q, r, placedTile);
     const res = apply(this.board, q, r, placedTile, this.season, this.mods);
     if (this.brume) { this.lireIndice(q, r, false); this.brume.posesSaison.push(key(q, r)); }
@@ -311,10 +312,11 @@ export class Island {
     if (grade === 'master' || grade === 'perfect' || grade === 'good') { this.stats.streak++; this.stats.bestStreak = Math.max(this.stats.bestStreak, this.stats.streak); } else if (grade === 'meh') this.stats.streak = 0;   // un coup correct ne casse pas la série, il ne la fait pas avancer
     for (const c of res.closes) { this.stats.closed++; this.stats.closedThisSeason++; this.breaths += BALANCE.breaths.close; this.stats.biggestRegion = Math.max(this.stats.biggestRegion, c.size); }
     if (this.season === 'summer' && Board.isFamily(tile, 'field') && this.board.landNeighbors(q, r).some(([a, b]) => { const n = this.board.get(a, b); return n && Board.isFamily(n, 'water'); })) this.stats.irrigatedSummer++;
-    this.emit({ type: 'place', q, r, tile: placedTile, result: res, best, grade, streak: this.stats.streak, milestone: Math.floor(this.score / 100) > Math.floor(scoreBefore / 100) ? Math.floor(this.score / 100) * 100 : 0 });
-    for (const c of res.closes) this.emit({ type: 'close', ...c, breath: BALANCE.breaths.close });
     this.updateFauna();
     this.checkWishes();
+    const voeux = this.wishes.map((w, i) => ({ wish: w, avant: voeuxAvant[i], apres: w.progress })).filter((x) => x.apres > x.avant && x.wish.status !== 'failed');
+    this.emit({ type: 'place', q, r, tile: placedTile, result: res, best, grade, voeux, streak: this.stats.streak, milestone: Math.floor(this.score / 100) > Math.floor(scoreBefore / 100) ? Math.floor(this.score / 100) * 100 : 0 });
+    for (const c of res.closes) this.emit({ type: 'close', ...c, breath: BALANCE.breaths.close });
     // rappel : dix poses avant l'échéance d'un vœu encore ouvert
     for (const w of this.wishes) { const dl = w.def.deadline; if (w.status === 'open' && dl && dl.placements && dl.placements - this.placements === 10) this.emit({ type: 'wish', kind: 'soon', wish: w, left: 10 }); }
     if (!this.garden && this.inSeason >= this.seasonLength) this.advanceSeason();

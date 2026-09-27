@@ -1655,7 +1655,8 @@ export class IslandRenderer {
   }
 
   drawHover(ctx) {
-    if (this.isl.restrict) { const cam = this.cam; for (const k of this.isl.restrict) { const [q, r] = parse(k); const w = toWorld(q, r); const c = cam.toScreen(w.x, w.y); const pulse = 0.55 + 0.45 * Math.sin(this.time * 4); ctx.save(); ctx.globalAlpha = 0.35 * pulse; ctx.fillStyle = '#ffd77a'; const pts = corners(c.x, c.y, SIZE * cam.zoom * 0.95); ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]); for (let i = 1; i < 6; i++) ctx.lineTo(pts[i][0], pts[i][1]); ctx.closePath(); ctx.fill(); ctx.restore(); this.outline(ctx, c.x, c.y, '#e0a33a', 0.6 + 0.4 * pulse); } }
+    const guide = this.isl.restrict || (this.isl.brille ? [this.isl.brille] : null);   // case imposée (île 1) ou tuile visée par une étape à action (bâtir, fusionner, niveau 3)
+    if (guide) { const cam = this.cam; for (const k of guide) { const [q, r] = parse(k); const w = toWorld(q, r); const c = cam.toScreen(w.x, w.y); const pulse = 0.55 + 0.45 * Math.sin(this.time * 4); ctx.save(); ctx.globalAlpha = 0.35 * pulse; ctx.fillStyle = '#ffd77a'; const pts = corners(c.x, c.y, SIZE * cam.zoom * 0.95); ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]); for (let i = 1; i < 6; i++) ctx.lineTo(pts[i][0], pts[i][1]); ctx.closePath(); ctx.fill(); ctx.restore(); this.outline(ctx, c.x, c.y, '#e0a33a', 0.6 + 0.4 * pulse); } }
     const hv = this.hover; if (!hv) return;
     const cam = this.cam;
     const w = toWorld(hv.q, hv.r); const c = cam.toScreen(w.x, w.y);

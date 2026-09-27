@@ -841,5 +841,28 @@ for (const def of ISLANDS.slice(0, 4)) {
   const tuto = fs.readFileSync('src/game/tutorial.js', 'utf8').split('\n');
   check(!tuto.some((l) => /débloquer/.test(l) && /étoile/.test(l)), 'aucune carte du tutoriel ne lie « débloquer » à « étoile »');
 }
+// --- feuille Histoire, étape 2 : faire jouer, pas faire lire
+{
+  const { motDePose } = await import('../src/game/feedback.js');
+  const { cibleAction } = await import('../src/game/tutorial.js');
+  // J-G : plus de jugement négatif ; une pose ordinaire dit un fait
+  check(STORY.verdicts.meh === undefined && STORY.verdicts.ok === undefined && STORY.verdicts.master.length > 0, 'les mots « Il y avait mieux » et « Trop vite ? » ont disparu, les célébrations restent');
+  const faux = { grade: 'meh', result: { total: -1, closes: [], river: null }, voeux: [{ wish: { def: { id: 'c_forest' }, status: 'open', progress: 4, target: 6 }, avant: 3, apres: 4 }] };
+  const mot = motDePose(faux, STORY);
+  check(!!mot && /vœu/.test(mot) && /4\/6/.test(mot) && !/mieux|Dommage|vite/.test(mot), `une pose qui fait avancer un vœu dit le vœu : « ${mot} »`);
+  check(motDePose({ grade: 'ok', result: { total: 1, closes: [], river: null }, voeux: [] }, STORY) === null, 'une pose sans fait à dire se tait');
+  check(/ferme une région de 5/.test(motDePose({ grade: 'ok', result: { total: 5, closes: [{ size: 5 }], river: null }, voeux: [] }, STORY)), 'une fermeture se dit');
+  // l'événement de pose porte les vœux qui ont avancé
+  const d4 = campaignIsland(mechIsland('wish')); const i4 = new Island(d4, { ...islandOptions(d4) }); let vu = null; i4.on((e) => { if (e.type === 'place' && e.voeux.length && !vu) vu = e.voeux[0]; });
+  let g4 = 0; while (!vu && !i4.ended && g4++ < 60) { let best = null, bs = -Infinity; for (const c of i4.board.legalCells()) { for (const w of i4.wishes) { const p0 = w.progress; void p0; } const p = i4.preview(c.q, c.r); if (p && p.total > bs) { bs = p.total; best = c; } } if (!best) break; i4.place(best.q, best.r); }
+  check(!!vu && vu.apres > vu.avant, `la pose dit quel vœu a avancé (${vu && vu.wish.def.id} : ${vu && vu.avant} → ${vu && vu.apres})`);
+  // J-D : à l'île qui ouvre bâtir, l'étape à action ne vise une tuile que quand l'action est possible
+  const d11 = campaignIsland(mechIsland('build')); const i11 = new Island(d11, { ...islandOptions(d11) });
+  let g = 0; while (!i11.ended && g++ < 12) { const c = i11.board.legalCells()[0]; i11.place(c.q, c.r); }
+  const posee = [...i11.board.tiles.values()].find((t) => !t.rare && (t.level || 1) === 1 && !t.blighted); i11.board.payRegion(i11.board.region(posee.q, posee.r, posee.family)); i11.board.touch();
+  i11.breaths = 0; check(cibleAction(i11, 'build') === null, 'sans souffle, aucune tuile à faire briller : la carte attend');
+  i11.breaths = 3; const k = cibleAction(i11, 'build'); check(!!k && i11.actions(...k.split(',').map(Number)).some((a) => a.kind === 'level' && a.level === 2), `avec des souffles, la tuile visée brille (${k})`);
+  check(cibleAction(i11, 'build3') === null, 'pas de niveau 3 avant son île');
+}
 console.log(failures ? `${failures} échec(s)` : 'Tous les tests passent.');
 process.exit(failures ? 1 : 0);

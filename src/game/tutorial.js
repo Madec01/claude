@@ -28,6 +28,25 @@ const RULES = {
 };
 
 /** Tutoriel guidé de l'île 1 : chaque étape impose la case à jouer (la file est fixée par `opening`). */
+/**
+ * Étapes qui se jouent, aux îles qui ouvrent bâtir, fusionner et le niveau 3 : la carte attend que l'action soit
+ * possible (une tuile visée et les souffles pour la payer), fait briller la tuile, et ne se ferme que par l'action
+ * réussie — jamais par « Compris ». Sans souffle, la carte attend ; les autres cartes passent devant.
+ */
+const cibleAction = (i, genre) => {
+  for (const c of i.buildTargets()) for (const a of i.actions(c.q, c.r)) {
+    if (genre === 'build' && a.kind === 'level' && a.level === 2) return `${c.q},${c.r}`;
+    if (genre === 'fuse' && a.kind === 'fuse') return `${c.q},${c.r}`;
+    if (genre === 'build3' && a.kind === 'level' && a.level === 3) return `${c.q},${c.r}`;
+  }
+  return null;
+};
+const ACTION_STEPS = {
+  build:  { when: (i) => i.placements >= 3 && !!cibleAction(i, 'build'), done: (i, ev) => ev.has('build'), info: false, timeout: 120, brille: (i) => cibleAction(i, 'build'), suffixe: 'Fais-le une fois : touche la tuile qui brille, puis « Bâtir ».' },
+  fuse:   { when: (i) => i.placements >= 3 && !!cibleAction(i, 'fuse'), done: (i, ev) => ev.has('fuse'), info: false, timeout: 120, brille: (i) => cibleAction(i, 'fuse'), suffixe: 'Fais-le une fois : touche la tuile qui brille, puis la recette.' },
+  build3: { when: (i) => !!cibleAction(i, 'build3'), done: (i, ev) => ev.has('build3'), info: false, timeout: 120, brille: (i) => cibleAction(i, 'build3'), suffixe: 'Fais-le une fois : touche la tuile qui brille, puis « Bâtir ».' },
+};
+
 const GUIDED = {
   // l'entraînement du Souffle court : six poses guidées sans chrono (les voisines du hameau, une région qui se ferme), puis le temps
   entrainement_tempo: [
@@ -41,15 +60,15 @@ const GUIDED = {
     { id: 'e8', info: true, when: (i) => (i.stats.lost || 0) >= 1, done: () => false, timeout: 10, focus: '.tempo-chrono', text: 'Une tuile perdue : sa case restera vide, −2 à la fin. Rien de grave, la suivante arrive — pose-la contre un bon voisin.' },
   ],
   1: [
-    { id: 'g1', target: [1, 0], text: 'Bienvenue. Pose la prairie sur la case qui brille : une tuile doit toujours toucher une tuile déjà posée.', done: (i) => i.placements >= 1 },
-    { id: 'g2', target: [2, 0], text: 'Une forêt. Survole la case qui brille avant de cliquer : chaque bord affiche ses points. Forêt contre roche : +2, forêt contre prairie : +1.', done: (i) => i.placements >= 2 },
-    { id: 'g3', target: [-1, 0], text: 'Le champ aime le hameau (+2). Pose-le contre le village.', done: (i) => i.placements >= 3 },
-    { id: 'g4', target: [-1, 1], text: 'Un deuxième hameau. Deux hameaux côte à côte valent +2, et le champ voisin encore +2 : c’est le meilleur coup.', done: (i) => i.placements >= 4 },
-    { id: 'g5', target: [1, -1], text: 'L’eau posée contre la roche devient une rivière (+2). Les mauvaises paires (champ-roche, hameau-marais) feraient −1 : évite-les.', done: (i) => i.placements >= 5 },
-    { id: 'g6', target: [0, 1], text: 'Un champ ici. Regarde la ligne de saison en haut : à la sixième pose, la saison change.', done: (i) => i.placements >= 6 },
-    { id: 'g7', text: 'L’été ! Chaque saison apporte une règle, lisible en haut de l’écran : en été, une prairie sans eau, forêt ni marais voisin sèche. La nôtre touche l’eau et la forêt : elle tient.', info: true, when: (i) => i.seasonsPassed.length >= 1, timeout: 40 },
-    { id: 'g8', target: [1, 1], text: 'Le verger aime la prairie (+2). Pose-le ici : la prairie n’aura plus aucune case vide autour. Une région entourée se ferme et rapporte sa taille en points.', done: (i) => i.placements >= 7 },
-    { id: 'g9', text: 'Région close ! Plus la région est grande, plus la prime est belle (les hameaux comptent double). Des animaux viendront aussi d’eux-mêmes, là où leur habitat existe : chacun rapporte des points à chaque saison. À toi de jouer : remplis l’île. Une île terminée ouvre la suivante ; les étoiles ouvrent les chapitres. Le Guide (pause) rappelle toutes les paires.', info: true, timeout: 30 },
+    { id: 'g1', target: [1, 0], text: 'Bienvenue. Pose la prairie sur la case qui brille : une tuile touche toujours une tuile posée.', done: (i) => i.placements >= 1 },
+    { id: 'g2', target: [2, 0], text: 'Une forêt. Survole la case qui brille : chaque bord dit ses points. Contre la roche +2, contre la prairie +1.', done: (i) => i.placements >= 2 },
+    { id: 'g3', target: [-1, 0], text: 'Le champ aime le hameau : +2. Pose-le contre le village.', done: (i) => i.placements >= 3 },
+    { id: 'g4', target: [-1, 1], text: 'Un deuxième hameau. Compare deux cases : ici, +2 pour le hameau voisin et +2 pour le champ.', done: (i) => i.placements >= 4 },
+    { id: 'g5', target: [1, -1], text: 'L’eau contre la roche devient une rivière : +2. Les mauvaises paires (champ-roche, hameau-marais) coûtent −1.', done: (i) => i.placements >= 5 },
+    { id: 'g6', target: [0, 1], text: 'Un champ ici. La ligne en haut : à la sixième pose, la saison change.', done: (i) => i.placements >= 6 },
+    { id: 'g7', text: 'L’été. Chaque saison a sa règle, lue en haut : une prairie sans eau, forêt ni marais voisin sèche. La nôtre touche l’eau : elle tient.', info: true, when: (i) => i.seasonsPassed.length >= 1, timeout: 30 },
+    { id: 'g8', target: [1, 1], text: 'Le verger aime la prairie : +2. Pose-le ici : la prairie n’a plus de case vide autour, sa région se ferme.', done: (i) => i.placements >= 7 },
+    { id: 'g9', text: 'Région close : sa taille en points, le double pour un hameau. Des animaux viendront d’eux-mêmes là où leur habitat existe. À toi : remplis l’île. Une île terminée ouvre la suivante ; les étoiles ouvrent les chapitres.', info: true, timeout: 30 },
   ],
 };
 
@@ -81,6 +100,7 @@ const MODE_STEPS = {
   ],
 };
 
+export { cibleAction };
 export class Tutorial {
   constructor(root, island, def, enabled) {
     this.root = root; this.isl = island;
@@ -96,7 +116,7 @@ export class Tutorial {
       const num = def && typeof def === 'object' ? def.id : null;
       const hand = sdef && sdef.tutorial ? sdef.tutorial.filter((st) => !mech || !MECH_STEP_IDS.has(st.id) || (mech.has(st.id) && (num === null || mechIsland(st.id) === null || mechIsland(st.id) === num || !!GUIDED[mechIsland(st.id)]))) : [];   // une mécanique déjà présentée sur une île précédente ne se répète pas ; celle qu'un parcours guidé a seulement fait jouer garde sa carte sur l'île dessinée qui en parle
       const introduced = def && typeof def === 'object' && def.introduces ? def.introduces.filter((m) => STORY.mechCards[m] && !hand.some((st) => st.id === m)) : [];
-      steps = [...introduced.map((m) => ({ id: m, text: STORY.mechCards[m] })), ...hand];
+      steps = [...introduced.map((m) => ACTION_STEPS[m] ? { id: m, ...ACTION_STEPS[m], text: `${STORY.mechCards[m]} ${ACTION_STEPS[m].suffixe}` } : { id: m, text: STORY.mechCards[m] }), ...hand];
     }
     this.enabled = !!enabled;
     this.steps = this.guided ? this.guided : steps;
@@ -118,13 +138,14 @@ export class Tutorial {
         const step = this.steps[j]; const rule = ruleOf(step);
         if (!rule.when(this.isl)) continue;
         if (j !== this.idx) { this.steps.splice(j, 1); this.steps.splice(this.idx, 0, step); }
-        this.current = { step, rule }; this.show(step, rule); this.shownFor = 0; this.events.clear(); this.isl.restrict = step.target ? new Set([`${step.target[0]},${step.target[1]}`]) : null;
+        this.current = { step, rule }; this.show(step, rule); this.shownFor = 0; this.events.clear(); this.isl.restrict = step.target ? new Set([`${step.target[0]},${step.target[1]}`]) : null; this.isl.brille = step.brille ? step.brille(this.isl) : null;
         break;
       }
       return;
     }
     this.shownFor += dt;
-    const { rule } = this.current;
+    const { step, rule } = this.current;
+    if (step.brille) this.isl.brille = step.brille(this.isl);   // la tuile visée peut changer (souffles dépensés, région close ailleurs)
     const done = rule.done(this.isl, this.events) || (rule.timeout && this.shownFor > rule.timeout) || this.dismissed;
     if (done && (this.shownFor > 1 || this.current.step.target)) this.complete();
   }
@@ -142,8 +163,8 @@ export class Tutorial {
   complete() {
     const card = this.root.querySelector('.tuto-card');
     if (card) { card.classList.add('done'); setTimeout(() => { if (card.parentNode) card.remove(); }, 500); }
-    this.current = null; this.idx++; this.isl.restrict = null; this.defocus();
+    this.current = null; this.idx++; this.isl.restrict = null; this.isl.brille = null; this.defocus();
     if (this.idx >= this.steps.length) this.doneAll = true;
   }
-  destroy() { this.root.innerHTML = ''; this.isl.restrict = null; this.defocus(); }
+  destroy() { this.root.innerHTML = ''; this.isl.restrict = null; this.isl.brille = null; this.defocus(); }
 }

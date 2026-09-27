@@ -28,3 +28,22 @@ export function gradeMove(total, best) {
 
 /** Paliers de série (coups bons ou mieux d'affilée) qui méritent un mot. */
 export function streakMilestone(n) { return n === 3 || n === 5 || n === 8 || (n >= 10 && n % 5 === 0); }
+
+/**
+ * Le mot après une pose ordinaire (grade « ok » ou « meh ») : un fait, jamais un jugement (audit, J-G). Le vœu qui a
+ * avancé, la rivière qui s'allonge, la région qui se ferme ; rien s'il n'y a rien à dire. Les célébrations (bon coup,
+ * coup parfait, coup de maître) restent des mots à part, dans STORY.verdicts.
+ * @param {object} e l'événement `place` de l'île (result, voeux)
+ * @param {object} story STORY (titres des vœux)
+ * @returns {string|null}
+ */
+export function motDePose(e, story) {
+  const total = e.result ? e.result.total : 0; const tete = `${total > 0 ? '+' : ''}${total}`;
+  const v = (e.voeux || []).find((x) => x.wish.status === 'open' || x.wish.status === 'done');
+  if (v) { const t = (story.wishes[v.wish.def.id] || { title: 'vœu' }).title; return `${tete} · vœu ${t.toLowerCase()} ${Math.min(v.apres, v.wish.target)}/${v.wish.target}`; }
+  const c = e.result && e.result.closes && e.result.closes[0];
+  if (c) return `${tete} · ferme une région de ${c.size}`;
+  const r = e.result && e.result.river;
+  if (r && r.kind === 'river' && r.len >= 2) return `${tete} · rivière de ${r.len}`;
+  return null;
+}

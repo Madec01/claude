@@ -158,6 +158,32 @@ const btn = (page, label) => page.evaluate((l) => {
   check(/étoile d’or/i.test(or.deux), 'à deux étoiles, l’étoile d’or se nomme et dit son prix');
   check(!/étoile d’or/i.test(or.une), 'à une étoile, on n’en parle pas encore');
 
+  // --- 7. à l'île qui ouvre bâtir, la carte se joue : elle vise une tuile et ne se ferme que par une vraie construction
+  await save(page, { unlockedIsland: 11, stars: {}, plays: {}, islandsPlayed: 10, seeds: 0, announced: ['mode_garden', 'mode_daily', 'mode_infinite', 'postcard'] }, { options: { skipTutorial: false, testMode: false } });
+  await page.evaluate(() => { window.CS.Save.options.skipTutorial = false; window.CS.Save.save(); window.CS.Game.startIsland(11, { skipIntro: true }); });
+  await page.waitForFunction(() => window.CS.scenes.currentName === 'island' || [...document.querySelectorAll('button')].some((x) => x.textContent.includes('C’est parti')), null, { timeout: 25000 });
+  await page.evaluate(() => { const x = [...document.querySelectorAll('button')].find((y) => y.textContent.includes('C’est parti')); if (x) x.click(); });
+  await page.waitForFunction(() => window.CS.scenes.currentName === 'island', null, { timeout: 25000 });
+  await page.waitForTimeout(600);
+  const guide = await page.evaluate(() => {
+    const sc = window.CS.scenes.current; const isl = sc.isl;
+    for (let k = 0; k < 5 && !isl.ended; k++) { let best = null, bs = -Infinity; for (const c of isl.board.legalCells()) { const pv = isl.preview(c.q, c.r); if (pv && pv.total > bs) { bs = pv.total; best = c; } } if (!best || !isl.place(best.q, best.r)) break; }
+    const posee = [...isl.board.tiles.values()].find((t) => !t.rare && (t.level || 1) === 1 && !t.blighted);
+    isl.board.payRegion(isl.board.region(posee.q, posee.r, posee.family)); isl.board.touch(); isl.breaths = 3;
+    return { tuto: !!sc.tutorial && sc.tutorial.enabled, etapes: sc.tutorial ? sc.tutorial.steps.map((s) => s.id) : [] };
+  });
+  check(guide.tuto && guide.etapes.includes('build'), `l’île 11 a son étape « bâtir » (${guide.etapes.join(', ')})`);
+  await page.waitForFunction(() => { const c = document.querySelector('.tuto-card'); return !!c && /Fais-le une fois/.test(c.textContent); }, null, { timeout: 15000 });
+  const carte = await page.evaluate(() => ({ ok: !!document.querySelector('.tuto-card .tuto-ok'), brille: window.CS.scenes.current.isl.brille }));
+  check(!carte.ok && !!carte.brille, `la carte n’a pas de « Compris » et fait briller une tuile (${carte.brille})`);
+  await page.waitForTimeout(2500);
+  check(!!(await page.$('.tuto-card:not(.done)')), 'deux secondes et demie plus tard, la carte est toujours là : elle attend l’action');
+  const fait = await page.evaluate(() => { const sc = window.CS.scenes.current; const [q, r] = sc.isl.brille.split(',').map(Number); sc.armBuild(q, r); const b0 = sc.isl.breaths; sc.doAction(0); return b0 - sc.isl.breaths; });
+  check(fait >= 1, `on bâtit la tuile qui brille (${fait} souffle(s))`);
+  await page.waitForFunction(() => { const c = document.querySelector('.tuto-card'); return !c || c.classList.contains('done'); }, null, { timeout: 8000 });
+  check(true, 'la carte se ferme par la construction réelle, pas par « Compris »');
+  await page.evaluate(() => { window.CS.Save.options.skipTutorial = true; window.CS.Save.save(); });
+
   await b.close();
   console.log(errors.length ? `\n${errors.length} problème(s) :\n` + errors.join('\n') : '\nDécouverte : tout est bon.');
   process.exit(errors.length ? 1 : 0);

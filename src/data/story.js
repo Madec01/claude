@@ -695,8 +695,7 @@ export const STORY = {
     master: ['Coup de maître !', 'Magistral !', 'L’île applaudit !', 'Rien à redire !'],
     perfect: ['Parfait !', 'Pile là !', 'Exactement !', 'La bonne case !'],
     good: ['Bien joué', 'Bien vu', 'Joli', 'Ça tient'],
-    ok: ['Correct', 'Pas mal', 'Ça passe', 'Prudent'],
-    meh: ['Il y avait mieux', 'Dommage…', 'Une autre case valait plus', 'Trop vite ?'],
+    // « ok » et « meh » n'ont plus de mot : après une pose ordinaire, le ruban dit un fait (vœu qui avance, région fermée), voir motDePose
     streak: { 3: 'Trois d’affilée !', 5: 'En feu ! ×5', 8: 'Série de huit !', default: 'Série de {n} !' },
     milestone: '{n} points !',
   },
