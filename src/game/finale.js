@@ -46,7 +46,7 @@ const doux = (t) => t * t * (3 - 2 * t);
 const maj = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 
 export class Finale {
-  constructor(scene) {
+  constructor(scene, { construction = true } = {}) {
     this.sc = scene; this.isl = scene.isl; this.cam = scene.cam; this.fx = scene.fx; this.r = scene.renderer;
     this.t = 0; this.stepT = 0; this.phaseT = 0; this.done = false; this.vitesse = 1;
     this.phase = 'reveil'; this.idx = -1; this.plan = null; this.sweepIdx = -1;
@@ -78,6 +78,10 @@ export class Finale {
 
     this.r.finale = true; this.r.hover = null;
     this.r.nu = true;    // la grille des cases vides et le contour autour du vide s'effacent
+    // La construction, premier temps de la tournée (27 septembre, le commanditaire) : dès la dernière tuile posée,
+    // l'île se vide et se rebâtit très vite pendant que la caméra recule — sans passer les saisons, elles ne
+    // tournent qu'une fois, plus loin —, puis la tournée présente les régions comme avant. Pas en version courte.
+    if (construction && !this.court && this.isl.poses && this.isl.poses.length >= 5) this.rejouer({ auto: true });
   }
 
   /** Les bornes du monde de l'île : elles servent à semer les particules sur le front des saisons. */
@@ -115,13 +119,14 @@ export class Finale {
     if (this.phase === 'carte') { if (k === 'Enter' || k === 'NumpadEnter' || k === 'Space') this.finish(); return; }
     if (this.phase === 'rejouer') { if (this.rj && this.rj.reveil > 0) { this.rj = null; this.entrer('carte'); } else this.finirRejouer(); return; }   // un toucher rend l'île vraie, un second la carte
     if (this.vitesse < 2) { this.vitesse = 2.6; if (this.r.transition) this.r.transitionSpeed *= 2.6; return; }   // le premier toucher presse le pas
+    if (this.rj && this.rj.auto) this.finirRejouer();   // en pleine construction : le plateau revient d'abord
     this.entrer('carte');   // le second saute à la carte, qui attend
   }
 
   finish() {
     if (this.done) return;
     this.done = true;
-    if (this.boardReel) { this.isl.board = this.boardReel; this.boardReel = null; this.r.rejoue = false; }
+    if (this.boardReel) { this.isl.board = this.boardReel; this.boardReel = null; this.r.rejoue = false; this.rj = null; }
     this.isl.season = this.season0; this.isl.board.touch();
     this.r.transition = null; this.r.transitionSpeed = 1; this.r.finale = false; this.r.nu = false;
     if (this.boutons) { hideUI(); this.boutons = null; }
@@ -160,9 +165,10 @@ export class Finale {
     dt *= this.vitesse;
     this.t += dt; this.stepT += dt; this.phaseT += dt;
     const D = this.D;
+    if (this.rj && this.rj.auto) this.majRejouer(dt);
     if (this.phase === 'reveil') {
       this.majCamera(doux(clamp(this.stepT / D.reveil, 0, 1)));
-      if (this.stepT >= D.reveil) this.entrer('tour');
+      if (this.stepT >= D.reveil && !this.rj) this.entrer('tour');   // la construction finie, la tournée présente les régions
     } else if (this.phase === 'tour') {
       if (this.idx < 0 || this.stepT >= D.plan) {
         this.idx++; this.stepT = 0;
@@ -212,42 +218,45 @@ export class Finale {
    * fin — fluide, mais « je veux que les tuiles prennent leur forme naturelle en direct ». D'où la retouche des
    * images gardées : une tuile qui atterrit ne fait repeindre que son voisinage.
    */
-  rejouer() {
-    if (this.phase === 'rejouer' || !this.isl.poses || !this.isl.poses.length) return;
-    if (this.boutons) { hideUI(); this.boutons = null; }
-    this.phase = 'rejouer'; this.stepT = 0; this.phaseT = 0; this.plan = null;
-    this.camA = this.instantane(); this.camB = this.centre;
-    const n = this.isl.poses.length; const duree = n > 80 ? 12 : 10;
+  rejouer({ auto = false } = {}) {
+    if (this.phase === 'rejouer' || this.rj || !this.isl.poses || !this.isl.poses.length) return;
+    if (!auto) {
+      if (this.boutons) { hideUI(); this.boutons = null; }
+      this.phase = 'rejouer'; this.stepT = 0; this.phaseT = 0; this.plan = null;
+      this.camA = this.instantane(); this.camB = this.centre;
+    }
+    const n = this.isl.poses.length; const duree = auto ? (n > 80 ? 5 : 4) : (n > 80 ? 12 : 10);   // en tête de tournée : très vite
     this.boardReel = this.isl.board; this.isl.board = new Board(this.boardReel.mask);
     this.isl.board.eauFinale = classifyWater(this.boardReel);   // l'eau se classe comme sur l'île finie : une rivière reste une rivière (voir water.js)
     this.r.decor.sync(this.boardReel); this.isl.board.decorFinal = { objects: this.r.decor.objects.slice(), courts: this.r.decor.courts.slice() };   // et le décor est celui de l'île finie, révélé case par case (voir decor.js)
-    this.rj = { i: 0, t: -0.6, pas: duree / n, fini: 0, posees: [], par: new Map(), reveil: 0 };
+    this.rj = { i: 0, t: auto ? -0.2 : -0.6, pas: duree / n, fini: 0, posees: [], par: new Map(), reveil: 0, auto, dernierTic: -1 };
     // les tuiles de départ (le hameau, les roches, l'eau d'une rivière commencée) ne sont pas des poses : elles
     // tombent en premier, vite, avant la première pose du joueur — sinon elles n'arrivaient qu'à la fin, d'un
     // coup (le commanditaire, 27 septembre)
     const depart = [...this.boardReel.tiles.values()].filter((t) => t.start).sort((a, c) => (a.r - c.r) || (a.q - c.q));
-    depart.forEach((t, i) => { const e = { q: t.q, r: t.r, t: { ...t }, at: this.t + 0.15 + i * 0.16, pop: -1, posee: false }; this.rj.par.set(key(t.q, t.r), e); this.rj.posees.push(e); });
-    this.rj.t = -0.6 - depart.length * 0.16;
-    this.isl.season = this.isl.poses[0].s; this.isl.board.touch();
+    depart.forEach((t, i) => { const e = { q: t.q, r: t.r, t: { ...t }, at: this.t + 0.15 + i * (auto ? 0.08 : 0.16), pop: -1, posee: false }; this.rj.par.set(key(t.q, t.r), e); this.rj.posees.push(e); });
+    this.rj.t = (auto ? -0.2 : -0.6) - depart.length * (auto ? 0.08 : 0.16);
+    if (!auto) this.isl.season = this.isl.poses[0].s;   // en tête de tournée, la saison ne bouge pas : elle est celle de la fin
+    this.isl.board.touch();
     this.r.rejoue = true; this.r.transition = null; this.r.nu = false;   // les cases vides se voient : les tuiles tombent sur la forme de l'île, pas sur la mer
   }
   majRejouer(dt) {
     const rj = this.rj, poses = this.isl.poses;
-    this.majCamera(doux(clamp(this.stepT / 1.2, 0, 1)));
+    if (!rj.auto) this.majCamera(doux(clamp(this.stepT / 1.2, 0, 1)));
     if (rj.reveil > 0) { rj.reveil += dt; if (rj.reveil > 1.2) { this.rj = null; this.entrer('carte'); } return; }   // tout est posé : on regarde l'île un instant
-    if (rj.i >= poses.length && !rj.posees.length) { rj.fini += dt; if (rj.fini > 0.4) this.finirRejouer(); return; }
+    if (rj.i >= poses.length && !rj.posees.length) { rj.fini += dt; if (rj.fini > (rj.auto ? 0.5 : 0.4)) this.finirRejouer(); return; }
     rj.t += dt;
     for (const e of rj.posees) if (!e.posee && this.t - e.at >= 0.55) { e.posee = true; this.isl.board.place(e.q, e.r, { ...e.t }); }
     rj.posees = rj.posees.filter((e) => !e.posee);   // posée : le plateau la dessine, fondue à ses voisines
     while (rj.t >= rj.pas && rj.i < poses.length) {
       rj.t -= rj.pas; const p = poses[rj.i++];
-      if (p.s !== this.isl.season) { this.r.startTransition(this.isl.season, p.s); this.r.transitionSpeed = 2.2 * this.vitesse; this.isl.season = p.s; this.sc.playSfx('season_sweep', 0.22); }
+      if (!rj.auto && p.s !== this.isl.season) { this.r.startTransition(this.isl.season, p.s); this.r.transitionSpeed = 2.2 * this.vitesse; this.isl.season = p.s; this.sc.playSfx('season_sweep', 0.22); }
       const k = key(p.q, p.r); const deja = rj.par.get(k);
       if (deja && deja.posee) { this.isl.board.tiles.set(k, { ...p.t, q: p.q, r: p.r }); this.isl.board.touch(); }   // bâti, fusion, croissance d'une tuile déjà posée : elle change dans le plateau (retouche de l'image)
       else if (deja) { deja.t = { ...p.t, q: p.q, r: p.r }; deja.pop = this.t; }   // encore en l'air : elle change en vol
       else { const e = { q: p.q, r: p.r, t: { ...p.t, q: p.q, r: p.r }, at: this.t, pop: -1, posee: false }; rj.par.set(k, e); rj.posees.push(e); rj.posees.sort((a, c) => (a.r - c.r) || (a.q - c.q)); }
       // un tic discret, jamais plus de six par seconde : la construction s'entend sans couvrir la musique
-      if (rj.pas >= 0.16 || rj.i % 2 === 0) this.sc.playSfx(`tile_place_${1 + (rj.i % 4)}`, 0.14);
+      if (this.t - rj.dernierTic >= 0.16) { rj.dernierTic = this.t; this.sc.playSfx(`tile_place_${1 + (rj.i % 4)}`, rj.auto ? 0.1 : 0.14); }
     }
   }
   /** Les tuiles du rejeu, dessinées par-dessus la mer nue : celles qui tombent, puis celles qui sont posées. */
@@ -267,8 +276,10 @@ export class Finale {
   }
   finirRejouer() {
     if (this.boardReel) { this.isl.board = this.boardReel; this.boardReel = null; }
-    this.r.rejoue = false; this.r.transition = null; this.r.nu = true; this.r._nu0 = this.r.time - 10;   // l'île nue, d'un coup, comme sur la carte
+    const auto = !!(this.rj && this.rj.auto);
+    this.r.rejoue = false; this.r.transition = null; this.r.nu = true; this.r._nu0 = auto ? null : this.r.time - 10;   // en tête de tournée l'île se dénude en fondu ; sur la carte, d'un coup
     this.isl.season = this.season0; this.isl.board.touch();
+    if (auto) { this.rj = null; return; }   // la tournée reprend là où elle en est (le réveil, qui attendait)
     if (this.rj && this.phase === 'rejouer') { this.rj.reveil = 0.001; this.rj.posees = []; this.sc.playSfx('region_close', 0.35); return; }   // le vrai plateau (sentiers, régions payées, faune) reprend la main ; on le laisse respirer avant la carte
     this.rj = null; this.entrer('carte');
   }
@@ -391,6 +402,7 @@ export class Finale {
   /** Surimpression écran : le compteur, le nom du lieu visité, puis la carte postale. */
   render(ctx) {
     if (this.done) return;
+    if (this.rj && this.rj.auto) this.dessinerRejeu(ctx);
     if (this.phase === 'rejouer') {
       this.dessinerRejeu(ctx);
       const W = STAGE.W, H = this.hCarte, compact = STAGE.compact; const n = this.isl.poses.length;

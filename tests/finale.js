@@ -62,13 +62,14 @@ ${(e.stack || '').split('\n').slice(0, 5).join('\n')}`));
   // jusqu'à la carte — qui attend, sans minuterie
   const suivi = await page.evaluate(() => new Promise((res) => {
     const sc = window.CS.scenes.current; const f = sc.finale, r = sc.renderer;
-    const vu = { phases: [], bandesMax: 0, lettresMax: 0, zoomMax: 0, voilier: false };
+    const vu = { phases: [], bandesMax: 0, lettresMax: 0, zoomMax: 0, voilier: false, construction: false, minTuiles: Infinity, tuilesAuTour: -1, saisonsPendant: new Set() };
     const t0 = performance.now(); let surCarte = 0;
     const tick = () => {
       if (!f || f.done) return res({ ...vu, finieSeule: true });
-      if (f.phase === 'carte' && ++surCarte > 120) return res(vu);   // deux secondes sur la carte : elle tient
+      if (f.phase === 'carte' && ++surCarte > 120) return res({ ...vu, saisonsPendant: [...vu.saisonsPendant], tuiles: sc.isl.board.tiles.size });   // deux secondes sur la carte : elle tient
       if (performance.now() - t0 > 60000) return res({ ...vu, bloquee: true });
-      if (vu.phases[vu.phases.length - 1] !== f.phase) vu.phases.push(f.phase);
+      if (vu.phases[vu.phases.length - 1] !== f.phase) { vu.phases.push(f.phase); if (f.phase === 'tour') vu.tuilesAuTour = sc.isl.board.tiles.size; }
+      if (f.rj && f.rj.auto) { vu.construction = true; vu.minTuiles = Math.min(vu.minTuiles, sc.isl.board.tiles.size); vu.saisonsPendant.add(sc.isl.season); }
       vu.bandesMax = Math.max(vu.bandesMax, f.bandes || 0);
       vu.lettresMax = Math.max(vu.lettresMax, f.lettres || 0);
       vu.zoomMax = Math.max(vu.zoomMax, sc.cam.zoom / f.centre.z);
@@ -79,6 +80,9 @@ ${(e.stack || '').split('\n').slice(0, 5).join('\n')}`));
   }));
   check(!suivi.bloquee && !suivi.finieSeule, 'la tournée s’arrête sur la carte et attend (pas de minuterie)');
   check(suivi.phases.join(' → ') === 'reveil → tour → vague → saisons → titre → carte', `elle passe par ses six temps (${suivi.phases.join(' → ')})`);
+  check(suivi.construction && suivi.minTuiles === 0, `la tournée s’ouvre sur la construction : l’île se vide (${suivi.minTuiles} tuile) et se rebâtit`);
+  check(suivi.tuilesAuTour === suivi.tuiles, `la tournée des régions ne part qu’une fois l’île entière revenue (${suivi.tuilesAuTour} / ${suivi.tuiles})`);
+  check(suivi.saisonsPendant.length === 1, `la construction ne fait pas tourner les saisons (${suivi.saisonsPendant.join(', ')})`);
   check(suivi.zoomMax > 1.5, `la caméra s'approche vraiment d'un plan (×${suivi.zoomMax.toFixed(2)} du cadrage d'ensemble)`);
   check(suivi.bandesMax > 0.99 && suivi.lettresMax > 0.99, 'la carte postale se pose entièrement et le nom s’écrit en entier');
   check(suivi.voilier, 'un voilier part pendant le titre');

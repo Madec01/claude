@@ -1462,7 +1462,7 @@ class RejeuScene {
     this.particles = new ParticleSystem(1500); this.fx = new Effects(this.particles); this.shake = new Shake(); this.shake.enabled = false;
     this.renderer = new IslandRenderer(isl, this.cam, this.fx, this.particles);
     prechargerTampons(this);
-    this.finale = new Finale(this); this.finale.rejouer();
+    this.finale = new Finale(this, { construction: false }); this.finale.rejouer();
     this.unsubs = [
       input.on('tap', () => { if (this.finale && !this.finale.done) this.finale.skip(); }),
       input.on('keydown', (k) => { if (this.finale && !this.finale.done && k !== 'KeyM') this.finale.skip(k); }),
