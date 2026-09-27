@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-22T13:31:50+00:00",
+ "generated": "2026-09-27T14:16:28+00:00",
  "generator": "tools/build_images.py",
  "conventions": {
   "hex": {
@@ -3918,6 +3918,16 @@
    "note": "Touffe à feuilles larges (spring) : landes.",
    "anchor": "bottom"
   },
+  "obj_grassClump2_spring": {
+   "file": "deco/obj_grassClump2_spring.webp",
+   "w": 35,
+   "h": 32,
+   "bytes": 1410,
+   "source": "kaykit",
+   "original": "forest/Color1/Grass_1_D_Color1.gltf",
+   "note": "Touffe large et étalée (spring) : prés, bords de sentier, pieds de colline.",
+   "anchor": "bottom"
+  },
   "obj_treePine_large2_summer": {
    "file": "deco/obj_treePine_large2_summer.webp",
    "w": 57,
@@ -3986,6 +3996,16 @@
    "source": "kaykit",
    "original": "forest/Color1/Grass_1_C_Color1.gltf",
    "note": "Touffe à feuilles larges (summer) : landes.",
+   "anchor": "bottom"
+  },
+  "obj_grassClump2_summer": {
+   "file": "deco/obj_grassClump2_summer.webp",
+   "w": 35,
+   "h": 32,
+   "bytes": 1426,
+   "source": "kaykit",
+   "original": "forest/Color1/Grass_1_D_Color1.gltf",
+   "note": "Touffe large et étalée (summer) : prés, bords de sentier, pieds de colline.",
    "anchor": "bottom"
   },
   "obj_treePine_large2_autumn": {
@@ -4058,6 +4078,16 @@
    "note": "Touffe à feuilles larges (autumn) : landes.",
    "anchor": "bottom"
   },
+  "obj_grassClump2_autumn": {
+   "file": "deco/obj_grassClump2_autumn.webp",
+   "w": 35,
+   "h": 32,
+   "bytes": 1428,
+   "source": "kaykit",
+   "original": "forest/Color1/Grass_1_D_Color1.gltf",
+   "note": "Touffe large et étalée (autumn) : prés, bords de sentier, pieds de colline.",
+   "anchor": "bottom"
+  },
   "obj_treePine_large2_winter": {
    "file": "deco/obj_treePine_large2_winter.webp",
    "w": 57,
@@ -4126,6 +4156,16 @@
    "source": "kaykit",
    "original": "forest/Color1/Grass_1_C_Color1.gltf",
    "note": "Touffe à feuilles larges (winter) : landes.",
+   "anchor": "bottom"
+  },
+  "obj_grassClump2_winter": {
+   "file": "deco/obj_grassClump2_winter.webp",
+   "w": 35,
+   "h": 32,
+   "bytes": 1450,
+   "source": "kaykit",
+   "original": "forest/Color1/Grass_1_D_Color1.gltf",
+   "note": "Touffe large et étalée (winter) : prés, bords de sentier, pieds de colline.",
    "anchor": "bottom"
   },
   "obj_treeRound_fruit_spring": {
