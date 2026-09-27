@@ -210,7 +210,7 @@ export function unlockedUpTo(campaign) {
 const cellsCache = new Map();
 export function islandCells(def) {
   if (cellsCache.has(def.id)) return cellsCache.get(def.id);
-  const mask = generateMask(def.seed, def.cells, { roughness: def.roughness, holes: def.holes, etire: def.etire || 1, isthme: !!def.isthme, garde: (def.start || []).map((t) => `${t.q},${t.r}`) });
+  const mask = generateMask(def.seed, def.cells, { roughness: def.roughness, holes: def.holes, etire: def.etire || 1, isthme: !!def.isthme, forme: def.forme || null, garde: (def.start || []).map((t) => `${t.q},${t.r}`) });
   for (const [q, r] of def.ensure || []) mask.add(`${q},${r}`);
   for (const t of def.start || []) mask.add(`${t.q},${t.r}`);
   for (const c of enclosedHoles(mask)) mask.add(`${c.q},${c.r}`);   // une lagune est une case de l'île, avec sa tuile d'eau

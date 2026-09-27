@@ -52,7 +52,7 @@ export class Island {
     this.harmonieOn = o.harmonie !== undefined ? !!o.harmonie : ((libre && !def.garden) || des('harmonie'));
     const seed = def.seed + (o.seedOffset || 0);
     this.rng = new RNG(seed * 7 + 1);
-    this.board = new Board(generateMask(seed, def.cells, { roughness: def.roughness, holes: def.holes, etire: def.etire || 1, isthme: !!def.isthme, garde: (def.start || []).map((t) => key(t.q, t.r)) }));
+    this.board = new Board(generateMask(seed, def.cells, { roughness: def.roughness, holes: def.holes, etire: def.etire || 1, isthme: !!def.isthme, forme: def.forme || null, garde: (def.start || []).map((t) => key(t.q, t.r)) }));
     if (this.climate.linkMax) this.board.linkMax = this.climate.linkMax;
     this.garden = !!def.garden;
     this.infinite = !!def.infinite;
