@@ -52,7 +52,7 @@ export class Island {
     this.harmonieOn = o.harmonie !== undefined ? !!o.harmonie : ((libre && !def.garden) || des('harmonie'));
     const seed = def.seed + (o.seedOffset || 0);
     this.rng = new RNG(seed * 7 + 1);
-    this.board = new Board(def.mask ? def.mask : generateMask(seed, def.cells, { roughness: def.roughness, holes: def.holes, etire: def.etire || 1, isthme: !!def.isthme, garde: (def.start || []).map((t) => key(t.q, t.r)) }));   // `def.mask` : une forme fixée (les énigmes de la brume)
+    this.board = new Board(def.mask ? def.mask : generateMask(seed, def.cells, { roughness: def.roughness, holes: def.holes, etire: def.etire || 1, isthme: !!def.isthme, forme: def.forme || null, garde: (def.start || []).map((t) => key(t.q, t.r)) }));   // `def.mask` : une forme fixée (les énigmes de la brume) ; `def.forme` : une forme prototypée (PISTES_FORMES)
     if (this.climate.linkMax) this.board.linkMax = this.climate.linkMax;
     this.garden = !!def.garden;
     this.infinite = !!def.infinite;

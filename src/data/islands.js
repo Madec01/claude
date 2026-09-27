@@ -1,32 +1,50 @@
 // Les 12 îles de la campagne, l'Île infinie et le Jardin. Les masques sont générés de façon déterministe (seed).
 import { RNG } from '../core/math.js';
-import { neighbors, key } from '../game/hex.js';
+import { neighbors, key, parse, hexDist } from '../game/hex.js';
 
 /**
  * Génère un masque d'île : croissance aléatoire depuis le centre, avec baies et éventuels lacs (trous).
  * @returns {Set<string>} clés "q,r"
  */
-/** `etire` : le rapport hauteur/largeur visé (1 = île ronde ; 1,4 = plus haute que large, pour un écran en portrait). */
-export function generateMask(seed, cells, { roughness = 0.35, holes = 0, etire = 1, isthme = false, garde = [] } = {}) {
+/**
+ * `etire` : le rapport hauteur/largeur visé (1 = île ronde ; 1,4 = plus haute que large, pour un écran en portrait).
+ * `forme` : une forme d'île qui change la façon de jouer (docs/PISTES_FORMES.md, voir FORMES plus bas), appliquée
+ *   après la croissance et les trous. Ce qu'elle creuse devient la mer et ne repousse jamais ; la croissance reprend
+ *   ailleurs pour rendre le nombre de cases demandé — sauf les lagunes, qui restent des cases de l'île (de l'eau
+ *   posée au départ, comme les trous). Prototypes : aucune île de la campagne ne passe encore par là.
+ */
+export function generateMask(seed, cells, { roughness = 0.35, holes = 0, etire = 1, isthme = false, garde = [], forme = null } = {}) {
+  if (forme === 'cote' && etire === 1) etire = 2.6;   // la longue côte : une île bien plus longue que large
   const ex = Math.sqrt(etire), ey = 1 / ex;
   const rng = new RNG(seed);
   const mask = new Set([key(0, 0)]);
   const frontier = new Map();
-  const addFrontier = (q, r) => { for (const [nq, nr] of neighbors(q, r)) { const k = key(nq, nr); if (!mask.has(k) && !frontier.has(k)) frontier.set(k, { q: nq, r: nr, w: rng.next() }); } };
+  // ce qu'une forme a creusé ne repousse pas : un ensemble de cases, et parfois une règle sur tout le plan (`admis`)
+  const interdit = new Set(); let admis = null;
+  const permis = (q, r) => !interdit.has(key(q, r)) && (!admis || admis(q, r));
+  const addFrontier = (q, r) => { for (const [nq, nr] of neighbors(q, r)) { const k = key(nq, nr); if (!mask.has(k) && !frontier.has(k) && permis(nq, nr)) frontier.set(k, { q: nq, r: nr, w: rng.next() }); } };
+  const ctx = { mask, garde: new Set(garde), cells, interdit, regle: (fn) => { admis = fn; } };
+  // une forme qui se décrit avant de pousser (l'étoile) : la croissance se fait dedans, les bras poussent d'un même pas
+  if (forme && FORMES[forme] && FORMES[forme].avant) FORMES[forme].avant(ctx);
   addFrontier(0, 0);
-  while (mask.size < cells && frontier.size) {
-    // choisir une case de la frontière en favorisant celles proches du centre (compacité) mais avec du bruit
-    let best = null, bestScore = -Infinity;
-    for (const f of frontier.values()) {
-      const d = Math.hypot((f.q + f.r / 2) * ex, f.r * 0.866 * ey);
-      const n = neighbors(f.q, f.r).filter(([a, b]) => mask.has(key(a, b))).length;
-      const score = -d * (1 - roughness) + n * 0.6 + f.w * roughness * 4;
-      if (score > bestScore) { bestScore = score; best = f; }
+  const croitre = (n) => {
+    while (mask.size < n && frontier.size) {
+      // choisir une case de la frontière en favorisant celles proches du centre (compacité) mais avec du bruit
+      let best = null, bestScore = -Infinity;
+      for (const f of frontier.values()) {
+        const d = Math.hypot((f.q + f.r / 2) * ex, f.r * 0.866 * ey);
+        const n = neighbors(f.q, f.r).filter(([a, b]) => mask.has(key(a, b))).length;
+        if (n === 0 || !permis(f.q, f.r)) { frontier.delete(key(f.q, f.r)); continue; }   // orpheline ou interdite depuis qu'une forme a creusé (jamais avant)
+        const score = -d * (1 - roughness) + n * 0.6 + f.w * roughness * 4;
+        if (score > bestScore) { bestScore = score; best = f; }
+      }
+      if (!best) break;
+      frontier.delete(key(best.q, best.r));
+      mask.add(key(best.q, best.r));
+      addFrontier(best.q, best.r);
     }
-    frontier.delete(key(best.q, best.r));
-    mask.add(key(best.q, best.r));
-    addFrontier(best.q, best.r);
-  }
+  };
+  croitre(cells);
   // trous (lacs intérieurs = mer intérieure)
   const list = [...mask];
   for (let h = 0; h < holes; h++) {
@@ -36,6 +54,12 @@ export function generateMask(seed, cells, { roughness = 0.35, holes = 0, etire =
     if (neighbors(q, r).every(([a, b]) => mask.has(key(a, b)))) mask.delete(k);
   }
   if (isthme) creuserIsthme(mask, garde);
+  if (forme && FORMES[forme] && FORMES[forme].masque) {
+    for (const k of list) if (!mask.has(k)) interdit.add(k);   // les trous déjà creusés ne repoussent pas non plus
+    // reprendre la croissance jusqu'à n cases : la frontière est relue depuis tout le masque (la forme l'a changé)
+    ctx.croitre = (n) => { for (const k of mask) { const [q, r] = parse(k); addFrontier(q, r); } croitre(n); };
+    FORMES[forme].masque(ctx);
+  }
   return mask;
 }
 
@@ -67,6 +91,205 @@ function creuserIsthme(mask, garde = []) {
   if (!pont) return;
   for (const c of bande) if (!pont.includes(c.k) && !interdit.has(c.k)) mask.delete(c.k);
 }
+
+// ---------------------------------------------------------------------------------------------------------------
+// Des formes d'îles qui changent la façon de jouer (docs/PISTES_FORMES.md). Prototypes : rien dans la campagne n'y
+// passe. Une forme a deux faces possibles : `masque(ctx)` creuse le masque après la croissance (l'archipel, l'anneau…),
+// `departs(mask, garde)` donne des tuiles de départ à ajouter à `def.start` (la crête de roches, le plateau de
+// collines…) — une signature les pousserait dans la définition. Les fonctions de géométrie ci-dessous travaillent en
+// « demi-colonnes » : x = q + r / 2 (la colonne, en largeur de case), y = r (la ligne).
+// ---------------------------------------------------------------------------------------------------------------
+
+const coord = (k) => { const [q, r] = parse(k); return { k, q, r, x: q + r / 2, y: r }; };
+const cellules = (mask) => [...mask].map(coord);
+const etendue = (cs) => { const xs = cs.map((c) => c.x), ys = cs.map((c) => c.y); const xmin = Math.min(...xs), xmax = Math.max(...xs), ymin = Math.min(...ys), ymax = Math.max(...ys); return { xmin, xmax, ymin, ymax, cx: (xmin + xmax) / 2, cy: (ymin + ymax) / 2, R: (xmax - xmin) / 2, H: ymax - ymin }; };
+
+/** Les morceaux d'un masque (composantes connexes), du plus grand au plus petit. */
+export function composantes(mask) {
+  const vu = new Set(), out = [];
+  for (const start of mask) {
+    if (vu.has(start)) continue;
+    const comp = new Set([start]); const pile = [start]; vu.add(start);
+    while (pile.length) { const [q, r] = parse(pile.pop()); for (const [a, b] of neighbors(q, r)) { const k = key(a, b); if (mask.has(k) && !vu.has(k)) { vu.add(k); comp.add(k); pile.push(k); } } }
+    out.push(comp);
+  }
+  return out.sort((a, b) => b.size - a.size);
+}
+
+/**
+ * Rend l'île d'un seul tenant en ajoutant le moins de cases possible : depuis le plus grand morceau, le plus court
+ * chemin par la mer vers un autre morceau, dont les cases redeviennent terre (un gué). Répété tant qu'il y a des morceaux.
+ * @returns {string[]} les cases ajoutées
+ */
+export function relier(mask, interdit = null) {
+  const ajoutees = [];
+  for (let tour = 0; tour < 32; tour++) {
+    const comps = composantes(mask); if (comps.length <= 1) break;
+    const principal = comps[0]; const autres = new Set(); for (let i = 1; i < comps.length; i++) for (const k of comps[i]) autres.add(k);
+    const prev = new Map(); const file = []; for (const k of principal) { prev.set(k, null); file.push(k); }
+    let atteint = null;
+    while (file.length && !atteint) {
+      const k = file.shift(); const [q, r] = parse(k);
+      for (const [a, b] of neighbors(q, r)) { const nk = key(a, b); if (prev.has(nk)) continue; prev.set(nk, k); if (autres.has(nk)) { atteint = nk; break; } if (!mask.has(nk)) file.push(nk); }
+    }
+    if (!atteint) break;
+    for (let k = prev.get(atteint); k && !principal.has(k); k = prev.get(k)) { mask.add(k); ajoutees.push(k); if (interdit) interdit.delete(k); }
+  }
+  return ajoutees;
+}
+
+/** Distance de chaque case à la mer (1 = sur la côte). */
+function profondeur(mask) {
+  const prof = new Map(); const file = [];
+  for (const k of mask) { const [q, r] = parse(k); if (neighbors(q, r).some(([a, b]) => !mask.has(key(a, b)))) { prof.set(k, 1); file.push(k); } }
+  while (file.length) { const k = file.shift(); const d = prof.get(k); const [q, r] = parse(k); for (const [a, b] of neighbors(q, r)) { const nk = key(a, b); if (mask.has(nk) && !prof.has(nk)) { prof.set(nk, d + 1); file.push(nk); } } }
+  return prof;
+}
+
+/**
+ * Creuse : les cases où `mer(c)` est vrai deviennent la mer (les tuiles de départ restent), la règle vaut aussi pour la
+ * croissance qui suit, l'île est reliée s'il le faut (gués), puis elle repousse jusqu'au compte demandé.
+ */
+function sculpter(ctx, mer) {
+  const { mask, garde, interdit } = ctx;
+  for (const c of cellules(mask)) if (!garde.has(c.k) && mer(c)) { mask.delete(c.k); interdit.add(c.k); }
+  ctx.regle((q, r) => !mer(coord(key(q, r))));
+  ctx.gues = relier(mask, interdit);
+  ctx.croitre(ctx.cells);
+}
+
+/** La bande verticale d'une case de large qui commence à la demi-colonne entière x0 (deux demi-colonnes, en zigzag). */
+const bande = (x0) => (c) => c.x >= x0 && c.x < x0 + 1;
+const quantile = (vals, p) => { const s = [...vals].sort((a, b) => a - b); return s[Math.min(s.length - 1, Math.floor(p * s.length))]; };
+/** La demi-colonne entière la plus proche de x dont la bande ne contient aucune tuile de départ (un gué doit être une case libre). */
+function bandeLibre(x, cs, garde) {
+  for (const dx of [0, 1, -1, 2, -2]) { const x0 = Math.round(x) + dx; if (!cs.some((c) => bande(x0)(c) && garde.has(c.k))) return x0; }
+  return Math.round(x);
+}
+
+/** Le point le plus enfoncé dans les terres dont tout le disque de rayon `rayon` tient dans l'île, loin des tuiles de départ. */
+function coeur(mask, garde, rayon, marge = 1) {
+  // les trous cernés sont des mares, pas la mer : ils ne creusent pas la profondeur
+  const plein = new Set(mask); for (const h of enclosedHoles(mask)) plein.add(key(h.q, h.r));
+  const prof = profondeur(plein); let best = null;
+  for (const k of mask) {
+    const [q, r] = parse(k); const p = prof.get(k) || 0;
+    if (p < rayon + marge) continue;
+    let ok = true; for (const g of garde) { const [gq, gr] = parse(g); if (hexDist(q, r, gq, gr) <= rayon) { ok = false; break; } }
+    if (!ok) continue;
+    const d = hexDist(q, r, 0, 0);
+    if (!best || p > best.p || (p === best.p && d < best.d)) best = { q, r, p, d };
+  }
+  return best;
+}
+const disque = (q0, r0, rayon) => { const out = []; for (let q = -rayon; q <= rayon; q++) for (let r = Math.max(-rayon, -q - rayon); r <= Math.min(rayon, -q + rayon); r++) out.push(key(q0 + q, r0 + r)); return out; };
+
+/** Les cases de la côte (un voisin dans la mer), dans l'ordre de l'angle autour du centre. */
+const cote = (mask) => cellules(mask).filter((c) => neighbors(c.q, c.r).some(([a, b]) => !mask.has(key(a, b)))).sort((a, b) => Math.atan2(a.y * 0.866, a.x) - Math.atan2(b.y * 0.866, b.x));
+
+/**
+ * Les formes. `nom` et `intention` sont ce que l'écran de départ dirait ; `masque` creuse ; `departs` pose.
+ * Les chiffres (largeur des bras, rayon du lac, densité des lagunes) viennent des croquis de docs/PISTES_FORMES.md.
+ */
+export const FORMES = {
+  /** Trois îlots reliés par un gué d'une case : trois petits plans, et ce qu'on pose sur un gué compte pour deux. */
+  archipel: { nom: 'L’archipel', intention: 'Ici, on apprend à finir petit : trois îlots, trois plans, et un gué qui engage les deux rives.',
+    masque(ctx) {
+      const cs = cellules(ctx.mask); const xs = cs.map((c) => c.x);
+      const xa = bandeLibre(quantile(xs, 0.3), cs, ctx.garde); let xb = bandeLibre(quantile(xs, 0.7), cs, ctx.garde); if (xb - xa < 3) xb = bandeLibre(xa + 3, cs, ctx.garde);
+      sculpter(ctx, (c) => bande(xa)(c) || bande(xb)(c));
+    } },
+  /** Un chapelet : quatre lobes sur un fil, des cols de deux cases. Le passage étroit répété. */
+  chapelet: { nom: 'Le chapelet', intention: 'Ici, on apprend à traverser : chaque col est une porte, et une région qui la franchit ne se ferme plus.',
+    masque(ctx) {
+      const cs = cellules(ctx.mask); const { xmin, xmax } = etendue(cs); const n = ctx.cells >= 90 ? 4 : 3; const pas = (xmax - xmin) / n;
+      const cols = []; for (let i = 1; i < n; i++) cols.push(bandeLibre(xmin + i * pas, cs, ctx.garde));
+      const ymed = quantile(cs.map((c) => c.y), 0.5);
+      // la bande est creusée sauf deux cases au milieu de la hauteur : le col
+      sculpter(ctx, (c) => cols.some((x0) => bande(x0)(c) && (c.y < ymed || c.y > ymed + 1)));
+    } },
+  /** Un lac au milieu, qui reste la mer : tout se bâtit sur la couronne, et l'eau a deux mers où se jeter. */
+  anneau: { nom: 'L’anneau', intention: 'Ici, on apprend à bâtir sur une couronne : deux mers, des régions courtes, des embouchures partout.',
+    masque(ctx) {
+      const rayon = ctx.cells >= 56 ? 2 : 1;
+      let c = coeur(ctx.mask, ctx.garde, rayon); if (!c && rayon > 1) c = coeur(ctx.mask, ctx.garde, 1);
+      if (!c) return;   // l'île est trop petite ou ses tuiles de départ trop au centre : elle reste pleine
+      const lac = new Set(disque(c.q, c.r, c.p >= rayon + 1 ? rayon : 1));
+      sculpter(ctx, (x) => lac.has(x.k));
+    } },
+  /** Une grande baie à l'ouest : l'île est un C, tout est côte, le tour est long. */
+  croissant: { nom: 'Le croissant', intention: 'Ici, on apprend à jouer le long d’une côte : peu d’intérieur, une baie qui reçoit toutes les rivières.',
+    masque(ctx) {
+      const e = etendue(cellules(ctx.mask)); const bx = e.cx - 0.95 * e.R, by = e.cy, br = 0.72 * e.R;
+      sculpter(ctx, (c) => Math.hypot(c.x - bx, (c.y - by) * 0.866) <= br);
+    } },
+  /** Deux échancrures profondes, l'une du nord, l'autre du sud : l'île serpente. */
+  baies: { nom: 'Les deux baies', intention: 'Ici, on apprend à serpenter : deux baies se croisent, et tout chemin fait le tour.',
+    masque(ctx) {
+      const cs = cellules(ctx.mask); const e = etendue(cs); const xa = bandeLibre(e.cx - e.R / 2, cs, ctx.garde), xb = bandeLibre(e.cx + e.R / 2, cs, ctx.garde);
+      const nord = e.ymin + 0.62 * e.H, sud = e.ymax - 0.62 * e.H;
+      const large = (x0) => (c) => c.x >= x0 && c.x < x0 + 1.5;   // une baie et demie de large : ça se voit
+      sculpter(ctx, (c) => (large(xa)(c) && c.y <= nord) || (large(xb)(c) && c.y >= sud));
+    } },
+  /** La longue côte : une île bien plus longue que large (voir `etire`, réglé à 2,6 dans generateMask). */
+  cote: { nom: 'La longue côte', intention: 'Ici, on apprend à finir une rivière : la mer n’est jamais loin, l’intérieur est un couloir.', masque: null },
+  /** Des mares de départ sur un réseau régulier (une case sur sept, à l'intérieur) : l'eau est déjà là, partout. */
+  lagunes: { nom: 'Le damier de lagunes', intention: 'Ici, on apprend à composer avec l’eau qui est déjà là : chaque mare touche tout ce qu’on pose.',
+    masque(ctx) {
+      const { mask, garde, interdit } = ctx;
+      const interieur = (k) => { const [q, r] = parse(k); return neighbors(q, r).every(([a, b]) => mask.has(key(a, b))); };
+      // le réseau en fleur (une case sur sept, jamais deux voisines) ; sept décalages possibles, on garde le plus fourni
+      let best = [];
+      for (let phase = 0; phase < 7; phase++) {
+        const pts = [...mask].filter((k) => { const [q, r] = parse(k); return ((3 * q + r + phase) % 7 + 7) % 7 === 0 && !garde.has(k) && interieur(k); });
+        if (pts.length > best.length) best = pts;
+      }
+      for (const k of best) { mask.delete(k); interdit.add(k); }   // pas de repousse : la lagune reste une case de l'île (eau posée)
+    } },
+  /** Trois bras autour d'un cœur : trois fronts à tenir depuis un seul centre. */
+  etoile: { nom: 'L’étoile', intention: 'Ici, on apprend à tenir trois fronts : chaque bras est un couloir, le cœur les relie.',
+    avant(ctx) {
+      // trois bras le long des directions de la grille (est, nord-ouest, sud-ouest) : des couloirs droits de quatre à cinq cases,
+      // décrits avant la croissance pour qu'ils poussent d'un même pas depuis le cœur
+      const bras = [0, 2 * Math.PI / 3, -2 * Math.PI / 3];
+      ctx.regle((q, r) => {
+        const x = q + r / 2, y = r * 0.866; const rho = Math.hypot(x, y); if (rho <= 2.4) return true;
+        const th = Math.atan2(y, x);
+        return bras.some((b) => Math.cos(th - b) > 0 && Math.abs(rho * Math.sin(th - b)) <= 2.3);
+      });
+    } },
+  /** Une arête de roches du nord jusqu'aux deux tiers : deux versants, un col au sud, des sources partout. */
+  crete: { nom: 'La crête', intention: 'Ici, on apprend à faire naître l’eau d’une montagne : deux versants, un col, des rivières des deux côtés.',
+    departs(mask, garde) {
+      const cs = cellules(mask); const g = new Set(garde); const med = Math.round(quantile(cs.map((c) => c.x), 0.5));
+      const { ymin, H } = etendue(cs);
+      let choix = null;
+      for (const x0 of [med + 2, med - 2, med + 3, med - 3, med + 1, med - 1]) {
+        const b = cs.filter(bande(x0)); if (b.length < 4 || b.some((c) => g.has(c.k))) continue;
+        const gauche = cs.filter((c) => c.x < x0).length, droite = cs.filter((c) => c.x >= x0 + 1).length;
+        if (gauche < Math.max(6, cs.length * 0.12) || droite < Math.max(6, cs.length * 0.12)) continue;
+        const ecart = Math.abs(gauche - droite); if (!choix || ecart < choix.ecart) choix = { b, ecart };
+      }
+      if (!choix) return [];
+      return choix.b.filter((c) => c.y <= ymin + 0.7 * H).map((c) => ({ q: c.q, r: c.r, family: 'rock' }));
+    } },
+  /** Sept collines en fleur au plus profond de l'île : un plateau d'où l'eau descend vers toutes les côtes. */
+  plateau: { nom: 'Le plateau', intention: 'Ici, on apprend à descendre du plateau : les collines sont la source, et les chevaux paissent en dessous.',
+    departs(mask, garde) {
+      const c = coeur(mask, garde, 1, 1); if (!c) return [];
+      return disque(c.q, c.r, 1).map((k) => { const [q, r] = parse(k); return { q, r, family: 'hill' }; });
+    } },
+  /** Des roches sur la côte, une toutes les trois cases : l'eau ne naît qu'au bord, et le centre n'a que des lacs. */
+  cuvette: { nom: 'La cuvette', intention: 'Ici, on apprend à garder l’eau : les sources sont au bord, le centre ne connaît que les lacs.',
+    departs(mask, garde) {
+      const g = new Set(garde); const pris = [];
+      for (const c of cote(mask)) { if (g.has(c.k) || neighbors(c.q, c.r).some(([a, b]) => g.has(key(a, b)))) continue; if (pris.every((p) => hexDist(p.q, p.r, c.q, c.r) >= 3)) pris.push(c); }
+      return pris.map((c) => ({ q: c.q, r: c.r, family: 'rock' }));
+    } },
+};
+
+/** Tuiles de départ qu'une forme ajoute (crête, plateau, cuvette) ; vide pour les formes qui ne creusent que le masque. */
+export function departsDeForme(forme, mask, garde = []) { const f = FORMES[forme]; return f && f.departs ? f.departs(mask, garde) : []; }
 
 /**
  * Les trous cernés par six cases de l'île — les « lagunes » du journal 21, à ne pas confondre avec la fusion
