@@ -864,5 +864,38 @@ for (const def of ISLANDS.slice(0, 4)) {
   i11.breaths = 3; const k = cibleAction(i11, 'build'); check(!!k && i11.actions(...k.split(',').map(Number)).some((a) => a.kind === 'level' && a.level === 2), `avec des souffles, la tuile visée brille (${k})`);
   check(cibleAction(i11, 'build3') === null, 'pas de niveau 3 avant son île');
 }
+// --- feuille Histoire, étape 3 : voir ce qu'on prépare
+{
+  const { ligneAvenir } = await import('../src/game/avenir.js');
+  const { patienceJouee } = await import('../src/data/upgrades.js');
+  // J-F : la surprise annoncée est celle qui s'applique ; elle survit à une reprise et à une annulation
+  const d = campaignIsland(mechIsland('surprise') + 1); const isl = new Island(d, { ...islandOptions(d) }); isl.breaths = 9;
+  check(!!isl.nextRule && isl.annonce() === null, `la surprise suivante est tirée d'avance (${isl.nextRule}) mais pas encore annoncée`);
+  let an = null, g = 0; while (!an && !isl.ended && g++ < 40) { const c = isl.board.legalCells()[0]; isl.place(c.q, c.r); an = isl.annonce(); }
+  check(!!an && an.dans <= BALANCE.annonce.poses && an.dans >= 1, `l’annonce tombe à ${an && an.dans} pose(s) de la saison (${an && an.season} : ${an && an.rule})`);
+  const snap = isl.serialize(); const i2 = new Island(d, { ...islandOptions(d) }); i2.restoreRun(snap);
+  check(i2.nextRule === isl.nextRule && JSON.stringify(i2.annonce()) === JSON.stringify(an), 'l’annonce survit à une reprise');
+  const menaces = isl.menaces(); check(menaces instanceof Set, `cases menacées calculées sans toucher l’île (${menaces.size})`);
+  const v0 = isl.board.version; isl.menaces(); check(isl.board.version === v0 && [...isl.board.tiles.values()].every((t) => !t.dry || isl.seasonsPassed.length > 0), 'les menaces se jouent sur une copie');
+  const annonce = an.rule; while (isl.annonce() && !isl.ended) { const c = isl.board.legalCells()[0]; isl.place(c.q, c.r); }
+  check(isl.rule === annonce, `la surprise appliquée est celle qui était annoncée (${isl.rule} = ${annonce})`);
+  isl.undoUsedThisSeason = false; const nr = isl.nextRule; const c0 = isl.board.legalCells()[0]; isl.place(c0.q, c0.r); isl.breaths = 9; isl.undo();
+  check(isl.nextRule === nr, 'l’annulation rend la surprise suivante telle qu’elle était');
+  // J-H : trois situations préparées, la ligne attendue sort
+  const cells = []; for (let q = -3; q <= 4; q++) for (let r = -3; r <= 3; r++) cells.push(`${q},${r}`);
+  const b = new Board(cells);
+  b.place(0, 0, { family: 'forest', variant: 1 }); b.place(1, 0, { family: 'forest', variant: 1 }); b.place(2, 0, { family: 'forest', variant: 1 });
+  const l1 = ligneAvenir(b, 3, 0, { family: 'forest', variant: 1, id: 1 }); check(!!l1 && /élan/.test(l1), `habitat presque prêt : « ${l1} »`);
+  const b2 = new Board(['0,0', '1,0', '-1,0', '0,1', '0,-1', '1,-1', '-1,1']);   // une case et ses six voisines
+  b2.place(0, 0, { family: 'hamlet', variant: 1 }); for (const [q, r] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) b2.place(q, r, { family: 'field', variant: 1 });
+  const l2 = ligneAvenir(b2, 1, -1, { family: 'hamlet', variant: 1, id: 2 }); check(!!l2 && /encore une case/.test(l2) && /se ferme/.test(l2), `région à une case : « ${l2} »`);
+  const b3 = new Board(cells); b3.place(0, 0, { family: 'rock', variant: 1 });
+  const l3 = ligneAvenir(b3, 1, 0, { family: 'meadow', variant: 1, id: 3 }, { annonce: { season: 'summer', rule: 'secheresse' } }); check(!!l3 && /sèchera/.test(l3), `tuile menacée : « ${l3} »`);
+  check(b3.tiles.size === 1 && b.tiles.size === 3, 'la ligne d’avenir ne laisse rien sur le plateau');
+  // J-I : un niveau de Patience choisi plus bas s'applique et reste mémorisé ; jamais plus que l'acheté
+  check(patienceJouee({ upgrades: { patience: 2 }, patienceChoisie: null }) === 2 && patienceJouee({ upgrades: { patience: 2 }, patienceChoisie: 0 }) === 0 && patienceJouee({ upgrades: { patience: 1 }, patienceChoisie: 2 }) === 1 && patienceJouee({ upgrades: {} }) === 0, 'Patience jouée = min(choisi, acheté)');
+  const dp = campaignIsland(4); const ip = new Island(dp, { ...islandOptions(dp), upgrades: { patience: 0 } }), ip2 = new Island(dp, { ...islandOptions(dp), upgrades: { patience: 2 } });
+  check(ip2.seasonLength === ip.seasonLength + 2, 'le niveau passé à l’île fixe la longueur des saisons');
+}
 console.log(failures ? `${failures} échec(s)` : 'Tous les tests passent.');
 process.exit(failures ? 1 : 0);

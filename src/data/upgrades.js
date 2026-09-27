@@ -37,3 +37,13 @@ export function upgradesAPortee(c) {
 export const upgradesNeuvesAPortee = (c) => upgradesAPortee(c).filter((u) => !(c.atelierVu || []).includes(u.id));
 /** Première île qui introduit la mécanique requise par l'amélioration (null si aucune). */
 export const upgradeUnlockIsland = (u, islands) => (u.requires ? (islands.find((i) => i.mechanics.includes(u.requires)) || { id: null }).id : null);
+
+/**
+ * Le niveau de Patience joué : celui que le joueur a choisi entre deux îles (`c.patienceChoisie`, feuille Histoire, J-I),
+ * jamais plus que ce qu'il a acheté. Sans choix, le niveau acheté. Une amélioration achetée ne doit pas piéger son propriétaire.
+ */
+export function patienceJouee(c) {
+  const achete = (c.upgrades && c.upgrades.patience) || 0;
+  const choisi = c.patienceChoisie === null || c.patienceChoisie === undefined ? achete : Number(c.patienceChoisie);
+  return Math.max(0, Math.min(achete, choisi));
+}

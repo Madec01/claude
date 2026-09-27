@@ -39,7 +39,7 @@ import { buildResults } from './ui/results.js';
 import { buildCollection } from './ui/collection.js';
 import { buildWorkshop } from './ui/workshop.js';
 import { celebrate, celebrateThing } from './ui/achievements.js';
-import { UPGRADES, playerChapter, upgradesNeuvesAPortee } from './data/upgrades.js';
+import { UPGRADES, playerChapter, upgradesNeuvesAPortee, patienceJouee } from './data/upgrades.js';
 import { Version } from './core/version.js';
 import { tempoDef, entrainementDef, defiDuJourDef, recordsTempo, OBJECTIF_PAR_ID } from './data/tempo.js';
 import { FAMILIES } from './data/tiles.js';
@@ -622,7 +622,7 @@ class IslandScene {
   async enter({ def, skipWishes = false, resume = null }) {
     hideUI();
     this.def = def;
-    const upgrades = Save.campaign.upgrades;
+    const upgrades = { ...Save.campaign.upgrades, patience: patienceJouee(Save.campaign) };   // la Patience se règle entre deux îles, jamais au-dessus du niveau acheté
     const mech = def.mech ? new Set(def.mech) : campaignMechanics(99);
     if (Game.testMode) for (const m of ['river', 'season', 'fauna', 'wish', 'breath', 'rare', 'build', 'fuse', 'build3']) mech.add(m);
     this.mech = mech;

@@ -144,6 +144,7 @@ export class Hud {
     const pop = this.r.scorePop; const open = force !== undefined ? force : pop.classList.contains('hidden');
     if (open) { this.renderScorePop(); clearTimeout(this._scorePopT); this._scorePopT = setTimeout(() => this.toggleScorePop(false), 9000); }
     pop.classList.toggle('hidden', !open);
+    this.isl.montrerMenaces = open;   // le rendu cerne les cases menacées tant que la surimpression est ouverte
   }
   renderScorePop() {
     const isl = this.isl; const t = isl.tally || {}; const total = Object.values(t).reduce((a, b) => a + Math.max(0, b), 0) || 1;
@@ -175,6 +176,7 @@ export class Hud {
     const pop = this.r.harmoPop; const open = force !== undefined ? force : pop.classList.contains('hidden');
     if (open) { this.toggleScorePop(false); this.renderHarmoPop(); clearTimeout(this._harmoPopT); this._harmoPopT = setTimeout(() => this.toggleHarmoPop(false), 9000); }
     pop.classList.toggle('hidden', !open);
+    this.isl.montrerMenaces = open;   // le rendu cerne les cases menacées tant que la surimpression est ouverte
   }
   renderHarmoPop() {
     const h = this.harmo || harmonie(this.isl.board, this.isl.def);
@@ -191,9 +193,12 @@ export class Hud {
       const s = rl ? { name: isl.rulesVariable ? `${s0.name} · ${rl.name}` : s0.name, line: rl.line, rule: rl.rule } : s0;
       pop.innerHTML = `<b>${s.name}</b><em>${s.line}</em><span>${s.rule}</span><i>Toucher pour fermer</i>`;
       { const cl = isl.climate && isl.climate.id !== 'temperate' ? STORY.climates[isl.climate.id] : null; if (cl) pop.insertAdjacentHTML('beforeend', `<div class="pop-climate"><b>${cl.name}</b> — <em>${cl.line}</em><br>✓ ${cl.plus}<br>✗ ${cl.minus}</div>`); }
+      // la saison annoncée : sa surprise et, sur l'île, les cases qu'elle abîmera (cernées tant que la surimpression est ouverte)
+      { const an = isl.annonce ? isl.annonce() : null; if (an) { const sn = STORY.seasons[an.season] || { name: an.season }; const rn = STORY.seasonRules[an.rule] || { name: an.rule, rule: '' }; const n = isl.menaces().size; pop.insertAdjacentHTML('beforeend', `<div class="pop-annonce"><b>${sn.name} dans ${an.dans === 1 ? 'une pose' : `${an.dans} poses`} : ${rn.name}</b><br>${rn.rule}${n ? `<br><i>${n === 1 ? 'Une case est menacée' : `${n} cases sont menacées`} : elles sont cernées sur l’île.</i>` : ''}</div>`); } }
       clearTimeout(this._popT); this._popT = setTimeout(() => this.toggleSeasonPop(false), 9000);
     }
     pop.classList.toggle('hidden', !open);
+    this.isl.montrerMenaces = open;   // le rendu cerne les cases menacées tant que la surimpression est ouverte
   }
 
   /** Affiche ou masque la fiche. Masquer ne vaut que pour l'île en cours (le bouton ? ou la touche H la rouvrent) ; l'option des réglages reste le maître. */
@@ -418,7 +423,10 @@ export class Hud {
     const rl = isl.rule && STORY.seasonRules[isl.rule] ? STORY.seasonRules[isl.rule] : null;
     // au Souffle court, l'effet de la saison sur le temps ou le plateau passe devant la règle commune
     const effet = isl.tempo && !isl.def.sansEffets ? { spring: 'Deux tuiles proposées : pose celle que tu veux, l’autre est perdue.', summer: `Une réserve de ${fr(reserveEte(isl.def))} s pour les cinq tuiles.`, autumn: 'La brume couvre l’île ; poser la dissipe autour.', winter: `Cadran gelé, ×${fr(BALANCE.tempo.hiver)}.` }[isl.season] : null;
-    this.set('seasonName', rl && isl.rulesVariable ? `${s.name} · ${rl.name}` : s.name); this.set('seasonRule', (effet ? `${effet} ` : '') + (rl ? rl.rule : s.rule));
+    // la saison qui vient s'annonce deux poses avant, avec sa surprise : de quoi préparer une réponse (audit, J-F)
+    const an = isl.annonce ? isl.annonce() : null; const anTxt = an ? `${(STORY.seasons[an.season] || { name: an.season }).name} dans ${an.dans === 1 ? 'une pose' : `${an.dans} poses`} : ${(STORY.seasonRules[an.rule] || { name: an.rule }).name.toLowerCase()}` : '';
+    this.set('seasonName', rl && isl.rulesVariable ? `${s.name} · ${rl.name}` : s.name); this.set('seasonRule', (an ? `${anTxt} · ` : '') + (effet ? `${effet} ` : '') + (rl ? rl.rule : s.rule));
+    if (this.last.annonce !== anTxt) { this.last.annonce = anTxt; r.seasonBox.classList.toggle('annonce', !!an); }
     if (this.last.seasonKey !== isl.season) { this.last.seasonKey = isl.season; r.seasonIcon.innerHTML = icon(SEASON_ICON[isl.season] || 'icon_leaf'); r.seasonBox.classList.remove('s-spring', 's-summer', 's-autumn', 's-winter'); r.seasonBox.classList.add(`s-${isl.season}`); }
     // l'objectif personnel du Souffle court, suivi sous les points
     if (isl.tempo && isl.def.objectif && OBJECTIF_PAR_ID[isl.def.objectif]) { const o = OBJECTIF_PAR_ID[isl.def.objectif]; const txt = `${o.nom} · ${o.suivi(isl)}`; if (txt !== this.last.objectif) { this.last.objectif = txt; r.objectif.textContent = txt; r.objectif.classList.remove('hidden'); r.objectif.classList.toggle('manque', !o.atteint(isl)); } }

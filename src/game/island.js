@@ -10,6 +10,7 @@ import { transition, nextSeason } from './seasons.js';
 import { evaluate as evalFauna, reconcile } from './fauna.js';
 import { initWishes, updateWishes, besoinsVoeu, poseLimite } from './wishes.js';
 import { harmonie } from './harmonie.js';
+import { ligneAvenir } from './avenir.js';
 import { TileQueue } from './queue.js';
 import { generateMask, enclosedHoles } from '../data/islands.js';
 import { videsMalus } from '../data/tempo.js';
@@ -119,6 +120,7 @@ export class Island {
     this.huntSeason = false;      // chasse et cueillette : les animaux des forêts rapportent +2 à la saison suivante
     this.rulesVariable = this.surpriseOn;
     this.rule = this.garden ? BASE_RULE[this.season] : pickRule(this.season, () => this.rng.next(), this.rulesVariable);
+    this.nextRule = this.tirerRegleSuivante();   // la surprise de la saison qui vient est tirée d'avance : annoncée deux poses avant (audit, J-F)
     this.updateFauna();
   }
 
@@ -153,6 +155,43 @@ export class Island {
       for (const [family, n] of Object.entries(besoinsVoeu(v.def))) if ((w[family] || 0) > 0) promesses.push({ family, need: n + (n >= 2 ? 1 : 0), fin, voeu: v.def.id });
     }
     this.queue.promettre(promesses, depart);
+  }
+
+  /** La saison qui viendra après celle-ci (une saison longue du climat revient une fois). */
+  saisonSuivante() { return this.climate.longSeason === this.season && !this.longSeasonDone ? this.season : nextSeason(this.season); }
+  /** Tire la règle de la saison suivante, avec le générateur de l'île (déterministe pour une île donnée). */
+  tirerRegleSuivante() { if (this.garden || this.brume) return null; return pickRule(this.saisonSuivante(), () => this.rng.next(), this.rulesVariable); }
+  /**
+   * L'annonce de la saison qui vient, dès qu'elle est à deux poses ou moins : { season, rule, dans } — ou null.
+   * Le joueur a le temps d'une réponse sans perdre l'effet de découverte (feuille Histoire, décision 2 : a).
+   */
+  annonce() {
+    if (this.garden || this.brume || this.tempo || this.ended || !this.nextRule) return null;
+    const dans = this.seasonLength - this.inSeason;
+    if (dans > BALANCE.annonce.poses || dans < 1) return null;
+    return { season: this.saisonSuivante(), rule: this.nextRule, dans };
+  }
+  /**
+   * Les cases que la saison annoncée abîmera (prairies qui sèchent, hameaux sans bois au grand froid…) : la transition
+   * est jouée sur une copie du plateau et l'on garde ce qui perd. Rien n'est touché sur l'île.
+   * @returns {Set<string>} clés des cases menacées
+   */
+  menaces() {
+    const a = this.annonce(); if (!a) return new Set();
+    const cle = `${this.board.version}|${this.inSeason}|${a.rule}`; if (this._menK === cle) return this._men;   // demandé à chaque image quand la surimpression est ouverte
+    const out = new Set(); this._menK = cle; this._men = out;
+    const copie = new Board(new Set(this.board.mask)); copie.restore(this.board.snapshot()); if (this.board.linkMax) copie.linkMax = this.board.linkMax;
+    for (const e of transition(copie, a.season, a.rule, this.climate)) if (e.type === 'dry' || (typeof e.pts === 'number' && e.pts < 0)) out.add(key(e.q, e.r));
+    return out;
+  }
+
+  /** La ligne d'avenir de l'aperçu (J-H), gardée tant que rien n'a bougé : le rendu la demande à chaque image. */
+  avenir(q, r, tile = this.current) {
+    if (!tile || this.brume || this.tempo) return null;
+    const cle = `${this.board.version}|${q},${r}|${tile.id}|${tile.family}|${this.inSeason}`; if (this._avK === cle) return this._av;
+    const a = this.annonce();
+    this._avK = cle; this._av = ligneAvenir(this.board, q, r, tile, { annonce: a, climate: this.climate });
+    return this._av;
   }
 
   get mods() { return { river: this.baseMods.river, refuge: this.baseMods.refuge, rule: this.rule, climate: this.climate, blight: this.buildOn, ...(this.brume ? { brumeDores: this.brume.saison.dores, brumeMauvais: this.brume.saison.mauvais } : {}) }; }
@@ -400,7 +439,7 @@ export class Island {
       wishes: this.wishes.map((w) => ({ ...w })), fauna: [...this.fauna.entries()],
       tally: { ...this.tally }, bestMove: this.bestMove ? { ...this.bestMove } : null, stats: { ...this.stats },
       undoUsedThisSeason: !!this.undoUsedThisSeason,
-      huntSeason: !!this.huntSeason, rule: this.rule,
+      huntSeason: !!this.huntSeason, rule: this.rule, nextRule: this.nextRule || null,
       brume: this.brume ? this.serializeBrume() : null,
     };
   }
@@ -435,7 +474,7 @@ export class Island {
     this.wishes = (s.wishes || []).map((w) => ({ ...w })); this.fauna = new Map(s.fauna || []);
     this.tally = { ...this.tally, ...(s.tally || {}) }; this.bestMove = s.bestMove || null; this.stats = { ...this.stats, ...(s.stats || {}) };
     this.undoUsedThisSeason = !!s.undoUsedThisSeason;
-    this.huntSeason = !!s.huntSeason; this.rule = s.rule;
+    this.huntSeason = !!s.huntSeason; this.rule = s.rule; this.nextRule = s.nextRule || this.tirerRegleSuivante();   // une partie d'avant l'annonce tire sa surprise maintenant
     if (this.brume && s.brume) this.restoreBrume(s.brume);
     this.history = []; this.ended = false; this.result = null;
     return true;
@@ -453,7 +492,8 @@ export class Island {
     this.stats.closedThisSeason = 0;
     this.undoUsedThisSeason = false;
     const prevRule = this.rule;
-    this.rule = this.garden ? BASE_RULE[this.season] : pickRule(this.season, () => this.rng.next(), this.rulesVariable);
+    this.rule = this.nextRule || (this.garden ? BASE_RULE[this.season] : pickRule(this.season, () => this.rng.next(), this.rulesVariable));   // tirée d'avance (et annoncée) à la saison précédente
+    this.nextRule = this.tirerRegleSuivante();
     const ev = transition(this.board, this.season, this.rule, this.climate);
     this.board.touch();
     let pts = 0;
@@ -586,6 +626,7 @@ export class Island {
     this.board.restore(s.board); this.queue.restore(s.queue); this.rule = s.rule || this.rule; this.huntSeason = !!s.huntSeason;
     // le hasard de l'île revient aussi en arrière : rejouer le même coup redonne la même surprise de saison
     if (s.rngS !== undefined) this.rng.s = s.rngS;
+    if (s.nextRule !== undefined) this.nextRule = s.nextRule;
     this.longSeasonDone = !!s.longSeasonDone; this.pendingOpening = [...(s.pendingOpening || [])];
     this.score = s.score; this.placements = s.placements; this.inSeason = s.inSeason; this.season = s.season; this.seasonsPassed = [...s.seasonsPassed];
     this.stats = { ...s.stats }; if (s.tally) this.tally = { ...s.tally }; this.bestMove = s.bestMove ? { ...s.bestMove } : null; this.wishes = s.wishes.map((w) => ({ ...w }));
@@ -597,7 +638,7 @@ export class Island {
   }
 
   pushHistory() {
-    this.history.push({ rngS: this.rng.s, longSeasonDone: !!this.longSeasonDone, pendingOpening: [...this.pendingOpening], tally: { ...this.tally }, bestMove: this.bestMove ? { ...this.bestMove } : null, rule: this.rule, huntSeason: this.huntSeason, board: this.board.snapshot(), queue: this.queue.snapshot(), score: this.score, placements: this.placements, inSeason: this.inSeason, season: this.season, seasonsPassed: [...this.seasonsPassed], stats: { ...this.stats }, wishes: this.wishes.map((w) => ({ ...w })), breaths: this.breaths, fauna: new Map(this.fauna) });
+    this.history.push({ rngS: this.rng.s, nextRule: this.nextRule || null, longSeasonDone: !!this.longSeasonDone, pendingOpening: [...this.pendingOpening], tally: { ...this.tally }, bestMove: this.bestMove ? { ...this.bestMove } : null, rule: this.rule, huntSeason: this.huntSeason, board: this.board.snapshot(), queue: this.queue.snapshot(), score: this.score, placements: this.placements, inSeason: this.inSeason, season: this.season, seasonsPassed: [...this.seasonsPassed], stats: { ...this.stats }, wishes: this.wishes.map((w) => ({ ...w })), breaths: this.breaths, fauna: new Map(this.fauna) });
     if (this.history.length > 3) this.history.shift();
   }
 

@@ -26,6 +26,8 @@ export const BALANCE = {
   build: { maxLevel: 3, level3From: 19, cost: 2, cost3: 3, restore: 1, matureSeasons: 1, level3Season: 1 },   // bâtir : une tuile d'une région close monte d'un niveau, sans tuile de la file ; 2 souffles pour le niveau 2, 3 pour le niveau 3 ; une friche se remet en état pour 1
   fauna: { rabbit: 3, moose: 5, duck: 3, bear: 3, frog: 1, owl: 1, penguin: 4, chicken: 2, horse: 2, cow: 2 },
   queue: { visible: [3, 4, 5], seasonExtra: [0, 1, 2] },
+  // la surprise de la saison qui vient est annoncée dans la bannière quand il reste au plus tant de poses (feuille Histoire, J-F)
+  annonce: { poses: 2 },
   upgrades: { source: [0, 1], refuge: [0, 1, 2], almanac: [0, 1, 2] },   // bonus de l'Atelier : rivière, faune, graines
   stars: { perCell: [4.4, 6.4, 7.2, 8.0] },   // seuils par défaut (Île du jour) = cases × facteur ; trois étoiles puis l'étoile d'or (cosmétique) ; les îles de campagne ont leurs `starFactors` calibrés
   seeds: { star: 1, wish: 1, island: 3 },   // 3 par île terminée la première fois : à 30 îles, le joueur tranquille finit l'Atelier vers les deux tiers de la campagne

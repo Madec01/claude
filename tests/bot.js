@@ -7,7 +7,8 @@ import { evaluate as evalFauna } from '../src/game/fauna.js';
 import { progressOf } from '../src/game/wishes.js';
 import { neighbors } from '../src/game/hex.js';
 
-const W = { next: 0.6, wish: 2.5, wishDone: 12, fauna: 3, grow: 0.35, close: 1.2 };
+const W0 = { next: 0.6, wish: 2.5, wishDone: 12, fauna: 3, grow: 0.35, close: 1.2 };
+let W = W0;   // `playStrong(def, { poids })` en fait varier le style (mesures de la feuille Histoire, J-J)
 
 /** Score heuristique d'une pose (points immédiats + avenir proche). */
 function evalMove(isl, tile, q, r, rng, deep) {
@@ -50,6 +51,7 @@ function bestMove(isl, tile, rng) {
  * @param {object} o { upgrades, seedOffset (graine de l'île), botSeed (hasard du bot, par défaut = seedOffset), maxPlacements }
  */
 export function playStrong(def, o = {}) {
+  W = o.poids ? { ...W0, ...o.poids } : W0;
   const isl = new Island(def, { upgrades: o.upgrades || {}, seedOffset: o.seedOffset || 0, known: o.known, ...(def.mech ? islandOptions(def) : {}) });
   let seed = ((o.botSeed !== undefined ? o.botSeed : o.seedOffset) || 0) * 9973 + 17; const rng = () => { seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed / 0x7fffffff; };
   const events = {}; isl.on((e) => { events[e.type] = (events[e.type] || 0) + 1; });
@@ -61,7 +63,7 @@ export function playStrong(def, o = {}) {
     // meilleure tant qu'elle vaut ses souffles (un souffle compté 1,5 : il sert aussi à défausser), les rentes comptées sur les saisons qui restent
     if (isl.buildOn || isl.fuseOn) {
       const left = Math.min(4, Math.ceil(isl.queue.remaining / Math.max(1, isl.seasonLength)));
-      let bb = null, bbs = 0;
+      let bb = null, bbs = o.batisseur ? -Infinity : 0;   // le bâtisseur (mesures J-J) construit dès qu'il le peut
       for (const t of isl.buildTargets()) for (const a of isl.actions(t.q, t.r)) { const rente = a.kind === 'fuse' ? 1.5 * left : a.level >= 3 ? left : 0; const sc = a.pv.total + rente - 1.5 * a.cost; if (sc > bbs) { bbs = sc; bb = { q: t.q, r: t.r, a }; } }
       if (bb && isl.build(bb.q, bb.r, bb.a.kind, bb.a.recipe ? bb.a.recipe.id : null)) continue;
     }

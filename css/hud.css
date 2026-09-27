@@ -465,3 +465,8 @@ html.compact .panel-brume .brume-regles { font-size: 12px; }
 .rh-bar.inverse i { background: var(--loss); } .rh-item.on .rh-bar.inverse i { background: var(--breath); }
 .rh-bar em { position: absolute; top: -3px; bottom: -3px; width: 3px; margin-left: -1px; border-radius: 2px; background: var(--gold); }
 .rh-item small { font-size: 12px; opacity: 0.8; }
+
+/* la saison qui vient, annoncée deux poses avant : la boîte de saison le signale d'un liseré */
+.hud-season.annonce { box-shadow: inset 0 0 0 2px rgba(224, 163, 58, 0.55); }
+.pop-annonce { margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(43, 42, 38, 0.15); font-size: 13px; }
+.pop-annonce i { opacity: 0.8; }

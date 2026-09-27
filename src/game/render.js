@@ -1655,6 +1655,8 @@ export class IslandRenderer {
   }
 
   drawHover(ctx) {
+    // les cases que la saison annoncée abîmera, cernées de rouge tant que la surimpression de saison est ouverte (audit, J-F)
+    if (this.isl.montrerMenaces && this.isl.menaces) { const cam = this.cam; const pulse = 0.6 + 0.4 * Math.sin(this.time * 3); for (const k of this.isl.menaces()) { const [q, r] = parse(k); const w = toWorld(q, r); const c = cam.toScreen(w.x, w.y); this.outline(ctx, c.x, c.y, '#d95f4b', pulse); } }
     const guide = this.isl.restrict || (this.isl.brille ? [this.isl.brille] : null);   // case imposée (île 1) ou tuile visée par une étape à action (bâtir, fusionner, niveau 3)
     if (guide) { const cam = this.cam; for (const k of guide) { const [q, r] = parse(k); const w = toWorld(q, r); const c = cam.toScreen(w.x, w.y); const pulse = 0.55 + 0.45 * Math.sin(this.time * 4); ctx.save(); ctx.globalAlpha = 0.35 * pulse; ctx.fillStyle = '#ffd77a'; const pts = corners(c.x, c.y, SIZE * cam.zoom * 0.95); ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]); for (let i = 1; i < 6; i++) ctx.lineTo(pts[i][0], pts[i][1]); ctx.closePath(); ctx.fill(); ctx.restore(); this.outline(ctx, c.x, c.y, '#e0a33a', 0.6 + 0.4 * pulse); } }
     const hv = this.hover; if (!hv) return;
@@ -1689,6 +1691,8 @@ export class IslandRenderer {
     for (let i = 0; i < pv.base.length; i++) { const bs = pv.base[i]; this.pill(ctx, c.x, c.y + (30 + i * 22) * z, `+${bs.pts} ${bs.label}`, '#5aa7d6'); }
     for (const cl of pv.closes) this.pill(ctx, c.x, c.y - (64) * z, `région close +${cl.bonus}`, '#e0a33a');
     if (pv.blight) this.pill(ctx, c.x, c.y - 64 * z, '✗ en friche : ne rapportera plus rien', '#d95f4b');
+    // une seule ligne sur l'avenir, la plus utile (habitat presque prêt, région à une case, tuile menacée) — J-H
+    if (!pv.build) { const av = this.isl.avenir ? this.isl.avenir(hv.q, hv.r, hv.tile || this.isl.current) : null; if (av) this.pill(ctx, c.x, c.y - (pv.closes.length || pv.blight ? 86 : 64) * z, av, '#7d7a72'); }
     const py = (34 + pv.base.length * 24) * z;   // sous les pastilles de base
     const souffles = (n) => `${n} souffle${n > 1 ? 's' : ''}`;
     if (pv.build && pv.fuse) {

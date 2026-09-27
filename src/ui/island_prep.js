@@ -9,6 +9,7 @@ import { targetOf } from '../game/wishes.js';
 import { islandOptions } from '../data/campaign.js';
 import { ptsFleur, varieteDemandee } from '../game/harmonie.js';
 import { Save } from '../core/save.js';
+import { UPGRADES, patienceJouee } from '../data/upgrades.js';
 
 /**
  * L'harmonie présentée avant la première pose : la première fois en entier (les trois fleurs, ce qu'elles demandent,
@@ -27,6 +28,14 @@ function blocHarmonie(def) {
       h('div', {}, fleur('obj_flowerRed'), h('span', {}, h('b', {}, 'Équilibre'), `aucune région ne couvre plus de ${Math.round(H.equilibre * 100)} % de l’île.`)),
       h('div', {}, fleur('obj_flowerYellow'), h('span', {}, h('b', {}, 'Achèvement'), `au moins ${Math.round(H.acheve * 100)} % des tuiles dans des régions closes, et aucune friche.`))),
   ];
+}
+
+/** Patience réglable (J-I) : entre deux îles, le niveau voulu parmi ceux achetés, avec le compromis en une phrase. */
+function blocPatience() {
+  const c = Save.campaign; const achete = (c.upgrades && c.upgrades.patience) || 0; if (!achete) return [];
+  const up = UPGRADES.find((u) => u.id === 'patience'); let joue = patienceJouee(c);
+  const pills = []; for (let k = 0; k <= achete; k++) { const el = h('button', { class: `semis-card patience-card ${k === joue ? 'on' : ''}`, type: 'button', 'data-patience': String(k) }, h('b', {}, up.levels[k])); el.addEventListener('click', () => { joue = k; c.patienceChoisie = k; Save.save(); pills.forEach((p) => p.classList.toggle('on', p === el)); }); pills.push(el); }
+  return [h('h3', { class: 'prep-h' }, 'Patience des saisons'), h('p', { class: 'ws-intro' }, 'Plus de poses par saison, mais moins d’occasions de saison. Le choix reste pour les îles suivantes.'), h('div', { class: 'semis-list patience-list' }, ...pills)];
 }
 
 export function buildIslandPrep({ def, semis = true, screens = [], onStart, onBack = null }) {
@@ -51,6 +60,7 @@ export function buildIslandPrep({ def, semis = true, screens = [], onStart, onBa
     semis ? h('h3', { class: 'prep-h' }, 'Choisis ton semis') : null,
     semis ? h('p', { class: 'ws-intro' }, 'Ce que la file donnera plutôt. Un penchant, pas une garantie.') : null,
     semis ? h('div', { class: 'semis-list' }, ...semisCards) : null,
+    ...(def.mech && !def.daily ? blocPatience() : []),
     ...(def.mech && islandOptions(def).harmonie ? blocHarmonie(def) : []),
     wishes.length ? h('h3', { class: 'prep-h' }, 'Les habitants demandent') : null,
     wishes.length ? h('p', { class: 'ws-intro' }, `Chaque vœu exaucé rapporte autant de points qu’il reste de poses avant son échéance — l’exaucer tôt paie davantage —, ${BALANCE.breaths.wish} souffles, une tuile rare et une graine. Ils restent affichés pendant la partie.`) : null,

@@ -91,6 +91,7 @@ const defaults = () => ({
     recipes: [],   // fusions découvertes (Cahier)
     unlockedIsland: 1, stars: {}, gold: {}, best: {}, plays: {}, seeds: 0, seedsTotal: 0,   // gold : étoile d'or par île (cosmétique) ; plays : parties terminées par île (déblocage et porte de chapitre)
     upgrades: { sight: 0, breath: 0, patience: 0, rare: 0 },
+    patienceChoisie: null,   // niveau de Patience choisi pour les prochaines îles (null = le niveau acheté) ; se règle sur l'écran de départ
     prologueSeen: false, completed: false, islandsPlayed: 0, memoriesRead: [],
     insignes: { iles: {}, chapitres: [] },   // archétypes gagnés par île ({ 12: ['sauvage', …] }) et chapitres clos
     announced: [],   // déblocages déjà annoncés par une bannière (modes de jeu, chapitre d'Atelier) : chacun ne passe qu'une fois
