@@ -4,8 +4,9 @@
 l'île 17). Rien n'est branché dans la campagne : le commanditaire choisit.*
 
 Code : `FORMES`, `departsDeForme`, `composantes`, `relier` dans `src/data/islands.js` (option `forme` de `generateMask`,
-que `Island` et `islandCells` transmettent depuis `def.forme`). Croquis et mesures : `node tools/mesure_formes.js croquis 11`
-et `node tools/mesure_formes.js mesure 7,11,19 3`. Test : `node tests/formes.test.js`.
+que `Island` et `islandCells` transmettent depuis `def.forme`). Croquis et mesures : `node tools/mesure_formes.js croquis 11`,
+`node tools/mesure_formes.js mesure 7,14,24 6` et `node tools/mesure_formes.js difficulte` (le rang de chaque forme). Test :
+`node tests/formes.test.js`. Le § 6 ajoute vingt formes (dix douces pour la campagne, dix étranges pour un mode).
 
 ## 1. Comment une forme change le jeu ici
 
@@ -404,3 +405,660 @@ Après branchement : `node tools/calibrate.js 4 14-14 --write` (et 16, 28), puis
   écarts au-delà de 15 % sont sûrs, ceux en dessous sont des indices.
 - **Le Souffle court** au téléphone en portrait utilise `etire` 1,5 (`etirePortrait`) : une forme s'y superposerait à
   l'étirement, pas testé (la longue côte, elle, est cet étirement).
+
+## 6. Vingt formes de plus
+
+*27 septembre 2026, suite. Le commanditaire a dit « go » pour deux choses : des îles de campagne **plus naturelles** (« des baies,
+des bras de mer, de grands lacs au centre ») sans rendre le jeu plus dur, et un mode où l'île change de forme à chaque partie,
+« une trentaine de formes, de la plus simple à la plus étrange ». Rien n'est branché : la campagne et le mode sont câblés à part.*
+
+Chaque forme de `FORMES` porte désormais trois champs de plus : `famille` (`douce` : naturelle, pour la campagne ; `construite` :
+une situation, les dix premières ; `etrange` : pour le mode), `difficulte` (mesurée, voir plus bas) et, pour celles qui déplacent
+le départ, `depart` (l'anneau porte le sien, celui que sa signature poserait ; l'ourlet et l'atoll ont le leur). `etire` est aussi
+un champ de forme (la longue côte à 2,6, le haricot à 1,35, la goutte à 1,3, le labyrinthe à 1,4). Les dix formes existantes
+sont rangées ainsi : archipel, chapelet, anneau, étoile, lagunes, crête, plateau, cuvette = construites ; croissant, deux baies,
+longue côte = douces.
+
+Trois outils de plus dans `islands.js`, sans toucher aux fonctions existantes : `sansDepart` (parmi plusieurs façons de creuser
+— la baie du nord ou du sud, le fjord de l'ouest ou de l'est —, la première qui n'emporte aucune tuile de départ), `finir` (pour
+une forme décrite avant la croissance : une tuile de départ tombée hors de la forme est reliée par un gué, puis l'île repousse
+au compte), `combler` (les formes étranges comblent les mares de départ : leurs couloirs sont trop fins pour en garder) et
+`rogner` (ramener l'île au compte par la côte, pour l'île percée qui pousse avant de creuser). `sculpter` accepte des `ajouts`
+(les îlots de la comète, posés d'office avant de relier). Les 160 masques existants (campagne, îles dessinées, infinie, jardin,
+étirées, dix formes sur sept îles) sont **identiques au bit près** avant et après (script d'empreinte, `cmp`).
+
+**Le lac reste la mer.** `enclosedHoles` ne comble qu'une case cernée **une par une** (six voisines dans l'île) ; un lac de deux
+cases ou plus garde toujours une voisine d'eau et n'est jamais comblé. Le grand lac (7 à 9 cases), les dix lacs de l'île percée
+(2 cases chacun), la mer intérieure de l'ourlet et de l'atoll sont donc de vraies **mers intérieures** : elles ferment les régions
+et reçoivent des embouchures, comme le lac de l'anneau. Aucune ne devient une mare posée au départ. Le test le vérifie
+(`lac : le lac n'est pas une mare`).
+
+Croquis sur l'île 11 (Le Val Bâti, 66 cases), comme au § 2. `+` marque un **gué** : une case dont le retrait coupe l'île en deux
+morceaux d'au moins cinq cases.
+
+### Les dix douces
+
+| Forme | Ce qu'elle creuse | Où |
+|---|---|---|
+| `baie` — La baie | Une ellipse posée sur le bord (0,42 R de large, 0,85 de la demi-hauteur de profond), du nord ou du sud, décalée d'un cinquième du rayon ; ouverte sur le large par un chenal | 13 |
+| `fjord` — Le fjord | Un bras d'une rangée qui entre d'un côté et dépasse le centre d'un dixième du rayon ; deux rangées à l'entrée, une seule au fond | 19 |
+| `lac` — Le grand lac | Sept cases (neuf à partir de 90) au plus profond de l'île, loin des départs (`coeur`), qui restent la mer | 25 |
+| `anses` — La côte découpée | Sur un flanc (est ou ouest), le bord recule de 0,34 R dans trois anses entre des caps (un cosinus à six lobes sur l'angle) | 22 |
+| `presquile` — La presqu'île | Une bande d'une case au tiers de la largeur, sauf trois cases au milieu de la hauteur : le col ; le lobe fait un tiers de l'île | 11 |
+| `delta` — Le delta | Un V de mer qui entre par le sud ou le nord depuis le centre, large de 0,3 + 0,45 case par rangée | 24 |
+| `haricot` — Le haricot | L'île étirée à 1,35, creusée d'une baie large et peu profonde (0,4 R au plus creux, ±70°) sur un flanc | 26 |
+| `goutte` — La goutte | L'île étirée à 1,3 ; la demi-largeur passe de 0,34 R au bout fin à R aux trois quarts de la hauteur, le bas reste rond | 4 |
+| `double` — L'île double | Deux baies rondes (0,4 R) qui se font face au nord et au sud, à 42 % de la largeur : deux lobes inégaux, un col large | 27 |
+| `lagune` — La lagune | Sept cases à la moitié du rayon dans une des six directions de la grille, et une passe d'une case le long de cette direction jusqu'au large | 7 |
+
+### Les dix étranges
+
+| Forme | Ce qu'elle fait |
+|---|---|
+| `spirale` — La spirale | Décrite avant la croissance : un cœur de rayon 1,6 et un bras de 2,9 de large qui s'enroule (pas de 4, une rangée de mer entre les tours) |
+| `labyrinthe` — Le labyrinthe | Étirée à 1,4 ; une rangée de mer sur trois, qui entre tour à tour de l'ouest et de l'est jusqu'à 0,3 R au-delà du centre : la terre est un couloir de deux rangées replié |
+| `jumelles` — Les jumelles | La moitié nord (au-dessus de tous les départs), ramenée à la moitié du compte en ôtant les cases les plus loin de son centre, puis son reflet par la rangée du détroit ; `relier` pose le gué ; rien ne repousse |
+| `serrure` — Le trou de serrure | Le lac de sept cases au plus profond, et une fente d'une case (une bande en zigzag) qui descend jusqu'à la mer du sud |
+| `comete` — La comète | Une tête ronde (le disque autour du centre qui garde n − 8 k cases) et k îlots de sept cases (3, ou 4 à partir de 90) en colonne, une rangée de mer et un gué d'une case entre deux ; la queue part du côté sans départ |
+| `vrille` — La vrille | Décrite avant la croissance : une bande de quatre cases qui suit une sinusoïde d'amplitude 2,4 et de période 14 rangées ; la phase choisie garde le plus de départs dans la bande |
+| `percee` — L'île aux dix lacs | L'île pousse de vingt cases, puis dix lacs de deux cases sont creusés à l'intérieur, du centre vers le bord, jamais voisins, jamais sur la côte ; `rogner` rend le compte par la côte |
+| `ourlet` — L'ourlet | Une couronne de deux cases (trois à partir de 70, quatre de 105) autour d'une mer intérieure ; le rayon vient de l'aire (une case vaut 0,866) ; le départ est déplacé sur la couronne, à 3,5 cases du centre |
+| `peigne` — Le peigne | Décrite avant la croissance : une barre de deux à trois cases à l'ouest et des dents de deux rangées sur trois, longues de 4,5 à 6,5 cases |
+| `atoll` — L'atoll | La même couronne, et un îlot de sept cases au centre avec le hameau et la roche ; `relier` pose le gué |
+
+### Croquis des douces
+
+#### La baie — `baie`
+*Ici, on apprend à bâtir autour d’une baie : une seule échancrure, profonde, et toutes les rivières y descendent.*
+67 cases, 10 × 10.
+```
+ . # # # # # . . .
+. # # # # # # # .
+ # # # # # # # # .
+# # # # # # # # #
+ # # # # # R # # #
+# # # # H # # # #
+ # # # . # # # # .
+# # # R . . . # .
+ # # # . . . . . .
+. # # # . . . . .
+ . # # . . . . . .
+```
+
+#### Le fjord — `fjord`
+*Ici, on apprend à vivre des deux rives : un bras de mer entre au cœur de l’île, et chaque rive a sa côte.*
+68 cases, 10 × 10.
+```
+ . . # # . . . . .
+. # # # # # # # .
+ . # # # # # # # .
+. . . . . # # # #
+ . . . # # R # # #
+# # # # H # # # #
+ # # # ~ # # # # .
+. # # R # # # # .
+ # # # # # # # . .
+. # # # # # # . .
+ . # # # # # . . .
+```
+
+#### Le grand lac — `lac`
+*Ici, on apprend à tourner autour d’un lac : une seconde mer au milieu, et des embouchures des deux côtés.*
+68 cases, 10 × 9.
+```
+. # # # # # # # .
+ # # # . . # # # .
+# # # . . . # # #
+ # # # . . R # # #
+# # # # H # # # #
+ # # # ~ # # # # .
+. # # R # # # # .
+ # # # # # # # . .
+. # # # # # # . .
+ . # # # # # . . .
+```
+
+#### La côte découpée — `anses`
+*Ici, on apprend à finir contre la mer : trois anses ferment les régions du bord, les caps reçoivent les rivières.*
+68 cases, 9 × 10.
+```
+ . # # # . . . .
+. # # # # # . . .
+ # # # # # . . .
+# # # # # # # # #
+ # # # # # R # #
+# # # # H # # # .
+ # # # ~ # # # #
+. # # R # # # # .
+ # # # # # . . .
+. # # # # # . . .
+ . # # # # # . .
+```
+
+#### La presqu’île — `presquile`
+*Ici, on apprend à tenir un col : la presqu’île est un plan à part, et trois cases la relient.*
+68 cases, 10 × 10.
+```
+ . . . # # # . . .
+. . . # # # # # .
+ . # . # # # # # .
+# # . # # # # # #
+ # # # # # R # # #
+# # # # H # # # #
+ # # # ~ # # # # .
+. # . R # # # # .
+ # # . # # # # . .
+. # . # # # # . .
+ . . . # # # . . .
+```
+
+#### Le delta — `delta`
+*Ici, on apprend à choisir une langue de terre : deux pointes, une mer entre elles, et rien ne passe de l’une à l’autre.*
+67 cases, 10 × 10.
+```
+. . # # # # # . . .
+ . # # # # # # # .
+. # # # # # # # # .
+ # # # # # # # # #
+. # # # # # R # # #
+ # # # # H # # # #
+# # # # . . # # # .
+ # # # R . . # # .
+. # # # . . . # . .
+ . # # . . . . . .
+. . # . . . . . . .
+```
+
+#### Le haricot — `haricot`
+*Ici, on apprend à jouer en longueur : deux lobes, un creux entre eux, et la mer qui suit la courbe.*
+67 cases, 8 × 11.
+```
+ . . . # # . .
+. . . # # # .
+ . # # # # # .
+. # # # # # #
+ # # # # # # #
+# # # # # # R
+ # # # # H # #
+. # # # # # #
+ . # # R ~ # .
+. # # # # # #
+ . # # # # # .
+. . # # # # .
+ . . # # # # .
+```
+
+#### La goutte — `goutte`
+*Ici, on apprend à finir une pointe : le bout fin se ferme vite, le bout large prend son temps.*
+67 cases, 9 × 11.
+```
+ . . # # # . . .
+. . . # # # . .
+ . . # # # # . .
+. . # # # # # .
+ . # # # # R . .
+. # # # H # # .
+ # # # ~ # # # .
+# # # R # # # #
+ # # # # # # # #
+. # # # # # # #
+ . # # # # # # .
+. . # # # # # .
+```
+
+#### L’île double — `double`
+*Ici, on apprend à partager : deux lobes inégaux, un col large entre deux baies, et chaque lobe a ses plans.*
+68 cases, 11 × 8.
+```
+. # # . . . . # # . .
+ # # # . . . # # # .
+# # # # # # # # # # .
+ # # # # # # R # # #
+. # # # # H # # # # #
+ # # # # ~ # # # # #
+. # # # R # # # # # .
+ . # # . . . # # # .
+. # # . . . . # # . .
+```
+
+#### La lagune — `lagune`
+*Ici, on apprend à garder une passe : la lagune est une mer calme, et une seule case la relie au large.*
+68 cases, 10 × 10.
+```
+ . . . # # # . . .
+. . . # # # # # .
+ . # . . # # # # .
+# # . . . # # # #
+ # # . . # R # # #
+# # # # H # # # #
+ # # # ~ # # # # .
+. # # R # # # # .
+ # # # # # # # . .
+. # # # # # # . .
+ . # # # # # . . .
+```
+
+### Croquis des étranges
+
+#### La spirale — `spirale`
+*Ici, on apprend à suivre un seul chemin : l’île s’enroule, et chaque région n’a qu’un sens pour grandir.*
+66 cases, 9 × 10.
+```
+ . . . # # . . .
+. . # # # # # # .
+ # # # # # # # #
+# # # # . . . # #
+ # # # . # # . .
+# # # . # # R # .
+ # # # # H # # .
+# # # # # # # # .
+ # # # R # # # .
+. # # # # # # . .
+ . . # # # # . .
+```
+
+#### Le labyrinthe — `labyrinthe`
+*Ici, on apprend à serpenter jusqu’au bout : les bras de mer se croisent, et l’île n’est qu’un couloir replié.*
+66 cases, 9 × 11.
+```
+. . . . . # # . .
+ . . . . . # # .
+. # # # # # # # .
+ # # # # # # # #
+# # # . . . . . .
+ # # # # # R # #
+. # # # H # # # #
+ . . . . . # # #
+. # # R # # # # .
+ # # # # # # # .
+. # # . . . . . .
+ . # # # # # . .
+. . # # # # . . .
+```
+
+#### Les jumelles — `jumelles`
+*Ici, on apprend à jouer deux fois la même île : deux jumelles en miroir, un gué, et deux plans qui se répondent.*
+65 cases, 7 × 13, 1 gué.
+```
+ . . # # . .
+. # # # # #
+ # # # # # .
+# # # # R #
+ # # H # # #
+. # # # # #
+ . R # # . .
+. . + . . .
+ . # # # . .
+. # # # # #
+ # # # # # #
+# # # # # #
+ # # # # # .
+. # # # # #
+ . . # # . .
+```
+
+#### Le trou de serrure — `serrure`
+*Ici, on apprend à contourner : le lac et sa fente coupent le sud en deux, tout passe par le nord.*
+66 cases, 10 × 10.
+```
+ . # # # # # . . .
+. # # # # # # # .
+ # # # . . # # # .
+# # # . . . # # #
+ # # # . . R # # #
+# # # # H . # # #
+ # # # # # . # # .
+. # # R # . # # .
+ # # # # # . # . .
+. # # # # . # . .
+ . # # # . . . . .
+```
+
+#### La comète — `comete`
+*Ici, on apprend à finir petit et loin : la tête est une île, chaque îlot de la queue un plan de sept cases.*
+66 cases, 8 × 17, 8 gués.
+```
+. . # # # # .
+ # # # # # # .
+# # # # # # #
+ # # # # R # #
+# # # H # # #
+ # # # # # # .
+. # R # # # .
+ . . + . . . .
+. . . + # . .
+ . . # # # . .
+. . . + # . .
+ . . + . . . .
+. . . + # . .
+ . . # # # . .
+. . . + # . .
+ . . + . . . .
+. . . + # . .
+ . . # # # . .
+. . . # # . .
+```
+
+#### La vrille — `vrille`
+*Ici, on apprend à ne jamais couper court : l’île ondule, et le chemin d’un bout à l’autre fait toute la courbe.*
+66 cases, 9 × 15.
+```
+. . . # # # # . .
+ . . . # # # # .
+. . . . # # # # .
+ . . . . # # # #
+. . . . . # # # #
+ . . . . # # # #
+. . . . # # # # .
+ . . # # # R . .
+. # # # H . . . .
+ # # # # . . . .
+# # # R . . . . .
+ # # # # . . . .
+. # # # # . . . .
+ . # # # # . . .
+. . # # # # # . .
+ . . . # # # . .
+. . . . # # . . .
+```
+
+#### L’île aux dix lacs — `percee`
+*Ici, on apprend à composer avec dix mers : chaque lac ferme ce qui le touche et reçoit une rivière.*
+66 cases, 10 × 10.
+```
+. . # # # # # . . .
+ . # # # . . # # .
+. # # . # # # # # .
+ # # . # # . . # #
+# . # # . # R # . #
+ # . # . H # # . #
+# # # # # . . # # .
+ # . . R # # # # #
+. # # # # . . # # .
+ . # . . # # # # .
+. . # # # # # . . .
+```
+
+#### L’ourlet — `ourlet`
+*Ici, on apprend à n’avoir que la côte : deux mers de chaque côté, et pas une case qui ne les touche.*
+66 cases, 12 × 11.
+```
+. . # # # # # # . . . .
+ . # # # # # # # # . .
+. # # # . . . . # # . .
+ # # # . . . . . H # .
+# # # . . . . . . # # .
+ # # . . . . . . . # #
+. # # . . . . . . # # #
+ . # R . . . . . . # #
+. . # # . . . . # # # .
+ . # # # # # # # # . .
+. . . # # # # # # . . .
+ . . . # # # # # . . .
+```
+
+#### Le peigne — `peigne`
+*Ici, on apprend à finir dent par dent : chaque dent est un couloir fermé par la mer, la barre les relie.*
+66 cases, 7 × 12.
+```
+ # # # . . .
+# # # # # #
+ # # . . . .
+# # # # # #
+ # # # # # #
+# # # . . .
+ # # # # R #
+# # # H # #
+ # # . . . .
+# # R # # #
+ # # # # # #
+# # # . . .
+ # # # # # #
+. # # # # #
+```
+
+#### L’atoll — `atoll`
+*Ici, on apprend à partir d’un îlot : sept cases au milieu d’une mer calme, un gué, et la couronne tout autour.*
+66 cases, 11 × 11, 2 gués.
+```
+ . # # # # # # . . .
+. # # # # # # # # . .
+ # # # . . + . # # .
+# # # . . + . . . # .
+ # # . . # R . . # #
+# # . . # H # . . # #
+ # # . . # # . . # #
+. # . . . . . . . # .
+ . # # . . . . # # .
+. # # # # # # # # . .
+ . . # # # # # # . .
+. . . . . # # . . . .
+```
+
+### Mesures
+
+Robot fort, **six hasards** par forme (trois ne suffisaient pas : d'un tirage à l'autre, ±10 %), graine de l'île, médianes,
+sur trois îles nues de la campagne : 7 (L'Île des Nuages, 60 cases), 14 (Le Verger de Pierre, 78), 24 (La Brume du Nord, 100 —
+ses quatre marais de départ restent). L'écart se lit contre l'île ronde de même graine ; pour l'anneau, l'ourlet et l'atoll,
+contre la ronde **au même départ déplacé** (`ronde@forme`). Les trente formes sont mesurées ensemble, pour une seule échelle.
+
+| île | forme | cases | poses | score | écart % | pts/pose | fermetures | faune % | grande région | rivières | embouchures | sentiers | harmonie | vœux | morceaux |
+| 7 | ronde | 60 | 54 | 465 | 0 | 8.5 | 26 | 35 | 8 | 1 | 0 | 5 | 2 | 0.33 | 1 |
+| 7 | ronde@anneau | 60 | 56 | 458 | 0 | 8.2 | 24 | 31 | 9.5 | 1 | 0 | 3 | 2 | 0.67 | 1 |
+| 7 | ronde@ourlet | 60 | 55.5 | 435 | 0 | 7.8 | 27 | 36 | 8 | 1 | 0 | 1 | 2 | 0.50 | 1 |
+| 7 | ronde@atoll | 60 | 55 | 444 | 0 | 8.1 | 25 | 34 | 7.5 | 1 | 1 | 4.5 | 2 | 0.33 | 1 |
+| 7 | archipel | 60 | 55 | 405 | -13 | 7.4 | 33 | 34 | 5 | 1 | 1 | 2.5 | 2 | 0.67 | 1 |
+| 7 | chapelet | 60 | 55 | 418 | -10 | 7.6 | 33 | 32 | 5.5 | 1 | 1 | 2 | 2 | 0.67 | 1 |
+| 7 | anneau | 60 | 55.5 | 366 | -20 | 6.6 | 32.5 | 38 | 5 | 2 | 2 | 1 | 2 | 0.50 | 1 |
+| 7 | croissant | 60 | 54 | 422 | -9 | 7.8 | 27.5 | 36 | 6 | 2 | 1 | 5 | 1.5 | 0.33 | 1 |
+| 7 | baies | 60 | 55 | 431 | -7 | 7.8 | 32 | 36 | 5.5 | 1 | 1 | 2.5 | 2 | 0.67 | 1 |
+| 7 | cote | 60 | 55 | 449 | -3 | 8.2 | 27 | 34 | 6.5 | 1.5 | 0.5 | 4.5 | 2 | 0.67 | 1 |
+| 7 | lagunes | 60 | 51 | 450 | -3 | 8.8 | 33 | 28 | 6.5 | 2.5 | 1 | 5 | 2 | 0.67 | 1 |
+| 7 | etoile | 60 | 55 | 474 | 2 | 8.6 | 30 | 34 | 6 | 1.5 | 0 | 5.5 | 2 | 0.67 | 1 |
+| 7 | crete | 60 | 50 | 381 | -18 | 7.6 | 25 | 25 | 10 | 1.5 | 1 | 6 | 2 | 0.67 | 1 |
+| 7 | plateau | 60 | 48 | 410 | -12 | 8.5 | 28.5 | 32 | 7 | 1 | 0 | 1.5 | 2 | 0.67 | 1 |
+| 7 | cuvette | 60 | 46.5 | 396 | -15 | 8.5 | 24.5 | 32 | 6 | 2 | 1 | 4.5 | 1 | 0.50 | 1 |
+| 7 | baie | 61 | 54.5 | 421 | -10 | 7.7 | 27.5 | 35 | 6 | 1.5 | 0.5 | 2.5 | 2 | 0.50 | 1 |
+| 7 | fjord | 60 | 55 | 434 | -7 | 7.9 | 31.5 | 35 | 5 | 1.5 | 1.5 | 3 | 2 | 0.67 | 1 |
+| 7 | lac | 60 | 55 | 437 | -6 | 7.9 | 30 | 35 | 5.5 | 1 | 1 | 3 | 2 | 0.67 | 1 |
+| 7 | anses | 61 | 54 | 417 | -10 | 7.7 | 29 | 34 | 7.5 | 1 | 0 | 4 | 2 | 0.33 | 1 |
+| 7 | presquile | 61 | 55 | 436 | -6 | 7.9 | 31 | 36 | 5 | 2 | 1.5 | 2.5 | 1.5 | 0.67 | 1 |
+| 7 | delta | 61 | 55 | 460 | -1 | 8.4 | 30 | 32 | 6.5 | 1.5 | 1 | 5.5 | 2 | 0.67 | 1 |
+| 7 | haricot | 60 | 55 | 481 | 3 | 8.8 | 28 | 35 | 7 | 1 | 0.5 | 5.5 | 2 | 0.67 | 1 |
+| 7 | goutte | 60 | 55 | 436 | -6 | 8.0 | 29 | 36 | 6.5 | 2 | 1 | 3 | 1.5 | 0.67 | 1 |
+| 7 | double | 61 | 54.5 | 427 | -8 | 7.8 | 27 | 34 | 6.5 | 1.5 | 1 | 4.5 | 1.5 | 0.50 | 1 |
+| 7 | lagune | 60 | 55 | 407 | -13 | 7.4 | 28.5 | 34 | 6 | 1 | 1 | 2.5 | 2 | 0.67 | 1 |
+| 7 | spirale | 60 | 55 | 419 | -10 | 7.6 | 35 | 39 | 5 | 1.5 | 1.5 | 4 | 2 | 0.67 | 1 |
+| 7 | labyrinthe | 60 | 55 | 377 | -19 | 6.9 | 32 | 32 | 5.5 | 1 | 1 | 2 | 2 | 0.67 | 1 |
+| 7 | jumelles | 59 | 55 | 421 | -9 | 7.7 | 31.5 | 37 | 4 | 1 | 1 | 2.5 | 2 | 0.67 | 1 |
+| 7 | serrure | 60 | 55 | 404 | -13 | 7.3 | 33 | 33 | 5 | 1 | 1 | 2.5 | 2 | 0.67 | 1 |
+| 7 | comete | 60 | 55 | 416 | -11 | 7.6 | 34.5 | 36 | 4.5 | 1 | 1 | 3.5 | 2 | 0.67 | 1 |
+| 7 | vrille | 60 | 54 | 343 | -26 | 6.4 | 32.5 | 33 | 5.5 | 2 | 1.5 | 1 | 2 | 0.33 | 1 |
+| 7 | percee | 60 | 55 | 368 | -21 | 6.7 | 35 | 34 | 4.5 | 1.5 | 1.5 | 1 | 2 | 0.67 | 1 |
+| 7 | ourlet | 60 | 55 | 350 | -20 | 6.4 | 34 | 37 | 3.5 | 0.5 | 0.5 | 0 | 2 | 0.33 | 1 |
+| 7 | peigne | 60 | 55 | 392 | -16 | 7.1 | 33 | 32 | 5 | 1.5 | 1 | 4 | 2 | 0.67 | 1 |
+| 7 | atoll | 60 | 55 | 327 | -26 | 5.9 | 38.5 | 35 | 3.5 | 1 | 1 | 1 | 2 | 0.33 | 1 |
+| 14 | ronde | 78 | 71 | 838 | 0 | 11.8 | 36 | 15 | 13.5 | 1 | 0 | 0 | 2 | 0.67 | 1 |
+| 14 | ronde@anneau | 78 | 73 | 928 | 0 | 12.8 | 43.5 | 16 | 14.5 | 1 | 0 | 0.5 | 3 | 1.00 | 1 |
+| 14 | ronde@ourlet | 78 | 73 | 883 | 0 | 12.2 | 39 | 16 | 13.5 | 1 | 0 | 0 | 2.5 | 1.00 | 1 |
+| 14 | ronde@atoll | 78 | 72 | 853 | 0 | 11.8 | 39.5 | 17 | 12.5 | 0.5 | 0 | 0 | 3 | 0.67 | 1 |
+| 14 | archipel | 79 | 72 | 933 | 11 | 13.0 | 56.5 | 16 | 9 | 0.5 | 0.5 | 1 | 2 | 1.00 | 1 |
+| 14 | chapelet | 79 | 72 | 923 | 10 | 12.8 | 50.5 | 15 | 9.5 | 2 | 0 | 0 | 2 | 1.00 | 1 |
+| 14 | anneau | 78 | 73 | 885 | -5 | 12.1 | 50.5 | 14 | 9.5 | 1 | 0.5 | 0 | 3 | 1.00 | 1 |
+| 14 | croissant | 79 | 71.5 | 812 | -3 | 11.3 | 41 | 15 | 12.5 | 1 | 0.5 | 1 | 3 | 0.83 | 1 |
+| 14 | baies | 79 | 72 | 906 | 8 | 12.6 | 51.5 | 14 | 9.5 | 1.5 | 0 | 0.5 | 2.5 | 1.00 | 1 |
+| 14 | cote | 78 | 72 | 918 | 9 | 12.8 | 46 | 15 | 11 | 1.5 | 0 | 0 | 3 | 1.00 | 1 |
+| 14 | lagunes | 78 | 67 | 932 | 11 | 13.9 | 47.5 | 15 | 18 | 1 | 0 | 0 | 2 | 1.00 | 1 |
+| 14 | etoile | 78 | 71.5 | 896 | 7 | 12.5 | 44.5 | 14 | 14.5 | 0 | 0 | 0 | 3 | 0.83 | 1 |
+| 14 | crete | 78 | 64 | 908 | 8 | 14.2 | 42.5 | 15 | 14.5 | 0 | 0 | 0 | 3 | 1.00 | 1 |
+| 14 | plateau | 78 | 64 | 812 | -3 | 12.7 | 38.5 | 14 | 11.5 | 0 | 0 | 0 | 3 | 0.67 | 1 |
+| 14 | cuvette | 78 | 61 | 747 | -11 | 12.1 | 37.5 | 12 | 11.5 | 0 | 0 | 0 | 3 | 0.67 | 1 |
+| 14 | baie | 78 | 72 | 933 | 11 | 13.0 | 44 | 16 | 13 | 1 | 0 | 0.5 | 3 | 1.00 | 1 |
+| 14 | fjord | 79 | 72 | 935 | 12 | 13.0 | 46.5 | 13 | 14 | 0 | 0 | 0.5 | 2.5 | 1.00 | 1 |
+| 14 | lac | 78 | 72 | 929 | 11 | 12.9 | 44.5 | 16 | 14 | 1 | 0 | 1 | 2 | 1.00 | 1 |
+| 14 | anses | 79 | 72 | 955 | 14 | 13.3 | 40.5 | 16 | 13 | 1 | 0 | 0 | 3 | 1.00 | 1 |
+| 14 | presquile | 79 | 71 | 855 | 2 | 12.0 | 46.5 | 13 | 13 | 2 | 0 | 0 | 3 | 0.67 | 1 |
+| 14 | delta | 78 | 72 | 948 | 13 | 13.2 | 45.5 | 18 | 11 | 1 | 0 | 0 | 3 | 1.00 | 1 |
+| 14 | haricot | 78 | 71 | 837 | 0 | 11.8 | 42.5 | 14 | 12.5 | 0.5 | 0 | 0 | 3 | 0.67 | 1 |
+| 14 | goutte | 78 | 71.5 | 878 | 5 | 12.3 | 41.5 | 13 | 12.5 | 1 | 0 | 0 | 3 | 0.83 | 1 |
+| 14 | double | 78 | 71.5 | 876 | 4 | 12.2 | 42.5 | 16 | 13.5 | 0.5 | 0 | 0 | 3 | 0.83 | 1 |
+| 14 | lagune | 79 | 71.5 | 898 | 7 | 12.6 | 44 | 16 | 15.5 | 1 | 0 | 0.5 | 3 | 0.83 | 1 |
+| 14 | spirale | 78 | 72 | 921 | 10 | 12.8 | 56 | 15 | 6.5 | 2 | 1 | 1 | 3 | 1.00 | 1 |
+| 14 | labyrinthe | 78 | 72 | 871 | 4 | 12.1 | 51.5 | 16 | 9.5 | 2 | 0.5 | 1 | 2 | 1.00 | 1 |
+| 14 | jumelles | 77 | 71.5 | 900 | 7 | 12.6 | 49 | 16 | 8.5 | 2 | 0 | 0 | 3 | 0.83 | 1 |
+| 14 | serrure | 78 | 72 | 981 | 17 | 13.6 | 47.5 | 16 | 15 | 1 | 0 | 1.5 | 2.5 | 1.00 | 1 |
+| 14 | comete | 78 | 71.5 | 861 | 3 | 12.0 | 50 | 13 | 10.5 | 1 | 0 | 0 | 3 | 0.83 | 1 |
+| 14 | vrille | 78 | 72 | 882 | 5 | 12.3 | 48 | 13 | 13.5 | 1 | 0 | 0 | 2 | 1.00 | 1 |
+| 14 | percee | 78 | 72 | 837 | 0 | 11.6 | 55 | 12 | 11.5 | 1 | 0.5 | 0.5 | 2.5 | 1.00 | 1 |
+| 14 | ourlet | 78 | 73 | 894 | 1 | 12.2 | 45.5 | 16 | 7.5 | 1.5 | 1 | 1 | 3 | 1.00 | 1 |
+| 14 | peigne | 78 | 71 | 777 | -7 | 10.9 | 48 | 14 | 11.5 | 1 | 0 | 0 | 3 | 0.67 | 1 |
+| 14 | atoll | 78 | 73 | 860 | 1 | 11.8 | 53.5 | 13 | 7 | 1.5 | 1 | 1 | 3 | 1.00 | 1 |
+| 24 | ronde | 100 | 84 | 1203 | 0 | 14.3 | 45 | 28 | 13 | 2.5 | 0.5 | 0 | 2 | 0.50 | 1 |
+| 24 | ronde@anneau | 100 | 91 | 1375 | 0 | 15.1 | 43 | 29 | 16.5 | 1.5 | 0 | 0 | 2.5 | 0.75 | 1 |
+| 24 | ronde@ourlet | 100 | 90.5 | 1305 | 0 | 14.4 | 48.5 | 26 | 12.5 | 2 | 0 | 0 | 2.5 | 0.63 | 1 |
+| 24 | ronde@atoll | 100 | 91 | 1367 | 0 | 15.1 | 44.5 | 30 | 16 | 1.5 | 0 | 0 | 2 | 0.75 | 1 |
+| 24 | archipel | 102 | 85 | 1230 | 2 | 14.4 | 46 | 29 | 11.5 | 2 | 0.5 | 1 | 2.5 | 0.75 | 1 |
+| 24 | chapelet | 102 | 85 | 1194 | -1 | 14.0 | 47.5 | 29 | 11.5 | 2.5 | 1 | 0 | 2.5 | 0.75 | 1 |
+| 24 | anneau | 101 | 90 | 1272 | -7 | 14.0 | 46.5 | 26 | 11.5 | 2 | 0.5 | 0 | 2.5 | 0.50 | 1 |
+| 24 | croissant | 101 | 84.5 | 1107 | -8 | 13.2 | 42 | 25 | 15.5 | 1.5 | 0 | 0 | 2 | 0.63 | 1 |
+| 24 | baies | 102 | 84.5 | 1177 | -2 | 13.9 | 45.5 | 26 | 15.5 | 2.5 | 0.5 | 0.5 | 3 | 0.63 | 1 |
+| 24 | cote | 100 | 84.5 | 1180 | -2 | 13.9 | 42 | 28 | 14.5 | 1.5 | 0 | 0 | 3 | 0.63 | 1 |
+| 24 | lagunes | 100 | 81 | 1436 | 19 | 17.7 | 55 | 27 | 14 | 2.5 | 0.5 | 0 | 3 | 0.75 | 1 |
+| 24 | etoile | 101 | 84.5 | 1171 | -3 | 13.9 | 47.5 | 28 | 10.5 | 2.5 | 0 | 0 | 3 | 0.63 | 1 |
+| 24 | crete | 100 | 77.5 | 1154 | -4 | 14.9 | 37 | 22 | 21 | 1 | 0.5 | 0.5 | 1.5 | 0.88 | 1 |
+| 24 | plateau | 100 | 78 | 1070 | -11 | 13.9 | 43.5 | 26 | 10.5 | 1.5 | 1 | 0 | 3 | 0.75 | 1 |
+| 24 | cuvette | 100 | 74.5 | 1067 | -11 | 14.3 | 45 | 25 | 11 | 2.5 | 1 | 0 | 2.5 | 0.63 | 1 |
+| 24 | baie | 102 | 85 | 1178 | -2 | 13.9 | 47 | 26 | 15.5 | 2.5 | 0 | 0 | 3 | 0.75 | 1 |
+| 24 | fjord | 102 | 85 | 1186 | -1 | 14.0 | 47.5 | 28 | 11.5 | 1.5 | 0 | 0 | 2.5 | 0.75 | 1 |
+| 24 | lac | 101 | 85 | 1159 | -4 | 13.7 | 48 | 28 | 13 | 2 | 1 | 1 | 2.5 | 0.75 | 1 |
+| 24 | anses | 102 | 85 | 1224 | 2 | 14.5 | 45 | 29 | 11.5 | 2 | 0.5 | 0 | 3 | 0.75 | 1 |
+| 24 | presquile | 102 | 84.5 | 1159 | -4 | 13.8 | 49 | 28 | 10 | 1.5 | 0 | 0 | 2.5 | 0.63 | 1 |
+| 24 | delta | 102 | 85 | 1184 | -2 | 13.9 | 46 | 27 | 14 | 2 | 0 | 0 | 2.5 | 0.75 | 1 |
+| 24 | haricot | 102 | 85 | 1149 | -4 | 13.4 | 43.5 | 27 | 12.5 | 2 | 0.5 | 0.5 | 2.5 | 0.75 | 1 |
+| 24 | goutte | 101 | 85 | 1143 | -5 | 13.4 | 39.5 | 26 | 14 | 2 | 0.5 | 0 | 2 | 0.75 | 1 |
+| 24 | double | 102 | 84.5 | 1139 | -5 | 13.6 | 47 | 28 | 12.5 | 2 | 0 | 0 | 2 | 0.63 | 1 |
+| 24 | lagune | 102 | 84.5 | 1120 | -7 | 13.3 | 49 | 26 | 14 | 2.5 | 1 | 0 | 2.5 | 0.63 | 1 |
+| 24 | spirale | 101 | 84.5 | 1062 | -12 | 12.6 | 51.5 | 27 | 9 | 1.5 | 0.5 | 0 | 2 | 0.63 | 1 |
+| 24 | labyrinthe | 100 | 85 | 1154 | -4 | 13.7 | 55.5 | 28 | 9.5 | 1 | 1 | 0 | 3 | 0.75 | 1 |
+| 24 | jumelles | 99 | 83.5 | 1102 | -8 | 13.1 | 49.5 | 29 | 8 | 2.5 | 0.5 | 0 | 3 | 0.38 | 1 |
+| 24 | serrure | 100 | 83.5 | 1057 | -12 | 12.7 | 47.5 | 26 | 13 | 3 | 2 | 0 | 3 | 0.38 | 1 |
+| 24 | comete | 100 | 84 | 1122 | -7 | 13.4 | 54.5 | 29 | 9.5 | 2 | 0.5 | 0 | 3 | 0.50 | 1 |
+| 24 | vrille | 102 | 84 | 1036 | -14 | 12.3 | 49 | 28 | 8.5 | 1.5 | 1 | 0 | 3 | 0.50 | 1 |
+| 24 | percee | 100 | 83.5 | 1103 | -8 | 13.1 | 55.5 | 34 | 7.5 | 1.5 | 1.5 | 0 | 3 | 0.38 | 1 |
+| 24 | ourlet | 100 | 90 | 1214 | -7 | 13.5 | 51.5 | 27 | 11 | 2 | 1 | 0.5 | 2 | 0.50 | 1 |
+| 24 | peigne | 101 | 84 | 1085 | -10 | 13.0 | 56.5 | 29 | 7 | 2 | 0.5 | 0.5 | 3 | 0.50 | 1 |
+| 24 | atoll | 100 | 89.5 | 1119 | -18 | 12.5 | 60 | 32 | 7.5 | 1 | 1 | 0 | 2.5 | 0.38 | 1 |
+| archipel | construite | -13 | +11 | +2 | 0.0 | aucune | à mesurer ✗ |
+| chapelet | construite | -10 | +10 | -1 | -0.3 | aucune | à mesurer ✗ |
+| anneau | construite | -20 | -5 | -7 | -10.7 | légère | à mesurer ✗ |
+| croissant | douce | -9 | -3 | -8 | -6.7 | légère | à mesurer ✗ |
+| baies | douce | -7 | +8 | -2 | -0.3 | aucune | à mesurer ✗ |
+| cote | douce | -3 | +9 | -2 | +1.3 | aucune | à mesurer ✗ |
+| lagunes | construite | -3 | +11 | +19 | +9.0 | légère | à mesurer ✗ |
+| etoile | construite | +2 | +7 | -3 | +2.0 | aucune | à mesurer ✗ |
+| crete | construite | -18 | +8 | -4 | -4.7 | aucune | à mesurer ✗ |
+| plateau | construite | -12 | -3 | -11 | -8.7 | légère | à mesurer ✗ |
+| cuvette | construite | -15 | -11 | -11 | -12.3 | légère | à mesurer ✗ |
+| baie | douce | -10 | +11 | -2 | -0.3 | aucune | à mesurer ✗ |
+| fjord | douce | -7 | +12 | -1 | +1.3 | aucune | à mesurer ✗ |
+| lac | douce | -6 | +11 | -4 | +0.3 | aucune | à mesurer ✗ |
+
+### Difficulté
+
+`difficulte` est la **moyenne** des trois écarts : `aucune` à ±5 %, `légère` jusqu'à 15 %, `forte` au-delà. C'est ce que
+`node tools/mesure_formes.js difficulte` recalcule et compare aux valeurs posées dans `FORMES`.
+
+| forme | famille | île 7 (60) | île 14 (78) | île 24 (100) | moyenne | `difficulte` |
+| --- | --- | --- | --- | --- | --- | --- |
+| archipel | construite | -13 | +11 | +2 | 0.0 | aucune |
+| chapelet | construite | -10 | +10 | -1 | -0.3 | aucune |
+| anneau | construite | -20 | -5 | -7 | -10.7 | légère |
+| croissant | douce | -9 | -3 | -8 | -6.7 | légère |
+| baies | douce | -7 | +8 | -2 | -0.3 | aucune |
+| cote | douce | -3 | +9 | -2 | +1.3 | aucune |
+| lagunes | construite | -3 | +11 | +19 | +9.0 | légère |
+| etoile | construite | +2 | +7 | -3 | +2.0 | aucune |
+| crete | construite | -18 | +8 | -4 | -4.7 | aucune |
+| plateau | construite | -12 | -3 | -11 | -8.7 | légère |
+| cuvette | construite | -15 | -11 | -11 | -12.3 | légère |
+| baie | douce | -10 | +11 | -2 | -0.3 | aucune |
+| fjord | douce | -7 | +12 | -1 | +1.3 | aucune |
+| lac | douce | -6 | +11 | -4 | +0.3 | aucune |
+| anses | douce | -10 | +14 | +2 | +2.0 | aucune |
+| presquile | douce | -6 | +2 | -4 | -2.7 | aucune |
+| delta | douce | -1 | +13 | -2 | +3.3 | aucune |
+| haricot | douce | +3 | 0 | -4 | -0.3 | aucune |
+| goutte | douce | -6 | +5 | -5 | -2.0 | aucune |
+| double | douce | -8 | +4 | -5 | -3.0 | aucune |
+| lagune | douce | -13 | +7 | -7 | -4.3 | aucune |
+| spirale | etrange | -10 | +10 | -12 | -4.0 | aucune |
+| labyrinthe | etrange | -19 | +4 | -4 | -6.3 | légère |
+| jumelles | etrange | -9 | +7 | -8 | -3.3 | aucune |
+| serrure | etrange | -13 | +17 | -12 | -2.7 | aucune |
+| comete | etrange | -11 | +3 | -7 | -5.0 | aucune |
+| vrille | etrange | -26 | +5 | -14 | -11.7 | légère |
+| percee | etrange | -21 | 0 | -8 | -9.7 | légère |
+| ourlet | etrange | -20 | +1 | -7 | -8.7 | légère |
+| peigne | etrange | -16 | -7 | -10 | -11.0 | légère |
+| atoll | etrange | -26 | +1 | -18 | -14.3 | légère |
+
+Ce qu'on lit :
+
+- **Les dix douces ne coûtent rien** : moyenne entre −4,3 % (la lagune) et +3,3 % (le delta), toutes `aucune`. Par taille,
+  l'étalement va de −13 à +14 % — mais c'est celui de la référence, pas des formes : sur l'île 14, la ronde est un tirage bas
+  (la longue côte, inchangée depuis le § 3, y fait +9 % ; l'archipel +11 %), sur l'île 7 un tirage haut (tout y est négatif).
+  Aucune douce n'est jamais sous −13 % sur une taille, et aucune n'est sous −7 % sur 100 cases.
+- **La structure change pourtant** : sur l'île 7, le fjord fait 31,5 fermetures pour 26 et ramène la plus grande région de 8 à 5
+  (le lac à 5,5, la presqu'île à 5) ; le fjord, le lac, la lagune et la presqu'île y donnent 1 à 1,5 rivière avec embouchure
+  contre 0 ; la presqu'île ramène la plus grande région de 13 à 10 sur l'île 24, le delta de 13,5 à 11 sur l'île 14. Les douces
+  changent le paysage, pas le score.
+- **Les étranges sont jouables** : la pire moyenne est l'atoll (−14 %), le pire cas la vrille sur 60 cases (−26 %) ; rien
+  n'approche les −40 % du piège. Quatre sont `aucune` (spirale, jumelles, serrure, comète), six `légère` (labyrinthe, vrille,
+  percée, ourlet, peigne, atoll). Les couloirs (vrille, peigne, labyrinthe) coûtent sur 60 cases (−16 à −26 %) et presque plus
+  rien sur 78 ; l'atoll fait 60 fermetures pour 45 sur l'île 24 et une plus grande région de 7,5 pour 13 — le plus tranché.
+- **Les dix premières, remesurées à six hasards** : archipel, chapelet, étoile, crête `aucune` ; anneau, lagunes (une rente :
+  +19 % sur 100 cases), plateau, cuvette, croissant `légère`. La crête à −18 % sur 60 cases et +8 % sur 78 illustre la même
+  chose que plus haut : sur 60 cases, tout ce qui coupe coûte.
+
+### Où iraient les douces dans la campagne
+
+Parmi les îles générées qui n'ont pas encore de forme (4, 7, 10, 11, 13, 19, 22, 23, 24, 25, 26, 27, 29) :
+
+| Forme | Île | Pourquoi là |
+|---|---|---|
+| **La goutte** | **4 — Le Hameau du Vœu** (50 cases, chapitre 2, la première île générée) | Une silhouette simple et jolie pour la première île qui n'est pas dessinée à la main ; le bout fin se ferme vite, ce que le vœu de lapin (3 prés) aime. Mesurée sur 50 cases dans le test (compte, tenue). |
+| **La lagune** | **7 — L'Île des Nuages** (60, chapitre 3, vœu d'embouchure `c_mouth`) | La passe d'une case est une embouchure toute trouvée : une roche sur la rive, deux eaux, et la rivière touche la mer calme. |
+| **La presqu'île** | **11 — Le Val Bâti** (66, chapitre 4, bâtir vient d'arriver) | Un plan à part, relié par trois cases : la presqu'île est le bon endroit pour bâtir un bourg sans qu'il se mêle au reste. |
+| **La baie** | **13 — La Côte Ocre** (72, chapitre 5, chaud, vœu de canard) | La côte ocre a enfin une baie, avec du sable ×2,2 pour ses plages ; les trois eaux du canard tiennent au fond de la baie. |
+| **Le fjord** | **19 — La Pinède Blanche** (82, chapitre 7, froid) | Un bras de mer dans une île froide, deux rives de forêt : la plus grande région tombe (le vœu de grande forêt `c_forest` devient un vrai choix de rive). |
+| **La côte découpée** | **22 — La Côte des Sels** (90, chapitre 8, chaud, signature « Les dunes ») | Trois anses de sable et d'eau : la signature promet « des lagunes à faire », les anses les dessinent d'avance. |
+| **Le delta** | **24 — La Brume du Nord** (100, chapitre 8, humide, signature « Le sud est un marais », vœu de rivière) | Le marais barre le sud, le delta entre par le nord (`sansDepart` l'y met : le sud est plein de départs) : deux langues de terre, une rivière par langue. |
+| **Le grand lac** | **25 — La Grande Plaine** (104, chapitre 9, tempéré, vœu de lac `c_lake`) | Une plaine autour d'un lac de neuf cases qui reste la mer : les champs ouverts ont une rive, et le vœu de lac se joue à côté, pas dedans. |
+| **Le haricot** | **26 — Le Bois Long** (120, chapitre 9, froid, signature « La forêt profonde ») | Le bois est enfin long : l'île étirée à 1,35 se creuse sur un flanc, la forêt suit la courbe. Elle tient en portrait (8 × 11 sur 66 cases). |
+| **L'île double** | **27 — Le Grand Verger** (140, chapitre 9, chaud, « Le pays des vergers ») | Deux lobes inégaux, deux vergers ; le col large laisse passer les bourgs. |
+
+Les îles 10, 23 et 29 restent rondes (ou prennent une forme construite : la crête sur 23 — Le Col Gelé — est déjà proposée au
+§ 4). Après branchement : `node tools/calibrate.js 4 <île> --write` pour chaque île touchée, le compte de cases bougeant d'une
+ou deux cases (`islandCells` suit la forme).
+
+### Pour le mode « une île différente à chaque partie »
+
+Les trente formes se tirent par famille : les douces et les construites `aucune` sont des tirages sûrs à toute taille ; les
+`légère` valent mieux à partir de 78 cases (le tableau montre où elles coûtent : sur 60). L'ourlet et l'atoll veulent leur
+`depart` (`FORMES[f].depart` remplace `def.start`) ; l'anneau aussi. Les formes à tuiles de départ (crête, plateau, cuvette)
+passent par `departsDeForme`. Les formes étirées (`etire`) le disent elles-mêmes : rien à faire dans la définition.
+
+### Ce que je n'ai pas pu faire
+
+- **Tenir ±5 % par taille** : le bruit du robot est de ±10 % d'un tirage à l'autre, et la référence elle-même bouge d'autant
+  d'une île à l'autre (île 14 basse, île 7 haute). Le critère tenu est la moyenne des trois tailles ; les écarts par taille
+  sont dans le tableau, à lire avec cette réserve. Douze hasards resserreraient à ±5 %, au prix d'une mesure de vingt minutes.
+- **Le rendu** : aucune des vingt formes n'a été dessinée en jeu (`tools/capture_partie.js` demande une définition branchée).
+  Les bras d'une rangée (fjord au fond, fente de la serrure, passe de la lagune, bras du labyrinthe) et les gués d'une case
+  (jumelles, comète, atoll) sont ce que le littoral n'a jamais rencontré — même réserve qu'au § 5.
+- **La spirale sur 60 cases** n'est qu'un tour et demi : le bras de trois cases (à 2,4, le robot perdait 45 %) laisse peu de
+  place pour s'enrouler. Elle se lit à partir de 78 cases.
+- **L'ourlet au-delà de 105 cases** fait quatre d'épaisseur (trois y mettrait le départ dans le lac) : ce n'est plus « très fin ».
+  Le mode, à 60-100 cases, n'y touche pas.
+- **Les dix lacs** : dix à partir de 66 cases, neuf sur 60, six sur 50 (l'île pousse de vingt cases avant de creuser, mais
+  l'intérieur d'une île de 70 cases ne loge pas dix paires espacées). Le test demande six.
