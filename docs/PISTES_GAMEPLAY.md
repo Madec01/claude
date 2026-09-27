@@ -92,6 +92,16 @@ Montage commun, calqué sur Le Souffle court et Sous la brume : une définition 
 
 **Le prototype le moins cher.** Une heure, sans interface : un script Node qui fait jouer le robot fort avec trois politiques (« tourner au plancher », « tourner au plafond », « tourner quand une menace de `menaces()` touche une tuile posée ou que la prime jumelle dépasse un seuil ») sur dix graines ; si l'écart entre la meilleure et la pire politique est sous 10 % du score, on abandonne. Puis, pour le ressenti : le mode test a déjà `F3` (saison suivante) ; une Île du jour jouée en mode test avec `seasonLength` forcé à 99, c'est le mode entier à la main, sans une ligne de code d'interface.
 
+**Premier prototype mesuré (27 septembre, script Node hors dépôt, robot fort, trois hasards, trois îles).** Trois politiques de longueur de saison appliquées saison après saison, contre la campagne (longueur de l'île) :
+
+| Île | Campagne | Courte (4 poses) | Longue (10 poses) | « Menace » (longue sauf si la saison annoncée menace ≥ 2 cases) |
+|---|---|---|---|---|
+| 7 | 468 (6 saisons) | **673** (13,3) | 429 (5) | 429 (5) |
+| 11 | 655 (6) | **993** (15) | 604 (5,3) | 622 (5,7) |
+| 19 | 860 (7) | **1377** (18) | 860 (7) | 879 (7,3) |
+
+Lecture : tourner la saison le plus vite possible rapporte +45 à +60 %, parce que chaque passage paie ses rentes (faune, niveau 3, fusions, primes de saison). Un mode où l'on choisit *quand* la saison tourne est donc **dominé** par « tout de suite » — sauf si le nombre de passages est fixé (quatre saisons, on choisit seulement où tombent les frontières) ou si chaque passage coûte (des souffles, une tuile). La politique « menace » ne bat la campagne que de 0 à 3 % : protéger ses cases vaut moins qu'un passage de plus. C'est la conclusion du document (« sur le nombre de passages »), désormais chiffrée : le mode ne tient qu'avec un nombre de saisons fixé.
+
 ### 4.2 « La Traversée » — cinq petites îles, une main qui se transmet
 
 **Le fantasme.** « Un sac de tuiles, cinq îles, et ce que je n'ai pas posé me suit. »
