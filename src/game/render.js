@@ -739,8 +739,12 @@ export class IslandRenderer {
       // voisines, à deux cases à la ronde (tout ce qui peint dans la zone effacée : langues de sol, ourlets, arbres
       // qui dépassent). Mesuré le 27 septembre : 40 à 80 ms pour repeindre l'île entière, quelques ms pour une
       // retouche. Une tuile retirée, une région payée, la brume ou une règle qui change : on repeint tout.
-      const sigs = this.signaturesTuiles(); const extraCle = `${this.noLens ? 1 : 0}|${nu}|${W}x${H}@${STAGE.dpr}|${extra}|${this.signatureHorsTuiles()}`;
-      const delta = S0 && cv === S0.canvas && S0.sigs && !S0.manque && S0.extraCle === extraCle && this.memeCamera(S0.E, E1) ? this.deltaTuiles(S0.sigs, sigs) : null;
+      const sigs = this.signaturesTuiles(); const sigsD = this.signaturesDecor(); const extraCle = `${this.noLens ? 1 : 0}|${nu}|${W}x${H}@${STAGE.dpr}|${extra}|${this.signatureHorsTuiles()}`;
+      // le décor est composé par région (massifs de roche, cours et ruelles des bourgs) : une tuile qui rejoint une région
+      // déplace des objets sur d'autres cases — elles aussi sont à retoucher (le commanditaire : « les roches et les
+      // hameaux apparaissent à la fin, d'un coup, ou pas »)
+      let delta = S0 && cv === S0.canvas && S0.sigs && !S0.manque && S0.extraCle === extraCle && this.memeCamera(S0.E, E1) ? this.deltaTuiles(S0.sigs, sigs) : null;
+      if (delta) { const dd = this.deltaDecor(S0.sigsD || new Map(), sigsD); if (!dd) delta = null; else { for (const k of dd) if (!delta.includes(k)) delta.push(k); if (delta.length > 14) delta = null; } }
       this._solsManque = false;
       c2.setTransform(dpr, 0, 0, dpr, M * dpr, M * dpr);
       this._stats = this._stats || { retouches: 0, repeints: 0, raisons: {} };
@@ -756,7 +760,7 @@ export class IslandRenderer {
         c2.setTransform(1, 0, 0, 1, 0, 0); c2.clearRect(0, 0, w, h); c2.setTransform(dpr, 0, 0, dpr, M * dpr, M * dpr);
         this.avecCamera(E1, () => { this._saison = saison; try { dessin(c2, null); } finally { this._saison = null; } });
       }
-      const S = { canvas: cv, cle: `${saison}|${base}`, manque: this._solsManque, mobile: !!bouge, E: E1, sigs, extraCle, ...this.vue(E1) };
+      const S = { canvas: cv, cle: `${saison}|${base}`, manque: this._solsManque, mobile: !!bouge, E: E1, sigs, sigsD, extraCle, ...this.vue(E1) };
       G.set(saison, S); this._gardeFaite = true;
       return S;
     };
@@ -835,6 +839,23 @@ export class IslandRenderer {
     if (this._sigsT && this._sigsT.v === b.version) return this._sigsT.m;
     const m = new Map(); for (const [k, t] of b.tiles) m.set(k, this.sigTuile(t));
     this._sigsT = { v: b.version, m }; return m;
+  }
+  /** Les signatures du décor, case par case (objets et cours), calculées une fois par version du décor ; « _ » : sans case. */
+  signaturesDecor() {
+    const d = this.decor; const v = `${d.version}|${(d.objects || []).length}|${(d.courts || []).length}`;
+    if (this._sigsD && this._sigsD.v === v) return this._sigsD.m;
+    const m = new Map(); const ajoute = (k, s) => m.set(k, (m.get(k) || '') + s + ';');
+    for (const o of d.objects || []) ajoute(o.cell || '_', `${o.tpl || (o.tile && o.tile.family) || ''}@${Math.round(o.x)},${Math.round(o.y)}*${o.scale || 1}${o.flip ? 'f' : ''}${o.alpha != null ? o.alpha : ''}`);
+    for (const c of d.courts || []) ajoute(c.cell || '_', `cour@${Math.round(c.x)},${Math.round(c.y)}r${Math.round(c.r)}`);
+    this._sigsD = { v, m }; return m;
+  }
+  /** Les cases dont le décor a changé, dans un sens ou dans l'autre ; null si le décor sans case a changé (on repeint tout). */
+  deltaDecor(avant, apres) {
+    if ((avant.get('_') || '') !== (apres.get('_') || '')) return null;
+    const delta = [];
+    for (const [k, s] of apres) if (k !== '_' && avant.get(k) !== s) delta.push(k);
+    for (const k of avant.keys()) if (k !== '_' && !apres.has(k)) delta.push(k);
+    return delta;
   }
   /** Ce qui, hors les tuiles, change la peinture des couches : le masque, la brume, la règle, les régions payées. */
   signatureHorsTuiles() { const b = this.isl.board; return `${b.mask.size}|${b.fog.size}|${b._rule || ''}|${b.closedRegions ? b.closedRegions.size : 0}`; }
@@ -1237,8 +1258,9 @@ export class IslandRenderer {
     const courts = this.decor.courts; if (!courts || !courts.length) return;
     const cam = this.cam, z = cam.zoom;
     ctx.save();
+    const seul = this._seulement || null;
     for (const c of courts) {
-      if (dropping.has(c.cell)) continue;
+      if (dropping.has(c.cell) || (seul && !seul.has(c.cell))) continue;
       const p = cam.toScreen(c.x, c.y); const rr = c.r * z;
       // dans l'image gardée, la marge autour de l'écran compte aussi
       if (vis ? !vis(p, rr + SOLS_MARGE) : (p.x + rr < 0 || p.x - rr > STAGE.W || p.y + rr < 0 || p.y - rr > STAGE.H)) continue;
