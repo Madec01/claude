@@ -160,6 +160,9 @@ KAY_MODELS = {
     "herbe1": "forest/Color1/Grass_2_C_Color1",
     "herbe2": "forest/Color1/Grass_2_D_Color1",
     "touffe": "forest/Color1/Grass_1_C_Color1",
+    # la troisième famille d'herbe : la touffe large et étalée (Grass_1_D), qui remplace le vieux sprite plat
+    # Kenney `obj_bushGrass` dans les prés (feuille de route : « sa silhouette en flamme paraît plate »)
+    "touffe2": "forest/Color1/Grass_1_D_Color1",
     # --- pack EXTRA : les deux dalles hexagonales. Elles se rendent à la VERTICALE (voir KAY_VIEWS) :
     # nos tuiles sont des hexagones réguliers vus de dessus (240 × 280), pas des dalles en perspective.
     "ble": "extra/buildings/neutral/building_grain",
@@ -1266,6 +1269,11 @@ class Builder:
                  f"Herbe haute, touffe large ({season}) : prés.", target_h=42)
             kobj(f"obj_grassClump_{season}", "touffe", season, None, "reed",
                  f"Touffe à feuilles larges ({season}) : landes.", target_h=26)
+            # Le vieux sprite plat `obj_bushGrass` (Kenney) dominait encore les prés : 65 poses par île, une
+            # silhouette en flamme sans volume à côté des herbes hautes. La touffe large du pack Forest
+            # (Grass_1_D) le remplace partout où il était vert ; la version sèche (sable, canicule) reste.
+            kobj(f"obj_grassClump2_{season}", "touffe2", season, None, "reed",
+                 f"Touffe large et étalée ({season}) : prés, bords de sentier, pieds de colline.", target_h=32)
         for season in SEASONS:
             kobj(f"obj_treeRound_fruit_{season}", f"pommier_{season}", season, None, "static",
                  f"Fruitier ({season}) : feuillu du pack Forest dans sa palette de saison, fruits dessinés en été et en automne.",
@@ -1673,9 +1681,26 @@ class Builder:
 
     # --- sorties
     def finish(self):
+        # Les images posées à la main par le commanditaire (insignes d'archétype, chapitres, tampons, succès :
+        # source « ia-generee ») ne sortent pas du pipeline : leurs entrées sont reprises du manifeste précédent
+        # et leurs fichiers ne sont jamais purgés. Mesuré le 27 septembre : sans cela, une fabrication complète
+        # effaçait 63 images et leur crédit. La purge ne retire que ce que le pipeline a produit un jour et ne
+        # produit plus, ou l'ancien format d'une image produite (le PNG quand le WebP l'a remplacée).
+        anciens = {}
+        for nom in ("provenance.json", "manifest.json"):
+            chemin = self.img_root / nom
+            if chemin.exists():
+                anciens = json.loads(chemin.read_text(encoding="utf-8")).get("images", {})
+                break
+        for key, e in anciens.items():
+            if key not in self.manifest and e.get("source") == "ia-generee" and (self.img_root / e["file"]).exists():
+                self.manifest[key] = e
         produced = {self.img_root / v["file"] for v in self.manifest.values()}
+        anciens_fichiers = {self.img_root / e["file"] for e in anciens.values()}
+        souches = {q.with_suffix("") for q in produced}
         for p in self.img_root.rglob("*"):
-            if p.is_file() and p not in produced and p.name not in ("manifest.json", "provenance.json"):
+            if p.is_file() and p not in produced and p.name not in ("manifest.json", "provenance.json") \
+                    and (p in anciens_fichiers or p.with_suffix("") in souches):
                 p.unlink()
         for p in sorted(self.img_root.rglob("*"), reverse=True):
             if p.is_dir() and not any(p.iterdir()):
@@ -1747,10 +1772,25 @@ class Builder:
                     "note": "modèles glTF rendus de profil en bandes d'images par tools/render_animals.js (élévation 30°, azimut −30°)",
                     "files": sorted(f"{m}.glb — {prov['models'][m]['source']}" for m in sorted(mods)),
                 })
-        fonts_credits_path = self.repo / "assets" / "credits" / "fonts.json"
+        cred_dir = self.repo / "assets" / "credits"
+        fonts_credits_path = cred_dir / "fonts.json"
         if fonts_credits_path.exists():
             credits.extend(json.loads(fonts_credits_path.read_text(encoding="utf-8")))
-        cred_dir = self.repo / "assets" / "credits"
+        # Les crédits que le pipeline ne sait pas produire (images « Généré par IA », icône et écran de chargement,
+        # animation d'ouverture) sont repris du fichier précédent, dans son ordre, tant que leurs fichiers sont là.
+        ancien_credits = cred_dir / "images.json"
+        if ancien_credits.exists():
+            deja = {c.get("pack") for c in credits}
+            for c in json.loads(ancien_credits.read_text(encoding="utf-8")):
+                fichiers = c.get("files") or []
+                if c.get("pack") in deja or not fichiers:
+                    continue
+                # les fichiers y sont cités depuis assets/img, assets/ ou la racine, parfois annotés (« video/intro.webm (VP9 + Opus) »)
+                def present(f):
+                    f = f.split(" (")[0].split(" — ")[0].strip()
+                    return any((base / f).exists() for base in (self.img_root, self.repo / "assets", self.repo))
+                if any(present(f) for f in fichiers):
+                    credits.append(c)
         cred_dir.mkdir(parents=True, exist_ok=True)
         (cred_dir / "images.json").write_text(json.dumps(credits, ensure_ascii=False, indent=1), encoding="utf-8")
         by_folder = {}
@@ -1758,8 +1798,8 @@ class Builder:
             f = v["file"].split("/")[0]
             by_folder.setdefault(f, [0, 0])
             by_folder[f][0] += 1
-            by_folder[f][1] += v["bytes"]
-        total = sum(v["bytes"] for v in self.manifest.values())
+            by_folder[f][1] += v.get("bytes", 0)
+        total = sum(v.get("bytes", 0) for v in self.manifest.values())
         for f, (n, b) in sorted(by_folder.items()):
             print(f"{f:8s} {n:4d} images  {b / 1024:8.1f} Ko")
         print(f"TOTAL    {len(self.manifest):4d} images  {total / 1024:8.1f} Ko")
@@ -1790,7 +1830,12 @@ def webp_pass(img_root: Path) -> None:
     """Convertit en WebP les dossiers de WEBP_FOLDERS et écrit deux manifestes : manifest.json (léger, ce que le
     jeu lit) et provenance.json (tout, sources et notes comprises). Rejouable : ne touche que ce qui est encore en PNG."""
     full_path = img_root / "provenance.json"
-    doc = json.loads((full_path if full_path.exists() else img_root / "manifest.json").read_text(encoding="utf-8"))
+    mdoc = json.loads((img_root / "manifest.json").read_text(encoding="utf-8"))
+    # Après une fabrication complète, manifest.json vient d'être écrit entier par finish() : c'est lui qu'on lit.
+    # Seul (--webp), il est déjà allégé et c'est provenance.json qui porte tout. (Lire provenance.json après une
+    # fabrication complète, c'était lire l'ancien manifeste : « WebP : 0 images », mesuré le 27 septembre.)
+    allege = str(mdoc.get("note", "")).startswith("manifeste allégé")
+    doc = json.loads(full_path.read_text(encoding="utf-8")) if allege and full_path.exists() else mdoc
     images = doc["images"]
     avant = apres = n = 0
     for key, e in images.items():
