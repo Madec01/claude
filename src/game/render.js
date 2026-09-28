@@ -1,7 +1,7 @@
 // Rendu d'une île : mer, cases vides, tuiles par saison, survol et prévisualisation, faune, effets.
 import { Assets } from '../core/assets.js';
 import { toWorld, corners, parse, key, DIRS, edgeMid, TILE_W, TILE_H, SIZE } from './hex.js';
-import { FAMILY_COLORS, SEASONS } from '../data/tiles.js';
+import { FAMILY_COLORS, SEASONS, MER } from '../data/tiles.js';
 import { STORY } from '../data/story.js';
 import { FAUNA_SIZE, FAUNA_PERCHED } from './fauna.js';
 import { clamp, lerp, TAU, easeOutCubic, rnd } from '../core/math.js';
@@ -277,8 +277,9 @@ export class IslandRenderer {
     const cx = n ? sx / n : 0, cy = n ? sy / n : 0; let R = SIZE; for (const w of pts) R = Math.max(R, Math.hypot(w.x - cx, w.y - cy) + SIZE);
     const segs = [];
     for (const k of mask) {
+      if (b.detroit.has(k)) continue;   // Livre II : le détroit est le large, pas une côte — pas d'écume autour, ni entre les deux îles
       const [q, r] = parse(k); const w = toWorld(q, r); const c = corners(w.x, w.y, SIZE * 1.08);
-      for (let i = 0; i < 6; i++) { const [dq, dr] = DIRS[EDGE_DIR[i]]; if (mask.has(key(q + dq, r + dr))) continue; const a = c[i], d = c[(i + 1) % 6]; segs.push([a[0], a[1], d[0], d[1]]); }   // arêtes de côte (à 1,08 rayon : l'écume lèche le pied des tuiles sans se confondre avec leur bord)
+      for (let i = 0; i < 6; i++) { const [dq, dr] = DIRS[EDGE_DIR[i]]; const nk = key(q + dq, r + dr); if (mask.has(nk) && !b.detroit.has(nk)) continue; const a = c[i], d = c[(i + 1) % 6]; segs.push([a[0], a[1], d[0], d[1]]); }   // arêtes de côte (à 1,08 rayon : l'écume lèche le pied des tuiles sans se confondre avec leur bord)
     }
     // vagues : les deux tiers longent la côte (depuis une arête, poussées vers le large), le reste peuple le large
     const count = STAGE.compact ? 34 : 60; const waves = [];
@@ -495,17 +496,17 @@ export class IslandRenderer {
     const cur = this.isl.current; const sig = `${b.version}|${b.tiles.size}|${b.fog.size}|${b.mask.size}|${b.detroit.size && cur ? cur.family : ''}`;
     if (!this._vides || this._vides.sig !== sig) {
       const legal = new Set(b.legalCells(b.detroit.size ? cur : null).map((c) => key(c.q, c.r)));
-      const jouables = new Path2D(), autres = new Path2D();
+      const jouables = new Path2D(), autres = new Path2D(), detroit = new Path2D();
       for (const k of b.mask) {
         if (b.tiles.has(k) || b.fog.has(k)) continue;   // la brume a son propre dessin (drawBrume)
         if (b.detroit.has(k) && !legal.has(k)) continue;   // Livre II : le détroit est la mer, pas une case vide — sauf quand la tuile en main peut s'y poser
-        const [q, r] = parse(k); const w = toWorld(q, r); const pts = corners(w.x, w.y, SIZE * 0.96);
-        const p = legal.has(k) ? jouables : autres;
+        const [q, r] = parse(k); const w = toWorld(q, r); const pts = corners(w.x, w.y, SIZE * (b.detroit.has(k) ? 0.9 : 0.96));
+        const p = b.detroit.has(k) ? detroit : legal.has(k) ? jouables : autres;   // sur la mer, un simple pointillé : la mer reste la mer
         p.moveTo(pts[0][0], pts[0][1]); for (let i = 1; i < 6; i++) p.lineTo(pts[i][0], pts[i][1]); p.closePath();
       }
-      this._vides = { sig, jouables, autres };
+      this._vides = { sig, jouables, autres, detroit };
     }
-    const { jouables, autres } = this._vides, z = cam.z;
+    const { jouables, autres, detroit } = this._vides, z = cam.z;
     ctx.save(); this.ecranSpace(ctx);
     if (this.finale || nu > 0) { ctx.fillStyle = `rgba(244,239,230,${(0.14 * (1 - nu)).toFixed(3)})`; ctx.fill(jouables); ctx.fill(autres); ctx.restore(); return; }
     // les épaisseurs et les pointillés sont en pixels d'écran : on les ramène au repère monde
@@ -513,6 +514,7 @@ export class IslandRenderer {
     ctx.strokeStyle = 'rgba(255,255,255,0.35)'; ctx.lineWidth = 1 / z; ctx.setLineDash([4 / z, 6 / z]); ctx.stroke(autres);
     ctx.fillStyle = 'rgba(244,239,230,0.55)'; ctx.fill(jouables);
     ctx.strokeStyle = 'rgba(255,255,255,0.8)'; ctx.lineWidth = 1.5 / z; ctx.setLineDash([]); ctx.stroke(jouables);
+    ctx.strokeStyle = 'rgba(255,255,255,0.55)'; ctx.lineWidth = 1.2 / z; ctx.setLineDash([5 / z, 7 / z]); ctx.stroke(detroit);   // Livre II : la tuile de mer en main peut aller là
     ctx.restore();
   }
 
@@ -522,7 +524,8 @@ export class IslandRenderer {
     const z = this.cam.zoom * scale;
     if (!img) { const pts = corners(cx, cy, SIZE * z); ctx.save(); ctx.globalAlpha = alpha; ctx.fillStyle = FAMILY_COLORS[t.family] || '#999'; ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]); for (let i = 1; i < 6; i++) ctx.lineTo(pts[i][0], pts[i][1]); ctx.closePath(); ctx.fill(); ctx.restore(); return; }
     const w = TILE_W * z, h = TILE_H * z;
-    ctx.save(); ctx.globalAlpha = alpha;
+    // une tuile de mer en vol ou en aperçu se voit à travers : posée, elle n'aura pas d'hexagone, seulement un haut-fond
+    ctx.save(); ctx.globalAlpha = MER.has(t.family) ? alpha * 0.5 : alpha;
     ctx.drawImage(img, cx - w / 2, cy - h / 2, w, h);
     ctx.restore();
   }
@@ -966,10 +969,10 @@ export class IslandRenderer {
   drawObjets(ctx, dropping, anses, vis, images) {
     const cam = this.cam, z = cam.zoom;
     const rule = this.isl.rule || null, wkey = this.weather || null;
-    const seul = this._seulement || null;
+    const seul = this._seulement || null; const pures = this.ansesPures();
     for (const o of this.decor.objects) {
       if (seul && o.cell && !seul.has(o.cell)) continue;   // retouche d'une image gardée (voir drawGarde)
-      if (anses.has(o.cell)) continue;   // une anse est de la mer : ni nénuphar ni roseau
+      if (pures.has(o.cell)) continue;   // une anse est de la mer : ni nénuphar ni roseau (la mer posée, elle, garde ses vagues et ses rochers)
       const c = cam.toScreen(o.x, o.y); if (!vis(c)) continue;
       const d = dropping.get(o.cell); const season = this.seasonFor(o.x);
       if (o.seasons && !o.seasons.includes(season)) continue;
@@ -1005,6 +1008,7 @@ export class IslandRenderer {
     this.decor.sync(b);
     const tiles = [...b.tiles.values()];
     const vis = (c, m = 170) => !(c.x < -m || c.x > STAGE.W + m || c.y < -m || c.y > STAGE.H + m);
+    this.drawHautsFonds(ctx, tiles, vis);
     // L'ombre portée de l'île : celle du trait de côte, pas une ombre d'hexagone par tuile. Les
     // ombres hexagonales dépassaient dans la mer partout où la côte érodée recule sur la tuile, et
     // leurs arêtes droites redessinaient la grille sous l'eau (mesuré : c'était la dernière arête
@@ -1417,10 +1421,39 @@ export class IslandRenderer {
   anses() {
     const b = this.isl.board; const ver = `${b.mask.size}:${b.tiles.size}:${b.version}`;
     if (this._anses && this._anses.ver === ver) return this._anses.cells;
-    const cells = new Set();
-    for (const body of waterBodies(b)) if (body.kind !== 'river' && body.mouth) for (const c of body.cells) cells.add(key(c.q, c.r));
-    this._anses = { ver, cells };
+    const pures = new Set();
+    for (const body of waterBodies(b)) if (body.kind !== 'river' && body.mouth) for (const c of body.cells) pures.add(key(c.q, c.r));
+    // Livre II : une tuile de mer posée (mer, récif, algues) est rendue comme une anse — la côte la contourne, elle n'a
+    // ni sol, ni rive, ni écume ; la mer du large reste la mer, de la même couleur, et seuls ses objets (vagues,
+    // rochers, algues) disent qu'on a construit là. Elle garde ses objets, une anse vraie n'en a pas (`ansesPures`).
+    const cells = new Set(pures);
+    for (const [k, t] of b.tiles) if (MER.has(t.family)) cells.add(k);
+    this._anses = { ver, cells, pures };
     return cells;
+  }
+  /** Les anses seules, sans la mer posée : ce sont elles qui n'ont ni nénuphar ni roseau. */
+  ansesPures() { this.anses(); return this._anses.pures; }
+
+  /**
+   * Livre II — le haut-fond de la mer posée. Une tuile de mer, de récif ou d'algues ne repeint pas la mer : elle
+   * l'éclaircit d'une tache ronde et douce (un dégradé, pas une image), comme un fond qui remonte à la lumière, et les
+   * taches de deux tuiles voisines se fondent en un seul haut-fond. Le récif est un peu plus clair, les algues verdissent
+   * l'eau. Dessiné sous l'ombre de l'île, avant les sols : c'est encore la mer, juste moins profonde.
+   */
+  drawHautsFonds(ctx, tiles, vis) {
+    const cam = this.cam; let debut = false;
+    for (const t of tiles) {
+      if (!MER.has(t.family)) continue;
+      const w = toWorld(t.q, t.r); const c = cam.toScreen(w.x, w.y); if (!vis(c)) continue;
+      if (!debut) { ctx.save(); this.ecranSpace(ctx); debut = true; }
+      const d = this.fx.dropTransform(key(t.q, t.r)); const a = d.dy !== 0 ? 0 : 1;   // la tache naît quand la tuile touche l'eau
+      const r = SIZE * 1.08 * (d.s || 1);
+      const g = ctx.createRadialGradient(w.x, w.y, 0, w.x, w.y, r);
+      const [rgb, k] = t.family === 'kelp' ? ['96,178,150', 0.30] : t.family === 'reef' ? ['214,240,246', 0.36] : ['196,232,242', 0.28];
+      g.addColorStop(0, `rgba(${rgb},${(k * a).toFixed(3)})`); g.addColorStop(0.55, `rgba(${rgb},${(k * 0.7 * a).toFixed(3)})`); g.addColorStop(1, `rgba(${rgb},0)`);
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(w.x, w.y, r, 0, TAU); ctx.fill();
+    }
+    if (debut) ctx.restore();
   }
 
   /** Cette case est-elle de l'eau de mer, pour le rendu : hors du masque, ou dans une anse ? */

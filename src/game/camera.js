@@ -8,7 +8,7 @@ export class Camera {
   constructor() {
     this.x = 0; this.y = 0; this.zoom = 1;
     this.tx = 0; this.ty = 0; this.tzoom = 1;
-    this.offsetX = 0; this.offsetY = 0;   // marge UI (px écran) : décale le centre du cadrage
+    this.offsetX = 0; this.offsetY = 0; this.toffsetX = 0; this.toffsetY = 0;   // marge UI (px écran) : décale le centre du cadrage ; suivie comme le reste, jamais d'un coup
     this.dragging = false; this.dragStart = null;
     this.bAmp = 0; this.bt = 0; this.bx = 0; this.by = 0; this.bz = 0;   // respiration au repos : dérive lente et zoom d'un pour cent
   }
@@ -22,13 +22,15 @@ export class Camera {
     const z = clamp(Math.min(availW / w, availH / h), minZoom(), BALANCE.camera.maxZoom);
     this.tx = (minX + maxX) / 2; this.ty = (minY + maxY) / 2 + 10;
     this.tzoom = z;
-    this.offsetX = (uiLeft - uiRight) / 2; this.offsetY = (uiTop - uiBottom) / 2;
-    if (immediate) { this.x = this.tx; this.y = this.ty; this.zoom = this.tzoom; }
+    this.toffsetX = (uiLeft - uiRight) / 2; this.toffsetY = (uiTop - uiBottom) / 2;
+    if (immediate) { this.x = this.tx; this.y = this.ty; this.zoom = this.tzoom; this.offsetX = this.toffsetX; this.offsetY = this.toffsetY; }
   }
 
   update(dt) {
     const k = Math.min(1, dt * BALANCE.camera.lerp);
     this.x += (this.tx - this.x) * k; this.y += (this.ty - this.y) * k; this.zoom += (this.tzoom - this.zoom) * k;
+    // la marge d'interface glisse aussi : entre l'ouverture et le menu, elle change de quelques pixels, et l'île « descendait d'un coup »
+    this.offsetX += (this.toffsetX - this.offsetX) * k; this.offsetY += (this.toffsetY - this.offsetY) * k;
   }
 
   /**

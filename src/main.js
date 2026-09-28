@@ -892,7 +892,7 @@ class IslandScene {
     // le cadrage de l'île entière, calculé sans y aller : c'est lui qui donne le zoom des plans et la dernière étape
     const avant = { x: c.tx, y: c.ty, z: c.tzoom, ox: c.offsetX, oy: c.offsetY };
     c.fit(isl.board.mask, this.marges()); const entier = { x: c.tx, y: c.ty, z: c.tzoom };
-    c.tx = avant.x; c.ty = avant.y; c.tzoom = avant.z; c.offsetX = avant.ox; c.offsetY = avant.oy;
+    c.tx = avant.x; c.ty = avant.y; c.tzoom = avant.z; c.offsetX = c.toffsetX = avant.ox; c.offsetY = c.toffsetY = avant.oy;
     this.obs = { lieux, entier, i: -1, t: 0, retour: avant, a: null, b: null };
     this.disarm(); this.hud.setObserving(true);
     this.obsSuivant();

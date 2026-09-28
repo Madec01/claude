@@ -114,8 +114,8 @@ export class Finale {
     c.x = c.tx = a.x + (b.x - a.x) * e;
     c.y = c.ty = a.y + (b.y - a.y) * e;
     c.zoom = c.tzoom = a.z + (b.z - a.z) * e;
-    c.offsetX = a.ox + (b.ox - a.ox) * e;
-    c.offsetY = a.oy + (b.oy - a.oy) * e;
+    c.offsetX = c.toffsetX = a.ox + (b.ox - a.ox) * e;
+    c.offsetY = c.toffsetY = a.oy + (b.oy - a.oy) * e;
   }
 
   skip(k = null) {

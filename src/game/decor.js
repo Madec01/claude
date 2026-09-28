@@ -627,7 +627,7 @@ export class Decor {
             for (const p of sample(rng, cell, keys, deg >= 3 ? 2 : 1, { minDist: 34, margin: 22, placed })) { placed.push(p); push(p, PICK(rng, ['sea_wave_1', 'sea_wave_2', 'sea_wave_3']), { alpha: 0.6, wave: true }); }
           } else if (family === 'sea') {
             // Livre II — la mer posée : une ou deux vagues, comme un lac ; la mer elle-même est dessinée dessous
-            for (const p of sample(rng, cell, keys, deg >= 2 ? 2 : 1, { minDist: 34, margin: 22, placed })) { placed.push(p); push(p, PICK(rng, ['sea_wave_1', 'sea_wave_2', 'sea_wave_3']), { alpha: 0.6, wave: true }); }
+            for (const p of sample(rng, cell, keys, deg >= 2 ? 3 : 2, { minDist: 30, margin: 18, placed })) { placed.push(p); push(p, PICK(rng, ['sea_wave_1', 'sea_wave_2', 'sea_wave_3']), { alpha: 0.8, wave: true }); }
           } else if (family === 'reef') {
             // le récif : deux rochers gris à fleur d'eau (blanchis l'hiver), une vague qui s'y brise
             for (const p of sample(rng, cell, keys, 2, { minDist: 30, margin: 16, placed, radius: 0.7 })) { placed.push(p); const w = wild(rng, 0.85, 1.15); push(p, `obj_recif_${PICK(rng, ['A', 'B', 'C'])}{w}`, w); }
