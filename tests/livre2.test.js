@@ -133,7 +133,10 @@ const defMech = (seed, cells, extra = {}) => ({ ...defDe(seed, cells), mech: new
   // le phare : une case de terre qui touche une case du chemin
   const sansMarch = (r) => r.pts - r.marchandises.length * R.route.marchandise;   // le phare compte comme roche : posé contre un port, il serait aussi une marchandise
   const avantPhare = sansMarch(computeRoutes(b).find((r) => r.pts));
-  let cp = null; for (const k of chemin) { const [q, r] = k.split(',').map(Number); cp = caseLibre(isl, q, r); if (cp) break; }
+  // une case de terre libre qui touche la route ; s'il n'y en a pas le long du chemin, on allonge la route d'une case de mer vers une rive libre
+  const terreLibre = (q, r) => neighbors(q, r).find(([a, c]) => b.isEmpty(a, c) && !b.detroit.has(key(a, c)));
+  let cp = null; for (const k of chemin) { const [q, r] = k.split(',').map(Number); cp = terreLibre(q, r); if (cp) break; }
+  if (!cp) for (const k of chemin) { const [q, r] = k.split(',').map(Number); for (const [a, c] of neighbors(q, r)) { if (!b.detroit.has(key(a, c)) || !b.isEmpty(a, c)) continue; const t = terreLibre(a, c); if (t) { b.place(a, c, { family: 'sea', variant: 1, id: 14 }); cp = t; break; } } if (cp) break; }
   b.place(cp[0], cp[1], { family: 'phare', variant: 1, rare: true, id: 13 });
   const apresPhare = sansMarch(computeRoutes(b).find((r) => r.pts));
   check(apresPhare === avantPhare + R.route.phare, `le phare fait payer la route qui le touche +${R.route.phare} (${avantPhare} → ${apresPhare}, marchandises à part)`);
@@ -162,12 +165,18 @@ const defMech = (seed, cells, extra = {}) => ({ ...defDe(seed, cells), mech: new
   const [q0, r0] = chemin[0].split(',').map(Number); b.tiles.get(chemin[0]).family = 'reef';
   const [q1, r1] = chemin[chemin.length - 1].split(',').map(Number); b.tiles.get(chemin[chemin.length - 1]).family = 'kelp';
   // une pinède au bord de la mer, une roche loin de tout pour l'eau
-  let cp = null; for (const k of chemin) { const [q, r] = k.split(',').map(Number); cp = caseLibre(isl, q, r); if (cp) break; }
+  // une pinède au bord de la mer : n'importe quelle case de terre libre qui touche le détroit
+  let cp = null; for (const k of b.mask) { const [q, r] = k.split(',').map(Number); if (b.isEmpty(q, r) && !b.detroit.has(k) && neighbors(q, r).some(([a, c]) => b.detroit.has(key(a, c)))) { cp = [q, r]; break; } }
   b.place(cp[0], cp[1], { family: 'pine', variant: 1, id: 21 }); b.touch();
   const hiver = transition(b, 'winter', 'tempete', {});
   check(hiver.some((e) => e.type === 'tempete' && e.q === q0 && e.r === r0 && e.pts === S2.tempete.recif), `tempête : le récif rapporte +${S2.tempete.recif}`);
   check(hiver.some((e) => e.type === 'tempete' && e.q === cp[0] && e.r === cp[1] && e.pts === S2.tempete.pinede), `tempête : la pinède au bord de la mer rapporte +${S2.tempete.pinede}`);
   check(!hiver.some((e) => e.type === 'freeze' || e.type === 'veillee'), 'tempête : pas de gel, pas de veillée');
+  // l'estran a besoin d'une terre qui ne soit pas un port contre la mer posée : on pose un sable contre le chemin (en allongeant la mer d'une case s'il le faut)
+  { const terreLibre = (q, r) => neighbors(q, r).find(([a, c]) => b.isEmpty(a, c) && !b.detroit.has(key(a, c)));
+    let cs = null; for (const k of chemin) { const [q, r] = k.split(',').map(Number); cs = terreLibre(q, r); if (cs) break; }
+    if (!cs) for (const k of chemin) { const [q, r] = k.split(',').map(Number); for (const [a, c] of neighbors(q, r)) { if (!b.detroit.has(key(a, c)) || !b.isEmpty(a, c)) continue; const t = terreLibre(a, c); if (t) { b.place(a, c, { family: 'sea', variant: 1, id: 24 }); cs = t; break; } } if (cs) break; }
+    if (cs) b.place(cs[0], cs[1], { family: 'sand', variant: 1, id: 25 }); b.touch(); }
   const printemps = transition(b, 'spring', 'maree', {});
   const estran = printemps.filter((e) => e.type === 'maree');
   check(estran.length > 0 && estran.every((e) => e.pts === (Board.isFamily(b.get(e.q, e.r), 'kelp') ? S2.maree.algues : S2.maree.estran)), `marée basse : ${estran.length} tuile(s) de mer contre la terre paient l’estran (+${S2.maree.estran}, algues +${S2.maree.algues})`);

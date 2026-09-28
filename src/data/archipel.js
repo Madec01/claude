@@ -18,30 +18,58 @@ const x = (q, r) => q + r / 2;
  * @returns {{mask:Set<string>, detroit:string[], start:object[], cells:number}}
  */
 export function archipelMask(seed, cells = 60, { largeur = 2 } = {}) {
-  let mask, detroit, terre, tries = 0, total = cells + Math.round(largeur * Math.sqrt(cells) * 1.9);
-  do {
-    mask = generateMask(seed + tries * 977, total, { roughness: 0.32, etire: 2.2, garde: [] });
-    const xs = [...mask].map((k) => { const [q, r] = parse(k); return x(q, r); }).sort((a, b) => a - b);
-    const xm = xs[Math.floor(xs.length / 2)];
-    detroit = new Set([...mask].filter((k) => { const [q, r] = parse(k); const d = x(q, r) - xm; return d >= -largeur / 2 && d < largeur / 2; }));
-    terre = new Set([...mask].filter((k) => !detroit.has(k)));
-    tries++;
-    // la terre doit faire le compte demandé (la bande en prend plus ou moins) : on corrige la taille et on refait
-    if (Math.abs(terre.size - cells) > 2 && tries < 20) { total += cells - terre.size; continue; }
-  } while (tries < 20 && (composantes(terre).length < 2 || composantes(terre)[1].size < terre.size * 0.3));   // deux vraies îles, la petite au moins 30 % de la terre
-  const comps = composantes(terre).slice(0, 2);
-  // le départ : sur chaque île, un port sur la côte du détroit (la case de terre voisine du détroit la plus proche du milieu), un hameau à côté
-  const ys = [...detroit].map((k) => parse(k)[1]).sort((a, b) => a - b); const ym = ys[Math.floor(ys.length / 2)];
-  const start = [];
-  for (const comp of comps) {
-    let best = null, bd = Infinity;
-    for (const k of comp) { const [q, r] = parse(k); if (!neighbors(q, r).some(([a, b]) => detroit.has(key(a, b)))) continue; const d = Math.abs(r - ym); if (d < bd) { bd = d; best = [q, r]; } }
-    if (!best) continue;
-    start.push({ q: best[0], r: best[1], family: 'port' });
-    const voisin = neighbors(best[0], best[1]).find(([a, b]) => comp.has(key(a, b)) && !start.some((s) => s.q === a && s.r === b));
-    if (voisin) start.push({ q: voisin[0], r: voisin[1], family: 'hamlet' });
+  // Deux VRAIES îles (retour du commanditaire : « pas des traits droits, de vraies îles avec une mer entre les deux ») :
+  // chacune vient du générateur du Livre I, avec ses baies et ses caps ; la seconde est glissée à droite de la première
+  // jusqu'à ce que `largeur` cases de mer les séparent au plus étroit. Le détroit, ce sont les cases de mer entre les deux
+  // rives, ligne par ligne, jamais plus loin que `largeur + 2` d'une côte : au large des baies qui se font face, la mer reste
+  // la mer (hors du masque). Les rives ont donc la forme des îles, pas celle d'une règle.
+  const nA = Math.round(cells * 0.55), nB = cells - nA;
+  let mask = null, detroit = null, terre = null, start = [];
+  for (let tries = 0; tries < 24 && !mask; tries++) {
+    const A = generateMask(seed + tries * 977, nA, { roughness: 0.34, etire: 1.25, garde: [] });
+    const B = generateMask(seed * 3 + 11 + tries * 977, nB, { roughness: 0.34, etire: 1.25, garde: [] });
+    // bord droit de A et bord gauche de B, ligne par ligne (x = q + r/2 : la coordonnée horizontale des hexagones)
+    const droite = new Map(), gauche = new Map();
+    for (const k of A) { const [q, r] = parse(k); droite.set(r, Math.max(droite.get(r) ?? -Infinity, q)); }
+    for (const k of B) { const [q, r] = parse(k); gauche.set(r, Math.min(gauche.get(r) ?? Infinity, q)); }
+    // le décalage de B : au plus étroit, `largeur` cases de mer entre les deux (même ligne : q_B − q_A − 1 cases entre)
+    let s = -Infinity;
+    for (const [r, qa] of droite) if (gauche.has(r)) s = Math.max(s, qa + largeur + 1 - gauche.get(r));
+    if (s === -Infinity) continue;   // aucune ligne commune : les îles ne se font pas face
+    const Bd = new Set([...B].map((k) => { const [q, r] = parse(k); return key(q + s, r); }));
+    // aucune case de A ne touche B (les voisins d'une ligne à l'autre) : sinon on écarte encore
+    let touche = false; for (const k of A) { const [q, r] = parse(k); if (neighbors(q, r).some(([a, b]) => Bd.has(key(a, b)))) { touche = true; break; } }
+    if (touche) { s += 1; }
+    const B2 = touche ? new Set([...B].map((k) => { const [q, r] = parse(k); return key(q + s, r); })) : Bd;
+    terre = new Set([...A, ...B2]);
+    // le détroit : entre les deux rives, ligne par ligne, au plus `largeur + 2` cases de chaque côte
+    detroit = new Set();
+    const gaucheB = new Map(); for (const k of B2) { const [q, r] = parse(k); gaucheB.set(r, Math.min(gaucheB.get(r) ?? Infinity, q)); }
+    for (const [r, qa] of droite) {
+      if (!gaucheB.has(r)) continue; const qb = gaucheB.get(r);
+      for (let q = qa + 1; q < qb; q++) if (q - qa <= largeur + 2 || qb - q <= largeur + 2) detroit.add(key(q, r));
+    }
+    // le détroit doit se tenir d'un seul tenant entre les deux ports : on garde la plus grande composante
+    const comps = composantes(detroit); if (!comps.length) continue;
+    detroit = new Set(comps[0]);
+    // les deux îles doivent toucher le détroit (sinon une rive n'a pas de port possible)
+    const touchent = [A, B2].every((ile) => [...ile].some((k) => { const [q, r] = parse(k); return neighbors(q, r).some(([a, b]) => detroit.has(key(a, b))); }));
+    if (!touchent || detroit.size < largeur * 3) continue;
+    mask = new Set([...terre, ...detroit]);
+    // le départ : sur chaque île, un port sur la côte du détroit (la case de terre voisine du détroit la plus proche du milieu), un hameau à côté
+    const ys = [...detroit].map((k) => parse(k)[1]).sort((a, b) => a - b); const ym = ys[Math.floor(ys.length / 2)];
+    start = [];
+    for (const comp of [A, B2]) {
+      let best = null, bd = Infinity;
+      for (const k of comp) { const [q, r] = parse(k); if (!neighbors(q, r).some(([a, b]) => detroit.has(key(a, b)))) continue; const d = Math.abs(r - ym); if (d < bd) { bd = d; best = [q, r]; } }
+      if (!best) continue;
+      start.push({ q: best[0], r: best[1], family: 'port' });
+      const voisin = neighbors(best[0], best[1]).find(([a, b]) => comp.has(key(a, b)) && !start.some((t) => t.q === a && t.r === b));
+      if (voisin) start.push({ q: voisin[0], r: voisin[1], family: 'hamlet' });
+    }
   }
-  return { mask: new Set([...terre, ...detroit]), detroit: [...detroit], start, cells: terre.size };
+  if (!mask) throw new Error(`archipelMask : pas d'archipel pour la graine ${seed}`);
+  return { mask, detroit: [...detroit], start, cells: terre.size };
 }
 
 /** La file d'un archipel : les familles de la côte, la pinède et le port, et une part `mer` de tuiles de mer (mer, récif, algues). */

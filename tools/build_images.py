@@ -809,7 +809,7 @@ TILES = {
                 note="Récif : deux rochers gris du pack Forest à fleur d'eau, deux vagues."),
     "kelp_1": T("kelp", "water", [L("kay:roseau_A", 44, 86, "kelp", width=28), L("kay:roseau_B", 76, 96, "kelp", width=30), L("kay:roseau_C", 58, 110, "kelp", width=26), L("ht:waveWater:3.7", 80, 62, "wave")], base_kind="water",
                 note="Algues : trois massettes KayKit recolorées en varech, une vague."),
-    "port_1": T("port", "dirt_06", [L("kay:ponton", 60, 96, "static", width=104), L("kay:barrel", 98, 98, scale=1.2), L("kay:crate", 28, 100, scale=1.1)], base_kind="dirt",
+    "port_1": T("port", "dirt_06", [L("kay:ponton", 64, 104, "static", width=100), L("kay:barrel", 92, 88, scale=1.2), L("kay:crate", 30, 92, scale=1.1)], base_kind="dirt",
                 note="Port : les docks du pack EXTRA sur la terre battue, un tonneau, une caisse."),
     "pine_1": T("pine", "sand_07", [L("kay:pin_parasol_A", 44, 84, "static", width=56), L("kay:pin_parasol_B", 80, 96, "static", width=52), L("kay:bloc_brun", 96, 106, "rock", width=26)], base_kind="sand", base_zoom=1.08,
                 note="Pinède : deux pins parasols (pack Forest) sur le sable, un rocher brun — toujours verts, l'hiver aussi."),

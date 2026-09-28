@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-28T14:34:32+00:00",
+ "generated": "2026-09-28T15:05:14+00:00",
  "generator": "tools/build_images.py",
  "conventions": {
   "hex": {
@@ -1829,7 +1829,7 @@
    "file": "tiles/port_1_spring.webp",
    "w": 240,
    "h": 280,
-   "bytes": 5526,
+   "bytes": 5486,
    "source": "hexagon-pack",
    "original": "PNG/Tiles/Terrain/Dirt/dirt_06.png",
    "note": "Port : les docks du pack EXTRA sur la terre battue, un tonneau, une caisse. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
@@ -1842,7 +1842,7 @@
    "file": "tiles/port_1_summer.webp",
    "w": 240,
    "h": 280,
-   "bytes": 5526,
+   "bytes": 5486,
    "source": "hexagon-pack",
    "original": "PNG/Tiles/Terrain/Dirt/dirt_06.png",
    "note": "Port : les docks du pack EXTRA sur la terre battue, un tonneau, une caisse. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
@@ -1855,7 +1855,7 @@
    "file": "tiles/port_1_autumn.webp",
    "w": 240,
    "h": 280,
-   "bytes": 5526,
+   "bytes": 5486,
    "source": "hexagon-pack",
    "original": "PNG/Tiles/Terrain/Dirt/dirt_06.png",
    "note": "Port : les docks du pack EXTRA sur la terre battue, un tonneau, une caisse. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
@@ -1868,7 +1868,7 @@
    "file": "tiles/port_1_winter.webp",
    "w": 240,
    "h": 280,
-   "bytes": 5464,
+   "bytes": 5510,
    "source": "hexagon-pack",
    "original": "PNG/Tiles/Terrain/Dirt/dirt_06.png",
    "note": "Port : les docks du pack EXTRA sur la terre battue, un tonneau, une caisse. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",

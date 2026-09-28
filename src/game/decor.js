@@ -645,8 +645,14 @@ export class Decor {
             // les algues : trois touffes de varech, recolorées par saison
             for (const p of sample(rng, cell, keys, 3, { minDist: 22, margin: 14, placed, radius: 0.8 })) { placed.push(p); const w = wild(rng, 0.8, 1.2); push(p, `obj_algue${VAR3(rng)}_{s}`, w); }
           } else if (family === 'port') {
-            // le port : les docks au milieu, une barque et une ancre au bord, des caisses
-            for (const p of sample(rng, cell, keys, 1, { minDist: 0, margin: 34, placed, radius: 0.18 })) { placed.push(p); push(p, 'obj_ponton{w}', { scale: 1.0 }); }
+            // le port : les docks DÉPASSENT sur l'eau (retour du commanditaire : « il doit dépasser sur l'eau »), posés au bord
+            // de la case, du côté de la mer la plus proche ; une barque et une ancre au bord, des caisses
+            { const c0 = toWorld(cell.q, cell.r); let dir = null;
+              for (const d of DIRS) if (board.isSea(cell.q + d[0], cell.r + d[1])) { dir = d; break; }
+              if (!dir) for (const d of DIRS) { const n = board.get(cell.q + d[0], cell.r + d[1]); if (n && Board.isFamily(n, 'water')) { dir = d; break; } }
+              const v = dir ? toWorld(cell.q + dir[0], cell.r + dir[1]) : null;
+              const p = v ? { x: c0.x + (v.x - c0.x) * 0.62, y: c0.y + (v.y - c0.y) * 0.62 } : { x: c0.x, y: c0.y + 10 };
+              placed.push(p); push(p, 'obj_ponton{w}', { scale: 1.0 }); }
             for (const p of sample(rng, cell, keys, 2, { minDist: 30, margin: 10, placed, radius: 0.95 })) { placed.push(p); const r2 = rng(); push(p, r2 < 0.4 ? 'obj_boat' : r2 < 0.7 ? 'obj_anchor' : PICK(rng, ['obj_crate', 'obj_barrel']), wild(rng, 0.8, 1.05)); }
           } else if (family === 'pine') {
             // la pinède : deux ou trois pins parasols (un pin maritime parfois), toujours verts, des oyats sur le sable
