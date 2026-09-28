@@ -485,6 +485,8 @@ MUSIC = {
                "hiver : « Ethereal Relaxation » absent du miroir ; la Gymnopédie n° 1 (piano lent, dépouillé, "
                "froid et clair) est le plus hivernal des candidats"),
     "menu": ("Dream Catcher", 115, 3.0, "menu : rêveur, suspendu, invite à l'île"),
+    # durée 0 : le morceau entier, d'un seul tenant, sans boucle (l'ouverture : onze secondes pleines, puis la chute naturelle)
+    "ouverture": ("Cool Intro", 0, 0.0, "ouverture : l'île du titre se bâtit en dix secondes sur cet intro — fort onze secondes, puis il retombe sous le titre", 3),   # qualité 3 : le budget des 30 Mo était atteint à 10 Ko près
     "results": ("Beauty Flow", 115, 3.0, "bilan / atelier : coulée douce, contemplative"),
     "ending": ("Almost Bliss", 115, 4.0, "fin : lumineux et apaisé, l'île qui se souvient"),
     "garden": ("Study And Relax", 115, 3.0, "jardin (mode libre) : studieux, sans tension"),
@@ -518,12 +520,15 @@ def build_music(only: set[str] | None = None) -> dict:
         a = decode(src("suno", f"{title}.m4a") if suno and not (SUNO / f"{title}.mp3").exists() else src("suno" if suno else P_KM, f"{title}.mp3"), ch=2)
         a = trim_silence(a, thresh_db=-48, pre=0.0, post=0.0)
         dur = len(a) / SR
-        if dur <= max_s:
+        entier = max_s == 0   # d'un seul tenant : ni coupe ni boucle
+        if entier:
+            end = dur
+        elif dur <= max_s:
             end = dur  # morceau court : on boucle sur toute sa durée
         else:
             end, _ = choose_loop_end(a, MUSIC_MIN_LOOP + xf, max_s, xf)   # la boucle finale dure `end - xf` : c'est à elle que le minimum s'applique
         cut_a = a[:int(end * SR)]
-        looped = crossfade_loop(cut_a, xf)
+        looped = cut_a if entier else crossfade_loop(cut_a, xf)
         normed, info = loudnorm_loop(looped, MUSIC_LUFS)
         encode_ogg(normed, path, qualite, title=title, artist="Martinus Games (Suno)" if suno else "Kevin MacLeod (incompetech.com)")
         pr = probe(path)
@@ -532,7 +537,7 @@ def build_music(only: set[str] | None = None) -> dict:
                                  source=title, author="Martinus Games", license="propriété du studio (composé avec Suno)",
                                  attribution=f"« {title} », composé avec Suno par Martinus Games pour Cent Saisons", note=why, pack="suno")
         else:
-            manifest[key] = dict(file=f"music/{key}.ogg", duration=round(pr["duration"], 3), loop=True,
+            manifest[key] = dict(file=f"music/{key}.ogg", duration=round(pr["duration"], 3), loop=not entier,
                                  source=title, author="Kevin MacLeod", license="CC BY 4.0",
                                  attribution=km_attribution(title), note=why)
         print(f"  music/{key}.ogg  <- {title!r}  cut={end:.1f}s xf={xf}s  "
@@ -974,7 +979,8 @@ def verify() -> bool:
     manifest_path = OUT / "manifest.json"
     manifest = json.loads(manifest_path.read_text(encoding="utf-8")) if manifest_path.exists() else {}
     for section in ("music", "ambience", "sfx"):
-        listed = {Path(m["file"]).name for m in manifest.get(section, {}).values()}
+        entrees = {Path(m["file"]).name: m for m in manifest.get(section, {}).values()}
+        listed = set(entrees)
         for path in sorted((OUT / section).glob("*.ogg")):
             pr = probe(path)
             total += pr["size"]
@@ -1009,7 +1015,7 @@ def verify() -> bool:
                     problems.append("couture de boucle suspecte")
                 if abs(lufs - target) > 1.0:
                     problems.append(f"loudness {lufs:.1f} != {target}")
-                if section == "music" and not (MUSIC_MIN_LOOP - 1 <= pr["duration"] <= 181):
+                if section == "music" and entrees.get(path.name, {}).get("loop", True) and not (MUSIC_MIN_LOOP - 1 <= pr["duration"] <= 181):   # une pièce d'un seul tenant (l'ouverture) a la durée qu'elle a
                     problems.append("durée hors plage")
                 if section == "ambience" and not (60 <= pr["duration"] <= 90):
                     problems.append("durée hors plage")

@@ -20,6 +20,8 @@ Navigateurs pris en charge : Chrome, Firefox et Edge à jour sur ordinateur, Chr
 
 **À l'ouverture**, l'animation du studio Martinus Games joue par-dessus le chargement (4 s, un toucher la passe). Son jingle est dans le film : le navigateur l'accorde avec le son quand il connaît déjà le joueur, sinon le film joue en muet — la première visite est souvent muette, c'est la règle des navigateurs, pas un défaut.
 
+Puis, à la place d'une barre de chargement, **l'île du titre se bâtit** : la même île à chaque fois (l'île 12, jouée d'avance par le robot du meilleur coup), tuile après tuile en dix secondes, sur la construction de la tournée finale. Le monde part en gris et prend ses couleurs avec les tuiles, la caméra s'approche, une musique d'un seul tenant (« Cool Intro », Kevin MacLeod) porte le tout, et le titre s'écrit avec la dernière tuile posée. Seules les images de cette île sont chargées avant qu'elle ne commence (une centaine de kilo-octets) ; le reste arrive derrière, et si le chargement traîne encore quand le titre est là, une ligne le dit. Un toucher passe. Le menu garde ensuite cette île en fond. Les tests automatiques ne la voient pas, sauf à la demander (`?ouverture=1`).
+
 **Les visites suivantes** viennent de l'appareil : un service worker (`sw.js`) garde images, sons et film une fois vus. Son cache porte la version des assets (`assets/version.json`, empreinte de leur contenu écrite par `tools/version_assets.py`, vérifiée par `tools/suite.sh`) et s'efface seul quand elle change ; le code, lui, est toujours pris sur le réseau quand il y en a. Le pied du menu montre la version du jeu et celle des assets ; Options → « Recharger à neuf » efface le cache sans toucher à la sauvegarde.
 
 **Sur téléphone** : l'interface se réorganise. En portrait : le numéro de l'île à côté de la pause, les animaux sous la saison, les vœux en entier dans un cadre sous l'île (un chevron le replie en une ligne de résumé, choix gardé), et, calées sur les tuiles suivantes, les pastilles des tuiles restantes, Défausser et Annuler. En paysage : file en colonne, vœux derrière un bouton. Toucher une case affiche ses points, toucher à nouveau pose la tuile ; un appui ailleurs oublie la case visée ; un doigt déplace la vue, deux doigts zooment. Le bouton plein écran est dans le menu, la pause et en haut à droite en jeu. Sur iPhone, où le plein écran n'existe pas dans Safari, ajoutez le jeu à l'écran d'accueil (Partager → Sur l'écran d'accueil) : il s'ouvre alors sans barre de navigateur.
@@ -206,6 +208,7 @@ node tests/signin.js              # écran de connexion : pas de boucle au retou
 node tests/gate.js                # déblocage : une île terminée ouvre la suivante, portes de chapitre à deux clés
 node tests/feel.js                # retours sensoriels : notes sobres sur téléphone, étoile franchie, vibrations
 node tests/calm.js                # mode observation (interface qui s'efface, vue qui respire) et vague de fermeture
+node tests/ouverture.js           # l'ouverture : l'île du titre se bâtit en dix secondes, le titre avec la dernière tuile, le menu la garde ; un toucher passe
 node tests/finale.js              # tournée finale : plans nommés, vague, saisons, carte postale qui attend, construction rejouée, version courte
 
 # règles de sécurité Firestore, dans l'émulateur Firebase (outillage hors du jeu, à installer une fois) :

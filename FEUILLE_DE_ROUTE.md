@@ -225,6 +225,13 @@ Le topo et la vision sont dans la conversation du 28 septembre ; ce tableau gard
 | L4 | Durée d'une partie à deux îles : plus de tuiles posées au départ, détroit en mer dès le départ que les tuiles de mer convertissent (au choix du joueur) | à trancher |
 | L5 | Musiques plus « pirates » (Suno ou banque CC) | à trancher |
 
+## L'ouverture (28 septembre)
+
+| # | Lot | Statut |
+|---|---|---|
+| O1 | Après le film du studio, l'île du titre se bâtit en dix secondes à la place de la barre de chargement (gris → couleurs, caméra qui s'approche, « Cool Intro », titre avec la dernière tuile), le menu la garde en fond | **fait** |
+| O2 | Une musique composée pour l'ouverture (Suno, par le commanditaire) à la place de « Cool Intro » : déposer le fichier dans le miroir Suno et changer la recette `ouverture` de `tools/build_audio.py` en `suno:Titre` | à faire quand le morceau existe |
+
 ## Lot 8 : publication (à planifier)
 
 Hors ligne complet (service worker), version anglaise, export/import de sauvegarde (**fait** : fichier téléchargé / chargé, rappel périodique, copie de secours), politique de confidentialité, captures et fiche, dépôt itch.io puis Google Play (TWA) puis iOS (Capacitor). Réécriture native écartée : le code est emballé tel quel.

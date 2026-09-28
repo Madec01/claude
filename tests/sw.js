@@ -13,7 +13,8 @@ const boot = (p) => p.waitForFunction(() => !document.getElementById('boot') && 
   const cdp = await ctx.newCDPSession(page); await cdp.send('Network.enable');
   let reponses = [];
   cdp.on('Network.responseReceived', (e) => reponses.push({ url: e.response.url, sw: !!e.response.fromServiceWorker, cache: !!e.response.fromDiskCache }));
-  await page.goto(`http://127.0.0.1:${port}/index.html`); await boot(page);
+  // ce test joue en vrai joueur (pas de webdriver, sinon pas de service worker) : l'ouverture jouerait quatorze secondes à chaque visite, on la passe
+  await page.goto(`http://127.0.0.1:${port}/index.html?ouverture=0`); await boot(page);
   await page.evaluate(() => { const s = window.CS.Save; s.data.cloud = { choice: 'none' }; s.save(); });
   const ctrl = await page.evaluate(() => navigator.serviceWorker.ready.then(() => new Promise((r) => { if (navigator.serviceWorker.controller) return r(true); navigator.serviceWorker.addEventListener('controllerchange', () => r(true)); setTimeout(() => r(!!navigator.serviceWorker.controller), 8000); })));
   check(ctrl, 'le service worker est enregistré et contrôle la page après la première visite');

@@ -35,6 +35,8 @@ Toutes les œuvres ci-dessous appartiennent à leurs auteurs et sont utilisées 
   - Attribution : « Woodblock Chase », composé avec Suno par Martinus Games pour Cent Saisons
 - **Woodblock Chase II** — Martinus Games (composé avec Suno) — licence propriété du studio, tous droits réservés — [source](https://suno.com)
   - Attribution : « Woodblock Chase II », composé avec Suno par Martinus Games pour Cent Saisons
+- **Cool Intro** — Kevin MacLeod — licence CC BY 4.0 ([texte](http://creativecommons.org/licenses/by/4.0/)) — [source](https://incompetech.com/music/royalty-free/index.html?keywords=Cool+Intro) — [miroir utilisé](https://github.com/noobsandnerdsgroup/audio)
+  - Attribution : "Cool Intro" Kevin MacLeod (incompetech.com) — Licensed under Creative Commons: By Attribution 4.0 License — http://creativecommons.org/licenses/by/4.0/
 
 ## Sons et ambiances
 

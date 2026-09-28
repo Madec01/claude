@@ -147,7 +147,7 @@ export const AudioSys = {
       try { old.src.stop(now + fade + 0.2); } catch (_) { /* déjà arrêté */ }
     }
     const src = this.ctx.createBufferSource();
-    src.buffer = buf; src.loop = true;
+    src.buffer = buf; src.loop = this._entry('music', key).loop !== false;   // une musique d'un seul tenant (l'ouverture) ne boucle pas
     const g = this.ctx.createGain();
     if (fade > 0) { g.gain.setValueAtTime(0.0001, now); g.gain.exponentialRampToValueAtTime(Math.max(0.0001, volume), now + fade); }
     else g.gain.setValueAtTime(Math.max(0.0001, volume), now);   // sans fondu : le Souffle court cale son décompte sur le premier temps

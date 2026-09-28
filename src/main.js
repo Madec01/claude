@@ -29,6 +29,7 @@ import { buildCredits, loadCredits } from './ui/credits.js';
 import { buildGuide } from './ui/guide.js';
 import { dailyDef, dailyKey, yesterdayKey } from './data/daily.js';
 import { Finale, choisirLieux } from './game/finale.js';
+import { OuvertureScene } from './game/ouverture.js';
 import { FinaleClassique } from './game/finale_classique.js';
 import { prechargerTampons } from './game/tampon.js';   // la tournée d'avant, gardée au cas où (option `finaleClassique`)
 import { campaignIsland, campaignMechanics, islandOptions, CAMPAIGN_SIZE, CHAPTER_LEN, MECH_AT, climateCardFor, unlockedUpTo, gateText, restarFromBest, CHAPTERS } from './data/campaign.js';
@@ -129,6 +130,12 @@ const Game = {
     });
   },
 
+  /** L'ouverture se joue pour un joueur ; les tests automatiques et le mode test la passent, sauf `?ouverture=1`. */
+  ouvertureVoulue() {
+    try { const v = new URLSearchParams(location.search).get('ouverture'); if (v === '1') return true; if (v === '0') return false; } catch (_) { /* ignore */ }   // `?ouverture=0` : un test qui joue en vrai joueur (service worker) mais n'attend pas l'ouverture
+    return !navigator.webdriver && !Save.options.testMode;
+  },
+
   async boot() {
     const fill = document.getElementById('boot-fill'), status = document.getElementById('boot-status');
     const setP = (p, txt) => { fill.style.width = `${Math.round(p * 100)}%`; if (txt) status.textContent = txt; };
@@ -150,7 +157,15 @@ const Game = {
     AudioSys.volumes = { master: Save.options.master, music: Save.options.music, ambience: Save.options.ambience, sfx: Save.options.sfx };
     AudioSys.muted = !!Save.options.muted;
     try { await AudioSys.loadManifest(); } catch (e) { console.warn(e); }
-    try { await Assets.loadImages((p) => setP(p * 0.95, 'Les tuiles se réveillent…')); } catch (e) { console.warn(e); }
+    // L'ouverture (28 septembre) : à la place de la barre, l'île du titre se bâtit en dix secondes dès que ses propres
+    // images sont là, pendant que le reste arrive derrière ; le titre s'écrit avec la dernière tuile, puis le menu la
+    // garde en fond. Pas pour les tests automatiques ni le mode test (qui veulent le menu tout de suite), sauf à le
+    // demander par `?ouverture=1`.
+    const ouv = this.ouvertureVoulue() ? scenes.scenes.get('ouverture') : null; let cles = null;
+    if (ouv) { try { await Assets.loadManifest(); cles = ouv.preparer(); } catch (e) { console.warn('ouverture', e); } }
+    const boot = document.getElementById('boot'); let lancee = null;
+    const lancer = () => { if (lancee || !cles) return; lancee = intro.then(async () => { boot.classList.add('off'); setTimeout(() => boot.remove(), 700); loop.start(); await scenes.go('ouverture', {}, { fade: 0 }); }); };
+    try { await Assets.loadImages((p) => setP(p * 0.95, 'Les tuiles se réveillent…'), cles ? { dabord: cles, onDabord: lancer } : {}); } catch (e) { console.warn(e); }
     // Les sons ne bloquent plus le menu : la musique et les ambiances se chargent à la demande (playMusic, setAmbience),
     // un effet pas encore arrivé se tait. Le préchargement part en arrière-plan une fois le menu affiché (8 Mo en 4G,
     // c'était sept secondes d'écran de chargement pour des sons qui ne servent qu'en partie).
@@ -158,10 +173,17 @@ const Game = {
     this.credits = await loadCredits();
     setP(1, 'Prêt.');
     this.setFpsVisible(Save.options.showFps);
-    await wait(200);
-    const boot = document.getElementById('boot'); boot.classList.add('off'); setTimeout(() => boot.remove(), 700);
-    await Promise.race([version, wait(1500)]);   // la version des assets pour le pied du menu (30 octets, jamais plus d'une seconde et demie)
-    await intro;   // le film finit son tour avant que le menu (ou le choix de connexion) n'apparaisse
+    if (lancee) {
+      await lancee; ouv.chargementFini();
+      await Promise.race([version, wait(1500)]);
+      await ouv.finie;   // la construction, le titre, et le temps de le lire
+      scenes.scenes.get('menu').bg = new AmbientIsland(4, ouv.remettre());   // l'île du titre reste en fond du menu
+    } else {
+      await wait(200);
+      boot.classList.add('off'); setTimeout(() => boot.remove(), 700);
+      await Promise.race([version, wait(1500)]);   // la version des assets pour le pied du menu (30 octets, jamais plus d'une seconde et demie)
+      await intro;   // le film finit son tour avant que le menu (ou le choix de connexion) n'apparaisse
+    }
     AudioSys.preload().catch((e) => console.warn(e));   // en arrière-plan : effets d'abord, ambiances ensuite
     await this.bootCloud();
     this.proposeReport();
@@ -587,19 +609,23 @@ onResizeHook = () => Game.onResize();
 
 // ---------- Scène de fond : une île qui se construit toute seule ----------
 class AmbientIsland {
-  constructor(defId = 4) {
-    const def = { ...getIsland(defId), id: 'ambient', wishes: [], start: [{ q: 0, r: 0, family: 'hamlet' }, { q: 2, r: -1, family: 'rock' }] };
-    this.isl = new Island(def, { upgrades: {} });
-    this.cam = new Camera(); this.cam.fit(this.isl.board.mask, { ...uiMargins('ambient'), immediate: true });
-    this.particles = new ParticleSystem(600); this.fx = new Effects(this.particles);
-    this.renderer = new IslandRenderer(this.isl, this.cam, this.fx, this.particles);
+  /** `adopter` : l'île de l'ouverture, finie, avec sa caméra et son rendu — le menu la garde en fond, elle glisse vers son cadrage. */
+  constructor(defId = 4, adopter = null) {
+    if (adopter) { this.isl = adopter.isl; this.cam = adopter.cam; this.particles = adopter.particles; this.fx = adopter.fx; this.renderer = adopter.renderer; this.renderer.finale = false; this.cam.fit(this.isl.board.mask, uiMargins('ambient')); }
+    else {
+      const def = { ...getIsland(defId), id: 'ambient', wishes: [], start: [{ q: 0, r: 0, family: 'hamlet' }, { q: 2, r: -1, family: 'rock' }] };
+      this.isl = new Island(def, { upgrades: {} });
+      this.cam = new Camera(); this.cam.fit(this.isl.board.mask, { ...uiMargins('ambient'), immediate: true });
+      this.particles = new ParticleSystem(600); this.fx = new Effects(this.particles);
+      this.renderer = new IslandRenderer(this.isl, this.cam, this.fx, this.particles);
+    }
     // L'île de fond est un DÉCOR : personne n'y posera jamais de tuile. La grille des cases vides n'y
     // promet donc rien — elle pose seulement un pavage d'hexagones pâles cerclés de blanc sur la mer,
     // et c'est lui qu'on lit comme « l'eau a un problème de texture au niveau des côtes » (pépin CJ64).
     // Île nue d'emblée, comme la carte postale : il ne reste que ce qui est bâti, et la mer redevient
     // de la mer. Le `_nu0` reculé évite que la grille clignote pendant les sept dixièmes du fondu.
     this.renderer.nu = true; this.renderer._nu0 = this.renderer.time - 10;
-    this.timer = 1.2;
+    this.timer = adopter ? 14 : 1.2;   // l'île de l'ouverture reste un moment avant qu'une autre ne se bâtisse
     this.isl.on((e) => { if (e.type === 'place') this.fx.drop(key(e.q, e.r)); if (e.type === 'season') this.renderer.startTransition(e.from, e.to); if (e.type === 'fauna') this.fx.fauna(`${e.species}@${e.regionId}`, e.kind); });
   }
   refit() { this.cam.fit(this.isl.board.mask, uiMargins('ambient')); }
@@ -1511,6 +1537,7 @@ class EndingScene {
 }
 
 scenes.register('menu', new MenuScene());
+scenes.register('ouverture', new OuvertureScene());
 scenes.register('story', new StoryScene());
 scenes.register('island', new IslandScene());
 scenes.register('results', new ResultsScene());
