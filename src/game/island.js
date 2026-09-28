@@ -4,7 +4,7 @@ import { Board } from './board.js';
 import { archetypeOf } from '../data/archetypes.js';
 import { mechIsland } from '../data/campaign.js';
 import { preview, apply, previewBuild, canLevelUp, previewRestore, fusionsAround, previewFuse, fusedTile, lectureBords, lectureRegions } from './rules.js';
-import { FUSION_BY_ID, RETIRED_RARE, RETIRED_WORKS, RARE_SEASONAL } from '../data/tiles.js';
+import { FUSION_BY_ID, RETIRED_RARE, RETIRED_WORKS, RARE_SEASONAL, MER } from '../data/tiles.js';
 import { climateOf } from '../data/climates.js';
 import { transition, nextSeason } from './seasons.js';
 import { evaluate as evalFauna, reconcile } from './fauna.js';
@@ -20,7 +20,7 @@ import { computeRoutes, chaineTerritoire, rentesLivre2, rentesRares } from './ro
 import { pickRule, BASE_RULE, RULE_LOOK, reglesPour } from './seasonrules.js';
 import { gradeMove } from './feedback.js';
 import { RNG } from '../core/math.js';
-import { key, parse, neighbors } from './hex.js';
+import { key, parse, neighbors, toWorld } from './hex.js';
 import { CRANS, P as PB, preparerBrume, indice as indiceBrume, portee as porteeBrume, inventaire as inventaireBrume, TIRAGE, CARTE_PAR_ID, tirerCarte, saisonNeuve, tirerFamille, compte as compteBrume, COULEURS, normaliserNote } from './brume.js';
 
 export class Island {
@@ -63,6 +63,9 @@ export class Island {
     // Livre II : le détroit, les cases de mer entre les îles (voir board.js) ; l'île est un archipel
     this.livre2 = !!def.livre2;
     for (const k of def.detroit || []) { this.board.mask.add(k); this.board.detroit.add(k); }
+    // « La mer descend » (idée du commanditaire, île 40) : toutes les N poses, la marée découvre une vague de cases de l'estran,
+    // déjà pleines — et on les voit sous l'eau avant qu'elles n'émergent, pour bâtir la côte qui les accueillera
+    this.maree = def.maree ? this.preparerMaree(def.maree) : null;
     this.restrict = null;   // tutoriel guidé : cases autorisées (Set de clés) ou null
     // tuiles de départ
     for (const s of def.start) {
@@ -370,6 +373,7 @@ export class Island {
     for (const c of res.closes) this.emit({ type: 'close', ...c, breath: BALANCE.breaths.close });
     // rappel : dix poses avant l'échéance d'un vœu encore ouvert
     for (const w of this.wishes) { const dl = w.def.deadline; if (w.status === 'open' && dl && dl.placements && dl.placements - this.placements === 10) this.emit({ type: 'wish', kind: 'soon', wish: w, left: 10 }); }
+    if (this.maree && !tileOverride && this.maree.suivante < this.maree.vagues.length && ++this.maree.compte >= this.maree.toutes) { this.maree.compte = 0; this.decouvrir(); }   // la mer descend
     if (!this.garden && this.inSeason >= this.seasonLength) { if (this.brume) this.preparerPassage(); else this.advanceSeason(); }   // sous la brume, le passage attend « Lever la brume »
     if (this.infinite && this.placements % BALANCE.infinite.growEvery === 0 && this.board.cells < BALANCE.infinite.maxCells) {
       const added = this.board.grow(BALANCE.infinite.growCells, this.rng);
@@ -453,6 +457,7 @@ export class Island {
       undoUsedThisSeason: !!this.undoUsedThisSeason,
       huntSeason: !!this.huntSeason, rule: this.rule, nextRule: this.nextRule || null,
       brume: this.brume ? this.serializeBrume() : null,
+      maree: this.maree ? { compte: this.maree.compte, suivante: this.maree.suivante } : null,
       poses: this.poses.map((p) => ({ q: p.q, r: p.r, t: { ...p.t }, s: p.s, ...(p.kind ? { kind: p.kind } : {}) })),
     };
   }
@@ -489,6 +494,7 @@ export class Island {
     this.undoUsedThisSeason = !!s.undoUsedThisSeason;
     this.huntSeason = !!s.huntSeason; this.rule = s.rule; this.nextRule = s.nextRule || this.tirerRegleSuivante();   // une partie d'avant l'annonce tire sa surprise maintenant
     if (this.brume && s.brume) this.restoreBrume(s.brume);
+    if (this.maree && s.maree) { this.maree.compte = s.maree.compte || 0; this.maree.suivante = s.maree.suivante || 0; this.syncMaree(); }
     this.poses = (s.poses || []).map((p) => ({ q: p.q, r: p.r, t: { ...p.t }, s: p.s, ...(p.kind ? { kind: p.kind } : {}) }));   // une partie d'avant n'a pas sa construction : le bilan ne la rejouera pas
     this.history = []; this.ended = false; this.result = null;
     return true;
@@ -566,6 +572,56 @@ export class Island {
       if (p) { ev.push({ type: 'fusion', q: t.q, r: t.r, pts: p, id: t.family }); }
     }
     return ev;
+  }
+
+  /**
+   * Prépare la marée : l'estran, ce sont les cases du détroit qui touchent la terre. Elles sont rangées du nord au sud, par
+   * vagues de `taille` cases, chacune avec sa tuile tirée d'avance (sable, algues, récif, marais : ce que la mer laisse en
+   * se retirant). Tout est déterministe pour une île donnée : on peut annoncer ce qui viendra.
+   */
+  preparerMaree(cfg) {
+    const b = this.board; const rng = new RNG((this.def.seed || 1) * 13 + 77);
+    const estran = [...b.detroit].filter((k) => { const [q, r] = parse(k); return neighbors(q, r).some(([a, c]) => b.mask.has(key(a, c)) && !b.detroit.has(key(a, c))); })
+      .map((k) => { const [q, r] = parse(k); const w = toWorld(q, r); return { q, r, k, y: w.y, x: w.x }; })
+      .sort((u, v) => u.y - v.y || u.x - v.x);
+    const familles = [['sand', 0.4], ['kelp', 0.25], ['marsh', 0.2], ['reef', 0.15]];
+    const tirer = () => { let x = rng.next(); for (const [f, p] of familles) { if (x < p) return f; x -= p; } return 'sand'; };
+    const taille = cfg.taille || 4; const vagues = [];
+    for (let i = 0; i < estran.length; i += taille) vagues.push(estran.slice(i, i + taille).map((c, j) => ({ q: c.q, r: c.r, tile: { family: tirer(), variant: 1, id: -(1000 + i + j), maree: true } })));
+    return { toutes: cfg.toutes || 5, compte: 0, suivante: 0, vagues };
+  }
+  /** Dans combien de poses la mer descend (null : plus rien à découvrir). */
+  mareeDans() { const m = this.maree; if (!m || m.suivante >= m.vagues.length) return null; return m.toutes - m.compte; }
+  /** Les cases encore sous l'eau, avec leur tuile à venir et le rang de leur vague (0 = la prochaine) : pour les silhouettes du rendu. */
+  mareeAVenir() { const m = this.maree; if (!m) return []; const out = []; for (let i = m.suivante; i < m.vagues.length; i++) for (const c of m.vagues[i]) if (!this.board.tiles.has(key(c.q, c.r))) out.push({ q: c.q, r: c.r, tile: c.tile, rang: i - m.suivante }); return out; }
+  /**
+   * La marée descend : la prochaine vague émerge. Une case où le joueur a déjà posé la mer garde sa tuile ; les autres
+   * reçoivent la leur, comptée comme une pose (bords, primes, fermetures) — le sable et le marais deviennent de la terre, les
+   * algues et le récif restent de la mer. Aucune tuile de la file n'est consommée.
+   */
+  decouvrir() {
+    const m = this.maree; if (!m || m.suivante >= m.vagues.length) return null;
+    const vague = m.vagues[m.suivante++]; const posees = []; let pts = 0; const closes = [];
+    for (const c of vague) {
+      const k = key(c.q, c.r); if (this.board.tiles.has(k)) continue;
+      if (!MER.has(c.tile.family)) this.board.detroit.delete(k);   // la mer s'est retirée : la case est de la terre
+      const res = apply(this.board, c.q, c.r, { ...c.tile }, this.season, this.mods);
+      this.poses.push({ q: c.q, r: c.r, t: { ...c.tile }, s: this.season, kind: 'maree' });
+      pts += res.total; for (const cl of res.closes) { closes.push(cl); this.stats.closed++; this.stats.closedThisSeason++; this.breaths += BALANCE.breaths.close; }
+      posees.push({ q: c.q, r: c.r, tile: c.tile, pts: res.total });
+    }
+    this.board.touch();
+    this.score += pts; this.tally.maree = (this.tally.maree || 0) + pts;
+    this.updateFauna(); this.checkWishes();
+    this.emit({ type: 'maree', cells: posees, pts, reste: m.vagues.length - m.suivante });
+    for (const cl of closes) this.emit({ type: 'close', ...cl, breath: BALANCE.breaths.close });
+    return posees;
+  }
+  /** Remet le détroit d'accord avec les vagues déjà découvertes (reprise, annulation) : leurs cases de terre en sont sorties. */
+  syncMaree() {
+    const m = this.maree; if (!m) return;
+    this.board.detroit = new Set(this.def.detroit || []);
+    for (let i = 0; i < m.suivante; i++) for (const c of m.vagues[i]) { const t = this.board.tiles.get(key(c.q, c.r)); if (t && t.maree && !MER.has(t.family)) this.board.detroit.delete(key(c.q, c.r)); }
   }
 
   /** Livre II : les routes de mer (chacune à son premier port) et la chaîne de territoire (à son premier maillon) paient à la saison. */
@@ -706,12 +762,13 @@ export class Island {
     this.undoUsedThisSeason = true; this.stats.undo++;
     this.fauna = new Map(s.fauna);
     if (s.posesN !== undefined) this.poses.length = Math.min(this.poses.length, s.posesN);
+    if (this.maree && s.maree) { this.maree.compte = s.maree.compte; this.maree.suivante = s.maree.suivante; this.syncMaree(); }   // la marée remonte avec le coup annulé
     this.emit({ type: 'breath', kind: 'undo' });
     return true;
   }
 
   pushHistory() {
-    this.history.push({ posesN: this.poses.length, rngS: this.rng.s, nextRule: this.nextRule || null, longSeasonDone: !!this.longSeasonDone, pendingOpening: [...this.pendingOpening], tally: { ...this.tally }, bestMove: this.bestMove ? { ...this.bestMove } : null, rule: this.rule, huntSeason: this.huntSeason, board: this.board.snapshot(), queue: this.queue.snapshot(), score: this.score, placements: this.placements, inSeason: this.inSeason, season: this.season, seasonsPassed: [...this.seasonsPassed], stats: { ...this.stats }, wishes: this.wishes.map((w) => ({ ...w })), breaths: this.breaths, fauna: new Map(this.fauna) });
+    this.history.push({ maree: this.maree ? { compte: this.maree.compte, suivante: this.maree.suivante } : null, posesN: this.poses.length, rngS: this.rng.s, nextRule: this.nextRule || null, longSeasonDone: !!this.longSeasonDone, pendingOpening: [...this.pendingOpening], tally: { ...this.tally }, bestMove: this.bestMove ? { ...this.bestMove } : null, rule: this.rule, huntSeason: this.huntSeason, board: this.board.snapshot(), queue: this.queue.snapshot(), score: this.score, placements: this.placements, inSeason: this.inSeason, season: this.season, seasonsPassed: [...this.seasonsPassed], stats: { ...this.stats }, wishes: this.wishes.map((w) => ({ ...w })), breaths: this.breaths, fauna: new Map(this.fauna) });
     if (this.history.length > 3) this.history.shift();
   }
 

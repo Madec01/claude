@@ -113,7 +113,7 @@ function blocHarmonie(hr) {
 export const TALLY_LABELS = { harmonie: 'Harmonie (fleurs)', edges: 'Bords et affinités', closes: 'Régions fermées', fauna: 'Faune', wishes: 'Vœux', base: 'Rivières et primes de pose', build: 'Bâtir', fusions: 'Fusions', paths: 'Sentiers entre villages',
   // les primes de saison, une par nature (anciennement toutes sous « Saisons »)
   s_harvest: 'Récoltes', s_veillee: 'Veillées d’hiver', s_bloom: 'Marais en fleurs', s_heather: 'Lande en fleurs', s_pond: 'Étangs', s_mild: 'Hiver doux', s_cold: 'Grand froid', s_firewood: 'Bois de chauffage', s_fair: 'Grande foire', s_hunt: 'Chasse et cueillette', s_rare: 'Tuiles rares', s_level3: 'Niveau 3', s_fusion: 'Fusions (primes de saison)',
-  s_route: 'Routes de mer', s_chaine: 'Chaîne de territoire', s_tempete: 'Tempête', s_maree: 'Marée basse', s_wind: 'Vent',   // Livre II
+  s_route: 'Routes de mer', s_chaine: 'Chaîne de territoire', s_tempete: 'Tempête', s_maree: 'Marée basse', s_wind: 'Vent', maree: 'La mer qui descend',   // Livre II
   seasons: 'Autres primes de saison', works: 'Ouvrages (anciennes parties)', streak: 'Séries (anciennes parties)',
   // Le Souffle court
   tempo: 'Séries (poses rapides)', s_tempo: 'Saisons comptées double', pleine: 'Saisons sans tuile perdue', vides: 'Cases restées vides',

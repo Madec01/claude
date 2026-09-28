@@ -467,7 +467,8 @@ export class Hud {
     const effet = isl.tempo && !isl.def.sansEffets ? { spring: 'Deux tuiles proposées : pose celle que tu veux, l’autre est perdue.', summer: `Une réserve de ${fr(reserveEte(isl.def))} s pour les cinq tuiles.`, autumn: 'La brume couvre l’île ; poser la dissipe autour.', winter: `Cadran gelé, ×${fr(BALANCE.tempo.hiver)}.` }[isl.season] : null;
     // la saison qui vient s'annonce deux poses avant, avec sa surprise : de quoi préparer une réponse (audit, J-F)
     const an = isl.annonce ? isl.annonce() : null; const anTxt = an ? `${(STORY.seasons[an.season] || { name: an.season }).name} dans ${an.dans === 1 ? 'une pose' : `${an.dans} poses`} : ${(STORY.seasonRules[an.rule] || { name: an.rule }).name.toLowerCase()}` : '';
-    this.set('seasonName', rl && isl.rulesVariable ? `${s.name} · ${rl.name}` : s.name); this.set('seasonRule', (an ? `${anTxt} · ` : '') + (effet ? `${effet} ` : '') + (rl ? rl.rule : isl.rule === 'aucune' ? '' : s.rule));
+    const md = isl.mareeDans ? isl.mareeDans() : null; const mareeTxt = md === null ? '' : `La mer descend dans ${md === 1 ? 'une pose' : `${md} poses`} · `;   // île 40 : l'estran qui va émerger se voit sous l'eau
+    this.set('seasonName', rl && isl.rulesVariable ? `${s.name} · ${rl.name}` : s.name); this.set('seasonRule', mareeTxt + (an ? `${anTxt} · ` : '') + (effet ? `${effet} ` : '') + (rl ? rl.rule : isl.rule === 'aucune' ? '' : s.rule));
     if (this.last.annonce !== anTxt) { this.last.annonce = anTxt; r.seasonBox.classList.toggle('annonce', !!an); }
     if (this.last.seasonKey !== isl.season) { this.last.seasonKey = isl.season; r.seasonIcon.innerHTML = icon(SEASON_ICON[isl.season] || 'icon_leaf'); r.seasonBox.classList.remove('s-spring', 's-summer', 's-autumn', 's-winter'); r.seasonBox.classList.add(`s-${isl.season}`); }
     // l'objectif personnel du Souffle court, suivi sous les points

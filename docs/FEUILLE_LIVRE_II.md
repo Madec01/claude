@@ -64,6 +64,29 @@ fait 3 % de mieux que celui qui les ignore, et relie un port de plus. Aucune tui
 pour 8 à 18 tuiles de mer posées). Les rentes récompensent l'attention sans écraser le voisinage : c'est ce qu'on voulait.
 À recalibrer sur les vraies îles du chapitre 11.
 
+## « La mer descend » (idée du commanditaire, prototype du 28 septembre, île 40)
+
+Le mode imaginé par le commanditaire : *la mer descend et révèle de nouvelles cases déjà pleines, après cinq coups*. Prototypé
+comme une **île** (les Grèves, 40) avant d'être un mode : le détroit y fait quatre cases de large ; l'**estran**, ce sont les
+cases du détroit qui touchent la terre (36 sur 78). Elles sont rangées du nord au sud par **vagues de quatre**, chacune avec sa
+tuile tirée d'avance (sable 40 %, algues 25 %, marais 20 %, récif 15 % — ce que la mer laisse en se retirant). **Toutes les cinq
+poses, la mer descend d'une vague** : ses tuiles émergent et comptent comme des poses (bords, primes, fermetures, cumul « la mer
+qui descend » au bilan) sans consommer la file ; le sable et le marais deviennent de la terre (la côte change de forme), les
+algues et le récif restent de la mer. Une case où le joueur a déjà posé la mer garde sa tuile. **On voit les deux prochaines vagues
+sous l'eau** (l'image de la tuile sous un voile, la prochaine cernée d'un pointillé qui respire) : on bâtit la côte pour ce qui va
+sortir — c'est là la décision. La bulle de saison compte les poses (« La mer descend dans 3 poses »). Reprise et annulation
+remettent la marée (et le détroit) où elles étaient.
+
+| île 40, robot fort, deux hasards | score | dont la mer qui descend | routes | chaîne | vagues émergées | mer perdue |
+|---|---|---|---|---|---|---|
+| sans la marée | 381 et 425 | — | 25 et 17 | 10 et 18 | — | 0 |
+| avec la marée | 640 et 727 | 71 et 72 (poses) | 34 et 33 | 19 et 18 | 9 sur 9 | 0 |
+
+Le score monte de 65 % : les 36 tuiles émergées paient leurs bords, allongent les routes et la chaîne. Les étoiles de l'île
+sont recalibrées sur cette échelle. Reste à juger en jouant : la planification (mettre la bonne terre devant la bonne
+silhouette) est-elle une décision ou une rente ? Si c'est une rente, deux vis : ne montrer que la prochaine vague, ou faire
+émerger l'estran **sans** payer ses bords (seules les tuiles du joueur paieraient).
+
 ## Les chapitres
 
 1. **La Traversée** (31–33) — la mer posable autour d'une île, le récif et les algues, la chaîne de territoire.

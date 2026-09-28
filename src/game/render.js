@@ -1010,6 +1010,7 @@ export class IslandRenderer {
     const tiles = [...b.tiles.values()];
     const vis = (c, m = 170) => !(c.x < -m || c.x > STAGE.W + m || c.y < -m || c.y > STAGE.H + m);
     this.drawHautsFonds(ctx, tiles, vis);
+    this.drawEstran(ctx, vis);
     // L'ombre portée de l'île : celle du trait de côte, pas une ombre d'hexagone par tuile. Les
     // ombres hexagonales dépassaient dans la mer partout où la côte érodée recule sur la tuile, et
     // leurs arêtes droites redessinaient la grille sous l'eau (mesuré : c'était la dernière arête
@@ -1457,6 +1458,31 @@ export class IslandRenderer {
       ctx.fillStyle = g; ctx.beginPath(); ctx.arc(w.x, w.y, r, 0, TAU); ctx.fill();
     }
     if (debut) ctx.restore();
+  }
+
+  /**
+   * « La mer descend » (île 40) : les cases de l'estran encore sous l'eau montrent leur tuile à venir en silhouette — l'image
+   * de la tuile à demi-transparente sous un voile d'eau, plus nette pour la prochaine vague, qui respire. Rien n'est dessiné :
+   * c'est l'image existante, composée sous un voile.
+   */
+  drawEstran(ctx, vis) {
+    const isl = this.isl; if (!isl.mareeAVenir) return; const cells = isl.mareeAVenir(); if (!cells.length) return;
+    const cam = this.cam; const z = cam.zoom; const season = isl.season; const pulse = 0.5 + 0.5 * Math.sin(this.time * 1.8);
+    // seules les deux prochaines vagues se montrent : au-delà, la mer garde son secret — et l'écran, sa mer (un estran entier
+    // en silhouettes faisait une grille pâle sur tout le détroit)
+    for (const c of cells) {
+      if (c.rang > 1) continue;
+      const w = toWorld(c.q, c.r); const p = cam.toScreen(w.x, w.y); if (!vis(p)) continue;
+      const img = this.tileImage(c.tile, season); if (!img) continue;
+      const prochaine = c.rang === 0; const a = prochaine ? 0.5 + 0.14 * pulse : 0.28;
+      const tw = TILE_W * z, th = TILE_H * z;
+      const pts = corners(p.x, p.y, SIZE * z * 0.94);
+      ctx.save(); ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]); for (let i = 1; i < 6; i++) ctx.lineTo(pts[i][0], pts[i][1]); ctx.closePath(); ctx.clip();
+      ctx.globalAlpha = a; ctx.drawImage(img, p.x - tw / 2, p.y - th / 2, tw, th);
+      ctx.globalAlpha = 1; ctx.fillStyle = `rgba(70,135,190,${(prochaine ? 0.22 : 0.34).toFixed(2)})`; ctx.fill();   // le voile d'eau
+      ctx.restore();
+      if (prochaine) { ctx.save(); ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]); for (let i = 1; i < 6; i++) ctx.lineTo(pts[i][0], pts[i][1]); ctx.closePath(); ctx.strokeStyle = `rgba(255,255,255,${(0.35 + 0.4 * pulse).toFixed(2)})`; ctx.lineWidth = 1.4; ctx.setLineDash([5, 6]); ctx.stroke(); ctx.restore(); }
+    }
   }
 
   /** Cette case est-elle de l'eau de mer, pour le rendu : hors du masque, ou dans une anse ? */

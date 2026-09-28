@@ -226,5 +226,32 @@ const defMech = (seed, cells, extra = {}) => ({ ...defDe(seed, cells), mech: new
   check(!!morse && Board.isFamily(b.get(morse.q, morse.r), 'kelp'), `des algues contre la roche : le morse s'y hisse (${morse ? key(morse.q, morse.r) : 'absent'})`);
 }
 
+
+// --- « la mer descend » (île 40) : toutes les cinq poses, une vague de l'estran émerge, déjà pleine, vue d'avance sous l'eau
+{
+  const def = campaignIsland(40);
+  check(!!def.maree && def.maree.toutes === 5 && def.detroit.length > 20, `l'île 40 a la marée (toutes les ${def.maree && def.maree.toutes} poses) et un détroit large (${def.detroit.length} cases)`);
+  const isl = new Island(def, { upgrades: {} }); const b = isl.board; const m = isl.maree;
+  check(m && m.vagues.length >= 3 && m.vagues.every((v) => v.every((c) => b.detroit.has(key(c.q, c.r)) && ['sand', 'kelp', 'marsh', 'reef'].includes(c.tile.family))), `${m ? m.vagues.length : 0} vagues d'estran, toutes sur le détroit, tirées d'avance (sable, algues, marais, récif)`);
+  const avenir = isl.mareeAVenir();
+  check(avenir.length === m.vagues.reduce((a, v) => a + v.length, 0) && avenir.filter((c) => c.rang === 0).length === m.vagues[0].length && isl.mareeDans() === 5, 'tout l\'estran se voit d\'avance ; la prochaine vague est au rang 0 ; la mer descend dans cinq poses');
+  // cinq poses au robot glouton
+  const glouton = () => { const t = isl.current; let best = null, bs = -Infinity; for (const c of b.legalCells(t)) { const pv = isl.preview(c.q, c.r); if (pv && pv.total > bs) { bs = pv.total; best = c; } } return best; };
+  const scoreAvant4 = isl.score; let n = 0; while (n < 4 && !isl.ended) { const c = glouton(); if (!c) break; isl.place(c.q, c.r); n++; }
+  check(m.suivante === 0 && isl.mareeDans() === 1, `après quatre poses, rien n'a émergé ; la mer descend dans ${isl.mareeDans()} pose`);
+  const c5 = glouton(); const av = isl.score; isl.place(c5.q, c5.r);
+  const v0 = m.vagues[0]; const emergees = v0.filter((c) => { const t = b.get(c.q, c.r); return t && t.maree; });
+  check(m.suivante === 1 && emergees.length >= v0.length - 1 && isl.mareeDans() === 5, `à la cinquième pose, la première vague émerge (${emergees.length}/${v0.length} tuiles déjà pleines), la suivante est dans cinq poses`);
+  const terre = v0.filter((c) => !MER.has(c.tile.family));
+  check(terre.every((c) => !b.detroit.has(key(c.q, c.r))) && v0.filter((c) => MER.has(c.tile.family)).every((c) => b.detroit.has(key(c.q, c.r))), 'le sable et le marais émergés sont de la terre (sortis du détroit), les algues et le récif restent de la mer');
+  check(isl.score >= av && (isl.tally.maree || 0) >= 0 && isl.poses.filter((p) => p.kind === 'maree').length === emergees.length, `les tuiles émergées comptent comme des poses (cumul « la mer qui descend » : ${isl.tally.maree || 0})`);
+  // reprise : la marée reprend où elle en était, le détroit aussi
+  const snap = isl.serialize(); const isl2 = new Island(def, { upgrades: {} }); isl2.restoreRun(snap);
+  check(isl2.maree.suivante === 1 && isl2.maree.compte === 0 && terre.every((c) => !isl2.board.detroit.has(key(c.q, c.r))) && isl2.mareeAVenir().length === isl.mareeAVenir().length, 'après reprise, la marée et le détroit sont où on les avait laissés');
+  // annulation : le coup qui a fait descendre la mer la fait remonter
+  isl.breaths = Math.max(isl.breaths, 5); const okUndo = isl.canUndo() && isl.undo();
+  check(!okUndo || (m.suivante === 0 && v0.every((c) => !b.get(c.q, c.r) || !b.get(c.q, c.r).maree) && terre.every((c) => b.detroit.has(key(c.q, c.r)))), `annuler le cinquième coup fait remonter la mer${okUndo ? '' : ' (pas de souffle pour annuler : non testé)'}`);
+}
+
 console.log(failures ? `${failures} échec(s)` : 'Tous les tests du Livre II passent.');
 process.exit(failures ? 1 : 0);
