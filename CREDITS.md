@@ -102,9 +102,12 @@ Toutes les œuvres ci-dessous appartiennent à leurs auteurs et sont utilisées 
 - **Généré par IA (ChatGPT, OpenAI)** — OpenAI — licence Conditions d'utilisation d'OpenAI (voir la page ci-dessous) — [source](https://openai.com/policies/usage-policies)
   - Attribution : Insignes d'archétype d'île, insignes des dix chapitres, leurs tampons pour la carte postale et les vignettes des trente et un succès, générés à partir de prompts écrits pour le projet (docs/PROMPTS_INSIGNES.pdf, docs/PROMPTS_SUCCES.pdf), à la demande du commanditaire.
   - Fichiers : 63
-- **Icône et écran de chargement (captures du jeu)** — Cent Saisons — licence Voir les packs ci-dessus
-  - Attribution : L'icône et le fond de l'écran de chargement sont des photographies de l'île 13, jouée jusqu'au bout par le bot des tests (tools/capture_partie.js) : l'icône recadrée au carré, le fond en deux cadrages, paysage et portrait. Tout ce qu'on y voit vient des packs d'images crédités plus haut ; rien n'a été dessiné pour elles.
-  - Fichiers : ui/app_icon_192.png, ui/app_icon_512.png, ui/app_icon_512_maskable.png, ui/boot_island.jpg, ui/boot_island_portrait.jpg
+- **Écran de chargement (captures du jeu)** — Cent Saisons — licence Voir les packs ci-dessus
+  - Attribution : Le fond de l'écran de chargement est une photographie de l'île 13, jouée jusqu'au bout par le bot des tests (tools/capture_partie.js), en deux cadrages, paysage et portrait. Tout ce qu'on y voit vient des packs d'images crédités plus haut ; rien n'a été dessiné pour elle.
+  - Fichiers : ui/boot_island.jpg, ui/boot_island_portrait.jpg
+- **Icône du jeu** — Martinus Games (le commanditaire) — licence Icône du studio, tous droits réservés — fournie par le commanditaire pour ce jeu
+  - Attribution : L'icône de l'application est la première image de l'animation fournie par le commanditaire le 28 septembre 2026 (recadrée sur son contenu ; la version « maskable » est posée sur le papier du jeu, à 78 % du cadre).
+  - Fichiers : ui/app_icon_192.png, ui/app_icon_512.png, ui/app_icon_512_maskable.png
 - **Animation d’ouverture « Martinus Games »** — Martinus Games (le commanditaire) — licence Logo du studio, tous droits réservés — fourni par le commanditaire pour ce jeu
   - Attribution : Le film d’ouverture (4 s, les pixels qui se rassemblent en logo) est la propriété du studio. Son habillage sonore est un montage du pipeline audio du jeu (sfx/intro.ogg : jingle 8-bit Kenney CC0, glockenspiel, violoncelle, harpe et nappe FluidR3 CC BY 3.0), crédité dans la section « Sons ».
   - Fichiers : video/intro.webm (VP9 + Opus), video/intro.mp4 (H.264 + AAC)

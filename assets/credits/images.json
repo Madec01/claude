@@ -931,16 +931,24 @@
   ]
  },
  {
-  "pack": "Icône et écran de chargement (captures du jeu)",
+  "pack": "Écran de chargement (captures du jeu)",
   "author": "Cent Saisons",
   "license": "Voir les packs ci-dessus",
-  "attribution": "L'icône et le fond de l'écran de chargement sont des photographies de l'île 13, jouée jusqu'au bout par le bot des tests (tools/capture_partie.js) : l'icône recadrée au carré, le fond en deux cadrages, paysage et portrait. Tout ce qu'on y voit vient des packs d'images crédités plus haut ; rien n'a été dessiné pour elles.",
+  "attribution": "Le fond de l'écran de chargement est une photographie de l'île 13, jouée jusqu'au bout par le bot des tests (tools/capture_partie.js), en deux cadrages, paysage et portrait. Tout ce qu'on y voit vient des packs d'images crédités plus haut ; rien n'a été dessiné pour elle.",
+  "files": [
+   "ui/boot_island.jpg",
+   "ui/boot_island_portrait.jpg"
+  ]
+ },
+ {
+  "pack": "Icône du jeu",
+  "author": "Martinus Games (le commanditaire)",
+  "license": "Icône du studio, tous droits réservés — fournie par le commanditaire pour ce jeu",
+  "attribution": "L'icône de l'application est la première image de l'animation fournie par le commanditaire le 28 septembre 2026 (recadrée sur son contenu ; la version « maskable » est posée sur le papier du jeu, à 78 % du cadre).",
   "files": [
    "ui/app_icon_192.png",
    "ui/app_icon_512.png",
-   "ui/app_icon_512_maskable.png",
-   "ui/boot_island.jpg",
-   "ui/boot_island_portrait.jpg"
+   "ui/app_icon_512_maskable.png"
   ]
  },
  {
