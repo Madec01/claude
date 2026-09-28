@@ -750,6 +750,23 @@ export const STORY = {
 
   epilogue: 'Nous n’avons plus besoin d’être rappelées. Nous nous souvenons.',
 
+  // Livre II — la Traversée. La vieille passeuse du Livre I mène la barque ; c'est elle qui parle, pas les îles.
+  prologue2: [
+    'Tu es partie, Saison. Tu as pris la barque. Personne ne t’a vue monter, mais la passeuse a senti le poids changer.',
+    '« Il y a d’autres îles, sous d’autres ciels. Elles se souviennent de la terre. C’est la mer qu’elles ont oubliée. »',
+    'Ici, la mer se pose. Une tuile de mer entre deux rives, et deux ports se parlent. Une route qui tient paie à chaque saison.',
+    '« Relie. C’est tout ce que je sais faire, et je le fais depuis cent saisons. À toi de trouver ce qui vaut la peine d’être relié. »',
+    'Commence par la côte. Le récif aime la plage, les algues aiment la vase, et la mer n’aime rien : elle porte.',
+  ],
+  ending2: [
+    'La dernière tuile de mer est posée. Le détroit ne sépare plus rien : il relie.',
+    'La passeuse a lâché la rame. La barque continue toute seule, de port en port, portée par les routes que tu as tenues.',
+    'Le narval suit. La baleine souffle une fois, puis reste. Le morse n’a pas bougé, il n’avait pas besoin.',
+    '« Quinze îles. Deux mers. J’ai compté les traversées et je ne compterai plus. »',
+    'Tu peux rester, Saison. Ou repartir. Les îles ne te retiennent pas : elles t’attendent, ce n’est pas pareil.',
+  ],
+  epilogue2: 'La mer ne se souvient de rien. C’est pour cela qu’elle relie tout.',
+
   tempo: {
     intro: [
       'Ici, pas de file. La tuile arrive, et tu as trois secondes pour la poser. Passé ce temps, elle est perdue — et sa case restera vide.',

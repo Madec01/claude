@@ -36,7 +36,7 @@ import { campaignIsland, campaignMechanics, islandOptions, CAMPAIGN_SIZE, FIN_LI
 import { GRADES, streakMilestone, motDePose } from './game/feedback.js';
 import { computeLinks } from './game/paths.js';
 import { waterBodies } from './game/water.js';
-import { buildStory, islandIntroScreens, islandMemoryScreens, prologueScreens, endingScreens, infiniteScreens, gardenScreens, dailyScreens, tempoScreens } from './ui/story.js';
+import { buildStory, islandIntroScreens, islandMemoryScreens, prologueScreens, endingScreens, prologue2Screens, ending2Screens, infiniteScreens, gardenScreens, dailyScreens, tempoScreens } from './ui/story.js';
 import { buildResults } from './ui/results.js';
 import { buildCollection } from './ui/collection.js';
 import { buildWorkshop } from './ui/workshop.js';
@@ -90,7 +90,7 @@ resize();
 
 const SEASON_MUSIC = { spring: 'spring', summer: 'summer', autumn: 'autumn', winter: 'winter' };
 // le printemps garde toujours « Morning » (préférence du commanditaire) ; les autres saisons alternent entre deux pistes
-const seasonMusic = (season, nth = 1) => { const alt = `${SEASON_MUSIC[season]}_2`; return nth >= 2 && nth % 2 === 0 && AudioSys.has(alt, 'music') ? alt : SEASON_MUSIC[season]; };
+const seasonMusic = (season, nth = 1, livre2 = false) => { if (livre2 && AudioSys.has('mer', 'music') && (nth <= 1 || nth % 2 === 1)) return 'mer'; const alt = `${SEASON_MUSIC[season]}_2`; return nth >= 2 && nth % 2 === 0 && AudioSys.has(alt, 'music') ? alt : SEASON_MUSIC[season]; };   // Livre II : la musique de mer un cycle sur deux, la saison entre
 
 /** Les étincelles d'une saison : une par tuile qui rapporte (couleur selon la nature), les sentiers depuis leur milieu, la faune depuis chaque animal, le reste depuis le centre. */
 const FLIGHT_COLORS = { harvest: '#e0a33a', bloom: '#d98cb3', vigil: '#f2c08a', level3: '#e0a33a', fusion: '#b8862b', rare: '#8a6fb5', path: '#c9a26b', fauna: '#3a9c8a', other: '#e0a33a' };
@@ -364,7 +364,34 @@ const Game = {
     if (!c.prologueSeen && id === 1) scenes.go('story', { screens: prologueScreens(), onDone: () => { c.prologueSeen = true; Save.save(); this.startIsland(1); } });
     else this.startIsland(id);
   },
+  /**
+   * Livre II : la première fois qu'on aborde l'île 31, la cinématique du commanditaire si elle est déposée
+   * (assets/video/livre2.webm ou .mp4 — rien n'est demandé au réseau tant qu'un HEAD ne l'a pas trouvée), puis la passeuse
+   * ouvre la Traversée. Une fois vu, jamais plus.
+   */
+  async ouvrirLivre2(suite) {
+    const c = Save.campaign; c.prologue2Seen = true; Save.save();
+    await this.playFilm('assets/video/livre2');
+    scenes.go('story', { screens: prologue2Screens(), onDone: suite });
+  },
+  /** Joue un film s'il existe (webm ou mp4, même mise en scène que l'animation du studio), sinon rend tout de suite. */
+  async playFilm(base) {
+    if (navigator.webdriver) return;
+    let src = null;
+    for (const ext of ['webm', 'mp4']) { try { const r = await fetch(`${base}.${ext}`, { method: 'HEAD' }); if (r.ok) { src = `${base}.${ext}`; break; } } catch (_) { /* absent */ } }
+    if (!src) return;
+    await new Promise((resolve) => {
+      const box = h('div', { id: 'intro', class: 'joue' }); const v = document.createElement('video'); v.playsInline = true; v.preload = 'auto'; v.src = src;
+      box.append(v, h('div', { class: 'intro-passer' }, 'Toucher pour passer')); document.body.appendChild(box);
+      let done = false; const fin = () => { if (done) return; done = true; box.classList.add('off'); setTimeout(() => box.remove(), 600); resolve(); };
+      const opts = Save.options; v.volume = Math.max(0, Math.min(1, (opts.master ?? 0.8) * (opts.sfx ?? 0.9))); v.muted = !!opts.muted;
+      v.addEventListener('ended', fin); v.addEventListener('error', fin, true); box.addEventListener('pointerdown', fin); window.addEventListener('keydown', fin, { once: true });
+      const essai = v.play(); if (essai && essai.catch) essai.catch(() => { v.muted = true; v.play().catch(fin); });
+      setTimeout(fin, 90000);
+    });
+  },
   startIsland(id, { skipIntro = false } = {}) {
+    if (id === FIN_LIVRE1 + 1 && !Save.campaign.prologue2Seen && !skipIntro && !navigator.webdriver) { this.ouvrirLivre2(() => this.startIsland(id)); return; }
     const def = campaignIsland(id); const cc = climateCardFor(def.id); def.introduces = [...(cc ? [cc] : []), ...(MECH_AT[def.id] || []).filter((m) => !(cc && m === 'climate'))];   // la carte de climat d'abord (elle n'attend rien), la carte générique cède la place à la carte du climat
     this.prepIsland(def, skipIntro ? [] : islandIntroScreens(def));   // « Rejouer l'île » : pas de récit, on l'a déjà lu
   },
@@ -592,7 +619,7 @@ const Game = {
     // passe directement à l'écran de départ de l'île suivante ; l'Atelier attend au menu.
     this.remindBackup();
     if (def.id === FIN_LIVRE1) { scenes.go('story', { screens: endingScreens(), skippable: false, onDone: () => scenes.go('ending') }); return; }   // la fin du Livre I ; la mer attend au menu
-    if (def.id === CAMPAIGN_SIZE) { this.showMenu(); return; }   // la fin du Livre II (son récit vient au lot 7c)
+    if (def.id === CAMPAIGN_SIZE) { scenes.go('story', { screens: ending2Screens(), skippable: false, onDone: () => scenes.go('ending', { livre: 2 }) }); return; }   // la fin du Livre II : la passeuse lâche la rame
     if (c.unlockedIsland > def.id) {
       // les graines dormaient dans la poche (le commanditaire lui-même avait oublié l'Atelier) : quand elles paient une
       // amélioration que le joueur n'a pas encore vue à portée, l'Atelier s'ouvre une fois sur le chemin de l'île suivante.
@@ -751,7 +778,7 @@ class IslandScene {
     }
     // audio
     this.seasonCount = { [isl.season]: 1 };
-    if (!def.tempo) AudioSys.playMusic(def.garden ? 'garden' : def.daily && AudioSys.has('daily', 'music') ? 'daily' : seasonMusic(isl.season, 1), { fade: 2 });
+    if (!def.tempo) AudioSys.playMusic(def.garden ? 'garden' : def.daily && AudioSys.has('daily', 'music') ? 'daily' : seasonMusic(isl.season, 1, !!def.livre2), { fade: 2 });
     this.updateAmbience(true);
     AudioSys.play('island_start', { volume: 0.6 });
     // entrées
@@ -1026,7 +1053,7 @@ class IslandScene {
       this.renderer.startTransition(e.from, e.to);
       AudioSys.play(`season_${e.to}`, { volume: 0.8 }); AudioSys.play('season_sweep', { volume: 0.5 });
       this.seasonCount[e.to] = (this.seasonCount[e.to] || 0) + 1;
-      if (!this.def.daily && !this.def.tempo) AudioSys.playMusic(seasonMusic(e.to, this.seasonCount[e.to]), { fade: 3 });
+      if (!this.def.daily && !this.def.tempo) AudioSys.playMusic(seasonMusic(e.to, this.seasonCount[e.to], !!this.def.livre2), { fade: 3 });
       const s = STORY.seasons[e.to]; const rl = e.rule && STORY.seasonRules[e.rule] ? STORY.seasonRules[e.rule] : null;
       this.hud.logOnly(`${s.name}${rl && isl.rulesVariable ? ` · ${rl.name}` : ''} — ${rl ? rl.line : s.line}`, 'season');
       // une surprise (pas la règle de base) : on la dit une fois, et son habillage arrive avec elle
@@ -1525,12 +1552,12 @@ class WorkshopScene {
   render(ctx, alpha, dt) { this.bg.render(ctx, alpha, dt); ctx.fillStyle = 'rgba(244,239,230,0.5)'; ctx.fillRect(0, 0, STAGE.W, STAGE.H); }
 }
 class EndingScene {
-  async enter() {
+  async enter({ livre = 1 } = {}) {
     AudioSys.playMusic('ending', { fade: 2 });
     this.bg = scenes.scenes.get('menu').ensureBg();
     const node = buildCredits({ onBack: () => scenes.go('menu'), credits: Game.credits });
     node.classList.add('ending-credits');
-    node.prepend(h('div', { class: 'ending-head' }, h('div', { class: 'res-kicker' }, 'Fin de la campagne'), h('p', {}, 'Merci d’avoir rendu leurs saisons aux îles. L’Île infinie et le Jardin vous attendent.')));
+    node.prepend(h('div', { class: 'ending-head' }, h('div', { class: 'res-kicker' }, livre === 2 ? 'Fin du Livre II' : 'Fin du Livre I'), h('p', {}, livre === 2 ? 'Merci d’avoir relié les îles. La mer ne se souvient de rien ; toi, si. L’Île infinie, le Jardin et les Terres étranges t’attendent, et les deux livres se rejouent.' : 'Merci d’avoir rendu leurs saisons aux îles. Le Livre II s’ouvre : d’autres îles, sous d’autres ciels, et la mer entre elles.')));
     showUI(node, 'credits-wrap');
   }
   exit() { hideUI(); }

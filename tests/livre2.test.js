@@ -262,5 +262,20 @@ const defMech = (seed, cells, extra = {}) => ({ ...defDe(seed, cells), mech: new
   check(!okUndo || (m.suivante === 0 && v0.every((c) => !b.get(c.q, c.r) || !b.get(c.q, c.r).maree) && terre.every((c) => b.detroit.has(key(c.q, c.r)))), `annuler le cinquième coup fait remonter la mer${okUndo ? '' : ' (pas de souffle pour annuler : non testé)'}`);
 }
 
+
+// --- chapitre 15 : trois îles, puis quatre, en chapelet ; la marée et le vent sur la dernière ; le récit du Livre II
+{
+  const { composantes } = await import('../src/data/islands.js');
+  for (const [n, iles] of [[43, 3], [44, 3], [45, 4]]) {
+    const def = campaignIsland(n); const terre = new Set(def.mask.filter ? def.mask.filter((k) => !def.detroit.includes(k)) : [...def.mask].filter((k) => !def.detroit.includes(k)));
+    const comps = composantes(terre); const ports = def.start.filter((s) => s.family === 'port');
+    check(comps.length === iles && ports.length === iles && comps.every((c) => c.size >= 8), `l'île ${n} : ${comps.length} îles (${comps.map((c) => c.size).join('/')}), un port par île`);
+  }
+  const d45 = campaignIsland(45);
+  check(d45.climate === 'windy' && d45.maree && d45.maree.toutes === 6 && campaignIsland(43).climate === 'hot' && campaignIsland(44).climate === 'cold', 'le Grand Large : chaud, froid, puis venteux avec la marée toutes les six poses');
+  const { prologue2Screens, ending2Screens } = await import('../src/ui/story.js');
+  check(prologue2Screens().length >= 5 && ending2Screens().length >= 5 && ending2Screens().at(-1).kind === 'title', 'la passeuse ouvre la Traversée et la ferme au Dernier Rivage (écrans de récit)');
+}
+
 console.log(failures ? `${failures} échec(s)` : 'Tous les tests du Livre II passent.');
 process.exit(failures ? 1 : 0);

@@ -52,7 +52,7 @@ export const CHAPTERS = [
   { id: 12, name: 'Les Ports', sub: 'Deux îles, des ports, des routes de mer', climate: 'temperate', livre: 2, islands: [{ archipel: 'deux', cells: 56, w: 'coastAll' }, { archipel: 'deux', cells: 64, w: 'farms' }, { archipel: 'deux', cells: 70, w: 'coastAll', memory: true }] },
   { id: 13, name: 'Les Vents', sub: 'Le climat venteux, la tempête, le phare', climate: 'windy', livre: 2, islands: [{ archipel: 'deux', cells: 66, w: 'wild' }, { archipel: 'deux', cells: 72, w: 'ridges' }, { archipel: 'deux', cells: 76, w: 'coastAll', memory: true }] },
   { id: 14, name: 'Les Marées', sub: 'La marée, et des îles à contrainte', climate: 'temperate', livre: 2, islands: [{ archipel: 'deux', cells: 72, w: 'hills', largeur: 4, maree: { toutes: 5, taille: 4 } }, { archipel: 'deux', cells: 80, w: 'rivers' }, { archipel: 'deux', cells: 84, w: 'moor', memory: true }] },
-  { id: 15, name: 'Le Grand Large', sub: 'Tout ensemble, et la fin du voyage', climate: 'temperate', livre: 2, islands: [{ archipel: 'deux', cells: 84, w: 'all' }, { archipel: 'deux', cells: 92, w: 'coastAll' }, { archipel: 'deux', cells: 100, w: 'all', memory: true }] },
+  { id: 15, name: 'Le Grand Large', sub: 'Trois îles, puis quatre : tout ensemble, et la fin du voyage', climate: 'mixed', livre: 2, islands: [{ archipel: 'deux', iles: 3, cells: 84, w: 'all', climate: 'hot' }, { archipel: 'deux', iles: 3, cells: 92, w: 'coastAll', climate: 'cold' }, { archipel: 'deux', iles: 4, cells: 100, w: 'all', climate: 'windy', largeur: 3, maree: { toutes: 6, taille: 4 }, memory: true }] },
 ];
 
 /** Réserve de vœux des îles générées (textes dans STORY.wishes, clés c_*). `needs` : mécanique requise ; `dl` : échéance en fraction des cases. */
@@ -168,7 +168,7 @@ export function campaignIsland(n) {
  */
 function ileLivre2(n, ch, slot, mech, climate, stars) {
   const seed = 9000 + n * 131; const rng = mulberry(seed); const cells = slot.cells;
-  const a = slot.archipel === 'cote' ? coteMask(seed, cells) : archipelMask(seed, cells, { largeur: slot.largeur || 2 });
+  const a = slot.archipel === 'cote' ? coteMask(seed, cells) : archipelMask(seed, cells, { largeur: slot.largeur || 2, iles: slot.iles || 2 });
   const w = poidsArchipel(weightsFor(slot.w, climate, mech), 0.25); if (!mech.has('ports')) delete w.port;
   const seasonLength = cells <= 56 ? 8 : cells <= 80 ? 9 : 10;
   const startSeason = ['summer', 'autumn', 'winter', 'spring'][n % 4];

@@ -63,6 +63,9 @@ export function islandMemoryScreens(def, result = null) {
 }
 export const prologueScreens = () => [{ kind: 'title', kicker: STORY.subtitle, title: STORY.title }, ...STORY.prologue.map((t) => ({ kind: 'voice', text: t }))];
 export const endingScreens = () => [...STORY.ending.map((t) => ({ kind: 'ending', kicker: 'L’île', text: t })), { kind: 'title', kicker: 'Épilogue', title: STORY.title, text: STORY.epilogue }];
+// Livre II : la passeuse ouvre la Traversée, et la ferme au Dernier Rivage
+export const prologue2Screens = () => [{ kind: 'title', kicker: 'Livre II', title: 'La Traversée' }, ...STORY.prologue2.map((t) => ({ kind: 'voice', text: t }))];
+export const ending2Screens = () => [...STORY.ending2.map((t) => ({ kind: 'ending', kicker: 'La passeuse', text: t })), { kind: 'title', kicker: 'Épilogue', title: STORY.title, text: STORY.epilogue2 }];
 export const tempoScreens = () => [{ kind: 'title', kicker: 'Mode', title: 'Le Souffle court' }, ...STORY.tempo.intro.map((t) => ({ kind: 'voice', text: t }))];
 export const infiniteScreens = () => [{ kind: 'title', kicker: 'Mode', title: 'Île infinie' }, ...STORY.infinite.intro.map((t) => ({ kind: 'voice', text: t }))];
 export const dailyScreens = (def) => [{ kind: 'title', kicker: 'Île du jour', title: def.name, sub: `${def.cells} cases` }, ...STORY.daily.intro.map((t) => ({ kind: 'voice', text: t }))];

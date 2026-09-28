@@ -230,6 +230,7 @@ Le topo et la vision sont dans la conversation du 28 septembre ; ce tableau gard
 | L7 | **Lot 7a** : campagne à 45 îles, images des cinq familles, rendu du détroit, routes et chaîne dans l'aperçu, la lecture et le bilan, robot et calibrage | **fait** (28 septembre) |
 | L8 | **Lot 7b** : taverne, marché, phare, chantier naval, tempête, marée basse, climat venteux, arbres par climat, faune de mer (baleine, morse, narval), chapitres 13 et 14 câblés, recalibrage | **fait** (28 septembre) |
 | L9 | « La mer descend » (idée du commanditaire) : toutes les cinq poses, la marée découvre une vague de cases déjà pleines, visibles en silhouette sous l'eau — prototype sur l'île 40, mesuré au robot | **prototype fait** (28 septembre), à juger par le commanditaire en jouant l'île 40 |
+| L10 | **Lot 7c** : récit de la passeuse (prologue à l'île 31, fin à l'île 45), chapitre 15 en chapelet de trois puis quatre îles, musique de mer, crochet pour la cinématique du commanditaire (`assets/video/livre2.webm`) | **fait** (28 septembre) ; la cinématique attend son fichier, les musiques CC0 leurs fichiers |
 
 ## L'ouverture (28 septembre)
 

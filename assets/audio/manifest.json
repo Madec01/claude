@@ -152,6 +152,16 @@
       "attribution": "« Woodblock Chase II », composé avec Suno par Martinus Games pour Cent Saisons",
       "note": "Le Souffle court, troisième piste : l'autre prise de Woodblock Chase (152 BPM)",
       "pack": "suno"
+    },
+    "mer": {
+      "file": "music/mer.ogg",
+      "duration": 68.401,
+      "loop": true,
+      "source": "Cloud Dancer",
+      "author": "Kevin MacLeod",
+      "license": "CC BY 4.0",
+      "attribution": "\"Cloud Dancer\" Kevin MacLeod (incompetech.com) — Licensed under Creative Commons: By Attribution 4.0 License — http://creativecommons.org/licenses/by/4.0/",
+      "note": "Livre II : la Traversée — une houle légère, un ciel qui s'ouvre ; jouée un cycle de saisons sur deux sur les archipels"
     }
   },
   "ambience": {

@@ -16,10 +16,11 @@ const errors = []; const check = (ok, m) => { if (!ok) errors.push(m); console.l
 
   // --- 1. le manifeste : une bande par espèce, et la tête ronde conservée
   const man = await page.evaluate(async () => {
-    const { SPECIES } = await import('/src/game/fauna.js');
+    const { SPECIES, FAUNA_MARINE } = await import('/src/game/fauna.js');
     const { Assets } = await import('/src/core/assets.js');
     const imgs = Assets.manifest().images;
-    return SPECIES.map((sp) => ({ sp, side: imgs[`fauna_${sp}_side`] || null, head: !!imgs[`fauna_${sp}`] }));
+    // la faune de mer (Livre II) est dessinée depuis son image entière, à la ligne de flottaison : pas de bande de profil
+    return SPECIES.filter((sp) => !FAUNA_MARINE.has(sp)).map((sp) => ({ sp, side: imgs[`fauna_${sp}_side`] || null, head: !!imgs[`fauna_${sp}`] }));
   });
   for (const e of man) {
     check(!!e.side && e.side.frames >= 1 && e.side.frame_w > 0 && e.side.frame_h > 0,

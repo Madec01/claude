@@ -54,7 +54,7 @@ export const INTENTIONS_LIVRE2 = {
   36: 'Ici, relie tout ce qui peut l’être avant la dernière saison.',
   37: 'Ici, abrite tes champs derrière forêts et pinèdes : le vent couche ce qui est nu.', 38: 'Ici, pose des récifs : ils brisent la tempête et paient quand les routes se taisent.', 39: 'Ici, rallume le phare là où les routes passent : chaque route qui le touche paie plus.',
   40: 'Ici, pose la mer contre la terre : la marée basse paie l’estran.', 41: 'Ici, sans rivière, ce sont les routes et la chaîne qui font le score.', 42: 'Ici, fais venir les trois bêtes de mer : le morse, la baleine et le narval.',
-  43: 'Ici, le large (à venir).', 44: 'Ici, tout ensemble (à venir).', 45: 'Ici, le dernier rivage (à venir).',
+  43: 'Ici, trois îles : une route qui les relie toutes vaut plus que deux qui se tournent le dos.', 44: 'Ici, le froid : les routes payent, la veillée aussi. Tiens les deux.', 45: 'Ici, tout ce que la mer sait : relie les quatre rives avant que la marée n’ait tout rendu.',
 };
 export const INTENTIONS = {
   1: 'Ici, apprends à poser contre le bon voisin, et à fermer une région.',
@@ -105,8 +105,8 @@ export const TEXTES_LIVRE2 = {
   40: { name: 'Les Grèves', intro: ['La marée découvre deux fois par jour un chemin entre les îles.', 'Au printemps, la marée basse peut découvrir l’estran : chaque tuile de mer contre la terre rapporte +1, les algues +2, et les marais restent sous l’eau.'], memory: 'La mer a rendu ce qu’elle avait pris.' },
   41: { name: 'La Montagne dans la Mer', intro: ['Une île de roche où la mer est la seule eau.', 'Peu d’eau douce : les routes de mer, la chaîne de territoire et le marché feront le score. Le récif aime la roche.'], memory: 'La roche a bu la mer.' },
   42: { name: 'Le Banc des Morses', intro: ['Des morses sur les algues, contre la roche.', 'Les algues contre la roche attirent le morse ; une mer d’un seul tenant de cinq cases, la baleine ; une route à deux ports, le narval.'], memory: 'Les morses sont revenus les premiers.' },
-  43: { name: 'Le Grand Large', intro: ['Trois îles, ou quatre, et la mer entre elles.', 'Une île du dernier chapitre (à venir).'], memory: 'On a relié le large.' },
-  44: { name: 'L’Archipel des Cent Saisons', intro: ['Tout ce que la mer sait, ensemble.', 'Une île du dernier chapitre (à venir).'], memory: 'Il restait une saison à rendre.' },
-  45: { name: 'Le Dernier Rivage', intro: ['La passeuse retourne sa barque une dernière fois.', 'La fin du voyage (à venir).'], memory: 'Tu peux rester, Saison.' },
+  43: { name: 'Le Grand Large', intro: ['Trois îles, et la mer entre elles. Climat chaud : l’eau vaut de l’or, les prés sèchent tôt.', 'Deux détroits : une route qui traverse les deux relie trois ports, et chaque port de plus compte.'], memory: 'On a relié le large.' },
+  44: { name: 'L’Archipel des Cent Saisons', intro: ['Trois îles sous la neige. Climat froid : la veillée vaut plus, les champs dorment tôt.', 'La glace relie les hameaux, la mer relie les ports : deux façons de tenir ensemble, la même saison.'], memory: 'Il restait une saison à rendre.' },
+  45: { name: 'Le Dernier Rivage', intro: ['Quatre îles, trois détroits, et le vent qui ne s’arrête pas. La marée descend toutes les six poses.', 'Tout ce que la mer sait, ensemble : les routes, la chaîne, la tempête, la marée, les bêtes. La passeuse retourne sa barque une dernière fois.'], memory: 'Tu peux rester, Saison.' },
 };
 Object.assign(INTENTIONS, INTENTIONS_LIVRE2);

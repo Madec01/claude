@@ -93,11 +93,26 @@ silhouette) est-elle une décision ou une rente ? Si c'est une rente, deux vis :
 2. **Les Ports** (34–36) — deux îles, les routes, le dauphin.
 3. **Les Vents** (37–39) — le climat venteux, la tempête (surprise de saison), le phare (rare).
 4. **Les Marées** (40–42) — la marée comme règle de saison, des îles à contrainte (une île montagnarde où la mer est la seule eau).
-5. **Le Grand Large** (43–45) — trois ou quatre îles, tout ensemble, la fin.
+5. **Le Grand Large** (43–45) — trois îles au chaud, trois au froid, puis quatre dans le vent avec la marée qui descend toutes les six poses : tout ensemble, la fin. Les îles se placent en chapelet, un détroit entre chacune (`archipelMask`, `iles: 3` ou `4`).
 
 Le récit part de la dernière phrase du Livre I (« Tu peux partir, Saison. Il y a d'autres îles, sous d'autres ciels, qui
 ne savent plus ce qu'est l'automne. ») ; la vieille passeuse du Livre I guide le voyage. Le voilier de la tournée finale
 devient sa barque à la fin de l'île 30 ; la cinématique du commanditaire ouvre le Livre II.
+
+## Le récit et la cinématique (lot 7c)
+
+La passeuse du Livre I parle ; les îles se taisent. **Prologue** (première arrivée à l'île 31, par « Commencer » comme par la
+sélection) : cinq écrans, `STORY.prologue2`. **Fin** (après l'île 45) : cinq écrans et un épilogue, `STORY.ending2`, puis
+l'écran de fin « Fin du Livre II » avec les crédits ; les deux livres se rejouent depuis le menu. **La cinématique du
+commanditaire** : déposer `assets/video/livre2.webm` (et/ou `livre2.mp4`) dans le dépôt, rien d'autre à faire — le jeu
+vérifie sa présence (une requête HEAD) et la joue avant le prologue, même mise en scène que l'animation du studio (plein
+écran noir, « Toucher pour passer », le son suivant les réglages). Sans fichier, le prologue vient seul. Le crédit du film
+se met dans `assets/credits/images.json` comme celui de l'animation du studio.
+
+**La musique de mer** : « Cloud Dancer » de Kevin MacLeod (CC BY), boucle de 68 s, jouée sur les archipels au premier cycle
+de saisons puis un cycle sur deux (la saison entre). C'est un morceau du miroir déjà crédité, sous le budget de 30 Mo (l'été,
+l'automne et la seconde piste d'hiver passent en qualité 4). Les morceaux CC0 de `docs/MUSIQUES_LIVRE_II.md` la remplaceront
+dès que leurs fichiers seront déposés dans le miroir.
 
 ## Ce qui entre ensuite, et ce qui part
 
@@ -114,4 +129,4 @@ devient sa barque à la fin de l'île 30 ; la cinématique du commanditaire ouvr
 | 0 | Mesure : archipel, détroit, tuiles de mer, routes, chaîne, robot — ce document | **fait** (prototype dans le jeu, test `tests/livre2.test.js`) |
 | 7a | Chapitres 11 et 12 jouables : îles 31 à 36 dans la campagne (et les chapitres 13 à 15 déjà jouables, sans leurs mécaniques propres), images des cinq familles (packs KayKit), rendu du détroit et de la mer posée, aperçu et lecture (routes, chaîne), textes, robot et calibrage des îles 31 à 45 | **fait** (28 septembre) |
 | 7b | Pinède qui abrite, arbres par climat, rares (taverne, marché, phare), chantier naval, faune de mer (baleine, morse, narval), climat venteux, tempête, marée, chapitres 13 et 14 | **fait** (28 septembre) ; la marée qui découvre des cases pleines (idée du commanditaire) en prototype, île 40 |
-| 7c | Récit, passeuse, cinématique, chapitre 15 et fin, musiques et ambiances | à faire |
+| 7c | Récit (la passeuse ouvre la Traversée à l'île 31, la ferme au Dernier Rivage), fin du Livre II, chapitre 15 en chapelet de trois puis quatre îles (chaud, froid, venteux avec la marée), musique de mer, crochet pour la cinématique du commanditaire | **fait** (28 septembre) ; la cinématique attend son fichier |

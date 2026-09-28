@@ -479,8 +479,8 @@ def load_fluid(instrument: str, note: str, ch: int = 1) -> np.ndarray:
 MUSIC = {
     # clé : (titre Kevin MacLeod, durée max de boucle, crossfade s, raison)
     "spring": ("Morning", 115, 3.0, "printemps : piano et cordes légères, aube claire — thème de la saison"),
-    "summer": ("Kalimba Relaxation Music", 115, 3.0, "été : kalimba chaude et lente, chaleur paisible"),
-    "autumn": ("Evening", 115, 3.0, "automne : calme, crépusculaire, mélancolie douce"),
+    "summer": ("Kalimba Relaxation Music", 115, 3.0, "été : kalimba chaude et lente, chaleur paisible", 4),
+    "autumn": ("Evening", 115, 3.0, "automne : calme, crépusculaire, mélancolie douce", 4),
     "winter": ("Gymnopedie No 1", 115, 3.0,
                "hiver : « Ethereal Relaxation » absent du miroir ; la Gymnopédie n° 1 (piano lent, dépouillé, "
                "froid et clair) est le plus hivernal des candidats"),
@@ -493,8 +493,10 @@ MUSIC = {
     # deuxième piste par saison (alternance d'une île à l'autre) et modes
     "summer_2": ("Pleasant Porridge", 115, 3.0, "été (variante) : chaleur tranquille, guitare douce"),
     "autumn_2": ("Leaving Home", 115, 3.0, "automne (variante) : départ, feuilles qui tombent"),
-    "winter_2": ("Night Vigil", 115, 3.0, "hiver (variante) : veille nocturne, froid et calme"),
+    "winter_2": ("Night Vigil", 115, 3.0, "hiver (variante) : veille nocturne, froid et calme", 4),
     "daily": ("Maccary Bay", 115, 3.0, "île du jour : baie tranquille, un jour à la fois"),
+    # Livre II (lot 7c) : la musique de mer des archipels — cap tenu, houle régulière ; qualité 3 et boucle de 100 s pour rester sous les 30 Mo
+    "mer": ("Cloud Dancer", 80, 3.0, "Livre II : la Traversée — une houle légère, un ciel qui s'ouvre ; jouée un cycle de saisons sur deux sur les archipels", 3),
     "tempo": ("suno:Woodblock Swing", 115, 3.0, "Le Souffle court : swing-folk de foire composé avec Suno par le commanditaire (143 BPM) ; le décompte du jeu se cale sur son tempo"),
     # les deux prises de Woodblock Chase : boucle d'une minute et qualité 4 (au lieu de 5), pour tenir dans les 30 Mo d'audio
     "tempo_2": ("suno:Woodblock Chase", 72, 3.0, "Le Souffle court, deuxième piste : une course de bois et de percussions (152 BPM), tirée au sort avec les deux autres", 4),
