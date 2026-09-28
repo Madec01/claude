@@ -22,6 +22,14 @@
 .hud-pause { pointer-events: all; margin-left: auto; background: #fff; border: 1px solid rgba(43,42,38,0.14); border-radius: 50%; width: 44px; height: 44px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 14px rgba(30,50,70,0.12); align-self: center; transition: transform 0.15s; }
 .hud-pause:hover { transform: scale(1.06); }
 .hud-pause .hud-icon { width: 16px; height: 16px; filter: invert(0.25); }
+/* Lire l'île (28 septembre) : le bouton à côté de la pause, allumé quand la lecture est ouverte ; le bandeau sous la barre résume la saison qui vient */
+.hud-lire { margin-left: auto; }
+.hud-lire:not(.hidden) + .hud-pause { margin-left: 0; }
+.hud-lire.on { background: #2f9e8f; border-color: #2f9e8f; box-shadow: 0 4px 14px rgba(47,158,143,0.35); }
+.hud-lire.on .hud-icon { filter: invert(1); }
+.hud-lecture { position: absolute; left: 50%; top: calc(var(--hud-top-h, 70px) + 8px); transform: translateX(-50%); display: flex; align-items: center; gap: 14px; padding: 6px 14px; border-radius: 12px; background: rgba(255,253,248,0.94); border: 1px solid #2f9e8f; box-shadow: 0 4px 12px rgba(30,50,70,0.12); font-size: 12px; font-weight: 600; white-space: nowrap; pointer-events: none; }
+.hud-lecture > b { color: #2f9e8f; text-transform: uppercase; letter-spacing: 0.1em; font-size: 11px; }
+.hud-lecture b { font-weight: 700; } .hud-lecture .moins { color: #b0432f; } .hud-lecture i { font-style: normal; opacity: 0.65; }
 
 /* File de tuiles */
 .hud-queue { position: absolute; left: 14px; top: 84px; width: 190px; display: flex; flex-direction: column; gap: 8px; pointer-events: all; }

@@ -3,7 +3,7 @@
 import { Board } from './board.js';
 import { archetypeOf } from '../data/archetypes.js';
 import { mechIsland } from '../data/campaign.js';
-import { preview, apply, previewBuild, canLevelUp, previewRestore, fusionsAround, previewFuse, fusedTile } from './rules.js';
+import { preview, apply, previewBuild, canLevelUp, previewRestore, fusionsAround, previewFuse, fusedTile, lectureBords, lectureRegions } from './rules.js';
 import { FUSION_BY_ID, RETIRED_RARE, RETIRED_WORKS, RARE_SEASONAL } from '../data/tiles.js';
 import { climateOf } from '../data/climates.js';
 import { transition, nextSeason } from './seasons.js';
@@ -509,26 +509,7 @@ export class Island {
     const links = computeLinks(this.board).links.length;
     this.stats.links = Math.max(this.stats.links, links);
     pts += links * BALANCE.points.pathSeason;
-    // rares à rente (ruche, menhir) : +pts par voisine des familles citées, plafonné ; la ruche donne un peu plus au printemps
-    for (const t of this.board.tiles.values()) {
-      const rs = t.rare && RARE_SEASONAL[t.family]; if (!rs) continue;
-      const n = neighbors(t.q, t.r).filter(([a, b]) => { const x = this.board.get(a, b); return x && rs.families.some((f) => Board.isFamily(x, f)); }).length;
-      const p = Math.min(rs.cap, n) * rs.pts + (this.season === 'spring' ? rs.spring || 0 : 0);
-      if (p) ev.push({ type: 'rare', q: t.q, r: t.r, pts: p, id: t.family });
-    }
-    // niveau 3 : +1 par saison, et c'est tout (ses bords valent +2 et il compte triple dans sa région : voir rules.js).
-    // Les « signatures » par famille (forêt ancienne, pâturage, domaine…) ne sont plus que des noms.
-    for (const t of this.board.tiles.values()) {
-      if ((t.level || 1) < 3 || t.rare) continue; const p = BALANCE.build.level3Season;
-      if (p) ev.push({ type: 'level3', q: t.q, r: t.r, pts: p, family: t.family });
-    }
-    // fusions : prime de saison (+pts par voisine d'une famille, plafonnée, ou +pts fixes dans une saison)
-    for (const t of this.board.tiles.values()) {
-      if (!t.fusion) continue; const rec = FUSION_BY_ID[t.family]; if (!rec || !rec.seasonal) continue; const sp = rec.seasonal; let p = 0;
-      if (sp.family) p = Math.min(sp.cap || 6, neighbors(t.q, t.r).filter(([a, b]) => Board.isFamily(this.board.get(a, b), sp.family)).length) * sp.pts;
-      else if (sp.season === this.season) p = sp.pts;
-      if (p) { ev.push({ type: 'fusion', q: t.q, r: t.r, pts: p, id: t.family }); }
-    }
+    for (const e of this.primesFixes(this.board, this.season)) ev.push(e);
     for (const e of ev) { if (e.pts) pts += e.pts; if (e.type === 'harvest') this.stats.harvest++; if (e.type === 'bloom') this.stats.bloom++; }
     // faune : chaque animal présent donne des souffles et des points
     const faunaBonus = [...this.fauna.values()].filter((a) => !a.noBonus).length;
@@ -546,6 +527,67 @@ export class Island {
     this.updateFauna();
     this.checkWishes();
     if (this.season === 'summer') this.stats.irrigatedSummer = this.countIrrigated();
+  }
+
+  /**
+   * Les primes de saison qui ne dépendent ni de la règle ni du hasard : rares à rente, niveau 3, fusions. Ne touche
+   * à rien ; sert au changement de saison et à la lecture de l'île (sur une copie du plateau).
+   */
+  primesFixes(board, season) {
+    const ev = [];
+    // rares à rente (ruche, menhir) : +pts par voisine des familles citées, plafonné ; la ruche donne un peu plus au printemps
+    for (const t of board.tiles.values()) {
+      const rs = t.rare && RARE_SEASONAL[t.family]; if (!rs) continue;
+      const n = neighbors(t.q, t.r).filter(([a, b]) => { const x = board.get(a, b); return x && rs.families.some((f) => Board.isFamily(x, f)); }).length;
+      const p = Math.min(rs.cap, n) * rs.pts + (season === 'spring' ? rs.spring || 0 : 0);
+      if (p) ev.push({ type: 'rare', q: t.q, r: t.r, pts: p, id: t.family });
+    }
+    // niveau 3 : +1 par saison, et c'est tout (ses bords valent +2 et il compte triple dans sa région : voir rules.js).
+    // Les « signatures » par famille (forêt ancienne, pâturage, domaine…) ne sont plus que des noms.
+    for (const t of board.tiles.values()) {
+      if ((t.level || 1) < 3 || t.rare) continue; const p = BALANCE.build.level3Season;
+      if (p) ev.push({ type: 'level3', q: t.q, r: t.r, pts: p, family: t.family });
+    }
+    // fusions : prime de saison (+pts par voisine d'une famille, plafonnée, ou +pts fixes dans une saison)
+    for (const t of board.tiles.values()) {
+      if (!t.fusion) continue; const rec = FUSION_BY_ID[t.family]; if (!rec || !rec.seasonal) continue; const sp = rec.seasonal; let p = 0;
+      if (sp.family) p = Math.min(sp.cap || 6, neighbors(t.q, t.r).filter(([a, b]) => Board.isFamily(board.get(a, b), sp.family)).length) * sp.pts;
+      else if (sp.season === season) p = sp.pts;
+      if (p) { ev.push({ type: 'fusion', q: t.q, r: t.r, pts: p, id: t.family }); }
+    }
+    return ev;
+  }
+
+  /**
+   * Lire l'île (touche V) : tout ce que le plateau dit sans qu'on pose. La valeur de chaque bord aujourd'hui, les
+   * régions closes ou non et ce qu'elles paieront, et ce que la saison suivante donnera ou reprendra à chaque case :
+   * elle est jouée sur une copie du plateau, avec la surprise si elle est annoncée, sinon avec la règle de base de la
+   * saison (la surprise reste une surprise). Rien n'est touché sur l'île ; demandé à chaque image quand la lecture est
+   * ouverte, gardé tant que rien n'a bougé.
+   * @returns {{bords, regions, saison, regle, annoncee, cases:Map<string,{pts:number, sec:boolean}>, animaux:number, liens:number, total:number}}
+   */
+  lecture() {
+    const cle = `${this.board.version}|${this.inSeason}|${this.season}|${this.rule}|${this.fauna.size}|${this.huntSeason}`; if (this._lecK === cle) return this._lec;
+    const bords = lectureBords(this.board, this.season, this.mods);
+    const regions = lectureRegions(this.board);
+    const saison = this.saisonSuivante(); const a = this.annonce();
+    const regle = this.tempo ? 'aucune' : a ? a.rule : BASE_RULE[saison];
+    const copie = new Board(new Set(this.board.mask)); copie.restore(this.board.snapshot()); if (this.board.linkMax) copie.linkMax = this.board.linkMax;
+    const ev = transition(copie, saison, regle, this.climate);
+    if (this.huntSeason) for (const an of this.fauna.values()) if (an.species === 'moose' || an.species === 'bear' || an.species === 'owl') ev.push({ type: 'hunt', q: an.q, r: an.r, pts: 2 });
+    for (const e of this.primesFixes(copie, saison)) ev.push(e);
+    const faunaPts = BALANCE.points.faunaSeason + this.mods.refuge; let animaux = 0;
+    for (const an of this.fauna.values()) if (!an.noBonus) { animaux++; ev.push({ type: 'fauna', q: an.q, r: an.r, pts: faunaPts }); }
+    const cases = new Map(); let total = 0;
+    for (const e of ev) {
+      if (!e.pts && e.type !== 'dry') continue;
+      const k = key(e.q, e.r); const c = cases.get(k) || { pts: 0, sec: false };
+      if (e.pts) { c.pts += e.pts; total += e.pts; } if (e.type === 'dry') c.sec = true;
+      cases.set(k, c);
+    }
+    const liens = this.tempo ? 0 : computeLinks(this.board).links.length; total += liens * BALANCE.points.pathSeason;
+    this._lecK = cle; this._lec = { bords, regions, saison, regle, annoncee: !!a, cases, animaux, liens, total };
+    return this._lec;
   }
 
   countIrrigated() {

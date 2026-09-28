@@ -231,7 +231,9 @@ html.compact .season-txt b { white-space: nowrap; overflow: hidden; text-overflo
 html.compact .season-pips { flex: 0 0 auto; width: 38px; max-width: 38px; margin-left: 4px; }
 html.compact .hud-label { font-size: 8px; }
 html.compact .hud-score b, html.compact .hud-breaths b { font-size: 15px; }
-html.compact .hud-pause { width: 40px; height: 40px; flex: 0 0 auto; }   /* la barre n'a plus que quatre blocs : la pause retrouve une taille de doigt */
+html.compact .hud-pause { width: 40px; height: 40px; flex: 0 0 auto; }
+html.compact .hud-lecture { left: 8px; right: 8px; transform: none; justify-content: center; flex-wrap: wrap; gap: 4px 10px; font-size: 11px; padding: 4px 8px; white-space: normal; }
+html.compact.portrait #hud:not(.brume):not(.tempo) .hud-lecture { top: calc(var(--hud-top-h, 96px) + 48px); }   /* sous la rangée des animaux, qui vit en haut en portrait */   /* la barre n'a plus que quatre blocs : la pause retrouve une taille de doigt */
 html.compact.landscape .panel-title { font-size: 20px; margin-bottom: 4px; }
 html.compact.landscape .panel-results .stars { margin: 2px 0 4px; }
 html.compact.landscape .panel-results .star .icon { width: 26px; height: 26px; }
@@ -361,7 +363,7 @@ html.compact.portrait #hud:not(.brume):not(.tempo) .hud-score, html.compact.port
 html.compact.portrait #hud:not(.brume):not(.tempo) .hud-score { flex-grow: 1.6; }
 html.compact.portrait #hud:not(.brume):not(.tempo) .hud-ile { display: flex; align-items: center; justify-content: center; gap: 5px; flex: 0 0 auto; align-self: stretch; padding: 0 9px; background: var(--hud-fond); border: var(--hud-bord); border-radius: var(--hud-rayon); box-shadow: var(--hud-ombre); color: var(--ink); white-space: nowrap; }
 html.compact.portrait #hud:not(.brume):not(.tempo) .hud-ile b { font-size: 16px; font-weight: 700; }
-html.compact.portrait #hud:not(.brume):not(.tempo) .hud-pause { margin-left: 0; }
+html.compact.portrait #hud:not(.brume):not(.tempo) .hud-pause { margin-left: 0; }   /* la lecture aussi : les deux ronds se suivent */
 /* les vœux : un cadre sous l'île, chaque vœu en entier (titre, qui le demande, texte, avancée, échéance, valeur) ;
    le chevron replie le cadre en une ligne de résumé, choix gardé d'une île à l'autre */
 html.compact.portrait #hud:not(.brume):not(.tempo) .hud-wishes { top: auto; left: 6px; right: 6px; bottom: calc(var(--hud-queue-bas, 118px) + 6px); width: auto; max-width: none; display: block; pointer-events: all; background: var(--hud-fond); border: var(--hud-bord); border-radius: var(--hud-rayon); box-shadow: var(--hud-ombre); padding: 6px 30px 6px 10px; position: absolute; }

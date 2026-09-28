@@ -200,6 +200,7 @@ export class IslandRenderer {
     this.drawBrumeAutomne(ctx);
     if (isl.brume) this.drawBrume(ctx);
     this.drawBuildTargets(ctx);
+    this.drawLecture(ctx);
     this.particlesWorld(ctx, 0);
     this.drawHover(ctx);
     this.drawRings(ctx);
@@ -1739,6 +1740,91 @@ export class IslandRenderer {
       ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]); for (let i = 1; i < 6; i++) ctx.lineTo(pts[i][0], pts[i][1]); ctx.closePath(); ctx.fill();
     }
     ctx.restore();
+  }
+
+  /**
+   * Lire l'île (touche V, bouton du bandeau) : par-dessus le paysage, sans le repeindre. Des fils sur les bords
+   * entre tuiles (vert fin +1, vert épais +2 et plus, rouge pour un mauvais voisinage), le tour de chaque région
+   * (pointillé tant qu'elle est ouverte, plein quand elle est close) avec la prime qu'elle paiera, et sur chaque case
+   * ce que la saison suivante donnera ou reprendra (les cases qui perdent sont cernées de rouge). Tout est tracé en
+   * coordonnées monde ; les chemins sont gardés tant que la lecture de l'île ne change pas.
+   */
+  drawLecture(ctx) {
+    const isl = this.isl; if (!isl.montrerLecture || !isl.lecture) return;
+    const L = isl.lecture();
+    if (!this._lecP || this._lecP.src !== L) this._lecP = this.cheminsLecture(L);
+    const P = this._lecP, cam = this.cam, z = cam.zoom;
+    const W = STAGE.W, H = STAGE.H; const vis = (c) => c.x > -160 * z && c.x < W + 160 * z && c.y > -160 * z && c.y < H + 160 * z;
+    // 0. le paysage perd ses couleurs (mélange « saturation » avec un gris, puis un voile de papier) : seule la lecture est en
+    //    couleur, comme les lentilles de Civilization VI ou les vues d'information de Cities: Skylines. Rien n'est redessiné.
+    ctx.save();
+    ctx.globalCompositeOperation = 'saturation'; ctx.fillStyle = '#8a8a8a'; ctx.fillRect(0, 0, W, H);
+    ctx.globalCompositeOperation = 'source-over'; ctx.fillStyle = 'rgba(244,241,234,0.22)'; ctx.fillRect(0, 0, W, H);
+    ctx.restore();
+    ctx.save();
+    ctx.translate(W / 2 + cam.offsetX, H / 2 + cam.offsetY); ctx.scale(z, z); ctx.translate(-cam.x, -cam.y);
+    ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    // 1. le tour des régions, dans la couleur de la famille
+    ctx.globalAlpha = 0.85;
+    for (const r of P.regions) {
+      // un liseré sombre sous le tour, pour qu'il se lise sur un sol de la même couleur que la famille
+      ctx.setLineDash(r.close ? [] : [10 / z, 7 / z]);
+      ctx.strokeStyle = 'rgba(43,42,38,0.45)'; ctx.lineWidth = (r.close ? 4.5 : 3.5) / z + 2 / z; ctx.stroke(r.path);
+      ctx.strokeStyle = r.color; ctx.lineWidth = (r.close ? 4.5 : 3.5) / z; ctx.stroke(r.path);
+    }
+    ctx.setLineDash([]);
+    // 2. les fils d'affinité sur les bords
+    ctx.globalAlpha = 0.95;
+    ctx.strokeStyle = '#fffdf8'; ctx.lineWidth = 7 / z; ctx.stroke(P.fils.halo);   // un liseré clair sous les fils, pour qu'ils se lisent sur tout sol
+    ctx.strokeStyle = '#2f9e8f'; ctx.lineWidth = 2.2 / z; ctx.stroke(P.fils.un);
+    ctx.lineWidth = 4.5 / z; ctx.stroke(P.fils.deux);
+    ctx.strokeStyle = '#d95f4b'; ctx.lineWidth = 3.5 / z; ctx.stroke(P.fils.mauvais);
+    // 3. les cases que la saison suivante abîmera
+    const pulse = 0.6 + 0.4 * Math.sin(this.time * 3);
+    ctx.strokeStyle = '#d95f4b'; ctx.globalAlpha = pulse; ctx.lineWidth = 3 / z + 1; ctx.stroke(P.menaces);
+    ctx.globalAlpha = 1;
+    // 4. les étiquettes : la prime des régions, les points de la saison qui vient
+    const fs = Math.round(13 / z); ctx.font = `700 ${fs}px Quicksand, sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    // deux sortes de pastilles : pleine et sombre pour la saison qui vient, claire et cerclée de la couleur de la famille pour la prime d'une région
+    const pastille = (x, y, txt, fond, encre, bord = null) => {
+      const w = ctx.measureText(txt).width + 12 / z, h = 19 / z; ctx.fillStyle = fond;
+      ctx.beginPath(); ctx.roundRect(x - w / 2, y - h / 2, w, h, h / 2); ctx.fill();
+      if (bord) { ctx.strokeStyle = bord; ctx.lineWidth = 2 / z; ctx.stroke(); }
+      ctx.fillStyle = encre; ctx.fillText(txt, x, y + 0.5 / z);
+    };
+    for (const e of P.etiquettes) { if (!vis(cam.toScreen(e.x, e.y))) continue; pastille(e.x, e.y, e.txt, e.fond, e.encre, e.bord); }
+    ctx.restore();
+  }
+
+  /** Les chemins de la lecture de l'île, en coordonnées monde, pour une lecture donnée (voir `drawLecture`). */
+  cheminsLecture(L) {
+    const b = this.isl.board;
+    const fils = { halo: new Path2D(), un: new Path2D(), deux: new Path2D(), mauvais: new Path2D() };
+    for (const e of L.bords) {
+      const w = toWorld(e.q, e.r); const c = corners(w.x, w.y, SIZE * 0.97); const i = EDGE_DIR.indexOf(e.d);
+      const a = c[i], d = c[(i + 1) % 6]; const x1 = a[0] + (d[0] - a[0]) * 0.18, y1 = a[1] + (d[1] - a[1]) * 0.18, x2 = a[0] + (d[0] - a[0]) * 0.82, y2 = a[1] + (d[1] - a[1]) * 0.82;
+      for (const p of [fils.halo, e.pts < 0 ? fils.mauvais : e.pts >= 2 ? fils.deux : fils.un]) { p.moveTo(x1, y1); p.lineTo(x2, y2); }
+    }
+    const regions = [], etiquettes = [];
+    for (const r of L.regions) {
+      if (r.size < 2 && r.cells.length < 2) continue;   // une tuile seule n'a pas de tour à montrer
+      const path = new Path2D(); let sx = 0, sy = 0;
+      for (const t of r.cells) {
+        const w = toWorld(t.q, t.r); sx += w.x; sy += w.y; const c = corners(w.x, w.y, SIZE * 0.9);
+        for (let i = 0; i < 6; i++) { const [dq, dr] = DIRS[EDGE_DIR[i]]; if (r.keys.has(key(t.q + dq, t.r + dr))) continue; path.moveTo(c[i][0], c[i][1]); path.lineTo(c[(i + 1) % 6][0], c[(i + 1) % 6][1]); }
+      }
+      const color = FAMILY_COLORS[r.family] || '#999'; regions.push({ path, color, close: r.close });
+      // la prime à venir, au centre de la région (une région payée n'a plus rien à dire)
+      if (!r.payee && r.prime > 0) etiquettes.push({ x: sx / r.cells.length, y: sy / r.cells.length + SIZE * 0.42, txt: `+${r.prime}`, fond: 'rgba(255,253,248,0.95)', encre: '#2b2a26', bord: color });
+    }
+    const menaces = new Path2D();
+    for (const [k, c] of L.cases) {
+      const [q, r] = parse(k); const w = toWorld(q, r);
+      if (c.sec || c.pts < 0) { const pts = corners(w.x, w.y, SIZE * 0.97); menaces.moveTo(pts[0][0], pts[0][1]); for (let i = 1; i < 6; i++) menaces.lineTo(pts[i][0], pts[i][1]); menaces.closePath(); }
+      const txt = c.sec && !c.pts ? 'sèche' : c.pts < 0 ? `−${-c.pts}` : `+${c.pts}`;
+      etiquettes.push({ x: w.x, y: w.y - SIZE * 0.4, txt, fond: c.sec || c.pts < 0 ? '#d95f4b' : 'rgba(43,42,38,0.82)', encre: '#fffdf8' });
+    }
+    return { src: L, fils, regions, menaces, etiquettes, version: b.version };
   }
 
   drawHover(ctx) {

@@ -46,8 +46,9 @@ const passerLaCarte = async (page, t = 60000) => { try { await page.waitForFunct
     const sc = window.CS.scenes.current, isl = sc.isl; let k = 0;
     while (k < n && !isl.ended) {
       if (isl.passagePret) { if (arret) break; isl.leverBrume(); continue; }
+      // le robot du test serre la brume (+2 par case cachée voisine) : il faut des cases prêtes en fin de saison — les affinités corrigées le 28 septembre avaient changé sa partie, plus aucune
       let best = null;
-      isl.queue.list.forEach((t, i) => { for (const c of isl.board.legalCells()) { const p = isl.preview(c.q, c.r, t); if (!p) continue; const v = p.total + (isl.fogAround(c.q, c.r).length ? 2 : 0); if (!best || v > best.v) best = { i, c, v }; } });
+      isl.queue.list.forEach((t, i) => { for (const c of isl.board.legalCells()) { const p = isl.preview(c.q, c.r, t); if (!p) continue; const v = p.total + isl.fogAround(c.q, c.r).length * 2; if (!best || v > best.v) best = { i, c, v }; } });
       if (!best) break;
       if (best.i) isl.pick(best.i);
       isl.place(best.c.q, best.c.r); k++;
@@ -140,7 +141,8 @@ const passerLaCarte = async (page, t = 60000) => { try { await page.waitForFunct
   await page.evaluate(() => document.querySelector('.brume-lever').click()); await page.waitForTimeout(2500);
   if (SHOTS) await page.screenshot({ path: `${SHOTS}/brume_partie.png` });
   const dev = await page.evaluate(() => { const isl = window.CS.scenes.current.isl; return { n: isl.brume.devoilees, pret: isl.passagePret, saisons: isl.seasonsPassed.length, bouton: document.querySelector('.brume-lever').classList.contains('hidden') }; });
-  check(dev.n > avant.dev && !dev.pret && dev.saisons === avant.saisons + 1 && dev.bouton, `le bouton lève la brume : ${dev.n - avant.dev} cases dévoilées, la saison passe, le bouton se range`);
+  // l'île de ce test est tirée au hasard : le nombre de cases prêtes peut être nul, la levée en dévoile alors autant, c'est-à-dire aucune
+  check(dev.n - avant.dev === pret.prets && !dev.pret && dev.saisons === avant.saisons + 1 && dev.bouton, `le bouton lève la brume : ${dev.n - avant.dev} cases dévoilées (${pret.prets} prêtes), la saison passe, le bouton se range`);
 
   // jusqu'au bout, puis le bilan
   await joue(200); await page.waitForTimeout(1500);

@@ -70,6 +70,25 @@ const state = (page) => page.evaluate(() => { const sc = window.CS.scenes.curren
     check(ring.delays[0] === 0, 'la première case (celle posée) part sans retard');
     check(ring.dmax <= 8 * 0.055 + 1e-9, 'huit rangs au plus, le reste part ensemble');
   }
+  // --- lire l'île (28 septembre) : la touche V ouvre la surimpression et le bandeau ; on joue avec ; V la referme
+  {
+    const page2 = await start(ctx, 12);
+    await page2.evaluate(() => { const isl = window.CS.scenes.current.isl; for (let k = 0; k < 10 && !isl.ended; k++) { let best = null, bs = -Infinity; for (const c of isl.board.legalCells()) { const pv = isl.preview(c.q, c.r); if (pv && pv.total > bs) { bs = pv.total; best = c; } } if (!best || !isl.place(best.q, best.r)) break; } });
+    await page2.waitForTimeout(300);
+    check(await page2.evaluate(() => !window.CS.scenes.current.isl.montrerLecture && document.querySelector('.hud-lecture').classList.contains('hidden') && !!document.querySelector('.hud-lire')), 'la lecture est fermée au départ, son bouton est là');
+    await page2.keyboard.press('KeyV'); await page2.waitForTimeout(400);
+    const L = await page2.evaluate(() => { const sc = window.CS.scenes.current, l = sc.isl.lecture(); return { on: sc.isl.montrerLecture, bande: document.querySelector('.hud-lecture').textContent, btnOn: document.querySelector('.hud-lire').classList.contains('on'), bords: l.bords.length, regions: l.regions.length, ouvertes: l.regions.filter((r) => !r.close).length, total: l.total, chemins: !!(sc.renderer._lecP && sc.renderer._lecP.src === l) }; });
+    check(L.on && L.btnOn, 'V ouvre la lecture et allume le bouton');
+    check(/Lecture/.test(L.bande) && /régions? ouvertes?/.test(L.bande), `le bandeau résume la saison qui vient et les régions (« ${L.bande.slice(0, 60)}… »)`);
+    check(L.bords > 0 && L.regions > 0 && L.ouvertes > 0, `la lecture voit ${L.bords} bords et ${L.regions} régions dont ${L.ouvertes} ouvertes`);
+    check(L.chemins, 'le rendu a préparé ses chemins pour cette lecture');
+    // on pose avec la lecture ouverte : elle reste ouverte et se refait
+    const apres = await page2.evaluate(() => { const sc = window.CS.scenes.current, isl = sc.isl; const c = isl.board.legalCells()[0]; const avant = isl.lecture(); isl.place(c.q, c.r); return { on: isl.montrerLecture, neuve: isl.lecture() !== avant }; });
+    check(apres.on && apres.neuve, 'une pose avec la lecture ouverte : elle reste ouverte et se met à jour');
+    await page2.keyboard.press('KeyV'); await page2.waitForTimeout(200);
+    check(await page2.evaluate(() => !window.CS.scenes.current.isl.montrerLecture && document.querySelector('.hud-lecture').classList.contains('hidden')), 'V referme la lecture et son bandeau');
+    await page2.close();
+  }
   await b.close();
   console.log(errors.length ? `\n${errors.length} problème(s) :\n` + errors.join('\n') : '\nCalme : tout est bon.');
   process.exit(errors.length ? 1 : 0);

@@ -1311,6 +1311,7 @@ class IslandScene {
     if (k === 'Digit4' || k === 'Numpad4') { if (isl.handOn) this.hud.onPick(3); }
     if (k === 'Digit5' || k === 'Numpad5') { if (isl.handOn) this.hud.onPick(4); }
     if (k === 'KeyX') { if (this.mech.has('breath')) { if (isl.discard()) AudioSys.play('tile_discard', { volume: 0.6 }); } }
+    if (k === 'KeyV') this.hud.toggleLecture();   // lire l'île : affinités, régions, saison qui vient
     if (k === 'KeyJ') this.hud.toggleLog();
     if (k === 'KeyH') this.hud.setTileHelp(this.hud.helpHidden || Save.options.tileHelp === false);
     if (k === 'KeyZ') { if (this.mech.has('breath') && isl.undo()) AudioSys.play('tile_undo', { volume: 0.6 }); }

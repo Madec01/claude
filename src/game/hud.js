@@ -54,8 +54,10 @@ export class Hud {
         <div class="hud-block hud-score"><span class="hud-label">Points</span><b data-ref="score">0</b><span class="score-delta" data-ref="scoreDelta"></span><span class="hud-stars" data-ref="starsLine" title="Seuils des étoiles"></span><span class="hud-harmonie ${island.harmonieOn ? '' : 'hidden'}" data-ref="harmonie" title="Harmonie : trois fleurs, comptées à la fin de l’île (toucher)">${FLEURS.map((f) => `<img class="fleur" data-fleur="${f.id}" src="assets/img/deco/${f.img}.webp" alt="${f.nom}">`).join('')}</span><div class="score-pop harmo-pop hidden" data-ref="harmoPop"></div><span class="hud-objectif hidden" data-ref="objectif"></span><div class="score-pop hidden" data-ref="scorePop"></div></div>
         <div class="hud-block hud-breaths ${m.has('breath') ? '' : 'hidden'}" title="Souffles"><span class="hud-label">Souffles</span><b data-ref="breaths">0</b></div>
         <span class="hud-ile" data-ref="ileNum">${typeof island.def.id === 'number' ? `<span class="hud-label">Île</span><b>${island.def.id}</b>` : island.def.daily ? '<span class="hud-label">Île</span><b>du jour</b>' : island.def.infinite ? '<span class="hud-label">Île</span><b>∞</b>' : island.def.formes ? `<span class="hud-label">Forme</span><b>${String(island.def.name || '').replace(/^(L’|Le |La |Les )/, '').slice(0, 12)}</b>` : ''}</span>
+        <button class="hud-pause hud-lire ${island.tempo || island.brume ? 'hidden' : ''}" data-ref="lire" title="Lire l’île (V) : les affinités sur les bords, le tour des régions et leur prime, ce que la saison qui vient donnera ou reprendra">${icon('icon_target')}</button>
         <button class="hud-pause" data-ref="pause" title="Pause (Échap) : journal, plein écran, options">${icon('icon_pause')}</button>
       </div>
+      <div class="hud-lecture hidden" data-ref="lecture"></div>
       <div class="hud-carte ${island.brume ? '' : 'hidden'}" data-ref="carte"><span class="hc-kicker" data-ref="carteKicker">Saison</span><b data-ref="carteNom">—</b><span class="hc-texte" data-ref="carteTexte"></span><span class="hc-ratio" data-ref="carteRatio" title="Chance de tirer un bonus à la prochaine saison"></span></div>
       <div class="hud-queue" data-ref="queue">
         <div class="queue-title"><span>${island.handOn ? 'Main · choisis ta tuile' : 'À poser'}</span><span class="queue-left" data-ref="left" title="Tuiles qui restent"></span></div>
@@ -83,6 +85,7 @@ export class Hud {
     this.r = {};
     root.querySelectorAll('[data-ref]').forEach((el) => { this.r[el.dataset.ref] = el; });
     this.r.pause.addEventListener('click', (e) => { e.stopPropagation(); onPause(); });
+    this.r.lire.addEventListener('click', (e) => { e.stopPropagation(); this.toggleLecture(); });
     this.r.seasonBox.addEventListener('click', (e) => { e.stopPropagation(); this.toggleSeasonPop(); });
     // le pourquoi des points : un toucher sur le compteur ouvre le détail par source
     { const box = this.r.score.parentNode; box.title = 'D’où viennent les points (toucher)'; box.style.cursor = 'pointer'; box.addEventListener('click', (e) => { e.stopPropagation(); this.toggleScorePop(); }); }
@@ -399,6 +402,29 @@ export class Hud {
   /** Mode cadre (Jardin) : plus aucune interface, l'île seule ; le premier toucher la rend. */
   setCadre(on) { if (this._cadre === on) return; this._cadre = on; this.root.classList.toggle('cadre', !!on); }
   /** Mode observation : tout s'efface sauf le score et la saison ; le premier toucher rend l'interface. */
+  /**
+   * Lire l'île (bouton du bandeau, touche V) : le rendu surimprime les affinités, les régions et la saison qui vient
+   * (`IslandRenderer.drawLecture`) ; le bandeau résume ce que la saison suivante donnera. On joue avec la lecture ouverte.
+   */
+  toggleLecture(force) {
+    const isl = this.isl; if (isl.tempo || isl.brume) return;
+    const on = force !== undefined ? !!force : !isl.montrerLecture;
+    isl.montrerLecture = on; this.r.lire.classList.toggle('on', on); this.r.lecture.classList.toggle('hidden', !on);
+    if (on) { this.last.lecture = null; this.renderLecture(); }
+  }
+  renderLecture() {
+    const isl = this.isl; if (!isl.montrerLecture || !isl.lecture) return;
+    const L = isl.lecture(); if (this.last.lecture === L) return; this.last.lecture = L;
+    const saison = (STORY.seasons[L.saison] || { name: L.saison }).name; const regle = STORY.seasonRules[L.regle] ? STORY.seasonRules[L.regle].name.toLowerCase() : '';
+    const ouvertes = L.regions.filter((r) => !r.close && r.prime > 0); const enJeu = ouvertes.reduce((a, r) => a + r.prime, 0);
+    const parts = [];
+    if (L.animaux) parts.push(`${L.animaux} ${L.animaux > 1 ? 'animaux' : 'animal'}`);
+    if (L.liens) parts.push(`${L.liens} ${L.liens > 1 ? 'sentiers' : 'sentier'}`);
+    const mauvais = L.bords.filter((b) => b.pts < 0).length;
+    this.r.lecture.innerHTML = `<b>Lecture</b><span>${saison}${L.annoncee ? ` · ${regle}` : ' · sans surprise'} : <b class="${L.total < 0 ? 'moins' : ''}">${L.total >= 0 ? '+' : '−'}${Math.abs(L.total)}</b>${parts.length ? ` <i>(${parts.join(', ')})</i>` : ''}</span>`
+      + `<span>${ouvertes.length} ${ouvertes.length > 1 ? 'régions ouvertes' : 'région ouverte'} : <b>+${enJeu}</b> à fermer</span>`
+      + (mauvais ? `<span class="moins">${mauvais} mauvais ${mauvais > 1 ? 'voisinages' : 'voisinage'}</span>` : '');
+  }
   setObserving(on) { if (this._observing === on) return; this._observing = on; this.root.classList.toggle('observing', !!on); }
 
   /** Bouton « Poser ici » (tactile) : total de la pose armée, ou null pour le masquer. */
@@ -432,6 +458,7 @@ export class Hud {
 
   update() {
     const isl = this.isl, r = this.r;
+    if (isl.montrerLecture) this.renderLecture();
     const s = STORY.seasons[isl.season] || { name: isl.season, rule: '' };
     const rl = isl.rule && STORY.seasonRules[isl.rule] ? STORY.seasonRules[isl.rule] : null;
     // au Souffle court, l'effet de la saison sur le temps ou le plateau passe devant la règle commune

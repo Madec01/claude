@@ -212,6 +212,19 @@ s'arrête. Visé : du défi, de la stratégie, un peu de hasard — et un hasard
 | Tutoriel | pas à pas, la première fois ou à la demande (journal 154) |
 | Intégré (24 septembre, seconde session) | le commanditaire, sur l'analyse de la première version : « beaucoup de tuiles cachées en début de partie et toutes les tuiles accessibles pour poser ». Retenu : **un tiers des cases** sous la brume (mesuré : 14 à 16 cases, part déductible 0,27 à 0,39 en Brume claire, 0,06 en épaisse — c'est un jeu de pari assumé), et **la brume compte comme une voisine pour poser** (presque toute l'île est ouverte dès le départ ; à 40 % de brume, 3 à 5 cases posables avec l'ancienne règle, 22 à 28 avec celle-ci). L'indice reste le même. Le solveur tourne dans un **worker** (une à quatre secondes sur ordinateur à ce taux) ; le panneau du cran attend. Fusionné à la main sur la branche (huit fichiers en conflit avec le Souffle court) ; les trois modes à part ont des tuiles de même taille au menu |
 
+## Livre II : premiers pas (28 septembre)
+
+Le topo et la vision sont dans la conversation du 28 septembre ; ce tableau garde ce qui est tranché et ce qui attend.
+
+| # | Lot | Statut |
+|---|---|---|
+| L0 | Quatre affinités jamais appliquées (verger·prairie, verger·hameau, prairie·forêt, marais·forêt) : clés remises dans l'ordre, recalibrage | **fait** |
+| L1 | **Lire l'île** (touche V) : fils d'affinité sur les bords, tour des régions même ouvertes et leur prime, points de la saison qui vient, bandeau. Sert au Livre I dès maintenant, servira à voir les chaînes du Livre II | **fait**, à essayer par le commanditaire |
+| L2 | La chaîne de familles différentes et compatibles (nom à trouver : farandole ?) : bonus dès trois ou quatre familles enchaînées, payé à la saison ; à mesurer avec le robot avant de fixer le seuil | à trancher |
+| L3 | Nouvelles tuiles de terre du Livre II (port, pinède, variantes de climat, rares) à partir des modèles KayKit encore inemployés | à trancher |
+| L4 | Durée d'une partie à deux îles : plus de tuiles posées au départ, détroit en mer dès le départ que les tuiles de mer convertissent (au choix du joueur) | à trancher |
+| L5 | Musiques plus « pirates » (Suno ou banque CC) | à trancher |
+
 ## Lot 8 : publication (à planifier)
 
 Hors ligne complet (service worker), version anglaise, export/import de sauvegarde (**fait** : fichier téléchargé / chargé, rappel périodique, copie de secours), politique de confidentialité, captures et fiche, dépôt itch.io puis Google Play (TWA) puis iOS (Capacitor). Réécriture native écartée : le code est emballé tel quel.

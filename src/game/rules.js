@@ -232,6 +232,39 @@ function openCells(board, reg) {
   return open.size;
 }
 
+/**
+ * Lire l'île : ce que vaut aujourd'hui chaque bord entre deux tuiles posées, avec la saison et la surprise en cours.
+ * Chaque paire une fois (les trois premières directions suffisent) ; seuls les bords qui valent quelque chose sortent.
+ * @returns {{q:number, r:number, d:number, pts:number, label:string}[]} d = direction de la tuile vers sa voisine
+ */
+export function lectureBords(board, season, mods = {}) {
+  const out = [];
+  for (const t of board.tiles.values()) for (let d = 0; d < 3; d++) {
+    const n = board.get(t.q + DIRS[d][0], t.r + DIRS[d][1]); if (!n) continue;
+    const e = edgePoints(t, n, season, mods.rule || null, mods.climate || null);
+    if (e.pts) out.push({ q: t.q, r: t.r, d, pts: e.pts, label: e.label });
+  }
+  return out;
+}
+
+/**
+ * Lire l'île : toutes les régions du plateau, closes ou non, et ce que chacune paiera quand elle se fermera
+ * (ce qui n'a pas déjà été payé, avec la prime des grandes régions et le double des hameaux). Les rochers de départ
+ * ne font pas de prime : ils ne sortent pas.
+ * @returns {{family:string, id:string, cells:object[], keys:Set<string>, size:number, close:boolean, payee:boolean, prime:number, libres:number}[]}
+ */
+export function lectureRegions(board) {
+  const out = [], seen = new Set();
+  for (const t of board.tiles.values()) for (const fam of Board.familiesOf(t)) {
+    const reg = board.region(t.q, t.r, fam); if (!reg || seen.has(reg.id)) continue; seen.add(reg.id);
+    if (fam === 'rock' && reg.cells.every((c) => c.rare || c.start)) continue;
+    const G = P.grandeRegion; const mul = (P.closeBonusMul[fam] || 1) * (reg.size >= G.tresGrande ? G.primeTresGrande : reg.size >= G.des ? G.prime : 1);
+    const neuf = board.regionUnpaid(reg);
+    out.push({ family: fam, id: reg.id, cells: reg.cells, keys: reg.keys, size: reg.size, close: board.isRegionClosed(reg), payee: board.regionPaid(reg), prime: Math.round(neuf * mul), libres: openCells(board, reg) });
+  }
+  return out;
+}
+
 /** Applique une pose. Retourne le détail (identique à preview) et marque les régions closes. */
 export function apply(board, q, r, tile, season, mods = {}) {
   const res = preview(board, q, r, tile, season, mods);
