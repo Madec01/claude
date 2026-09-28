@@ -148,6 +148,8 @@ Récit : une capitaine qui cherche une île disparue, douze souvenirs, l'île 75
 
 Trois lots de code : **7a** mer, abysse, routes et archipel à deux îles avec bot et calibrage ; **7b** faune, fusions, ouvrages et météo de mer, venteux ; **7c** archipels à contraintes, marée, récit, îles 61 à 75 calibrées.
 
+> Révision (28 septembre) : la campagne étant passée à trente îles, le Livre II compte quinze îles (31 à 45) en cinq chapitres ; l'abysse est retiré, la chaîne de territoire ajoutée. La feuille à jour est `docs/FEUILLE_LIVRE_II.md`, et l'état des lots dans « Livre II : premiers pas » ci-dessous.
+
 ## Chargement (fait le 24 septembre, sur le rapport de la session pépins)
 
 Mesure de référence sur HTTP/2 + gzip comme GitHub Pages (`tools/serveur_h2.js`), profil iPhone 12, 4G bridée, cache vide (`tools/mesure_chargement.js`) : **27,7 s, 22 Mo, 796 fichiers** avant le menu.
@@ -220,11 +222,12 @@ Le topo et la vision sont dans la conversation du 28 septembre ; ce tableau gard
 |---|---|---|
 | L0 | Quatre affinités jamais appliquées (verger·prairie, verger·hameau, prairie·forêt, marais·forêt) : clés remises dans l'ordre, recalibrage | **fait** |
 | L1 | **Lire l'île** (touche V) : fils d'affinité sur les bords, tour des régions même ouvertes et leur prime, points de la saison qui vient, bandeau. Sert au Livre I dès maintenant, servira à voir les chaînes du Livre II | **fait**, à essayer par le commanditaire |
-| L2 | **La chaîne de territoire** (Livre II seulement) : dès quatre familles différentes en paires fortes, payée à la saison — mesurée et figée (`docs/FEUILLE_LIVRE_II.md`) | **prototype fait** |
-| L3 | Port et Pinède en vraies familles, les autres arbres en variantes de climat | tranché ; images au lot 7a |
-| L4 | Deux îles, détroit en mer dès le départ que seules les tuiles de mer convertissent, un port et un hameau par rive au départ | **prototype fait** |
+| L2 | **La chaîne de territoire** (Livre II seulement) : dès quatre familles différentes en paires fortes, payée à la saison — mesurée et figée (`docs/FEUILLE_LIVRE_II.md`) | **fait** (en jeu dès l'île 31, fil doré dans Lire l'île) |
+| L3 | Port et Pinède en vraies familles, les autres arbres en variantes de climat | **fait** pour les familles et leurs images ; variantes d'arbres au lot 7b |
+| L4 | Deux îles, détroit en mer dès le départ que seules les tuiles de mer convertissent, un port et un hameau par rive au départ | **fait** (îles 34 à 45) |
 | L5 | Musiques libres (CC0 d'abord) : `docs/MUSIQUES_LIVRE_II.md` | recherche faite, à télécharger |
-| L6 | Quinze îles en cinq chapitres ; îles à trois saisons dont la route ramène la quatrième (à essayer) | tranché |
+| L6 | Quinze îles en cinq chapitres ; îles à trois saisons dont la route ramène la quatrième (à essayer) | **fait** pour les quinze îles (31 à 45, calibrées) ; les trois saisons à essayer sur l'île 32 |
+| L7 | **Lot 7a** : campagne à 45 îles, images des cinq familles, rendu du détroit, routes et chaîne dans l'aperçu, la lecture et le bilan, robot et calibrage | **fait** (28 septembre) ; suite au lot 7b |
 
 ## L'ouverture (28 septembre)
 

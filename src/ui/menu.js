@@ -3,7 +3,7 @@ import { ACHIEVEMENTS } from '../data/achievements.js';
 import { Achievements } from '../game/achievements.js';
 const achCount = () => Achievements.count();
 import { h, button, icon, stagger, append } from './dom.js';
-import { CHAPTERS, campaignIsland, chapterStars, CAMPAIGN_SIZE, CHAPTER_LEN, gateText, gateOpen, islandDone } from '../data/campaign.js';
+import { CHAPTERS, campaignIsland, chapterStars, CAMPAIGN_SIZE, CHAPTER_LEN, gateText, gateOpen, islandDone, campagneFinie } from '../data/campaign.js';
 import { Save } from '../core/save.js';
 import { Version } from '../core/version.js';
 import { RunSave } from '../core/run.js';
@@ -32,8 +32,9 @@ export function buildMenu({ game }) {
     h('div', { class: 'menu-sub' }, 'Trente îles à faire revivre, une tuile à la fois.'),
   );
   const nav = h('nav', { class: 'menu-nav', 'aria-label': 'Menu principal' });
-  const primaryLabel = c.completed ? 'Rejouer la campagne' : started ? 'Continuer' : 'Commencer';
-  const primarySub = c.completed ? '' : `Île ${Math.min(c.unlockedIsland, CAMPAIGN_SIZE)}`;
+  const finie = campagneFinie(c);   // les deux livres ; le Livre I fini (`completed`) ouvre le Livre II, on continue
+  const primaryLabel = finie ? 'Rejouer la campagne' : started ? 'Continuer' : 'Commencer';
+  const primarySub = finie ? '' : `Île ${Math.min(c.unlockedIsland, CAMPAIGN_SIZE)}`;
   const navButton = (label, fn, o) => { const b = button(label, fn, o); if (o.sub) b.appendChild(h('span', { class: `btn-sub ${o.subClass || ''}` }, o.sub)); return b; };
   // Le jeu se joue surtout au téléphone : il n'y a pas d'infobulle. Un bouton fermé doit donc DIRE sous quelle
   // condition il s'ouvre, et un mode ouvert qu'on n'a jamais essayé doit se signaler. Sans ça, trois modes de jeu
@@ -54,7 +55,7 @@ export function buildMenu({ game }) {
     (() => {
       const ouvrable = started || testMode;
       const wrap = h('div', { class: 'menu-histoire' });
-      const histoire = navButton(c.completed ? 'L’histoire · rejouer' : started ? 'L’histoire' : 'Commencer l’histoire', () => { if (!ouvrable) { game.startCampaign(); return; } wrap.classList.add('ouvert'); }, { cls: run ? 'btn-big btn-histoire' : 'btn-primary btn-big btn-histoire', iconName: 'icon_play', sub: primarySub });
+      const histoire = navButton(finie ? 'L’histoire · rejouer' : started ? 'L’histoire' : 'Commencer l’histoire', () => { if (!ouvrable) { game.startCampaign(); return; } wrap.classList.add('ouvert'); }, { cls: run ? 'btn-big btn-histoire' : 'btn-primary btn-big btn-histoire', iconName: 'icon_play', sub: primarySub });
       const cont = navButton(primaryLabel, () => game.startCampaign(), { cls: 'btn-primary btn-big', iconName: 'icon_play', sub: primarySub });
       const choisir = navButton('Choisir une île', () => showIslands(), { cls: 'btn-big', iconName: 'icon_menu', disabled: !ouvrable, sub: ouvrable ? `${Math.min(c.unlockedIsland, CAMPAIGN_SIZE)} / ${CAMPAIGN_SIZE}` : '' });
       append(wrap, histoire, h('div', { class: 'menu-histoire-choix' }, cont, choisir));
@@ -106,7 +107,7 @@ export function buildMenu({ game }) {
       const climate = ch.climate !== 'mixed' && ch.climate !== 'temperate' && STORY.climates && STORY.climates[ch.climate] ? ` · ${STORY.climates[ch.climate].name}` : (ch.climate === 'mixed' ? ' · climats variés' : '');
       // l'insigne du chapitre en tête : en couleur une fois l'île-souvenir terminée, en silhouette avant
       const clos = insignesGagnes().chapitres.includes(ch.id);
-      const row = h('div', { class: `act-row ${open ? '' : 'act-locked'}` }, h('div', { class: 'act-head' }, insigne(srcChapitre(ch.id), clos, `Chapitre ${ch.id} · ${ch.name}${clos ? '' : ' (terminer son île-souvenir)'}`, 'chapitre'), h('div', {}, h('div', { class: 'act-num' }, `Chapitre ${ch.id} · ${ch.name}`), h('div', { class: 'act-name' }, `${ch.sub}${climate} · ${got} / ${CHAPTER_LEN * 3} étoiles`))));
+      const row = h('div', { class: `act-row ${open ? '' : 'act-locked'}` }, h('div', { class: 'act-head' }, insigne(srcChapitre(ch.id), clos, `${ch.livre === 2 ? 'Livre II · ' : ''}Chapitre ${ch.id} · ${ch.name}${clos ? '' : ' (terminer son île-souvenir)'}`, 'chapitre'), h('div', {}, h('div', { class: 'act-num' }, `Chapitre ${ch.id} · ${ch.name}`), h('div', { class: 'act-name' }, `${ch.sub}${climate} · ${got} / ${CHAPTER_LEN * 3} étoiles`))));
       for (let n = first; n < first + CHAPTER_LEN; n++) {
         const def = campaignIsland(n); const name = def.story && STORY.islands[def.story] ? STORY.islands[def.story].name : def.name;
         const unlocked = testMode || n <= c.unlockedIsland;
@@ -116,7 +117,7 @@ export function buildMenu({ game }) {
           : n === first && ch.id > 1 && !gateOpen(c, ch.id - 1) ? gateText(c, ch.id - 1)
             : !islandDone(c, n - 1) ? `Termine l’île ${n - 1} et celle-ci s’ouvre — une île terminée suffit, les étoiles ne servent qu’aux portes de chapitre.`
               : 'Île verrouillée';
-        const card = h('button', { class: `night-card ${unlocked ? '' : 'locked'} act-${((ch.id - 1) % 3) + 1} ${def.memory ? 'memory' : ''} ${n === Math.min(c.unlockedIsland, CAMPAIGN_SIZE) && !c.completed ? 'current' : ''}`, disabled: !unlocked, title: why },
+        const card = h('button', { class: `night-card ${unlocked ? '' : 'locked'} act-${((ch.id - 1) % 3) + 1} ${def.memory ? 'memory' : ''} ${n === Math.min(c.unlockedIsland, CAMPAIGN_SIZE) && !campagneFinie(c) ? 'current' : ''}`, disabled: !unlocked, title: why },
           h('div', { class: 'nc-num' }, `Île ${n} · ${def.cells} cases${def.memory ? ' · souvenir' : ''}${def.signature ? ` · ${def.signature.name.toLowerCase()}` : ''}`),
           h('div', { class: 'nc-title' }, name),
           h('div', { class: `nc-stars ${c.gold && c.gold[n] ? 'gold' : ''}`, title: c.gold && c.gold[n] ? 'Étoile d’or' : '' }, ...[0, 1, 2].map((i) => h('span', { class: `star ${i < stars ? 'on' : ''}` }, icon('icon_star'))), c.best[n] ? h('span', { class: 'nc-best' }, `${c.best[n]} pts`) : null),

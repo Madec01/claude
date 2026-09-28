@@ -566,6 +566,12 @@ export const STORY = {
     ruins: { name: 'Ruines', blurb: 'Ce qui reste d’avant. Ne rapporte rien, ne gêne personne : on bâtit autour.' },
     hill: { name: 'Colline', blurb: 'Aime la roche (+2), la forêt, la prairie, le verger et le hameau ; fait naître les rivières comme la roche ; les chevaux y montent depuis les prés.' },
     heath: { name: 'Lande', blurb: 'Sol pauvre (le champ et le verger n’y poussent pas) mais fleurit au printemps, ne sèche jamais et protège les prairies voisines de l’été ; les vaches paissent en lisière.' },
+    // Livre II — la mer se pose
+    sea: { name: 'Mer', blurb: 'La mer posée sur le détroit. Neutre, elle porte les routes : d’un seul tenant entre deux ports, elle paie à chaque saison.' },
+    reef: { name: 'Récif', blurb: 'Des rochers à fleur d’eau. Aime la plage et la roche (+2), craint le hameau et le port (−1).' },
+    kelp: { name: 'Algues', blurb: 'Du varech sur le détroit. Aime le marais (+2, la vasière) et nourrit ce qui vit au bord.' },
+    port: { name: 'Port', blurb: 'Les docks, sur la terre au bord de l’eau. Mer +2 (le quai), hameau +2 (la ville portuaire) ; jamais deux ports côte à côte. Une route de mer qui le touche exporte ce qui l’entoure : une marchandise par famille différente.' },
+    pine: { name: 'Pinède', blurb: 'La forêt de bord de mer, toujours verte. Sable et roche +2, forêt et prairie +1 ; le champ n’aime pas son ombre.' },
     granary: { name: 'Grenier', blurb: 'Compte comme champ, +1 par bord avec un champ, et ne dort pas en hiver.' },
     hive: { name: 'Ruche', blurb: 'Compte comme prairie ; à chaque saison, +1 par verger ou prairie voisin (au plus 3), et +1 de plus au printemps.' },
     menhir: { name: 'Menhir', blurb: 'Compte comme roche ; à chaque saison, +1 par roche ou colline voisine (au plus 3).' },

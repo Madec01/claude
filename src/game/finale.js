@@ -27,9 +27,9 @@ import { exporterCarte } from '../ui/postcard.js';
 import { showUI, hideUI, h, button } from '../ui/dom.js';
 
 /** Familles de région visitables (l'eau a son propre compte : ce sont des plans d'eau, pas des régions). */
-const REGION_LABEL = { forest: 'Forêt', meadow: 'Prairie', field: 'Champs', hamlet: 'Village', orchard: 'Verger', marsh: 'Marais', rock: 'Massif', hill: 'Collines', heath: 'Lande', sand: 'Plage' };
+const REGION_LABEL = { forest: 'Forêt', meadow: 'Prairie', field: 'Champs', hamlet: 'Village', orchard: 'Verger', marsh: 'Marais', rock: 'Massif', hill: 'Collines', heath: 'Lande', sand: 'Plage', pine: 'Pinède', reef: 'Récif', kelp: 'Algues', port: 'Port' };
 /** Le nom d'un lieu quand on s'y arrête : pas « Prairie de 4 » — un décompte — mais « les prés ». */
-const LIEU = { forest: 'La grande forêt', meadow: 'Les prés', field: 'Les champs', hamlet: 'Le village', orchard: 'Le verger', marsh: 'Le marais', rock: 'Le massif', hill: 'Les collines', heath: 'La lande', sand: 'La plage' };
+const LIEU = { forest: 'La grande forêt', meadow: 'Les prés', field: 'Les champs', hamlet: 'Le village', orchard: 'Le verger', marsh: 'Le marais', rock: 'Le massif', hill: 'Les collines', heath: 'La lande', sand: 'La plage' , pine: 'La pinède', reef: 'Le récif', kelp: 'Les algues', port: 'Le port' };
 const EAU = { pond: 'L’étang', lake: 'Le lac', mountainLake: 'Le lac de montagne', river: 'La rivière' };
 const ANIMAL_LINE = { rabbit: 'les lapins y courent', moose: 'l’élan y passe', bear: 'l’ours y dort', owl: 'le hibou y veille', duck: 'les canards s’y posent', penguin: 'les manchots y glissent', frog: 'la grenouille y chante', chicken: 'les poules y picorent', horse: 'le cheval y monte', cow: 'la vache y broute', goat: 'la chèvre y grimpe' };
 

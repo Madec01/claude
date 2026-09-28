@@ -14,7 +14,7 @@ const range = (process.argv[3] || `1-${CAMPAIGN_SIZE}`).split('-').map(Number);
 const WRITE = process.argv.includes('--write');
 function playGreedy(def, seedOffset) {
   const isl = new Island(def, { seedOffset, ...(def.mech ? islandOptions(def) : {}) }); let g = 0;
-  while (!isl.ended && g++ < 2000) { const t = isl.current; if (!t) { isl.checkEnd(); break; } let best = null, bs = -Infinity; for (const c of isl.board.legalCells()) { const p = isl.preview(c.q, c.r); const s = p.total + Math.random() * 0.01; if (s > bs) { bs = s; best = c; } } if (!best) { isl.checkEnd(); break; } isl.place(best.q, best.r); }
+  while (!isl.ended && g++ < 2000) { const t = isl.current; if (!t) { isl.checkEnd(); break; } let best = null, bs = -Infinity; for (const c of isl.board.legalCells(t)) { const p = isl.preview(c.q, c.r); if (!p) continue; const s = p.total + Math.random() * 0.01; if (s > bs) { bs = s; best = c; } } if (!best) { isl.checkEnd(); if (isl.ended) break; continue; } isl.place(best.q, best.r); }   // Livre II : une tuile de mer sans case est perdue (checkEnd), la suivante vient
   return isl.result;
 }
 const med = (a) => { const s = [...a].sort((x, y) => x - y); return s.length % 2 ? s[(s.length - 1) / 2] : (s[s.length / 2 - 1] + s[s.length / 2]) / 2; };

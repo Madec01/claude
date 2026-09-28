@@ -39,6 +39,7 @@
 .hl-legende .zone { width: 14px; height: 12px; border-radius: 3px; background: rgba(124,196,111,0.35); } .hl-legende .zone.close { background: rgba(124,196,111,0.6); box-shadow: inset 0 0 0 1.5px #7cc46f; }
 .hl-legende .past { padding: 0 6px; border-radius: 9px; font-size: 10px; font-weight: 700; line-height: 15px; } .hl-legende .past.claire { background: #fffdf8; color: #2b2a26; box-shadow: inset 0 0 0 1.5px #c96b4a; } .hl-legende .past.sombre { background: rgba(43,42,38,0.82); color: #fffdf8; }
 .hl-legende .perte { width: 12px; height: 12px; border-radius: 3px; border: 2px solid #d95f4b; }
+.hl-legende .route { width: 14px; height: 12px; border-radius: 3px; background: rgba(63,143,201,0.4); box-shadow: inset 0 0 0 1.5px #2b6fa8; } .hl-legende .chaine { width: 16px; height: 0; border-top: 3px solid #e0a33a; }
 
 /* File de tuiles */
 .hud-queue { position: absolute; left: 14px; top: 84px; width: 190px; display: flex; flex-direction: column; gap: 8px; pointer-events: all; }

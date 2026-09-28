@@ -44,6 +44,18 @@ export const CAMPAIGN_TEXTS = {
  * L'intention de chaque île (feuille Histoire, J-L) : une phrase d'objectif de découverte, lue sur l'écran de départ,
  * bâtie sur ce que l'île introduit ou sur sa signature. Clé : numéro d'île dans la campagne (1 à 30).
  */
+// Livre II (provisoire, lot 7c pour les textes définitifs)
+export const INTENTIONS_LIVRE2 = {
+  31: 'Ici, pose la mer autour de l’île : un récif contre la plage, des algues contre le marais.',
+  32: 'Ici, enchaîne des familles différentes en bonnes paires : la chaîne de territoire paie à chaque saison.',
+  33: 'Ici, garde le récif loin des hameaux, et près de la roche.',
+  34: 'Ici, relie les deux ports par la mer : la route paie à chaque saison.',
+  35: 'Ici, entoure tes ports de familles différentes : chaque marchandise compte.',
+  36: 'Ici, relie tout ce qui peut l’être avant la dernière saison.',
+  37: 'Ici, le vent (à venir).', 38: 'Ici, la tempête (à venir).', 39: 'Ici, le phare (à venir).',
+  40: 'Ici, la marée (à venir).', 41: 'Ici, la mer est la seule eau (à venir).', 42: 'Ici, les phoques (à venir).',
+  43: 'Ici, le large (à venir).', 44: 'Ici, tout ensemble (à venir).', 45: 'Ici, le dernier rivage (à venir).',
+};
 export const INTENTIONS = {
   1: 'Ici, apprends à poser contre le bon voisin, et à fermer une région.',
   2: 'Ici, apprends à mener l’eau de la roche jusqu’à la mer : une rivière.',
@@ -76,3 +88,25 @@ export const INTENTIONS = {
   29: 'Ici, la file est courte : choisis ce que tu laisses vide.',
   30: 'Ici, la dernière île : bâtis-la belle, les fleurs et les étoiles comptent ensemble.',
 };
+
+/**
+ * Livre II — textes provisoires des îles 31 à 45 (le récit vient au lot 7c). Clés : numéro d'île.
+ */
+export const TEXTES_LIVRE2 = {
+  31: { name: 'Le Premier Rivage', intro: ['De l’autre côté de la mer, une île qui ne sait plus ce qu’est l’automne.', 'La mer autour d’elle se pose : un récif contre la plage, des algues contre le marais.'], memory: 'La mer a été la première tuile. On ne l’avait jamais vue ainsi.' },
+  32: { name: 'La Baie des Algues', intro: ['Une baie où l’eau est verte de varech.', 'Enchaîne des familles différentes, en bonnes paires : la chaîne de territoire paie à chaque saison.'], memory: 'Les algues ont nourri le marais, et le marais a nourri le reste.' },
+  33: { name: 'L’Écueil', intro: ['Des rochers à fleur d’eau, et une plage qui les regarde.', 'Le récif aime la roche et la plage ; il craint le hameau.'], memory: 'On a appris à poser la mer comme on pose la terre.' },
+  34: { name: 'Les Deux Rives', intro: ['Deux îles, un détroit, un port sur chaque rive.', 'Pose la mer entre les ports : la route paie à chaque saison, et davantage par marchandise.'], memory: 'La première route a mis une saison. La seconde, une pose.' },
+  35: { name: 'Le Détroit des Fermes', intro: ['Des champs des deux côtés de l’eau, et personne pour les vendre.', 'Ce qui touche un port s’exporte : une marchandise par famille différente.'], memory: 'Le blé d’une rive a nourri les vergers de l’autre.' },
+  36: { name: 'Le Port de la Passeuse', intro: ['La passeuse a laissé sa barque ici. Elle attend la fin du chapitre.', 'Relie tout : chaque port de plus sur la route compte.'], memory: 'La barque est repartie. Elle reviendra.' },
+  37: { name: 'Les Vents Debout', intro: ['Le vent vient de la mer, et il ne s’arrête pas.', 'Une île du chapitre des vents (à venir).'], memory: 'Le vent a fini par tourner.' },
+  38: { name: 'La Pointe Sèche', intro: ['Une pointe de sable que la tempête reprend chaque hiver.', 'Une île du chapitre des vents (à venir).'], memory: 'Le sable est resté, cette fois.' },
+  39: { name: 'Le Phare', intro: ['Un phare éteint sur un rocher.', 'Une île du chapitre des vents (à venir).'], memory: 'On a rallumé le phare.' },
+  40: { name: 'Les Grèves', intro: ['La marée découvre deux fois par jour un chemin entre les îles.', 'Une île du chapitre des marées (à venir).'], memory: 'La mer a rendu ce qu’elle avait pris.' },
+  41: { name: 'La Montagne dans la Mer', intro: ['Une île de roche où la mer est la seule eau.', 'Une île du chapitre des marées (à venir).'], memory: 'La roche a bu la mer.' },
+  42: { name: 'Le Banc des Phoques', intro: ['Des phoques sur les algues, contre la roche.', 'Une île du chapitre des marées (à venir).'], memory: 'Les phoques sont revenus les premiers.' },
+  43: { name: 'Le Grand Large', intro: ['Trois îles, ou quatre, et la mer entre elles.', 'Une île du dernier chapitre (à venir).'], memory: 'On a relié le large.' },
+  44: { name: 'L’Archipel des Cent Saisons', intro: ['Tout ce que la mer sait, ensemble.', 'Une île du dernier chapitre (à venir).'], memory: 'Il restait une saison à rendre.' },
+  45: { name: 'Le Dernier Rivage', intro: ['La passeuse retourne sa barque une dernière fois.', 'La fin du voyage (à venir).'], memory: 'Tu peux rester, Saison.' },
+};
+Object.assign(INTENTIONS, INTENTIONS_LIVRE2);

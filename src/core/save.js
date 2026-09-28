@@ -1,6 +1,6 @@
 // Sauvegarde locale versionnée (localStorage).
 import { UPGRADES } from '../data/upgrades.js';
-import { CAMPAIGN_SIZE, CHAPTER_LEN, CHAPTERS, CAMPAGNE_50_VERS_30, unlockedUpTo } from '../data/campaign.js';
+import { CAMPAIGN_SIZE, FIN_LIVRE1, CHAPTER_LEN, CHAPTERS, CAMPAGNE_50_VERS_30, unlockedUpTo } from '../data/campaign.js';
 const KEY = 'cent-saisons.save';
 const VERSION = 3;
 // v1 → v2 : la campagne passe de 12 à 50 îles ; les douze îles dessinées gardent leurs étoiles à leur nouvelle place
@@ -43,9 +43,9 @@ export function migrerVers30(c) {
   if (c.insignes && c.insignes.iles) c.insignes.iles = remap(c.insignes.iles, 'iles');
   const ancienne = Math.max(1, c.unlockedIsland || 1);
   // la première île nouvelle dont l'ancien numéro atteint l'île où l'on en était — celle qu'on aurait jouée ensuite
-  let suivante = CAMPAIGN_SIZE;
+  let suivante = FIN_LIVRE1;
   for (const [vieux, neuf] of Object.entries(M)) if (Number(vieux) >= ancienne && neuf < suivante) suivante = neuf;
-  c.unlockedIsland = c.completed ? CAMPAIGN_SIZE : Math.max(suivante, unlockedUpTo(c));
+  c.unlockedIsland = c.completed ? Math.max(FIN_LIVRE1, unlockedUpTo(c)) : Math.max(suivante, unlockedUpTo(c));   // le Livre I fini : le Livre II s'ouvre par la porte du chapitre 10 (unlockedUpTo)
   if (Object.values(archive).some((v) => (Array.isArray(v) ? v.length : Object.keys(v).length))) c.archive50 = archive;
   c.migre30 = true;
 }

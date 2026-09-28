@@ -5,12 +5,14 @@
 // Chaque mécanique arrive à une île précise (MECH_AT) ; les climats arrivent avec les archipels (chapitres 5 à 8).
 // Une carte de tutoriel propre au climat s'affiche à chaque île dont le climat diffère de la précédente (climateCardFor).
 import { ISLANDS, WEIGHTS, generateMask, enclosedHoles } from './islands.js';
-import { CAMPAIGN_TEXTS, INTENTIONS } from './campaign_texts.js';
+import { CAMPAIGN_TEXTS, INTENTIONS, TEXTES_LIVRE2 } from './campaign_texts.js';
+import { archipelMask, coteMask, poidsArchipel } from './archipel.js';
 import { CAMPAIGN_STARS } from './campaign_stars.js';
 import { SIGNATURE_OF, FORME_OF, applySignature } from './signatures.js';
 import { FORMES } from './islands.js';
 
-export const CAMPAIGN_SIZE = 30;
+export const CAMPAIGN_SIZE = 45;   // Livre I : 30 îles (FIN_LIVRE1), Livre II : 15 de plus (feuille docs/FEUILLE_LIVRE_II.md)
+export const FIN_LIVRE1 = 30;      // la dernière île du Livre I : le récit de fin s'y joue, et la campagne d'avant y était finie
 export const CHAPTER_LEN = 3;      // îles par chapitre
 /** La croissance n'est pas une mécanique de plus à retenir : c'est le caractère du chapitre 9, « ici, le temps bâtit seul ». */
 export const GROWTH_CHAPTER = 9;
@@ -22,8 +24,10 @@ export const MECH_AT = {
   7: ['surprise'], 8: ['hill'], 9: ['rare2'], 10: ['heath'],
   11: ['build'],
   13: ['climate', 'fuse'], 19: ['build3'], 25: ['growth'],
+  // Livre II : la mer se pose (mer, récif, algues, pinède) et la chaîne de territoire ; puis les ports et les routes
+  31: ['mer', 'chaine'], 34: ['ports'],
 };
-export const MECH_NAMES = { river: 'rivière', season: 'saisons', fauna: 'faune', semis: 'semis', wish: 'vœux', breath: 'souffles', rare: 'tuiles rares', surprise: 'surprises de saison', hill: 'collines', rare2: 'grenier, ruche et menhir', heath: 'lande', build: 'bâtir', hand: 'main de saison', climate: 'climats', fuse: 'fusions', build3: 'niveau 3' , growth: 'croissance', harmonie: 'harmonie'};
+export const MECH_NAMES = { mer: 'la mer qui se pose', chaine: 'chaîne de territoire', ports: 'ports et routes de mer', river: 'rivière', season: 'saisons', fauna: 'faune', semis: 'semis', wish: 'vœux', breath: 'souffles', rare: 'tuiles rares', surprise: 'surprises de saison', hill: 'collines', rare2: 'grenier, ruche et menhir', heath: 'lande', build: 'bâtir', hand: 'main de saison', climate: 'climats', fuse: 'fusions', build3: 'niveau 3' , growth: 'croissance', harmonie: 'harmonie'};
 /** Île où une mécanique arrive (pour le Guide et l'Atelier). */
 export function mechIsland(m) { for (const [n, list] of Object.entries(MECH_AT)) if (list.includes(m)) return Number(n); return null; }
 /** Mécaniques disponibles jusqu'à l'île n (incluse). Sans argument : toutes (modes libres). */
@@ -42,6 +46,13 @@ export const CHAPTERS = [
   { id: 8, name: 'Les Quatre Climats', sub: 'Chaque île change de climat', climate: 'mixed', islands: [{ from: 36, cells: 90, w: 'coastAll', climate: 'hot' }, { from: 37, cells: 94, w: 'ridges', climate: 'cold' }, { from: 39, cells: 100, w: 'rivers', climate: 'humid', memory: true }] },
   { id: 9, name: 'Les grandes îles', sub: 'Ici, le temps bâtit seul', climate: 'mixed', islands: [{ from: 41, cells: 104, w: 'all', climate: 'temperate' }, { from: 43, cells: 120, w: 'ridges', climate: 'cold' }, { from: 45, cells: 140, w: 'moorFarm', climate: 'hot', memory: true }] },
   { id: 10, name: 'Cent saisons', sub: 'La fin du souvenir', climate: 'temperate', islands: [{ from: 46, cells: 120, w: 'all' }, { from: 49, cells: 150, w: 'all' }, { hand: 12, memory: true }] },
+  // Livre II — La Traversée (feuille docs/FEUILLE_LIVRE_II.md). `archipel` : 'cote' (une île, la mer autour se pose) ou 'deux' (deux îles et un détroit).
+  // Les chapitres 13 à 15 sont posés provisoirement : leurs mécaniques (vents, marées, trois îles) viennent aux lots 7b et 7c.
+  { id: 11, name: 'La Traversée', sub: 'La mer se pose : récifs, algues, chaîne de territoire', climate: 'temperate', livre: 2, islands: [{ archipel: 'cote', cells: 44, w: 'coast' }, { archipel: 'cote', cells: 52, w: 'coastAll' }, { archipel: 'cote', cells: 56, w: 'balanced', memory: true }] },
+  { id: 12, name: 'Les Ports', sub: 'Deux îles, des ports, des routes de mer', climate: 'temperate', livre: 2, islands: [{ archipel: 'deux', cells: 56, w: 'coastAll' }, { archipel: 'deux', cells: 64, w: 'farms' }, { archipel: 'deux', cells: 70, w: 'coastAll', memory: true }] },
+  { id: 13, name: 'Les Vents', sub: 'Le climat venteux, la tempête, le phare', climate: 'temperate', livre: 2, islands: [{ archipel: 'deux', cells: 66, w: 'wild' }, { archipel: 'deux', cells: 72, w: 'ridges' }, { archipel: 'deux', cells: 76, w: 'coastAll', memory: true }] },
+  { id: 14, name: 'Les Marées', sub: 'La marée, et des îles à contrainte', climate: 'temperate', livre: 2, islands: [{ archipel: 'deux', cells: 72, w: 'hills' }, { archipel: 'deux', cells: 80, w: 'rivers' }, { archipel: 'deux', cells: 84, w: 'moor', memory: true }] },
+  { id: 15, name: 'Le Grand Large', sub: 'Tout ensemble, et la fin du voyage', climate: 'temperate', livre: 2, islands: [{ archipel: 'deux', cells: 84, w: 'all' }, { archipel: 'deux', cells: 92, w: 'coastAll' }, { archipel: 'deux', cells: 100, w: 'all', memory: true }] },
 ];
 
 /** Réserve de vœux des îles générées (textes dans STORY.wishes, clés c_*). `needs` : mécanique requise ; `dl` : échéance en fraction des cases. */
@@ -98,6 +109,7 @@ export function campaignIsland(n) {
     const wishOk = (w) => !(w.type === 'fusion' && !mech.has('fuse')) && !(w.type === 'level' && !mech.has('build'));
     return { ...h, id: n, story: h.id, chapter: ch.id, climate, memory: !!slot.memory, mech, intention: INTENTIONS[n] || null, wishes: mech.has('wish') ? h.wishes.filter(wishOk) : [], mechanics: [], starFactors: stars || h.starFactors, surprise: mech.has('surprise') };
   }
+  if (slot.archipel) return ileLivre2(n, ch, slot, mech, climate, stars);
   const from = slot.from || n;   // l'ancien numéro : la graine et les textes lui restent attachés
   const seed = 5000 + from * 131;
   const rng = mulberry(seed);
@@ -145,6 +157,32 @@ export function campaignIsland(n) {
   if (def.forme && FORMES[def.forme] && FORMES[def.forme].depart) def = { ...def, start: FORMES[def.forme].depart.map((t) => ({ ...t })) };
   return def;
 }
+
+/**
+ * Une île du Livre II : une côte dont la mer se pose (chapitre 11) ou deux îles et leur détroit (dès le chapitre 12), la
+ * file des familles de la côte plus un quart de tuiles de mer, les ports quand leur chapitre est venu. Graines et textes
+ * à part de ceux du Livre I (les anciens numéros 31 à 50 y sont déjà pris).
+ */
+function ileLivre2(n, ch, slot, mech, climate, stars) {
+  const seed = 9000 + n * 131; const rng = mulberry(seed); const cells = slot.cells;
+  const a = slot.archipel === 'cote' ? coteMask(seed, cells) : archipelMask(seed, cells);
+  const w = poidsArchipel(weightsFor(slot.w, climate, mech), 0.25); if (!mech.has('ports')) delete w.port;
+  const seasonLength = cells <= 56 ? 8 : cells <= 80 ? 9 : 10;
+  const startSeason = ['summer', 'autumn', 'winter', 'spring'][n % 4];
+  const wishCount = 3; const tot = Object.values(w).reduce((x, y) => x + y, 0); const share = (f) => (w[f] || 0) / tot;
+  const pool = CAMPAIGN_WISHES.filter((x) => !x.needs || mech.has(x.needs)).filter((x) => !((x.type === 'river' || x.type === 'lake') && share('water') < 0.1) && x.id !== 'c_bloom' && !((x.id === 'c_bourg' || x.id === 'c_pairs') && share('hamlet') < 0.09) && !(x.id === 'c_forest' && (share('forest') < 0.12 || cells < 44)) && !(x.id === 'c_species' && cells < 50));
+  const wishes = [];
+  while (wishes.length < wishCount && pool.length) { const x = pool.splice(Math.floor(rng() * pool.length), 1)[0]; const { dl, needs, ...def } = x; wishes.push({ ...def, deadline: { placements: Math.round(cells * dl) } }); }
+  const t = TEXTES_LIVRE2[n] || { name: `Île ${n}`, intro: ['Une île de l’autre côté de la mer.', 'Pose, et elle se souviendra.'], memory: 'Elle a fini par avoir un nom. Le tien.' };
+  return {
+    id: n, story: null, chapter: ch.id, livre2: true, climate, memory: !!slot.memory, mech, intention: INTENTIONS[n] || null, arch: ch.id, cells: a.cells, seed, mask: a.mask, detroit: a.detroit,
+    seasonLength, startSeason, weights: w, tilesRatio: 0.92, start: a.start, wishes, mechanics: [], surprise: mech.has('surprise'),
+    name: t.name, intro: t.intro, memoryText: t.memory, starFactors: stars || [4, 5.8, 7.4, 8.4],
+  };
+}
+
+/** La campagne entière est finie : les deux livres. */
+export function campagneFinie(campaign) { return islandDone(campaign, CAMPAIGN_SIZE); }
 
 /** Carte de climat à afficher sur l'île n : quand son climat diffère de celui de l'île précédente (ou à la première île à climat). */
 export function climateCardFor(n) {

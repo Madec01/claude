@@ -87,6 +87,6 @@ devient sa barque à la fin de l'île 30 ; la cinématique du commanditaire ouvr
 | # | Lot | Statut |
 |---|---|---|
 | 0 | Mesure : archipel, détroit, tuiles de mer, routes, chaîne, robot — ce document | **fait** (prototype dans le jeu, test `tests/livre2.test.js`) |
-| 7a | Chapitres 11 et 12 jouables : îles 31 à 36 dans la campagne, images des cinq familles (packs KayKit), rendu du détroit et de la mer posée, aperçu et lecture (routes, chaîne), textes, robot et calibrage | à faire |
+| 7a | Chapitres 11 et 12 jouables : îles 31 à 36 dans la campagne (et les chapitres 13 à 15 déjà jouables, sans leurs mécaniques propres), images des cinq familles (packs KayKit), rendu du détroit et de la mer posée, aperçu et lecture (routes, chaîne), textes, robot et calibrage des îles 31 à 45 | **fait** (28 septembre) |
 | 7b | Pinède qui ne sèche pas, variantes d'arbres par climat, rares, faune marine, climat venteux, tempête, phare, marée, chapitres 13 et 14 | à faire |
 | 7c | Récit, passeuse, cinématique, chapitre 15 et fin, musiques et ambiances | à faire |

@@ -21,7 +21,7 @@ export function insigne(src, gagne, titre, taille = 'moyen') {
   return h('img', { class: `insigne insigne-${taille} ${gagne ? 'gagne' : 'vide'}`, src, alt: titre, title: gagne ? titre : `${titre} — pas encore gagné`, loading: 'lazy' });
 }
 export const srcArchetype = (id) => `assets/img/archetypes/archetype-${id}.png`;
-export const srcChapitre = (n) => `assets/img/chapitres/chapitre-${n}.png`;
+export const srcChapitre = (n) => `assets/img/chapitres/chapitre-${n > 10 ? ((n - 1) % 10) + 1 : n}.png`;   // Livre II : les insignes des chapitres 11 à 15 viennent au lot 7c ; en attendant, ceux du Livre I
 
 /** Les six emplacements d'archétype d'une île : ceux qu'elle a déjà donnés en couleur, les autres en silhouette. */
 export function rangeeArchetypes(ileId, taille = 'petit') {

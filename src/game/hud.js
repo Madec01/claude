@@ -57,7 +57,7 @@ export class Hud {
         <button class="hud-pause hud-lire ${island.tempo || island.brume ? 'hidden' : ''}" data-ref="lire" title="Lire l’île (V) : les affinités sur les bords, le tour des régions et leur prime, ce que la saison qui vient donnera ou reprendra">${icon('icon_target')}</button>
         <button class="hud-pause" data-ref="pause" title="Pause (Échap) : journal, plein écran, options">${icon('icon_pause')}</button>
       </div>
-      <div class="hud-lecture hidden" data-ref="lectureBoite"><div class="hl-ligne" data-ref="lecture"></div><div class="hl-legende"><span><i class="sw fil un"></i>+1</span><span><i class="sw fil deux"></i>+2</span><span><i class="sw fil mauvais"></i>mauvais voisinage</span><span><i class="sw zone"></i>région ouverte</span><span><i class="sw zone close"></i>close</span><span><i class="sw past claire">+3</i>prime à fermer</span><span><i class="sw past sombre">+2</i>saison qui vient</span><span><i class="sw perte"></i>va perdre</span></div></div>
+      <div class="hud-lecture hidden" data-ref="lectureBoite"><div class="hl-ligne" data-ref="lecture"></div><div class="hl-legende"><span><i class="sw fil un"></i>+1</span><span><i class="sw fil deux"></i>+2</span><span><i class="sw fil mauvais"></i>mauvais voisinage</span><span><i class="sw zone"></i>région ouverte</span><span><i class="sw zone close"></i>close</span><span><i class="sw past claire">+3</i>prime à fermer</span><span><i class="sw past sombre">+2</i>saison qui vient</span><span><i class="sw perte"></i>va perdre</span>${island.livre2 ? '<span><i class="sw route"></i>route de mer</span><span><i class="sw chaine"></i>chaîne de territoire</span>' : ''}</div></div>
       <div class="hud-carte ${island.brume ? '' : 'hidden'}" data-ref="carte"><span class="hc-kicker" data-ref="carteKicker">Saison</span><b data-ref="carteNom">—</b><span class="hc-texte" data-ref="carteTexte"></span><span class="hc-ratio" data-ref="carteRatio" title="Chance de tirer un bonus à la prochaine saison"></span></div>
       <div class="hud-queue" data-ref="queue">
         <div class="queue-title"><span>${island.handOn ? 'Main · choisis ta tuile' : 'À poser'}</span><span class="queue-left" data-ref="left" title="Tuiles qui restent"></span></div>
@@ -420,6 +420,8 @@ export class Hud {
     const parts = [];
     if (L.animaux) parts.push(`${L.animaux} ${L.animaux > 1 ? 'animaux' : 'animal'}`);
     if (L.liens) parts.push(`${L.liens} ${L.liens > 1 ? 'sentiers' : 'sentier'}`);
+    if (L.routes) { const n = L.routes.filter((r) => r.pts).length; if (n) parts.push(`${n} ${n > 1 ? 'routes' : 'route'}`); }
+    if (L.chaine && L.chaine.pts) parts.push(`chaîne de ${L.chaine.length}`);
     const mauvais = L.bords.filter((b) => b.pts < 0).length;
     this.r.lecture.innerHTML = `<b>Lecture</b><span>${saison}${L.annoncee ? ` · ${regle}` : ' · sans surprise'} : <b class="${L.total < 0 ? 'moins' : ''}">${L.total >= 0 ? '+' : '−'}${Math.abs(L.total)}</b>${parts.length ? ` <i>(${parts.join(', ')})</i>` : ''}</span>`
       + `<span>${ouvertes.length} ${ouvertes.length > 1 ? 'régions ouvertes' : 'région ouverte'} : <b>+${enJeu}</b> à fermer</span>`

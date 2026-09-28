@@ -186,6 +186,10 @@ KAY_MODELS = {
     "roseau_C": "decoration/nature/waterplant_C",
     # --- le port : le seul endroit du jeu dont le vocabulaire venait encore d'un autre pack (Nature Kit)
     "ponton": "extra/buildings/red/building_docks_red",
+    # Livre II : pins parasols et pins maritimes (pack Forest, palette 1 : le vert d'été, toujours vert), rochers gris de récif
+    "pin_parasol_A": "forest/Color1/Tree_3_A_Color1", "pin_parasol_B": "forest/Color1/Tree_3_B_Color1", "pin_parasol_C": "forest/Color1/Tree_3_C_Color1",
+    "pin_maritime_A": "forest/Color1/Tree_7_A_Color1", "pin_maritime_B": "forest/Color1/Tree_7_B_Color1",
+    "recif_A": "forest/Color1/Rock_1_A_Color1", "recif_B": "forest/Color1/Rock_3_A_Color1", "recif_C": "forest/Color1/Rock_6_A_Color1",
     "barque": "extra/decoration/props/boat",
     "chevalet": "extra/decoration/props/boatrack",
     "ancre": "extra/decoration/props/anchor",
@@ -350,6 +354,8 @@ COLORS = {
     "stone_winter": "#e3eaf0", "dirt_winter": "#e6ebf0",
     "heath_ground": {"spring": "#a9b26a", "summer": "#b0a45a", "autumn": "#b58c55", "winter": SNOW},
     "heather": {"spring": "#b98ccc", "summer": "#a67bb8", "autumn": "#8f6a9e", "winter": "#d9d0e2"},
+    # Livre II : le varech des algues (massettes recolorées), vert d'eau sombre, brun l'automne, glauque l'hiver
+    "kelp": {"spring": "#4f9a6e", "summer": "#3f8a62", "autumn": "#7a8a4a", "winter": "#6f8f88"},
     # les rangs de culture se posent désormais sur une dalle de blé, plus sur de la terre nue : il leur faut
     # une nuance un cran plus soutenue que le sol de la saison, sinon ils s'y fondent et les sillons disparaissent
     "crop": {"spring": "#8fca5c", "summer": "#86a637", "autumn": "#c08c26", "winter": "#cfe0ec"},
@@ -789,6 +795,17 @@ TILES = {
     "ruins": T("rare", "stone_07", [L("kay:ruin", 58, 92, scale=0.85), L("kay:lumber", 32, 100, scale=0.95)],
                base_kind="stone", note="Ruines KayKit (bâtiment effondré) sur pierre."),
     # --- collines (dès l'île 7) : hillGrass des Hexagon Tiles, recolorée comme l'herbe
+    # Livre II — les tuiles de mer se dessinent sur l'eau (même base que la tuile d'eau) ; port et pinède sur la terre du bord de mer
+    "sea_1": T("sea", "water", [L("ht:waveWater:3.7", 36, 58, "wave"), L("ht:waveWater:3.7", 80, 84, "wave"), L("ht:waveWater:3.7", 52, 112, "wave")], base_kind="water",
+               note="Mer posée : l'eau et trois vagues, rien d'autre — elle porte les routes."),
+    "reef_1": T("reef", "water", [L("ht:waveWater:3.7", 36, 58, "wave"), L("kay:recif_A", 58, 90, "rock", width=44), L("kay:recif_B", 84, 100, "rock", width=30), L("ht:waveWater:3.7", 60, 114, "wave")], base_kind="water",
+                note="Récif : deux rochers gris du pack Forest à fleur d'eau, deux vagues."),
+    "kelp_1": T("kelp", "water", [L("kay:roseau_A", 44, 86, "kelp", width=28), L("kay:roseau_B", 76, 96, "kelp", width=30), L("kay:roseau_C", 58, 110, "kelp", width=26), L("ht:waveWater:3.7", 80, 62, "wave")], base_kind="water",
+                note="Algues : trois massettes KayKit recolorées en varech, une vague."),
+    "port_1": T("port", "dirt_06", [L("kay:ponton", 60, 96, "static", width=104), L("kay:barrel", 98, 98, scale=1.2), L("kay:crate", 28, 100, scale=1.1)], base_kind="dirt",
+                note="Port : les docks du pack EXTRA sur la terre battue, un tonneau, une caisse."),
+    "pine_1": T("pine", "sand_07", [L("kay:pin_parasol_A", 44, 84, "static", width=56), L("kay:pin_parasol_B", 80, 96, "static", width=52), L("kay:bloc_brun", 96, 106, "rock", width=26)], base_kind="sand", base_zoom=1.08,
+                note="Pinède : deux pins parasols (pack Forest) sur le sable, un rocher brun — toujours verts, l'hiver aussi."),
     "hill_1": T("hill", "grass_05", [L("kay:colline_A", 60, 82, "hill", width=150), L("ht:bushGrass:2.2", 34, 104, "reed")],
                 note="Colline : herbe plate + colline en volume du pack EXTRA (hill_single_A), sommet recoloré par saison, touffe au pied."),
     "hill_2": T("hill", "grass_05", [L("kay:mont_A_herbe", 60, 80, "hill", width=150, mirror=True), L("kay:caillou_C", 92, 100, "rock", width=30), L("ht:bushGrass:2.2", 30, 100, "reed")],
@@ -934,6 +951,8 @@ class Composer:
             im = recolor(im, COLORS["reed"][season], mask="all", shade=1.0)
         elif kind == "heather":
             im = recolor(im, COLORS["heather"][season], mask="all", shade=1.0)
+        elif kind == "kelp":
+            im = recolor(im, COLORS["kelp"][season], mask="all", shade=1.0)
         elif kind == "crop":
             im = recolor(im, COLORS["crop"][season], mask="all", shade=1.0)
         elif kind == "blossom":
@@ -1307,6 +1326,18 @@ class Builder:
             kobj(f"obj_waterplant{i}", m, "summer", 26, "reed", f"Massette d'eau {i} (KayKit) : marais et bords d'étang.")
         # Le port : barque, chevalet, ancre et navire au mouillage.
         kobj("obj_boat", "barque", "summer", 52, "static", "Barque de bois (KayKit EXTRA) : rives et port.")
+        # Livre II : le décor des cinq familles de la mer — pins (toujours verts), rochers de récif (blanchis l'hiver), varech par saison, docks
+        for v in ("A", "B", "C"):
+            kobj(f"obj_pin_parasol_{v}", f"pin_parasol_{v}", "summer", None, "static", f"Pin parasol {v} (pack Forest) : la pinède.", target_h=118)
+            kobj(f"obj_recif_{v}", f"recif_{v}", "summer", 56 if v == "A" else 44, "rock", f"Rocher de récif {v} (pack Forest) : à fleur d'eau.")
+            kobj(f"obj_recif_{v}_winter", f"recif_{v}", "winter", 56 if v == "A" else 44, "rock", f"Rocher de récif {v}, faces blanchies l'hiver.")
+        for v in ("A", "B"):
+            kobj(f"obj_pin_maritime_{v}", f"pin_maritime_{v}", "summer", None, "static", f"Pin maritime {v} (pack Forest) : la pinède, plus haut.", target_h=140)
+        for i, m in ((1, "roseau_A"), (2, "roseau_B"), (3, "roseau_C")):
+            for season in SEASONS:
+                kobj(f"obj_algue{i}_{season}", m, season, 30, "kelp", f"Varech {i} ({season}) : massette KayKit recolorée, les algues.")
+        kobj("obj_ponton", "ponton", "summer", 124, "static", "Les docks (KayKit EXTRA) : le port.")
+        kobj("obj_ponton_winter", "ponton", "winter", 124, "static", "Les docks, l'hiver (même modèle : le bois ne change pas).")
         kobj("obj_boatrack", "chevalet", "summer", 56, "static", "Chevalet à bateau (KayKit EXTRA) : rives et port.")
         kobj("obj_anchor", "ancre", "summer", 28, "static", "Ancre de fer (KayKit EXTRA) : port.")
         kobj("obj_ship", "navire", "summer", 100, "static", "Trois-mâts marchand (KayKit EXTRA) : mouillé au port.")

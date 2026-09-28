@@ -32,7 +32,7 @@ import { Finale, choisirLieux } from './game/finale.js';
 import { OuvertureScene } from './game/ouverture.js';
 import { FinaleClassique } from './game/finale_classique.js';
 import { prechargerTampons } from './game/tampon.js';   // la tournée d'avant, gardée au cas où (option `finaleClassique`)
-import { campaignIsland, campaignMechanics, islandOptions, CAMPAIGN_SIZE, CHAPTER_LEN, MECH_AT, climateCardFor, unlockedUpTo, gateText, restarFromBest, CHAPTERS } from './data/campaign.js';
+import { campaignIsland, campaignMechanics, islandOptions, CAMPAIGN_SIZE, FIN_LIVRE1, campagneFinie, CHAPTER_LEN, MECH_AT, climateCardFor, unlockedUpTo, gateText, restarFromBest, CHAPTERS } from './data/campaign.js';
 import { GRADES, streakMilestone, motDePose } from './game/feedback.js';
 import { computeLinks } from './game/paths.js';
 import { waterBodies } from './game/water.js';
@@ -361,7 +361,7 @@ const Game = {
   // ----- Flux -----
   startCampaign() {
     const c = Save.campaign;
-    if (c.completed) { c.unlockedIsland = 1; c.completed = false; Save.save(); }
+    if (campagneFinie(c)) { c.unlockedIsland = 1; c.completed = false; Save.save(); }   // rejouer : les deux livres finis
     const id = Math.min(c.unlockedIsland, CAMPAIGN_SIZE);
     if (!c.prologueSeen && id === 1) scenes.go('story', { screens: prologueScreens(), onDone: () => { c.prologueSeen = true; Save.save(); this.startIsland(1); } });
     else this.startIsland(id);
@@ -566,7 +566,7 @@ const Game = {
       // déblocage recalculé depuis les étoiles : l'étoile qui manquait à la porte compte même si on l'a décrochée
       // sur une île déjà jouée. `Math.max` pour ne jamais retirer ce qui était ouvert (mode test, anciennes sauvegardes).
       c.unlockedIsland = Math.max(c.unlockedIsland, unlockedUpTo(c));
-      if (def.id === CAMPAIGN_SIZE) { c.completed = true; Save.data.infinite.unlocked = true; }
+      if (def.id === FIN_LIVRE1) { c.completed = true; Save.data.infinite.unlocked = true; }   // le Livre I est fini ; le Livre II s'ouvre par la porte du chapitre 10
       if (def.id >= 6) Save.data.infinite.unlocked = true;   // fin du chapitre 2 : l'Île infinie s'ouvre
       Save.noteIslandDone();
       Save.save();
@@ -593,7 +593,8 @@ const Game = {
     // portes de chapitre — et une porte a deux clés (voir gateOpen). Le souvenir s'est lu au bilan : du bilan on
     // passe directement à l'écran de départ de l'île suivante ; l'Atelier attend au menu.
     this.remindBackup();
-    if (def.id === CAMPAIGN_SIZE) { scenes.go('story', { screens: endingScreens(), skippable: false, onDone: () => scenes.go('ending') }); return; }
+    if (def.id === FIN_LIVRE1) { scenes.go('story', { screens: endingScreens(), skippable: false, onDone: () => scenes.go('ending') }); return; }   // la fin du Livre I ; la mer attend au menu
+    if (def.id === CAMPAIGN_SIZE) { this.showMenu(); return; }   // la fin du Livre II (son récit vient au lot 7c)
     if (c.unlockedIsland > def.id) {
       // les graines dormaient dans la poche (le commanditaire lui-même avait oublié l'Atelier) : quand elles paient une
       // amélioration que le joueur n'a pas encore vue à portée, l'Atelier s'ouvre une fois sur le chemin de l'île suivante.

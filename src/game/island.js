@@ -604,7 +604,9 @@ export class Island {
       cases.set(k, c);
     }
     const liens = this.tempo ? 0 : computeLinks(this.board).links.length; total += liens * BALANCE.points.pathSeason;
-    this._lecK = cle; this._lec = { bords, regions, saison, regle, annoncee: !!a, cases, animaux, liens, total };
+    // Livre II : les routes et la chaîne, telles qu'elles sont (le rendu les trace, le bandeau les compte)
+    const routes = this.livre2 ? computeRoutes(this.board) : null, chaine = this.livre2 ? chaineTerritoire(this.board) : null;
+    this._lecK = cle; this._lec = { bords, regions, saison, regle, annoncee: !!a, cases, animaux, liens, total, routes, chaine };
     return this._lec;
   }
 

@@ -10,7 +10,7 @@ import { STORY } from '../src/data/story.js';
 import { progressOf } from '../src/game/wishes.js';
 import { BALANCE } from '../src/data/balance.js';
 import { playStrong } from './bot.js';
-import { campaignIsland, mechIsland, CAMPAIGN_SIZE, CHAPTER_LEN, CHAPTERS, MECH_AT, GROWTH_CHAPTER, CAMPAIGN_WISHES, islandOptions, gateStars, chapterStars, unlockedUpTo, CHAPTER_GATE, CHAPTER_PATIENCE, islandDone, chapterPlays, gateOpen, gateText, islandCells, islandThresholds, restarFromBest } from '../src/data/campaign.js';
+import { campaignIsland, mechIsland, CAMPAIGN_SIZE, FIN_LIVRE1, CHAPTER_LEN, CHAPTERS, MECH_AT, GROWTH_CHAPTER, CAMPAIGN_WISHES, islandOptions, gateStars, chapterStars, unlockedUpTo, CHAPTER_GATE, CHAPTER_PATIENCE, islandDone, chapterPlays, gateOpen, gateText, islandCells, islandThresholds, restarFromBest } from '../src/data/campaign.js';
 import { CAMPAIGN_STARS } from '../src/data/campaign_stars.js';
 import { applySignature } from '../src/data/signatures.js';
 import { gradeMove } from '../src/game/feedback.js';
@@ -780,10 +780,11 @@ for (const def of ISLANDS.slice(0, 4)) {
 {
   const { migrerVers30 } = await import('../src/core/save.js'); const { migrerPartie } = await import('../src/core/run.js'); const { CAMPAGNE_50_VERS_30 } = await import('../src/data/campaign.js');
   const vals = Object.values(CAMPAGNE_50_VERS_30);
-  check(vals.length === CAMPAIGN_SIZE && new Set(vals).size === CAMPAIGN_SIZE && Math.max(...vals) === CAMPAIGN_SIZE, 'la correspondance 50 → 30 couvre exactement les trente îles');
+  check(vals.length === FIN_LIVRE1 && new Set(vals).size === FIN_LIVRE1 && Math.max(...vals) === FIN_LIVRE1, 'la correspondance 50 → 30 couvre exactement les trente îles du Livre I');
   check(Object.keys(MECH_AT).every((k) => Number(k) <= CAMPAIGN_SIZE) && Object.keys(CAMPAIGN_STARS).every((k) => Number(k) <= CAMPAIGN_SIZE), 'aucune mécanique ni aucun seuil hors campagne');
-  check(campaignIsland(CAMPAIGN_SIZE).memory && campaignIsland(CAMPAIGN_SIZE).story === 12, 'la dernière île est L’Île qui se souvient');
-  for (const ch of CHAPTERS) { check(ch.islands.length === CHAPTER_LEN && ch.islands[CHAPTER_LEN - 1].memory, `chapitre ${ch.id} : ${CHAPTER_LEN} îles, la dernière est un souvenir`); for (const sl of ch.islands) check(!!sl.hand || !!sl.from, `chapitre ${ch.id} : chaque île générée garde son ancien numéro (graine)`); }
+  check(campaignIsland(FIN_LIVRE1).memory && campaignIsland(FIN_LIVRE1).story === 12, 'la dernière île du Livre I est L’Île qui se souvient');
+  check(CAMPAIGN_SIZE === 45 && campaignIsland(31).livre2 && campaignIsland(31).detroit.length > 0 && !campaignIsland(30).livre2, 'le Livre II commence à l’île 31, avec son détroit');
+  for (const ch of CHAPTERS) { check(ch.islands.length === CHAPTER_LEN && ch.islands[CHAPTER_LEN - 1].memory, `chapitre ${ch.id} : ${CHAPTER_LEN} îles, la dernière est un souvenir`); for (const sl of ch.islands) check(!!sl.hand || !!sl.from || !!sl.archipel, `chapitre ${ch.id} : chaque île générée garde son ancien numéro (graine)`); }
   // un joueur à l'ancienne île 24 : les anciennes 1 à 23 faites (dont le Pont de Glace, ancienne 20), reprend à la nouvelle 15
   const c = { stars: {}, best: {}, plays: {}, gold: { 20: true }, memoriesRead: [], unlockedIsland: 24, insignes: { iles: { 20: ['aquatique'], 17: ['hameaux'] }, chapitres: [1, 2, 3, 4] }, seeds: 40, upgrades: { sight: 1 } };
   for (let n = 1; n <= 23; n++) { c.stars[n] = 2; c.best[n] = 100 + n; c.plays[n] = 1; c.memoriesRead.push(n); }
@@ -794,7 +795,7 @@ for (const def of ISLANDS.slice(0, 4)) {
   check(c.stars[17] === undefined && c.archive50 && c.archive50.stars[17] === 2 && c.archive50.iles[17][0] === 'hameaux', 'les îles retirées sont archivées, pas effacées');
   check(c.seeds === 40 && c.upgrades.sight === 1 && c.insignes.chapitres.length === 4, 'graines, Atelier et insignes de chapitre intacts');
   const avant = JSON.stringify(c); migrerVers30(c); check(JSON.stringify(c) === avant, 'migrer deux fois ne change rien');
-  const fini = { stars: {}, completed: true, unlockedIsland: 50 }; migrerVers30(fini); check(fini.unlockedIsland === CAMPAIGN_SIZE && fini.completed, 'une campagne finie reste finie');
+  const fini = { stars: {}, completed: true, unlockedIsland: 50 }; migrerVers30(fini); check(fini.unlockedIsland === FIN_LIVRE1 && fini.completed, 'un Livre I fini reste fini, et attend le Livre II à la porte du chapitre 10');
   const p1 = migrerPartie({ v: 1, at: 1, where: { kind: 'campaign', id: 20 }, isl: {} }), p2 = migrerPartie({ v: 1, at: 1, where: { kind: 'campaign', id: 17 }, isl: {} }), p3 = migrerPartie({ v: 1, at: 1, where: { kind: 'daily', date: 'x' }, isl: {} });
   check(p1 && p1.v === 2 && p1.where.id === 20 && p2 === null && p3 && p3.v === 2, 'partie en cours : renumérotée, oubliée si l’île est retirée, intacte pour l’Île du jour');
 }
@@ -904,7 +905,7 @@ for (const def of ISLANDS.slice(0, 4)) {
   const { INTENTIONS } = await import('../src/data/campaign_texts.js');
   // J-L : chaque île a son intention, une phrase
   for (let n = 1; n <= CAMPAIGN_SIZE; n++) { const d = campaignIsland(n); check(typeof d.intention === 'string' && d.intention.startsWith('Ici') && d.intention.length < 170, `île ${n} : une intention (« ${(d.intention || '').slice(0, 40)}… »)`); }
-  check(Object.keys(INTENTIONS).length === CAMPAIGN_SIZE, 'trente intentions, pas une de plus');
+  check(Object.keys(INTENTIONS).length === CAMPAIGN_SIZE, 'quarante-cinq intentions, pas une de plus');
   // J-M : le passage étroit — deux terres reliées par deux cases, le hameau et la roche de départ épargnés
   const d8 = campaignIsland(8); check(d8.isthme === true && d8.signature && d8.signature.id === 'passage_etroit', 'l’île 8 porte le passage étroit');
   const i8 = new Island(d8, { ...islandOptions(d8) }); const m = i8.board.mask;

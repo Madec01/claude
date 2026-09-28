@@ -50,7 +50,8 @@ export class Board {
 
   has(q, r) { return this.mask.has(key(q, r)); }
   get(q, r) { return this.tiles.get(key(q, r)) || null; }
-  isSea(q, r) { const k = key(q, r); return !this.mask.has(k) || (this.detroit.has(k) && !this.tiles.has(k)); }
+  /** La mer : hors du masque, et sur le détroit — vide, ou posé d'une tuile de mer (la mer posée reste la mer : côte, écume, embouchures). */
+  isSea(q, r) { const k = key(q, r); if (!this.mask.has(k)) return true; if (!this.detroit.has(k)) return false; const t = this.tiles.get(k); return !t || MER.has(t.family); }
   isEmpty(q, r) { const k = key(q, r); return this.mask.has(k) && !this.tiles.has(k) && !this.fog.has(k); }
   get placed() { return this.tiles.size; }
   get cells() { return this.mask.size; }
@@ -62,6 +63,7 @@ export class Board {
   canPlace(q, r, tile = null) {
     if (!this.isEmpty(q, r)) return false;
     if (tile && !this.admet(q, r, tile)) return false;
+    if (tile && this.detroit.has(key(q, r))) return true;   // Livre II : la mer est déjà là, une tuile de mer se pose n'importe où sur le détroit
     return neighbors(q, r).some(([a, b]) => this.tiles.has(key(a, b)) || this.fog.has(key(a, b)));
   }
   /** Livre II : une tuile de mer ne va que sur le détroit, une tuile de terre jamais. Sans détroit, tout est permis. */
@@ -70,7 +72,7 @@ export class Board {
   /** Toutes les cases où l'on peut poser (la tuile donnée, ou n'importe laquelle). */
   legalCells(tile = null) {
     const out = [];
-    for (const k of this.mask) { if (this.tiles.has(k) || this.fog.has(k)) continue; const [q, r] = parse(k); if (tile && !this.admet(q, r, tile)) continue; if (neighbors(q, r).some(([a, b]) => this.tiles.has(key(a, b)) || this.fog.has(key(a, b)))) out.push({ q, r }); }
+    for (const k of this.mask) { if (this.tiles.has(k) || this.fog.has(k)) continue; const [q, r] = parse(k); if (tile && !this.admet(q, r, tile)) continue; if ((tile && this.detroit.has(k)) || neighbors(q, r).some(([a, b]) => this.tiles.has(key(a, b)) || this.fog.has(key(a, b)))) out.push({ q, r }); }
     return out;
   }
 

@@ -33,7 +33,7 @@ const defDe = (seed, cells) => { const a = archipelMask(seed, cells); return { i
   check(legMer.length > 0 && legMer.every((c) => b.detroit.has(key(c.q, c.r))), `une tuile de mer ne se pose que sur le détroit (${legMer.length} cases)`);
   check(legPre.length > 0 && legPre.every((c) => !b.detroit.has(key(c.q, c.r))), `une prairie ne se pose jamais sur le détroit (${legPre.length} cases)`);
   const c = legMer[0]; b.place(c.q, c.r, mer);
-  check(!b.isSea(c.q, c.r) && Board.isFamily(b.get(c.q, c.r), 'sea'), 'une case du détroit posée n\'est plus la mer vide : c\'est une tuile de mer');
+  check(b.isSea(c.q, c.r) && Board.isFamily(b.get(c.q, c.r), 'sea') && !b.isEmpty(c.q, c.r), 'une case du détroit posée porte une tuile de mer, et reste la mer (côte, écume, embouchures)');
   const port = isl.def.start.find((s) => s.family === 'port');
   check(affinity('port', 'sea') === 2 && affinity('hamlet', 'port') === 2 && affinity('reef', 'sand') === 2 && affinity('kelp', 'marsh') === 2 && affinity('hamlet', 'reef') === -1 && affinity('port', 'port') === -1, 'les affinités de la mer : quai +2, ville portuaire +2, lagon +2, vasière +2, naufrage −1, deux ports −1');
   check(MER.has('sea') && MER.has('reef') && MER.has('kelp') && !MER.has('port') && !MER.has('pine'), 'la mer, le récif et les algues sont des tuiles de mer ; le port et la pinède sont des terres');

@@ -492,12 +492,13 @@ export class IslandRenderer {
     if (nu >= 1) return;
     // Deux chemins monde, gardés tant que le plateau ne change pas : les cases jouables, les autres.
     // Chaque case était retracée et remplie à part, à chaque image (six cents appels au contexte).
-    const sig = `${b.version}|${b.tiles.size}|${b.fog.size}|${b.mask.size}`;
+    const cur = this.isl.current; const sig = `${b.version}|${b.tiles.size}|${b.fog.size}|${b.mask.size}|${b.detroit.size && cur ? cur.family : ''}`;
     if (!this._vides || this._vides.sig !== sig) {
-      const legal = new Set(b.legalCells().map((c) => key(c.q, c.r)));
+      const legal = new Set(b.legalCells(b.detroit.size ? cur : null).map((c) => key(c.q, c.r)));
       const jouables = new Path2D(), autres = new Path2D();
       for (const k of b.mask) {
         if (b.tiles.has(k) || b.fog.has(k)) continue;   // la brume a son propre dessin (drawBrume)
+        if (b.detroit.has(k) && !legal.has(k)) continue;   // Livre II : le détroit est la mer, pas une case vide — sauf quand la tuile en main peut s'y poser
         const [q, r] = parse(k); const w = toWorld(q, r); const pts = corners(w.x, w.y, SIZE * 0.96);
         const p = legal.has(k) ? jouables : autres;
         p.moveTo(pts[0][0], pts[0][1]); for (let i = 1; i < 6; i++) p.lineTo(pts[i][0], pts[i][1]); p.closePath();
@@ -565,6 +566,7 @@ export class IslandRenderer {
       if (seul && !seul.has(k)) continue;
       if (!vis(c) || anses.has(k)) continue;
       const season = this.seasonFor(w.x); const g = this.decor.groundFor(t);
+      if (g === 'sea') continue;   // Livre II : la mer posée n'a pas de sol, c'est la mer dessinée dessous (ses vagues, rochers et algues sont des objets)
       // Une case d'eau qui touche la MER ne dessine pas son eau : elle dessine sa rive. Son hexagone
       // bleu, posé au milieu du disque de terre du rivage, ressortait avec ses arêtes droites et ses
       // pointes — et c'est le plan d'eau, dessiné juste après en taches rondes, qui doit faire l'eau.
@@ -1780,6 +1782,9 @@ export class IslandRenderer {
     const pulse = 0.6 + 0.4 * Math.sin(this.time * 3);
     ctx.strokeStyle = '#d95f4b'; ctx.globalAlpha = pulse; ctx.lineWidth = 2.5 / z; ctx.stroke(P.menaces);
     ctx.globalAlpha = 1;
+    // 3 bis. Livre II : les routes de mer (un voile bleu sur la mer posée qui relie des ports, un liseré) et la chaîne de territoire (un fil doré de maillon en maillon)
+    if (P.routes) { for (const r of P.routes) { ctx.globalAlpha = r.paie ? 0.32 : 0.14; ctx.fillStyle = '#3f8fc9'; ctx.fill(r.zone); if (r.paie) { ctx.globalAlpha = 0.85; ctx.strokeStyle = '#2b6fa8'; ctx.lineWidth = 1.6 / z; ctx.stroke(r.liseret); } } ctx.globalAlpha = 1; }
+    if (P.chaine) { ctx.save(); ctx.globalAlpha = 0.95; ctx.strokeStyle = 'rgba(43,42,38,0.5)'; ctx.lineWidth = 6.5 / z; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.stroke(P.chaine); ctx.strokeStyle = '#e0a33a'; ctx.lineWidth = 4 / z; ctx.stroke(P.chaine); ctx.restore(); }
     // 4. les étiquettes : la prime des régions, les points de la saison qui vient
     const fs = Math.round(13 / z); ctx.font = `700 ${fs}px Quicksand, sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     // deux sortes de pastilles : pleine et sombre pour la saison qui vient, claire et cerclée de la couleur de la famille pour la prime d'une région
@@ -1823,7 +1828,23 @@ export class IslandRenderer {
       const txt = c.sec && !c.pts ? 'sèche' : c.pts < 0 ? `−${-c.pts}` : `+${c.pts}`;
       etiquettes.push({ x: w.x, y: w.y - SIZE * 0.4, txt, fond: c.sec || c.pts < 0 ? '#d95f4b' : 'rgba(43,42,38,0.82)', encre: '#fffdf8' });
     }
-    return { src: L, fils, regions, menaces, etiquettes, version: b.version };
+    // Livre II : les routes et la chaîne
+    let routes = null, chaine = null;
+    if (L.routes) {
+      routes = [];
+      for (const r of L.routes) {
+        const zone = new Path2D(), liseret = new Path2D(); const cl = new Set(r.cells);
+        for (const k of r.cells) { const [q, rr] = k.split(',').map(Number); const w = toWorld(q, rr); hexagone(zone, w.x, w.y, SIZE * 0.985); const c = corners(w.x, w.y, SIZE * 0.86); for (let i = 0; i < 6; i++) { const [dq, dr] = DIRS[EDGE_DIR[i]]; if (cl.has(key(q + dq, rr + dr))) continue; liseret.moveTo(c[i][0], c[i][1]); liseret.lineTo(c[(i + 1) % 6][0], c[(i + 1) % 6][1]); } }
+        routes.push({ zone, liseret, paie: r.pts > 0 });
+        if (r.pts > 0) { const p = r.ports[0]; const w = toWorld(p.q, p.r); etiquettes.push({ x: w.x, y: w.y + SIZE * 0.42, txt: `route +${r.pts}`, fond: 'rgba(255,253,248,0.95)', encre: '#2b2a26', bord: '#3f8fc9' }); }
+      }
+    }
+    if (L.chaine && L.chaine.length >= 2) {
+      chaine = new Path2D(); L.chaine.cells.forEach((k, i) => { const [q, r] = k.split(',').map(Number); const w = toWorld(q, r); if (i === 0) chaine.moveTo(w.x, w.y); else chaine.lineTo(w.x, w.y); });
+      const [q0, r0] = L.chaine.cells[L.chaine.cells.length - 1].split(',').map(Number); const w0 = toWorld(q0, r0);
+      etiquettes.push({ x: w0.x, y: w0.y + SIZE * 0.42, txt: L.chaine.pts ? `chaîne ${L.chaine.length} · +${L.chaine.pts}` : `chaîne ${L.chaine.length}`, fond: 'rgba(255,253,248,0.95)', encre: '#2b2a26', bord: '#e0a33a' });
+    }
+    return { src: L, fils, regions, menaces, etiquettes, routes, chaine, version: b.version };
   }
 
   drawHover(ctx) {
@@ -1861,6 +1882,7 @@ export class IslandRenderer {
       this.pill(ctx, s.x, s.y, (e.pts > 0 ? '+' : '') + e.pts, e.pts > 0 ? (e.pts >= 2 ? '#e0a33a' : '#2f9e8f') : '#d95f4b');
     }
     for (let i = 0; i < pv.base.length; i++) { const bs = pv.base[i]; this.pill(ctx, c.x, c.y + (30 + i * 22) * z, `+${bs.pts} ${bs.label}`, '#5aa7d6'); }
+    if (pv.rente) this.pill(ctx, c.x, c.y + (30 + pv.base.length * 22) * z, `${pv.rente > 0 ? '+' : ''}${pv.rente} par saison`, pv.rente > 0 ? '#a86b3e' : '#d95f4b');   // Livre II : ce que la pose change aux routes et à la chaîne
     for (const cl of pv.closes) this.pill(ctx, c.x, c.y - (64) * z, `région close +${cl.bonus}`, '#e0a33a');
     if (pv.blight) this.pill(ctx, c.x, c.y - 64 * z, '✗ en friche : ne rapportera plus rien', '#d95f4b');
     // une seule ligne sur l'avenir, la plus utile (habitat presque prêt, région à une case, tuile menacée) — J-H

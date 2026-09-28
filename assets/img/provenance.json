@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-27T14:16:28+00:00",
+ "generated": "2026-09-28T12:59:28+00:00",
  "generator": "tools/build_images.py",
  "conventions": {
   "hex": {
@@ -1631,6 +1631,302 @@
    "season": "winter",
    "family": "rare",
    "tile": "ruins",
+   "method": "svg2x"
+  },
+  "sea_1_spring": {
+   "file": "tiles/sea_1_spring.webp",
+   "w": 240,
+   "h": 280,
+   "bytes": 5400,
+   "source": [
+    "hexagon-pack",
+    "hexagontiles"
+   ],
+   "original": "grass_05 (alpha) + hexagontiles/Tiles/waveWater.png",
+   "note": "Mer posée : l'eau et trois vagues, rien d'autre — elle porte les routes.",
+   "season": "spring",
+   "family": "sea",
+   "tile": "sea_1",
+   "method": "composed"
+  },
+  "sea_1_summer": {
+   "file": "tiles/sea_1_summer.webp",
+   "w": 240,
+   "h": 280,
+   "bytes": 5308,
+   "source": [
+    "hexagon-pack",
+    "hexagontiles"
+   ],
+   "original": "grass_05 (alpha) + hexagontiles/Tiles/waveWater.png",
+   "note": "Mer posée : l'eau et trois vagues, rien d'autre — elle porte les routes.",
+   "season": "summer",
+   "family": "sea",
+   "tile": "sea_1",
+   "method": "composed"
+  },
+  "sea_1_autumn": {
+   "file": "tiles/sea_1_autumn.webp",
+   "w": 240,
+   "h": 280,
+   "bytes": 5434,
+   "source": [
+    "hexagon-pack",
+    "hexagontiles"
+   ],
+   "original": "grass_05 (alpha) + hexagontiles/Tiles/waveWater.png",
+   "note": "Mer posée : l'eau et trois vagues, rien d'autre — elle porte les routes.",
+   "season": "autumn",
+   "family": "sea",
+   "tile": "sea_1",
+   "method": "composed"
+  },
+  "sea_1_winter": {
+   "file": "tiles/sea_1_winter.webp",
+   "w": 240,
+   "h": 280,
+   "bytes": 5242,
+   "source": [
+    "hexagon-pack",
+    "hexagontiles"
+   ],
+   "original": "grass_05 (alpha) + hexagontiles/Tiles/waveWater.png",
+   "note": "Mer posée : l'eau et trois vagues, rien d'autre — elle porte les routes.",
+   "season": "winter",
+   "family": "sea",
+   "tile": "sea_1",
+   "method": "composed"
+  },
+  "reef_1_spring": {
+   "file": "tiles/reef_1_spring.webp",
+   "w": 240,
+   "h": 280,
+   "bytes": 5712,
+   "source": [
+    "hexagon-pack",
+    "hexagontiles"
+   ],
+   "original": "grass_05 (alpha) + hexagontiles/Tiles/waveWater.png",
+   "note": "Récif : deux rochers gris du pack Forest à fleur d'eau, deux vagues.",
+   "season": "spring",
+   "family": "reef",
+   "tile": "reef_1",
+   "method": "composed"
+  },
+  "reef_1_summer": {
+   "file": "tiles/reef_1_summer.webp",
+   "w": 240,
+   "h": 280,
+   "bytes": 5628,
+   "source": [
+    "hexagon-pack",
+    "hexagontiles"
+   ],
+   "original": "grass_05 (alpha) + hexagontiles/Tiles/waveWater.png",
+   "note": "Récif : deux rochers gris du pack Forest à fleur d'eau, deux vagues.",
+   "season": "summer",
+   "family": "reef",
+   "tile": "reef_1",
+   "method": "composed"
+  },
+  "reef_1_autumn": {
+   "file": "tiles/reef_1_autumn.webp",
+   "w": 240,
+   "h": 280,
+   "bytes": 5654,
+   "source": [
+    "hexagon-pack",
+    "hexagontiles"
+   ],
+   "original": "grass_05 (alpha) + hexagontiles/Tiles/waveWater.png",
+   "note": "Récif : deux rochers gris du pack Forest à fleur d'eau, deux vagues.",
+   "season": "autumn",
+   "family": "reef",
+   "tile": "reef_1",
+   "method": "composed"
+  },
+  "reef_1_winter": {
+   "file": "tiles/reef_1_winter.webp",
+   "w": 240,
+   "h": 280,
+   "bytes": 5670,
+   "source": [
+    "hexagon-pack",
+    "hexagontiles"
+   ],
+   "original": "grass_05 (alpha) + hexagontiles/Tiles/waveWater.png",
+   "note": "Récif : deux rochers gris du pack Forest à fleur d'eau, deux vagues.",
+   "season": "winter",
+   "family": "reef",
+   "tile": "reef_1",
+   "method": "composed"
+  },
+  "kelp_1_spring": {
+   "file": "tiles/kelp_1_spring.webp",
+   "w": 240,
+   "h": 280,
+   "bytes": 5406,
+   "source": [
+    "hexagon-pack",
+    "hexagontiles"
+   ],
+   "original": "grass_05 (alpha) + hexagontiles/Tiles/waveWater.png",
+   "note": "Algues : trois massettes KayKit recolorées en varech, une vague.",
+   "season": "spring",
+   "family": "kelp",
+   "tile": "kelp_1",
+   "method": "composed"
+  },
+  "kelp_1_summer": {
+   "file": "tiles/kelp_1_summer.webp",
+   "w": 240,
+   "h": 280,
+   "bytes": 5142,
+   "source": [
+    "hexagon-pack",
+    "hexagontiles"
+   ],
+   "original": "grass_05 (alpha) + hexagontiles/Tiles/waveWater.png",
+   "note": "Algues : trois massettes KayKit recolorées en varech, une vague.",
+   "season": "summer",
+   "family": "kelp",
+   "tile": "kelp_1",
+   "method": "composed"
+  },
+  "kelp_1_autumn": {
+   "file": "tiles/kelp_1_autumn.webp",
+   "w": 240,
+   "h": 280,
+   "bytes": 5444,
+   "source": [
+    "hexagon-pack",
+    "hexagontiles"
+   ],
+   "original": "grass_05 (alpha) + hexagontiles/Tiles/waveWater.png",
+   "note": "Algues : trois massettes KayKit recolorées en varech, une vague.",
+   "season": "autumn",
+   "family": "kelp",
+   "tile": "kelp_1",
+   "method": "composed"
+  },
+  "kelp_1_winter": {
+   "file": "tiles/kelp_1_winter.webp",
+   "w": 240,
+   "h": 280,
+   "bytes": 5348,
+   "source": [
+    "hexagon-pack",
+    "hexagontiles"
+   ],
+   "original": "grass_05 (alpha) + hexagontiles/Tiles/waveWater.png",
+   "note": "Algues : trois massettes KayKit recolorées en varech, une vague.",
+   "season": "winter",
+   "family": "kelp",
+   "tile": "kelp_1",
+   "method": "composed"
+  },
+  "port_1_spring": {
+   "file": "tiles/port_1_spring.webp",
+   "w": 240,
+   "h": 280,
+   "bytes": 5526,
+   "source": "hexagon-pack",
+   "original": "PNG/Tiles/Terrain/Dirt/dirt_06.png",
+   "note": "Port : les docks du pack EXTRA sur la terre battue, un tonneau, une caisse. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
+   "season": "spring",
+   "family": "port",
+   "tile": "port_1",
+   "method": "svg2x"
+  },
+  "port_1_summer": {
+   "file": "tiles/port_1_summer.webp",
+   "w": 240,
+   "h": 280,
+   "bytes": 5526,
+   "source": "hexagon-pack",
+   "original": "PNG/Tiles/Terrain/Dirt/dirt_06.png",
+   "note": "Port : les docks du pack EXTRA sur la terre battue, un tonneau, une caisse. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
+   "season": "summer",
+   "family": "port",
+   "tile": "port_1",
+   "method": "svg2x"
+  },
+  "port_1_autumn": {
+   "file": "tiles/port_1_autumn.webp",
+   "w": 240,
+   "h": 280,
+   "bytes": 5526,
+   "source": "hexagon-pack",
+   "original": "PNG/Tiles/Terrain/Dirt/dirt_06.png",
+   "note": "Port : les docks du pack EXTRA sur la terre battue, un tonneau, une caisse. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
+   "season": "autumn",
+   "family": "port",
+   "tile": "port_1",
+   "method": "svg2x"
+  },
+  "port_1_winter": {
+   "file": "tiles/port_1_winter.webp",
+   "w": 240,
+   "h": 280,
+   "bytes": 5464,
+   "source": "hexagon-pack",
+   "original": "PNG/Tiles/Terrain/Dirt/dirt_06.png",
+   "note": "Port : les docks du pack EXTRA sur la terre battue, un tonneau, une caisse. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
+   "season": "winter",
+   "family": "port",
+   "tile": "port_1",
+   "method": "svg2x"
+  },
+  "pine_1_spring": {
+   "file": "tiles/pine_1_spring.webp",
+   "w": 240,
+   "h": 280,
+   "bytes": 6166,
+   "source": "hexagon-pack",
+   "original": "PNG/Tiles/Terrain/Sand/sand_07.png",
+   "note": "Pinède : deux pins parasols (pack Forest) sur le sable, un rocher brun — toujours verts, l'hiver aussi. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
+   "season": "spring",
+   "family": "pine",
+   "tile": "pine_1",
+   "method": "svg2x"
+  },
+  "pine_1_summer": {
+   "file": "tiles/pine_1_summer.webp",
+   "w": 240,
+   "h": 280,
+   "bytes": 6166,
+   "source": "hexagon-pack",
+   "original": "PNG/Tiles/Terrain/Sand/sand_07.png",
+   "note": "Pinède : deux pins parasols (pack Forest) sur le sable, un rocher brun — toujours verts, l'hiver aussi. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
+   "season": "summer",
+   "family": "pine",
+   "tile": "pine_1",
+   "method": "svg2x"
+  },
+  "pine_1_autumn": {
+   "file": "tiles/pine_1_autumn.webp",
+   "w": 240,
+   "h": 280,
+   "bytes": 6166,
+   "source": "hexagon-pack",
+   "original": "PNG/Tiles/Terrain/Sand/sand_07.png",
+   "note": "Pinède : deux pins parasols (pack Forest) sur le sable, un rocher brun — toujours verts, l'hiver aussi. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
+   "season": "autumn",
+   "family": "pine",
+   "tile": "pine_1",
+   "method": "svg2x"
+  },
+  "pine_1_winter": {
+   "file": "tiles/pine_1_winter.webp",
+   "w": 240,
+   "h": 280,
+   "bytes": 6166,
+   "source": "hexagon-pack",
+   "original": "PNG/Tiles/Terrain/Sand/sand_07.png",
+   "note": "Pinède : deux pins parasols (pack Forest) sur le sable, un rocher brun — toujours verts, l'hiver aussi. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
+   "season": "winter",
+   "family": "pine",
+   "tile": "pine_1",
    "method": "svg2x"
   },
   "hill_1_spring": {
@@ -4636,6 +4932,256 @@
    "source": "kaykit",
    "original": "extra/decoration/props/boat.gltf",
    "note": "Barque de bois (KayKit EXTRA) : rives et port.",
+   "anchor": "bottom"
+  },
+  "obj_pin_parasol_A": {
+   "file": "deco/obj_pin_parasol_A.webp",
+   "w": 106,
+   "h": 118,
+   "bytes": 4186,
+   "source": "kaykit",
+   "original": "forest/Color1/Tree_3_A_Color1.gltf",
+   "note": "Pin parasol A (pack Forest) : la pinède.",
+   "anchor": "bottom"
+  },
+  "obj_recif_A": {
+   "file": "deco/obj_recif_A.webp",
+   "w": 56,
+   "h": 71,
+   "bytes": 1538,
+   "source": "kaykit",
+   "original": "forest/Color1/Rock_1_A_Color1.gltf",
+   "note": "Rocher de récif A (pack Forest) : à fleur d'eau.",
+   "anchor": "bottom"
+  },
+  "obj_recif_A_winter": {
+   "file": "deco/obj_recif_A_winter.webp",
+   "w": 56,
+   "h": 71,
+   "bytes": 1538,
+   "source": "kaykit",
+   "original": "forest/Color1/Rock_1_A_Color1.gltf",
+   "note": "Rocher de récif A, faces blanchies l'hiver.",
+   "anchor": "bottom"
+  },
+  "obj_pin_parasol_B": {
+   "file": "deco/obj_pin_parasol_B.webp",
+   "w": 115,
+   "h": 118,
+   "bytes": 4384,
+   "source": "kaykit",
+   "original": "forest/Color1/Tree_3_B_Color1.gltf",
+   "note": "Pin parasol B (pack Forest) : la pinède.",
+   "anchor": "bottom"
+  },
+  "obj_recif_B": {
+   "file": "deco/obj_recif_B.webp",
+   "w": 44,
+   "h": 38,
+   "bytes": 1058,
+   "source": "kaykit",
+   "original": "forest/Color1/Rock_3_A_Color1.gltf",
+   "note": "Rocher de récif B (pack Forest) : à fleur d'eau.",
+   "anchor": "bottom"
+  },
+  "obj_recif_B_winter": {
+   "file": "deco/obj_recif_B_winter.webp",
+   "w": 44,
+   "h": 38,
+   "bytes": 1058,
+   "source": "kaykit",
+   "original": "forest/Color1/Rock_3_A_Color1.gltf",
+   "note": "Rocher de récif B, faces blanchies l'hiver.",
+   "anchor": "bottom"
+  },
+  "obj_pin_parasol_C": {
+   "file": "deco/obj_pin_parasol_C.webp",
+   "w": 108,
+   "h": 118,
+   "bytes": 5320,
+   "source": "kaykit",
+   "original": "forest/Color1/Tree_3_C_Color1.gltf",
+   "note": "Pin parasol C (pack Forest) : la pinède.",
+   "anchor": "bottom"
+  },
+  "obj_recif_C": {
+   "file": "deco/obj_recif_C.webp",
+   "w": 44,
+   "h": 49,
+   "bytes": 1358,
+   "source": "kaykit",
+   "original": "forest/Color1/Rock_6_A_Color1.gltf",
+   "note": "Rocher de récif C (pack Forest) : à fleur d'eau.",
+   "anchor": "bottom"
+  },
+  "obj_recif_C_winter": {
+   "file": "deco/obj_recif_C_winter.webp",
+   "w": 44,
+   "h": 49,
+   "bytes": 1354,
+   "source": "kaykit",
+   "original": "forest/Color1/Rock_6_A_Color1.gltf",
+   "note": "Rocher de récif C, faces blanchies l'hiver.",
+   "anchor": "bottom"
+  },
+  "obj_pin_maritime_A": {
+   "file": "deco/obj_pin_maritime_A.webp",
+   "w": 87,
+   "h": 140,
+   "bytes": 4048,
+   "source": "kaykit",
+   "original": "forest/Color1/Tree_7_A_Color1.gltf",
+   "note": "Pin maritime A (pack Forest) : la pinède, plus haut.",
+   "anchor": "bottom"
+  },
+  "obj_pin_maritime_B": {
+   "file": "deco/obj_pin_maritime_B.webp",
+   "w": 75,
+   "h": 140,
+   "bytes": 4676,
+   "source": "kaykit",
+   "original": "forest/Color1/Tree_7_B_Color1.gltf",
+   "note": "Pin maritime B (pack Forest) : la pinède, plus haut.",
+   "anchor": "bottom"
+  },
+  "obj_algue1_spring": {
+   "file": "deco/obj_algue1_spring.webp",
+   "w": 30,
+   "h": 28,
+   "bytes": 1052,
+   "source": "kaykit",
+   "original": "decoration/nature/waterplant_A.gltf",
+   "note": "Varech 1 (spring) : massette KayKit recolorée, les algues.",
+   "anchor": "bottom"
+  },
+  "obj_algue1_summer": {
+   "file": "deco/obj_algue1_summer.webp",
+   "w": 30,
+   "h": 28,
+   "bytes": 1040,
+   "source": "kaykit",
+   "original": "decoration/nature/waterplant_A.gltf",
+   "note": "Varech 1 (summer) : massette KayKit recolorée, les algues.",
+   "anchor": "bottom"
+  },
+  "obj_algue1_autumn": {
+   "file": "deco/obj_algue1_autumn.webp",
+   "w": 30,
+   "h": 28,
+   "bytes": 1062,
+   "source": "kaykit",
+   "original": "decoration/nature/waterplant_A.gltf",
+   "note": "Varech 1 (autumn) : massette KayKit recolorée, les algues.",
+   "anchor": "bottom"
+  },
+  "obj_algue1_winter": {
+   "file": "deco/obj_algue1_winter.webp",
+   "w": 30,
+   "h": 28,
+   "bytes": 1044,
+   "source": "kaykit",
+   "original": "decoration/nature/waterplant_A.gltf",
+   "note": "Varech 1 (winter) : massette KayKit recolorée, les algues.",
+   "anchor": "bottom"
+  },
+  "obj_algue2_spring": {
+   "file": "deco/obj_algue2_spring.webp",
+   "w": 30,
+   "h": 34,
+   "bytes": 1232,
+   "source": "kaykit",
+   "original": "decoration/nature/waterplant_B.gltf",
+   "note": "Varech 2 (spring) : massette KayKit recolorée, les algues.",
+   "anchor": "bottom"
+  },
+  "obj_algue2_summer": {
+   "file": "deco/obj_algue2_summer.webp",
+   "w": 30,
+   "h": 34,
+   "bytes": 1228,
+   "source": "kaykit",
+   "original": "decoration/nature/waterplant_B.gltf",
+   "note": "Varech 2 (summer) : massette KayKit recolorée, les algues.",
+   "anchor": "bottom"
+  },
+  "obj_algue2_autumn": {
+   "file": "deco/obj_algue2_autumn.webp",
+   "w": 30,
+   "h": 34,
+   "bytes": 1268,
+   "source": "kaykit",
+   "original": "decoration/nature/waterplant_B.gltf",
+   "note": "Varech 2 (autumn) : massette KayKit recolorée, les algues.",
+   "anchor": "bottom"
+  },
+  "obj_algue2_winter": {
+   "file": "deco/obj_algue2_winter.webp",
+   "w": 30,
+   "h": 34,
+   "bytes": 1262,
+   "source": "kaykit",
+   "original": "decoration/nature/waterplant_B.gltf",
+   "note": "Varech 2 (winter) : massette KayKit recolorée, les algues.",
+   "anchor": "bottom"
+  },
+  "obj_algue3_spring": {
+   "file": "deco/obj_algue3_spring.webp",
+   "w": 30,
+   "h": 34,
+   "bytes": 1300,
+   "source": "kaykit",
+   "original": "decoration/nature/waterplant_C.gltf",
+   "note": "Varech 3 (spring) : massette KayKit recolorée, les algues.",
+   "anchor": "bottom"
+  },
+  "obj_algue3_summer": {
+   "file": "deco/obj_algue3_summer.webp",
+   "w": 30,
+   "h": 34,
+   "bytes": 1288,
+   "source": "kaykit",
+   "original": "decoration/nature/waterplant_C.gltf",
+   "note": "Varech 3 (summer) : massette KayKit recolorée, les algues.",
+   "anchor": "bottom"
+  },
+  "obj_algue3_autumn": {
+   "file": "deco/obj_algue3_autumn.webp",
+   "w": 30,
+   "h": 34,
+   "bytes": 1320,
+   "source": "kaykit",
+   "original": "decoration/nature/waterplant_C.gltf",
+   "note": "Varech 3 (autumn) : massette KayKit recolorée, les algues.",
+   "anchor": "bottom"
+  },
+  "obj_algue3_winter": {
+   "file": "deco/obj_algue3_winter.webp",
+   "w": 30,
+   "h": 34,
+   "bytes": 1328,
+   "source": "kaykit",
+   "original": "decoration/nature/waterplant_C.gltf",
+   "note": "Varech 3 (winter) : massette KayKit recolorée, les algues.",
+   "anchor": "bottom"
+  },
+  "obj_ponton": {
+   "file": "deco/obj_ponton.webp",
+   "w": 124,
+   "h": 100,
+   "bytes": 5892,
+   "source": "kaykit",
+   "original": "extra/buildings/red/building_docks_red.gltf",
+   "note": "Les docks (KayKit EXTRA) : le port.",
+   "anchor": "bottom"
+  },
+  "obj_ponton_winter": {
+   "file": "deco/obj_ponton_winter.webp",
+   "w": 124,
+   "h": 100,
+   "bytes": 5892,
+   "source": "kaykit",
+   "original": "extra/buildings/red/building_docks_red.gltf",
+   "note": "Les docks, l'hiver (même modèle : le bois ne change pas).",
    "anchor": "bottom"
   },
   "obj_boatrack": {

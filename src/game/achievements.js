@@ -4,7 +4,7 @@
 import { ACHIEVEMENTS, ACHIEVEMENT_BY_ID, ACHIEVEMENT_SEED } from '../data/achievements.js';
 import { SPECIES } from './fauna.js';
 import { FUSIONS } from '../data/tiles.js';
-import { CHAPTERS, campaignIsland, chapterStars, CAMPAIGN_SIZE, CHAPTER_LEN } from '../data/campaign.js';
+import { CHAPTERS, campaignIsland, chapterStars, CAMPAIGN_SIZE, FIN_LIVRE1, CHAPTER_LEN } from '../data/campaign.js';
 import { waterBodies } from './water.js';
 
 const CLIMATES = ['temperate', 'hot', 'humid', 'cold'];
@@ -98,7 +98,7 @@ export const Achievements = {
   /** Après l'enregistrement du bilan d'une île de campagne (étoiles à jour). */
   onCampaignResult(result, def) {
     const s = this.save.data;
-    if (def.id === CAMPAIGN_SIZE) this.unlock('cent-saisons');   // « Terminer la dernière île » : la terminer suffit, comme partout ailleurs
+    if (def.id === FIN_LIVRE1) this.unlock('cent-saisons');   // le Livre I   // « Terminer la dernière île » : la terminer suffit, comme partout ailleurs
     for (const ch of CHAPTERS) if (chapterStars(s.campaign.stars, ch.id) >= CHAPTER_LEN * 3) { this.unlock('chapitre-clos'); break; }
     this.checkCounters();   // étoiles, climats
   },

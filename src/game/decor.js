@@ -56,7 +56,8 @@ export function groundOf(t) {
   if (t.family === 'meadow' && t.dry) return 'dry';
   if (t.family === 'water' && t.frozen) return 'ice';
   // la colline est de l'herbe : son relief est un objet posé dessus (journal 102), plus un sol surélevé
-  return { meadow: 'grass', forest: 'grass', field: 'field', hamlet: 'grass', orchard: 'grass', water: 'water', marsh: 'dirt', rock: 'stone', sand: 'sand', hill: 'grass', heath: 'heath' }[t.family] || 'grass';
+  // Livre II : la mer posée (mer, récif, algues) n'a pas de sol — c'est la mer, dessinée dessous ; le port est sur la terre battue, la pinède sur le sable
+  return { meadow: 'grass', forest: 'grass', field: 'field', hamlet: 'grass', orchard: 'grass', water: 'water', marsh: 'dirt', rock: 'stone', sand: 'sand', hill: 'grass', heath: 'heath', sea: 'sea', reef: 'sea', kelp: 'sea', port: 'dirt', pine: 'sand' }[t.family] || 'grass';
 }
 export const groundKey = (g, season) => (g === 'dry' ? 'ground_dry' : g === 'ice' ? 'water_frozen' : `ground_${g}_${season}`);
 
@@ -172,7 +173,7 @@ export class Decor {
   /** Sol de rive de chaque tuile d'eau : le sol majoritaire de ses voisines de terre (herbe par défaut). */
   computeBanks(board) {
     const bank = new Map();
-    const bankOf = (q, r, fallback) => { const counts = {}; for (const [a, b] of neighbors(q, r)) { const n = board.get(a, b); if (!n || Board.isFamily(n, 'water')) continue; let g = groundOf(n); if (g === 'ice' || g === 'water') continue; if (g === 'hill') g = 'grass'; if (g === 'dry') g = 'grass'; counts[g] = (counts[g] || 0) + 1; } return Object.keys(counts).sort((x, y) => counts[y] - counts[x])[0] || fallback; };
+    const bankOf = (q, r, fallback) => { const counts = {}; for (const [a, b] of neighbors(q, r)) { const n = board.get(a, b); if (!n || Board.isFamily(n, 'water')) continue; let g = groundOf(n); if (g === 'ice' || g === 'water' || g === 'sea') continue; if (g === 'hill') g = 'grass'; if (g === 'dry') g = 'grass'; counts[g] = (counts[g] || 0) + 1; } return Object.keys(counts).sort((x, y) => counts[y] - counts[x])[0] || fallback; };
     for (const t of board.tiles.values()) { if (!Board.isFamily(t, 'water')) continue; bank.set(key(t.q, t.r), bankOf(t.q, t.r, 'grass')); }
     // lagunes : trous du masque entourés de six cases de l'île ; elles prennent une rive dès qu'une voisine est posée
     this.holes = [];
@@ -525,7 +526,7 @@ export class Decor {
       }
       retenir(sig, chem, debut, debutCours);
     }
-    for (const family of ['forest', 'meadow', 'field', 'orchard', 'water', 'marsh', 'rock', 'sand', 'hill', 'heath']) {
+    for (const family of ['forest', 'meadow', 'field', 'orchard', 'water', 'marsh', 'rock', 'sand', 'hill', 'heath', 'sea', 'reef', 'kelp', 'port', 'pine']) {
       for (const reg of board.regions(family)) {
         nRegions++;
         const keys = reg.keys;
@@ -624,6 +625,25 @@ export class Decor {
             if (body.kind !== 'river') for (const p of sample(rng, cell, keys, body.kind === 'pond' ? 1 : 2, { minDist: 26, margin: body.kind === 'pond' ? 30 : 22, placed: [] })) push(p, 'obj_lily', { seasons: ['summer'], alpha: 0.95 });
             if (body.kind === 'pond' || body.kind === 'river') continue;
             for (const p of sample(rng, cell, keys, deg >= 3 ? 2 : 1, { minDist: 34, margin: 22, placed })) { placed.push(p); push(p, PICK(rng, ['sea_wave_1', 'sea_wave_2', 'sea_wave_3']), { alpha: 0.6, wave: true }); }
+          } else if (family === 'sea') {
+            // Livre II — la mer posée : une ou deux vagues, comme un lac ; la mer elle-même est dessinée dessous
+            for (const p of sample(rng, cell, keys, deg >= 2 ? 2 : 1, { minDist: 34, margin: 22, placed })) { placed.push(p); push(p, PICK(rng, ['sea_wave_1', 'sea_wave_2', 'sea_wave_3']), { alpha: 0.6, wave: true }); }
+          } else if (family === 'reef') {
+            // le récif : deux rochers gris à fleur d'eau (blanchis l'hiver), une vague qui s'y brise
+            for (const p of sample(rng, cell, keys, 2, { minDist: 30, margin: 16, placed, radius: 0.7 })) { placed.push(p); const w = wild(rng, 0.85, 1.15); push(p, `obj_recif_${PICK(rng, ['A', 'B', 'C'])}{w}`, w); }
+            for (const p of sample(rng, cell, keys, 1, { minDist: 28, margin: 20, placed })) { placed.push(p); push(p, PICK(rng, ['sea_wave_1', 'sea_wave_3']), { alpha: 0.7, wave: true }); }
+          } else if (family === 'kelp') {
+            // les algues : trois touffes de varech, recolorées par saison
+            for (const p of sample(rng, cell, keys, 3, { minDist: 22, margin: 14, placed, radius: 0.8 })) { placed.push(p); const w = wild(rng, 0.8, 1.2); push(p, `obj_algue${VAR3(rng)}_{s}`, w); }
+          } else if (family === 'port') {
+            // le port : les docks au milieu, une barque et une ancre au bord, des caisses
+            for (const p of sample(rng, cell, keys, 1, { minDist: 0, margin: 34, placed, radius: 0.18 })) { placed.push(p); push(p, 'obj_ponton{w}', { scale: 1.0 }); }
+            for (const p of sample(rng, cell, keys, 2, { minDist: 30, margin: 10, placed, radius: 0.95 })) { placed.push(p); const r2 = rng(); push(p, r2 < 0.4 ? 'obj_boat' : r2 < 0.7 ? 'obj_anchor' : PICK(rng, ['obj_crate', 'obj_barrel']), wild(rng, 0.8, 1.05)); }
+          } else if (family === 'pine') {
+            // la pinède : deux ou trois pins parasols (un pin maritime parfois), toujours verts, des oyats sur le sable
+            const n = L2(cell) ? 4 : 2 + (rng() < 0.5 ? 1 : 0);
+            for (const p of sample(rng, cell, keys, n, { minDist: 26, margin: 12, placed, radius: 0.85 })) { placed.push(p); const w = wild(rng, 0.85, 1.15); push(p, rng() < 0.25 ? `obj_pin_maritime_${PICK(rng, ['A', 'B'])}` : `obj_pin_parasol_${PICK(rng, ['A', 'B', 'C'])}`, w); }
+            for (const p of sample(rng, cell, keys, 2, { minDist: 20, margin: 8, placed })) { placed.push(p); push(p, 'obj_bushGrass_dry', { scale: 0.8, flip: rng() < 0.5 }); }
           } else if (family === 'marsh') {
             for (const p of sample(rng, cell, keys, 2, { minDist: 30, margin: 12, placed })) { placed.push(p); push(p, `obj_puddle${VAR3(rng)}{w}`); }
             for (const p of sample(rng, cell, keys, L2(cell) ? 7 : 3, { minDist: L2(cell) ? 11 : 15, margin: 5, placed })) { placed.push(p); push(p, rng() < 0.6 ? 'obj_tallGrass_{s}' : 'obj_grassClump2_{s}', { scale: 0.85 + rng() * 0.25, flip: rng() < 0.5 }); }   // roseaux : la graminée fine, et la touffe large
