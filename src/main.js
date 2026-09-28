@@ -156,16 +156,17 @@ const Game = {
     Achievements.init(Save); Achievements.testMode = () => !!Save.options.testMode; Achievements.onUnlock((a) => celebrate(a, { sound: () => AudioSys.play('achievement', { volume: 0.85 }) }));
     AudioSys.volumes = { master: Save.options.master, music: Save.options.music, ambience: Save.options.ambience, sfx: Save.options.sfx };
     AudioSys.muted = !!Save.options.muted;
-    try { await AudioSys.loadManifest(); } catch (e) { console.warn(e); }
-    // L'ouverture (28 septembre) : à la place de la barre, l'île du titre se bâtit en dix secondes dès que ses propres
-    // images sont là, pendant que le reste arrive derrière ; le titre s'écrit avec la dernière tuile, puis le menu la
-    // garde en fond. Pas pour les tests automatiques ni le mode test (qui veulent le menu tout de suite), sauf à le
-    // demander par `?ouverture=1`.
+    // L'ouverture (28 septembre) : à la place de la barre, l'île du titre se bâtit dès que ses propres images sont là,
+    // pendant que le reste arrive derrière ; le titre s'écrit avec la dernière tuile, puis le menu la garde en fond.
+    // Pas pour les tests automatiques ni le mode test (qui veulent le menu tout de suite), sauf à le demander par
+    // `?ouverture=1`. L'écran de chargement n'a alors ni barre ni titre : rien entre le film et l'île.
+    const boot = document.getElementById('boot');
     const ouv = this.ouvertureVoulue() ? scenes.scenes.get('ouverture') : null; let cles = null;
-    if (ouv) { try { await Assets.loadManifest(); cles = ouv.preparer(); } catch (e) { console.warn('ouverture', e); } }
-    const boot = document.getElementById('boot'); let lancee = null;
+    if (ouv) { boot.classList.add('muet'); try { await Assets.loadManifest(); cles = ouv.preparer(); } catch (e) { console.warn('ouverture', e); boot.classList.remove('muet'); } }
+    try { await AudioSys.loadManifest(); } catch (e) { console.warn(e); }
+    let lancee = null;
     const lancer = () => { if (lancee || !cles) return; lancee = intro.then(async () => { boot.classList.add('off'); setTimeout(() => boot.remove(), 700); loop.start(); await scenes.go('ouverture', {}, { fade: 0 }); }); };
-    try { await Assets.loadImages((p) => setP(p * 0.95, 'Les tuiles se réveillent…'), cles ? { dabord: cles, onDabord: lancer } : {}); } catch (e) { console.warn(e); }
+    try { await Assets.loadImages((p) => { setP(p * 0.95, 'Les tuiles se réveillent…'); if (ouv) ouv.progres(p); }, cles ? { dabord: cles, onDabord: lancer } : {}); } catch (e) { console.warn(e); }
     // Les sons ne bloquent plus le menu : la musique et les ambiances se chargent à la demande (playMusic, setAmbience),
     // un effet pas encore arrivé se tait. Le préchargement part en arrière-plan une fois le menu affiché (8 Mo en 4G,
     // c'était sept secondes d'écran de chargement pour des sons qui ne servent qu'en partie).

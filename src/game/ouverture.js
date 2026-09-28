@@ -14,7 +14,7 @@ import { Effects } from './effects.js';
 import { Construction } from './construction.js';
 import { STAGE } from '../core/stage.js';
 import { key } from './hex.js';
-import { spriteKey, groundKey, groundOf } from './decor.js';
+import { Decor, spriteKey } from './decor.js';
 import { AudioSys } from '../core/audio.js';
 import { Assets } from '../core/assets.js';
 import { clamp } from '../core/math.js';
@@ -23,9 +23,9 @@ import { Board } from './board.js';
 
 /** L'île du titre : toujours la même (l'île qui se souvient), jouée par le robot du meilleur coup, sans hasard. */
 export const ILE_DU_TITRE = 12;
-const DUREE = 10;       // la construction (s)
-const CHUTE = 0.5;      // le temps de tomber d'une tuile (s)
-const TENUE = 2.4;      // le titre reste seul à l'écran avant le menu (s), si le chargement est fini
+const DUREE = 3.5;      // la construction (s) : vive, comme en tête de tournée (« il faut que ça aille beaucoup plus vite »)
+const CHUTE = 0.4;      // le temps de tomber d'une tuile (s)
+const TENUE = 1.6;      // le titre reste seul à l'écran avant le menu (s), si le chargement est fini
 
 const doux = (t) => t * t * (3 - 2 * t);
 
@@ -49,34 +49,39 @@ export class OuvertureScene {
     }
     if (!isl.ended) isl.finish('full');
     this.isl = isl;
-    this.cam = new Camera();
-    this.particles = new ParticleSystem(400); this.fx = new Effects(this.particles);
-    this.renderer = new IslandRenderer(isl, this.cam, this.fx, this.particles);
-    this.renderer.finale = true; this.renderer.hover = null;
-    // les clés qu'il faut : sols, tuiles des familles présentes, décor de l'île finie, mer, ombre et masque d'hexagone
+    // les clés qu'il faut : sols, tuiles des familles présentes, décor de l'île finie (le même tirage que le rendu : même graine), mer, ombre et masque d'hexagone
     const s = isl.season, cles = new Set(), toutes = Assets.manifestKeys();
     const familles = new Set(); for (const t of isl.board.tiles.values()) { familles.add(t.family); if (t.dry) familles.add('dry_meadow'); }
+    cles.add('ground_grass_spring');   // c'est à cette clé que le rendu décide, à sa naissance, s'il a des sols (sinon : hexagones plats pour toujours)
     for (const k of toutes) {
       if (k.startsWith('hex_') || k.startsWith('sea_')) cles.add(k);
       else if (k.startsWith('ground_') && k.endsWith(`_${s}`)) cles.add(k);
-      else { const fam = k.slice(0, k.lastIndexOf('_')); for (const f of familles) if (k.startsWith(`${f}_`) && k.endsWith(`_${s}`)) cles.add(k); }
+      else for (const f of familles) if (k.startsWith(`${f}_`) && k.endsWith(`_${s}`)) cles.add(k);
     }
-    this.renderer.decor.sync(isl.board);
-    for (const o of this.renderer.decor.objects) if (o.tpl) cles.add(spriteKey(o.tpl, s));
+    const decor = new Decor(def.seed || 1); decor.sync(isl.board);
+    for (const o of decor.objects) if (o.tpl) cles.add(spriteKey(o.tpl, s));
     this.cles = cles; this.prete = true;
     return cles;
   }
 
   async enter() {
     if (!this.prete) this.preparer();
-    const isl = this.isl, cam = this.cam;
+    const isl = this.isl;
+    // le rendu naît ICI, ses images déjà là : créé avant elles, il se croyait sans sols (`legacy`) et dessinait des
+    // hexagones plats pour toujours — la première ouverture montrait des tuiles sans leur forme naturelle
+    this.cam = new Camera();
+    this.particles = new ParticleSystem(400); this.fx = new Effects(this.particles);
+    this.renderer = new IslandRenderer(isl, this.cam, this.fx, this.particles);
+    this.renderer.finale = true; this.renderer.hover = null;
+    const cam = this.cam;
     this.marges = () => (STAGE.compact ? { uiLeft: 16, uiRight: 16, uiTop: STAGE.portrait ? 170 : 90, uiBottom: STAGE.portrait ? 90 : 40, padding: 24 } : { uiLeft: 60, uiRight: 60, uiTop: 150, uiBottom: 70, padding: 40 });
     cam.fit(isl.board.mask, { ...this.marges(), immediate: true });
     this.zoomFin = cam.tzoom; cam.zoom = cam.tzoom = this.zoomFin * 0.86;   // la caméra s'approche pendant toute la construction
-    this.t = 0; this.titreT = -1; this.chargeFini = false; this.passee = false;
-    this.construction = new Construction({ isl, renderer: this.renderer, cam, auto: true, duree: DUREE, chute: CHUTE, ecart: 0.12, playSfx: (k, v) => { if (AudioSys.has(k)) AudioSys.play(k, { volume: v }); } });
-    AudioSys.init(); AudioSys.playMusic('ouverture', { fade: 0 }).catch(() => {});
-    this.el = document.getElementById('ouverture'); if (this.el) { this.el.hidden = false; this.el.classList.remove('titre', 'attente', 'off'); }
+    this.t = 0; this.titreT = -1; this.chargeFini = false; this.passee = false; this.sortie = 0;
+    this.construction = new Construction({ isl, renderer: this.renderer, cam, auto: true, duree: DUREE, chute: CHUTE, ecart: 0.06, playSfx: (k, v) => { if (AudioSys.has(k)) AudioSys.play(k, { volume: v }); } });
+    // le thème du menu part ici et continue sans coupure au menu (le morceau dédié d'abord essayé, « Cool Intro », n'a pas plu)
+    AudioSys.init(); AudioSys.playMusic('menu', { fade: 1.5 }).catch(() => {});
+    this.el = document.getElementById('ouverture'); if (this.el) { this.el.hidden = false; this.el.classList.remove('titre', 'attente', 'off'); this.progres(this._p || 0); }
     this.finie = new Promise((r) => { this._fin = r; });
     this._passer = (e) => { if (e && e.type === 'keydown' && e.code === 'KeyM') return; this.passer(); };
     if (this.el) this.el.addEventListener('pointerdown', this._passer);
@@ -87,11 +92,17 @@ export class OuvertureScene {
     window.removeEventListener('keydown', this._passer);
   }
 
+  /** L'avancement du chargement du reste (0 à 1) : la ligne sous le titre le montre tant qu'il n'est pas fini. */
+  progres(p) { this._p = p; const el = this.el && this.el.querySelector('.ouv-charge i'); if (el) el.style.width = `${Math.round(p * 100)}%`; }
   /** Le chargement de tout le reste est fini : le menu peut suivre dès que le titre a été lu. */
-  chargementFini() { this.chargeFini = true; if (this.el) this.el.classList.remove('attente'); }
+  chargementFini() { this.chargeFini = true; this.progres(1); if (this.el) this.el.classList.remove('attente'); }
   /** Un toucher : la construction finit d'un coup, le titre s'écrit, et le menu suit dès que le chargement le permet. */
   passer() { if (this.passee) return; this.passee = true; if (this.construction) { this.construction.finir(); this.construction = null; } this.montrerTitre(); }
-  montrerTitre() { if (this.titreT >= 0) return; this.titreT = 0; if (this.el) this.el.classList.add('titre'); }
+  montrerTitre() {
+    if (this.titreT >= 0) return; this.titreT = 0;
+    if (this.el) { this.el.classList.add('titre'); if (!this.chargeFini) this.el.classList.add('attente'); }   // le titre est là ; s'il reste à charger, on le montre tout de suite
+    if (AudioSys.has('region_close')) AudioSys.play('region_close', { volume: 0.3 });
+  }
 
   update(dt) {
     this.t += dt;
@@ -103,8 +114,9 @@ export class OuvertureScene {
     } else { this.montrerTitre(); cam.update(dt); }
     if (this.titreT >= 0) {
       this.titreT += dt;
-      if (this.el && this.titreT > TENUE && !this.chargeFini) this.el.classList.add('attente');   // le chargement traîne : on le dit, en petit
-      if (this.titreT >= (this.passee ? 0.8 : TENUE) && this.chargeFini && this._fin) { const f = this._fin; this._fin = null; f(); }
+      // le titre s'efface avant que le menu n'écrive le sien : jamais deux « Cent Saisons » à l'écran
+      if (this.titreT >= (this.passee ? 0.8 : TENUE) && this.chargeFini && this._fin && !this.sortie) { this.sortie = this.titreT; if (this.el) this.el.classList.add('off'); }
+      if (this.sortie && this.titreT - this.sortie >= 0.6 && this._fin) { const f = this._fin; this._fin = null; f(); }
     }
     this.particles.update(dt); this.fx.update(dt);
   }
@@ -113,7 +125,7 @@ export class OuvertureScene {
     this.renderer.render(ctx, alpha, dt);
     if (this.construction) this.construction.dessiner(ctx);
     // le monde part en gris et prend ses couleurs avec les tuiles (mélange « saturation » sur l'image peinte, puis un voile clair)
-    const gris = this.passee ? 0 : clamp(1 - this.t / (DUREE * 0.85), 0, 1);
+    const gris = this.passee ? 0 : clamp(1 - this.t / (DUREE * 0.9), 0, 1);
     if (gris > 0.01) {
       ctx.save();
       ctx.globalCompositeOperation = 'saturation'; ctx.globalAlpha = gris; ctx.fillStyle = '#8a8a8a'; ctx.fillRect(0, 0, STAGE.W, STAGE.H);

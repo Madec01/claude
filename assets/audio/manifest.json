@@ -152,16 +152,6 @@
       "attribution": "« Woodblock Chase II », composé avec Suno par Martinus Games pour Cent Saisons",
       "note": "Le Souffle court, troisième piste : l'autre prise de Woodblock Chase (152 BPM)",
       "pack": "suno"
-    },
-    "ouverture": {
-      "file": "music/ouverture.ogg",
-      "duration": 16.707,
-      "loop": false,
-      "source": "Cool Intro",
-      "author": "Kevin MacLeod",
-      "license": "CC BY 4.0",
-      "attribution": "\"Cool Intro\" Kevin MacLeod (incompetech.com) — Licensed under Creative Commons: By Attribution 4.0 License — http://creativecommons.org/licenses/by/4.0/",
-      "note": "ouverture : l'île du titre se bâtit en dix secondes sur cet intro — fort onze secondes, puis il retombe sous le titre"
     }
   },
   "ambience": {

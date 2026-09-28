@@ -485,8 +485,8 @@ MUSIC = {
                "hiver : « Ethereal Relaxation » absent du miroir ; la Gymnopédie n° 1 (piano lent, dépouillé, "
                "froid et clair) est le plus hivernal des candidats"),
     "menu": ("Dream Catcher", 115, 3.0, "menu : rêveur, suspendu, invite à l'île"),
-    # durée 0 : le morceau entier, d'un seul tenant, sans boucle (l'ouverture : onze secondes pleines, puis la chute naturelle)
-    "ouverture": ("Cool Intro", 0, 0.0, "ouverture : l'île du titre se bâtit en dix secondes sur cet intro — fort onze secondes, puis il retombe sous le titre", 3),   # qualité 3 : le budget des 30 Mo était atteint à 10 Ko près
+    # durée 0 : le morceau entier, d'un seul tenant, sans boucle (`loop: False` dans le manifeste, le lecteur ne le boucle pas) —
+    # essayé pour l'ouverture avec « Cool Intro » (28 septembre), retiré (le commanditaire n'en était pas fan) ; l'ouverture joue le thème du menu
     "results": ("Beauty Flow", 115, 3.0, "bilan / atelier : coulée douce, contemplative"),
     "ending": ("Almost Bliss", 115, 4.0, "fin : lumineux et apaisé, l'île qui se souvient"),
     "garden": ("Study And Relax", 115, 3.0, "jardin (mode libre) : studieux, sans tension"),

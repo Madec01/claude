@@ -1,5 +1,5 @@
 // L'ouverture (28 septembre) : après le logo, à la place de la barre de chargement, l'île du titre se bâtit en dix
-// secondes pendant que le reste des images arrive, le titre s'écrit avec la dernière tuile posée, puis le menu garde
+// secondes et demie pendant que le reste des images arrive, le titre s'écrit avec la dernière tuile posée, puis le menu garde
 // l'île en fond. Les tests automatiques la passent d'ordinaire (navigator.webdriver) : ici on la demande (?ouverture=1).
 // Usage : node tests/ouverture.js   (serveur statique sur http://127.0.0.1:8765/ requis)
 const { chromium } = require('/opt/node22/lib/node_modules/playwright');
@@ -32,14 +32,15 @@ const etat = (page) => page.evaluate(() => { const sc = window.CS && window.CS.s
     let titreAvant = false, titreAvec = null, i3 = null, t0 = Date.now();
     for (let k = 0; k < 80; k++) {
       const e = await etat(page); if (!e || e.scene !== 'ouverture') break;
-      if (e.t >= 3 && i3 === null) i3 = e.i;
+      if (e.t >= 1.5 && i3 === null) i3 = e.i;
       if (e.titre && titreAvec === null) { titreAvec = e; if (e.i !== null && !e.posee) titreAvant = true; }
       if (e.titre && (Date.now() - t0) > 20000) break;
       await page.waitForTimeout(250);
     }
-    check(i3 !== null && i3 >= 8 && i3 <= 24, `à trois secondes, une partie des tuiles est posée (${i3})`);
+    check(i3 !== null && i3 >= 8 && i3 <= 40, `à une seconde et demie, une partie des tuiles est posée (${i3})`);
     check(titreAvec !== null && !titreAvant, `le titre s’écrit avec la dernière tuile posée, pas avant (à ${titreAvec ? titreAvec.t.toFixed(1) : '?'} s)`);
-    check(titreAvec && titreAvec.t >= 9.5 && titreAvec.t <= 13, 'la construction dure dix secondes environ');
+    check(titreAvec && titreAvec.t >= 3 && titreAvec.t <= 6.5, 'la construction dure trois secondes et demie environ');
+    check(await page.evaluate(() => { const sc = window.CS.scenes.current; return sc.renderer && !sc.renderer.legacy; }), 'le rendu a ses sols : les tuiles prennent leur forme naturelle (pas de repli hexagonal)');
     await page.waitForFunction(() => window.CS.scenes.currentName === 'menu', null, { timeout: 15000 }).catch(() => {});
     const menu = await page.evaluate(() => { const m = window.CS.scenes.current; return { scene: window.CS.scenes.currentName, ile: m && m.bg && m.bg.isl ? m.bg.isl.def.id : null, tuiles: m && m.bg ? m.bg.isl.board.tiles.size : 0, cache: document.getElementById('ouverture').classList.contains('off') }; });
     check(menu.scene === 'menu' && menu.ile === 'ouverture' && menu.tuiles >= 20 && menu.cache, 'le menu suit et garde l’île du titre en fond ; le calque de l’ouverture s’efface');
@@ -50,7 +51,7 @@ const etat = (page) => page.evaluate(() => { const sc = window.CS && window.CS.s
   {
     const page = await lancer(ctx);
     await page.waitForFunction(() => window.CS && window.CS.scenes.currentName === 'ouverture', null, { timeout: 30000 }).catch(() => {});
-    await page.waitForTimeout(2500);
+    await page.waitForTimeout(1200);
     await page.mouse.click(640, 400); await page.waitForTimeout(300);
     const e = await etat(page);
     check(e && e.titre && e.i === null && e.tuiles >= 20, 'un toucher : la construction finit d’un coup et le titre s’écrit');
