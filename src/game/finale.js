@@ -67,7 +67,10 @@ export class Finale {
     this.camB = this.centre;
     // en portrait au téléphone, la carte s'arrête au-dessus d'une bande de papier qui porte les deux boutons :
     // rien ne se superpose à l'image (ni aux tampons, posés en bas à droite)
-    this.barre = STAGE.compact && STAGE.portrait ? 76 : 0;
+    // en portrait au téléphone, la bande sous la carte porte les boutons : une ligne, ou deux quand « Revoir la
+    // construction » s'ajoute (les trois boutons chevauchaient la carte, capture du commanditaire du 28 septembre)
+    this.troisBoutons = !!(this.isl.poses && this.isl.poses.length >= 5);
+    this.barre = STAGE.compact && STAGE.portrait ? (this.troisBoutons ? 128 : 76) : 0;
     this.hCarte = STAGE.H - this.barre;
     this.cadre = cadreCarte(this.isl, STAGE.W, this.hCarte);   // le cadrage de la carte postale : la fin du voyage
     this.cadre.oy -= this.barre / 2;   // le cadre est calculé pour une scène de hCarte de haut ; l'écran est plus haut de la bande
@@ -156,8 +159,9 @@ export class Finale {
     const voir = button(court ? 'Récapitulatif →' : 'Voir le récapitulatif →', () => this.finish(), { cls: 'btn-primary' });
     const garder = button(court ? 'Enregistrer' : 'Enregistrer la carte', () => { try { exporterCarte(renderPostcard(this.sc), postcardName(this.sc)); } catch (e) { console.warn('carte postale', e); } }, { iconName: 'icon_save' });
     // revoir la construction : l'île se rebâtit pose après pose, en dix secondes (27 septembre, demande du commanditaire)
-    const revoir = this.isl.poses && this.isl.poses.length >= 5 ? button(court ? 'Revoir' : 'Revoir la construction', () => this.rejouer(), { iconName: 'icon_return', title: 'L’île se rebâtit sous tes yeux, pose après pose' }) : null;
-    this.boutons = h('div', { class: 'carte-actions', style: `bottom:${this.barre ? Math.round((this.barre - 40) / 2) : g.bottom + 14}px` }, revoir, garder, voir);
+    const revoir = this.troisBoutons ? button(court ? 'Revoir' : 'Revoir la construction', () => this.rejouer(), { iconName: 'icon_return', title: 'L’île se rebâtit sous tes yeux, pose après pose' }) : null;
+    const hauteur = this.troisBoutons && court ? 90 : 40;   // deux lignes de boutons dans la bande, ou une
+    this.boutons = h('div', { class: 'carte-actions', style: `bottom:${this.barre ? Math.round((this.barre - hauteur) / 2) : g.bottom + 14}px` }, revoir, garder, voir);
     showUI(this.boutons, 'carte-wrap');
   }
 
