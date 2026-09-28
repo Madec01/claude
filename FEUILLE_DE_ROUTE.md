@@ -229,7 +229,7 @@ Le topo et la vision sont dans la conversation du 28 septembre ; ce tableau gard
 
 | # | Lot | Statut |
 |---|---|---|
-| O1 | Après le film du studio, l'île du titre se bâtit en trois secondes et demie, sans écran de chargement (gris → couleurs, caméra qui s'approche, tuiles qui prennent leur forme naturelle, titre avec la dernière tuile, barre fine tant que le reste charge), le menu la garde en fond | **fait** |
+| O1 | Après le film du studio, l'île du titre se bâtit et c'est elle la barre de chargement (tuiles au rythme des images, cinq secondes au moins, saisons été → automne → hiver → printemps, gris → couleurs, titre avec la dernière tuile sur le printemps, cercle discret tant que ça charge), le menu la garde en fond | **fait** |
 | O2 | Une musique composée pour l'ouverture (Suno, par le commanditaire) : déposer le fichier dans le miroir Suno, ajouter une recette `ouverture` (`suno:Titre`, durée 0 = sans boucle) dans `tools/build_audio.py`, et la jouer dans `ouverture.js` à la place du thème du menu | à faire quand le morceau existe |
 
 ## Lot 8 : publication (à planifier)

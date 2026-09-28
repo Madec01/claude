@@ -31,6 +31,7 @@ export class Construction {
     this.i = 0; this.pas = D / n; this.fini = 0; this.posees = []; this.par = new Map(); this.reveil = 0; this.dernierTic = -1;
     this.chute = chute ?? (auto ? 0.36 : 0.55);   // le temps de tomber, plus vif en tête de tournée
     this.now = 0;   // l'horloge propre de la construction (les `at` des tuiles s'y rapportent)
+    this.limite = Infinity;   // l'ouverture : pas de pose au-delà de cet indice tant que ses images ne sont pas là (l'île y est la barre de chargement)
     this.boardReel = isl.board; isl.board = new Board(this.boardReel.mask);
     isl.board.eauFinale = classifyWater(this.boardReel);   // l'eau se classe comme sur l'île finie : une rivière reste une rivière (voir water.js)
     this.r.decor.sync(this.boardReel); isl.board.decorFinal = { objects: this.r.decor.objects.slice(), courts: this.r.decor.courts.slice() };   // et le décor est celui de l'île finie, révélé case par case (voir decor.js)
@@ -61,6 +62,7 @@ export class Construction {
     for (const e of this.posees) if (!e.posee && this.now - e.at >= this.chute) { e.posee = true; this.isl.board.place(e.q, e.r, { ...e.t }); }
     this.posees = this.posees.filter((e) => !e.posee);   // posée : le plateau la dessine, fondue à ses voisines
     while (this.t >= this.pas && this.i < poses.length) {
+      if (this.i >= this.limite) { this.t = Math.min(this.t, this.pas); break; }   // on attend le chargement, sans accumuler de retard à rattraper d'un coup
       this.t -= this.pas; const p = poses[this.i++];
       if (!this.auto && p.s !== this.isl.season) { const from = this.isl.season; this.isl.season = p.s; if (this.onSaison) this.onSaison(from, p.s); }
       const k = key(p.q, p.r); const deja = this.par.get(k);

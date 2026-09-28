@@ -16,15 +16,17 @@ export const Assets = {
   manifestKeys() { return manifest ? Object.keys(manifest.images) : []; },
 
   /**
-   * Charge le manifeste puis toutes les images listées. `dabord` : des clés à charger avant toutes les autres ;
-   * `onDabord` est appelé dès qu'elles sont là (l'ouverture du jeu bâtit son île pendant que le reste arrive).
+   * Charge le manifeste puis toutes les images listées. `etapes` : des paliers `{ cles, fait }` chargés dans l'ordre,
+   * avant tout le reste ; `fait` est appelé dès que les clés du palier sont là (l'ouverture du jeu montre la mer dès le
+   * premier palier, fait tomber les tuiles d'une saison dès que ses images sont arrivées, et le reste vient derrière).
    */
-  async loadImages(onProgress = () => {}, { dabord = null, onDabord = null } = {}) {
+  async loadImages(onProgress = () => {}, { etapes = [] } = {}) {
     await this.loadManifest();
     // les entrées « lazy » (insignes des tampons) se chargent à la demande, au moment de tamponner : pas au démarrage
-    let entries = Object.entries(manifest.images).filter(([, meta]) => !meta.lazy);
-    if (dabord && dabord.size) entries = [...entries.filter(([k]) => dabord.has(k)), ...entries.filter(([k]) => !dabord.has(k))];
-    const nDabord = dabord ? entries.filter(([k]) => dabord.has(k)).length : 0;
+    const toutes = Object.entries(manifest.images).filter(([, meta]) => !meta.lazy);
+    let entries = [], vues = new Set(); const seuils = [];
+    for (const e of etapes) { for (const x of toutes) if (e.cles.has(x[0]) && !vues.has(x[0])) { vues.add(x[0]); entries.push(x); } seuils.push({ n: entries.length, fait: e.fait }); }
+    for (const x of toutes) if (!vues.has(x[0])) entries.push(x);
     let done = 0;
     const load = ([key, meta]) => new Promise((resolve) => {
       const img = new Image();
@@ -32,10 +34,14 @@ export const Assets = {
       img.onerror = () => { console.warn(`Image manquante : ${meta.file}`); done++; onProgress(done / entries.length, key); resolve(); };
       img.src = `assets/img/${meta.file}`;
     });
-    // Chargement par lots de 24 pour ne pas saturer le navigateur.
-    for (let i = 0; i < entries.length; i += 24) {
-      await Promise.all(entries.slice(i, i + 24).map(load));
-      if (onDabord && nDabord && i + 24 >= nDabord) { const f = onDabord; onDabord = null; try { f(); } catch (e) { console.warn(e); } }
+    // Chargement par lots de 24 pour ne pas saturer le navigateur ; un lot s'arrête sur la frontière d'un palier
+    const franchir = (i) => { while (seuils.length && i >= seuils[0].n) { const f = seuils.shift().fait; if (f) { try { f(); } catch (e) { console.warn(e); } } } };
+    franchir(0);
+    let i = 0;
+    while (i < entries.length) {
+      const fin = Math.min(entries.length, i + 24, seuils.length ? seuils[0].n : Infinity);
+      await Promise.all(entries.slice(i, fin).map(load)); i = fin;
+      franchir(i);
     }
   },
 

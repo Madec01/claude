@@ -62,12 +62,11 @@ button { font-family: inherit; }
 #ouverture.titre .ouv-bloc { opacity: 1; transform: none; }
 .ouv-titre { font-family: var(--font-title); font-size: clamp(44px, 7vw, 76px); color: var(--ink); letter-spacing: 0.03em; line-height: 1.05; }
 .ouv-sub { font-style: italic; opacity: 0.72; margin-top: 6px; font-size: clamp(17px, 2.4vw, 24px); font-family: var(--font-title); color: var(--ink); }
-/* la ligne de chargement : sous le titre, une barre fine aux couleurs des saisons et trois mots, visibles seulement tant que le reste des images arrive */
-.ouv-charge { display: flex; flex-direction: column; align-items: center; gap: 8px; margin-top: 22px; width: min(260px, 60vw); font-size: 13px; color: var(--ink); opacity: 0; transition: opacity 0.6s ease; text-shadow: 0 1px 8px rgba(244,239,230,0.95), 0 0 20px rgba(244,239,230,0.9); }
-.ouv-charge b { display: block; width: 100%; height: 5px; border-radius: 3px; background: rgba(43,42,38,0.12); overflow: hidden; }
-.ouv-charge i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--spring), var(--summer), var(--autumn), var(--winter)); transition: width 0.3s ease; }
-#ouverture.titre.attente .ouv-charge { opacity: 0.85; }
-#boot.muet .boot-inner { display: none; }   /* l'ouverture va suivre : l'écran de chargement n'est plus que l'image de l'île, sans barre ni titre */
+/* tant que les images arrivent, un petit cercle tourne en bas à droite (l'île elle-même est la barre : ses tuiles tombent au rythme du chargement) */
+.ouv-cercle { position: absolute; right: 18px; bottom: 40px; width: 18px; height: 18px; border-radius: 50%; border: 2px solid rgba(43,42,38,0.18); border-top-color: rgba(43,42,38,0.7); opacity: 0; transition: opacity 0.5s ease; animation: ouvTourne 0.9s linear infinite; }
+#ouverture.charge .ouv-cercle { opacity: 1; }
+@keyframes ouvTourne { to { transform: rotate(360deg); } }
+#boot.muet .boot-inner, #boot.muet::before { display: none; }   /* l'ouverture va suivre : l'écran de chargement n'est plus que du papier, sans barre, sans titre, sans la photo d'une île finie */
 .ouv-passer { position: absolute; right: 18px; bottom: 14px; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink); opacity: 0; transition: opacity 0.6s ease 2s; }
 #ouverture:not(.titre) .ouv-passer { opacity: 0.4; }
 /* le halo est ici, au ras du texte, et le liseré par-dessus : l'encre sombre tient sur le vert de l'île */

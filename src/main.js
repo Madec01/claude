@@ -161,12 +161,13 @@ const Game = {
     // Pas pour les tests automatiques ni le mode test (qui veulent le menu tout de suite), sauf à le demander par
     // `?ouverture=1`. L'écran de chargement n'a alors ni barre ni titre : rien entre le film et l'île.
     const boot = document.getElementById('boot');
-    const ouv = this.ouvertureVoulue() ? scenes.scenes.get('ouverture') : null; let cles = null;
-    if (ouv) { boot.classList.add('muet'); try { await Assets.loadManifest(); cles = ouv.preparer(); } catch (e) { console.warn('ouverture', e); boot.classList.remove('muet'); } }
+    const ouv = this.ouvertureVoulue() ? scenes.scenes.get('ouverture') : null; let etapes = null;
+    if (ouv) { boot.classList.add('muet'); try { await Assets.loadManifest(); etapes = ouv.preparer(); } catch (e) { console.warn('ouverture', e); boot.classList.remove('muet'); } }
     try { await AudioSys.loadManifest(); } catch (e) { console.warn(e); }
+    // la scène part dès l'amorce (la mer) chargée et le film fini ; l'île, elle, se bâtit au rythme des images qui suivent
     let lancee = null;
-    const lancer = () => { if (lancee || !cles) return; lancee = intro.then(async () => { boot.classList.add('off'); setTimeout(() => boot.remove(), 700); loop.start(); await scenes.go('ouverture', {}, { fade: 0 }); }); };
-    try { await Assets.loadImages((p) => { setP(p * 0.95, 'Les tuiles se réveillent…'); if (ouv) ouv.progres(p); }, cles ? { dabord: cles, onDabord: lancer } : {}); } catch (e) { console.warn(e); }
+    if (ouv && etapes) ouv.onAmorce = () => { if (lancee) return; lancee = intro.then(async () => { boot.classList.add('off'); setTimeout(() => boot.remove(), 700); loop.start(); await scenes.go('ouverture', {}, { fade: 0 }); }); };
+    try { await Assets.loadImages((p) => { setP(p * 0.95, 'Les tuiles se réveillent…'); if (ouv) ouv.progres(p); }, etapes ? { etapes } : {}); } catch (e) { console.warn(e); }
     // Les sons ne bloquent plus le menu : la musique et les ambiances se chargent à la demande (playMusic, setAmbience),
     // un effet pas encore arrivé se tait. Le préchargement part en arrière-plan une fois le menu affiché (8 Mo en 4G,
     // c'était sept secondes d'écran de chargement pour des sons qui ne servent qu'en partie).
