@@ -52,8 +52,8 @@ export const RARE_SEASONAL = {
 /** Table des affinités : clé "a|b" (ordre indifférent) → points par bord partagé. */
 const PAIRS = {
   'meadow|meadow': 1, 'forest|forest': 1, 'field|field': 1, 'hamlet|hamlet': 2, 'orchard|orchard': 1, 'water|water': 1, 'marsh|marsh': 1, 'rock|rock': 1, 'sand|sand': 1,
-  'field|hamlet': 2, 'orchard|meadow': 2, 'orchard|hamlet': 2, 'marsh|water': 2, 'forest|rock': 2, 'sand|water': 2,
-  'meadow|forest': 1, 'hamlet|water': 1, 'field|meadow': 1, 'marsh|forest': 1, 'rock|water': 1,
+  'field|hamlet': 2, 'meadow|orchard': 2, 'hamlet|orchard': 2, 'marsh|water': 2, 'forest|rock': 2, 'sand|water': 2,
+  'forest|meadow': 1, 'hamlet|water': 1, 'field|meadow': 1, 'forest|marsh': 1, 'rock|water': 1,
   'hamlet|marsh': -1, 'field|rock': -1, 'field|sand': -1, 'forest|sand': -1, 'hamlet|rock': -1, 'orchard|sand': -1,
   // collines (île de MECH_AT.hill) : relief, coteaux, belvédères
   'hill|hill': 1, 'hill|rock': 2, 'forest|hill': 1, 'hill|meadow': 1, 'hill|orchard': 1, 'hamlet|hill': 1, 'field|hill': -1, 'hill|marsh': -1,
@@ -74,7 +74,7 @@ export function affinity(a, b) {
 
 /** Libellé court d'une paire, pour l'aide en jeu. */
 export const PAIR_LABELS = {
-  'field|hamlet': 'moisson', 'orchard|meadow': 'butinage', 'orchard|hamlet': 'cueillette', 'marsh|water': 'roselière', 'forest|rock': 'versant', 'sand|water': 'plage',
+  'field|hamlet': 'moisson', 'meadow|orchard': 'butinage', 'hamlet|orchard': 'cueillette', 'marsh|water': 'roselière', 'forest|rock': 'versant', 'sand|water': 'plage',
   'hamlet|hamlet': 'bourg', 'hamlet|water': 'sur la rive', 'hamlet|marsh': 'moustiques', 'field|rock': 'caillasse', 'field|sand': 'stérile', 'forest|sand': 'racines nues', 'hamlet|rock': 'à l’étroit', 'orchard|sand': 'sec',
   'hill|rock': 'crête', 'forest|hill': 'versant boisé', 'hill|meadow': 'pâturage', 'hill|orchard': 'coteau', 'hamlet|hill': 'belvédère', 'field|hill': 'pente', 'hill|marsh': 'boue',
   'heath|rock': 'lande rocheuse', 'heath|meadow': 'bruyère', 'forest|heath': 'lisière', 'heath|sand': 'dune', 'field|heath': 'terre pauvre', 'heath|orchard': 'sol acide',

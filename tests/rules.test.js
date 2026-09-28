@@ -1012,5 +1012,33 @@ for (const def of ISLANDS.slice(0, 4)) {
   }
 }
 
+// --- quatre affinités dormaient sous une clé mal ordonnée (28 septembre) : verger·prairie, verger·hameau, forêt·prairie, forêt·marais
+{
+  check(affinity('orchard', 'meadow') === 2 && affinity('meadow', 'orchard') === 2, 'verger contre prairie : +2 (butinage)');
+  check(affinity('orchard', 'hamlet') === 2, 'verger contre hameau : +2 (cueillette)');
+  check(affinity('meadow', 'forest') === 1 && affinity('forest', 'marsh') === 1, 'prairie et marais contre forêt : +1');
+  const { PAIR_LABELS: PL, pairKey: pk } = await import('../src/data/tiles.js');
+  check(PL[pk('orchard', 'meadow')] === 'butinage' && PL[pk('hamlet', 'orchard')] === 'cueillette', 'leurs libellés se lisent par la clé triée');
+}
+
+// --- lire l'île (28 septembre) : bords, régions même ouvertes, saison qui vient jouée sur une copie
+{
+  const d12 = campaignIsland(12); const isl12 = new Island(d12, { ...islandOptions(d12) }); isl12.breaths = 9;
+  for (let k = 0; k < 12 && !isl12.ended; k++) { let best = null, bs = -Infinity; for (const c of isl12.board.legalCells()) { const p = isl12.preview(c.q, c.r); if (p && p.total > bs) { bs = p.total; best = c; } } if (!best) break; isl12.place(best.q, best.r); }
+  const snap = JSON.stringify(isl12.board.snapshot()); const score = isl12.score, saison = isl12.season;
+  const L = isl12.lecture();
+  check(L.bords.length > 0 && L.bords.every((b) => b.d >= 0 && b.d < 3 && b.pts !== 0), `${L.bords.length} bords lus, chacun une fois, tous non nuls`);
+  check(L.regions.length > 0 && L.regions.some((r) => !r.close) && L.regions.every((r) => typeof r.prime === 'number' && typeof r.libres === 'number'), 'les régions ouvertes sont lues aussi, avec leur prime et leurs cases libres');
+  check(L.regions.filter((r) => r.close).every((r) => r.libres === 0) && L.regions.filter((r) => !r.close).every((r) => r.libres > 0), 'close ⇔ aucune case libre autour');
+  check(typeof L.total === 'number' && L.cases instanceof Map && L.saison === isl12.saisonSuivante(), 'la saison lue est la suivante, avec un total et des cases');
+  check(JSON.stringify(isl12.board.snapshot()) === snap && isl12.score === score && isl12.season === saison, 'lire ne touche à rien : plateau, score et saison inchangés');
+  check(isl12.lecture() === L, 'la lecture est gardée tant que rien ne bouge');
+  const c = isl12.board.legalCells()[0]; isl12.place(c.q, c.r);
+  check(isl12.lecture() !== L, 'une pose renouvelle la lecture');
+  // la saison lue sans annonce est la règle de base ; annoncée, c'est la surprise
+  const a = isl12.annonce(); if (a) check(isl12.lecture().regle === a.rule && isl12.lecture().annoncee, 'surprise annoncée : la lecture la joue');
+  else check(!isl12.lecture().annoncee, 'pas d’annonce : la lecture ne dévoile pas la surprise');
+}
+
 console.log(failures ? `${failures} échec(s)` : 'Tous les tests passent.');
 process.exit(failures ? 1 : 0);
