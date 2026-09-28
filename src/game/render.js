@@ -1763,25 +1763,22 @@ export class IslandRenderer {
     ctx.restore();
     ctx.save();
     ctx.translate(W / 2 + cam.offsetX, H / 2 + cam.offsetY); ctx.scale(z, z); ctx.translate(-cam.x, -cam.y);
-    ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-    // 1. le tour des régions, dans la couleur de la famille
-    ctx.globalAlpha = 0.85;
+    ctx.lineCap = 'butt'; ctx.lineJoin = 'round';
+    // 1. les régions : un voile de la couleur de la famille sur toutes leurs tuiles (plus dense quand la région est close,
+    //    avec un fin liseré en retrait), au lieu d'un tour qui se cachait sous les fils (le commanditaire, 28 septembre)
     for (const r of P.regions) {
-      // un liseré sombre sous le tour, pour qu'il se lise sur un sol de la même couleur que la famille
-      ctx.setLineDash(r.close ? [] : [10 / z, 7 / z]);
-      ctx.strokeStyle = 'rgba(43,42,38,0.45)'; ctx.lineWidth = (r.close ? 4.5 : 3.5) / z + 2 / z; ctx.stroke(r.path);
-      ctx.strokeStyle = r.color; ctx.lineWidth = (r.close ? 4.5 : 3.5) / z; ctx.stroke(r.path);
+      ctx.globalAlpha = r.close ? 0.34 : 0.19; ctx.fillStyle = r.color; ctx.fill(r.zone);
+      if (r.close) { ctx.globalAlpha = 0.8; ctx.strokeStyle = r.color; ctx.lineWidth = 1.4 / z; ctx.stroke(r.liseret); }
     }
-    ctx.setLineDash([]);
-    // 2. les fils d'affinité sur les bords
+    // 2. les affinités : c'est le bord même de l'hexagone qui se colore, d'un sommet à l'autre, fin (vert +1, un peu
+    //    plus appuyé +2 et plus, rouge pour un mauvais voisinage)
     ctx.globalAlpha = 0.95;
-    ctx.strokeStyle = '#fffdf8'; ctx.lineWidth = 7 / z; ctx.stroke(P.fils.halo);   // un liseré clair sous les fils, pour qu'ils se lisent sur tout sol
-    ctx.strokeStyle = '#2f9e8f'; ctx.lineWidth = 2.2 / z; ctx.stroke(P.fils.un);
-    ctx.lineWidth = 4.5 / z; ctx.stroke(P.fils.deux);
-    ctx.strokeStyle = '#d95f4b'; ctx.lineWidth = 3.5 / z; ctx.stroke(P.fils.mauvais);
+    ctx.strokeStyle = '#2f9e8f'; ctx.lineWidth = 1.5 / z; ctx.stroke(P.fils.un);
+    ctx.lineWidth = 2.8 / z; ctx.stroke(P.fils.deux);
+    ctx.strokeStyle = '#d95f4b'; ctx.lineWidth = 2.2 / z; ctx.stroke(P.fils.mauvais);
     // 3. les cases que la saison suivante abîmera
     const pulse = 0.6 + 0.4 * Math.sin(this.time * 3);
-    ctx.strokeStyle = '#d95f4b'; ctx.globalAlpha = pulse; ctx.lineWidth = 3 / z + 1; ctx.stroke(P.menaces);
+    ctx.strokeStyle = '#d95f4b'; ctx.globalAlpha = pulse; ctx.lineWidth = 2.5 / z; ctx.stroke(P.menaces);
     ctx.globalAlpha = 1;
     // 4. les étiquettes : la prime des régions, les points de la saison qui vient
     const fs = Math.round(13 / z); ctx.font = `700 ${fs}px Quicksand, sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
@@ -1799,28 +1796,30 @@ export class IslandRenderer {
   /** Les chemins de la lecture de l'île, en coordonnées monde, pour une lecture donnée (voir `drawLecture`). */
   cheminsLecture(L) {
     const b = this.isl.board;
-    const fils = { halo: new Path2D(), un: new Path2D(), deux: new Path2D(), mauvais: new Path2D() };
+    const fils = { un: new Path2D(), deux: new Path2D(), mauvais: new Path2D() };
     for (const e of L.bords) {
-      const w = toWorld(e.q, e.r); const c = corners(w.x, w.y, SIZE * 0.97); const i = EDGE_DIR.indexOf(e.d);
-      const a = c[i], d = c[(i + 1) % 6]; const x1 = a[0] + (d[0] - a[0]) * 0.18, y1 = a[1] + (d[1] - a[1]) * 0.18, x2 = a[0] + (d[0] - a[0]) * 0.82, y2 = a[1] + (d[1] - a[1]) * 0.82;
-      for (const p of [fils.halo, e.pts < 0 ? fils.mauvais : e.pts >= 2 ? fils.deux : fils.un]) { p.moveTo(x1, y1); p.lineTo(x2, y2); }
+      const w = toWorld(e.q, e.r); const c = corners(w.x, w.y, SIZE * 0.985); const i = EDGE_DIR.indexOf(e.d);
+      const a = c[i], d = c[(i + 1) % 6]; const p = e.pts < 0 ? fils.mauvais : e.pts >= 2 ? fils.deux : fils.un;
+      p.moveTo(a[0], a[1]); p.lineTo(d[0], d[1]);
     }
     const regions = [], etiquettes = [];
+    const hexagone = (path, x, y, taille) => { const c = corners(x, y, taille); path.moveTo(c[0][0], c[0][1]); for (let i = 1; i < 6; i++) path.lineTo(c[i][0], c[i][1]); path.closePath(); };
     for (const r of L.regions) {
-      if (r.size < 2 && r.cells.length < 2) continue;   // une tuile seule n'a pas de tour à montrer
-      const path = new Path2D(); let sx = 0, sy = 0;
+      if (r.cells.length < 2) continue;   // une tuile seule n'est pas une région à montrer
+      const zone = new Path2D(), liseret = new Path2D(); let sx = 0, sy = 0;
       for (const t of r.cells) {
-        const w = toWorld(t.q, t.r); sx += w.x; sy += w.y; const c = corners(w.x, w.y, SIZE * 0.9);
-        for (let i = 0; i < 6; i++) { const [dq, dr] = DIRS[EDGE_DIR[i]]; if (r.keys.has(key(t.q + dq, t.r + dr))) continue; path.moveTo(c[i][0], c[i][1]); path.lineTo(c[(i + 1) % 6][0], c[(i + 1) % 6][1]); }
+        const w = toWorld(t.q, t.r); sx += w.x; sy += w.y; hexagone(zone, w.x, w.y, SIZE * 0.985);
+        // le liseré d'une région close : ses bords extérieurs, en retrait du bord (les fils y sont)
+        if (r.close) { const c = corners(w.x, w.y, SIZE * 0.86); for (let i = 0; i < 6; i++) { const [dq, dr] = DIRS[EDGE_DIR[i]]; if (r.keys.has(key(t.q + dq, t.r + dr))) continue; liseret.moveTo(c[i][0], c[i][1]); liseret.lineTo(c[(i + 1) % 6][0], c[(i + 1) % 6][1]); } }
       }
-      const color = FAMILY_COLORS[r.family] || '#999'; regions.push({ path, color, close: r.close });
+      const color = FAMILY_COLORS[r.family] || '#999'; regions.push({ zone, liseret, color, close: r.close });
       // la prime à venir, au centre de la région (une région payée n'a plus rien à dire)
       if (!r.payee && r.prime > 0) etiquettes.push({ x: sx / r.cells.length, y: sy / r.cells.length + SIZE * 0.42, txt: `+${r.prime}`, fond: 'rgba(255,253,248,0.95)', encre: '#2b2a26', bord: color });
     }
     const menaces = new Path2D();
     for (const [k, c] of L.cases) {
       const [q, r] = parse(k); const w = toWorld(q, r);
-      if (c.sec || c.pts < 0) { const pts = corners(w.x, w.y, SIZE * 0.97); menaces.moveTo(pts[0][0], pts[0][1]); for (let i = 1; i < 6; i++) menaces.lineTo(pts[i][0], pts[i][1]); menaces.closePath(); }
+      if (c.sec || c.pts < 0) hexagone(menaces, w.x, w.y, SIZE * 0.9);
       const txt = c.sec && !c.pts ? 'sèche' : c.pts < 0 ? `−${-c.pts}` : `+${c.pts}`;
       etiquettes.push({ x: w.x, y: w.y - SIZE * 0.4, txt, fond: c.sec || c.pts < 0 ? '#d95f4b' : 'rgba(43,42,38,0.82)', encre: '#fffdf8' });
     }

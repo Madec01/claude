@@ -232,7 +232,9 @@ html.compact .season-pips { flex: 0 0 auto; width: 38px; max-width: 38px; margin
 html.compact .hud-label { font-size: 8px; }
 html.compact .hud-score b, html.compact .hud-breaths b { font-size: 15px; }
 html.compact .hud-pause { width: 40px; height: 40px; flex: 0 0 auto; }
-html.compact .hud-lecture { left: 8px; right: 8px; transform: none; justify-content: center; flex-wrap: wrap; gap: 4px 10px; font-size: 11px; padding: 4px 8px; white-space: normal; }
+html.compact .hud-lecture { left: 8px; right: 8px; transform: none; gap: 3px; font-size: 11px; padding: 4px 8px; white-space: normal; }
+html.compact .hl-ligne { flex-wrap: wrap; justify-content: center; gap: 2px 10px; }
+html.compact .hl-legende { font-size: 10px; gap: 2px 8px; }
 html.compact.portrait #hud:not(.brume):not(.tempo) .hud-lecture { top: calc(var(--hud-top-h, 96px) + 48px); }   /* sous la rangée des animaux, qui vit en haut en portrait */   /* la barre n'a plus que quatre blocs : la pause retrouve une taille de doigt */
 html.compact.landscape .panel-title { font-size: 20px; margin-bottom: 4px; }
 html.compact.landscape .panel-results .stars { margin: 2px 0 4px; }

@@ -57,7 +57,7 @@ export class Hud {
         <button class="hud-pause hud-lire ${island.tempo || island.brume ? 'hidden' : ''}" data-ref="lire" title="Lire l’île (V) : les affinités sur les bords, le tour des régions et leur prime, ce que la saison qui vient donnera ou reprendra">${icon('icon_target')}</button>
         <button class="hud-pause" data-ref="pause" title="Pause (Échap) : journal, plein écran, options">${icon('icon_pause')}</button>
       </div>
-      <div class="hud-lecture hidden" data-ref="lecture"></div>
+      <div class="hud-lecture hidden" data-ref="lectureBoite"><div class="hl-ligne" data-ref="lecture"></div><div class="hl-legende"><span><i class="sw fil un"></i>+1</span><span><i class="sw fil deux"></i>+2</span><span><i class="sw fil mauvais"></i>mauvais voisinage</span><span><i class="sw zone"></i>région ouverte</span><span><i class="sw zone close"></i>close</span><span><i class="sw past claire">+3</i>prime à fermer</span><span><i class="sw past sombre">+2</i>saison qui vient</span><span><i class="sw perte"></i>va perdre</span></div></div>
       <div class="hud-carte ${island.brume ? '' : 'hidden'}" data-ref="carte"><span class="hc-kicker" data-ref="carteKicker">Saison</span><b data-ref="carteNom">—</b><span class="hc-texte" data-ref="carteTexte"></span><span class="hc-ratio" data-ref="carteRatio" title="Chance de tirer un bonus à la prochaine saison"></span></div>
       <div class="hud-queue" data-ref="queue">
         <div class="queue-title"><span>${island.handOn ? 'Main · choisis ta tuile' : 'À poser'}</span><span class="queue-left" data-ref="left" title="Tuiles qui restent"></span></div>
@@ -409,7 +409,7 @@ export class Hud {
   toggleLecture(force) {
     const isl = this.isl; if (isl.tempo || isl.brume) return;
     const on = force !== undefined ? !!force : !isl.montrerLecture;
-    isl.montrerLecture = on; this.r.lire.classList.toggle('on', on); this.r.lecture.classList.toggle('hidden', !on);
+    isl.montrerLecture = on; this.r.lire.classList.toggle('on', on); this.r.lectureBoite.classList.toggle('hidden', !on);
     if (on) { this.last.lecture = null; this.renderLecture(); }
   }
   renderLecture() {
