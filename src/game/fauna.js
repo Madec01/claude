@@ -2,9 +2,13 @@
 import { BALANCE } from '../data/balance.js';
 import { Board } from './board.js';
 import { neighbors, key } from './hex.js';
+import { MER } from '../data/tiles.js';
+import { computeRoutes } from './routes.js';
 
 const F = BALANCE.fauna;
-export const SPECIES = ['rabbit', 'moose', 'frog', 'duck', 'bear', 'owl', 'penguin', 'goat', 'chicken', 'horse', 'cow'];
+export const SPECIES = ['rabbit', 'moose', 'frog', 'duck', 'bear', 'owl', 'penguin', 'goat', 'chicken', 'horse', 'cow', 'whale', 'walrus', 'narwhal'];
+/** La faune de mer du Livre II : elle vit dans la mer posée, à fleur d'eau — dessinée à la ligne de flottaison, sans ombre ni promenade. */
+export const FAUNA_MARINE = new Set(['whale', 'walrus', 'narwhal']);
 
 /**
  * Échelle de chaque espèce à l'écran. Chaque sprite était dessiné à la taille que son rendu 3D avait
@@ -27,6 +31,10 @@ export const FAUNA_SIZE = {
   owl: 0.46,      // 24 → 11
   chick: 0.44,    // 18 → 8
   frog: 0.58,     // 12 → 7
+  // la faune de mer (Animal Pack Redux, dossier Round, à plat) : dessinée depuis son image entière, largeur en unités monde par le repli 44 × s
+  whale: 1.0,     // 44 de large
+  walrus: 0.72,   // 32
+  narwhal: 0.8,   // 35
 };
 
 /**
@@ -90,6 +98,17 @@ export function evaluate(board, season, rule = null) {
     if (alive >= F.cow && board.regionTouches(reg, 'heath')) add('cow', reg, reg.cells.find((t) => !t.dry && neighbors(t.q, t.r).some(([a, b]) => { const n = board.get(a, b); return n && Board.isFamily(n, 'heath'); })) || undefined);
   }
   for (const t of board.tiles.values()) if (t.family === 'camp') out.set(`goat@camp:${t.q},${t.r}`, { species: 'goat', q: t.q, r: t.r, regionId: `camp:${t.q},${t.r}` });
+  // Livre II — la faune de mer. La baleine : une mer posée d'un seul tenant d'au moins F.whale cases ; le narval : une route
+  // qui relie deux ports (il suit les bateaux) ; le morse : des algues contre la roche.
+  if (board.detroit && board.detroit.size) {
+    for (const r of computeRoutes(board)) {
+      const cells = r.cells.map((k) => board.tiles.get(k)).filter(Boolean); if (!cells.length) continue;
+      const reg = { id: `mer:${r.cells[0]}`, cells };
+      if (cells.length >= F.whale) add('whale', reg);
+      if (r.ports.length >= 2) add('narwhal', reg, cells.length >= 3 ? cells[Math.floor(cells.length / 2)] : cells[0]);
+    }
+    for (const reg of board.regions('kelp')) if (reg.size >= F.walrus && board.regionTouches(reg, 'rock')) add('walrus', reg, reg.cells.find((t) => neighbors(t.q, t.r).some(([a, b]) => Board.isFamily(board.get(a, b), 'rock'))) || undefined);
+  }
   // fusions : chaque tuile composée accueille son animal
   for (const t of board.tiles.values()) {
     if (!t.fusion) continue; const reg = { id: `${t.family}:${key(t.q, t.r)}`, cells: [t] };

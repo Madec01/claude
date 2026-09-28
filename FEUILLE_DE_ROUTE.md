@@ -227,7 +227,9 @@ Le topo et la vision sont dans la conversation du 28 septembre ; ce tableau gard
 | L4 | Deux îles, détroit en mer dès le départ que seules les tuiles de mer convertissent, un port et un hameau par rive au départ | **fait** (îles 34 à 45) |
 | L5 | Musiques libres (CC0 d'abord) : `docs/MUSIQUES_LIVRE_II.md` | recherche faite, à télécharger |
 | L6 | Quinze îles en cinq chapitres ; îles à trois saisons dont la route ramène la quatrième (à essayer) | **fait** pour les quinze îles (31 à 45, calibrées) ; les trois saisons à essayer sur l'île 32 |
-| L7 | **Lot 7a** : campagne à 45 îles, images des cinq familles, rendu du détroit, routes et chaîne dans l'aperçu, la lecture et le bilan, robot et calibrage | **fait** (28 septembre) ; suite au lot 7b |
+| L7 | **Lot 7a** : campagne à 45 îles, images des cinq familles, rendu du détroit, routes et chaîne dans l'aperçu, la lecture et le bilan, robot et calibrage | **fait** (28 septembre) |
+| L8 | **Lot 7b** : taverne, marché, phare, chantier naval, tempête, marée basse, climat venteux, arbres par climat, faune de mer (baleine, morse, narval), chapitres 13 et 14 câblés, recalibrage | **fait** (28 septembre) |
+| L9 | « La mer descend » (idée du commanditaire) : toutes les cinq poses, la marée découvre une couronne de cases déjà pleines, visibles en silhouette sous l'eau — prototype sur l'île 40, mesuré au robot | en cours |
 
 ## L'ouverture (28 septembre)
 

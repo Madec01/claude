@@ -21,6 +21,8 @@ export const FUSION_DECOR = {
   falls:  [{ tpl: 'obj_rockGrey_large{w}', dx: -10, dy: 34, scale: 1.15 }, { tpl: 'obj_rockGrey_medium2{w}', dx: 28, dy: 18 }, { tpl: 'sea_wave_1', dx: 2, dy: 14, wave: true }, { tpl: 'obj_moss', dx: -28, dy: 20, seasons: ['spring'] }],
   cave:   [{ tpl: 'obj_rockGrey_large{w}', dx: 0, dy: 40, scale: 1.3 }, { tpl: 'obj_medieval_doorway', dx: 0, dy: 44, scale: 0.8 }, { tpl: 'obj_treePine_small_{s}', dx: -34, dy: 22 }, { tpl: 'obj_treePine_small_{s}', dx: 34, dy: 26 }],
   lagoon: [{ tpl: 'obj_rockBrown_small{w}', dx: -30, dy: 32 }, { tpl: 'sea_wave_2', dx: 8, dy: 6, wave: true }, { tpl: 'obj_bushGrass_dry', dx: 30, dy: 30 }],
+  // Livre II : le chantier naval (port + forêt) — la halle du chantier, une barque en cale, des rondins
+  shipyard: [{ tpl: 'obj_shipyard', dx: 2, dy: 30, scale: 0.72 }, { tpl: 'obj_boat', dx: -34, dy: 44, scale: 0.85 }, { tpl: 'obj_logPile', dx: 34, dy: 40, scale: 0.8 }],
 };
 
 /**
@@ -153,7 +155,7 @@ const VAR3 = (rng) => ['1', '2', '3'][Math.floor(rng() * 3)];
 const wild = (rng, lo = 0.82, hi = 1.18) => ({ scale: lo + rng() * (hi - lo), flip: rng() < 0.5 });
 
 export class Decor {
-  constructor(seed = 1) { this.seed = seed; this.version = -1; this.objects = []; this.memoire = new Map(); }
+  constructor(seed = 1) { this.seed = seed; this.version = -1; this.objects = []; this.memoire = new Map(); this.climat = 'temperate'; }   // `climat` : le rendu le pose (les forêts changent d'arbres avec le ciel, sans règle)
 
   /** Recalcule tous les objets si le plateau a changé. */
   sync(board) {
@@ -546,8 +548,15 @@ export class Decor {
           const push = (p, tpl, extra = {}) => add(Object.assign({ x: p.x, y: p.y, tpl, cell: ck }, extra));
           if (family === 'forest') {
             const n = Math.round((16 + deg * 2.2) * (L2(cell) ? 1.7 : 1));
+            // lot 7b : les arbres suivent le climat, sans règle — chênes ronds et pins parasols au chaud, sapins étagés et épicéas
+            // au froid, frondaisons pleines sous les pluies, pins maritimes et arbres tordus dans le vent ; le tempéré garde ses arbres
+            const clim = this.climat; const AB = (rng) => (rng() < 0.5 ? 'A' : 'B');
             for (const p of sample(rng, cell, keys, n, { minDist: L2(cell) ? 7 : 9, margin: 4, radius: 1.0, placed, tries: 30 })) {
               placed.push(p); const r = rng(); const w = wild(rng); const v = VAR(rng);
+              if (clim === 'hot') { if (r < 0.45) push(p, `obj_pin_parasol_${['A', 'B', 'C'][Math.floor(rng() * 3)]}`, Object.assign({}, w, { scale: 0.5 + rng() * 0.2 })); else push(p, `obj_chene_${AB(rng)}`, Object.assign({}, w, { scale: 0.55 + rng() * 0.25 })); continue; }
+              if (clim === 'cold') { const m = r < 0.35 ? 'obj_epicea_A' : `obj_sapin_nord_${AB(rng)}`; push(p, m, Object.assign({}, w, { scale: 0.5 + rng() * 0.25, notSeasons: ['winter'] })); push(p, `${m}_winter`, Object.assign({}, w, { scale: 0.5 + rng() * 0.25, seasons: ['winter'] })); continue; }
+              if (clim === 'humid') { push(p, `obj_frondaison_${AB(rng)}_{s}`, Object.assign({}, w, { scale: 0.55 + rng() * 0.3 })); continue; }
+              if (clim === 'windy') { if (r < 0.55) push(p, `obj_pin_maritime_${AB(rng)}`, Object.assign({}, w, { scale: 0.45 + rng() * 0.2 })); else push(p, `obj_arbre_vent_${AB(rng)}`, Object.assign({}, w, { scale: 0.55 + rng() * 0.25 })); continue; }
               if (r < 0.28) push(p, `obj_treePine_large${v === '3' ? '2' : ''}_{s}`, w);
               else if (r < 0.52) push(p, `obj_treePine_small${v === '3' ? '2' : ''}_{s}`, w);
               else if (r < 0.78) { const bl = rng() < 0.3; push(p, `obj_treeRound_large${v}_{s}`, Object.assign({ notSeasons: bl ? ['spring'] : null, tag: 'rl' }, w)); if (bl) push(p, `obj_treeRound_blossom_large${v}`, Object.assign({ seasons: ['spring'] }, w)); }

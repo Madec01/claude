@@ -8,16 +8,19 @@ let fails = 0; const check = (ok, m) => { if (!ok) { fails++; console.log('KO', 
 for (const r of RARE) check(!!STORY.tiles[r], `texte de la tuile rare ${r}`);
 const greedy = (isl) => {
   let best = null, bs = -Infinity; for (const c of isl.board.legalCells()) { const pv = isl.preview(c.q, c.r); if (pv && pv.total > bs) { bs = pv.total; best = c; } } return best; };
-// une rare retirée (audit de simplification) trouvée dans une partie reprise redevient une tuile ordinaire
+// une rare retirée (audit de simplification) trouvée dans une partie reprise redevient une tuile ordinaire ; la taverne et le
+// marché, revenus au Livre II avec un autre sens (ils vivent des routes), restent eux-mêmes — sans port, ils ne paient rien
 {
   const { RETIRED_RARE } = await import('../src/data/tiles.js');
   const iR = new Island(getIsland(12), { upgrades: {} });
-  const c0 = iR.board.legalCells()[0]; iR.board.place(c0.q, c0.r, { family: 'tavern', variant: 1, rare: true, id: 999 });
-  iR.queue.list[0] = iR.queue.makeRare('market');
+  const c0 = iR.board.legalCells()[0]; iR.board.place(c0.q, c0.r, { family: 'fountain', variant: 1, rare: true, id: 999 });
+  const c1 = iR.board.legalCells().find((c) => c.q !== c0.q || c.r !== c0.r); iR.board.place(c1.q, c1.r, { family: 'tavern', variant: 1, rare: true, id: 998 });
+  iR.queue.list[0] = iR.queue.makeRare('fete'); iR.queue.list[1] = iR.queue.makeRare('market');
   const snap = iR.serialize(); const iR2 = new Island(getIsland(12), { upgrades: {} }); iR2.restoreRun(snap);
-  const t = iR2.board.get(c0.q, c0.r);
-  check(t && t.family === RETIRED_RARE.tavern && !t.rare, `auberge reprise → ${t && t.family}`);
-  check(iR2.queue.list[0].family === RETIRED_RARE.market && !iR2.queue.list[0].rare, `marché en file → ${iR2.queue.list[0].family}`);
+  const t = iR2.board.get(c0.q, c0.r); const tv = iR2.board.get(c1.q, c1.r);
+  check(t && t.family === RETIRED_RARE.fountain && !t.rare, `fontaine reprise → ${t && t.family}`);
+  check(iR2.queue.list[0].family === RETIRED_RARE.fete && !iR2.queue.list[0].rare, `fête en file → ${iR2.queue.list[0].family}`);
+  check(tv && tv.family === 'tavern' && tv.rare && iR2.queue.list[1].family === 'market' && iR2.queue.list[1].rare && !RETIRED_RARE.tavern && !RETIRED_RARE.market, 'la taverne et le marché du Livre II restent des rares, en jeu comme en file');
 }
 // île 12 : injecter chaque tuile rare et la poser
 const isl = new Island(getIsland(12), { upgrades: {} });

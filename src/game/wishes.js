@@ -82,6 +82,7 @@ export function progressOf(w, ctx) {
 const HABITAT = {
   rabbit: { meadow: 3 }, moose: { forest: 5 }, duck: { water: 3 }, bear: { forest: 3, rock: 1 }, frog: { marsh: 1, water: 1 },
   owl: { forest: 1, hamlet: 1 }, penguin: { water: 4 }, chicken: { field: 2, hamlet: 1 }, horse: { hill: 2, meadow: 1 }, cow: { meadow: 2, heath: 1 },
+  whale: { sea: 5 }, walrus: { kelp: 2, rock: 1 }, narwhal: { sea: 3, port: 2 },   // Livre II
 };
 export function besoinsVoeu(def) {
   const out = {};

@@ -24,7 +24,7 @@ export const BALANCE = {
   harmonie: { variete: 5, regionMin: 4, equilibre: 0.2, acheve: 0.85, poseMin: 8, casesParPoint: 5 },
   fusion: { cost: 2, bonus: 1 },   // fusion : deux tuiles voisines qui font recette, sans tuile de la file ; 2 souffles, +1 point (le gain vient des bords, des fermetures et des primes de saison)
   build: { maxLevel: 3, level3From: 19, cost: 2, cost3: 3, restore: 1, matureSeasons: 1, level3Season: 1 },   // bâtir : une tuile d'une région close monte d'un niveau, sans tuile de la file ; 2 souffles pour le niveau 2, 3 pour le niveau 3 ; une friche se remet en état pour 1
-  fauna: { rabbit: 3, moose: 5, duck: 3, bear: 3, frog: 1, owl: 1, penguin: 4, chicken: 2, horse: 2, cow: 2 },
+  fauna: { rabbit: 3, moose: 5, duck: 3, bear: 3, frog: 1, owl: 1, penguin: 4, chicken: 2, horse: 2, cow: 2, whale: 5, walrus: 2 },   // Livre II : baleine (mer posée d'un tenant), morse (algues contre la roche) ; le narval veut une route à deux ports
   queue: { visible: [3, 4, 5], seasonExtra: [0, 1, 2] },
   // la surprise de la saison qui vient est annoncée dans la bannière quand il reste au plus tant de poses (feuille Histoire, J-F)
   annonce: { poses: 2 },

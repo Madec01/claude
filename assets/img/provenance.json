@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-28T12:59:28+00:00",
+ "generated": "2026-09-28T14:34:32+00:00",
  "generator": "tools/build_images.py",
  "conventions": {
   "hex": {
@@ -2519,6 +2519,70 @@
    "season": "winter",
    "family": "rare",
    "tile": "tavern",
+   "method": "svg2x"
+  },
+  "phare_spring": {
+   "file": "tiles/phare_spring.webp",
+   "w": 240,
+   "h": 280,
+   "bytes": 6358,
+   "source": [
+    "hexagon-pack",
+    "hexagontiles"
+   ],
+   "original": "PNG/Tiles/Terrain/Stone/stone_07.png + hexagontiles/Tiles/waveWater.png",
+   "note": "Phare : tour de guet KayKit sur la roche, rocher de récif au pied, une vague. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
+   "season": "spring",
+   "family": "rare",
+   "tile": "phare",
+   "method": "svg2x"
+  },
+  "phare_summer": {
+   "file": "tiles/phare_summer.webp",
+   "w": 240,
+   "h": 280,
+   "bytes": 6358,
+   "source": [
+    "hexagon-pack",
+    "hexagontiles"
+   ],
+   "original": "PNG/Tiles/Terrain/Stone/stone_07.png + hexagontiles/Tiles/waveWater.png",
+   "note": "Phare : tour de guet KayKit sur la roche, rocher de récif au pied, une vague. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
+   "season": "summer",
+   "family": "rare",
+   "tile": "phare",
+   "method": "svg2x"
+  },
+  "phare_autumn": {
+   "file": "tiles/phare_autumn.webp",
+   "w": 240,
+   "h": 280,
+   "bytes": 6358,
+   "source": [
+    "hexagon-pack",
+    "hexagontiles"
+   ],
+   "original": "PNG/Tiles/Terrain/Stone/stone_07.png + hexagontiles/Tiles/waveWater.png",
+   "note": "Phare : tour de guet KayKit sur la roche, rocher de récif au pied, une vague. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
+   "season": "autumn",
+   "family": "rare",
+   "tile": "phare",
+   "method": "svg2x"
+  },
+  "phare_winter": {
+   "file": "tiles/phare_winter.webp",
+   "w": 240,
+   "h": 280,
+   "bytes": 6356,
+   "source": [
+    "hexagon-pack",
+    "hexagontiles"
+   ],
+   "original": "PNG/Tiles/Terrain/Stone/stone_07.png + hexagontiles/Tiles/waveWater.png",
+   "note": "Phare : tour de guet KayKit sur la roche, rocher de récif au pied, une vague. Sprites 2× rasterisés depuis les SVG du Hexagon Pack (Chromium).",
+   "season": "winter",
+   "family": "rare",
+   "tile": "phare",
    "method": "svg2x"
   },
   "trough_spring": {
@@ -5214,6 +5278,196 @@
    "note": "Trois-mâts marchand (KayKit EXTRA) : mouillé au port.",
    "anchor": "bottom"
   },
+  "obj_shipyard": {
+   "file": "deco/obj_shipyard.webp",
+   "w": 112,
+   "h": 96,
+   "bytes": 6482,
+   "source": "kaykit",
+   "original": "extra/buildings/red/building_shipyard_red.gltf",
+   "note": "Chantier naval (KayKit EXTRA) : la fusion port + forêt.",
+   "anchor": "bottom"
+  },
+  "obj_chene_A": {
+   "file": "deco/obj_chene_A.webp",
+   "w": 89,
+   "h": 112,
+   "bytes": 3218,
+   "source": "kaykit",
+   "original": "forest/Color1/Tree_1_A_Color1.gltf",
+   "note": "Chêne rond A (pack Forest) : les forêts du climat chaud, feuillage plein toute l'année.",
+   "anchor": "bottom"
+  },
+  "obj_sapin_nord_A": {
+   "file": "deco/obj_sapin_nord_A.webp",
+   "w": 71,
+   "h": 124,
+   "bytes": 3324,
+   "source": "kaykit",
+   "original": "forest/Color1/Tree_4_A_Color1.gltf",
+   "note": "Sapin étagé A (pack Forest) : les forêts du climat froid.",
+   "anchor": "bottom"
+  },
+  "obj_sapin_nord_A_winter": {
+   "file": "deco/obj_sapin_nord_A_winter.webp",
+   "w": 71,
+   "h": 124,
+   "bytes": 3562,
+   "source": "kaykit",
+   "original": "forest/Color1/Tree_4_A_Color1.gltf",
+   "note": "Sapin étagé A, enneigé (feuillage passé à la neige).",
+   "anchor": "bottom"
+  },
+  "obj_arbre_vent_A": {
+   "file": "deco/obj_arbre_vent_A.webp",
+   "w": 37,
+   "h": 96,
+   "bytes": 2528,
+   "source": "kaykit",
+   "original": "forest/Color1/Tree_Bare_1_A_Color1.gltf",
+   "note": "Arbre tordu A (pack Forest, arbre nu) : couché par le vent du climat venteux.",
+   "anchor": "bottom"
+  },
+  "obj_frondaison_A_spring": {
+   "file": "deco/obj_frondaison_A_spring.webp",
+   "w": 51,
+   "h": 104,
+   "bytes": 2900,
+   "source": "kaykit",
+   "original": "forest/Color1/Tree_6_A_Color1.gltf",
+   "note": "Frondaison A (spring) : les forêts du climat humide, feuillage recoloré par saison.",
+   "anchor": "bottom"
+  },
+  "obj_frondaison_A_summer": {
+   "file": "deco/obj_frondaison_A_summer.webp",
+   "w": 51,
+   "h": 104,
+   "bytes": 2874,
+   "source": "kaykit",
+   "original": "forest/Color1/Tree_6_A_Color1.gltf",
+   "note": "Frondaison A (summer) : les forêts du climat humide, feuillage recoloré par saison.",
+   "anchor": "bottom"
+  },
+  "obj_frondaison_A_autumn": {
+   "file": "deco/obj_frondaison_A_autumn.webp",
+   "w": 51,
+   "h": 104,
+   "bytes": 2936,
+   "source": "kaykit",
+   "original": "forest/Color1/Tree_6_A_Color1.gltf",
+   "note": "Frondaison A (autumn) : les forêts du climat humide, feuillage recoloré par saison.",
+   "anchor": "bottom"
+  },
+  "obj_frondaison_A_winter": {
+   "file": "deco/obj_frondaison_A_winter.webp",
+   "w": 51,
+   "h": 104,
+   "bytes": 3134,
+   "source": "kaykit",
+   "original": "forest/Color1/Tree_6_A_Color1.gltf",
+   "note": "Frondaison A (winter) : les forêts du climat humide, feuillage recoloré par saison.",
+   "anchor": "bottom"
+  },
+  "obj_chene_B": {
+   "file": "deco/obj_chene_B.webp",
+   "w": 81,
+   "h": 112,
+   "bytes": 3116,
+   "source": "kaykit",
+   "original": "forest/Color1/Tree_1_B_Color1.gltf",
+   "note": "Chêne rond B (pack Forest) : les forêts du climat chaud, feuillage plein toute l'année.",
+   "anchor": "bottom"
+  },
+  "obj_sapin_nord_B": {
+   "file": "deco/obj_sapin_nord_B.webp",
+   "w": 55,
+   "h": 124,
+   "bytes": 4226,
+   "source": "kaykit",
+   "original": "forest/Color1/Tree_4_B_Color1.gltf",
+   "note": "Sapin étagé B (pack Forest) : les forêts du climat froid.",
+   "anchor": "bottom"
+  },
+  "obj_sapin_nord_B_winter": {
+   "file": "deco/obj_sapin_nord_B_winter.webp",
+   "w": 55,
+   "h": 124,
+   "bytes": 4510,
+   "source": "kaykit",
+   "original": "forest/Color1/Tree_4_B_Color1.gltf",
+   "note": "Sapin étagé B, enneigé (feuillage passé à la neige).",
+   "anchor": "bottom"
+  },
+  "obj_arbre_vent_B": {
+   "file": "deco/obj_arbre_vent_B.webp",
+   "w": 42,
+   "h": 96,
+   "bytes": 2720,
+   "source": "kaykit",
+   "original": "forest/Color1/Tree_Bare_1_B_Color1.gltf",
+   "note": "Arbre tordu B (pack Forest, arbre nu) : couché par le vent du climat venteux.",
+   "anchor": "bottom"
+  },
+  "obj_frondaison_B_spring": {
+   "file": "deco/obj_frondaison_B_spring.webp",
+   "w": 69,
+   "h": 104,
+   "bytes": 2784,
+   "source": "kaykit",
+   "original": "forest/Color1/Tree_2_A_Color1.gltf",
+   "note": "Frondaison B (spring) : les forêts du climat humide, feuillage recoloré par saison.",
+   "anchor": "bottom"
+  },
+  "obj_frondaison_B_summer": {
+   "file": "deco/obj_frondaison_B_summer.webp",
+   "w": 69,
+   "h": 104,
+   "bytes": 2770,
+   "source": "kaykit",
+   "original": "forest/Color1/Tree_2_A_Color1.gltf",
+   "note": "Frondaison B (summer) : les forêts du climat humide, feuillage recoloré par saison.",
+   "anchor": "bottom"
+  },
+  "obj_frondaison_B_autumn": {
+   "file": "deco/obj_frondaison_B_autumn.webp",
+   "w": 69,
+   "h": 104,
+   "bytes": 2820,
+   "source": "kaykit",
+   "original": "forest/Color1/Tree_2_A_Color1.gltf",
+   "note": "Frondaison B (autumn) : les forêts du climat humide, feuillage recoloré par saison.",
+   "anchor": "bottom"
+  },
+  "obj_frondaison_B_winter": {
+   "file": "deco/obj_frondaison_B_winter.webp",
+   "w": 69,
+   "h": 104,
+   "bytes": 2908,
+   "source": "kaykit",
+   "original": "forest/Color1/Tree_2_A_Color1.gltf",
+   "note": "Frondaison B (winter) : les forêts du climat humide, feuillage recoloré par saison.",
+   "anchor": "bottom"
+  },
+  "obj_epicea_A": {
+   "file": "deco/obj_epicea_A.webp",
+   "w": 88,
+   "h": 132,
+   "bytes": 3990,
+   "source": "kaykit",
+   "original": "forest/Color1/Tree_5_A_Color1.gltf",
+   "note": "Épicéa (pack Forest) : forêts du climat froid.",
+   "anchor": "bottom"
+  },
+  "obj_epicea_A_winter": {
+   "file": "deco/obj_epicea_A_winter.webp",
+   "w": 88,
+   "h": 132,
+   "bytes": 4206,
+   "source": "kaykit",
+   "original": "forest/Color1/Tree_5_A_Color1.gltf",
+   "note": "Épicéa enneigé (feuillage passé à la neige).",
+   "anchor": "bottom"
+  },
   "obj_stage": {
    "file": "deco/obj_stage.webp",
    "w": 130,
@@ -6448,6 +6702,33 @@
    "source": "kenney_animalpackredux",
    "original": "PNG/Round/whale.png",
    "note": "Baleine — tête ronde, taille native (dossier Round) : fait surface au large, de loin en loin."
+  },
+  "fauna_whale": {
+   "file": "fauna/fauna_whale.webp",
+   "w": 138,
+   "h": 154,
+   "bytes": 2874,
+   "source": "kenney_animalpackredux",
+   "original": "PNG/Round/whale.png",
+   "note": "Baleine — les grandes étendues de mer posée (faune du Livre II)."
+  },
+  "fauna_walrus": {
+   "file": "fauna/fauna_walrus.webp",
+   "w": 128,
+   "h": 138,
+   "bytes": 2890,
+   "source": "kenney_animalpackredux",
+   "original": "PNG/Round/walrus.png",
+   "note": "Morse — il se hisse sur les algues contre la roche (faune du Livre II)."
+  },
+  "fauna_narwhal": {
+   "file": "fauna/fauna_narwhal.webp",
+   "w": 138,
+   "h": 155,
+   "bytes": 3368,
+   "source": "kenney_animalpackredux",
+   "original": "PNG/Round/narwhal.png",
+   "note": "Narval — il suit les routes de mer entre les ports (faune du Livre II)."
   },
   "smoke_01": {
    "file": "fx/smoke_01.webp",

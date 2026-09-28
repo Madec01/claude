@@ -5,6 +5,7 @@ import { Board } from '../src/game/board.js';
 import { computeRoutes, chaineTerritoire, rentesRares, rentesLivre2 } from '../src/game/routes.js';
 import { campaignMechanics, campaignIsland, MECH_AT } from '../src/data/campaign.js';
 import { transition } from '../src/game/seasons.js';
+import { evaluate as evalFaune, FAUNA_MARINE } from '../src/game/fauna.js';
 import { reglesPour, SEASON_RULES, RULE_SEASON, RULE_LOOK } from '../src/game/seasonrules.js';
 import { fusionFor, RARE_AS } from '../src/data/tiles.js';
 import { fusedTile } from '../src/game/rules.js';
@@ -198,6 +199,31 @@ const defMech = (seed, cells, extra = {}) => ({ ...defDe(seed, cells), mech: new
   const ev = transition(b, 'autumn', 'recolte', isl.climate);
   check(ev.some((e) => e.type === 'wind' && e.q === expose[0] && e.r === expose[1] && e.pts === -1) && !ev.some((e) => e.type === 'wind' && e.q === ca[0] && e.r === ca[1]), 'venteux : le champ sans abri perd 1, celui contre le hameau est abrité');
   check(isl.climate.longSeason === 'autumn' && (isl.look === 'wind' || (RULE_LOOK[isl.rule] && isl.look === RULE_LOOK[isl.rule])), `venteux : l’automne dure deux saisons et le vent souffle sur l’île quand la règle n’a pas son propre habillage (règle ${isl.rule}, look ${isl.look})`);
+}
+
+
+// --- la faune de mer : la baleine sur une mer d'un tenant, le narval sur une route à deux ports, le morse sur les algues contre la roche
+{
+  const isl = new Island(defMech(107, 60), { upgrades: {} }); const b = isl.board; const F = BALANCE.fauna;
+  check(FAUNA_MARINE.has('whale') && FAUNA_MARINE.has('walrus') && FAUNA_MARINE.has('narwhal'), 'trois espèces de mer : baleine, morse, narval');
+  const f0 = evalFaune(b, isl.season, isl.rule);
+  check(![...f0.values()].some((a) => FAUNA_MARINE.has(a.species)), 'au départ, aucun animal de mer (rien de posé sur le détroit)');
+  const { chemin } = relier(isl);
+  const f1 = evalFaune(b, isl.season, isl.rule); const narval = [...f1.values()].find((a) => a.species === 'narwhal');
+  check(!!narval && b.detroit.has(key(narval.q, narval.r)), `deux ports reliés : le narval suit la route (posé sur ${narval ? key(narval.q, narval.r) : '?'}, sur le détroit)`);
+  // on étend la mer jusqu'à cinq cases d'un tenant
+  const poses = new Set(chemin); let garde = 0;
+  while (poses.size < F.whale && garde++ < 60) { let fait = false; for (const k of [...poses]) { const [q, r] = k.split(',').map(Number); const c = neighbors(q, r).find(([a, cc]) => b.detroit.has(key(a, cc)) && b.isEmpty(a, cc)); if (c) { b.place(c[0], c[1], { family: 'sea', variant: 1, id: 40 }); poses.add(key(c[0], c[1])); fait = true; break; } } if (!fait) break; }
+  const f2 = evalFaune(b, isl.season, isl.rule); const baleine = [...f2.values()].find((a) => a.species === 'whale');
+  check(poses.size >= F.whale && !!baleine && b.detroit.has(key(baleine.q, baleine.r)), `une mer de ${poses.size} cases d'un tenant : la baleine fait surface`);
+  // des algues contre la roche : deux cases du détroit voisines d'une roche
+  let roche = null; for (const k of b.mask) { const [q, r] = k.split(',').map(Number); if (b.isEmpty(q, r) && !b.detroit.has(k) && neighbors(q, r).some(([a, c]) => b.detroit.has(key(a, c)) && b.isEmpty(a, c))) { roche = [q, r]; break; } }
+  b.place(roche[0], roche[1], { family: 'rock', variant: 1, id: 41 });
+  const algues = neighbors(roche[0], roche[1]).filter(([a, c]) => b.detroit.has(key(a, c)) && b.isEmpty(a, c)).slice(0, 2);
+  for (const [a, c] of algues) b.place(a, c, { family: 'kelp', variant: 1, id: 42 });
+  if (algues.length < 2) { const [a, c] = algues[0]; const c2 = neighbors(a, c).find(([x, y]) => b.detroit.has(key(x, y)) && b.isEmpty(x, y)); if (c2) b.place(c2[0], c2[1], { family: 'kelp', variant: 1, id: 43 }); }
+  const f3 = evalFaune(b, isl.season, isl.rule); const morse = [...f3.values()].find((a) => a.species === 'walrus');
+  check(!!morse && Board.isFamily(b.get(morse.q, morse.r), 'kelp'), `des algues contre la roche : le morse s'y hisse (${morse ? key(morse.q, morse.r) : 'absent'})`);
 }
 
 console.log(failures ? `${failures} échec(s)` : 'Tous les tests du Livre II passent.');

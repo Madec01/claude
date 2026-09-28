@@ -190,6 +190,13 @@ KAY_MODELS = {
     "pin_parasol_A": "forest/Color1/Tree_3_A_Color1", "pin_parasol_B": "forest/Color1/Tree_3_B_Color1", "pin_parasol_C": "forest/Color1/Tree_3_C_Color1",
     "pin_maritime_A": "forest/Color1/Tree_7_A_Color1", "pin_maritime_B": "forest/Color1/Tree_7_B_Color1",
     "recif_A": "forest/Color1/Rock_1_A_Color1", "recif_B": "forest/Color1/Rock_3_A_Color1", "recif_C": "forest/Color1/Rock_6_A_Color1",
+    # lot 7b : le chantier naval du pack EXTRA, et les arbres de climat (pack Forest) — le chêne rond du Sud, les sapins
+    # étagés du Nord, les frondaisons pleines des pluies, l'arbre tordu par le vent
+    "chantier_naval": "extra/buildings/red/building_shipyard_red",
+    "chene_A": "forest/Color1/Tree_1_A_Color1", "chene_B": "forest/Color1/Tree_1_B_Color1",
+    "sapin_nord_A": "forest/Color1/Tree_4_A_Color1", "sapin_nord_B": "forest/Color1/Tree_4_B_Color1", "epicea_A": "forest/Color1/Tree_5_A_Color1",
+    "frondaison_A": "forest/Color1/Tree_6_A_Color1", "frondaison_B": "forest/Color1/Tree_2_A_Color1",
+    "arbre_vent_A": "forest/Color1/Tree_Bare_1_A_Color1", "arbre_vent_B": "forest/Color1/Tree_Bare_1_B_Color1",
     "barque": "extra/decoration/props/boat",
     "chevalet": "extra/decoration/props/boatrack",
     "ancre": "extra/decoration/props/anchor",
@@ -832,6 +839,9 @@ TILES = {
                  note="Chantier KayKit : échafaudage et palette (devient la famille majoritaire autour d'elle)."),
     "tavern": T("rare", "grass_05", [L("kay:tavern", 60, 90, scale=0.81), L("kay:barrel", 26, 102, scale=1.4), L("kay:barrel", 94, 106, scale=1.2)],
                 note="Taverne KayKit + deux tonneaux."),
+    # Livre II (lot 7b) : le phare — une tour de pierre KayKit sur la roche, un récif au pied, une vague ; sa lanterne est un halo dessiné en jeu (dégradé, pas une image)
+    "phare": T("rare", "stone_07", [L("kay:tower", 60, 86, scale=0.72), L("kay:recif_B", 36, 98, "rock", width=28), L("ht:waveWater:3.7", 82, 98, "wave")], base_kind="stone",
+               note="Phare : tour de guet KayKit sur la roche, rocher de récif au pied, une vague."),
     "trough": T("rare", "grass_05", [L("kay:abreuvoir", 60, 94, width=56), L("kay:bucket", 92, 104, scale=1.4)] + FLOWERS_SPRING,
                 note="Abreuvoir + clôtures KayKit + seau + fleurs au printemps."),
     "archway": T("rare", "grass_05", [L("kay:gate", 60, 94, scale=0.68), L("kay:wall", 28, 96, scale=0.5), L("kay:wall", 92, 96, scale=0.5)],
@@ -1341,6 +1351,17 @@ class Builder:
         kobj("obj_boatrack", "chevalet", "summer", 56, "static", "Chevalet à bateau (KayKit EXTRA) : rives et port.")
         kobj("obj_anchor", "ancre", "summer", 28, "static", "Ancre de fer (KayKit EXTRA) : port.")
         kobj("obj_ship", "navire", "summer", 100, "static", "Trois-mâts marchand (KayKit EXTRA) : mouillé au port.")
+        # lot 7b : le chantier naval (fusion port + forêt) et les arbres de climat — sans règle, le décor des forêts change avec le ciel
+        kobj("obj_shipyard", "chantier_naval", "summer", round(150 * BUILD_SCALE), "static", "Chantier naval (KayKit EXTRA) : la fusion port + forêt.")
+        for v in ("A", "B"):
+            kobj(f"obj_chene_{v}", f"chene_{v}", "summer", None, "static", f"Chêne rond {v} (pack Forest) : les forêts du climat chaud, feuillage plein toute l'année.", target_h=112)
+            kobj(f"obj_sapin_nord_{v}", f"sapin_nord_{v}", "summer", None, "static", f"Sapin étagé {v} (pack Forest) : les forêts du climat froid.", target_h=124)
+            kobj(f"obj_sapin_nord_{v}_winter", f"sapin_nord_{v}", "winter", None, "foliage", f"Sapin étagé {v}, enneigé (feuillage passé à la neige).", target_h=124)
+            kobj(f"obj_arbre_vent_{v}", f"arbre_vent_{v}", "summer", None, "static", f"Arbre tordu {v} (pack Forest, arbre nu) : couché par le vent du climat venteux.", target_h=96)
+            for season in SEASONS:
+                kobj(f"obj_frondaison_{v}_{season}", f"frondaison_{v}", season, None, "foliage", f"Frondaison {v} ({season}) : les forêts du climat humide, feuillage recoloré par saison.", target_h=104)
+        kobj("obj_epicea_A", "epicea_A", "summer", None, "static", "Épicéa (pack Forest) : forêts du climat froid.", target_h=132)
+        kobj("obj_epicea_A_winter", "epicea_A", "winter", None, "foliage", "Épicéa enneigé (feuillage passé à la neige).", target_h=132)
         # Le chantier : ossature, échelle, pelle, et deux charrettes pour le marché.
         kobj("obj_stage", "chantier_B", "summer", 130, "static", "Ossature de chantier (KayKit) : tuile « restaurer ».")
         kobj("obj_ladder", "echelle", "summer", 26, "static", "Échelle (KayKit) : chantier.")
@@ -1513,6 +1534,14 @@ class Builder:
         im = Image.open(self.src.path(AN, "PNG/Round/whale.png")).convert("RGBA")
         im = im.crop(im.split()[3].getbbox())
         self.emit("sea_whale", "sea", im, AN, "PNG/Round/whale.png", "Baleine — tête ronde, taille native (dossier Round) : fait surface au large, de loin en loin.")
+        # lot 7b : la faune marine du Livre II, même pack, même dossier — le morse sur les algues contre la roche, le narval qui suit les routes
+        # Ils vivent dans le dossier de la faune (le Guide et le rendu des animaux les y cherchent), à plat comme la baleine du large.
+        for name, f, note in (("fauna_whale", "whale", "Baleine — les grandes étendues de mer posée (faune du Livre II)."),
+                              ("fauna_walrus", "walrus", "Morse — il se hisse sur les algues contre la roche (faune du Livre II)."),
+                              ("fauna_narwhal", "narwhal", "Narval — il suit les routes de mer entre les ports (faune du Livre II).")):
+            im = Image.open(self.src.path(AN, f"PNG/Round/{f}.png")).convert("RGBA")
+            im = im.crop(im.split()[3].getbbox())
+            self.emit(name, "fauna", im, AN, f"PNG/Round/{f}.png", note)
 
     # --- C. effets
     def build_fx(self):
@@ -1878,7 +1907,14 @@ def webp_pass(img_root: Path) -> None:
             continue
         src = img_root / e["file"]
         if not src.exists():
+            # le PNG a déjà été converti par une passe interrompue : on remet le manifeste d'accord avec le WebP présent
+            deja = src.with_suffix(".webp")
+            if deja.exists():
+                with Image.open(deja) as im:
+                    e["w"], e["h"] = im.size
+                e["file"] = e["file"][:-4] + ".webp"; e["bytes"] = deja.stat().st_size
             continue
+        taille = src.stat().st_size
         with Image.open(src) as im:
             im = im.convert("RGBA")
             if opts.get("max_px") and max(im.size) > opts["max_px"]:
@@ -1886,7 +1922,7 @@ def webp_pass(img_root: Path) -> None:
             dst = src.with_suffix(".webp")
             im.save(dst, "WEBP", method=6, **{k: v for k, v in opts.items() if k != "max_px"})
             w, h = im.size
-        avant += src.stat().st_size
+        avant += taille
         src.unlink()
         e["file"] = e["file"][:-4] + ".webp"
         e["w"], e["h"], e["bytes"] = w, h, dst.stat().st_size

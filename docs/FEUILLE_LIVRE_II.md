@@ -78,8 +78,10 @@ devient sa barque à la fin de l'île 30 ; la cinématique du commanditaire ouvr
 
 ## Ce qui entre ensuite, et ce qui part
 
-- **Trois animaux marins** : le dauphin suit les routes, le phoque les algues contre la roche, la baleine les grandes étendues.
-- **Deux ou trois rares** : Taverne (paie par port relié), Marché (par marchandise différente), Chantier naval (fusion port + forêt).
+- **Trois animaux marins** (lot 7b) : le **narval** suit les routes (les packs libres à disposition n'ont pas de dauphin ; un dauphin CC0 le remplacera s'il s'en trouve un), le **morse** les algues contre la roche, la **baleine** les grandes étendues (cinq cases de mer d'un tenant).
+- **Trois rares et une fusion** (lot 7b) : Taverne (+1 par port relié aux ports qui la touchent, au plus 4), Marché (+1 par marchandise différente de ces routes, au plus 5), Phare (compte comme roche ; chaque route qui le touche paie +2), Chantier naval (fusion port + forêt, +1 par mer voisine, au plus 3).
+- **Les surprises de mer** (lot 7b) : la **tempête** (hiver, dès l'île 37, à la place de l'hiver doux) — les routes ne paient pas cette saison, pas de gel, le récif +2, la pinède au bord de la mer +1 ; la **marée basse** (printemps, dès l'île 40, à la place des semailles) — l'estran : mer contre terre +1, algues +2, les marais sous l'eau.
+- **Le climat venteux** (chapitre 13) : +1 par port relié, l'automne dure deux saisons, un champ ou un verger sans abri (forêt, pinède, colline, roche, hameau) perd 1 par saison ; le vent souffle sur l'île en permanence.
 - **Ce qui part** de la spécification du 18 septembre : balise, filet, trois des quatre fusions marines, la météo de mer à part.
 
 ## Les lots
@@ -88,5 +90,5 @@ devient sa barque à la fin de l'île 30 ; la cinématique du commanditaire ouvr
 |---|---|---|
 | 0 | Mesure : archipel, détroit, tuiles de mer, routes, chaîne, robot — ce document | **fait** (prototype dans le jeu, test `tests/livre2.test.js`) |
 | 7a | Chapitres 11 et 12 jouables : îles 31 à 36 dans la campagne (et les chapitres 13 à 15 déjà jouables, sans leurs mécaniques propres), images des cinq familles (packs KayKit), rendu du détroit et de la mer posée, aperçu et lecture (routes, chaîne), textes, robot et calibrage des îles 31 à 45 | **fait** (28 septembre) |
-| 7b | Pinède qui ne sèche pas, variantes d'arbres par climat, rares, faune marine, climat venteux, tempête, phare, marée, chapitres 13 et 14 | à faire |
+| 7b | Pinède qui abrite, arbres par climat, rares (taverne, marché, phare), chantier naval, faune de mer (baleine, morse, narval), climat venteux, tempête, marée, chapitres 13 et 14 | **fait** (28 septembre) ; la marée qui découvre des cases pleines (idée du commanditaire) en prototype, île 40 |
 | 7c | Récit, passeuse, cinématique, chapitre 15 et fin, musiques et ambiances | à faire |

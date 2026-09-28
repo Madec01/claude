@@ -339,6 +339,8 @@ export const STORY = {
     c_mouth: { giver: 'Le vieux pêcheur', title: 'Jusqu’à la mer', text: 'Une rivière qui atteint la mer. Les poissons connaissent le chemin, pas moi.', done: 'L’embouchure est là. Le pêcheur a attrapé un souvenir.', failed: 'La rivière s’est arrêtée. Le pêcheur aussi.' },
     c_lake: { giver: 'La fille du puits', title: 'Un lac pour se regarder', text: 'Un lac de cinq tuiles, en tas, loin de la roche. Je veux voir le ciel par terre.', done: 'Le lac reflète tout. Même ce qu’on ne montre pas.', failed: 'Pas de lac. La fille du puits regarde le puits.' },
     c_rabbit: { giver: 'Les enfants', title: 'Un lapin', text: 'Un lapin. Il faut de l’herbe, et pas trop de monde.', done: 'Le lapin est venu. Les enfants ont promis de ne pas le toucher. Ils ont menti.', failed: 'Pas de lapin. Les enfants en ont dessiné un.' },
+    c_whale: { giver: 'La passeuse', title: 'Une baleine', text: 'Pose la mer d’un seul tenant, cinq cases au moins. Elle viendra voir.', done: 'La baleine a soufflé une fois, juste devant la barque. La passeuse n’a rien dit.', failed: 'La mer est restée en morceaux. La baleine est passée au large.' },
+    c_narwhal: { giver: 'Le capitaine du port', title: 'Un narval', text: 'Relie deux ports par la mer. Il suit toujours les bateaux, celui-là.', done: 'Le narval a suivi la première route jusqu’au quai. Les enfants ont compté sa dent.', failed: 'Aucune route. Le narval n’a suivi personne.' },
     c_duck: { giver: 'Le meunier', title: 'Des canards', text: 'Un lac assez grand pour des canards. Ils se posent lourd.', done: 'Les canards sont là. Le meunier leur parle le matin.', failed: 'Les canards ont survolé l’île. Sans s’arrêter.' },
     c_species: { giver: 'La vieille', title: 'Quatre espèces', text: 'Quatre animaux différents. Une île sans bêtes, c’est une table sans pieds.', done: 'Quatre espèces, et une vieille qui les nomme toutes.', failed: 'Trois espèces. La vieille compte le chat.' },
     c_bourg: { giver: 'Le conseil', title: 'Deux bourgs', text: 'Deux hameaux clos. On s’entend mieux avec un mur entre nous.', done: 'Deux bourgs, deux murs, une fête commune. Allez comprendre.', failed: 'Un seul bourg. Il se croit capitale.' },
@@ -539,6 +541,24 @@ export const STORY = {
       arrive: 'Une chèvre s’est installée au campement. Personne ne sait d’où elle vient ; elle, si.',
       leave: 'La chèvre est partie voir plus haut.',
       habitat: 'Un campement : il attire un animal, quel que soit l’habitat autour.',
+    },
+    whale: {
+      name: 'Baleine',
+      arrive: 'Une baleine fait surface entre les deux rives. Elle souffle, elle reste, elle regarde.',
+      leave: 'La baleine a replongé. La mer est de nouveau trop petite pour elle.',
+      habitat: 'Une mer posée d’un seul tenant, cinq cases au moins (Livre II).',
+    },
+    walrus: {
+      name: 'Morse',
+      arrive: 'Un morse s’est hissé sur les algues, contre la roche. Il ne bougera plus avant l’hiver.',
+      leave: 'Le morse a glissé dans l’eau.',
+      habitat: 'Des algues, deux cases au moins, contre la roche (Livre II).',
+    },
+    narwhal: {
+      name: 'Narval',
+      arrive: 'Un narval suit la route entre les deux ports. Les marins le saluent, il ne répond pas.',
+      leave: 'Le narval a perdu la route.',
+      habitat: 'Une route de mer qui relie deux ports (Livre II).',
     },
     penguin: {
       name: 'Manchot',

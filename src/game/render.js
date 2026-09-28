@@ -3,7 +3,7 @@ import { Assets } from '../core/assets.js';
 import { toWorld, corners, parse, key, DIRS, edgeMid, TILE_W, TILE_H, SIZE } from './hex.js';
 import { FAMILY_COLORS, SEASONS, MER } from '../data/tiles.js';
 import { STORY } from '../data/story.js';
-import { FAUNA_SIZE, FAUNA_PERCHED } from './fauna.js';
+import { FAUNA_SIZE, FAUNA_PERCHED, FAUNA_MARINE } from './fauna.js';
 import { clamp, lerp, TAU, easeOutCubic, rnd } from '../core/math.js';
 
 import { STAGE } from '../core/stage.js';
@@ -139,6 +139,7 @@ export class IslandRenderer {
     this._life = { boat: null, whale: null, nextBoat: rnd(5, 18), nextWhale: rnd(45, 100), season: island.season };   // le voilier et la baleine
     this.faunaPos = new Map();  // clé -> { x, y, bob }
     this.decor = new Decor((island.def && island.def.seed) || 1);
+    this.decor.climat = island.climate ? island.climate.id : 'temperate';   // lot 7b : les forêts changent d'arbres avec le climat
     this.weather = null; this.flash = 0; this.rain = [];
     this.wander = new Map();   // faune : position et cible de déplacement par clé
     this.legacy = !Assets.has('ground_grass_spring');   // manifeste sans sols/objets : tuiles composées (repli)
@@ -1038,6 +1039,8 @@ export class IslandRenderer {
     // les objets (arbres, maisons, rochers…), gardés en image comme les sols
     this.drawGarde('objets', ctx, `${this.isl.rule || ''}|${this.weather || ''}`, dropping, (c2, bande) => this.drawObjets(c2, dropping, anses, visB(bande), images), this.etendueObjets(images));
     for (const t of tiles) if (t.bloom) { const w = toWorld(t.q, t.r); const c = cam.toScreen(w.x, w.y); if (vis(c)) this.drawBloom(ctx, c.x, c.y); }
+    // Livre II : la lanterne du phare — un halo chaud qui respire au sommet de la tour (un dégradé, pas une image)
+    for (const t of tiles) if (t.family === 'phare') { const w = toWorld(t.q, t.r); const c = cam.toScreen(w.x, w.y); if (!vis(c)) continue; const k = 0.7 + 0.3 * Math.sin(this.time * 2.4 + t.q); const r = 22 * z; const g = ctx.createRadialGradient(c.x + 2 * z, c.y - 44 * z, 0, c.x + 2 * z, c.y - 44 * z, r); g.addColorStop(0, `rgba(255,232,160,${(0.55 * k).toFixed(3)})`); g.addColorStop(0.5, `rgba(255,214,120,${(0.22 * k).toFixed(3)})`); g.addColorStop(1, 'rgba(255,200,100,0)'); ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.fillStyle = g; ctx.beginPath(); ctx.arc(c.x + 2 * z, c.y - 44 * z, r, 0, TAU); ctx.fill(); ctx.restore(); }
     // option « Grille discrète » : fin contour sur les tuiles posées, par-dessus les sols et les objets (sinon les fondus le couvrent)
     if (Save.options.grid) {
       ctx.save(); ctx.strokeStyle = 'rgba(43,42,38,0.32)'; ctx.lineWidth = Math.max(1, 1.2 * z); ctx.beginPath();
@@ -2083,7 +2086,7 @@ export class IslandRenderer {
     if (!st) { st = { x: home.x, y: home.y, tx: home.x, ty: home.y, wait: 1 + Math.random() * 3, hop: 0, walked: Math.random() * 100, left: Math.random() < 0.5 }; this.wander.set(k, st); }
     // un perché porte sa branche dans son sprite : s'il se promène, c'est la branche qui glisse sur
     // le sol. Il ne quitte pas sa case.
-    if (FAUNA_PERCHED.has(a.species)) { st.x = st.tx = home.x; st.y = st.ty = home.y; return st; }
+    if (FAUNA_PERCHED.has(a.species) || FAUNA_MARINE.has(a.species)) { st.x = st.tx = home.x; st.y = st.ty = home.y; return st; }   // la faune de mer reste à fleur d'eau sur sa case
     st.wait -= dt;
     const fam = HAB[a.species];
     if (st.wait <= 0 && fam) {
@@ -2113,12 +2116,29 @@ export class IslandRenderer {
    * (`fauna_<espèce>_side`), choisie par la distance parcourue et retournée selon le sens de
    * marche ; repli sur la tête ronde si la bande manque.
    */
+  /**
+   * Livre II — un animal de mer : dessiné à la ligne de flottaison comme la baleine du large (seule la partie émergée, un
+   * remous dessous), sans ombre portée ; il ondule doucement. `gy` est le sol de la case : la ligne d'eau est un peu au-dessus.
+   */
+  drawAnimalMer(ctx, species, st, gx, gy, w, alpha) {
+    const img = Assets.img(`fauna_${species}`); if (!img) return;
+    const z = this.cam.zoom; const h = w * (img.height / img.width); const t = this.time + gx * 0.01;
+    const y = gy - 14 * z + Math.sin(t * 1.6) * 1.5 * z;
+    ctx.save(); ctx.globalAlpha = alpha; ctx.translate(gx, y); if (st && st.left) ctx.scale(-1, 1);
+    const wv = this.waveImgs && this.waveImgs[1]; if (wv) { ctx.globalAlpha = 0.22 * alpha; ctx.drawImage(wv, -w * 0.7, h * 0.02, w * 1.4, h * 0.3); ctx.globalAlpha = alpha; }
+    // l'image va de −0,55 h à +0,45 h : on ne garde que sa partie haute (le dos, la tête), le reste est sous l'eau
+    ctx.beginPath(); ctx.rect(-w, -h * 0.55, 2 * w, h * (species === 'walrus' ? 0.72 : 0.6)); ctx.clip();
+    ctx.drawImage(img, -w / 2, -h * 0.55, w, h);
+    ctx.restore();
+  }
+
   drawAnimal(ctx, species, st, gx, gy, lift, s, alpha) {
     const cam = this.cam;
     const sheet = Assets.img(`fauna_${species}_side`);
     const m = sheet ? (Assets.manifest().images || {})[`fauna_${species}_side`] : null;
     s *= FAUNA_SIZE[species] || 0.5;   // échelle commune : sans elle, chaque espèce fait la taille de son rendu
     const w = m ? (m.frame_w / 2) * cam.zoom * s : 44 * cam.zoom * s;
+    if (FAUNA_MARINE.has(species)) { this.drawAnimalMer(ctx, species, st, gx, gy, w, alpha); return; }
     const k = 1 - Math.min(0.3, Math.abs(lift) / Math.max(1, 70 * cam.zoom));   // l'ombre rétrécit un peu quand il se soulève
     ctx.save();
     ctx.globalAlpha = alpha * 0.85;

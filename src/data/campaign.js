@@ -65,6 +65,8 @@ export const CAMPAIGN_WISHES = [
   { id: 'c_lake', type: 'lake', size: 5, dl: 0.7, needs: 'river' },
   { id: 'c_rabbit', type: 'fauna', species: 'rabbit', dl: 0.5, needs: 'fauna' },
   { id: 'c_duck', type: 'fauna', species: 'duck', dl: 0.6, needs: 'fauna' },
+  { id: 'c_whale', type: 'fauna', species: 'whale', dl: 0.7, needs: 'mer' },        // Livre II : une baleine, donc une mer posée d'un tenant
+  { id: 'c_narwhal', type: 'fauna', species: 'narwhal', dl: 0.8, needs: 'ports' },   // Livre II : un narval, donc une route à deux ports
   { id: 'c_species', type: 'species', count: 4, dl: 0.85, needs: 'fauna' },
   { id: 'c_bourg', type: 'bourg', count: 2, dl: 0.85 },
   { id: 'c_harvest', type: 'harvest', count: 3, dl: 0.95, needs: 'season' },
