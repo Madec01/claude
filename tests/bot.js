@@ -7,7 +7,7 @@ import { evaluate as evalFauna } from '../src/game/fauna.js';
 import { progressOf } from '../src/game/wishes.js';
 import { neighbors } from '../src/game/hex.js';
 
-const W0 = { next: 0.6, wish: 2.5, wishDone: 12, fauna: 3, grow: 0.35, close: 1.2 };
+const W0 = { next: 0.6, wish: 2.5, wishDone: 12, fauna: 3, grow: 0.35, close: 1.2, rente: 2.5 };   // rente : Livre II, ce qu'une pose ajoute aux routes et à la chaîne par saison, compté sur les saisons qui restent (plafonné)
 let W = W0;   // `playStrong(def, { poids })` en fait varier le style (mesures de la feuille Histoire, J-J)
 
 /** Score heuristique d'une pose (points immédiats + avenir proche). */
@@ -15,6 +15,7 @@ function evalMove(isl, tile, q, r, rng, deep) {
   const pv = isl.preview(q, r, tile);
   if (!pv) return -Infinity;
   let s = pv.total + rng() * 0.05;
+  if (pv.rente) s += pv.rente * Math.min(W.rente, Math.max(1, Math.ceil(isl.queue.remaining / Math.max(1, isl.seasonLength))));
   if (!deep) return s;
   const b = isl.board;
   // prime aux régions qui grandissent (fermetures et vœux de taille)
@@ -32,13 +33,13 @@ function evalMove(isl, tile, q, r, rng, deep) {
     open.forEach((w, i) => { const p = progressOf(w, ctx); const d = Math.min(p, w.target) - Math.min(before[i], w.target); if (d > 0) s += d * W.wish; if (p >= w.target && before[i] < w.target) s += W.wishDone; });
     s += (evalFauna(b, isl.season, isl.rule).size - faunaBefore) * W.fauna;
     const nxt = isl.queue.list[1];
-    if (nxt) { let best = 0; for (const c of b.legalCells()) { const p = isl.preview(c.q, c.r, nxt); if (p && p.total > best) best = p.total; } s += best * W.next; }
+    if (nxt) { let best = 0; for (const c of b.legalCells(nxt)) { const p = isl.preview(c.q, c.r, nxt); if (p && p.total > best) best = p.total; } s += best * W.next; }
   } finally { b.closedRegions = avant; b.remove(q, r); }
   return s;
 }
 
 function bestMove(isl, tile, rng) {
-  const cells = isl.board.legalCells();
+  const cells = isl.board.legalCells(tile);
   const quick = cells.map((c) => ({ c, s: evalMove(isl, tile, c.q, c.r, rng, false) })).sort((a, b) => b.s - a.s).slice(0, 10);
   let best = null, bs = -Infinity;
   for (const { c } of quick) { const s = evalMove(isl, tile, c.q, c.r, rng, true); if (s > bs) { bs = s; best = c; } }
@@ -68,7 +69,7 @@ export function playStrong(def, o = {}) {
       if (bb && isl.build(bb.q, bb.r, bb.a.kind, bb.a.recipe ? bb.a.recipe.id : null)) continue;
     }
     let mv = bestMove(isl, tile, rng);
-    if (!mv.cell) { isl.checkEnd(); break; }
+    if (!mv.cell) { isl.checkEnd(); if (isl.ended) break; continue; }   // Livre II : une tuile sans case (mer sans détroit libre) est perdue, la suivante vient
     // main de saison : jouer la meilleure tuile visible, gratuitement
     if (isl.handOn && !picked && isl.queue.list.length > 1) {
       // évaluation rapide (un coup) des autres tuiles de la main ; la meilleure candidate seule est évaluée en profondeur

@@ -32,6 +32,10 @@ export const BALANCE = {
   stars: { perCell: [4.4, 6.4, 7.2, 8.0] },   // seuils par défaut (Île du jour) = cases × facteur ; trois étoiles puis l'étoile d'or (cosmétique) ; les îles de campagne ont leurs `starFactors` calibrés
   seeds: { star: 1, wish: 1, island: 3 },   // 3 par île terminée la première fois : à 30 îles, le joueur tranquille finit l'Atelier vers les deux tiers de la campagne
   camera: { minZoom: 0.45, maxZoom: 1.6, lerp: 6 },
+  // Livre II (28 septembre, prototype) : une route de mer paie à la saison `port` par port relié au-delà du premier et
+  // `marchandise` par famille de terre différente autour de ses ports ; la chaîne de territoire paie dès `des` familles,
+  // puis selon `pts` (4, 5, 6, 7, 8 et plus). À calibrer avec le robot.
+  livre2: { route: { port: 3, marchandise: 1 }, chaine: { des: 4, min: 2, pts: [2, 4, 7, 11, 15] } },   // chaine.min : l'affinité qu'il faut entre deux maillons (1 : toute bonne paire ; 2 : les paires fortes seulement)
   infinite: { growEvery: 1, growCells: 6, maxCells: 400 },
   // Le Souffle court (mode à part) : pas de file, la tuile arrive et le cadran se vide ; tout se règle ici, à la main.
   tempo: {

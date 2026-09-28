@@ -220,10 +220,11 @@ Le topo et la vision sont dans la conversation du 28 septembre ; ce tableau gard
 |---|---|---|
 | L0 | Quatre affinités jamais appliquées (verger·prairie, verger·hameau, prairie·forêt, marais·forêt) : clés remises dans l'ordre, recalibrage | **fait** |
 | L1 | **Lire l'île** (touche V) : fils d'affinité sur les bords, tour des régions même ouvertes et leur prime, points de la saison qui vient, bandeau. Sert au Livre I dès maintenant, servira à voir les chaînes du Livre II | **fait**, à essayer par le commanditaire |
-| L2 | La chaîne de familles différentes et compatibles (nom à trouver : farandole ?) : bonus dès trois ou quatre familles enchaînées, payé à la saison ; à mesurer avec le robot avant de fixer le seuil | à trancher |
-| L3 | Nouvelles tuiles de terre du Livre II (port, pinède, variantes de climat, rares) à partir des modèles KayKit encore inemployés | à trancher |
-| L4 | Durée d'une partie à deux îles : plus de tuiles posées au départ, détroit en mer dès le départ que les tuiles de mer convertissent (au choix du joueur) | à trancher |
-| L5 | Musiques plus « pirates » (Suno ou banque CC) | à trancher |
+| L2 | **La chaîne de territoire** (Livre II seulement) : dès quatre familles différentes en paires fortes, payée à la saison — mesurée et figée (`docs/FEUILLE_LIVRE_II.md`) | **prototype fait** |
+| L3 | Port et Pinède en vraies familles, les autres arbres en variantes de climat | tranché ; images au lot 7a |
+| L4 | Deux îles, détroit en mer dès le départ que seules les tuiles de mer convertissent, un port et un hameau par rive au départ | **prototype fait** |
+| L5 | Musiques libres (CC0 d'abord) : `docs/MUSIQUES_LIVRE_II.md` | recherche faite, à télécharger |
+| L6 | Quinze îles en cinq chapitres ; îles à trois saisons dont la route ramène la quatrième (à essayer) | tranché |
 
 ## L'ouverture (28 septembre)
 

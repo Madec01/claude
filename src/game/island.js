@@ -16,6 +16,7 @@ import { generateMask, enclosedHoles } from '../data/islands.js';
 import { videsMalus } from '../data/tempo.js';
 import { BALANCE } from '../data/balance.js';
 import { computeLinks } from './paths.js';
+import { computeRoutes, chaineTerritoire, rentesLivre2 } from './routes.js';
 import { pickRule, BASE_RULE, RULE_LOOK } from './seasonrules.js';
 import { gradeMove } from './feedback.js';
 import { RNG } from '../core/math.js';
@@ -58,6 +59,9 @@ export class Island {
     this.infinite = !!def.infinite;
     this.tempo = !!def.tempo;   // Le Souffle court : cadran, série et saisons à effets vivent dans game/tempo.js ; ici, pas d'étoile ni de graine
     for (const [q, r] of def.ensure || []) this.board.mask.add(key(q, r));
+    // Livre II : le détroit, les cases de mer entre les îles (voir board.js) ; l'île est un archipel
+    this.livre2 = !!def.livre2;
+    for (const k of def.detroit || []) { this.board.mask.add(k); this.board.detroit.add(k); }
     this.restrict = null;   // tutoriel guidé : cases autorisées (Set de clés) ou null
     // tuiles de départ
     for (const s of def.start) {
@@ -213,11 +217,14 @@ export class Island {
 
   /** Prévisualisation d'une pose de la tuile courante. */
   preview(q, r, tile = this.current) {
-    if (!tile || !this.board.canPlace(q, r)) return null;
-    return preview(this.board, q, r, tile, this.season, this.mods);
+    if (!tile || !this.board.canPlace(q, r, tile)) return null;
+    const pv = preview(this.board, q, r, tile, this.season, this.mods);
+    // Livre II : ce que la pose change aux rentes de saison (routes de mer, chaîne de territoire) — dit à part, pas dans le total
+    if (pv && this.livre2) { const avant = rentesLivre2(this.board); pv.rente = this.board.simulate(() => { this.board.place(q, r, tile); this.board.version++; const apres = rentesLivre2(this.board); this.board.tiles.delete(key(q, r)); return apres - avant; }); }
+    return pv;
   }
 
-  canPlace(q, r) { return !this.ended && !!this.current && !this.passagePret && this.board.canPlace(q, r) && (!this.restrict || this.restrict.has(key(q, r))); }
+  canPlace(q, r) { return !this.ended && !!this.current && !this.passagePret && this.board.canPlace(q, r, this.current) && (!this.restrict || this.restrict.has(key(q, r))); }
 
   // ---- Bâtir, fusionner, remettre en état : des actions sur une tuile posée, payées en souffles, sans tuile ----
   /**
@@ -331,11 +338,11 @@ export class Island {
   place(q, r, tileOverride = null) {
     if (this.ended || this.passagePret) return null;   // sous la brume, entre la dernière pose de la saison et « Lever la brume », aucune pose
     const tile = tileOverride || this.current;
-    if (!tile || !this.board.canPlace(q, r) || (this.restrict && !this.restrict.has(key(q, r)))) return null;
+    if (!tile || !this.board.canPlace(q, r, tile) || (this.restrict && !this.restrict.has(key(q, r)))) return null;
     this.pushHistory();
     // meilleur total possible pour cette tuile, pour commenter le coup (cosmétique)
     // meilleur coup de référence, primes de fermeture exclues : garder une fermeture pour plus tard n'est pas une faute
-    let best = -Infinity; if (!this.garden) for (const c of this.board.legalCells()) { const p = preview(this.board, c.q, c.r, tile, this.season, this.mods); if (!p) continue; const v = p.total - p.closes.reduce((a, x) => a + x.bonus, 0); if (v > best) best = v; }
+    let best = -Infinity; if (!this.garden) for (const c of this.board.legalCells(tile)) { const p = preview(this.board, c.q, c.r, tile, this.season, this.mods); if (!p) continue; const v = p.total - p.closes.reduce((a, x) => a + x.bonus, 0); if (v > best) best = v; }
     if (!tileOverride) { this.queue.take(); if (this.pendingOpening.length && this.queue.list.length) this.queue.remplacer(this.queue.list.length - 1, this.pendingOpening.shift()); }
     const placedTile = tile;
     const voeuxAvant = this.wishes.map((w) => w.progress);   // pour dire, après la pose, quel vœu a avancé (un fait, pas un jugement)
@@ -510,6 +517,7 @@ export class Island {
     this.stats.links = Math.max(this.stats.links, links);
     pts += links * BALANCE.points.pathSeason;
     for (const e of this.primesFixes(this.board, this.season)) ev.push(e);
+    for (const e of this.rentesMer(this.board)) ev.push(e);
     for (const e of ev) { if (e.pts) pts += e.pts; if (e.type === 'harvest') this.stats.harvest++; if (e.type === 'bloom') this.stats.bloom++; }
     // faune : chaque animal présent donne des souffles et des points
     const faunaBonus = [...this.fauna.values()].filter((a) => !a.noBonus).length;
@@ -558,6 +566,15 @@ export class Island {
     return ev;
   }
 
+  /** Livre II : les routes de mer (chacune à son premier port) et la chaîne de territoire (à son premier maillon) paient à la saison. */
+  rentesMer(board) {
+    if (!this.livre2) return [];
+    const ev = [];
+    for (const r of computeRoutes(board)) if (r.pts) { const p = r.ports[0]; ev.push({ type: 'route', q: p.q, r: p.r, pts: r.pts, ports: r.ports.length, marchandises: r.marchandises.length }); }
+    const c = chaineTerritoire(board); if (c.pts) { const [q, r] = c.cells[0].split(',').map(Number); ev.push({ type: 'chaine', q, r, pts: c.pts, length: c.length, cells: c.cells }); }
+    return ev;
+  }
+
   /**
    * Lire l'île (touche V) : tout ce que le plateau dit sans qu'on pose. La valeur de chaque bord aujourd'hui, les
    * régions closes ou non et ce qu'elles paieront, et ce que la saison suivante donnera ou reprendra à chaque case :
@@ -576,6 +593,7 @@ export class Island {
     const ev = transition(copie, saison, regle, this.climate);
     if (this.huntSeason) for (const an of this.fauna.values()) if (an.species === 'moose' || an.species === 'bear' || an.species === 'owl') ev.push({ type: 'hunt', q: an.q, r: an.r, pts: 2 });
     for (const e of this.primesFixes(copie, saison)) ev.push(e);
+    for (const e of this.rentesMer(copie)) ev.push(e);
     const faunaPts = BALANCE.points.faunaSeason + this.mods.refuge; let animaux = 0;
     for (const an of this.fauna.values()) if (!an.noBonus) { animaux++; ev.push({ type: 'fauna', q: an.q, r: an.r, pts: faunaPts }); }
     const cases = new Map(); let total = 0;
@@ -1018,6 +1036,9 @@ export class Island {
 
   checkEnd() {
     if (this.ended || this.passagePret) return;   // passage prêt : la fin, comme le passage, attend « Lever la brume »
+    // Livre II : une tuile de mer sans case libre sur le détroit (ou une tuile de terre sans case de terre) est perdue sans
+    // pénalité, la suivante vient ; l'île ne finit que si plus rien ne se pose nulle part
+    if (this.livre2) { let garde = 0; while (this.current && !this.board.legalCells(this.current).length && this.board.legalCells().length && garde++ < 50) { const t = this.queue.take(); this.stats.lost = (this.stats.lost || 0) + 1; this.emit({ type: 'lost', tile: t }); } }
     const noTile = this.queue.empty;
     const noMove = this.board.legalCells().length === 0;
     const fini = !!(this.def.maxPoses && this.placements + (this.stats.lost || 0) >= this.def.maxPoses);   // l'entraînement du Souffle court : dix-huit tuiles, puis le bilan

@@ -209,6 +209,7 @@ node tests/gate.js                # déblocage : une île terminée ouvre la sui
 node tests/feel.js                # retours sensoriels : notes sobres sur téléphone, étoile franchie, vibrations
 node tests/calm.js                # mode observation (interface qui s'efface, vue qui respire) et vague de fermeture
 node tests/ouverture.js           # l'ouverture : l'île du titre se bâtit au rythme du chargement (cinq secondes au moins), les saisons passent, le titre avec la dernière tuile, le menu la garde
+node tests/livre2.test.js         # Livre II (prototype) : archipel, détroit, tuiles de mer, routes, chaîne de territoire, une partie au robot
 node tests/finale.js              # tournée finale : plans nommés, vague, saisons, carte postale qui attend, construction rejouée, version courte
 
 # règles de sécurité Firestore, dans l'émulateur Firebase (outillage hors du jeu, à installer une fois) :

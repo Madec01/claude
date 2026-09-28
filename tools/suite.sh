@@ -45,7 +45,7 @@ lance() {
   fi
 }
 
-for t in rules events cloud run brume decor formes; do lance "$t.test.js"; done
+for t in rules events cloud run brume decor formes livre2; do lance "$t.test.js"; done
 
 # les tests navigateur : chacun écrit son propre journal, recopié dans $LOG une fois tous finis
 lance_fond() {

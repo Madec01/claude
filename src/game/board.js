@@ -1,6 +1,6 @@
 // État d'une île : masque, tuiles, régions connexes.
 import { key, parse, neighbors } from './hex.js';
-import { RARE_AS } from '../data/tiles.js';
+import { RARE_AS, MER } from '../data/tiles.js';
 
 // caches dérivés du plateau, rangés sur lui et indexés sur `version` (water.js, paths.js) : une simulation les rend intacts
 const SIM_CACHES = ['_water', '_waterVersion', '_links', '_linksVersion', '_shapes', '_shapesVersion', '_pathPts', '_pathPtsVersion'];
@@ -21,6 +21,10 @@ export class Board {
     // aucune région. La case, elle, n'est ni libre (on n'y pose pas) ni fermée (une région qui la touche reste
     // ouverte : ce qui s'y cache pourrait en faire partie). Vide hors de ce mode.
     this.fog = new Set();
+    // Livre II : le détroit, les cases de mer entre les îles. Dans le masque (on peut y poser), mais seules les tuiles
+    // de mer s'y posent, et aucune tuile de mer ne se pose ailleurs. Tant qu'une case du détroit est vide, elle est la mer
+    // (bord de mer des affinités, embouchure des rivières). Vide hors du Livre II.
+    this.detroit = new Set();
   }
 
   /** La région a-t-elle déjà été payée en entier ? */
@@ -46,7 +50,7 @@ export class Board {
 
   has(q, r) { return this.mask.has(key(q, r)); }
   get(q, r) { return this.tiles.get(key(q, r)) || null; }
-  isSea(q, r) { return !this.mask.has(key(q, r)); }
+  isSea(q, r) { const k = key(q, r); return !this.mask.has(k) || (this.detroit.has(k) && !this.tiles.has(k)); }
   isEmpty(q, r) { const k = key(q, r); return this.mask.has(k) && !this.tiles.has(k) && !this.fog.has(k); }
   get placed() { return this.tiles.size; }
   get cells() { return this.mask.size; }
@@ -55,15 +59,18 @@ export class Board {
   landNeighbors(q, r) { return neighbors(q, r).filter(([a, b]) => this.mask.has(key(a, b))); }
 
   /** Une pose est-elle légale ? (case vide du masque, adjacente à une tuile — ou à une case sous la brume : ce qui s'y cache est déjà une tuile) */
-  canPlace(q, r) {
+  canPlace(q, r, tile = null) {
     if (!this.isEmpty(q, r)) return false;
+    if (tile && !this.admet(q, r, tile)) return false;
     return neighbors(q, r).some(([a, b]) => this.tiles.has(key(a, b)) || this.fog.has(key(a, b)));
   }
+  /** Livre II : une tuile de mer ne va que sur le détroit, une tuile de terre jamais. Sans détroit, tout est permis. */
+  admet(q, r, tile) { if (!this.detroit.size) return true; const mer = this.detroit.has(key(q, r)); return mer === Board.familiesOf(tile).some((f) => MER.has(f)) || (mer && MER.has(tile.family)); }
 
-  /** Toutes les cases où l'on peut poser. */
-  legalCells() {
+  /** Toutes les cases où l'on peut poser (la tuile donnée, ou n'importe laquelle). */
+  legalCells(tile = null) {
     const out = [];
-    for (const k of this.mask) { if (this.tiles.has(k) || this.fog.has(k)) continue; const [q, r] = parse(k); if (neighbors(q, r).some(([a, b]) => this.tiles.has(key(a, b)) || this.fog.has(key(a, b)))) out.push({ q, r }); }
+    for (const k of this.mask) { if (this.tiles.has(k) || this.fog.has(k)) continue; const [q, r] = parse(k); if (tile && !this.admet(q, r, tile)) continue; if (neighbors(q, r).some(([a, b]) => this.tiles.has(key(a, b)) || this.fog.has(key(a, b)))) out.push({ q, r }); }
     return out;
   }
 
