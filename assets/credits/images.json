@@ -993,16 +993,6 @@
   ]
  },
  {
-  "pack": "Écran de chargement (captures du jeu)",
-  "author": "Cent Saisons",
-  "license": "Voir les packs ci-dessus",
-  "attribution": "Le fond de l'écran de chargement est une photographie de l'île 13, jouée jusqu'au bout par le bot des tests (tools/capture_partie.js), en deux cadrages, paysage et portrait. Tout ce qu'on y voit vient des packs d'images crédités plus haut ; rien n'a été dessiné pour elle.",
-  "files": [
-   "ui/boot_island.jpg",
-   "ui/boot_island_portrait.jpg"
-  ]
- },
- {
   "pack": "Icône du jeu",
   "author": "Martinus Games (le commanditaire)",
   "license": "Icône du studio, tous droits réservés — fournie par le commanditaire pour ce jeu",

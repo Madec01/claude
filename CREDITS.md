@@ -62,11 +62,11 @@ Toutes les œuvres ci-dessous appartiennent à leurs auteurs et sont utilisées 
 ## Graphismes
 
 - **Hexagon Pack** — Kenney (kenney.nl) — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://kenney.nl/assets/hexagon-pack) — [miroir utilisé](https://github.com/ETdoFresh/kenney.nl)
-  - Fichiers : 260
+  - Fichiers : 264
 - **Hexagon Tiles** — Kenney (kenney.nl) — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://kenney.nl/assets/hexagon-tiles) — [miroir utilisé](https://github.com/ETdoFresh/kenney.nl)
-  - Fichiers : 107
+  - Fichiers : 111
 - **Animal Pack Redux** — Kenney (kenney.nl) — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://kenney.nl/assets/animal-pack-redux) — [miroir utilisé](https://github.com/ETdoFresh/kenney.nl)
-  - Fichiers : 13
+  - Fichiers : 16
 - **Particle Pack (1.1)** — Kenney (kenney.nl) — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://kenney.nl/assets/particle-pack) — [miroir utilisé](https://github.com/ETdoFresh/kenney.nl)
   - Fichiers : 43
 - **Smoke Particles** — Kenney (kenney.nl) — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://kenney.nl/assets/smoke-particles) — [miroir utilisé](https://github.com/ETdoFresh/kenney.nl)
@@ -86,9 +86,9 @@ Toutes les œuvres ci-dessous appartiennent à leurs auteurs et sont utilisées 
 - **KayKit : Medieval Hexagon Pack (1.0)** — Kay Lousberg — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://kaylousberg.itch.io/kaykit-medieval-hexagon) — [miroir utilisé](https://github.com/KayKit-Game-Assets/KayKit-Medieval-Hexagon-Pack-1.0)
   - Fichiers : 53
 - **KayKit : Forest Nature Pack (1.0)** — Kay Lousberg — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://kaylousberg.itch.io/forest-nature-pack) — [miroir utilisé](fourni par le commanditaire (téléchargement direct))
-  - Fichiers : 60
+  - Fichiers : 69
 - **KayKit : Medieval Hexagon Pack EXTRA (1.0)** — Kay Lousberg — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://kaylousberg.itch.io/kaykit-medieval-hexagon) — [miroir utilisé](fourni par le commanditaire (téléchargement direct))
-  - Fichiers : 31
+  - Fichiers : 32
 - **Animaux 3D (attribution)** — Baby chick by Poly by Google, Bear by Poly by Google, Duck by Poly by Google, Goat by Poly by Google, Great horned owl by Poly by Google, Hen by Poly by Google, Penguin by Poly by Google — licence CC BY 3.0 ([texte](https://creativecommons.org/licenses/by/3.0/)) — [source](https://poly.pizza/) — [miroir utilisé](https://github.com/i3w-learn/3DVR_PIPELINE)
   - Fichiers : 7
 - **Animaux 3D (attribution)** — Rabbit by Poly by Google — licence CC BY 3.0 ([texte](https://creativecommons.org/licenses/by/3.0/)) — [source](https://poly.pizza/) — [miroir utilisé](https://github.com/tedgoddard/google_poly)
@@ -102,9 +102,6 @@ Toutes les œuvres ci-dessous appartiennent à leurs auteurs et sont utilisées 
 - **Généré par IA (ChatGPT, OpenAI)** — OpenAI — licence Conditions d'utilisation d'OpenAI (voir la page ci-dessous) — [source](https://openai.com/policies/usage-policies)
   - Attribution : Insignes d'archétype d'île, insignes des dix chapitres, leurs tampons pour la carte postale et les vignettes des trente et un succès, générés à partir de prompts écrits pour le projet (docs/PROMPTS_INSIGNES.pdf, docs/PROMPTS_SUCCES.pdf), à la demande du commanditaire.
   - Fichiers : 63
-- **Écran de chargement (captures du jeu)** — Cent Saisons — licence Voir les packs ci-dessus
-  - Attribution : Le fond de l'écran de chargement est une photographie de l'île 13, jouée jusqu'au bout par le bot des tests (tools/capture_partie.js), en deux cadrages, paysage et portrait. Tout ce qu'on y voit vient des packs d'images crédités plus haut ; rien n'a été dessiné pour elle.
-  - Fichiers : ui/boot_island.jpg, ui/boot_island_portrait.jpg
 - **Icône du jeu** — Martinus Games (le commanditaire) — licence Icône du studio, tous droits réservés — fournie par le commanditaire pour ce jeu
   - Attribution : L'icône de l'application est la première image de l'animation fournie par le commanditaire le 28 septembre 2026 (recadrée sur son contenu ; la version « maskable » est posée sur le papier du jeu, à 78 % du cadre).
   - Fichiers : ui/icone_192.png, ui/icone_512.png, ui/icone_512_maskable.png

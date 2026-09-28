@@ -130,15 +130,13 @@ const Game = {
     });
   },
 
-  /** L'ouverture se joue pour un joueur ; les tests automatiques et le mode test la passent, sauf `?ouverture=1`. */
+  /** L'ouverture se joue pour tout joueur, mode test compris ; seuls les tests automatiques (webdriver) la passent, sauf `?ouverture=1`. */
   ouvertureVoulue() {
     try { const v = new URLSearchParams(location.search).get('ouverture'); if (v === '1') return true; if (v === '0') return false; } catch (_) { /* ignore */ }   // `?ouverture=0` : un test qui joue en vrai joueur (service worker) mais n'attend pas l'ouverture
-    return !navigator.webdriver && !Save.options.testMode;
+    return !navigator.webdriver;
   },
 
   async boot() {
-    const fill = document.getElementById('boot-fill'), status = document.getElementById('boot-status');
-    const setP = (p, txt) => { fill.style.width = `${Math.round(p * 100)}%`; if (txt) status.textContent = txt; };
     // la boîte noire au plus tôt : une erreur de chargement compte autant qu'une erreur en jeu
     BlackBox.install({ sceneName: () => scenes.currentName });
     setVersion(VERSION);
@@ -162,18 +160,17 @@ const Game = {
     // `?ouverture=1`. L'écran de chargement n'a alors ni barre ni titre : rien entre le film et l'île.
     const boot = document.getElementById('boot');
     const ouv = this.ouvertureVoulue() ? scenes.scenes.get('ouverture') : null; let etapes = null;
-    if (ouv) { boot.classList.add('muet'); try { await Assets.loadManifest(); etapes = ouv.preparer(); } catch (e) { console.warn('ouverture', e); boot.classList.remove('muet'); } }
+    if (ouv) { try { await Assets.loadManifest(); etapes = ouv.preparer(); } catch (e) { console.warn('ouverture', e); } }   // sans ouverture possible, le papier reste seul jusqu'au menu : l'ancien écran (barre, titre, photo) n'existe plus
     try { await AudioSys.loadManifest(); } catch (e) { console.warn(e); }
     // la scène part dès l'amorce (la mer) chargée et le film fini ; l'île, elle, se bâtit au rythme des images qui suivent
     let lancee = null;
     if (ouv && etapes) ouv.onAmorce = () => { if (lancee) return; lancee = intro.then(async () => { boot.classList.add('off'); setTimeout(() => boot.remove(), 700); loop.start(); await scenes.go('ouverture', {}, { fade: 0 }); }); };
-    try { await Assets.loadImages((p) => { setP(p * 0.95, 'Les tuiles se réveillent…'); if (ouv) ouv.progres(p); }, etapes ? { etapes } : {}); } catch (e) { console.warn(e); }
+    try { await Assets.loadImages((p) => { if (ouv) ouv.progres(p); }, etapes ? { etapes } : {}); } catch (e) { console.warn(e); }
     // Les sons ne bloquent plus le menu : la musique et les ambiances se chargent à la demande (playMusic, setAmbience),
     // un effet pas encore arrivé se tait. Le préchargement part en arrière-plan une fois le menu affiché (8 Mo en 4G,
     // c'était sept secondes d'écran de chargement pour des sons qui ne servent qu'en partie).
     try { await document.fonts.ready; } catch (_) { /* ignore */ }
     this.credits = await loadCredits();
-    setP(1, 'Prêt.');
     this.setFpsVisible(Save.options.showFps);
     if (lancee) {
       await lancee; ouv.chargementFini();
@@ -1553,4 +1550,4 @@ scenes.register('ending', new EndingScene());
 
 const loop = new Loop({ update: (dt) => scenes.update(dt), render: (alpha, dt) => { scenes.render(ctx, alpha, dt); if (Game.fpsEl && Game.fpsEl.style.display !== 'none') Game.fpsEl.textContent = `${loop.fps} i/s`; } });
 window.CS.loop = loop;
-Game.boot().then(() => loop.start()).catch((e) => { console.error(e); const s = document.getElementById('boot-status'); if (s) s.textContent = 'Erreur de chargement : ' + e.message; });
+Game.boot().then(() => loop.start()).catch((e) => { console.error(e); const b = document.getElementById('boot'); if (b) { b.textContent = 'Erreur de chargement : ' + e.message; b.style.cssText += 'display:flex;align-items:center;justify-content:center;padding:24px;text-align:center;font-size:16px;'; } });
