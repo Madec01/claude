@@ -25,9 +25,9 @@ export const MECH_AT = {
   11: ['build'],
   13: ['climate', 'fuse'], 19: ['build3'], 25: ['growth'],
   // Livre II : la mer se pose (mer, récif, algues, pinède) et la chaîne de territoire ; puis les ports et les routes
-  31: ['mer', 'chaine'], 34: ['ports'],
+  31: ['mer', 'chaine'], 34: ['ports'], 37: ['tempete', 'phare'], 40: ['maree'],
 };
-export const MECH_NAMES = { mer: 'la mer qui se pose', chaine: 'chaîne de territoire', ports: 'ports et routes de mer', river: 'rivière', season: 'saisons', fauna: 'faune', semis: 'semis', wish: 'vœux', breath: 'souffles', rare: 'tuiles rares', surprise: 'surprises de saison', hill: 'collines', rare2: 'grenier, ruche et menhir', heath: 'lande', build: 'bâtir', hand: 'main de saison', climate: 'climats', fuse: 'fusions', build3: 'niveau 3' , growth: 'croissance', harmonie: 'harmonie'};
+export const MECH_NAMES = { mer: 'la mer qui se pose', chaine: 'chaîne de territoire', ports: 'ports et routes de mer', tempete: 'la tempête', phare: 'le phare', maree: 'la marée', river: 'rivière', season: 'saisons', fauna: 'faune', semis: 'semis', wish: 'vœux', breath: 'souffles', rare: 'tuiles rares', surprise: 'surprises de saison', hill: 'collines', rare2: 'grenier, ruche et menhir', heath: 'lande', build: 'bâtir', hand: 'main de saison', climate: 'climats', fuse: 'fusions', build3: 'niveau 3' , growth: 'croissance', harmonie: 'harmonie'};
 /** Île où une mécanique arrive (pour le Guide et l'Atelier). */
 export function mechIsland(m) { for (const [n, list] of Object.entries(MECH_AT)) if (list.includes(m)) return Number(n); return null; }
 /** Mécaniques disponibles jusqu'à l'île n (incluse). Sans argument : toutes (modes libres). */
@@ -50,7 +50,7 @@ export const CHAPTERS = [
   // Les chapitres 13 à 15 sont posés provisoirement : leurs mécaniques (vents, marées, trois îles) viennent aux lots 7b et 7c.
   { id: 11, name: 'La Traversée', sub: 'La mer se pose : récifs, algues, chaîne de territoire', climate: 'temperate', livre: 2, islands: [{ archipel: 'cote', cells: 44, w: 'coast' }, { archipel: 'cote', cells: 52, w: 'coastAll' }, { archipel: 'cote', cells: 56, w: 'balanced', memory: true }] },
   { id: 12, name: 'Les Ports', sub: 'Deux îles, des ports, des routes de mer', climate: 'temperate', livre: 2, islands: [{ archipel: 'deux', cells: 56, w: 'coastAll' }, { archipel: 'deux', cells: 64, w: 'farms' }, { archipel: 'deux', cells: 70, w: 'coastAll', memory: true }] },
-  { id: 13, name: 'Les Vents', sub: 'Le climat venteux, la tempête, le phare', climate: 'temperate', livre: 2, islands: [{ archipel: 'deux', cells: 66, w: 'wild' }, { archipel: 'deux', cells: 72, w: 'ridges' }, { archipel: 'deux', cells: 76, w: 'coastAll', memory: true }] },
+  { id: 13, name: 'Les Vents', sub: 'Le climat venteux, la tempête, le phare', climate: 'windy', livre: 2, islands: [{ archipel: 'deux', cells: 66, w: 'wild' }, { archipel: 'deux', cells: 72, w: 'ridges' }, { archipel: 'deux', cells: 76, w: 'coastAll', memory: true }] },
   { id: 14, name: 'Les Marées', sub: 'La marée, et des îles à contrainte', climate: 'temperate', livre: 2, islands: [{ archipel: 'deux', cells: 72, w: 'hills' }, { archipel: 'deux', cells: 80, w: 'rivers' }, { archipel: 'deux', cells: 84, w: 'moor', memory: true }] },
   { id: 15, name: 'Le Grand Large', sub: 'Tout ensemble, et la fin du voyage', climate: 'temperate', livre: 2, islands: [{ archipel: 'deux', cells: 84, w: 'all' }, { archipel: 'deux', cells: 92, w: 'coastAll' }, { archipel: 'deux', cells: 100, w: 'all', memory: true }] },
 ];
@@ -84,6 +84,7 @@ const CLIMATE_WEIGHTS = {
   hot: { sand: 2.2, rock: 1.4, orchard: 1.3, water: 0.6, marsh: 0.4, forest: 0.8 },
   humid: { marsh: 2.0, water: 1.5, forest: 1.3, sand: 0.5, orchard: 0.8 },
   cold: { forest: 1.5, rock: 1.4, orchard: 0.4, marsh: 0.6, sand: 0.5, heath: 1.2 },
+  windy: { pine: 1.5, sand: 1.3, heath: 1.2, forest: 0.8, orchard: 0.6, marsh: 0.7 },   // Livre II : le vent aime la pinède et les sols nus
 };
 function weightsFor(setName, climate, mech) {
   const base = { ...WEIGHTS[setName] };

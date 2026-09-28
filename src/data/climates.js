@@ -29,4 +29,13 @@ export const CLIMATES = {
     tint: 'rgba(205, 226, 255, 0.46)', sea: ['#a3c3dd', '#6f97b8'],
   },
 };
+CLIMATES.windy = {
+  id: 'windy',
+  // Livre II, chapitre 13 : le vent vient de la mer. Il pousse les voiles et couche les blés.
+  routePort: 1,            // chaque port relié au-delà du premier paie +1 de plus par saison (les voiles)
+  windExposed: -1,         // un champ ou un verger sans abri (forêt, pinède, colline, roche, hameau voisin) perd 1 à chaque saison
+  longSeason: 'autumn',    // l'automne dure deux saisons
+  look: 'wind',            // le vent se voit sur l'île en permanence
+  tint: 'rgba(205, 218, 232, 0.38)', sea: ['#74b4d8', '#3878a8'],
+};
 export const climateOf = (id) => CLIMATES[id] || CLIMATES.temperate;

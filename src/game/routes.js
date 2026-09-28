@@ -21,22 +21,24 @@ const estMer = (t) => !!t && Board.familiesOf(t).some((f) => MER.has(f));
 export function computeRoutes(board) {
   if (board._routes && board._routesVersion === board.version) return board._routes;
   const R = BALANCE.livre2.route; const vus = new Set(); const out = [];
+  const parPort = R.port + (board.routePort || 0);   // climat venteux : le vent pousse les voiles, +1 par port relié
   for (const [k0, t0] of board.tiles) {
     if (vus.has(k0) || !estMer(t0)) continue;
-    const cells = []; const pile = [k0]; vus.add(k0); const ports = new Map();
+    const cells = []; const pile = [k0]; vus.add(k0); const ports = new Map(); const phares = new Set();
     while (pile.length) {
       const k = pile.pop(); cells.push(k); const t = board.tiles.get(k);
       for (const [a, b] of neighbors(t.q, t.r)) {
         const nk = key(a, b); const n = board.tiles.get(nk); if (!n) continue;
         if (estMer(n)) { if (!vus.has(nk)) { vus.add(nk); pile.push(nk); } }
         else if (Board.isFamily(n, 'port')) ports.set(nk, n);
+        if (n.family === 'phare') phares.add(nk);   // un phare (rare, compte comme roche) : chaque route qui le touche paie +2
       }
     }
     const marchandises = new Set();
     for (const p of ports.values()) for (const [a, b] of neighbors(p.q, p.r)) { const n = board.get(a, b); if (n) for (const f of Board.familiesOf(n)) if (MARCHANDISES.has(f)) marchandises.add(f); }
     const nPorts = ports.size;
-    const pts = nPorts >= 2 ? (nPorts - 1) * R.port + marchandises.size * R.marchandise : 0;
-    out.push({ cells, ports: [...ports.values()], marchandises: [...marchandises], pts });
+    const pts = nPorts >= 2 ? (nPorts - 1) * parPort + marchandises.size * R.marchandise + phares.size * R.phare : 0;
+    out.push({ cells, ports: [...ports.values()], marchandises: [...marchandises], phares: phares.size, pts });
   }
   board._routes = out; board._routesVersion = board.version;
   return out;
@@ -75,7 +77,31 @@ export function chaineTerritoire(board) {
 }
 
 /** Ce que la mer et la chaîne paieront à la saison, sur ce plateau : la somme, pour l'aperçu et la lecture de l'île. */
-export function rentesLivre2(board) {
-  let pts = 0; for (const r of computeRoutes(board)) pts += r.pts;
+export function rentesLivre2(board, rule = null) {
+  let pts = 0; if (rule !== 'tempete') for (const r of computeRoutes(board)) pts += r.pts;   // tempête : les routes ne paient pas cette saison
+  for (const e of rentesRares(board)) pts += e.pts;
   return pts + chaineTerritoire(board).pts;
+}
+
+/**
+ * Les rares du Livre II qui vivent des routes, payées à la saison : la Taverne, +1 par port relié aux ports qui la
+ * touchent (au plus 4) ; le Marché, +1 par marchandise différente de ces routes (au plus 5). Un port sans route compte
+ * pour lui-même et pour ce qui l'entoure. Le Phare, lui, est payé par ses routes (`computeRoutes`).
+ */
+export function rentesRares(board) {
+  const ev = []; let routes = null; const B2 = BALANCE.livre2;
+  for (const [k, t] of board.tiles) {
+    if (t.family !== 'tavern' && t.family !== 'market') continue;
+    routes = routes || computeRoutes(board);
+    const ports = new Set(), marchandises = new Set();
+    for (const [a, b] of neighbors(t.q, t.r)) {
+      const p = board.get(a, b); if (!p || !Board.isFamily(p, 'port')) continue;
+      const pk = key(a, b); ports.add(pk);
+      for (const [c, d] of neighbors(p.q, p.r)) { const n = board.get(c, d); if (n) for (const f of Board.familiesOf(n)) if (MARCHANDISES.has(f)) marchandises.add(f); }
+      for (const r of routes) if (r.ports.some((x) => key(x.q, x.r) === pk)) { for (const x of r.ports) ports.add(key(x.q, x.r)); for (const m of r.marchandises) marchandises.add(m); }
+    }
+    const pts = t.family === 'tavern' ? Math.min(B2.taverne.cap, ports.size) * B2.taverne.pts : Math.min(B2.marche.cap, marchandises.size) * B2.marche.pts;
+    if (pts) ev.push({ type: 'rare', q: t.q, r: t.r, pts, id: t.family, k });
+  }
+  return ev;
 }

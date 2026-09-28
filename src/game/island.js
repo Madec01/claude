@@ -16,8 +16,8 @@ import { generateMask, enclosedHoles } from '../data/islands.js';
 import { videsMalus } from '../data/tempo.js';
 import { BALANCE } from '../data/balance.js';
 import { computeLinks } from './paths.js';
-import { computeRoutes, chaineTerritoire, rentesLivre2 } from './routes.js';
-import { pickRule, BASE_RULE, RULE_LOOK } from './seasonrules.js';
+import { computeRoutes, chaineTerritoire, rentesLivre2, rentesRares } from './routes.js';
+import { pickRule, BASE_RULE, RULE_LOOK, reglesPour } from './seasonrules.js';
 import { gradeMove } from './feedback.js';
 import { RNG } from '../core/math.js';
 import { key, parse, neighbors } from './hex.js';
@@ -55,6 +55,7 @@ export class Island {
     this.rng = new RNG(seed * 7 + 1);
     this.board = new Board(def.mask ? def.mask : generateMask(seed, def.cells, { roughness: def.roughness, holes: def.holes, etire: def.etire || 1, isthme: !!def.isthme, forme: def.forme || null, garde: (def.start || []).map((t) => key(t.q, t.r)) }));   // `def.mask` : une forme fixée (les énigmes de la brume) ; `def.forme` : une forme prototypée (PISTES_FORMES)
     if (this.climate.linkMax) this.board.linkMax = this.climate.linkMax;
+    if (this.climate.routePort) this.board.routePort = this.climate.routePort;   // climat venteux : les routes paient plus par port
     this.garden = !!def.garden;
     this.infinite = !!def.infinite;
     this.tempo = !!def.tempo;   // Le Souffle court : cadran, série et saisons à effets vivent dans game/tempo.js ; ici, pas d'étoile ni de graine
@@ -124,7 +125,8 @@ export class Island {
     this.surpriseOn = def.brume ? false : o.surprise !== undefined ? (!!o.surprise || this.infinite) : (!!def.surprise || !!def.weather || this.infinite || des('surprise'));
     this.huntSeason = false;      // chasse et cueillette : les animaux des forêts rapportent +2 à la saison suivante
     this.rulesVariable = this.surpriseOn;
-    this.rule = this.tempo ? 'aucune' : this.garden ? BASE_RULE[this.season] : pickRule(this.season, () => this.rng.next(), this.rulesVariable);   // Souffle court : aucune règle de saison de la campagne, seuls ses quatre effets (feuille Souffle court, décision 3 : b)
+    this.reglesSaison = reglesPour(def.mech);   // Livre II : la tempête et la marée prennent la place d'une surprise de terre
+    this.rule = this.tempo ? 'aucune' : this.garden ? BASE_RULE[this.season] : pickRule(this.season, () => this.rng.next(), this.rulesVariable, this.reglesSaison);   // Souffle court : aucune règle de saison de la campagne, seuls ses quatre effets (feuille Souffle court, décision 3 : b)
     this.nextRule = this.tirerRegleSuivante();   // la surprise de la saison qui vient est tirée d'avance : annoncée deux poses avant (audit, J-F)
     this.updateFauna();
   }
@@ -165,7 +167,7 @@ export class Island {
   /** La saison qui viendra après celle-ci (une saison longue du climat revient une fois). */
   saisonSuivante() { return this.climate.longSeason === this.season && !this.longSeasonDone ? this.season : nextSeason(this.season); }
   /** Tire la règle de la saison suivante, avec le générateur de l'île (déterministe pour une île donnée). */
-  tirerRegleSuivante() { if (this.garden || this.brume || this.tempo) return null; return pickRule(this.saisonSuivante(), () => this.rng.next(), this.rulesVariable); }
+  tirerRegleSuivante() { if (this.garden || this.brume || this.tempo) return null; return pickRule(this.saisonSuivante(), () => this.rng.next(), this.rulesVariable, this.reglesSaison); }
   /**
    * L'annonce de la saison qui vient, dès qu'elle est à deux poses ou moins : { season, rule, dans } — ou null.
    * Le joueur a le temps d'une réponse sans perdre l'effet de découverte (feuille Histoire, décision 2 : a).
@@ -201,7 +203,7 @@ export class Island {
 
   get mods() { return { river: this.baseMods.river, refuge: this.baseMods.refuge, rule: this.rule, climate: this.climate, blight: this.buildOn, ...(this.brume ? { brumeDores: this.brume.saison.dores, brumeMauvais: this.brume.saison.mauvais, brumeTernes: this.brume.saison.ternes } : {}) }; }
   /** L'habillage de la saison (pluie, vent, chaleur, neige, redoux), tiré de la surprise en cours : purement visuel. */
-  get look() { return this.garden ? null : RULE_LOOK[this.rule] || null; }
+  get look() { return this.garden ? null : RULE_LOOK[this.rule] || this.climate.look || null; }   // climat venteux : le vent souffle toujours
 
 
   on(fn) { this.listeners.push(fn); }
@@ -220,7 +222,7 @@ export class Island {
     if (!tile || !this.board.canPlace(q, r, tile)) return null;
     const pv = preview(this.board, q, r, tile, this.season, this.mods);
     // Livre II : ce que la pose change aux rentes de saison (routes de mer, chaîne de territoire) — dit à part, pas dans le total
-    if (pv && this.livre2) { const avant = rentesLivre2(this.board); pv.rente = this.board.simulate(() => { this.board.place(q, r, tile); this.board.version++; const apres = rentesLivre2(this.board); this.board.tiles.delete(key(q, r)); return apres - avant; }); }
+    if (pv && this.livre2) { const avant = rentesLivre2(this.board, this.rule); pv.rente = this.board.simulate(() => { this.board.place(q, r, tile); this.board.version++; const apres = rentesLivre2(this.board, this.rule); this.board.tiles.delete(key(q, r)); return apres - avant; }); }
     return pv;
   }
 
@@ -504,7 +506,7 @@ export class Island {
     this.stats.closedThisSeason = 0;
     this.undoUsedThisSeason = false;
     const prevRule = this.rule;
-    this.rule = this.tempo ? 'aucune' : this.nextRule || (this.garden ? BASE_RULE[this.season] : pickRule(this.season, () => this.rng.next(), this.rulesVariable));   // tirée d'avance (et annoncée) à la saison précédente
+    this.rule = this.tempo ? 'aucune' : this.nextRule || (this.garden ? BASE_RULE[this.season] : pickRule(this.season, () => this.rng.next(), this.rulesVariable, this.reglesSaison));   // tirée d'avance (et annoncée) à la saison précédente
     this.nextRule = this.tirerRegleSuivante();
     const ev = transition(this.board, this.season, this.rule, this.climate);
     this.board.touch();
@@ -567,10 +569,11 @@ export class Island {
   }
 
   /** Livre II : les routes de mer (chacune à son premier port) et la chaîne de territoire (à son premier maillon) paient à la saison. */
-  rentesMer(board) {
+  rentesMer(board, rule = this.rule) {
     if (!this.livre2) return [];
     const ev = [];
-    for (const r of computeRoutes(board)) if (r.pts) { const p = r.ports[0]; ev.push({ type: 'route', q: p.q, r: p.r, pts: r.pts, ports: r.ports.length, marchandises: r.marchandises.length }); }
+    if (rule !== 'tempete') for (const r of computeRoutes(board)) if (r.pts) { const p = r.ports[0]; ev.push({ type: 'route', q: p.q, r: p.r, pts: r.pts, ports: r.ports.length, marchandises: r.marchandises.length }); }   // tempête : les routes ne paient pas
+    for (const e of rentesRares(board)) ev.push(e);   // taverne et marché : ce que les routes leur apportent
     const c = chaineTerritoire(board); if (c.pts) { const [q, r] = c.cells[0].split(',').map(Number); ev.push({ type: 'chaine', q, r, pts: c.pts, length: c.length, cells: c.cells }); }
     return ev;
   }
@@ -593,7 +596,7 @@ export class Island {
     const ev = transition(copie, saison, regle, this.climate);
     if (this.huntSeason) for (const an of this.fauna.values()) if (an.species === 'moose' || an.species === 'bear' || an.species === 'owl') ev.push({ type: 'hunt', q: an.q, r: an.r, pts: 2 });
     for (const e of this.primesFixes(copie, saison)) ev.push(e);
-    for (const e of this.rentesMer(copie)) ev.push(e);
+    for (const e of this.rentesMer(copie, regle)) ev.push(e);
     const faunaPts = BALANCE.points.faunaSeason + this.mods.refuge; let animaux = 0;
     for (const an of this.fauna.values()) if (!an.noBonus) { animaux++; ev.push({ type: 'fauna', q: an.q, r: an.r, pts: faunaPts }); }
     const cases = new Map(); let total = 0;
@@ -605,7 +608,7 @@ export class Island {
     }
     const liens = this.tempo ? 0 : computeLinks(this.board).links.length; total += liens * BALANCE.points.pathSeason;
     // Livre II : les routes et la chaîne, telles qu'elles sont (le rendu les trace, le bandeau les compte)
-    const routes = this.livre2 ? computeRoutes(this.board) : null, chaine = this.livre2 ? chaineTerritoire(this.board) : null;
+    const routes = this.livre2 ? (regle === 'tempete' ? computeRoutes(this.board).map((r) => ({ ...r, pts: 0 })) : computeRoutes(this.board)) : null, chaine = this.livre2 ? chaineTerritoire(this.board) : null;   // sous la tempête, les routes ne paient pas
     this._lecK = cle; this._lec = { bords, regions, saison, regle, annoncee: !!a, cases, animaux, liens, total, routes, chaine };
     return this._lec;
   }
@@ -672,6 +675,8 @@ export class Island {
     const tier = this.rareTier !== undefined ? this.rareTier : (id >= (mechIsland('rare2') || 1) ? 1 : 0);
     const pool = ['mill', 'chapel', 'watchtower', 'well', 'camp'];
     if (tier >= 1) pool.push('granary', 'hive', 'menhir');
+    // Livre II : la taverne et le marché vivent des routes (dès les ports), le phare des routes qui le touchent (dès son île)
+    const mech = this.def.mech; if (this.livre2 && mech && mech.has('ports')) pool.push('tavern', 'market'); if (this.livre2 && mech && mech.has('phare')) pool.push('phare');
     return pool[Math.floor(this.rng.next() * pool.length)];
   }
 

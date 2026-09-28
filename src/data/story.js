@@ -573,6 +573,10 @@ export const STORY = {
     port: { name: 'Port', blurb: 'Les docks, sur la terre au bord de l’eau. Mer +2 (le quai), hameau +2 (la ville portuaire) ; jamais deux ports côte à côte. Une route de mer qui le touche exporte ce qui l’entoure : une marchandise par famille différente.' },
     pine: { name: 'Pinède', blurb: 'La forêt de bord de mer, toujours verte. Sable et roche +2, forêt et prairie +1 ; le champ n’aime pas son ombre.' },
     granary: { name: 'Grenier', blurb: 'Compte comme champ, +1 par bord avec un champ, et ne dort pas en hiver.' },
+    // Livre II : les rares qui vivent des routes de mer
+    tavern: { name: 'Taverne', blurb: 'Compte comme hameau. À chaque saison, +1 par port relié aux ports qui la touchent (au plus 4) : les équipages y boivent.' },
+    market: { name: 'Marché', blurb: 'Compte comme hameau. À chaque saison, +1 par marchandise différente apportée par les routes des ports qui le touchent (au plus 5).' },
+    phare: { name: 'Phare', blurb: 'Compte comme roche. Chaque route de mer qui le touche paie +2 de plus à chaque saison : les bateaux rentrent.' },
     hive: { name: 'Ruche', blurb: 'Compte comme prairie ; à chaque saison, +1 par verger ou prairie voisin (au plus 3), et +1 de plus au printemps.' },
     menhir: { name: 'Menhir', blurb: 'Compte comme roche ; à chaque saison, +1 par roche ou colline voisine (au plus 3).' },
     // fusions
@@ -583,6 +587,7 @@ export const STORY = {
     falls: { name: 'Cascade', blurb: 'Roche + eau. Compte pour les deux ; +1 par tuile d’eau voisine à chaque saison. Une rivière peut en naître.' },
     cave: { name: 'Grotte', blurb: 'Forêt + roche. Compte pour les deux ; +1 par forêt voisine à chaque saison. L’ours y dort.' },
     lagoon: { name: 'Lagune', blurb: 'Sable + eau. Compte pour les deux ; +1 par tuile d’eau voisine à chaque saison. Les manchots y glissent l’hiver.' },
+    shipyard: { name: 'Chantier naval', blurb: 'Port + forêt. Compte pour les deux ; +1 par tuile de mer voisine à chaque saison (au plus 3) : les coques sortent des bois de marine.' },
   },
 
   breaths: {
@@ -634,6 +639,9 @@ export const STORY = {
     veillee: { name: 'Veillée', line: 'La rivière s’arrête pour écouter. On marche dessus.', rule: 'L’eau gèle : +3 par paire de hameaux reliés par la glace ; les champs dorment (plus de bonus champ-hameau).' },
     froid: { name: 'Grand froid', line: 'On ne sort plus. On compte les bûches.', rule: 'L’eau gèle, pas de veillée ; un hameau sans forêt voisine perd 2 points, chaque forêt qui touche un hameau en rapporte 2 ; les champs dorment.' },
     doux: { name: 'Hiver doux', line: 'Pas de glace cette année. Les canards n’en reviennent pas.', rule: 'L’eau ne gèle pas, pas de veillée ; les champs continuent de rapporter avec les hameaux et chaque marais qui touche l’eau rapporte +1.' },
+    // Livre II : deux surprises de mer, à la place de l'hiver doux et des semailles
+    tempete: { name: 'Tempête', line: 'La mer monte sur les quais. Personne ne sort, tout le monde écoute.', rule: 'Les routes de mer ne paient pas cette saison ; pas de gel ni de veillée. Chaque récif rapporte +2 (il brise la houle), chaque pinède qui touche la mer +1 (elle tient le sable).' },
+    maree: { name: 'Marée basse', line: 'La mer s’est retirée plus loin que jamais. On marche là où on nageait.', rule: 'Chaque tuile de mer posée qui touche la terre rapporte +1 (l’estran), les algues +2 ; les marais ne fleurissent pas, ils sont sous l’eau.' },
   },
 
 
@@ -677,6 +685,9 @@ export const STORY = {
     harmonie: 'Harmonie : trois fleurs sous le score. Variété : cinq familles tiennent chacune une région de quatre tuiles. Équilibre : aucune région ne couvre plus d’un cinquième de l’île. Achèvement : au moins 85 % des tuiles dans des régions closes, et pas de friche. Chaque fleur ouverte à la fin de l’île rapporte des points ; touche-les pour voir ce qui manque.',
     surprise: 'Surprise de saison : à chaque saison qui arrive, la règle de base peut laisser place à l’une de ses deux surprises (semailles ou nichées au printemps, grandes chaleurs ou feux en été, foire ou chasse en automne, grand froid ou hiver doux). Elle s’écrit sous la saison et dure jusqu’à la suivante.',
     hill: 'La colline aime le pré et la forêt ; deux collines qui se touchent attirent le cheval. Une rivière peut en naître.',
+    tempete: 'La tempête, surprise d’hiver du Livre II à la place de l’hiver doux : les routes de mer ne paient pas cette saison ; chaque récif rapporte +2, chaque pinède au bord de la mer +1. Deux nouvelles rares vivent des routes : la taverne (+1 par port relié) et le marché (+1 par marchandise).',
+    phare: 'Le phare, une rare qui compte comme roche : chaque route de mer qui le touche paie +2 de plus à chaque saison. Pose-le sur la côte, là où les routes passent.',
+    maree: 'La marée basse, surprise de printemps du Livre II à la place des semailles : chaque tuile de mer posée qui touche la terre rapporte +1, les algues +2 ; les marais ne fleurissent pas.',
     rare2: 'Nouvelles rares : le grenier (+1 par bord avec un champ, pas de dormance d’hiver), la ruche (+1 par verger ou prairie voisin à chaque saison) et le menhir (+1 par roche ou colline voisine à chaque saison).',
     heath: 'La lande fleurit au printemps (+1) et attire la vache en lisière des prés.',
     build: 'Bâtir : touche une tuile d’une région close (2 souffles, sans tuile de la file). Elle passe au niveau 2 : ses bords valent +1 de plus. Les tuiles qui attendent une action ont un liseré doré.',
@@ -696,6 +707,7 @@ export const STORY = {
     hot: { name: 'Climat chaud', line: 'Le sable est chaud dès le matin. L’eau vaut de l’or.', plus: 'Chaque tuile d’eau posée +2, un étang +1 de plus par saison, les bords des vergers +1, l’été dure deux saisons.', minus: 'Les prés loin de l’eau sèchent dès le printemps ; pas de gel, donc pas de veillée.' },
     humid: { name: 'Climat humide', line: 'Il pleut. Puis il pleut. Rien ne sèche.', plus: 'Les prés ne sèchent jamais, rivières et lacs +1 par tuile.', minus: 'Un hameau contre un marais vaut −2 ; les sentiers ne dépassent pas deux cases.' },
     cold: { name: 'Climat froid', line: 'La neige reste. Le silence compte double.', plus: 'La veillée vaut +1 par paire ; chaque forêt qui touche un hameau rapporte +1 chaque hiver ; l’hiver dure deux saisons.', minus: 'Les champs dorment dès l’automne ; rien ne fleurit au printemps.' },
+    windy: { name: 'Climat venteux', line: 'Le vent vient de la mer et ne s’arrête pas. Les pins se couchent, les voiles se gonflent.', plus: 'Chaque port relié paie +1 de plus par saison ; l’automne dure deux saisons.', minus: 'Un champ ou un verger sans abri (forêt, pinède, colline, roche ou hameau voisin) perd 1 à chaque saison.' },
   },
   verdicts: {
     master: ['Coup de maître !', 'Magistral !', 'L’île applaudit !', 'Rien à redire !'],

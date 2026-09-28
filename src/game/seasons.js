@@ -1,5 +1,5 @@
 // Cycle des saisons et leurs effets sur l'île.
-import { SEASONS } from '../data/tiles.js';
+import { SEASONS, MER } from '../data/tiles.js';
 import { BALANCE } from '../data/balance.js';
 import { Board } from './board.js';
 import { neighbors } from './hex.js';
@@ -18,6 +18,13 @@ export function transition(board, season, rule = null, climate = null) {
   if (rule === 'aucune') return ev;   // Souffle court : les règles de saison de la campagne n'y jouent pas, seuls ses quatre effets (cadran, réserve, brume, deux tuiles)
   const cl = climate || {};
   const tiles = [...board.tiles.values()];
+  const S2 = BALANCE.livre2;
+  // climat venteux : un champ ou un verger sans abri perd 1 à chaque saison (le vent couche les blés et secoue les fruits)
+  if (cl.windExposed) for (const t of tiles) {
+    if (t.rare || t.fusion || !(Board.isFamily(t, 'field') || Board.isFamily(t, 'orchard'))) continue;
+    const abri = neighbors(t.q, t.r).some(([a, b]) => { const n = board.get(a, b); return n && ['forest', 'pine', 'hill', 'rock', 'hamlet'].some((f) => Board.isFamily(n, f)); });
+    if (!abri) ev.push({ type: 'wind', q: t.q, r: t.r, pts: cl.windExposed });
+  }
   for (const body of waterBodies(board)) if (body.kind === 'pond') { const t = body.cells[0]; if (neighbors(t.q, t.r).some(([a, b]) => { const n = board.get(a, b); return n && (Board.isFamily(n, 'meadow') || Board.isFamily(n, 'marsh')); })) ev.push({ type: 'pond', q: t.q, r: t.r, pts: P.pondSeason + (cl.pondSeason || 0) }); }
   if (season === 'spring') {
     for (const t of tiles) {
@@ -28,6 +35,12 @@ export function transition(board, season, rule = null, climate = null) {
       else if (Board.isFamily(t, 'heath')) { t.bloom = true; ev.push({ type: 'heather', q: t.q, r: t.r, pts: rule === 'crue' || !rule ? P.springHeath : 0 }); }
     }
     // climat chaud : les prés loin de l'eau sèchent dès le printemps
+    // marée (Livre II, surprise de printemps) : l'estran — chaque tuile de mer posée qui touche la terre rapporte +1, les algues +2
+    if (rule === 'maree') for (const t of tiles) {
+      if (!MER.has(t.family)) continue;
+      if (!neighbors(t.q, t.r).some(([a, b]) => { const n = board.get(a, b); return n && !MER.has(n.family) && !Board.isFamily(n, 'port'); })) continue;
+      ev.push({ type: 'maree', q: t.q, r: t.r, pts: t.family === 'kelp' ? S2.maree.algues : S2.maree.estran });
+    }
     if (cl.dryEarly) for (const t of tiles) if (t.family === 'meadow' && !t.rare && !neighbors(t.q, t.r).some(([a, b]) => { const n = board.get(a, b); return n && (Board.isFamily(n, 'water') || n.family === 'well'); })) { t.dry = true; ev.push({ type: 'dry', q: t.q, r: t.r }); }
   } else if (season === 'summer') {
     for (const t of tiles) {
@@ -40,7 +53,7 @@ export function transition(board, season, rule = null, climate = null) {
           if (badMarsh) { t.dry = true; ev.push({ type: 'dry', q: t.q, r: t.r }); }
           continue;
         }
-        const wet = ns.some((n) => Board.isFamily(n, 'water') || Board.isFamily(n, 'forest') || Board.isFamily(n, 'marsh') || Board.isFamily(n, 'heath') || n.family === 'well');
+        const wet = ns.some((n) => Board.isFamily(n, 'water') || Board.isFamily(n, 'forest') || Board.isFamily(n, 'pine') || Board.isFamily(n, 'marsh') || Board.isFamily(n, 'heath') || n.family === 'well');   // la pinède fait de l'ombre comme la forêt
         if (!wet) { t.dry = true; ev.push({ type: 'dry', q: t.q, r: t.r }); }
       }
     }
@@ -63,6 +76,15 @@ export function transition(board, season, rule = null, climate = null) {
       }
     }
   } else if (season === 'winter') {
+    if (rule === 'tempete') {
+      // tempête (Livre II) : pas de gel, pas de veillée, les routes ne paient pas (voir rentesLivre2) ; chaque récif rapporte +2
+      // (il brise la houle), chaque pinède qui touche la mer +1 (elle tient le sable)
+      for (const t of tiles) {
+        if (Board.isFamily(t, 'reef')) ev.push({ type: 'tempete', q: t.q, r: t.r, pts: S2.tempete.recif });
+        else if (Board.isFamily(t, 'pine') && neighbors(t.q, t.r).some(([a, b]) => board.isSea(a, b))) ev.push({ type: 'tempete', q: t.q, r: t.r, pts: S2.tempete.pinede });
+      }
+      return ev;
+    }
     if (rule === 'doux') {
       // hiver doux : pas de gel, pas de veillée ; chaque marais qui touche l'eau rapporte +1
       for (const t of tiles) if (Board.isFamily(t, 'marsh') && neighbors(t.q, t.r).some(([a, b]) => Board.isFamily(board.get(a, b), 'water'))) ev.push({ type: 'mild', q: t.q, r: t.r, pts: 1 });

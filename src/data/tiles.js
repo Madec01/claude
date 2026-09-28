@@ -8,21 +8,24 @@ export const MER = new Set(['sea', 'reef', 'kelp']);
 /** Ce qu'un port exporte : les familles de terre qui le touchent (une marchandise par famille différente, sur toute la route). */
 export const MARCHANDISES = new Set(['field', 'forest', 'orchard', 'meadow', 'rock', 'marsh', 'hill', 'heath', 'pine', 'sand']);
 export const RARE = ['mill', 'chapel', 'watchtower', 'well', 'camp', 'granary', 'hive', 'menhir'];
+/** Les rares du Livre II (dès les ports, puis dès le phare) : elles vivent des routes de mer. */
+export const RARE_LIVRE2 = ['tavern', 'market', 'phare'];
 // L'île où une famille ou une rare arrive n'est écrite qu'à un endroit : MECH_AT dans campaign.js (`hill`, `heath`, `rare2`).
 /**
  * Rares et tuiles d'événement retirées par l'audit de simplification (22 septembre) : ce qu'elles deviennent si une
  * partie reprise, ou une file en cours, en contient encore — une tuile ordinaire de la famille qu'elles comptaient.
  */
-export const RETIRED_RARE = { fountain: 'hamlet', market: 'hamlet', fete: 'hamlet', restore: 'meadow', tavern: 'hamlet', trough: 'meadow', archway: 'hamlet', mine: 'rock', oven: 'hamlet' };
+// (la taverne et le marché, retirés alors, reviennent au Livre II avec un autre sens : ils vivent des routes de mer)
+export const RETIRED_RARE = { fountain: 'hamlet', fete: 'hamlet', restore: 'meadow', trough: 'meadow', archway: 'hamlet', mine: 'rock', oven: 'hamlet' };
 export const SEASONS = ['spring', 'summer', 'autumn', 'winter'];
 
 /** Nombre de variantes graphiques par famille (clés d'image : `${family}_${n}_${season}`). */
-export const VARIANTS = { sea: 1, reef: 1, kelp: 1, port: 1, pine: 1, meadow: 3, forest: 3, field: 2, hamlet: 3, orchard: 2, water: 2, marsh: 2, rock: 3, sand: 2, hill: 2, heath: 2, granary: 1, fountain: 1, market: 1, fete: 1, restore: 1, tavern: 1, trough: 1, archway: 1, mine: 1, oven: 1, mill: 1, chapel: 1, watchtower: 1, well: 1, camp: 1, ruins: 1, dry_meadow: 1 };
+export const VARIANTS = { phare: 1, shipyard: 1, sea: 1, reef: 1, kelp: 1, port: 1, pine: 1, meadow: 3, forest: 3, field: 2, hamlet: 3, orchard: 2, water: 2, marsh: 2, rock: 3, sand: 2, hill: 2, heath: 2, granary: 1, fountain: 1, market: 1, fete: 1, restore: 1, tavern: 1, trough: 1, archway: 1, mine: 1, oven: 1, mill: 1, chapel: 1, watchtower: 1, well: 1, camp: 1, ruins: 1, dry_meadow: 1 };
 
 /** Familles « effectives » d'une tuile rare pour les affinités (une rare peut compter pour plusieurs familles). */
-export const RARE_AS = { hive: ['meadow'], menhir: ['rock'], mill: ['field', 'hamlet'], chapel: ['hamlet'], watchtower: ['rock'], well: ['meadow'], camp: ['meadow'], granary: ['field'], fountain: ['hamlet'], market: ['hamlet'], fete: ['hamlet'], restore: [], tavern: ['hamlet'], trough: ['meadow'], archway: ['hamlet'], mine: ['rock'], oven: ['hamlet'], ruins: [],
+export const RARE_AS = { hive: ['meadow'], menhir: ['rock'], mill: ['field', 'hamlet'], chapel: ['hamlet'], watchtower: ['rock'], well: ['meadow'], camp: ['meadow'], granary: ['field'], fountain: ['hamlet'], market: ['hamlet'], fete: ['hamlet'], restore: [], tavern: ['hamlet'], phare: ['rock'], trough: ['meadow'], archway: ['hamlet'], mine: ['rock'], oven: ['hamlet'], ruins: [],
   // fusions (deux familles superposées) : la tuile compte pour ses deux familles
-  paddy: ['field', 'water'], farm: ['hamlet', 'field'], fort: ['hamlet', 'rock'], falls: ['rock', 'water'], cave: ['forest', 'rock'], lagoon: ['sand', 'water'] };
+  paddy: ['field', 'water'], farm: ['hamlet', 'field'], fort: ['hamlet', 'rock'], falls: ['rock', 'water'], cave: ['forest', 'rock'], lagoon: ['sand', 'water'], shipyard: ['port', 'forest'] };
 
 /**
  * Recettes de fusion : poser une tuile sur une tuile d'une autre famille. Commutatives. `seasonal` : prime à chaque
@@ -35,6 +38,8 @@ export const FUSIONS = [
   { id: 'falls',  a: 'rock',   b: 'water', seasonal: { family: 'water', pts: 1, cap: 3 } },
   { id: 'cave',   a: 'forest', b: 'rock',  seasonal: { family: 'forest', pts: 1, cap: 3 } },
   { id: 'lagoon', a: 'sand',   b: 'water', seasonal: { family: 'water', pts: 1, cap: 3 } },
+  // Livre II : le chantier naval, port + forêt — +1 par tuile de mer voisine à chaque saison (les coques sortent des bois de marine)
+  { id: 'shipyard', a: 'port', b: 'forest', seasonal: { family: 'sea', pts: 1, cap: 3, livre2: true } },
 ];
 export const FUSION_BY_ID = Object.fromEntries(FUSIONS.map((f) => [f.id, f]));
 /** Recette pour deux familles de base (ordre indifférent), ou null. */
@@ -96,4 +101,4 @@ export const PAIR_LABELS = {
 };
 
 /** Icônes d'UI par famille (Game Icons) et couleurs d'accent. */
-export const FAMILY_COLORS = { sea: '#3f8fc9', reef: '#7fcbe0', kelp: '#4f9a7a', port: '#a86b3e', pine: '#2f6f4a', hive: '#e0a33a', scarecrow: '#c9903a', nestbox: '#7a5a3a', campfire: '#d95f4b', menhir: '#6f747a', compost: '#7a6a3a', paddy: '#7fb26a', farm: '#c9903a', fort: '#8a8f96', falls: '#6fb2d8', cave: '#7a7f86', lagoon: '#7fcbe0', meadow: '#7cc46f', forest: '#3f8a3d', field: '#d8a33c', hamlet: '#c96b4a', orchard: '#e0785a', water: '#5aa7d6', marsh: '#7ea36b', rock: '#8f9aa3', sand: '#e6d29a', mill: '#d8a33c', chapel: '#c96b4a', watchtower: '#8f9aa3', well: '#5aa7d6', camp: '#e0a33a', ruins: '#8f9aa3', hill: '#9bb56a', heath: '#a67bb8', granary: '#d8a33c', fountain: '#5aa7d6', market: '#c96b4a', fete: '#e0a33a', restore: '#8f9aa3', tavern: '#c96b4a', trough: '#7cc46f', archway: '#c96b4a', mine: '#8f9aa3', oven: '#c96b4a' };
+export const FAMILY_COLORS = { phare: '#d9d3c4', shipyard: '#8a6a4a', sea: '#3f8fc9', reef: '#7fcbe0', kelp: '#4f9a7a', port: '#a86b3e', pine: '#2f6f4a', hive: '#e0a33a', scarecrow: '#c9903a', nestbox: '#7a5a3a', campfire: '#d95f4b', menhir: '#6f747a', compost: '#7a6a3a', paddy: '#7fb26a', farm: '#c9903a', fort: '#8a8f96', falls: '#6fb2d8', cave: '#7a7f86', lagoon: '#7fcbe0', meadow: '#7cc46f', forest: '#3f8a3d', field: '#d8a33c', hamlet: '#c96b4a', orchard: '#e0785a', water: '#5aa7d6', marsh: '#7ea36b', rock: '#8f9aa3', sand: '#e6d29a', mill: '#d8a33c', chapel: '#c96b4a', watchtower: '#8f9aa3', well: '#5aa7d6', camp: '#e0a33a', ruins: '#8f9aa3', hill: '#9bb56a', heath: '#a67bb8', granary: '#d8a33c', fountain: '#5aa7d6', market: '#c96b4a', fete: '#e0a33a', restore: '#8f9aa3', tavern: '#c96b4a', trough: '#7cc46f', archway: '#c96b4a', mine: '#8f9aa3', oven: '#c96b4a' };
