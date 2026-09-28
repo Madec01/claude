@@ -1,6 +1,6 @@
 # Musiques et ambiances libres pour le Livre II
 
-Recherche du 28 septembre (agent de recherche, par le web). Le réseau de la session bloque l'accès direct aux sites
+Recherche du 28 septembre (agent de recherche, par le web). **Les morceaux ne sont pas dans le dépôt** (le réseau de la session ne peut pas les télécharger) : chaque page ci-dessous a un lecteur pour écouter ; ce que tu retiens, tu le déposes dans le miroir (`/home/user/mirrors/km-audio` pour Kevin MacLeod, un dossier `cc0` pour les autres) et je le bâtis avec `tools/build_audio.py`. Le réseau de la session bloque l'accès direct aux sites
 (opengameart, incompetech, freesound, bigsoundbank…) : les licences ci-dessous viennent des extraits de recherche qui citent
 le texte des pages. **Avant tout téléchargement, ouvrir la page et lire la licence.** Les fichiers vont dans le miroir
 (`/home/user/mirrors`, un dossier par source) et `tools/build_audio.py` les reprend comme les musiques du Livre I.
@@ -12,13 +12,13 @@ n'existe pas, sa vraie shanty est *Netherworld Shanty*.
 
 | Titre | Auteur | Licence | Durée | Ambiance | Usage proposé |
 |---|---|---|---|---|---|
-| Medieval: The Old Tower Inn | RandomMind | CC0 — opengameart.org/content/medieval-the-old-tower-inn | ≈2 min + boucle WAV | taverne, calme, folk | **Port** |
-| Medieval: The Bard's Tale | RandomMind | CC0 — opengameart.org/content/medieval-the-bards-tale | complète + boucle | luth, conteur | ouverture du Livre II, printemps en mer |
-| Medieval: Minstrel Dance | RandomMind | CC0 — opengameart.org/content/medieval-minstrel-dance | ≈4 min + boucle | luth, viole, entraînant | été en mer |
-| Medieval: King's Feast | RandomMind | CC0 — opengameart.org/content/medieval-kings-feast | complète + boucle | festif, banquet | port en fête |
-| Tavern | yd | CC0 — opengameart.org/content/tavern-0 | ≈1 min | calme, village | petit port |
-| Pirate Game Tune | Tozan | CC0 — opengameart.org/content/pirate-game-tune | 1–2 min, brut | caraïbe, joué en direct | à écouter |
-| Ocean music pack (Seaside Village…) | Leonardo Paz | déposé CC0, l'auteur parle de CC-BY : **à vérifier** — opengameart.org/content/ocean-music-pack | boucles | orchestral doux, côte | port, si la licence tient |
+| Medieval: The Old Tower Inn | RandomMind | CC0 — https://opengameart.org/content/medieval-the-old-tower-inn | ≈2 min + boucle WAV | taverne, calme, folk | **Port** |
+| Medieval: The Bard's Tale | RandomMind | CC0 — https://opengameart.org/content/medieval-the-bards-tale | complète + boucle | luth, conteur | ouverture du Livre II, printemps en mer |
+| Medieval: Minstrel Dance | RandomMind | CC0 — https://opengameart.org/content/medieval-minstrel-dance | ≈4 min + boucle | luth, viole, entraînant | été en mer |
+| Medieval: King's Feast | RandomMind | CC0 — https://opengameart.org/content/medieval-kings-feast | complète + boucle | festif, banquet | port en fête |
+| Tavern | yd | CC0 — https://opengameart.org/content/tavern-0 | ≈1 min | calme, village | petit port |
+| Pirate Game Tune | Tozan | CC0 — https://opengameart.org/content/pirate-game-tune | 1–2 min, brut | caraïbe, joué en direct | à écouter |
+| Ocean music pack (Seaside Village…) | Leonardo Paz | déposé CC0, l'auteur parle de CC-BY : **à vérifier** — https://opengameart.org/content/ocean-music-pack | boucles | orchestral doux, côte | port, si la licence tient |
 
 ## Musiques — CC BY
 
@@ -34,7 +34,7 @@ n'existe pas, sa vraie shanty est *Netherworld Shanty*.
 | Angevin B | Kevin MacLeod | CC BY 3.0 | 2:09 | cordes, bouclable | traversée neutre |
 | Teller of the Tales | Kevin MacLeod | CC BY 3.0 (USUAN1400020) | 3:32 | duo pincé, très calme | nuit au port |
 | Netherworld Shanty | Kevin MacLeod | CC BY 3.0 (USUAN1100138) | 3:15 | accordéon, tin whistle, basson, 80 BPM ; « sombre, humoristique » | tempête / repaire, à écouter avant |
-| Tavern Loop One | Alexander Nakarada | CC BY 4.0 (free-stock-music.com) | 2:23, boucle | taverne médiévale | port |
+| Tavern Loop One | Alexander Nakarada | CC BY 4.0 (https://free-stock-music.com) | 2:23, boucle | taverne médiévale | port |
 | Celtic Ambiance | Alexander Nakarada | CC BY 4.0 | 4:13 | celtique, ambient | hiver en mer |
 | Celtic Whispers | Alexander Nakarada | CC BY 4.0 | 4:25 | harpe, paisible | automne en mer (brume) |
 | Kind Celtic Loop | Alexander Nakarada | CC BY 4.0 | 1:27, boucle | harpe, doux | transition, printemps |
@@ -49,18 +49,18 @@ n'existe pas, sa vraie shanty est *Netherworld Shanty*.
 
 | Titre | Auteur | Licence | Contenu | Usage |
 |---|---|---|---|---|
-| Gulls on the Harbor | Joseph Sardin | CC0 — bigsoundbank.com/gulls-on-the-harbor-s2573.html | goélands sur un port, 1:54 | port |
-| Sea Waves with Tern Calls | Joseph Sardin | CC0 — bigsoundbank.com/sea-waves-and-seagulls-s0267.html | ressac + sternes | côte |
-| Many seagulls | Ambientsoundapp | CC0 — freesound.org/people/Ambientsoundapp/sounds/537853/ | colonie, 0:30 | goélands |
-| Harbor Ambience 1 et 2 | clif_creates | CC0 — freesound.org/people/clif_creates/sounds/254130/ et 254125 | bateaux à quai, clapot | port |
-| Calm / Stronger wind at a marina | Pfannkuchn | CC0 — freesound.org/people/Pfannkuchn/sounds/360632/ et 360633 | vent dans les haubans | vent dans les gréements |
-| Moored sailboat interior in strong breeze | AugustSandberg | CC0 — freesound.org/people/AugustSandberg/sounds/265553/ | cordages, coque, 6:35 | tempête |
-| Cloth Flapping in Wind | PhilllChabbb | CC0 — freesound.org/people/PhilllChabbb/sounds/245839/ | tissu qui claque | voiles |
-| Gentle small waves lapping on shore | Alex_hears_things | CC0 — freesound.org/people/Alex_hears_things/sounds/352356/ | vaguelettes, 2:44 | ressac doux |
-| Large Wood Ship Creaking | craigsmith | CC0 — freesound.org/people/craigsmith/sounds/483355/ | bois qui grince | coque |
-| Bell buoy | craigsmith | à confirmer — freesound.org/people/craigsmith/sounds/675693/ | cloche de bouée, 1:30 | bouée |
-| Solo Seagull Sound Effects | Rango Mango | CC0 — opengameart.org/content/solo-seagull-sound-effects | cris isolés | ponctuation |
-| Sea and river wave sounds | (opengameart) | CC0 — opengameart.org/content/sea-and-river-wave-sounds | vagues, long | ressac |
+| Gulls on the Harbor | Joseph Sardin | CC0 — https://bigsoundbank.com/gulls-on-the-harbor-s2573.html | goélands sur un port, 1:54 | port |
+| Sea Waves with Tern Calls | Joseph Sardin | CC0 — https://bigsoundbank.com/sea-waves-and-seagulls-s0267.html | ressac + sternes | côte |
+| Many seagulls | Ambientsoundapp | CC0 — https://freesound.org/people/Ambientsoundapp/sounds/537853/ | colonie, 0:30 | goélands |
+| Harbor Ambience 1 et 2 | clif_creates | CC0 — https://freesound.org/people/clif_creates/sounds/254130/ et 254125 | bateaux à quai, clapot | port |
+| Calm / Stronger wind at a marina | Pfannkuchn | CC0 — https://freesound.org/people/Pfannkuchn/sounds/360632/ et 360633 | vent dans les haubans | vent dans les gréements |
+| Moored sailboat interior in strong breeze | AugustSandberg | CC0 — https://freesound.org/people/AugustSandberg/sounds/265553/ | cordages, coque, 6:35 | tempête |
+| Cloth Flapping in Wind | PhilllChabbb | CC0 — https://freesound.org/people/PhilllChabbb/sounds/245839/ | tissu qui claque | voiles |
+| Gentle small waves lapping on shore | Alex_hears_things | CC0 — https://freesound.org/people/Alex_hears_things/sounds/352356/ | vaguelettes, 2:44 | ressac doux |
+| Large Wood Ship Creaking | craigsmith | CC0 — https://freesound.org/people/craigsmith/sounds/483355/ | bois qui grince | coque |
+| Bell buoy | craigsmith | à confirmer — https://freesound.org/people/craigsmith/sounds/675693/ | cloche de bouée, 1:30 | bouée |
+| Solo Seagull Sound Effects | Rango Mango | CC0 — https://opengameart.org/content/solo-seagull-sound-effects | cris isolés | ponctuation |
+| Sea and river wave sounds | (opengameart) | CC0 — https://opengameart.org/content/sea-and-river-wave-sounds | vagues, long | ressac |
 
 ## Recommandation (cinq musiques)
 
@@ -72,6 +72,6 @@ n'existe pas, sa vraie shanty est *Netherworld Shanty*.
 
 Tempête : *Celtic Impulse* ou *Netherworld Shanty* (à écouter). Printemps : *Achaidh Cheide* ou *The Bard's Tale* (CC0).
 
-Crédits à reprendre : MacLeod « "Titre" Kevin MacLeod (incompetech.com) — Licensed under Creative Commons: By Attribution
-3.0 » ; Nakarada « Music by Alexander Nakarada (CreatorChords) — creatorchords.com — CC BY 4.0 » ; CC0 : « Auteur —
+Crédits à reprendre : MacLeod « "Titre" Kevin MacLeod (https://incompetech.com) — Licensed under Creative Commons: By Attribution
+3.0 » ; Nakarada « Music by Alexander Nakarada (CreatorChords) — https://creatorchords.com — CC BY 4.0 » ; CC0 : « Auteur —
 site — CC0 » (crédit volontaire).
