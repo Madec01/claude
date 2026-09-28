@@ -110,12 +110,12 @@ const Game = {
    * L'ouverture : l'animation du studio, jouée par-dessus l'écran de chargement (qui charge pendant ce temps). Rend une
    * promesse tenue quand le film est fini, passé d'un toucher, impossible à lire, ou après six secondes quoi qu'il arrive.
    * Le son est dans le film : on l'essaie avec le son (le navigateur l'accorde à un joueur qui revient), sinon en muet —
-   * jamais de blocage sur un geste. Les tests automatiques (navigator.webdriver) ne la voient pas.
+   * jamais de blocage sur un geste. Il se joue pour tout joueur, mode test compris ; seuls les tests automatiques (navigator.webdriver) ne le voient pas.
    */
   playIntro() {
     const box = document.getElementById('intro'), v = document.getElementById('intro-video');
     if (!box || !v) return Promise.resolve();
-    if (navigator.webdriver || Save.options.testMode) { box.remove(); return Promise.resolve(); }
+    if (navigator.webdriver) { box.remove(); return Promise.resolve(); }   // pour tout joueur, mode test compris ; seuls les tests automatiques le passent
     return new Promise((resolve) => {
       let done = false;
       const fin = () => { if (done) return; done = true; box.classList.add('off'); setTimeout(() => box.remove(), 600); resolve(); };
