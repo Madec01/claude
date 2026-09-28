@@ -9,6 +9,14 @@
 .menu-nav { position: absolute; left: 90px; top: 292px; display: flex; flex-direction: column; gap: 9px; width: 360px; }
 .menu-nav .btn { justify-content: flex-start; opacity: 0; transform: translateX(-12px); transition: opacity 0.4s var(--ease-out), transform 0.4s var(--ease-out), background 0.2s, border-color 0.2s, box-shadow 0.2s; }
 .menu-nav .btn.in { opacity: 1; transform: none; }
+/* L'arrivée depuis l'ouverture : le titre de l'ouverture vient de s'effacer, l'île reste ; le voile se lève en une seconde,
+   le titre et le pied montent doucement, les boutons suivent (le décalage est dans buildMenu). Sans cette classe, le menu
+   se montre d'un coup, comme au retour d'une partie derrière un fondu. */
+.menu.arrivee .menu-veil { animation: menu-voile 1.1s ease-out both; }
+.menu.arrivee .menu-title { animation: menu-monte 0.9s var(--ease-out) 0.2s both; }
+.menu.arrivee .menu-foot { animation: menu-monte 0.9s var(--ease-out) 0.55s both; }
+@keyframes menu-voile { from { opacity: 0; } }
+@keyframes menu-monte { from { opacity: 0; transform: translateY(12px); } }
 .menu-nav .btn:disabled.in { opacity: 0.45; }
 .menu-foot { position: absolute; left: 60px; right: 60px; bottom: 26px; display: flex; justify-content: space-between; align-items: center; font-size: 15px; font-weight: 600; opacity: 0.8; pointer-events: none; }
 .menu-foot .foot-left { display: flex; gap: 18px; align-items: center; }

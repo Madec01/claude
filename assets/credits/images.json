@@ -987,9 +987,9 @@
   "license": "Icône du studio, tous droits réservés — fournie par le commanditaire pour ce jeu",
   "attribution": "L'icône de l'application est la première image de l'animation fournie par le commanditaire le 28 septembre 2026 (recadrée sur son contenu ; la version « maskable » est posée sur le papier du jeu, à 78 % du cadre).",
   "files": [
-   "ui/app_icon_192.png",
-   "ui/app_icon_512.png",
-   "ui/app_icon_512_maskable.png"
+   "ui/icone_192.png",
+   "ui/icone_512.png",
+   "ui/icone_512_maskable.png"
   ]
  },
  {

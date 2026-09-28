@@ -20,12 +20,13 @@ export const VERSION = 'v1.0';
 
 const SEASON_FR = { spring: 'printemps', summer: 'été', autumn: 'automne', winter: 'hiver' };
 
-export function buildMenu({ game }) {
+/** `douce` : le menu suit l'ouverture — le voile, le titre et le pied se lèvent, les boutons attendent un peu (classe `arrivee`, css/menu.css). */
+export function buildMenu({ game, douce = false }) {
   const c = Save.campaign;
   const testMode = Save.options.testMode;
   const started = c.islandsPlayed > 0 || c.prologueSeen;
   const totalStars = Object.values(c.stars || {}).reduce((a, b) => a + b, 0);
-  const root = h('div', { class: 'menu' });
+  const root = h('div', { class: `menu${douce ? ' arrivee' : ''}` });
   const title = h('div', { class: 'menu-title' },
     h('div', { class: 'menu-kicker' }, STORY.subtitle),
     h('h1', {}, STORY.title),
@@ -97,7 +98,7 @@ export function buildMenu({ game }) {
     h('div', { class: 'foot-right', title: Version.assets ? `assets ${Version.assets}` : '' }, `${STORY.title} · ${VERSION}${Version.assets ? ` · ${Version.assets.slice(0, 6)}` : ''}`),
   );
   append(root, h('div', { class: 'menu-veil' }), title, nav, foot);
-  setTimeout(() => stagger(nav, '.btn', 60), 60);
+  setTimeout(() => stagger(nav, '.btn', 60), douce ? 520 : 60);
 
   function showIslands() {
     const rows = h('div', { class: 'acts' });

@@ -180,6 +180,7 @@ const Game = {
       await Promise.race([version, wait(1500)]);
       await ouv.finie;   // la construction, le titre, et le temps de le lire
       scenes.scenes.get('menu').bg = new AmbientIsland(4, ouv.remettre());   // l'île du titre reste en fond du menu
+      scenes.scenes.get('menu').douce = true;   // et le menu arrive en douceur par-dessus : voile, titre et boutons se lèvent, rien ne surgit
     } else {
       await wait(200);
       boot.classList.add('off'); setTimeout(() => boot.remove(), 700);
@@ -655,7 +656,8 @@ class MenuScene {
   async enter() {
     hideUI(); document.getElementById('hud').innerHTML = ''; document.getElementById('tutorial').innerHTML = '';
     if (!this.bg) this.bg = new AmbientIsland(4);
-    showUI(buildMenu({ game: Game }), 'menu-wrap');
+    const douce = !!this.douce; this.douce = false;   // une seule fois : l'arrivée depuis l'ouverture
+    showUI(buildMenu({ game: Game, douce }), 'menu-wrap');
     AudioSys.playMusic('menu', { fade: 2 });
     AudioSys.setAmbience('birds', 0.35, 3); AudioSys.setAmbience('sea', 0.3, 3);
     for (const k of ['stream', 'wind', 'rain', 'crickets', 'winter']) AudioSys.setAmbience(k, 0, 1.5);
