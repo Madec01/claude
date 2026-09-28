@@ -20,7 +20,8 @@ const etat = (page) => page.evaluate(() => {
   const sc = window.CS && window.CS.scenes; const cur = sc && sc.current; const c = cur && cur.construction; const el = document.getElementById('ouverture');
   return { scene: sc ? sc.currentName : null, i: c ? c.i : null, n: c ? c.n : null, enAir: c ? c.posees.length : null, posee: c ? c.posee : null, limite: c ? c.limite : null,
     titre: !!(el && el.classList.contains('titre')), charge: !!(el && el.classList.contains('charge')), saison: cur && cur.isl ? cur.isl.season : null,
-    legacy: cur && cur.renderer ? cur.renderer.legacy : null, t: cur && cur.t != null ? cur.t : null, tuiles: cur && cur.isl ? cur.isl.board.tiles.size : null };
+    legacy: cur && cur.renderer ? cur.renderer.legacy : null, t: cur && cur.t != null ? cur.t : null, tuiles: cur && cur.isl ? cur.isl.board.tiles.size : null,
+    p: cur && cur.p != null ? cur.p : null, tCharge: cur && cur.tCharge != null ? cur.tCharge : null };
 }).catch(() => null);
 
 (async () => {
@@ -36,20 +37,25 @@ const etat = (page) => page.evaluate(() => {
     check(e0 && e0.legacy === false, 'le rendu naît avec ses sols : les tuiles prendront leur forme naturelle (pas de repli hexagonal)');
     check(e0 && e0.saison === 'summer', 'la construction commence en été');
     check(await page.evaluate(() => !document.getElementById('boot') || document.getElementById('boot').classList.contains('off')), 'l’écran de chargement s’efface dès que la mer se montre');
-    let titreAvant = false, titreAvec = null, i15 = null, depasse = false, t0 = Date.now(); const saisons = [];
+    // Sur une machine chargée (la suite lance trois navigateurs à la fois), les images arrivent après le plancher de cinq
+    // secondes : les tuiles attendent, c'est voulu. Le test mesure alors contre la fin du chargement, jamais contre l'horloge seule.
+    let titreAvant = false, titreAvec = null, i15 = null, p15 = null, depasse = false, tCharge = null, t0 = Date.now(); const saisons = [];
     for (let k = 0; k < 80; k++) {
       const e = await etat(page); if (!e || e.scene !== 'ouverture') break;
       if (e.saison && saisons[saisons.length - 1] !== e.saison) saisons.push(e.saison);
       if (e.i !== null && e.limite !== null && e.i > e.limite) depasse = true;
-      if (e.t >= 1.5 && i15 === null) i15 = e.i;
+      if (e.t >= 1.5 && i15 === null) { i15 = e.i; p15 = e.p; }
+      if (e.tCharge !== null && tCharge === null) tCharge = e.tCharge;
       if (e.titre && titreAvec === null) { titreAvec = e; if (e.i !== null && !e.posee) titreAvant = true; }
       if (e.titre && (Date.now() - t0) > 20000) break;
       await page.waitForTimeout(250);
     }
-    check(i15 !== null && i15 >= 6 && i15 <= 30, `à une seconde et demie, une partie des tuiles est posée (${i15})`);
+    const lent = p15 !== null && p15 < 0.6;   // à 1,5 s, le chargement n'en est pas aux deux tiers : la construction suit le chargement
+    check(i15 !== null && (lent ? i15 >= 1 : i15 >= 6) && i15 <= 30, `à une seconde et demie, une partie des tuiles est posée (${i15}${lent ? `, chargement lent : ${Math.round(p15 * 100)} %` : ''})`);
     check(!depasse, 'les tuiles ne vont jamais plus loin que le chargement');
     check(titreAvec !== null && !titreAvant, `le titre s’écrit avec la dernière tuile posée, pas avant (à ${titreAvec ? titreAvec.t.toFixed(1) : '?'} s)`);
-    check(titreAvec && titreAvec.t >= 4.5 && titreAvec.t <= 9, 'la construction dure cinq secondes environ (le plancher : ici tout est chargé bien avant)');
+    const fin = tCharge !== null ? Math.max(9, tCharge + 2.5) : 9;
+    check(titreAvec && titreAvec.t >= 4.5 && titreAvec.t <= fin, `la construction dure cinq secondes environ, ou finit dans les deux secondes et demie après le chargement (titre à ${titreAvec ? titreAvec.t.toFixed(1) : '?'} s, chargé à ${tCharge !== null ? tCharge.toFixed(1) : '?'} s)`);
     check(saisons.join(' → ') === 'summer → autumn → winter → spring', `les saisons passent avec la construction : ${saisons.join(' → ')}`);
     check(titreAvec && titreAvec.saison === 'spring' && !titreAvec.charge, 'le titre vient sur le printemps, le cercle de chargement est éteint');
     await page.waitForFunction(() => window.CS.scenes.currentName === 'menu', null, { timeout: 15000 }).catch(() => {});
@@ -66,7 +72,8 @@ const etat = (page) => page.evaluate(() => {
     const tClic = await page.evaluate(() => window.CS.scenes.current.t);
     await page.mouse.click(640, 400);
     let e = null; for (let k = 0; k < 24 && !(e && e.titre); k++) { await page.waitForTimeout(250); e = await etat(page); }
-    check(e && e.titre && e.i === null && e.tuiles >= 20 && e.t - tClic < 4, `un toucher presse le pas : l’île finit vite (${e ? (e.t - tClic).toFixed(1) : '?'} s) et le titre s’écrit`);
+    const vite = e && (e.t - tClic < 4 || (e.tCharge !== null && e.t - e.tCharge < 2.5));   // vite, ou dès que le chargement l'a permis
+    check(e && e.titre && e.i === null && e.tuiles >= 20 && vite, `un toucher presse le pas : l’île finit vite (${e ? (e.t - tClic).toFixed(1) : '?'} s${e && e.tCharge !== null ? `, chargé à ${e.tCharge.toFixed(1)} s` : ''}) et le titre s’écrit`);
     await page.waitForFunction(() => window.CS.scenes.currentName === 'menu', null, { timeout: 8000 }).catch(() => {});
     check(await page.evaluate(() => window.CS.scenes.currentName === 'menu'), 'le menu suit vite après un toucher');
     await page.close();

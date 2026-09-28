@@ -107,7 +107,7 @@ export class OuvertureScene {
   /** L'avancement du chargement de toutes les images (0 à 1) : c'est lui qui donne le pas aux tuiles. */
   progres(p) { this.p = p; }
   /** Tout est chargé : le cercle s'arrête ; le menu suivra dès que la dernière tuile aura été posée et le titre lu. */
-  chargementFini() { this.chargeFini = true; this.p = 1; if (this.el) this.el.classList.remove('charge'); }
+  chargementFini() { this.chargeFini = true; this.p = 1; this.tCharge = this.t || 0; if (this.el) this.el.classList.remove('charge'); }
   /** Un toucher presse le pas : les tuiles tombent aussi vite que le chargement le permet (jamais au-delà). */
   passer() { if (this.passee) return; this.passee = true; if (this.construction) { this.construction.pas = 0.03; this.construction.chute = 0.25; } }
   montrerTitre() {
