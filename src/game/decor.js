@@ -553,7 +553,7 @@ export class Decor {
             const clim = this.climat; const AB = (rng) => (rng() < 0.5 ? 'A' : 'B');
             for (const p of sample(rng, cell, keys, n, { minDist: L2(cell) ? 7 : 9, margin: 4, radius: 1.0, placed, tries: 30 })) {
               placed.push(p); const r = rng(); const w = wild(rng); const v = VAR(rng);
-              if (clim === 'hot') { if (r < 0.45) push(p, `obj_pin_parasol_${['A', 'B', 'C'][Math.floor(rng() * 3)]}`, Object.assign({}, w, { scale: 0.5 + rng() * 0.2 })); else push(p, `obj_chene_${AB(rng)}`, Object.assign({}, w, { scale: 0.55 + rng() * 0.25 })); continue; }
+              if (clim === 'hot') { if (r < 0.3) push(p, `obj_palmier_${PICK(rng, ['A', 'B', 'C'])}`, Object.assign({}, w, { scale: 0.5 + rng() * 0.2 })); else if (r < 0.6) push(p, `obj_pin_parasol_${['A', 'B', 'C'][Math.floor(rng() * 3)]}`, Object.assign({}, w, { scale: 0.5 + rng() * 0.2 })); else push(p, `obj_chene_${AB(rng)}`, Object.assign({}, w, { scale: 0.55 + rng() * 0.25 })); continue; }   // lot 8 : les palmiers du Pirate Kit
               if (clim === 'cold') { const m = r < 0.35 ? 'obj_epicea_A' : `obj_sapin_nord_${AB(rng)}`; push(p, m, Object.assign({}, w, { scale: 0.5 + rng() * 0.25, notSeasons: ['winter'] })); push(p, `${m}_winter`, Object.assign({}, w, { scale: 0.5 + rng() * 0.25, seasons: ['winter'] })); continue; }
               if (clim === 'humid') { push(p, `obj_frondaison_${AB(rng)}_{s}`, Object.assign({}, w, { scale: 0.55 + rng() * 0.3 })); continue; }
               if (clim === 'windy') { if (r < 0.55) push(p, `obj_pin_maritime_${AB(rng)}`, Object.assign({}, w, { scale: 0.45 + rng() * 0.2 })); else push(p, `obj_arbre_vent_${AB(rng)}`, Object.assign({}, w, { scale: 0.55 + rng() * 0.25 })); continue; }
@@ -640,6 +640,7 @@ export class Decor {
           } else if (family === 'reef') {
             // le récif : deux rochers gris à fleur d'eau (blanchis l'hiver), une vague qui s'y brise
             for (const p of sample(rng, cell, keys, 2, { minDist: 30, margin: 16, placed, radius: 0.7 })) { placed.push(p); const w = wild(rng, 0.85, 1.15); push(p, `obj_recif_${PICK(rng, ['A', 'B', 'C'])}{w}`, w); }
+            if (rng() < 0.22) { const c0 = toWorld(cell.q, cell.r); push({ x: c0.x + (rng() - 0.5) * 30, y: c0.y + 6 }, 'obj_epave', { scale: 0.5, flip: rng() < 0.5 }); }   // lot 8 : une épave sur un récif, parfois
             for (const p of sample(rng, cell, keys, 1, { minDist: 28, margin: 20, placed })) { placed.push(p); push(p, PICK(rng, ['sea_wave_1', 'sea_wave_3']), { alpha: 0.7, wave: true }); }
           } else if (family === 'kelp') {
             // les algues : trois touffes de varech, recolorées par saison
@@ -654,10 +655,16 @@ export class Decor {
               const p = v ? { x: c0.x + (v.x - c0.x) * 0.62, y: c0.y + (v.y - c0.y) * 0.62 } : { x: c0.x, y: c0.y + 10 };
               placed.push(p); push(p, 'obj_ponton{w}', { scale: 1.0 }); }
             for (const p of sample(rng, cell, keys, 2, { minDist: 30, margin: 10, placed, radius: 0.95 })) { placed.push(p); const r2 = rng(); push(p, r2 < 0.4 ? 'obj_boat' : r2 < 0.7 ? 'obj_anchor' : PICK(rng, ['obj_crate', 'obj_barrel']), wild(rng, 0.8, 1.05)); }
+            // lot 8 : un bateau à voile amarré sur l'eau, au-delà des docks (Pirate Kit / Watercraft Kit), et une bouée au large
+            { const c0 = toWorld(cell.q, cell.r); let dir = null;
+              for (const d of DIRS) if (board.isSea(cell.q + d[0], cell.r + d[1])) { dir = d; break; }
+              if (dir) { const v = toWorld(cell.q + dir[0], cell.r + dir[1]); const r4 = rng();
+                push({ x: c0.x + (v.x - c0.x) * 0.98 + (rng() - 0.5) * 18, y: c0.y + (v.y - c0.y) * 0.98 + (rng() - 0.5) * 10 }, r4 < 0.35 ? 'obj_caravelle' : `obj_voilier_${PICK(rng, ['A', 'B'])}`, { scale: r4 < 0.35 ? 0.62 : 0.75, flip: rng() < 0.5 });
+                push({ x: c0.x + (v.x - c0.x) * 1.4 + (rng() - 0.5) * 30, y: c0.y + (v.y - c0.y) * 1.4 + (rng() - 0.5) * 14 }, rng() < 0.5 ? 'obj_bouee' : 'obj_bouee_drapeau', { scale: 0.8 }); } }
           } else if (family === 'pine') {
             // la pinède : deux ou trois pins parasols (un pin maritime parfois), toujours verts, des oyats sur le sable
             const n = L2(cell) ? 4 : 2 + (rng() < 0.5 ? 1 : 0);
-            for (const p of sample(rng, cell, keys, n, { minDist: 26, margin: 12, placed, radius: 0.85 })) { placed.push(p); const w = wild(rng, 0.85, 1.15); push(p, rng() < 0.25 ? `obj_pin_maritime_${PICK(rng, ['A', 'B'])}` : `obj_pin_parasol_${PICK(rng, ['A', 'B', 'C'])}`, w); }
+            for (const p of sample(rng, cell, keys, n, { minDist: 26, margin: 12, placed, radius: 0.85 })) { placed.push(p); const w = wild(rng, 0.85, 1.15); const r3 = rng(); push(p, this.climat === 'hot' && r3 < 0.4 ? `obj_palmier_${PICK(rng, ['A', 'B', 'C'])}` : r3 < 0.25 ? `obj_pin_maritime_${PICK(rng, ['A', 'B'])}` : `obj_pin_parasol_${PICK(rng, ['A', 'B', 'C'])}`, w); }   // lot 8 : au chaud, des palmiers parmi les pins
             for (const p of sample(rng, cell, keys, 2, { minDist: 20, margin: 8, placed })) { placed.push(p); push(p, 'obj_bushGrass_dry', { scale: 0.8, flip: rng() < 0.5 }); }
           } else if (family === 'marsh') {
             for (const p of sample(rng, cell, keys, 2, { minDist: 30, margin: 12, placed })) { placed.push(p); push(p, `obj_puddle${VAR3(rng)}{w}`); }

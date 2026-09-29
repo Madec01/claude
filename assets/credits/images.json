@@ -840,6 +840,41 @@
   ]
  },
  {
+  "pack": "Pirate Kit (2.1)",
+  "author": "Kenney (kenney.nl)",
+  "license": "CC0 1.0",
+  "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "url": "https://kenney.nl/assets/pirate-kit",
+  "mirror": "https://kenney.nl/assets/pirate-kit",
+  "mirrorPath": "Models/GLB format",
+  "licenseFile": "https://kenney.nl/assets/pirate-kit (License.txt de l'archive)",
+  "note": "modèles 3D (GLB) rendus en PNG par tools/render_kaykit.js, à la projection des tuiles",
+  "files": [
+   "palm-detailed-bend.glb",
+   "palm-detailed-straight.glb",
+   "palm-straight.glb",
+   "ship-small.glb",
+   "ship-wreck.glb"
+  ]
+ },
+ {
+  "pack": "Watercraft Kit (2.1)",
+  "author": "Kenney (kenney.nl)",
+  "license": "CC0 1.0",
+  "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "url": "https://kenney.nl/assets/watercraft-kit",
+  "mirror": "https://kenney.nl/assets/watercraft-kit",
+  "mirrorPath": "Models/GLB format",
+  "licenseFile": "https://kenney.nl/assets/watercraft-kit (License.txt de l'archive)",
+  "note": "modèles 3D (GLB) rendus en PNG par tools/render_kaykit.js, à la projection des tuiles",
+  "files": [
+   "boat-sail-a.glb",
+   "boat-sail-b.glb",
+   "buoy-flag.glb",
+   "buoy.glb"
+  ]
+ },
+ {
   "pack": "Animaux 3D (attribution)",
   "author": "Baby chick by Poly by Google, Bear by Poly by Google, Duck by Poly by Google, Goat by Poly by Google, Great horned owl by Poly by Google, Hen by Poly by Google, Penguin by Poly by Google",
   "license": "CC BY 3.0",
