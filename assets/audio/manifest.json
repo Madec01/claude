@@ -155,13 +155,37 @@
     },
     "mer": {
       "file": "music/mer.ogg",
-      "duration": 68.401,
+      "duration": 57.7,
       "loop": true,
-      "source": "Cloud Dancer",
+      "source": "The Bard's Tale",
+      "author": "RandomMind",
+      "license": "CC0 1.0",
+      "attribution": "« The Bard's Tale » par RandomMind (opengameart.org), CC0",
+      "note": "Livre II : la Traversée — luth et flûte, le récit du barde ; un cycle de saisons sur deux sur les archipels",
+      "pack": "oga",
+      "source_url": "https://opengameart.org/content/the-bards-tale"
+    },
+    "mer_2": {
+      "file": "music/mer_2.ogg",
+      "duration": 49.921,
+      "loop": true,
+      "source": "The Old Tower Inn",
+      "author": "RandomMind",
+      "license": "CC0 1.0",
+      "attribution": "« The Old Tower Inn » par RandomMind (opengameart.org), CC0",
+      "note": "Livre II (variante) : l'auberge du port, cordes pincées et tambourin ; alterne avec la Traversée",
+      "pack": "oga",
+      "source_url": "https://opengameart.org/content/the-old-tower-inn"
+    },
+    "ending2": {
+      "file": "music/ending2.ogg",
+      "duration": 74.222,
+      "loop": true,
+      "source": "Skye Cuillin",
       "author": "Kevin MacLeod",
       "license": "CC BY 4.0",
-      "attribution": "\"Cloud Dancer\" Kevin MacLeod (incompetech.com) — Licensed under Creative Commons: By Attribution 4.0 License — http://creativecommons.org/licenses/by/4.0/",
-      "note": "Livre II : la Traversée — une houle légère, un ciel qui s'ouvre ; jouée un cycle de saisons sur deux sur les archipels"
+      "attribution": "\"Skye Cuillin\" Kevin MacLeod (incompetech.com) — Licensed under Creative Commons: By Attribution 4.0 License — http://creativecommons.org/licenses/by/4.0/",
+      "note": "fin du Livre II : cornemuse lointaine et cordes, la passeuse lâche la rame"
     }
   },
   "ambience": {
@@ -260,6 +284,18 @@
         "fs_storm"
       ],
       "note": "orage : pluie et tonnerre (météo de printemps)"
+    },
+    "harbour": {
+      "file": "ambience/harbour.ogg",
+      "duration": 64.0,
+      "loop": true,
+      "source": "Gulls on the harbor",
+      "author": "Joseph Sardin (BigSoundBank)",
+      "license": "CC0 1.0",
+      "packs": [
+        "bsb_gulls"
+      ],
+      "note": "mouettes et ressac du port : Livre II, selon les ports posés"
     }
   },
   "sfx": {

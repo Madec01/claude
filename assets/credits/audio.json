@@ -179,15 +179,41 @@
       "type": "music"
     },
     {
-      "title": "Cloud Dancer",
+      "title": "The Bard's Tale",
+      "author": "RandomMind",
+      "license": "CC0 1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "source_url": "https://opengameart.org/content/the-bards-tale",
+      "mirror": "https://opengameart.org/users/randommind",
+      "attribution": "« The Bard's Tale » par RandomMind (opengameart.org), CC0",
+      "used_in": [
+        "music/mer.ogg"
+      ],
+      "type": "music"
+    },
+    {
+      "title": "The Old Tower Inn",
+      "author": "RandomMind",
+      "license": "CC0 1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "source_url": "https://opengameart.org/content/the-old-tower-inn",
+      "mirror": "https://opengameart.org/users/randommind",
+      "attribution": "« The Old Tower Inn » par RandomMind (opengameart.org), CC0",
+      "used_in": [
+        "music/mer_2.ogg"
+      ],
+      "type": "music"
+    },
+    {
+      "title": "Skye Cuillin",
       "author": "Kevin MacLeod",
       "license": "CC BY 4.0",
       "license_url": "http://creativecommons.org/licenses/by/4.0/",
-      "source_url": "https://incompetech.com/music/royalty-free/index.html?keywords=Cloud+Dancer",
+      "source_url": "https://incompetech.com/music/royalty-free/index.html?keywords=Skye+Cuillin",
       "mirror": "https://github.com/noobsandnerdsgroup/audio",
-      "attribution": "\"Cloud Dancer\" Kevin MacLeod (incompetech.com) — Licensed under Creative Commons: By Attribution 4.0 License — http://creativecommons.org/licenses/by/4.0/",
+      "attribution": "\"Skye Cuillin\" Kevin MacLeod (incompetech.com) — Licensed under Creative Commons: By Attribution 4.0 License — http://creativecommons.org/licenses/by/4.0/",
       "used_in": [
-        "music/mer.ogg"
+        "music/ending2.ogg"
       ]
     },
     {
@@ -268,6 +294,17 @@
       "mirror": "https://github.com/funcoder/omarchy-ambient",
       "used_in": [
         "ambience/storm.ogg"
+      ]
+    },
+    {
+      "title": "Gulls on the harbor",
+      "author": "Joseph Sardin (BigSoundBank)",
+      "license": "CC0 1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "source_url": "https://bigsoundbank.com/gulls-on-the-harbor-s2573.html",
+      "mirror": "https://bigsoundbank.com/UPLOAD/mp3/2573.mp3",
+      "used_in": [
+        "ambience/harbour.ogg"
       ]
     },
     {

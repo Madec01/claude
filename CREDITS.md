@@ -35,8 +35,12 @@ Toutes les œuvres ci-dessous appartiennent à leurs auteurs et sont utilisées 
   - Attribution : « Woodblock Chase », composé avec Suno par Martinus Games pour Cent Saisons
 - **Woodblock Chase II** — Martinus Games (composé avec Suno) — licence propriété du studio, tous droits réservés — [source](https://suno.com)
   - Attribution : « Woodblock Chase II », composé avec Suno par Martinus Games pour Cent Saisons
-- **Cloud Dancer** — Kevin MacLeod — licence CC BY 4.0 ([texte](http://creativecommons.org/licenses/by/4.0/)) — [source](https://incompetech.com/music/royalty-free/index.html?keywords=Cloud+Dancer) — [miroir utilisé](https://github.com/noobsandnerdsgroup/audio)
-  - Attribution : "Cloud Dancer" Kevin MacLeod (incompetech.com) — Licensed under Creative Commons: By Attribution 4.0 License — http://creativecommons.org/licenses/by/4.0/
+- **The Bard's Tale** — RandomMind — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://opengameart.org/content/the-bards-tale) — [miroir utilisé](https://opengameart.org/users/randommind)
+  - Attribution : « The Bard's Tale » par RandomMind (opengameart.org), CC0
+- **The Old Tower Inn** — RandomMind — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://opengameart.org/content/the-old-tower-inn) — [miroir utilisé](https://opengameart.org/users/randommind)
+  - Attribution : « The Old Tower Inn » par RandomMind (opengameart.org), CC0
+- **Skye Cuillin** — Kevin MacLeod — licence CC BY 4.0 ([texte](http://creativecommons.org/licenses/by/4.0/)) — [source](https://incompetech.com/music/royalty-free/index.html?keywords=Skye+Cuillin) — [miroir utilisé](https://github.com/noobsandnerdsgroup/audio)
+  - Attribution : "Skye Cuillin" Kevin MacLeod (incompetech.com) — Licensed under Creative Commons: By Attribution 4.0 License — http://creativecommons.org/licenses/by/4.0/
 
 ## Sons et ambiances
 
@@ -47,6 +51,7 @@ Toutes les œuvres ci-dessous appartiennent à leurs auteurs et sont utilisées 
 - **Crickets (close recording)** — felix.blume — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://freesound.org/s/476672/) — [miroir utilisé](https://github.com/funcoder/omarchy-ambient)
 - **Crashing Waves - Pacific Ocean** — SecureSubset — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://freesound.org/s/817075/) — [miroir utilisé](https://github.com/funcoder/omarchy-ambient)
 - **Rain and Thunder Ambience Tübingen** — Sheyvan — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://freesound.org/s/369547/) — [miroir utilisé](https://github.com/funcoder/omarchy-ambient)
+- **Gulls on the harbor** — Joseph Sardin (BigSoundBank) — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://bigsoundbank.com/gulls-on-the-harbor-s2573.html) — [miroir utilisé](https://bigsoundbank.com/UPLOAD/mp3/2573.mp3)
 - **Impact Sounds** — Kenney — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://kenney.nl/assets/impact-sounds) — [miroir utilisé](https://github.com/ETdoFresh/kenney.nl)
 - **100 CC0 SFX** — rubberduck — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://opengameart.org/content/100-cc0-sfx) — [miroir utilisé](https://github.com/lavenderdotpet/CC0-Public-Domain-Sounds)
 - **Micro Pack - Paper Cutter** — Ben Burnes (Abstraction) — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://abstractionmusic.com/) — [miroir utilisé](https://github.com/lavenderdotpet/CC0-Public-Domain-Sounds)
@@ -91,6 +96,10 @@ Toutes les œuvres ci-dessous appartiennent à leurs auteurs et sont utilisées 
   - Fichiers : 69
 - **KayKit : Medieval Hexagon Pack EXTRA (1.0)** — Kay Lousberg — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://kaylousberg.itch.io/kaykit-medieval-hexagon) — [miroir utilisé](fourni par le commanditaire (téléchargement direct))
   - Fichiers : 32
+- **Pirate Kit (2.1)** — Kenney (kenney.nl) — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://kenney.nl/assets/pirate-kit) — [miroir utilisé](https://kenney.nl/assets/pirate-kit)
+  - Fichiers : palm-detailed-bend.glb, palm-detailed-straight.glb, palm-straight.glb, ship-small.glb, ship-wreck.glb
+- **Watercraft Kit (2.1)** — Kenney (kenney.nl) — licence CC0 1.0 ([texte](https://creativecommons.org/publicdomain/zero/1.0/)) — [source](https://kenney.nl/assets/watercraft-kit) — [miroir utilisé](https://kenney.nl/assets/watercraft-kit)
+  - Fichiers : boat-sail-a.glb, boat-sail-b.glb, buoy-flag.glb, buoy.glb
 - **Animaux 3D (attribution)** — Baby chick by Poly by Google, Bear by Poly by Google, Duck by Poly by Google, Goat by Poly by Google, Great horned owl by Poly by Google, Hen by Poly by Google, Penguin by Poly by Google — licence CC BY 3.0 ([texte](https://creativecommons.org/licenses/by/3.0/)) — [source](https://poly.pizza/) — [miroir utilisé](https://github.com/i3w-learn/3DVR_PIPELINE)
   - Fichiers : 7
 - **Animaux 3D (attribution)** — Rabbit by Poly by Google — licence CC BY 3.0 ([texte](https://creativecommons.org/licenses/by/3.0/)) — [source](https://poly.pizza/) — [miroir utilisé](https://github.com/tedgoddard/google_poly)

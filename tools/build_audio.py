@@ -52,6 +52,9 @@ AMB = Path(os.environ.get("CS_AMBIENT", "/home/user/mirrors/omarchy-ambient/soun
 CC0 = Path(os.environ.get("CS_CC0", "/home/user/mirrors/cc0sounds"))
 KENNEY = Path(os.environ.get("CS_KENNEY", "/home/user/etdofresh/kenney.nl"))
 FLUID = Path(os.environ.get("CS_FLUID", "/home/user/mirrors/fluidr3"))
+# lot 8 (trouvés par le réseau) : les boucles médiévales CC0 de RandomMind sur OpenGameArt, et les mouettes de BigSoundBank
+OGA = Path(os.environ.get("CS_OGA", "/home/user/mirrors/opengameart"))
+BSB = Path(os.environ.get("CS_BSB", "/home/user/mirrors/bigsoundbank"))
 FLUID_URL = "https://raw.githubusercontent.com/gleitz/midi-js-soundfonts/gh-pages/FluidR3_GM/"
 
 # Identifiants de « packs » (pour manifest + crédits)
@@ -65,6 +68,8 @@ P_K_UI, P_K_IF, P_K_IMP, P_K_RPG = "kenney_ui", "kenney_interface", "kenney_impa
 P_K_JIN = "kenney_jingles"
 P_FLUID = "fluidr3"
 P_FS_STORM = "fs_storm"
+P_OGA = "oga"
+P_BSB_GULLS = "bsb_gulls"
 
 PACKS = {
     P_KM: dict(dir=KM, author="Kevin MacLeod", license="CC BY 4.0"),
@@ -76,6 +81,8 @@ PACKS = {
     P_FS_CRICKETS: dict(dir=AMB, author="felix.blume", license="CC0 1.0"),
     P_FS_WAVES: dict(dir=AMB, author="SecureSubset", license="CC0 1.0"),
     P_FS_STORM: dict(dir=AMB, author="Sheyvan", license="CC0 1.0"),
+    P_OGA: dict(dir=OGA, author="RandomMind", license="CC0 1.0"),
+    P_BSB_GULLS: dict(dir=BSB, author="Joseph Sardin (BigSoundBank)", license="CC0 1.0"),
     P_RD1: dict(dir=CC0 / "100-CC0-SFX", author="rubberduck", license="CC0 1.0"),
     P_RD_WM: dict(dir=CC0 / "100-CC0-wood-metal-SFX", author="rubberduck", license="CC0 1.0"),
     P_RD2: dict(dir=CC0 / "100-cc0-sfx-2", author="rubberduck", license="CC0 1.0"),
@@ -118,6 +125,9 @@ WORKS = {
                      license_url=CC0_URL, source_url="https://freesound.org/s/817075/", mirror=OMARCHY),
     P_FS_STORM: dict(title="Rain and Thunder Ambience Tübingen", author="Sheyvan", license="CC0 1.0",
                      license_url=CC0_URL, source_url="https://freesound.org/s/369547/", mirror=OMARCHY),
+    P_BSB_GULLS: dict(title="Gulls on the harbor", author="Joseph Sardin (BigSoundBank)", license="CC0 1.0",
+                      license_url=CC0_URL, source_url="https://bigsoundbank.com/gulls-on-the-harbor-s2573.html",
+                      mirror="https://bigsoundbank.com/UPLOAD/mp3/2573.mp3"),
     P_RD1: dict(title="100 CC0 SFX", author="rubberduck", license="CC0 1.0", license_url=CC0_URL,
                 source_url="https://opengameart.org/content/100-cc0-sfx", mirror=LAVENDER),
     P_RD_WM: dict(title="100 CC0 wood / metal SFX", author="rubberduck", license="CC0 1.0", license_url=CC0_URL,
@@ -153,6 +163,15 @@ WORKS = {
                   license="CC BY 3.0", license_url=CCBY3_URL,
                   source_url="https://member.keymusician.com/Member/FluidR3_GM/index.html",
                   mirror="https://github.com/gleitz/midi-js-soundfonts"),
+}
+
+
+# Musiques d'OpenGameArt (RandomMind, CC0) : clé « oga:<fichier> » dans MUSIC. Chaque morceau est livré avec une
+# boucle taillée par l'auteur (Loop_<fichier>.wav) : on la prend telle quelle, entière, sans couper ni fondre.
+OGA_MUSIC = {
+    "The_Bards_Tale": dict(title="The Bard's Tale", source_url="https://opengameart.org/content/the-bards-tale"),
+    "The_Old_Tower_Inn": dict(title="The Old Tower Inn", source_url="https://opengameart.org/content/the-old-tower-inn"),
+    "Minstrel_Dance_0": dict(title="Minstrel Dance", source_url="https://opengameart.org/content/minstrel-dance"),
 }
 
 
@@ -477,26 +496,34 @@ def load_fluid(instrument: str, note: str, ch: int = 1) -> np.ndarray:
 # MUSIQUES
 # ---------------------------------------------------------------------------
 MUSIC = {
-    # clé : (titre Kevin MacLeod, durée max de boucle, crossfade s, raison)
-    "spring": ("Morning", 115, 3.0, "printemps : piano et cordes légères, aube claire — thème de la saison"),
+    # clé : (titre Kevin MacLeod, durée max de boucle, crossfade s, raison[, qualité vorbis])
+    # Lot 8 : tout le catalogue MacLeod est passé à la qualité 4 (≈128 kb/s au lieu de 160) pour loger les deux boucles de mer,
+    # la fin du Livre II et les mouettes sous les 30 Mo ; la différence ne s'entend pas sur les enceintes d'un téléphone.
+    "spring": ("Morning", 115, 3.0, "printemps : piano et cordes légères, aube claire — thème de la saison", 4),
     "summer": ("Kalimba Relaxation Music", 115, 3.0, "été : kalimba chaude et lente, chaleur paisible", 4),
     "autumn": ("Evening", 115, 3.0, "automne : calme, crépusculaire, mélancolie douce", 4),
     "winter": ("Gymnopedie No 1", 115, 3.0,
                "hiver : « Ethereal Relaxation » absent du miroir ; la Gymnopédie n° 1 (piano lent, dépouillé, "
-               "froid et clair) est le plus hivernal des candidats"),
-    "menu": ("Dream Catcher", 115, 3.0, "menu : rêveur, suspendu, invite à l'île"),
+               "froid et clair) est le plus hivernal des candidats", 4),
+    "menu": ("Dream Catcher", 115, 3.0, "menu : rêveur, suspendu, invite à l'île", 4),
     # durée 0 : le morceau entier, d'un seul tenant, sans boucle (`loop: False` dans le manifeste, le lecteur ne le boucle pas) —
     # essayé pour l'ouverture avec « Cool Intro » (28 septembre), retiré (le commanditaire n'en était pas fan) ; l'ouverture joue le thème du menu
-    "results": ("Beauty Flow", 115, 3.0, "bilan / atelier : coulée douce, contemplative"),
-    "ending": ("Almost Bliss", 115, 4.0, "fin : lumineux et apaisé, l'île qui se souvient"),
-    "garden": ("Study And Relax", 115, 3.0, "jardin (mode libre) : studieux, sans tension"),
+    "results": ("Beauty Flow", 115, 3.0, "bilan / atelier : coulée douce, contemplative", 4),
+    "ending": ("Almost Bliss", 115, 4.0, "fin : lumineux et apaisé, l'île qui se souvient", 4),
+    "garden": ("Study And Relax", 115, 3.0, "jardin (mode libre) : studieux, sans tension", 4),
     # deuxième piste par saison (alternance d'une île à l'autre) et modes
-    "summer_2": ("Pleasant Porridge", 115, 3.0, "été (variante) : chaleur tranquille, guitare douce"),
-    "autumn_2": ("Leaving Home", 115, 3.0, "automne (variante) : départ, feuilles qui tombent"),
+    "summer_2": ("Pleasant Porridge", 115, 3.0, "été (variante) : chaleur tranquille, guitare douce", 4),
+    "autumn_2": ("Leaving Home", 115, 3.0, "automne (variante) : départ, feuilles qui tombent", 4),
     "winter_2": ("Night Vigil", 115, 3.0, "hiver (variante) : veille nocturne, froid et calme", 4),
-    "daily": ("Maccary Bay", 115, 3.0, "île du jour : baie tranquille, un jour à la fois"),
+    "daily": ("Maccary Bay", 115, 3.0, "île du jour : baie tranquille, un jour à la fois", 4),
     # Livre II (lot 7c) : la musique de mer des archipels — cap tenu, houle régulière ; qualité 3 et boucle de 100 s pour rester sous les 30 Mo
-    "mer": ("Cloud Dancer", 80, 3.0, "Livre II : la Traversée — une houle légère, un ciel qui s'ouvre ; jouée un cycle de saisons sur deux sur les archipels", 3),
+    # lot 8 : les boucles médiévales de RandomMind (OpenGameArt, CC0), trouvées par le réseau — elles sonnent « port et taverne »
+    # bien mieux que le catalogue MacLeod ; boucles de l'auteur prises entières (57 s et 50 s), qualité 4
+    # (leur dernier échantillon n'enchaîne pas exactement sur le premier — un pas de 0,35 sur l'auberge, mesuré : un clic — d'où un
+    # fondu de 30 ms à la couture, qui ne déplace pas le tempo)
+    "mer": ("oga:The_Bards_Tale", 0, 0.03, "Livre II : la Traversée — luth et flûte, le récit du barde ; un cycle de saisons sur deux sur les archipels", 4),
+    "mer_2": ("oga:The_Old_Tower_Inn", 0, 0.03, "Livre II (variante) : l'auberge du port, cordes pincées et tambourin ; alterne avec la Traversée", 4),
+    "ending2": ("Skye Cuillin", 95, 8.0, "fin du Livre II : cornemuse lointaine et cordes, la passeuse lâche la rame", 3),
     "tempo": ("suno:Woodblock Swing", 115, 3.0, "Le Souffle court : swing-folk de foire composé avec Suno par le commanditaire (143 BPM) ; le décompte du jeu se cale sur son tempo"),
     # les deux prises de Woodblock Chase : boucle d'une minute et qualité 4 (au lieu de 5), pour tenir dans les 30 Mo d'audio
     "tempo_2": ("suno:Woodblock Chase", 72, 3.0, "Le Souffle court, deuxième piste : une course de bois et de percussions (152 BPM), tirée au sort avec les deux autres", 4),
@@ -518,23 +545,39 @@ def build_music(only: set[str] | None = None) -> dict:
         suno = title.startswith("suno:")
         if suno:
             title = title[5:]
-        # une piste Suno peut arriver en mp3 ou en m4a (export du téléphone) : on prend ce qui est là
-        a = decode(src("suno", f"{title}.m4a") if suno and not (SUNO / f"{title}.mp3").exists() else src("suno" if suno else P_KM, f"{title}.mp3"), ch=2)
-        a = trim_silence(a, thresh_db=-48, pre=0.0, post=0.0)
+        # « oga:Fichier » : une boucle RandomMind (OpenGameArt, CC0), livrée taillée par l'auteur
+        oga = title.startswith("oga:")
+        if oga:
+            title = title[4:]
+        if oga:
+            boucle = OGA / f"Loop_{title}.wav"
+            a = decode(boucle if boucle.exists() else src(P_OGA, f"{title}.mp3"), ch=2)
+        else:
+            # une piste Suno peut arriver en mp3 ou en m4a (export du téléphone) : on prend ce qui est là
+            a = decode(src("suno", f"{title}.m4a") if suno and not (SUNO / f"{title}.mp3").exists() else src("suno" if suno else P_KM, f"{title}.mp3"), ch=2)
+            a = trim_silence(a, thresh_db=-48, pre=0.0, post=0.0)
         dur = len(a) / SR
-        entier = max_s == 0   # d'un seul tenant : ni coupe ni boucle
-        if entier:
+        entier = max_s == 0 and not oga   # d'un seul tenant : ni coupe ni boucle
+        if oga and max_s == 0:
+            end = dur   # la boucle de l'auteur, entière : elle se referme sur elle-même
+        elif entier:
             end = dur
         elif dur <= max_s:
             end = dur  # morceau court : on boucle sur toute sa durée
         else:
             end, _ = choose_loop_end(a, MUSIC_MIN_LOOP + xf, max_s, xf)   # la boucle finale dure `end - xf` : c'est à elle que le minimum s'applique
         cut_a = a[:int(end * SR)]
-        looped = cut_a if entier else crossfade_loop(cut_a, xf)
+        looped = cut_a if entier or (oga and xf == 0) else crossfade_loop(cut_a, xf)
         normed, info = loudnorm_loop(looped, MUSIC_LUFS)
-        encode_ogg(normed, path, qualite, title=title, artist="Martinus Games (Suno)" if suno else "Kevin MacLeod (incompetech.com)")
+        encode_ogg(normed, path, qualite, title=OGA_MUSIC[title]["title"] if oga else title,
+                   artist="Martinus Games (Suno)" if suno else "RandomMind (opengameart.org)" if oga else "Kevin MacLeod (incompetech.com)")
         pr = probe(path)
-        if suno:
+        if oga:
+            manifest[key] = dict(file=f"music/{key}.ogg", duration=round(pr["duration"], 3), loop=True,
+                                 source=OGA_MUSIC[title]["title"], author="RandomMind", license="CC0 1.0",
+                                 attribution=f"« {OGA_MUSIC[title]['title']} » par RandomMind (opengameart.org), CC0", note=why, pack=P_OGA,
+                                 source_url=OGA_MUSIC[title]["source_url"])
+        elif suno:
             manifest[key] = dict(file=f"music/{key}.ogg", duration=round(pr["duration"], 3), loop=True,
                                  source=title, author="Martinus Games", license="propriété du studio (composé avec Suno)",
                                  attribution=f"« {title} », composé avec Suno par Martinus Games pour Cent Saisons", note=why, pack="suno")
@@ -579,6 +622,8 @@ def build_ambience(only: set[str] | None = None) -> dict:
         "winter": (P_FS_WIND, "wind.ogg", "highpass=f=40,lowpass=f=650:p=2,lowpass=f=900",
                    "vent doux passe-bas : hiver, neige et ombres bleues"),
         "storm": (P_FS_STORM, "storm.ogg", None, "orage : pluie et tonnerre (météo de printemps)"),
+        # lot 8 : les mouettes du port (BigSoundBank, CC0), dosées au nombre de ports de l'île
+        "harbour": (P_BSB_GULLS, "gulls_on_the_harbor_2573.mp3", "highpass=f=200", "mouettes et ressac du port : Livre II, selon les ports posés"),
     }
     for key, (pack, name, chain, why) in specs.items():
         if only and key not in only:
@@ -927,6 +972,11 @@ def write_credits(manifest: dict) -> None:
             works.append(dict(title=m["source"], author="Martinus Games (composé avec Suno)", license="propriété du studio, tous droits réservés",
                               source_url="https://suno.com", attribution=m.get("attribution", ""), used_in=[f"music/{key}.ogg"], type="music"))
             continue
+        if m.get("pack") == P_OGA:
+            works.append(dict(title=m["source"], author="RandomMind", license="CC0 1.0", license_url=CC0_URL,
+                              source_url=m["source_url"], mirror="https://opengameart.org/users/randommind",
+                              attribution=m.get("attribution", ""), used_in=[f"music/{key}.ogg"], type="music"))
+            continue
         t = m["source"]
         if ("km", t) in seen:
             continue
@@ -1017,7 +1067,7 @@ def verify() -> bool:
                     problems.append("couture de boucle suspecte")
                 if abs(lufs - target) > 1.0:
                     problems.append(f"loudness {lufs:.1f} != {target}")
-                if section == "music" and entrees.get(path.name, {}).get("loop", True) and not (MUSIC_MIN_LOOP - 1 <= pr["duration"] <= 181):   # une pièce d'un seul tenant (l'ouverture) a la durée qu'elle a
+                if section == "music" and entrees.get(path.name, {}).get("loop", True) and entrees.get(path.name, {}).get("pack") != P_OGA and not (MUSIC_MIN_LOOP - 1 <= pr["duration"] <= 181):   # une pièce d'un seul tenant (l'ouverture) a la durée qu'elle a ; une boucle taillée par son auteur (RandomMind) aussi
                     problems.append("durée hors plage")
                 if section == "ambience" and not (60 <= pr["duration"] <= 90):
                     problems.append("durée hors plage")

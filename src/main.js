@@ -90,7 +90,7 @@ resize();
 
 const SEASON_MUSIC = { spring: 'spring', summer: 'summer', autumn: 'autumn', winter: 'winter' };
 // le printemps garde toujours « Morning » (préférence du commanditaire) ; les autres saisons alternent entre deux pistes
-const seasonMusic = (season, nth = 1, livre2 = false) => { if (livre2 && AudioSys.has('mer', 'music') && (nth <= 1 || nth % 2 === 1)) return 'mer'; const alt = `${SEASON_MUSIC[season]}_2`; return nth >= 2 && nth % 2 === 0 && AudioSys.has(alt, 'music') ? alt : SEASON_MUSIC[season]; };   // Livre II : la musique de mer un cycle sur deux, la saison entre
+const seasonMusic = (season, nth = 1, livre2 = false) => { if (livre2 && AudioSys.has('mer', 'music') && (nth <= 1 || nth % 2 === 1)) return nth >= 3 && ((nth - 1) / 2) % 2 === 1 && AudioSys.has('mer_2', 'music') ? 'mer_2' : 'mer'; const alt = `${SEASON_MUSIC[season]}_2`; return nth >= 2 && nth % 2 === 0 && AudioSys.has(alt, 'music') ? alt : SEASON_MUSIC[season]; };   // Livre II : la musique de mer un cycle sur deux (la Traversée, puis l'auberge du port en alternance), la saison entre
 
 /** Les étincelles d'une saison : une par tuile qui rapporte (couleur selon la nature), les sentiers depuis leur milieu, la faune depuis chaque animal, le reste depuis le centre. */
 const FLIGHT_COLORS = { harvest: '#e0a33a', bloom: '#d98cb3', vigil: '#f2c08a', level3: '#e0a33a', fusion: '#b8862b', rare: '#8a6fb5', path: '#c9a26b', fauna: '#3a9c8a', other: '#e0a33a' };
@@ -684,7 +684,7 @@ class MenuScene {
     showUI(buildMenu({ game: Game, douce }), 'menu-wrap');
     AudioSys.playMusic('menu', { fade: 2 });
     AudioSys.setAmbience('birds', 0.35, 3); AudioSys.setAmbience('sea', 0.3, 3);
-    for (const k of ['stream', 'wind', 'rain', 'crickets', 'winter']) AudioSys.setAmbience(k, 0, 1.5);
+    for (const k of ['stream', 'wind', 'rain', 'crickets', 'winter', 'harbour']) AudioSys.setAmbience(k, 0, 1.5);
     this.unsub = input.on('keydown', (k) => { if (k === 'KeyM') { const m = AudioSys.toggleMute(); Save.options.muted = m; Save.save(); } });
   }
   exit() { this.unsub && this.unsub(); hideUI(); }
@@ -891,6 +891,8 @@ class IslandScene {
     AudioSys.setAmbience('winter', s === 'winter' ? 0.4 : 0, fade);
     AudioSys.setAmbience('crickets', s === 'summer' ? Math.min(0.6, 0.15 + share('meadow', 'field') * 0.9) : 0, fade, pan('meadow', 'field'));
     AudioSys.setAmbience('sea', Math.min(0.7, 0.1 + partMer * 0.5 + share('sand') * 0.4), fade, panMer);
+    // lot 8 : les mouettes du port, dosées au nombre de ports et de chantiers à l'écran, du côté où ils sont
+    if (AudioSys.has('harbour', 'ambience')) AudioSys.setAmbience('harbour', Math.min(0.5, (c('port') + c('shipyard')) * 0.14), fade, pan('port', 'shipyard'));
     const w = isl.look || null;   // l'habillage de la surprise en cours
     AudioSys.setAmbience('rain', w === 'storm' ? 0.55 : 0, fade);
     if (AudioSys.has('storm', 'ambience')) AudioSys.setAmbience('storm', w === 'storm' ? 0.6 : 0, fade);
@@ -1553,7 +1555,7 @@ class WorkshopScene {
 }
 class EndingScene {
   async enter({ livre = 1 } = {}) {
-    AudioSys.playMusic('ending', { fade: 2 });
+    AudioSys.playMusic(livre === 2 && AudioSys.has('ending2', 'music') ? 'ending2' : 'ending', { fade: 2 });   // la fin du Livre II a sa propre musique (lot 8)
     this.bg = scenes.scenes.get('menu').ensureBg();
     const node = buildCredits({ onBack: () => scenes.go('menu'), credits: Game.credits });
     node.classList.add('ending-credits');
