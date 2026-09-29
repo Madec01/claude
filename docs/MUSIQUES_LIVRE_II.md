@@ -1,9 +1,14 @@
 # Musiques et ambiances libres pour le Livre II
 
-Recherche du 28 septembre (agent de recherche, par le web). **Les morceaux ne sont pas dans le dépôt** (le réseau de la session ne peut pas les télécharger) : chaque page ci-dessous a un lecteur pour écouter ; ce que tu retiens, tu le déposes dans le miroir (`/home/user/mirrors/km-audio` pour Kevin MacLeod, un dossier `cc0` pour les autres) et je le bâtis avec `tools/build_audio.py`. Le réseau de la session bloque l'accès direct aux sites
-(opengameart, incompetech, freesound, bigsoundbank…) : les licences ci-dessous viennent des extraits de recherche qui citent
-le texte des pages. **Avant tout téléchargement, ouvrir la page et lire la licence.** Les fichiers vont dans le miroir
-(`/home/user/mirrors`, un dossier par source) et `tools/build_audio.py` les reprend comme les musiques du Livre I.
+Recherche du 28 septembre (agent de recherche, par le web), **téléchargements du 29 septembre** (lot 8, réseau ouvert) :
+les fichiers sont dans le miroir (`/home/user/mirrors/opengameart`, `/home/user/mirrors/km-audio`, `/home/user/mirrors/bigsoundbank`),
+et `tools/build_audio.py` les reprend comme les musiques du Livre I (source « oga:Fichier » pour RandomMind, dont la boucle
+WAV de l'auteur est prise entière).
+
+**En jeu** : « The Bard's Tale » (`mer`), « The Old Tower Inn » (`mer_2`), « Skye Cuillin » (`ending2`), « Gulls on the
+Harbor » (ambiance `harbour`). **Téléchargés, en réserve** : « Minstrel Dance » (RandomMind, boucle WAV), « Tavern » (yd),
+« Fiddles McGinty », « Master of the Feast », « Celtic Impulse », « Achaidh Cheide » (MacLeod). Le budget de 30 Mo est plein :
+en ajouter un, c'est en retirer un.
 
 Deux choses apprises : freepd.com a fermé (miroir sur archive.org, statut à vérifier) ; « The Pirate Cave » de Kevin MacLeod
 n'existe pas, sa vraie shanty est *Netherworld Shanty*.

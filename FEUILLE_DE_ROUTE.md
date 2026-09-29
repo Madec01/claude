@@ -225,12 +225,13 @@ Le topo et la vision sont dans la conversation du 28 septembre ; ce tableau gard
 | L2 | **La chaîne de territoire** (Livre II seulement) : dès quatre familles différentes en paires fortes, payée à la saison — mesurée et figée (`docs/FEUILLE_LIVRE_II.md`) | **fait** (en jeu dès l'île 31, fil doré dans Lire l'île) |
 | L3 | Port et Pinède en vraies familles, les autres arbres en variantes de climat | **fait** pour les familles et leurs images ; variantes d'arbres au lot 7b |
 | L4 | Deux îles, détroit en mer dès le départ que seules les tuiles de mer convertissent, un port et un hameau par rive au départ | **fait** (îles 34 à 45) |
-| L5 | Musiques libres (CC0 d'abord) : `docs/MUSIQUES_LIVRE_II.md` | recherche faite, à télécharger |
+| L5 | Musiques libres (CC0 d'abord) : `docs/MUSIQUES_LIVRE_II.md` | **fait** (29 septembre, lot 8) : « The Bard's Tale » et « The Old Tower Inn » de RandomMind (CC0) en mer, « Skye Cuillin » (CC BY) à la fin du Livre II, les mouettes de BigSoundBank au port |
 | L6 | Quinze îles en cinq chapitres ; îles à trois saisons dont la route ramène la quatrième (à essayer) | **fait** pour les quinze îles (31 à 45, calibrées) ; les trois saisons à essayer sur l'île 32 |
 | L7 | **Lot 7a** : campagne à 45 îles, images des cinq familles, rendu du détroit, routes et chaîne dans l'aperçu, la lecture et le bilan, robot et calibrage | **fait** (28 septembre) |
 | L8 | **Lot 7b** : taverne, marché, phare, chantier naval, tempête, marée basse, climat venteux, arbres par climat, faune de mer (baleine, morse, narval), chapitres 13 et 14 câblés, recalibrage | **fait** (28 septembre) |
 | L9 | « La mer descend » (idée du commanditaire) : toutes les cinq poses, la marée découvre une vague de cases déjà pleines, visibles en silhouette sous l'eau — prototype sur l'île 40, mesuré au robot | **prototype fait** (28 septembre), à juger par le commanditaire en jouant l'île 40 |
-| L10 | **Lot 7c** : récit de la passeuse (prologue à l'île 31, fin à l'île 45), chapitre 15 en chapelet de trois puis quatre îles, musique de mer, crochet pour la cinématique du commanditaire (`assets/video/livre2.webm`) | **fait** (28 septembre) ; la cinématique attend son fichier, les musiques CC0 leurs fichiers |
+| L10 | **Lot 7c** : récit de la passeuse (prologue à l'île 31, fin à l'île 45), chapitre 15 en chapelet de trois puis quatre îles, musique de mer, crochet pour la cinématique du commanditaire (`assets/video/livre2.webm`) | **fait** (28 septembre) ; la cinématique attend son fichier |
+| L11 | **Lot 8** : assets trouvés par le réseau — kits Pirate et Watercraft de Kenney (palmiers, caravelle, voiliers, bouées, épave), musiques RandomMind et « Skye Cuillin », mouettes du port ; `render_kaykit.js` lit les GLB Kenney | **fait** (29 septembre) ; reste à trouver un dauphin ou un phoque CC0 en glTF (le seul phoque libre trouvé est un fichier Blender) |
 
 ## L'ouverture (28 septembre)
 

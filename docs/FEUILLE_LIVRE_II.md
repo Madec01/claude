@@ -109,10 +109,16 @@ vérifie sa présence (une requête HEAD) et la joue avant le prologue, même mi
 écran noir, « Toucher pour passer », le son suivant les réglages). Sans fichier, le prologue vient seul. Le crédit du film
 se met dans `assets/credits/images.json` comme celui de l'animation du studio.
 
-**La musique de mer** : « Cloud Dancer » de Kevin MacLeod (CC BY), boucle de 68 s, jouée sur les archipels au premier cycle
-de saisons puis un cycle sur deux (la saison entre). C'est un morceau du miroir déjà crédité, sous le budget de 30 Mo (l'été,
-l'automne et la seconde piste d'hiver passent en qualité 4). Les morceaux CC0 de `docs/MUSIQUES_LIVRE_II.md` la remplaceront
-dès que leurs fichiers seront déposés dans le miroir.
+**La musique de mer** (lot 8, 29 septembre) : deux boucles médiévales CC0 de RandomMind (OpenGameArt), prises entières telles
+que l'auteur les a taillées — « The Bard's Tale » (la Traversée, 58 s) et « The Old Tower Inn » (l'auberge du port, 50 s) —
+jouées sur les archipels au premier cycle de saisons puis un cycle sur deux, en alternance (la saison entre). La fin du
+Livre II a « Skye Cuillin » de Kevin MacLeod (CC BY). Les ports ont leurs mouettes (ambiance `harbour`, BigSoundBank CC0),
+dosées au nombre de ports et de chantiers à l'écran. Tout tient sous les 30 Mo : le catalogue MacLeod est passé en qualité 4.
+
+**Les kits Kenney** (lot 8) : `tools/render_kaykit.js` lit une quatrième racine, `kenney/<kit>/<modèle>` (GLB, texture
+partagée du kit). Du Pirate Kit : trois palmiers (forêts et pinèdes du climat chaud), la caravelle et l'épave ; du Watercraft
+Kit : deux voiliers et deux bouées. Le port amarre un bateau au bout des docks, sur l'eau, et pose une bouée au large ; un
+récif sur cinq porte une épave. La tour du Pirate Kit n'est pas un phare (un donjon) : le phare KayKit reste.
 
 ## Ce qui entre ensuite, et ce qui part
 
