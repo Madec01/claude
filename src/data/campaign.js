@@ -24,10 +24,10 @@ export const MECH_AT = {
   7: ['surprise'], 8: ['hill'], 9: ['rare2'], 10: ['heath'],
   11: ['build'],
   13: ['climate', 'fuse'], 19: ['build3'], 25: ['growth'],
-  // Livre II : la mer se pose (mer, récif, algues, pinède) et la chaîne de territoire ; puis les ports et les routes
+  // Livre II : la mer change sous les tuiles (mer profonde, récif, algues, pinède) et la chaîne de territoire ; puis les ports et les routes
   31: ['mer', 'chaine'], 34: ['ports'], 37: ['tempete', 'phare'], 40: ['maree'],
 };
-export const MECH_NAMES = { mer: 'la mer qui se pose', chaine: 'chaîne de territoire', ports: 'ports et routes de mer', tempete: 'la tempête', phare: 'le phare', maree: 'la marée', river: 'rivière', season: 'saisons', fauna: 'faune', semis: 'semis', wish: 'vœux', breath: 'souffles', rare: 'tuiles rares', surprise: 'surprises de saison', hill: 'collines', rare2: 'grenier, ruche et menhir', heath: 'lande', build: 'bâtir', hand: 'main de saison', climate: 'climats', fuse: 'fusions', build3: 'niveau 3' , growth: 'croissance', harmonie: 'harmonie'};
+export const MECH_NAMES = { mer: 'la mer qui change (récif, algues, mer profonde)', chaine: 'chaîne de territoire', ports: 'ports et routes de mer', tempete: 'la tempête', phare: 'le phare', maree: 'la marée', river: 'rivière', season: 'saisons', fauna: 'faune', semis: 'semis', wish: 'vœux', breath: 'souffles', rare: 'tuiles rares', surprise: 'surprises de saison', hill: 'collines', rare2: 'grenier, ruche et menhir', heath: 'lande', build: 'bâtir', hand: 'main de saison', climate: 'climats', fuse: 'fusions', build3: 'niveau 3' , growth: 'croissance', harmonie: 'harmonie'};
 /** Île où une mécanique arrive (pour le Guide et l'Atelier). */
 export function mechIsland(m) { for (const [n, list] of Object.entries(MECH_AT)) if (list.includes(m)) return Number(n); return null; }
 /** Mécaniques disponibles jusqu'à l'île n (incluse). Sans argument : toutes (modes libres). */
@@ -48,7 +48,7 @@ export const CHAPTERS = [
   { id: 10, name: 'Cent saisons', sub: 'La fin du souvenir', climate: 'temperate', islands: [{ from: 46, cells: 120, w: 'all' }, { from: 49, cells: 150, w: 'all' }, { hand: 12, memory: true }] },
   // Livre II — La Traversée (feuille docs/FEUILLE_LIVRE_II.md). `archipel` : 'cote' (une île, la mer autour se pose) ou 'deux' (deux îles et un détroit).
   // Les chapitres 13 à 15 sont posés provisoirement : leurs mécaniques (vents, marées, trois îles) viennent aux lots 7b et 7c.
-  { id: 11, name: 'La Traversée', sub: 'La mer se pose : récifs, algues, chaîne de territoire', climate: 'temperate', livre: 2, islands: [{ archipel: 'cote', cells: 44, w: 'coast' }, { archipel: 'cote', cells: 52, w: 'coastAll' }, { archipel: 'cote', cells: 56, w: 'balanced', memory: true }] },
+  { id: 11, name: 'La Traversée', sub: 'La mer change : récifs, algues, mer profonde, chaîne de territoire', climate: 'temperate', livre: 2, islands: [{ archipel: 'cote', cells: 44, w: 'coast' }, { archipel: 'cote', cells: 52, w: 'coastAll' }, { archipel: 'cote', cells: 56, w: 'balanced', memory: true }] },
   { id: 12, name: 'Les Ports', sub: 'Deux îles, des ports, des routes de mer', climate: 'temperate', livre: 2, islands: [{ archipel: 'deux', cells: 56, w: 'coastAll' }, { archipel: 'deux', cells: 64, w: 'farms' }, { archipel: 'deux', cells: 70, w: 'coastAll', memory: true }] },
   { id: 13, name: 'Les Vents', sub: 'Le climat venteux, la tempête, le phare', climate: 'windy', livre: 2, islands: [{ archipel: 'deux', cells: 66, w: 'wild' }, { archipel: 'deux', cells: 72, w: 'ridges' }, { archipel: 'deux', cells: 76, w: 'coastAll', memory: true }] },
   { id: 14, name: 'Les Marées', sub: 'La marée, et des îles à contrainte', climate: 'temperate', livre: 2, islands: [{ archipel: 'deux', cells: 72, w: 'hills', largeur: 4, maree: { toutes: 5, taille: 4 } }, { archipel: 'deux', cells: 80, w: 'rivers' }, { archipel: 'deux', cells: 84, w: 'moor', memory: true }] },
@@ -65,7 +65,7 @@ export const CAMPAIGN_WISHES = [
   { id: 'c_lake', type: 'lake', size: 5, dl: 0.7, needs: 'river' },
   { id: 'c_rabbit', type: 'fauna', species: 'rabbit', dl: 0.5, needs: 'fauna' },
   { id: 'c_duck', type: 'fauna', species: 'duck', dl: 0.6, needs: 'fauna' },
-  { id: 'c_whale', type: 'fauna', species: 'whale', dl: 0.7, needs: 'mer' },        // Livre II : une baleine, donc une mer posée d'un tenant
+  { id: 'c_whale', type: 'fauna', species: 'whale', dl: 0.7, needs: 'mer' },        // Livre II : une baleine, donc de la mer profonde d'un tenant
   { id: 'c_narwhal', type: 'fauna', species: 'narwhal', dl: 0.8, needs: 'ports' },   // Livre II : un narval, donc une route à deux ports
   { id: 'c_species', type: 'species', count: 4, dl: 0.85, needs: 'fauna' },
   { id: 'c_bourg', type: 'bourg', count: 2, dl: 0.85 },

@@ -181,7 +181,7 @@ export class Board {
   /** Instantané sérialisable (pour le souvenir / annulation). */
   snapshot() { return { mask: [...this.mask], tiles: [...this.tiles.values()].map((t) => ({ ...t })), closed: [...this.closedRegions], fog: [...this.fog] }; }
   restore(s) {
-    this.mask = new Set(s.mask); this.tiles = new Map(s.tiles.map((t) => [key(t.q, t.r), { ...t }]));
+    this.mask = new Set(s.mask); this.tiles = new Map(s.tiles.map((t) => [key(t.q, t.r), { ...t, ...(t.family === 'sea' ? { family: 'deep' } : null) }]));   // l'ancienne tuile « mer » (retirée le 29 septembre) revient en mer profonde
     this.closedRegions = new Set(s.closed); this.fog = new Set(s.fog || []); this.version = (this.version || 0) + 1;
     this.sealClosed();
   }

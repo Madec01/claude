@@ -339,7 +339,7 @@ export const STORY = {
     c_mouth: { giver: 'Le vieux pêcheur', title: 'Jusqu’à la mer', text: 'Une rivière qui atteint la mer. Les poissons connaissent le chemin, pas moi.', done: 'L’embouchure est là. Le pêcheur a attrapé un souvenir.', failed: 'La rivière s’est arrêtée. Le pêcheur aussi.' },
     c_lake: { giver: 'La fille du puits', title: 'Un lac pour se regarder', text: 'Un lac de cinq tuiles, en tas, loin de la roche. Je veux voir le ciel par terre.', done: 'Le lac reflète tout. Même ce qu’on ne montre pas.', failed: 'Pas de lac. La fille du puits regarde le puits.' },
     c_rabbit: { giver: 'Les enfants', title: 'Un lapin', text: 'Un lapin. Il faut de l’herbe, et pas trop de monde.', done: 'Le lapin est venu. Les enfants ont promis de ne pas le toucher. Ils ont menti.', failed: 'Pas de lapin. Les enfants en ont dessiné un.' },
-    c_whale: { giver: 'La passeuse', title: 'Une baleine', text: 'Pose la mer d’un seul tenant, cinq cases au moins. Elle viendra voir.', done: 'La baleine a soufflé une fois, juste devant la barque. La passeuse n’a rien dit.', failed: 'La mer est restée en morceaux. La baleine est passée au large.' },
+    c_whale: { giver: 'La passeuse', title: 'Une baleine', text: 'Pose de la mer profonde d’un seul tenant, cinq cases au moins. Elle viendra voir.', done: 'La baleine a soufflé une fois, juste devant la barque. La passeuse n’a rien dit.', failed: 'La mer est restée en morceaux. La baleine est passée au large.' },
     c_narwhal: { giver: 'Le capitaine du port', title: 'Un narval', text: 'Relie deux ports par la mer. Il suit toujours les bateaux, celui-là.', done: 'Le narval a suivi la première route jusqu’au quai. Les enfants ont compté sa dent.', failed: 'Aucune route. Le narval n’a suivi personne.' },
     c_duck: { giver: 'Le meunier', title: 'Des canards', text: 'Un lac assez grand pour des canards. Ils se posent lourd.', done: 'Les canards sont là. Le meunier leur parle le matin.', failed: 'Les canards ont survolé l’île. Sans s’arrêter.' },
     c_species: { giver: 'La vieille', title: 'Quatre espèces', text: 'Quatre animaux différents. Une île sans bêtes, c’est une table sans pieds.', done: 'Quatre espèces, et une vieille qui les nomme toutes.', failed: 'Trois espèces. La vieille compte le chat.' },
@@ -546,7 +546,7 @@ export const STORY = {
       name: 'Baleine',
       arrive: 'Une baleine fait surface entre les deux rives. Elle souffle, elle reste, elle regarde.',
       leave: 'La baleine a replongé. La mer est de nouveau trop petite pour elle.',
-      habitat: 'Une mer posée d’un seul tenant, cinq cases au moins (Livre II).',
+      habitat: 'De la mer profonde d’un seul tenant, cinq cases au moins (Livre II).',
     },
     walrus: {
       name: 'Morse',
@@ -586,8 +586,8 @@ export const STORY = {
     ruins: { name: 'Ruines', blurb: 'Ce qui reste d’avant. Ne rapporte rien, ne gêne personne : on bâtit autour.' },
     hill: { name: 'Colline', blurb: 'Aime la roche (+2), la forêt, la prairie, le verger et le hameau ; fait naître les rivières comme la roche ; les chevaux y montent depuis les prés.' },
     heath: { name: 'Lande', blurb: 'Sol pauvre (le champ et le verger n’y poussent pas) mais fleurit au printemps, ne sèche jamais et protège les prairies voisines de l’été ; les vaches paissent en lisière.' },
-    // Livre II — la mer se pose
-    sea: { name: 'Mer', blurb: 'La mer posée sur le détroit. Neutre, elle porte les routes : d’un seul tenant entre deux ports, elle paie à chaque saison.' },
+    // Livre II — trois tuiles remplacent la mer du détroit
+    deep: { name: 'Mer profonde', blurb: 'Le large, là où le détroit tombe à pic. Aime la mer profonde, le récif, les algues et le port (+2 : les grands navires y accostent) ; cinq cases d’un seul tenant, et la baleine vient.' },
     reef: { name: 'Récif', blurb: 'Des rochers à fleur d’eau. Aime la plage et la roche (+2), craint le hameau et le port (−1).' },
     kelp: { name: 'Algues', blurb: 'Du varech sur le détroit. Aime le marais (+2, la vasière) et nourrit ce qui vit au bord.' },
     port: { name: 'Port', blurb: 'Les docks, sur la terre au bord de l’eau. Mer +2 (le quai), hameau +2 (la ville portuaire) ; jamais deux ports côte à côte. Une route de mer qui le touche exporte ce qui l’entoure : une marchandise par famille différente.' },
@@ -607,7 +607,7 @@ export const STORY = {
     falls: { name: 'Cascade', blurb: 'Roche + eau. Compte pour les deux ; +1 par tuile d’eau voisine à chaque saison. Une rivière peut en naître.' },
     cave: { name: 'Grotte', blurb: 'Forêt + roche. Compte pour les deux ; +1 par forêt voisine à chaque saison. L’ours y dort.' },
     lagoon: { name: 'Lagune', blurb: 'Sable + eau. Compte pour les deux ; +1 par tuile d’eau voisine à chaque saison. Les manchots y glissent l’hiver.' },
-    shipyard: { name: 'Chantier naval', blurb: 'Port + forêt. Compte pour les deux ; +1 par tuile de mer voisine à chaque saison (au plus 3) : les coques sortent des bois de marine.' },
+    shipyard: { name: 'Chantier naval', blurb: 'Port + forêt. Compte pour les deux ; +1 par case de mer voisine à chaque saison (au plus 3) : les coques sortent des bois de marine.' },
   },
 
   breaths: {
@@ -754,12 +754,12 @@ export const STORY = {
   prologue2: [
     'Tu es partie, Saison. Tu as pris la barque. Personne ne t’a vue monter, mais la passeuse a senti le poids changer.',
     '« Il y a d’autres îles, sous d’autres ciels. Elles se souviennent de la terre. C’est la mer qu’elles ont oubliée. »',
-    'Ici, la mer se pose. Une tuile de mer entre deux rives, et deux ports se parlent. Une route qui tient paie à chaque saison.',
+    'Ici, la mer change sous tes mains. Un récif, des algues, un fond qui plonge — et deux ports se parlent. Une route qui tient paie à chaque saison.',
     '« Relie. C’est tout ce que je sais faire, et je le fais depuis cent saisons. À toi de trouver ce qui vaut la peine d’être relié. »',
     'Commence par la côte. Le récif aime la plage, les algues aiment la vase, et la mer n’aime rien : elle porte.',
   ],
   ending2: [
-    'La dernière tuile de mer est posée. Le détroit ne sépare plus rien : il relie.',
+    'Le dernier récif est posé. Le détroit ne sépare plus rien : il relie.',
     'La passeuse a lâché la rame. La barque continue toute seule, de port en port, portée par les routes que tu as tenues.',
     'Le narval suit. La baleine souffle une fois, puis reste. Le morse n’a pas bougé, il n’avait pas besoin.',
     '« Quinze îles. Deux mers. J’ai compté les traversées et je ne compterai plus. »',

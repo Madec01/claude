@@ -1,6 +1,6 @@
 // Livre II — ce qui paie à la saison sur un archipel : les routes de mer et la chaîne de territoire.
 //
-// Une ROUTE est un morceau de mer posée d'un seul tenant (mer, récif, algues sur le détroit) ; elle relie les ports
+// Une ROUTE est un morceau de mer posée d'un seul tenant (mer profonde, récif, algues sur le détroit) ; elle relie les ports
 // qu'elle touche. Elle paie à chaque saison pour chaque port relié au-delà du premier, plus une marchandise par famille
 // de terre différente qui touche l'un de ses ports. Relier deux réseaux est le grand coup d'une partie.
 //

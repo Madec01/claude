@@ -570,7 +570,7 @@ export class IslandRenderer {
       if (seul && !seul.has(k)) continue;
       if (!vis(c) || anses.has(k)) continue;
       const season = this.seasonFor(w.x); const g = this.decor.groundFor(t);
-      if (g === 'sea') continue;   // Livre II : la mer posée n'a pas de sol, c'est la mer dessinée dessous (ses vagues, rochers et algues sont des objets)
+      if (g === 'sea') continue;   // Livre II : une tuile de mer n'a pas de sol, c'est la mer dessinée dessous (ses vagues, rochers et algues sont des objets)
       // Une case d'eau qui touche la MER ne dessine pas son eau : elle dessine sa rive. Son hexagone
       // bleu, posé au milieu du disque de terre du rivage, ressortait avec ses arêtes droites et ses
       // pointes — et c'est le plan d'eau, dessiné juste après en taches rondes, qui doit faire l'eau.
@@ -1427,7 +1427,7 @@ export class IslandRenderer {
     if (this._anses && this._anses.ver === ver) return this._anses.cells;
     const pures = new Set();
     for (const body of waterBodies(b)) if (body.kind !== 'river' && body.mouth) for (const c of body.cells) pures.add(key(c.q, c.r));
-    // Livre II : une tuile de mer posée (mer, récif, algues) est rendue comme une anse — la côte la contourne, elle n'a
+    // Livre II : une tuile de mer posée (mer profonde, récif, algues) est rendue comme une anse — la côte la contourne, elle n'a
     // ni sol, ni rive, ni écume ; la mer du large reste la mer, de la même couleur, et seuls ses objets (vagues,
     // rochers, algues) disent qu'on a construit là. Elle garde ses objets, une anse vraie n'en a pas (`ansesPures`).
     const cells = new Set(pures);
@@ -1453,7 +1453,8 @@ export class IslandRenderer {
       const d = this.fx.dropTransform(key(t.q, t.r)); const a = d.dy !== 0 ? 0 : 1;   // la tache naît quand la tuile touche l'eau
       const r = SIZE * 1.08 * (d.s || 1);
       const g = ctx.createRadialGradient(w.x, w.y, 0, w.x, w.y, r);
-      const [rgb, k] = t.family === 'kelp' ? ['96,178,150', 0.30] : t.family === 'reef' ? ['214,240,246', 0.36] : ['196,232,242', 0.28];
+      // récif : un haut-fond clair ; algues : une tache verte ; mer profonde : le fond qui tombe, un bleu sombre (mêmes voiles, couleurs inverses)
+      const [rgb, k] = t.family === 'kelp' ? ['96,178,150', 0.30] : t.family === 'reef' ? ['214,240,246', 0.36] : ['22,74,128', 0.42];
       g.addColorStop(0, `rgba(${rgb},${(k * a).toFixed(3)})`); g.addColorStop(0.55, `rgba(${rgb},${(k * 0.7 * a).toFixed(3)})`); g.addColorStop(1, `rgba(${rgb},0)`);
       ctx.fillStyle = g; ctx.beginPath(); ctx.arc(w.x, w.y, r, 0, TAU); ctx.fill();
     }

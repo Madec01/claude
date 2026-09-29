@@ -567,7 +567,8 @@ export class Island {
     // fusions : prime de saison (+pts par voisine d'une famille, plafonnée, ou +pts fixes dans une saison)
     for (const t of board.tiles.values()) {
       if (!t.fusion) continue; const rec = FUSION_BY_ID[t.family]; if (!rec || !rec.seasonal) continue; const sp = rec.seasonal; let p = 0;
-      if (sp.family) p = Math.min(sp.cap || 6, neighbors(t.q, t.r).filter(([a, b]) => Board.isFamily(board.get(a, b), sp.family)).length) * sp.pts;
+      if (sp.family === 'mer') p = Math.min(sp.cap || 6, neighbors(t.q, t.r).filter(([a, b]) => board.isSea(a, b)).length) * sp.pts;   // le chantier naval : toute mer voisine
+      else if (sp.family) p = Math.min(sp.cap || 6, neighbors(t.q, t.r).filter(([a, b]) => Board.isFamily(board.get(a, b), sp.family)).length) * sp.pts;
       else if (sp.season === season) p = sp.pts;
       if (p) { ev.push({ type: 'fusion', q: t.q, r: t.r, pts: p, id: t.family }); }
     }

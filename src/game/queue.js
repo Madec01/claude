@@ -79,5 +79,6 @@ export class TileQueue {
 
   snapshot() { return { list: this.list.map((t) => ({ ...t })), total: this.total, generated: this.generated, s: this.rng.s, recu: { ...this.recu } }; }
   // une partie sauvée avant le retrait de la poche : ses tuiles en poche reviennent en tête de la main
-  restore(s) { this.list = [...(s.pocket || []), ...s.list].map((t) => ({ ...t })); this.total = s.total; this.generated = s.generated; this.rng.s = s.s; if (s.recu) this.recu = { ...s.recu }; }
+  // l'ancienne tuile « mer » (retirée le 29 septembre) revient en mer profonde
+  restore(s) { this.list = [...(s.pocket || []), ...s.list].map((t) => ({ ...t, ...(t.family === 'sea' ? { family: 'deep' } : null) })); this.total = s.total; this.generated = s.generated; this.rng.s = s.s; if (s.recu) this.recu = { ...s.recu }; }
 }

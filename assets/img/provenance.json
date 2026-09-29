@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-28T15:05:14+00:00",
+ "generated": "2026-09-29T17:53:04+00:00",
  "generator": "tools/build_images.py",
  "conventions": {
   "hex": {
@@ -1633,68 +1633,68 @@
    "tile": "ruins",
    "method": "svg2x"
   },
-  "sea_1_spring": {
-   "file": "tiles/sea_1_spring.webp",
+  "deep_1_spring": {
+   "file": "tiles/deep_1_spring.webp",
    "w": 240,
    "h": 280,
-   "bytes": 5400,
+   "bytes": 5158,
    "source": [
     "hexagon-pack",
     "hexagontiles"
    ],
    "original": "grass_05 (alpha) + hexagontiles/Tiles/waveWater.png",
-   "note": "Mer posée : l'eau et trois vagues, rien d'autre — elle porte les routes.",
+   "note": "Mer profonde : l'eau de la saison assombrie (le fond qui tombe) et deux longues vagues. Remplace l'ancienne tuile « mer » (29 septembre).",
    "season": "spring",
-   "family": "sea",
-   "tile": "sea_1",
+   "family": "deep",
+   "tile": "deep_1",
    "method": "composed"
   },
-  "sea_1_summer": {
-   "file": "tiles/sea_1_summer.webp",
+  "deep_1_summer": {
+   "file": "tiles/deep_1_summer.webp",
    "w": 240,
    "h": 280,
-   "bytes": 5308,
+   "bytes": 5094,
    "source": [
     "hexagon-pack",
     "hexagontiles"
    ],
    "original": "grass_05 (alpha) + hexagontiles/Tiles/waveWater.png",
-   "note": "Mer posée : l'eau et trois vagues, rien d'autre — elle porte les routes.",
+   "note": "Mer profonde : l'eau de la saison assombrie (le fond qui tombe) et deux longues vagues. Remplace l'ancienne tuile « mer » (29 septembre).",
    "season": "summer",
-   "family": "sea",
-   "tile": "sea_1",
+   "family": "deep",
+   "tile": "deep_1",
    "method": "composed"
   },
-  "sea_1_autumn": {
-   "file": "tiles/sea_1_autumn.webp",
+  "deep_1_autumn": {
+   "file": "tiles/deep_1_autumn.webp",
    "w": 240,
    "h": 280,
-   "bytes": 5434,
+   "bytes": 4886,
    "source": [
     "hexagon-pack",
     "hexagontiles"
    ],
    "original": "grass_05 (alpha) + hexagontiles/Tiles/waveWater.png",
-   "note": "Mer posée : l'eau et trois vagues, rien d'autre — elle porte les routes.",
+   "note": "Mer profonde : l'eau de la saison assombrie (le fond qui tombe) et deux longues vagues. Remplace l'ancienne tuile « mer » (29 septembre).",
    "season": "autumn",
-   "family": "sea",
-   "tile": "sea_1",
+   "family": "deep",
+   "tile": "deep_1",
    "method": "composed"
   },
-  "sea_1_winter": {
-   "file": "tiles/sea_1_winter.webp",
+  "deep_1_winter": {
+   "file": "tiles/deep_1_winter.webp",
    "w": 240,
    "h": 280,
-   "bytes": 5242,
+   "bytes": 4690,
    "source": [
     "hexagon-pack",
     "hexagontiles"
    ],
    "original": "grass_05 (alpha) + hexagontiles/Tiles/waveWater.png",
-   "note": "Mer posée : l'eau et trois vagues, rien d'autre — elle porte les routes.",
+   "note": "Mer profonde : l'eau de la saison assombrie (le fond qui tombe) et deux longues vagues. Remplace l'ancienne tuile « mer » (29 septembre).",
    "season": "winter",
-   "family": "sea",
-   "tile": "sea_1",
+   "family": "deep",
+   "tile": "deep_1",
    "method": "composed"
   },
   "reef_1_spring": {
@@ -2525,7 +2525,7 @@
    "file": "tiles/phare_spring.webp",
    "w": 240,
    "h": 280,
-   "bytes": 6358,
+   "bytes": 6680,
    "source": [
     "hexagon-pack",
     "hexagontiles"
@@ -2541,7 +2541,7 @@
    "file": "tiles/phare_summer.webp",
    "w": 240,
    "h": 280,
-   "bytes": 6358,
+   "bytes": 6680,
    "source": [
     "hexagon-pack",
     "hexagontiles"
@@ -2557,7 +2557,7 @@
    "file": "tiles/phare_autumn.webp",
    "w": 240,
    "h": 280,
-   "bytes": 6358,
+   "bytes": 6680,
    "source": [
     "hexagon-pack",
     "hexagontiles"
@@ -2573,7 +2573,7 @@
    "file": "tiles/phare_winter.webp",
    "w": 240,
    "h": 280,
-   "bytes": 6356,
+   "bytes": 6498,
    "source": [
     "hexagon-pack",
     "hexagontiles"
@@ -5456,6 +5456,56 @@
    "source": "kaykit",
    "original": "forest/Color1/Tree_5_A_Color1.gltf",
    "note": "Épicéa (pack Forest) : forêts du climat froid.",
+   "anchor": "bottom"
+  },
+  "obj_palmier_1": {
+   "file": "deco/obj_palmier_1.webp",
+   "w": 89,
+   "h": 124,
+   "bytes": 5108,
+   "source": "kaykit",
+   "original": "quaternius/Environment_PalmTree_1.gltf",
+   "note": "Palmier 1 (Pirate Kit de Quaternius) : forêts et pinèdes du climat chaud.",
+   "anchor": "bottom"
+  },
+  "obj_palmier_2": {
+   "file": "deco/obj_palmier_2.webp",
+   "w": 124,
+   "h": 124,
+   "bytes": 6420,
+   "source": "kaykit",
+   "original": "quaternius/Environment_PalmTree_2.gltf",
+   "note": "Palmier 2 (Pirate Kit de Quaternius) : forêts et pinèdes du climat chaud.",
+   "anchor": "bottom"
+  },
+  "obj_palmier_3": {
+   "file": "deco/obj_palmier_3.webp",
+   "w": 111,
+   "h": 124,
+   "bytes": 6204,
+   "source": "kaykit",
+   "original": "quaternius/Environment_PalmTree_3.gltf",
+   "note": "Palmier 3 (Pirate Kit de Quaternius) : forêts et pinèdes du climat chaud.",
+   "anchor": "bottom"
+  },
+  "obj_navire_vert": {
+   "file": "deco/obj_navire_vert.webp",
+   "w": 100,
+   "h": 162,
+   "bytes": 7684,
+   "source": "kaykit",
+   "original": "extra/units/green/ship_green_accent.gltf",
+   "note": "Trois-mâts aux voiles rayées de vert (KayKit EXTRA) : amarré au bout des docks.",
+   "anchor": "bottom"
+  },
+  "obj_navire_rouge": {
+   "file": "deco/obj_navire_rouge.webp",
+   "w": 100,
+   "h": 162,
+   "bytes": 7698,
+   "source": "kaykit",
+   "original": "extra/units/red/ship_red_accent.gltf",
+   "note": "Trois-mâts aux voiles rayées de rouge (KayKit EXTRA) : amarré au bout des docks.",
    "anchor": "bottom"
   },
   "obj_epicea_A_winter": {

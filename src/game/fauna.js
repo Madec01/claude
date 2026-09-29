@@ -98,13 +98,13 @@ export function evaluate(board, season, rule = null) {
     if (alive >= F.cow && board.regionTouches(reg, 'heath')) add('cow', reg, reg.cells.find((t) => !t.dry && neighbors(t.q, t.r).some(([a, b]) => { const n = board.get(a, b); return n && Board.isFamily(n, 'heath'); })) || undefined);
   }
   for (const t of board.tiles.values()) if (t.family === 'camp') out.set(`goat@camp:${t.q},${t.r}`, { species: 'goat', q: t.q, r: t.r, regionId: `camp:${t.q},${t.r}` });
-  // Livre II — la faune de mer. La baleine : une mer posée d'un seul tenant d'au moins F.whale cases ; le narval : une route
-  // qui relie deux ports (il suit les bateaux) ; le morse : des algues contre la roche.
+  // Livre II — la faune de mer. La baleine : de la mer profonde d'un seul tenant, F.whale cases au moins (le large) ; le narval :
+  // une route qui relie deux ports (il suit les bateaux) ; le morse : des algues contre la roche.
   if (board.detroit && board.detroit.size) {
+    for (const reg of board.regions('deep')) if (reg.size >= F.whale) add('whale', reg);
     for (const r of computeRoutes(board)) {
       const cells = r.cells.map((k) => board.tiles.get(k)).filter(Boolean); if (!cells.length) continue;
       const reg = { id: `mer:${r.cells[0]}`, cells };
-      if (cells.length >= F.whale) add('whale', reg);
       if (r.ports.length >= 2) add('narwhal', reg, cells.length >= 3 ? cells[Math.floor(cells.length / 2)] : cells[0]);
     }
     for (const reg of board.regions('kelp')) if (reg.size >= F.walrus && board.regionTouches(reg, 'rock')) add('walrus', reg, reg.cells.find((t) => neighbors(t.q, t.r).some(([a, b]) => Board.isFamily(board.get(a, b), 'rock'))) || undefined);

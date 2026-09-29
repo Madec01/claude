@@ -33,15 +33,15 @@ const defDe = (seed, cells) => { const a = archipelMask(seed, cells); return { i
   const isl = new Island(defDe(107, 60), { upgrades: {} });
   const b = isl.board; const d = isl.def.detroit[0]; const [dq, dr] = d.split(',').map(Number);
   check(b.detroit.size === isl.def.detroit.length && b.mask.has(d) && b.isSea(dq, dr), 'les cases du détroit sont dans le masque et comptent comme la mer tant qu\'elles sont vides');
-  const mer = { family: 'sea', variant: 1, id: 1 }, pre = { family: 'meadow', variant: 1, id: 2 };
+  const mer = { family: 'deep', variant: 1, id: 1 }, pre = { family: 'meadow', variant: 1, id: 2 };
   const legMer = b.legalCells(mer), legPre = b.legalCells(pre);
   check(legMer.length > 0 && legMer.every((c) => b.detroit.has(key(c.q, c.r))), `une tuile de mer ne se pose que sur le détroit (${legMer.length} cases)`);
   check(legPre.length > 0 && legPre.every((c) => !b.detroit.has(key(c.q, c.r))), `une prairie ne se pose jamais sur le détroit (${legPre.length} cases)`);
   const c = legMer[0]; b.place(c.q, c.r, mer);
-  check(b.isSea(c.q, c.r) && Board.isFamily(b.get(c.q, c.r), 'sea') && !b.isEmpty(c.q, c.r), 'une case du détroit posée porte une tuile de mer, et reste la mer (côte, écume, embouchures)');
+  check(b.isSea(c.q, c.r) && Board.isFamily(b.get(c.q, c.r), 'deep') && !b.isEmpty(c.q, c.r), 'une case du détroit posée porte une tuile de mer, et reste la mer (côte, écume, embouchures)');
   const port = isl.def.start.find((s) => s.family === 'port');
-  check(affinity('port', 'sea') === 2 && affinity('hamlet', 'port') === 2 && affinity('reef', 'sand') === 2 && affinity('kelp', 'marsh') === 2 && affinity('hamlet', 'reef') === -1 && affinity('port', 'port') === -1, 'les affinités de la mer : quai +2, ville portuaire +2, lagon +2, vasière +2, naufrage −1, deux ports −1');
-  check(MER.has('sea') && MER.has('reef') && MER.has('kelp') && !MER.has('port') && !MER.has('pine'), 'la mer, le récif et les algues sont des tuiles de mer ; le port et la pinède sont des terres');
+  check(affinity('port', 'deep') === 2 && affinity('hamlet', 'port') === 2 && affinity('reef', 'sand') === 2 && affinity('kelp', 'marsh') === 2 && affinity('hamlet', 'reef') === -1 && affinity('port', 'port') === -1, 'les affinités de la mer : eaux profondes +2, ville portuaire +2, lagon +2, vasière +2, naufrage −1, deux ports −1');
+  check(MER.has('deep') && !MER.has('sea') && MER.has('reef') && MER.has('kelp') && !MER.has('port') && !MER.has('pine'), 'la mer profonde, le récif et les algues sont les tuiles de mer (plus de tuile « mer » seule) ; le port et la pinède sont des terres');
 }
 
 // --- les routes : une mer d'un seul tenant qui relie deux ports paie ; ses marchandises sont les terres autour des ports
@@ -55,7 +55,7 @@ const defDe = (seed, cells) => { const a = archipelMask(seed, cells); return { i
   let arrivee = null;
   while (file.length && !arrivee) { const k = file.shift(); const [q, r] = k.split(',').map(Number); for (const [a, c] of neighbors(q, r)) { const nk = key(a, c); if (cible.has(nk) && nk !== key(p0.q, p0.r)) { arrivee = k; break; } if (b.detroit.has(nk) && !prev.has(nk)) { prev.set(nk, k); file.push(nk); } } }
   const chemin = []; for (let k = arrivee; k; k = prev.get(k)) chemin.push(k);
-  for (const k of chemin) { const [q, r] = k.split(',').map(Number); b.place(q, r, { family: 'sea', variant: 1, id: 9 }); }
+  for (const k of chemin) { const [q, r] = k.split(',').map(Number); b.place(q, r, { family: 'deep', variant: 1, id: 9 }); }
   const routes = computeRoutes(b); const payante = routes.find((r) => r.pts);
   const R = BALANCE.livre2.route;
   check(!!payante && payante.ports.length === 2 && payante.pts === R.port + payante.marchandises.length * R.marchandise, `une mer de ${chemin.length} cases relie les deux ports : la route paie ${payante ? payante.pts : 0} (${R.port} par port relié au-delà du premier + ${payante ? payante.marchandises.length : 0} marchandises)`);
@@ -101,7 +101,7 @@ function relier(isl) {
   let arrivee = null;
   while (file.length && !arrivee) { const k = file.shift(); const [q, r] = k.split(',').map(Number); for (const [a, c] of neighbors(q, r)) { const nk = key(a, c); if (cible.has(nk) && nk !== key(p0.q, p0.r)) { arrivee = k; break; } if (b.detroit.has(nk) && !prev.has(nk)) { prev.set(nk, k); file.push(nk); } } }
   const chemin = []; for (let k = arrivee; k; k = prev.get(k)) chemin.push(k);
-  for (const k of chemin) { const [q, r] = k.split(',').map(Number); b.place(q, r, { family: 'sea', variant: 1, id: 9 }); }
+  for (const k of chemin) { const [q, r] = k.split(',').map(Number); b.place(q, r, { family: 'deep', variant: 1, id: 9 }); }
   return { chemin, ports };
 }
 const caseLibre = (isl, q, r, pred = () => true) => neighbors(q, r).find(([a, c]) => isl.board.isEmpty(a, c) && !isl.board.detroit.has(key(a, c)) && pred(a, c));
@@ -136,7 +136,7 @@ const defMech = (seed, cells, extra = {}) => ({ ...defDe(seed, cells), mech: new
   // une case de terre libre qui touche la route ; s'il n'y en a pas le long du chemin, on allonge la route d'une case de mer vers une rive libre
   const terreLibre = (q, r) => neighbors(q, r).find(([a, c]) => b.isEmpty(a, c) && !b.detroit.has(key(a, c)));
   let cp = null; for (const k of chemin) { const [q, r] = k.split(',').map(Number); cp = terreLibre(q, r); if (cp) break; }
-  if (!cp) for (const k of chemin) { const [q, r] = k.split(',').map(Number); for (const [a, c] of neighbors(q, r)) { if (!b.detroit.has(key(a, c)) || !b.isEmpty(a, c)) continue; const t = terreLibre(a, c); if (t) { b.place(a, c, { family: 'sea', variant: 1, id: 14 }); cp = t; break; } } if (cp) break; }
+  if (!cp) for (const k of chemin) { const [q, r] = k.split(',').map(Number); for (const [a, c] of neighbors(q, r)) { if (!b.detroit.has(key(a, c)) || !b.isEmpty(a, c)) continue; const t = terreLibre(a, c); if (t) { b.place(a, c, { family: 'deep', variant: 1, id: 14 }); cp = t; break; } } if (cp) break; }
   b.place(cp[0], cp[1], { family: 'phare', variant: 1, rare: true, id: 13 });
   const apresPhare = sansMarch(computeRoutes(b).find((r) => r.pts));
   check(apresPhare === avantPhare + R.route.phare, `le phare fait payer la route qui le touche +${R.route.phare} (${avantPhare} → ${apresPhare}, marchandises à part)`);
@@ -145,16 +145,16 @@ const defMech = (seed, cells, extra = {}) => ({ ...defDe(seed, cells), mech: new
   check(!isl.rentesMer(b).some((e) => e.type === 'route') && isl.rentesMer(b).some((e) => e.id === 'tavern'), 'sous la tempête, rentesMer ne paie pas les routes mais paie encore la taverne');
 }
 
-// --- le chantier naval : port + forêt, +1 par tuile de mer voisine à chaque saison
+// --- le chantier naval : port + forêt, +1 par case de mer voisine à chaque saison (détroit vide ou tuile de mer)
 {
   const isl = new Island(defMech(107, 60), { upgrades: {} }); const b = isl.board;
   const rec = fusionFor('port', 'forest');
-  check(!!rec && rec.id === 'shipyard' && rec.seasonal.family === 'sea' && rec.seasonal.cap === 3, 'port + forêt = chantier naval, +1 par mer voisine (au plus 3)');
+  check(!!rec && rec.id === 'shipyard' && rec.seasonal.family === 'mer' && rec.seasonal.cap === 3, 'port + forêt = chantier naval, +1 par case de mer voisine (au plus 3)');
   const { chemin, ports } = relier(isl); const p = ports[0];
-  const nMer = neighbors(p.q, p.r).filter(([a, c]) => { const t = b.get(a, c); return t && MER.has(t.family); }).length;
+  const nMer = neighbors(p.q, p.r).filter(([a, c]) => b.isSea(a, c)).length;
   const t = fusedTile(b.get(p.q, p.r), rec, 'forest'); b.tiles.set(key(p.q, p.r), t); b.touch();
   const prime = isl.primesFixes(b, 'autumn').find((e) => e.type === 'fusion' && e.id === 'shipyard');
-  check(Board.isFamily(t, 'port') && Board.isFamily(t, 'forest') && (nMer === 0 ? !prime : prime && prime.pts === Math.min(3, nMer)), `le chantier compte port et forêt et paie +${prime ? prime.pts : 0} pour ${nMer} tuile(s) de mer voisine(s)`);
+  check(Board.isFamily(t, 'port') && Board.isFamily(t, 'forest') && (nMer === 0 ? !prime : prime && prime.pts === Math.min(3, nMer)), `le chantier compte port et forêt et paie +${prime ? prime.pts : 0} pour ${nMer} case(s) de mer voisine(s)`);
   check(computeRoutes(b).some((r) => r.pts && r.ports.some((x) => x.q === p.q && x.r === p.r)), 'le chantier reste un port : la route qui le touche paie toujours');
 }
 
@@ -175,7 +175,7 @@ const defMech = (seed, cells, extra = {}) => ({ ...defDe(seed, cells), mech: new
   // l'estran a besoin d'une terre qui ne soit pas un port contre la mer posée : on pose un sable contre le chemin (en allongeant la mer d'une case s'il le faut)
   { const terreLibre = (q, r) => neighbors(q, r).find(([a, c]) => b.isEmpty(a, c) && !b.detroit.has(key(a, c)));
     let cs = null; for (const k of chemin) { const [q, r] = k.split(',').map(Number); cs = terreLibre(q, r); if (cs) break; }
-    if (!cs) for (const k of chemin) { const [q, r] = k.split(',').map(Number); for (const [a, c] of neighbors(q, r)) { if (!b.detroit.has(key(a, c)) || !b.isEmpty(a, c)) continue; const t = terreLibre(a, c); if (t) { b.place(a, c, { family: 'sea', variant: 1, id: 24 }); cs = t; break; } } if (cs) break; }
+    if (!cs) for (const k of chemin) { const [q, r] = k.split(',').map(Number); for (const [a, c] of neighbors(q, r)) { if (!b.detroit.has(key(a, c)) || !b.isEmpty(a, c)) continue; const t = terreLibre(a, c); if (t) { b.place(a, c, { family: 'deep', variant: 1, id: 24 }); cs = t; break; } } if (cs) break; }
     if (cs) b.place(cs[0], cs[1], { family: 'sand', variant: 1, id: 25 }); b.touch(); }
   const printemps = transition(b, 'spring', 'maree', {});
   const estran = printemps.filter((e) => e.type === 'maree');
@@ -220,11 +220,11 @@ const defMech = (seed, cells, extra = {}) => ({ ...defDe(seed, cells), mech: new
   const { chemin } = relier(isl);
   const f1 = evalFaune(b, isl.season, isl.rule); const narval = [...f1.values()].find((a) => a.species === 'narwhal');
   check(!!narval && b.detroit.has(key(narval.q, narval.r)), `deux ports reliés : le narval suit la route (posé sur ${narval ? key(narval.q, narval.r) : '?'}, sur le détroit)`);
-  // on étend la mer jusqu'à cinq cases d'un tenant
+  // on étend la mer profonde jusqu'à cinq cases d'un tenant
   const poses = new Set(chemin); let garde = 0;
-  while (poses.size < F.whale && garde++ < 60) { let fait = false; for (const k of [...poses]) { const [q, r] = k.split(',').map(Number); const c = neighbors(q, r).find(([a, cc]) => b.detroit.has(key(a, cc)) && b.isEmpty(a, cc)); if (c) { b.place(c[0], c[1], { family: 'sea', variant: 1, id: 40 }); poses.add(key(c[0], c[1])); fait = true; break; } } if (!fait) break; }
+  while (poses.size < F.whale && garde++ < 60) { let fait = false; for (const k of [...poses]) { const [q, r] = k.split(',').map(Number); const c = neighbors(q, r).find(([a, cc]) => b.detroit.has(key(a, cc)) && b.isEmpty(a, cc)); if (c) { b.place(c[0], c[1], { family: 'deep', variant: 1, id: 40 }); poses.add(key(c[0], c[1])); fait = true; break; } } if (!fait) break; }
   const f2 = evalFaune(b, isl.season, isl.rule); const baleine = [...f2.values()].find((a) => a.species === 'whale');
-  check(poses.size >= F.whale && !!baleine && b.detroit.has(key(baleine.q, baleine.r)), `une mer de ${poses.size} cases d'un tenant : la baleine fait surface`);
+  check(poses.size >= F.whale && !!baleine && b.detroit.has(key(baleine.q, baleine.r)), `une mer profonde de ${poses.size} cases d'un tenant : la baleine fait surface`);
   // des algues contre la roche : deux cases du détroit voisines d'une roche
   let roche = null; for (const k of b.mask) { const [q, r] = k.split(',').map(Number); if (b.isEmpty(q, r) && !b.detroit.has(k) && neighbors(q, r).some(([a, c]) => b.detroit.has(key(a, c)) && b.isEmpty(a, c))) { roche = [q, r]; break; } }
   b.place(roche[0], roche[1], { family: 'rock', variant: 1, id: 41 });

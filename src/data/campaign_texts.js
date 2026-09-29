@@ -46,7 +46,7 @@ export const CAMPAIGN_TEXTS = {
  */
 // Livre II (provisoire, lot 7c pour les textes définitifs)
 export const INTENTIONS_LIVRE2 = {
-  31: 'Ici, pose la mer autour de l’île : un récif contre la plage, des algues contre le marais.',
+  31: 'Ici, change la mer autour de l’île : un récif contre la plage, des algues contre le marais, la mer profonde au large.',
   32: 'Ici, enchaîne des familles différentes en bonnes paires : la chaîne de territoire paie à chaque saison.',
   33: 'Ici, garde le récif loin des hameaux, et près de la roche.',
   34: 'Ici, relie les deux ports par la mer : la route paie à chaque saison.',
@@ -93,7 +93,7 @@ export const INTENTIONS = {
  * Livre II — textes provisoires des îles 31 à 45 (le récit vient au lot 7c). Clés : numéro d'île.
  */
 export const TEXTES_LIVRE2 = {
-  31: { name: 'Le Premier Rivage', intro: ['De l’autre côté de la mer, une île qui ne sait plus ce qu’est l’automne.', 'La mer autour d’elle se pose : un récif contre la plage, des algues contre le marais.'], memory: 'La mer a été la première tuile. On ne l’avait jamais vue ainsi.' },
+  31: { name: 'Le Premier Rivage', intro: ['De l’autre côté de la mer, une île qui ne sait plus ce qu’est l’automne.', 'La mer autour d’elle change sous tes mains : un récif contre la plage, des algues contre le marais, la mer profonde au large.'], memory: 'La mer a changé la première. On ne l’avait jamais vue ainsi.' },
   32: { name: 'La Baie des Algues', intro: ['Une baie où l’eau est verte de varech.', 'Enchaîne des familles différentes, en bonnes paires : la chaîne de territoire paie à chaque saison.'], memory: 'Les algues ont nourri le marais, et le marais a nourri le reste.' },
   33: { name: 'L’Écueil', intro: ['Des rochers à fleur d’eau, et une plage qui les regarde.', 'Le récif aime la roche et la plage ; il craint le hameau.'], memory: 'On a appris à poser la mer comme on pose la terre.' },
   34: { name: 'Les Deux Rives', intro: ['Deux îles, un détroit, un port sur chaque rive.', 'Pose la mer entre les ports : la route paie à chaque saison, et davantage par marchandise.'], memory: 'La première route a mis une saison. La seconde, une pose.' },
@@ -104,7 +104,7 @@ export const TEXTES_LIVRE2 = {
   39: { name: 'Le Phare', intro: ['Un phare éteint sur un rocher.', 'Le phare est une tuile rare qui compte comme roche : posé sur la côte, chaque route qui le touche paie +2 de plus à chaque saison.'], memory: 'On a rallumé le phare.' },
   40: { name: 'Les Grèves', intro: ['La marée découvre deux fois par jour un chemin entre les îles.', 'Au printemps, la marée basse peut découvrir l’estran : chaque tuile de mer contre la terre rapporte +1, les algues +2, et les marais restent sous l’eau.'], memory: 'La mer a rendu ce qu’elle avait pris.' },
   41: { name: 'La Montagne dans la Mer', intro: ['Une île de roche où la mer est la seule eau.', 'Peu d’eau douce : les routes de mer, la chaîne de territoire et le marché feront le score. Le récif aime la roche.'], memory: 'La roche a bu la mer.' },
-  42: { name: 'Le Banc des Morses', intro: ['Des morses sur les algues, contre la roche.', 'Les algues contre la roche attirent le morse ; une mer d’un seul tenant de cinq cases, la baleine ; une route à deux ports, le narval.'], memory: 'Les morses sont revenus les premiers.' },
+  42: { name: 'Le Banc des Morses', intro: ['Des morses sur les algues, contre la roche.', 'Les algues contre la roche attirent le morse ; cinq cases de mer profonde d’un seul tenant, la baleine ; une route à deux ports, le narval.'], memory: 'Les morses sont revenus les premiers.' },
   43: { name: 'Le Grand Large', intro: ['Trois îles, et la mer entre elles. Climat chaud : l’eau vaut de l’or, les prés sèchent tôt.', 'Deux détroits : une route qui traverse les deux relie trois ports, et chaque port de plus compte.'], memory: 'On a relié le large.' },
   44: { name: 'L’Archipel des Cent Saisons', intro: ['Trois îles sous la neige. Climat froid : la veillée vaut plus, les champs dorment tôt.', 'La glace relie les hameaux, la mer relie les ports : deux façons de tenir ensemble, la même saison.'], memory: 'Il restait une saison à rendre.' },
   45: { name: 'Le Dernier Rivage', intro: ['Quatre îles, trois détroits, et le vent qui ne s’arrête pas. La marée descend toutes les six poses.', 'Tout ce que la mer sait, ensemble : les routes, la chaîne, la tempête, la marée, les bêtes. La passeuse retourne sa barque une dernière fois.'], memory: 'Tu peux rester, Saison.' },

@@ -73,10 +73,10 @@ export function archipelMask(seed, cells = 60, { largeur = 2, iles = 2 } = {}) {
   throw new Error(`archipelMask : pas d'archipel pour la graine ${seed}`);
 }
 
-/** La file d'un archipel : les familles de la côte, la pinède et le port, et une part `mer` de tuiles de mer (mer, récif, algues). */
+/** La file d'un archipel : les familles de la côte, la pinède et le port, et une part `mer` de tuiles de mer (mer profonde, récif, algues). */
 export function poidsArchipel(base = WEIGHTS.coastAll, mer = 0.25) {
   const w = { ...base, pine: 7, port: 4 }; const somme = Object.values(w).reduce((a, b) => a + b, 0);
-  const wm = somme * mer / (1 - mer); w.sea = Math.round(wm * 0.55); w.reef = Math.round(wm * 0.25); w.kelp = Math.round(wm * 0.2);
+  const wm = somme * mer / (1 - mer); w.deep = Math.round(wm * 0.55); w.reef = Math.round(wm * 0.25); w.kelp = Math.round(wm * 0.2);
   return w;
 }
 

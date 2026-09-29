@@ -29,11 +29,11 @@ Une tuile de mer qui n'a plus de case libre est perdue sans pénalité, la suiva
 port et un hameau**. Le nombre de cases de terre est celui d'une île du Livre I.
 
 **Les familles** (`src/data/tiles.js`, `FAMILLES_LIVRE2`).
-- **Mer** : neutre, porte les routes (mer·mer +1, mer·récif +1, mer·algues +1, mer·eau +1 « estuaire »).
+- **Mer profonde** (29 septembre, remplace l'ancienne tuile « Mer », que le commanditaire jugeait absurde : « on ne remplace pas la mer par une tuile mer ») : le large, un bleu sombre sur le détroit ; mer profonde·mer profonde +1, ·récif +1, ·algues +1, ·eau +1 « estuaire », ·port +2 « eaux profondes », ·pinède +1. Cinq cases d'un seul tenant : la baleine. Comme le récif et les algues, elle porte les routes.
 - **Récif** : plage +2 « lagon », roche +2 « écueils », hameau −1 « naufrage », port −1.
 - **Algues** : marais +2 « vasière », sable +1.
-- **Port** (terre, bord d'eau) : mer +2 « quai », hameau +2 « ville portuaire », champ +1, forêt +1 ; port·port −1, marais −1.
-- **Pinède** (terre) : sable +2, roche +2, forêt +1, prairie +1, mer +1 ; champ −1. Ne sèche pas l'été (à faire).
+- **Port** (terre, bord d'eau) : mer profonde +2 « eaux profondes », hameau +2 « ville portuaire », champ +1, forêt +1 ; port·port −1, marais −1.
+- **Pinède** (terre) : sable +2, roche +2, forêt +1, prairie +1, mer profonde +1 ; champ −1. Ne sèche pas l'été (à faire).
 - La file d'un archipel : les familles de la côte, la pinède (7) et le port (4), plus **un quart de tuiles de mer** (mer 55 %,
   récif 25 %, algues 20 % de cette part) — `poidsArchipel`.
 

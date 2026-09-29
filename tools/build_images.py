@@ -89,7 +89,20 @@ EXTRA = dict(pack="KayKit : Medieval Hexagon Pack EXTRA (1.0)", author="Kay Lous
              mirror="fourni par le commanditaire (téléchargement direct)",
              license_file="License.txt")
 
+# Palmiers du Pirate Kit de Quaternius (lot 8 ter, choisis par le commanditaire sur planche) : cinquième racine, préfixe
+# « quaternius/ ». La page du pack dit CC0 ; la licence maison du site (QAL, 28 août 2026) permet aussi l'usage en jeu
+# sans crédit et n'interdit que de redistribuer les modèles eux-mêmes — le dépôt n'en garde que des rendus.
+QUATERNIUS = dict(pack="Quaternius : Pirate Kit", author="Quaternius", url="https://quaternius.com/packs/piratekit.html",
+                  mirror="https://drive.google.com/drive/folders/1KjMzhVsDcyvYMWeVjZcRfuu8auBLpNi2", license_file="LICENCE.txt")
+
 KAY_MODELS = {
+    # --- lot 8 ter : palmiers (Quaternius), navires aux voiles rayées et tour du phare (pack EXTRA)
+    "palmier_1": "quaternius/Environment_PalmTree_1",
+    "palmier_2": "quaternius/Environment_PalmTree_2",
+    "palmier_3": "quaternius/Environment_PalmTree_3",
+    "navire_vert": "extra/units/green/ship_green_accent",
+    "navire_rouge": "extra/units/red/ship_red_accent",
+    "tour_phare": "extra/buildings/yellow/building_tower_B_yellow",
     # --- pack Forest : les feuillus existent en huit palettes, dont les couleurs de saison ;
     # on ne les recolore donc pas, on prend directement la bonne. L'hiver est un arbre nu.
     # Trois silhouettes par rôle, chacune dans sa propre nuance : une forêt de clones n'est pas une
@@ -357,6 +370,9 @@ COLORS = {
     "water": {"spring": "#8ac0dc", "summer": "#77b5d8", "autumn": "#87afc8", "winter": "#a9c1d2"},
     "water_edge": {"spring": "#5a95b7", "summer": "#4e8db3", "autumn": "#5988a6", "winter": "#6f96ae"},
     "ice": "#dbe9f4", "ice_edge": "#c5d8ea",
+    # Livre II — la mer profonde : l'eau de la saison assombrie (le fond qui tombe), liseré d'autant plus sombre
+    "deep": {"spring": "#3f7fae", "summer": "#356fa3", "autumn": "#3f6f96", "winter": "#56789a"},
+    "deep_edge": {"spring": "#2b5f8a", "summer": "#245582", "autumn": "#2c5577", "winter": "#3f5f80"},
     "fruit": {"summer": ("#e8553d", "#d9463a"), "autumn": ("#f0a03a", "#e8553d")},
     "stone_winter": "#e3eaf0", "dirt_winter": "#e6ebf0",
     "heath_ground": {"spring": "#a9b26a", "summer": "#b0a45a", "autumn": "#b58c55", "winter": SNOW},
@@ -501,12 +517,13 @@ def fit(im, box):
 class Sources:
     """Accès aux sprites : Hexagon Pack en 2× (cache SVG ou Lanczos), autres packs natifs."""
 
-    def __init__(self, src_root, kay_root=None, animals_root=None, forest_root=None, extra_root=None):
+    def __init__(self, src_root, kay_root=None, animals_root=None, forest_root=None, extra_root=None, quat_root=None):
         self.src = src_root
         self.kay_root = kay_root
         self.animals_root = animals_root
         self.forest_root = forest_root
         self.extra_root = extra_root
+        self.quat_root = quat_root
         self.hp_png = src_root / HP / "PNG"
         self.tiles2x = CACHE / "hex2x_tiles"
         self.objs2x = CACHE / "hex2x_objects"
@@ -582,7 +599,8 @@ class Sources:
         jobs.write_text(json.dumps(spec, indent=1), encoding="utf-8")
         print(f"rendu des {len(KAY_MODELS)} modèles KayKit (Chromium + three.js)…")
         subprocess.run(["node", str(ROOT / "tools" / "render_kaykit.js"), str(jobs),
-                        "--src", str(self.kay_root), "--forest", str(self.forest_root), "--extra", str(self.extra_root), "--out", str(self.kay2x)], check=True)
+                        "--src", str(self.kay_root), "--forest", str(self.forest_root), "--extra", str(self.extra_root),
+                        "--quaternius", str(self.quat_root / "glTF"), "--out", str(self.kay2x)], check=True)
 
     def kay_meta(self):
         if not getattr(self, "_kay_meta", None):
@@ -803,8 +821,8 @@ TILES = {
                base_kind="stone", note="Ruines KayKit (bâtiment effondré) sur pierre."),
     # --- collines (dès l'île 7) : hillGrass des Hexagon Tiles, recolorée comme l'herbe
     # Livre II — les tuiles de mer se dessinent sur l'eau (même base que la tuile d'eau) ; port et pinède sur la terre du bord de mer
-    "sea_1": T("sea", "water", [L("ht:waveWater:3.7", 36, 58, "wave"), L("ht:waveWater:3.7", 80, 84, "wave"), L("ht:waveWater:3.7", 52, 112, "wave")], base_kind="water",
-               note="Mer posée : l'eau et trois vagues, rien d'autre — elle porte les routes."),
+    "deep_1": T("deep", "water", [L("ht:waveWater:3.7", 40, 70, "wave"), L("ht:waveWater:3.7", 78, 104, "wave")], base_kind="deep",
+                note="Mer profonde : l'eau de la saison assombrie (le fond qui tombe) et deux longues vagues. Remplace l'ancienne tuile « mer » (29 septembre)."),
     "reef_1": T("reef", "water", [L("ht:waveWater:3.7", 36, 58, "wave"), L("kay:recif_A", 58, 90, "rock", width=44), L("kay:recif_B", 84, 100, "rock", width=30), L("ht:waveWater:3.7", 60, 114, "wave")], base_kind="water",
                 note="Récif : deux rochers gris du pack Forest à fleur d'eau, deux vagues."),
     "kelp_1": T("kelp", "water", [L("kay:roseau_A", 44, 86, "kelp", width=28), L("kay:roseau_B", 76, 96, "kelp", width=30), L("kay:roseau_C", 58, 110, "kelp", width=26), L("ht:waveWater:3.7", 80, 62, "wave")], base_kind="water",
@@ -840,7 +858,7 @@ TILES = {
     "tavern": T("rare", "grass_05", [L("kay:tavern", 60, 90, scale=0.81), L("kay:barrel", 26, 102, scale=1.4), L("kay:barrel", 94, 106, scale=1.2)],
                 note="Taverne KayKit + deux tonneaux."),
     # Livre II (lot 7b) : le phare — une tour de pierre KayKit sur la roche, un récif au pied, une vague ; sa lanterne est un halo dessiné en jeu (dégradé, pas une image)
-    "phare": T("rare", "stone_07", [L("kay:tower", 60, 86, scale=0.72), L("kay:recif_B", 36, 98, "rock", width=28), L("ht:waveWater:3.7", 82, 98, "wave")], base_kind="stone",
+    "phare": T("rare", "stone_07", [L("kay:tour_phare", 60, 88, scale=0.62), L("kay:recif_B", 36, 98, "rock", width=28), L("ht:waveWater:3.7", 82, 98, "wave")], base_kind="stone",
                note="Phare : tour de guet KayKit sur la roche, rocher de récif au pied, une vague."),
     "trough": T("rare", "grass_05", [L("kay:abreuvoir", 60, 94, width=56), L("kay:bucket", 92, 104, scale=1.4)] + FLOWERS_SPRING,
                 note="Abreuvoir + clôtures KayKit + seau + fleurs au printemps."),
@@ -867,6 +885,7 @@ class Composer:
         self.errors = []
         self.water_base = {sai: self.make_water_base(COLORS["water"][sai], COLORS["water_edge"][sai]) for sai in SEASONS}
         self.ice_base = self.make_water_base(COLORS["ice"], COLORS["ice_edge"])
+        self.deep_base = {sai: self.make_water_base(COLORS["deep"][sai], COLORS["deep_edge"][sai]) for sai in SEASONS}
 
     # --- bases
     def make_water_base(self, fill, edge):
@@ -882,6 +901,8 @@ class Composer:
         kind = spec["base_kind"]
         if kind == "water":
             im = self.water_base[season].copy()
+        elif kind == "deep":
+            im = self.deep_base[season].copy()
         else:
             im = self.src.hp(spec["base"]).copy()
         if spec["base_mirror"] or spec["base_rot"]:
@@ -1120,8 +1141,8 @@ def draw_wind(size=100):
 # Construction
 # ===========================================================================
 class Builder:
-    def __init__(self, src_root, repo, sheets=False, kay_root=None, animals_root=None, forest_root=None, extra_root=None):
-        self.src = Sources(src_root, kay_root, animals_root, forest_root, extra_root)
+    def __init__(self, src_root, repo, sheets=False, kay_root=None, animals_root=None, forest_root=None, extra_root=None, quat_root=None):
+        self.src = Sources(src_root, kay_root, animals_root, forest_root, extra_root, quat_root)
         self.animals_root = animals_root
         self.repo = repo
         self.img_root = repo / "assets" / "img"
@@ -1173,7 +1194,7 @@ class Builder:
                 a = np.asarray(im.split()[3])
                 if ((a > 40) & ~comp.inside).any() or ((a < 200) & (hex_mask_np & (np.asarray(comp.hex_alpha) > 200))).any():
                     raise RuntimeError(f"{key}_{season}: hexagone de base non aligné / troué")
-                originals = sorted({self.src.hp_original(spec["base"]) if spec["base_kind"] != "water" else "grass_05 (alpha)"} |
+                originals = sorted({self.src.hp_original(spec["base"]) if spec["base_kind"] not in ("water", "deep") else "grass_05 (alpha)"} |
                                    {self.src.hp_original(l["sprite"][4:]) for l in spec["layers"] if l["sprite"].startswith("obj:")} |
                                    {"hexagontiles/Tiles/" + l["sprite"].split(":")[1] + ".png" for l in spec["layers"] if l["sprite"].startswith("ht:")})
                 methods = sorted({self.src.methods.get(n) for n in [spec["base"]] + [l["sprite"][4:] for l in spec["layers"] if l["sprite"].startswith("obj:")]
@@ -1361,6 +1382,11 @@ class Builder:
             for season in SEASONS:
                 kobj(f"obj_frondaison_{v}_{season}", f"frondaison_{v}", season, None, "foliage", f"Frondaison {v} ({season}) : les forêts du climat humide, feuillage recoloré par saison.", target_h=104)
         kobj("obj_epicea_A", "epicea_A", "summer", None, "static", "Épicéa (pack Forest) : forêts du climat froid.", target_h=132)
+        # lot 8 ter (choisis sur planche par le commanditaire) : palmiers du climat chaud, navires aux voiles rayées au port
+        for v in ("1", "2", "3"):
+            kobj(f"obj_palmier_{v}", f"palmier_{v}", "summer", None, "static", f"Palmier {v} (Pirate Kit de Quaternius) : forêts et pinèdes du climat chaud.", target_h=124)
+        kobj("obj_navire_vert", "navire_vert", "summer", 100, "static", "Trois-mâts aux voiles rayées de vert (KayKit EXTRA) : amarré au bout des docks.")
+        kobj("obj_navire_rouge", "navire_rouge", "summer", 100, "static", "Trois-mâts aux voiles rayées de rouge (KayKit EXTRA) : amarré au bout des docks.")
         kobj("obj_epicea_A_winter", "epicea_A", "winter", None, "foliage", "Épicéa enneigé (feuillage passé à la neige).", target_h=132)
         # Le chantier : ossature, échelle, pelle, et deux charrettes pour le marché.
         kobj("obj_stage", "chantier_B", "summer", 130, "static", "Ossature de chantier (KayKit) : tuile « restaurer ».")
@@ -1802,7 +1828,7 @@ class Builder:
         for meta, pref in ((KAYKIT, ""), (FOREST, "forest/"), (EXTRA, "extra/")):
             def group(n, pref=pref):
                 p = KAY_MODELS[n]
-                return (p.startswith(pref) if pref else not (p.startswith("forest/") or p.startswith("extra/")))
+                return (p.startswith(pref) if pref else not (p.startswith("forest/") or p.startswith("extra/") or p.startswith("quaternius/")))
             used = sorted(n for n in self.src.kay_used if group(n))
             if not used:
                 continue
@@ -1813,6 +1839,15 @@ class Builder:
                 "licenseFile": meta["mirror"] if pref else f"{meta['mirror']}/blob/main/{meta['license_file']}",
                 "note": "modèles 3D rendus en PNG par tools/render_kaykit.js (élévation 30°, azimut −30°, 120 px/unité ; les dalles plates à la verticale)",
                 "files": sorted(KAY_MODELS[n][len(pref):] + ".gltf" for n in used),
+            })
+        used = sorted(n for n in self.src.kay_used if KAY_MODELS[n].startswith("quaternius/"))
+        if used:
+            credits.append({
+                "pack": QUATERNIUS["pack"], "author": QUATERNIUS["author"], "license": "CC0 1.0", "licenseUrl": CC0_URL,
+                "url": QUATERNIUS["url"], "mirror": QUATERNIUS["mirror"], "mirrorPath": "glTF",
+                "licenseFile": QUATERNIUS["url"] + " (champ « License : CC0 » ; voir aussi https://quaternius.com/license.html)",
+                "note": "modèles 3D rendus en PNG par tools/render_kaykit.js, à la projection des tuiles ; seuls les rendus sont dans le jeu",
+                "files": sorted(KAY_MODELS[n][len("quaternius/"):] + ".gltf" for n in used),
             })
         if self.per_pack["animaux3d"]:
             prov = json.loads((self.animals_root / "PROVENANCE.json").read_text(encoding="utf-8"))
@@ -2006,6 +2041,15 @@ def check_extra_license(extra_root):
     EXTRA["license_text_path"] = EXTRA["license_file"]
 
 
+def check_quaternius_license(root):
+    """Le Pirate Kit de Quaternius : la note de provenance doit citer la licence CC0 de la page du pack."""
+    p = root / QUATERNIUS["license_file"]
+    if not p.exists():
+        raise RuntimeError(f"Pirate Kit de Quaternius introuvable : {p}")
+    if "creativecommons.org/publicdomain/zero/1.0" not in p.read_text(encoding="utf-8", errors="replace"):
+        raise RuntimeError(f"Licence CC0 introuvable dans {p}")
+
+
 def check_animals_licenses(animals_root):
     """Chaque modèle d'animal doit porter une licence libre non virale (CC0 ou CC-BY)."""
     p = animals_root / "PROVENANCE.json"
@@ -2030,6 +2074,7 @@ def main():
     ap.add_argument("--animaux", default=os.environ.get("ANIMAUX3D_ROOT", "/home/user/animaux3d"))
     ap.add_argument("--forest", default=os.environ.get("FOREST_ROOT", "/home/user/kaykit/KayKit-Forest-Nature-Pack-1.0"))
     ap.add_argument("--extra", default=os.environ.get("EXTRA_ROOT", "/home/user/kaykit/extra"))
+    ap.add_argument("--quaternius", default=os.environ.get("QUATERNIUS_ROOT", "/home/user/quaternius/pirate_kit"), help="Pirate Kit de Quaternius (glTF/ + LICENCE.txt)")
     ap.add_argument("--out", default=str(ROOT))
     ap.add_argument("--rebuild-cache", action="store_true", help="re-rasterise les SVG et ré-extrait les sprites 2×")
     ap.add_argument("--sheets", action="store_true", help="écrit des planches-contact par saison dans tools/cache/sheets/")
@@ -2045,9 +2090,10 @@ def main():
     check_kaykit_license(kay_root)
     check_forest_license(Path(args.forest))
     check_extra_license(Path(args.extra))
+    check_quaternius_license(Path(args.quaternius))
     check_animals_licenses(animals_root)
     b = Builder(src_root, repo, sheets=args.sheets, kay_root=kay_root, animals_root=animals_root,
-                forest_root=Path(args.forest), extra_root=Path(args.extra) / "Asset4")
+                forest_root=Path(args.forest), extra_root=Path(args.extra) / "Asset4", quat_root=Path(args.quaternius))
     b.src.prepare(rebuild=args.rebuild_cache)
     b.build_tiles()
     b.build_deco()
