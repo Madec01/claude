@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-29T12:16:08+00:00",
+ "generated": "2026-09-28T15:05:14+00:00",
  "generator": "tools/build_images.py",
  "conventions": {
   "hex": {
@@ -5456,96 +5456,6 @@
    "source": "kaykit",
    "original": "forest/Color1/Tree_5_A_Color1.gltf",
    "note": "Épicéa (pack Forest) : forêts du climat froid.",
-   "anchor": "bottom"
-  },
-  "obj_palmier_A": {
-   "file": "deco/obj_palmier_A.webp",
-   "w": 82,
-   "h": 118,
-   "bytes": 4220,
-   "source": "kaykit",
-   "original": "kenney/pirate/palm-detailed-straight.glb",
-   "note": "Palmier A (Pirate Kit) : forêts et pinèdes du climat chaud.",
-   "anchor": "bottom"
-  },
-  "obj_palmier_B": {
-   "file": "deco/obj_palmier_B.webp",
-   "w": 81,
-   "h": 118,
-   "bytes": 4774,
-   "source": "kaykit",
-   "original": "kenney/pirate/palm-detailed-bend.glb",
-   "note": "Palmier B (Pirate Kit) : forêts et pinèdes du climat chaud.",
-   "anchor": "bottom"
-  },
-  "obj_palmier_C": {
-   "file": "deco/obj_palmier_C.webp",
-   "w": 89,
-   "h": 118,
-   "bytes": 3816,
-   "source": "kaykit",
-   "original": "kenney/pirate/palm-straight.glb",
-   "note": "Palmier C (Pirate Kit) : forêts et pinèdes du climat chaud.",
-   "anchor": "bottom"
-  },
-  "obj_caravelle": {
-   "file": "deco/obj_caravelle.webp",
-   "w": 118,
-   "h": 183,
-   "bytes": 7780,
-   "source": "kaykit",
-   "original": "kenney/pirate/ship-small.glb",
-   "note": "Caravelle à voile blanche (Pirate Kit) : mouillée au port.",
-   "anchor": "bottom"
-  },
-  "obj_epave": {
-   "file": "deco/obj_epave.webp",
-   "w": 116,
-   "h": 149,
-   "bytes": 7716,
-   "source": "kaykit",
-   "original": "kenney/pirate/ship-wreck.glb",
-   "note": "Épave échouée (Pirate Kit) : sur un récif, parfois.",
-   "anchor": "bottom"
-  },
-  "obj_voilier_A": {
-   "file": "deco/obj_voilier_A.webp",
-   "w": 56,
-   "h": 85,
-   "bytes": 2826,
-   "source": "kaykit",
-   "original": "kenney/watercraft/boat-sail-a.glb",
-   "note": "Petit voilier A (Watercraft Kit) : au port et le long des routes.",
-   "anchor": "bottom"
-  },
-  "obj_voilier_B": {
-   "file": "deco/obj_voilier_B.webp",
-   "w": 56,
-   "h": 84,
-   "bytes": 2608,
-   "source": "kaykit",
-   "original": "kenney/watercraft/boat-sail-b.glb",
-   "note": "Petit voilier B (Watercraft Kit) : au port et le long des routes.",
-   "anchor": "bottom"
-  },
-  "obj_bouee": {
-   "file": "deco/obj_bouee.webp",
-   "w": 20,
-   "h": 42,
-   "bytes": 946,
-   "source": "kaykit",
-   "original": "kenney/watercraft/buoy.glb",
-   "note": "Bouée rouge (Watercraft Kit) : au large des ports.",
-   "anchor": "bottom"
-  },
-  "obj_bouee_drapeau": {
-   "file": "deco/obj_bouee_drapeau.webp",
-   "w": 22,
-   "h": 68,
-   "bytes": 1756,
-   "source": "kaykit",
-   "original": "kenney/watercraft/buoy-flag.glb",
-   "note": "Bouée à drapeau (Watercraft Kit) : au large des ports.",
    "anchor": "bottom"
   },
   "obj_epicea_A_winter": {

@@ -115,10 +115,10 @@ jouées sur les archipels au premier cycle de saisons puis un cycle sur deux, en
 Livre II a « Skye Cuillin » de Kevin MacLeod (CC BY). Les ports ont leurs mouettes (ambiance `harbour`, BigSoundBank CC0),
 dosées au nombre de ports et de chantiers à l'écran. Tout tient sous les 30 Mo : le catalogue MacLeod est passé en qualité 4.
 
-**Les kits Kenney** (lot 8) : `tools/render_kaykit.js` lit une quatrième racine, `kenney/<kit>/<modèle>` (GLB, texture
-partagée du kit). Du Pirate Kit : trois palmiers (forêts et pinèdes du climat chaud), la caravelle et l'épave ; du Watercraft
-Kit : deux voiliers et deux bouées. Le port amarre un bateau au bout des docks, sur l'eau, et pose une bouée au large ; un
-récif sur cinq porte une épave. La tour du Pirate Kit n'est pas un phare (un donjon) : le phare KayKit reste.
+**Les kits Kenney** (lot 8) : essayés puis retirés le même jour. Le Pirate Kit et le Watercraft Kit (CC0, GLB) donnaient des
+palmiers, une caravelle, deux voiliers, des bouées et une épave ; le commanditaire les a trouvés en rupture complète avec le
+style KayKit du plateau. Retirés avec leur décor, leur racine de rendu et leurs crédits ; le plateau est revenu à l'état
+d'avant. Règle retenue : un modèle d'un autre auteur se montre en planche avant d'entrer dans le jeu.
 
 ## Ce qui entre ensuite, et ce qui part
 

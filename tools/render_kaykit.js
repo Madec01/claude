@@ -85,13 +85,9 @@ window.__shot = (url, el, az, zoom) => new Promise((res, rej) => {
 window.__ready = true;
 </script></body>`;
 
-const MIME = { '.gltf': 'model/gltf+json', '.glb': 'model/gltf-binary', '.bin': 'application/octet-stream', '.png': 'image/png', '.js': 'text/javascript' };
+const MIME = { '.gltf': 'model/gltf+json', '.bin': 'application/octet-stream', '.png': 'image/png', '.js': 'text/javascript' };
 
-// Kits 3D de Kenney (CC0), livrés en GLB : « kenney/<kit>/<modèle> » se lit dans <racine>/<kit>/Models/GLB format/<modèle>.glb,
-// et la texture partagée du kit (Textures/colormap.png) à côté. Le kit est le nom du dossier (pirate, watercraft…).
-function kenneyPath(kenneyRoot, rel) { const i = rel.indexOf('/'); return path.join(kenneyRoot, rel.slice(0, i), 'Models', 'GLB format', rel.slice(i + 1)); }
-
-function serve(kayRoot, forestRoot, extraRoot, kenneyRoot, threeDir) {
+function serve(kayRoot, forestRoot, extraRoot, threeDir) {
   const srv = http.createServer((req, res) => {
     const url = decodeURIComponent(req.url.split('?')[0]);
     if (url === '/render.html') { res.writeHead(200, { 'Content-Type': 'text/html' }); res.end(PAGE); return; }
@@ -99,7 +95,6 @@ function serve(kayRoot, forestRoot, extraRoot, kenneyRoot, threeDir) {
     if (url.startsWith('/three/')) { base = threeDir; file = path.join(threeDir, url.slice(7)); }
     else if (url.startsWith('/kk/forest/')) { base = forestRoot; file = path.join(forestRoot, url.slice(11)); }
     else if (url.startsWith('/kk/extra/')) { base = extraRoot; file = path.join(extraRoot, url.slice(10)); }
-    else if (url.startsWith('/kk/kenney/')) { base = kenneyRoot; file = kenneyPath(kenneyRoot, url.slice(11)); }
     else if (url.startsWith('/kk/')) { base = kayRoot; file = path.join(kayRoot, url.slice(4)); }
     if (!file || !path.resolve(file).startsWith(path.resolve(base)) || !fs.existsSync(file)) {
       res.writeHead(404); res.end('non'); return;
@@ -122,12 +117,10 @@ function serve(kayRoot, forestRoot, extraRoot, kenneyRoot, threeDir) {
   // (à deux près, un moulin bleu et un pont, que nous n'employons pas) plus 183 autres : on le garde à part
   // plutôt que d'y basculer la racine, pour qu'aucun des modèles déjà en place ne change sans qu'on le veuille.
   const extraRoot = path.join(arg('--extra', '/home/user/kaykit/extra/Asset4'), 'gltf');
-  // quatrième racine : les kits Kenney (Pirate Kit, Watercraft Kit), préfixe « kenney/<kit>/ », modèles GLB
-  const kenneyRoot = arg('--kenney', '/home/user/kenney_kits');
   const out = arg('--out', path.join(CACHE, 'kaykit'));
   fs.mkdirSync(out, { recursive: true });
   const threeDir = ensureThree();
-  const srv = await serve(kayRoot, forestRoot, extraRoot, kenneyRoot, threeDir);
+  const srv = await serve(kayRoot, forestRoot, extraRoot, threeDir);
   const port = srv.address().port;
   const b = await chromium.launch({ args: ['--use-gl=swiftshader', '--enable-unsafe-swiftshader'] });
   const page = await b.newPage();
@@ -139,13 +132,11 @@ function serve(kayRoot, forestRoot, extraRoot, kenneyRoot, threeDir) {
   const errors = [];
   for (const [name, spec] of Object.entries(models)) {
     const rel = spec.model;
-    const ext = rel.startsWith('kenney/') ? '.glb' : '.gltf';
-    const url = `/kk/${rel}${ext}`;
+    const url = `/kk/${rel}.gltf`;
     const disk = rel.startsWith('forest/') ? path.join(forestRoot, `${rel.slice(7)}.gltf`)
       : rel.startsWith('extra/') ? path.join(extraRoot, `${rel.slice(6)}.gltf`)
-        : rel.startsWith('kenney/') ? kenneyPath(kenneyRoot, `${rel.slice(7)}.glb`)
-          : path.join(kayRoot, `${rel}.gltf`);
-    if (!fs.existsSync(disk)) { errors.push(`${name} : modèle absent (${rel}${ext})`); continue; }
+        : path.join(kayRoot, `${rel}.gltf`);
+    if (!fs.existsSync(disk)) { errors.push(`${name} : modèle absent (${rel}.gltf)`); continue; }
     let box;
     try { box = await page.evaluate(([u, el, az, z]) => window.__shot(u, el, az, z), [url, spec.el, spec.az, spec.zoom]); }
     catch (e) { errors.push(`${name} : ${e.message}`); continue; }

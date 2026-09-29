@@ -89,24 +89,7 @@ EXTRA = dict(pack="KayKit : Medieval Hexagon Pack EXTRA (1.0)", author="Kay Lous
              mirror="fourni par le commanditaire (téléchargement direct)",
              license_file="License.txt")
 
-# Kits 3D de Kenney (CC0), en GLB : quatrième racine du rendu, préfixe « kenney/<kit>/ » (lot 8, trouvés par le réseau).
-# Le Pirate Kit donne les palmiers du climat chaud, une caravelle et une épave ; le Watercraft Kit deux voiliers et des bouées.
-KENNEY3D = {
-    "pirate": dict(pack="Pirate Kit (2.1)", url="https://kenney.nl/assets/pirate-kit", license_file="License.txt"),
-    "watercraft": dict(pack="Watercraft Kit (2.1)", url="https://kenney.nl/assets/watercraft-kit", license_file="License.txt"),
-}
-
 KAY_MODELS = {
-    # --- kits Kenney (lot 8) : palmiers, bateaux, bouées, épave
-    "palmier_A": "kenney/pirate/palm-detailed-straight",
-    "palmier_B": "kenney/pirate/palm-detailed-bend",
-    "palmier_C": "kenney/pirate/palm-straight",
-    "caravelle": "kenney/pirate/ship-small",
-    "epave": "kenney/pirate/ship-wreck",
-    "voilier_A": "kenney/watercraft/boat-sail-a",
-    "voilier_B": "kenney/watercraft/boat-sail-b",
-    "bouee": "kenney/watercraft/buoy",
-    "bouee_drapeau": "kenney/watercraft/buoy-flag",
     # --- pack Forest : les feuillus existent en huit palettes, dont les couleurs de saison ;
     # on ne les recolore donc pas, on prend directement la bonne. L'hiver est un arbre nu.
     # Trois silhouettes par rôle, chacune dans sa propre nuance : une forêt de clones n'est pas une
@@ -518,13 +501,12 @@ def fit(im, box):
 class Sources:
     """Accès aux sprites : Hexagon Pack en 2× (cache SVG ou Lanczos), autres packs natifs."""
 
-    def __init__(self, src_root, kay_root=None, animals_root=None, forest_root=None, extra_root=None, kenney3d_root=None):
+    def __init__(self, src_root, kay_root=None, animals_root=None, forest_root=None, extra_root=None):
         self.src = src_root
         self.kay_root = kay_root
         self.animals_root = animals_root
         self.forest_root = forest_root
         self.extra_root = extra_root
-        self.kenney3d_root = kenney3d_root
         self.hp_png = src_root / HP / "PNG"
         self.tiles2x = CACHE / "hex2x_tiles"
         self.objs2x = CACHE / "hex2x_objects"
@@ -600,8 +582,7 @@ class Sources:
         jobs.write_text(json.dumps(spec, indent=1), encoding="utf-8")
         print(f"rendu des {len(KAY_MODELS)} modèles KayKit (Chromium + three.js)…")
         subprocess.run(["node", str(ROOT / "tools" / "render_kaykit.js"), str(jobs),
-                        "--src", str(self.kay_root), "--forest", str(self.forest_root), "--extra", str(self.extra_root),
-                        "--kenney", str(self.kenney3d_root), "--out", str(self.kay2x)], check=True)
+                        "--src", str(self.kay_root), "--forest", str(self.forest_root), "--extra", str(self.extra_root), "--out", str(self.kay2x)], check=True)
 
     def kay_meta(self):
         if not getattr(self, "_kay_meta", None):
@@ -703,9 +684,6 @@ def kay_model(sprite, season):
 # comme les objets posés sur les tuiles. Une **dalle plate** doit au contraire se rendre à la verticale :
 # à 30°, son hexagone est écrasé (240 × 108) et ne peut pas recouvrir le nôtre (240 × 280).
 KAY_VIEWS = {
-    # les navires du Pirate Kit font dix unités de long : rendus à 0,6 pour tenir dans le canevas
-    "caravelle": {"zoom": 0.6},
-    "epave": {"zoom": 0.6},
     "ble": {"el": 90, "az": 0},
     "terre": {"el": 90, "az": 0},
     # `zoom` : pixels par unité multipliés au RENDU 3D seulement. Certains modèles sont minuscules
@@ -1142,8 +1120,8 @@ def draw_wind(size=100):
 # Construction
 # ===========================================================================
 class Builder:
-    def __init__(self, src_root, repo, sheets=False, kay_root=None, animals_root=None, forest_root=None, extra_root=None, kenney3d_root=None):
-        self.src = Sources(src_root, kay_root, animals_root, forest_root, extra_root, kenney3d_root)
+    def __init__(self, src_root, repo, sheets=False, kay_root=None, animals_root=None, forest_root=None, extra_root=None):
+        self.src = Sources(src_root, kay_root, animals_root, forest_root, extra_root)
         self.animals_root = animals_root
         self.repo = repo
         self.img_root = repo / "assets" / "img"
@@ -1271,7 +1249,7 @@ class Builder:
             bb = im.split()[3].getbbox()
             if bb:
                 im = im.crop((bb[0], bb[1], bb[2], im.height))
-            self.emit(keyname, "deco", im, "kaykit", KAY_MODELS[model] + (".glb" if KAY_MODELS[model].startswith("kenney/") else ".gltf"), note, anchor="bottom")
+            self.emit(keyname, "deco", im, "kaykit", f"{KAY_MODELS[model]}.gltf", note, anchor="bottom")
 
         # collines et monts en volume (pack EXTRA) : sommet d'herbe recoloré par saison (neige l'hiver),
         # flancs de terre ou de roche inchangés. Une colline isolée couvre une case, une chaîne un peu plus,
@@ -1383,15 +1361,6 @@ class Builder:
             for season in SEASONS:
                 kobj(f"obj_frondaison_{v}_{season}", f"frondaison_{v}", season, None, "foliage", f"Frondaison {v} ({season}) : les forêts du climat humide, feuillage recoloré par saison.", target_h=104)
         kobj("obj_epicea_A", "epicea_A", "summer", None, "static", "Épicéa (pack Forest) : forêts du climat froid.", target_h=132)
-        # lot 8 : les kits Kenney trouvés par le réseau — palmiers du climat chaud, bateaux et bouées des ports et de la mer
-        for v in ("A", "B", "C"):
-            kobj(f"obj_palmier_{v}", f"palmier_{v}", "summer", None, "static", f"Palmier {v} (Pirate Kit) : forêts et pinèdes du climat chaud.", target_h=118)
-        kobj("obj_caravelle", "caravelle", "summer", 118, "static", "Caravelle à voile blanche (Pirate Kit) : mouillée au port.")
-        kobj("obj_epave", "epave", "summer", 116, "static", "Épave échouée (Pirate Kit) : sur un récif, parfois.")
-        for v in ("A", "B"):
-            kobj(f"obj_voilier_{v}", f"voilier_{v}", "summer", 56, "static", f"Petit voilier {v} (Watercraft Kit) : au port et le long des routes.")
-        kobj("obj_bouee", "bouee", "summer", 20, "static", "Bouée rouge (Watercraft Kit) : au large des ports.")
-        kobj("obj_bouee_drapeau", "bouee_drapeau", "summer", 22, "static", "Bouée à drapeau (Watercraft Kit) : au large des ports.")
         kobj("obj_epicea_A_winter", "epicea_A", "winter", None, "foliage", "Épicéa enneigé (feuillage passé à la neige).", target_h=132)
         # Le chantier : ossature, échelle, pelle, et deux charrettes pour le marché.
         kobj("obj_stage", "chantier_B", "summer", 130, "static", "Ossature de chantier (KayKit) : tuile « restaurer ».")
@@ -1833,7 +1802,7 @@ class Builder:
         for meta, pref in ((KAYKIT, ""), (FOREST, "forest/"), (EXTRA, "extra/")):
             def group(n, pref=pref):
                 p = KAY_MODELS[n]
-                return (p.startswith(pref) if pref else not (p.startswith("forest/") or p.startswith("extra/") or p.startswith("kenney/")))
+                return (p.startswith(pref) if pref else not (p.startswith("forest/") or p.startswith("extra/")))
             used = sorted(n for n in self.src.kay_used if group(n))
             if not used:
                 continue
@@ -1844,18 +1813,6 @@ class Builder:
                 "licenseFile": meta["mirror"] if pref else f"{meta['mirror']}/blob/main/{meta['license_file']}",
                 "note": "modèles 3D rendus en PNG par tools/render_kaykit.js (élévation 30°, azimut −30°, 120 px/unité ; les dalles plates à la verticale)",
                 "files": sorted(KAY_MODELS[n][len(pref):] + ".gltf" for n in used),
-            })
-        for kit, meta in KENNEY3D.items():
-            pref = f"kenney/{kit}/"
-            used = sorted(n for n in self.src.kay_used if KAY_MODELS[n].startswith(pref))
-            if not used:
-                continue
-            credits.append({
-                "pack": meta["pack"], "author": "Kenney (kenney.nl)", "license": "CC0 1.0", "licenseUrl": CC0_URL,
-                "url": meta["url"], "mirror": meta["url"], "mirrorPath": "Models/GLB format",
-                "licenseFile": f"{meta['url']} ({meta['license_file']} de l'archive)",
-                "note": "modèles 3D (GLB) rendus en PNG par tools/render_kaykit.js, à la projection des tuiles",
-                "files": sorted(KAY_MODELS[n][len(pref):] + ".glb" for n in used),
             })
         if self.per_pack["animaux3d"]:
             prov = json.loads((self.animals_root / "PROVENANCE.json").read_text(encoding="utf-8"))
@@ -2049,17 +2006,6 @@ def check_extra_license(extra_root):
     EXTRA["license_text_path"] = EXTRA["license_file"]
 
 
-def check_kenney3d_licenses(root):
-    """Chaque kit 3D Kenney employé (KENNEY3D) doit porter sa licence CC0."""
-    for kit, meta in KENNEY3D.items():
-        p = root / kit / meta["license_file"]
-        if not p.exists():
-            raise RuntimeError(f"Kit Kenney « {kit} » introuvable : {p}")
-        txt = p.read_text(encoding="utf-8", errors="replace")
-        if "creativecommons.org/publicdomain/zero/1.0" not in txt:
-            raise RuntimeError(f"Licence CC0 introuvable dans {p}")
-
-
 def check_animals_licenses(animals_root):
     """Chaque modèle d'animal doit porter une licence libre non virale (CC0 ou CC-BY)."""
     p = animals_root / "PROVENANCE.json"
@@ -2084,7 +2030,6 @@ def main():
     ap.add_argument("--animaux", default=os.environ.get("ANIMAUX3D_ROOT", "/home/user/animaux3d"))
     ap.add_argument("--forest", default=os.environ.get("FOREST_ROOT", "/home/user/kaykit/KayKit-Forest-Nature-Pack-1.0"))
     ap.add_argument("--extra", default=os.environ.get("EXTRA_ROOT", "/home/user/kaykit/extra"))
-    ap.add_argument("--kenney3d", default=os.environ.get("KENNEY3D_ROOT", "/home/user/kenney_kits"), help="kits 3D Kenney (un dossier par kit : pirate, watercraft)")
     ap.add_argument("--out", default=str(ROOT))
     ap.add_argument("--rebuild-cache", action="store_true", help="re-rasterise les SVG et ré-extrait les sprites 2×")
     ap.add_argument("--sheets", action="store_true", help="écrit des planches-contact par saison dans tools/cache/sheets/")
@@ -2100,10 +2045,9 @@ def main():
     check_kaykit_license(kay_root)
     check_forest_license(Path(args.forest))
     check_extra_license(Path(args.extra))
-    check_kenney3d_licenses(Path(args.kenney3d))
     check_animals_licenses(animals_root)
     b = Builder(src_root, repo, sheets=args.sheets, kay_root=kay_root, animals_root=animals_root,
-                forest_root=Path(args.forest), extra_root=Path(args.extra) / "Asset4", kenney3d_root=Path(args.kenney3d))
+                forest_root=Path(args.forest), extra_root=Path(args.extra) / "Asset4")
     b.src.prepare(rebuild=args.rebuild_cache)
     b.build_tiles()
     b.build_deco()
