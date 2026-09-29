@@ -232,6 +232,7 @@ Le topo et la vision sont dans la conversation du 28 septembre ; ce tableau gard
 | L9 | « La mer descend » (idée du commanditaire) : toutes les cinq poses, la marée découvre une vague de cases déjà pleines, visibles en silhouette sous l'eau — prototype sur l'île 40, mesuré au robot | **prototype fait** (28 septembre), à juger par le commanditaire en jouant l'île 40 |
 | L10 | **Lot 7c** : récit de la passeuse (prologue à l'île 31, fin à l'île 45), chapitre 15 en chapelet de trois puis quatre îles, musique de mer, crochet pour la cinématique du commanditaire (`assets/video/livre2.webm`) | **fait** (28 septembre) ; la cinématique attend son fichier |
 | L11 | **Lot 8** : assets trouvés par le réseau — musiques RandomMind et « Skye Cuillin », mouettes du port | **fait** (29 septembre). Les kits Pirate et Watercraft de Kenney (palmiers, bateaux, bouées, épave) ont été posés puis **retirés** le jour même : ils jurent avec le style KayKit (avis du commanditaire). Les prochains modèles viendront des packs KayKit ou seront montrés en planche avant d'entrer ; reste à trouver un dauphin ou un phoque CC0 en glTF |
+| L12 | **Lot 8 ter** : navires rayés et tour du phare (KayKit EXTRA), palmiers (Quaternius) choisis sur planche ; la tuile « Mer » remplacée par la **mer profonde** (la baleine y vit) | **fait** (29 septembre) |
 
 ## L'ouverture (28 septembre)
 
